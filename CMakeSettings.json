@@ -1,0 +1,26 @@
+{
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "description": "64 bit Visual Studio debug build",
+      "generator": "Visual Studio 17 2022 Win64",
+      "configurationType": "Debug",
+      "buildRoot": "${projectDir}\\build\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-m:8 -v:minimal -p:PreferredToolArchitecture=x64",
+      "variables": [
+        {
+          "name": "CMAKE_TOOLCHAIN_FILE",
+          "value": "C:\\Microsoft\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+          "type": "STRING"
+        }
+      ],
+      "inheritEnvironments": [ "msvc_x64" ],
+      "clangTidyChecks": "-*,cppcoreguidelines-*",
+      "enableMicrosoftCodeAnalysis": true,
+      "intelliSenseMode": "windows-msvc-x64",
+      "addressSanitizerEnabled": true,
+      "enableClangTidyCodeAnalysis": true
+    }
+  ]
+}
