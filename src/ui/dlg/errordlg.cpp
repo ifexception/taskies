@@ -68,15 +68,16 @@ void ErrorDialog::CreateControls()
     pErrorIconBitmap = new wxStaticBitmap(this, IDC_ERRORICON, wxArtProvider::GetBitmap(wxART_ERROR));
     titleIconSizer->Add(pErrorIconBitmap, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
-    pErrorLabel = new wxStaticText(this, IDC_ERRORLABEL, "An unexpected error occured during the operation of the program");
+    pErrorLabel =
+        new wxStaticText(this, IDC_ERRORLABEL, "An unexpected error occured during the operation of the program");
     titleIconSizer->Add(pErrorLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
     /* Error message text control */
     auto errMsgSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(errMsgSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
-    pErrorMessageTextCtrl =
-        new wxTextCtrl(this, IDC_ERRORMESSAGE, wxEmptyString, wxDefaultPosition, wxSize(-1, 56), wxTE_MULTILINE | wxTE_READONLY);
+    pErrorMessageTextCtrl = new wxTextCtrl(
+        this, IDC_ERRORMESSAGE, wxEmptyString, wxDefaultPosition, wxSize(-1, 56), wxTE_MULTILINE | wxTE_READONLY);
     pErrorMessageTextCtrl->SetHint("Error message");
     pErrorMessageTextCtrl->SetToolTip("Description of the error that occured");
     pErrorMessageTextCtrl->Disable();
@@ -94,16 +95,16 @@ void ErrorDialog::CreateControls()
 
     actionsStaticBoxSizer->AddStretchSpacer();
 
-    std::string link = "https://github.com/ifexception/taskies/issues"; ///new?title=BUG%3A&template=ISSUE_TEMPLATE.md";
+    std::string link = "https://github.com/ifexception"; /// new?title=BUG%3A&template=ISSUE_TEMPLATE.md";
     pOpenIssueLink = new wxHyperlinkCtrl(actionsStaticBox, IDC_OPENISSUELINK, "Open Issue", link);
     pOpenIssueLink->SetToolTip("Open an issue on GitHub to help the developer fix the issue");
     actionsStaticBoxSizer->Add(pOpenIssueLink, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
 
-     /* Horizontal Line*/
+    /* Horizontal Line*/
     auto separationLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
     sizer->Add(separationLine, wxSizerFlags().Border(wxALL, FromDIP(1)).Expand());
 
-    /* OK|Cancel buttons */
+    /* OK buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
@@ -169,4 +170,4 @@ void ErrorDialog::OnOpenIssueLinkClick(wxHyperlinkEvent& event)
 {
     wxLaunchDefaultBrowser(event.GetURL());
 }
-} // namespace tks::UI
+} // namespace tks::UI::dlg
