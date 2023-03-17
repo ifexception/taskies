@@ -24,4 +24,6 @@
 namespace tks::Common
 {
 std::string GetProgramName();
+
+std::string GetIconBundleName();
 }

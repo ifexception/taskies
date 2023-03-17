@@ -29,4 +29,9 @@ std::string GetProgramName()
     return "Taskies";
 #endif // TKS_DEBUG
 }
+
+std::string GetIconBundleName()
+{
+    return "TASKIES_ICO";
+}
 } // namespace tks::Common
