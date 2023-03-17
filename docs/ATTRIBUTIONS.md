@@ -1,3 +1,3 @@
 # Attribution
 
-[Strawberry icons created by YI-PIN - Flaticon](https://www.flaticon.com/free-icons/strawberry) 
+[Paprika icons created by Paul J. - Flaticon]("https://www.flaticon.com/free-icons/paprika) 
