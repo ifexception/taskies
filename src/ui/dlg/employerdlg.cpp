@@ -23,6 +23,7 @@
 #include <wx/statline.h>
 
 #include "../../core/environment.h"
+#include "../../common/common.h"
 #include "errordlg.h"
 
 namespace tks::UI::dlg
@@ -50,7 +51,7 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
 {
     Create();
 
-    wxIconBundle iconBundle("TASKIES_ICO", 0);
+    wxIconBundle iconBundle(Common::GetIconBundleName(), 0);
     SetIcons(iconBundle);
 }
 
@@ -92,6 +93,8 @@ void EmployerDialog::CreateControls()
     allowedCharacters.Add(";");
     allowedCharacters.Add(".");
     allowedCharacters.Add("|");
+    allowedCharacters.Add("(");
+    allowedCharacters.Add(")");
     nameValidator.SetIncludes(allowedCharacters);
 
     pNameTextCtrl->SetValidator(nameValidator);
