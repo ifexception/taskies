@@ -22,10 +22,15 @@
 #include <wx/statline.h>
 
 #include "../../common/common.h"
+#include "../../core/environment.h"
+#include "errordlg.h"
 
-namespace tks::UI
+namespace tks::UI::dlg
 {
-EditListDialog::EditListDialog(wxWindow* parent, std::shared_ptr<spdlog::logger> logger, const wxString& name)
+EditListDialog::EditListDialog(wxWindow* parent,
+    std::shared_ptr<Core::Environment> env,
+    std::shared_ptr<spdlog::logger> logger,
+    const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
           "Edit Employer",
@@ -34,8 +39,14 @@ EditListDialog::EditListDialog(wxWindow* parent, std::shared_ptr<spdlog::logger>
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
+    , pEnv(env)
     , pLogger(logger)
+    , mData(pEnv, pLogger)
+    , pSearchTextCtrl(nullptr)
+    , pSearchButton(nullptr)
     , pListCtrl(nullptr)
+    , pOkButton(nullptr)
+    , pCancelButton(nullptr)
 {
     Create();
 
@@ -49,8 +60,7 @@ void EditListDialog::Create()
     ConfigureEventBindings();
     DataToControls();
 
-    /*SetSize(FromDIP(wxSize(400, 380)));
-    SetMinSize(FromDIP(wxSize(280, 380)));*/
+    SetMinSize(FromDIP(wxSize(334, 290)));
 }
 
 void EditListDialog::CreateControls()
@@ -75,20 +85,22 @@ void EditListDialog::CreateControls()
 
     /* Separation Line */
     auto line = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(2)).Expand().Proportion(1));
+    sizer->Add(line, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(2)).Expand());
 
     /* List Control */
     pListCtrl = new wxListCtrl(
-        this, IDC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_HRULES | wxLC_LIST | wxLC_SINGLE_SEL | wxLC_REPORT);
+        this, IDC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
+    sizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     wxListItem nameColumn;
     nameColumn.SetId(0);
     nameColumn.SetText("Name");
+    nameColumn.SetWidth(wxLIST_AUTOSIZE_USEHEADER);
     pListCtrl->InsertColumn(0, nameColumn);
 
     /* Horizontal Line */
-    auto line = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    auto line2 = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line2, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -109,21 +121,68 @@ void EditListDialog::CreateControls()
 //clang-format off
 void EditListDialog::ConfigureEventBindings()
 {
-    pSearchTextCtrl->Bind(wxEVT_TEXT, &EditListDialog::OnSearchTextChange, this);
+    pSearchTextCtrl->Bind(
+        wxEVT_TEXT,
+        &EditListDialog::OnSearchTextChange,
+        this
+    );
 
-    pSearchButton->Bind(wxEVT_BUTTON, &EditListDialog::OnSearch, this, IDC_SEARCHBTN);
+    pSearchButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnSearch,
+        this,
+        IDC_SEARCHBTN
+    );
 
-    pListCtrl->Bind(wxEVT_LIST_ITEM_SELECTED, &EditListDialog::OnItemSelected, this, IDC_LIST);
+    pListCtrl->Bind(
+        wxEVT_LIST_ITEM_SELECTED,
+        &EditListDialog::OnItemSelected,
+        this,
+        IDC_LIST
+    );
 
-    pListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &EditListDialog::OnItemDoubleClick, this, IDC_LIST);
+    pListCtrl->Bind(
+        wxEVT_LIST_ITEM_ACTIVATED,
+        &EditListDialog::OnItemDoubleClick,
+        this,
+        IDC_LIST
+    );
 
-    pOkButton->Bind(wxEVT_BUTTON, &EditListDialog::OnOK, this, wxID_OK);
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnOK,
+        this,
+        wxID_OK
+    );
 
-    pCancelButton->Bind(wxEVT_BUTTON, &EditListDialog::OnCancel, this, wxID_CANCEL);
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
 }
 //clang-format on
 
-void EditListDialog::DataToControls() {}
+void EditListDialog::DataToControls()
+{
+    auto employersTuple = mData.GetAll();
+    if (std::get<0>(employersTuple) != 0) {
+        ErrorDialog errorDialog(this, pLogger, "Error occured when fetching employers");
+        errorDialog.ShowModal();
+
+        return;
+    } else {
+        std::vector<Model::EmployerModel> employers = std::get<1>(employersTuple);
+        int listIndex = 0;
+        int columnIndex = 0;
+        for (auto& employer : employers) {
+            listIndex = pListCtrl->InsertItem(columnIndex++, employer.Name);
+            pListCtrl->SetItemPtrData(listIndex, employer.EmployerId);
+            columnIndex = 0;
+        }
+    }
+}
 
 void EditListDialog::OnSearchTextChange(wxCommandEvent& event) {}
 
@@ -135,5 +194,8 @@ void EditListDialog::OnItemDoubleClick(wxCommandEvent& event) {}
 
 void EditListDialog::OnOK(wxCommandEvent& event) {}
 
-void EditListDialog::OnCancel(wxCommandEvent& event) {}
+void EditListDialog::OnCancel(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
+}
 } // namespace tks::UI

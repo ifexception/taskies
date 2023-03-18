@@ -29,12 +29,23 @@
 
 #include <spdlog/spdlog.h>
 
-namespace tks::UI
+#include "../../data/employerdata.h"
+
+namespace tks
+{
+namespace Core
+{
+class Environment;
+} // namespace Core
+namespace UI::dlg
 {
 class EditListDialog final : public wxDialog
 {
 public:
-    EditListDialog(wxWindow* parent, std::shared_ptr<spdlog::logger> logger, const wxString& name = "editlistdlg");
+    EditListDialog(wxWindow* parent,
+        std::shared_ptr<Core::Environment> env,
+        std::shared_ptr<spdlog::logger> logger,
+        const wxString& name = "editlistdlg");
     virtual ~EditListDialog() = default;
 
 private:
@@ -51,15 +62,19 @@ private:
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
+    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
+
     wxWindow* pParent;
     wxTextCtrl* pSearchTextCtrl;
     wxButton* pSearchButton;
     wxListCtrl* pListCtrl;
-
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
+    Data::EmployerData mData;
+
     enum { IDC_LIST = wxID_HIGHEST + 100, IDC_SEARCHTEXT, IDC_SEARCHBTN };
 };
-} // namespace tks::UI
+} // namespace UI
+} // namespace tks
