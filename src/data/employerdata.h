@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <tuple>
 #include <vector>
 
 #include <spdlog/logger.h>
@@ -34,7 +35,6 @@ namespace Core
 {
 class Environment;
 }
-
 namespace Data
 {
 class EmployerData final
@@ -45,7 +45,7 @@ public:
 
     std::int64_t Create(std::unique_ptr<Model::EmployerModel> employer);
     std::unique_ptr<Model::EmployerModel> GetById(const int employerId);
-    std::vector<std::unique_ptr<Model::EmployerModel>> GetAll();
+    std::tuple<int, std::vector<Model::EmployerModel>> GetAll();
     void Update(std::unique_ptr<Model::EmployerModel> employer);
     void Delete(const int employerId);
 

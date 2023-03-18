@@ -89,6 +89,7 @@ std::int64_t EmployerData::Create(std::unique_ptr<Model::EmployerModel> employer
         return -1;
     }
 
+    sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
 
     return rowId;
@@ -99,9 +100,63 @@ std::unique_ptr<Model::EmployerModel> EmployerData::GetById(const int employerId
     return std::unique_ptr<Model::EmployerModel>();
 }
 
-std::vector<std::unique_ptr<Model::EmployerModel>> EmployerData::GetAll()
+std::tuple<int, std::vector<Model::EmployerModel>> EmployerData::GetAll()
 {
-    return std::vector<std::unique_ptr<Model::EmployerModel>>();
+    std::vector<Model::EmployerModel> employers;
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(
+        pDb, EmployerData::getEmployers.c_str(), static_cast<int>(EmployerData::getEmployers.size()), &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("Error when preparing statement {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return std::make_tuple(-1, std::vector<Model::EmployerModel>());
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            Model::EmployerModel employer;
+            int columnIndex = 0;
+            employer.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            employer.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                employer.Description = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                employer.Description =
+                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            }
+            employer.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            employer.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            employer.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            employers.push_back(employer);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("Error when executing statement {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return std::make_tuple(-1, std::vector<Model::EmployerModel>());
+    }
+
+    sqlite3_finalize(stmt);
+
+    return std::make_tuple(0, employers);
 }
 
 void EmployerData::Update(std::unique_ptr<Model::EmployerModel> employer) {}
@@ -116,4 +171,13 @@ std::int64_t EmployerData::GetLastInsertId() const
 const std::string EmployerData::createEmployer = "INSERT INTO "
                                                  "employers (name, description) "
                                                  "VALUES (?, ?);";
+
+const std::string EmployerData::getEmployers = "SELECT employer_id, "
+                                               "name, "
+                                               "description, "
+                                               "date_created, "
+                                               "date_modified, "
+                                               "is_active "
+                                               "FROM employers "
+                                               "WHERE is_active = 1;";
 } // namespace tks::Data
