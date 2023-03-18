@@ -32,9 +32,11 @@ namespace tks
 {
 enum class MenuIds : int {
     File_NewEmployer = wxID_HIGHEST + 102,
+    Edit_Employer
 };
 
 static const int ID_NEW_EMPLOYER = static_cast<int>(MenuIds::File_NewEmployer);
+static const int ID_EDIT_EMPLOYER = static_cast<int>(MenuIds::Edit_Employer);
 
 namespace Core
 {
@@ -63,6 +65,7 @@ private:
     /* Event Table Handlers */
     /* Menu Handlers */
     void OnNewEmployer(wxCommandEvent& event);
+    void OnEditEmployer(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     /* Error Event Handler */
     void OnError(wxCommandEvent& event);

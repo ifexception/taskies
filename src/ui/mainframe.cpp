@@ -28,6 +28,7 @@
 
 #include "../ui/dlg/errordlg.h"
 #include "../ui/dlg/employerdlg.h"
+#include "../ui/dlg/editlistdlg.h"
 
 namespace tks::UI
 {
@@ -35,6 +36,7 @@ namespace tks::UI
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 /* Menu Handlers */
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
+EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 /* Error Event Handler */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
@@ -76,9 +78,14 @@ void MainFrame::CreateControls()
 
     auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit", "Exit the program");
 
+    /* Edit */
+    auto editMenu = new wxMenu();
+    editMenu->Append(ID_EDIT_EMPLOYER, "Edit &Employer", "Edit an employer");
+
     /* Menu bar */
     auto menuBar = new wxMenuBar();
     menuBar->Append(fileMenu, "File");
+    menuBar->Append(editMenu, "Edit");
 
     SetMenuBar(menuBar);
 
@@ -94,6 +101,12 @@ void MainFrame::OnNewEmployer(wxCommandEvent& event)
 {
     UI::dlg::EmployerDialog newEmployerDialog(this, pEnv, pLogger);
     newEmployerDialog.ShowModal();
+}
+
+void MainFrame::OnEditEmployer(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger);
+    editEmployer.ShowModal();
 }
 
 void MainFrame::OnExit(wxCommandEvent& event)
