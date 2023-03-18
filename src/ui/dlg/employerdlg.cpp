@@ -221,9 +221,9 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             }
         }
 
-        if (ret != 0) {
-            ErrorDialog errDialog(this, pLogger, "Error occured when creating employer");
-            errDialog.ShowModal();
+        if (ret == -1) {
+            ErrorDialog errorDialog(this, pLogger, "Error occured when creating employer");
+            errorDialog.ShowModal();
 
             return;
         }
