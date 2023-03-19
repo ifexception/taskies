@@ -20,6 +20,7 @@
 #include "employerdata.h"
 
 #include "../core/environment.h"
+#include "../utils/utils.h"
 
 namespace tks::Data
 {
@@ -100,17 +101,40 @@ std::unique_ptr<Model::EmployerModel> EmployerData::GetById(const int employerId
     return std::unique_ptr<Model::EmployerModel>();
 }
 
-std::tuple<int, std::vector<Model::EmployerModel>> EmployerData::GetAll()
+std::tuple<int, std::vector<Model::EmployerModel>> EmployerData::Filter(const std::string& searchTerm)
 {
     std::vector<Model::EmployerModel> employers;
 
+    auto formatedSearchTerm = Utils::FormatSearchTerm(searchTerm);
+
     sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(
-        pDb, EmployerData::getEmployers.c_str(), static_cast<int>(EmployerData::getEmployers.size()), &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(pDb,
+        EmployerData::filterEmployers.c_str(),
+        static_cast<int>(EmployerData::filterEmployers.size()),
+        &stmt,
+        nullptr);
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error("Error when preparing statement {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return std::make_tuple(-1, std::vector<Model::EmployerModel>());
+    }
+
+    rc = sqlite3_bind_text(
+        stmt, 1, formatedSearchTerm.c_str(), static_cast<int>(formatedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc == SQLITE_ERROR) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("Failed to bind parameter {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return std::make_tuple(-1, std::vector<Model::EmployerModel>());
+    }
+
+    rc = sqlite3_bind_text(
+        stmt, 2, formatedSearchTerm.c_str(), static_cast<int>(formatedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc == SQLITE_ERROR) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("Failed to bind parameter {0}", std::string(err));
         sqlite3_finalize(stmt);
         return std::make_tuple(-1, std::vector<Model::EmployerModel>());
     }
@@ -165,19 +189,21 @@ void EmployerData::Delete(const int employerId) {}
 
 std::int64_t EmployerData::GetLastInsertId() const
 {
-    return std::int64_t();
+    return sqlite3_last_insert_rowid(pDb);
 }
 
 const std::string EmployerData::createEmployer = "INSERT INTO "
                                                  "employers (name, description) "
                                                  "VALUES (?, ?);";
 
-const std::string EmployerData::getEmployers = "SELECT employer_id, "
-                                               "name, "
-                                               "description, "
-                                               "date_created, "
-                                               "date_modified, "
-                                               "is_active "
-                                               "FROM employers "
-                                               "WHERE is_active = 1;";
+const std::string EmployerData::filterEmployers = "SELECT employer_id, "
+                                                  "name, "
+                                                  "description, "
+                                                  "date_created, "
+                                                  "date_modified, "
+                                                  "is_active "
+                                                  "FROM employers "
+                                                  "WHERE is_active = 1 "
+                                                  "AND (name LIKE ? "
+                                                  "OR description LIKE ?)";
 } // namespace tks::Data

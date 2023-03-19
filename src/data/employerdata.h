@@ -45,7 +45,7 @@ public:
 
     std::int64_t Create(std::unique_ptr<Model::EmployerModel> employer);
     std::unique_ptr<Model::EmployerModel> GetById(const int employerId);
-    std::tuple<int, std::vector<Model::EmployerModel>> GetAll();
+    std::tuple<int, std::vector<Model::EmployerModel>> Filter(const std::string& searchTerm);
     void Update(std::unique_ptr<Model::EmployerModel> employer);
     void Delete(const int employerId);
 
@@ -57,7 +57,7 @@ private:
     sqlite3* pDb;
 
     static const std::string createEmployer;
-    static const std::string getEmployers;
+    static const std::string filterEmployers;
     static const std::string getEmployer;
     static const std::string updateEmployer;
     static const std::string deleteEmployer;
