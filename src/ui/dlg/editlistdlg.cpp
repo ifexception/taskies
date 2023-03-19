@@ -19,6 +19,7 @@
 
 #include "editlistdlg.h"
 
+#include <wx/richtooltip.h>
 #include <wx/statline.h>
 
 #include "../../common/common.h"
@@ -170,7 +171,13 @@ void EditListDialog::OnSearchTextChange(wxCommandEvent& event)
 
 void EditListDialog::OnSearch(wxCommandEvent& event)
 {
-    SearchEmployers();
+    if (mSearchTerm.length() < 3) {
+        wxRichToolTip toolTip("", "Please enter 3 or more characters to search");
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pSearchTextCtrl);
+    } else {
+        SearchEmployers();
+    }
 }
 
 void EditListDialog::OnSearchEnterKeyPressed(wxKeyEvent& event)
