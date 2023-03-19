@@ -20,6 +20,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -57,10 +58,13 @@ private:
 
     void OnSearchTextChange(wxCommandEvent& event);
     void OnSearch(wxCommandEvent& event);
+    void OnSearchEnterKeyPressed(wxKeyEvent& event);
     void OnItemSelected(wxCommandEvent& event);
     void OnItemDoubleClick(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
+
+    void SearchEmployers();
 
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
@@ -73,6 +77,8 @@ private:
     wxButton* pCancelButton;
 
     Data::EmployerData mData;
+
+    std::string mSearchTerm;
 
     enum { IDC_LIST = wxID_HIGHEST + 100, IDC_SEARCHTEXT, IDC_SEARCHBTN };
 };

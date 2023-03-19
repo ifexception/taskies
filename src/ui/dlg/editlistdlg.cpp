@@ -22,6 +22,7 @@
 #include <wx/statline.h>
 
 #include "../../common/common.h"
+#include "../../utils/utils.h"
 #include "../../core/environment.h"
 #include "errordlg.h"
 
@@ -47,6 +48,7 @@ EditListDialog::EditListDialog(wxWindow* parent,
     , pListCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mSearchTerm()
 {
     Create();
 
@@ -88,8 +90,8 @@ void EditListDialog::CreateControls()
     sizer->Add(line, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(2)).Expand());
 
     /* List Control */
-    pListCtrl = new wxListCtrl(
-        this, IDC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
+    pListCtrl =
+        new wxListCtrl(this, IDC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
     sizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     wxListItem nameColumn;
@@ -112,6 +114,9 @@ void EditListDialog::CreateControls()
     pOkButton->SetDefault();
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
+    pOkButton->Disable();
+    pCancelButton->Disable();
+
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
@@ -121,72 +126,61 @@ void EditListDialog::CreateControls()
 //clang-format off
 void EditListDialog::ConfigureEventBindings()
 {
-    pSearchTextCtrl->Bind(
-        wxEVT_TEXT,
-        &EditListDialog::OnSearchTextChange,
-        this
-    );
+    pSearchTextCtrl->Bind(wxEVT_TEXT, &EditListDialog::OnSearchTextChange, this);
 
-    pSearchButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnSearch,
-        this,
-        IDC_SEARCHBTN
-    );
+    pSearchButton->Bind(wxEVT_BUTTON, &EditListDialog::OnSearch, this, IDC_SEARCHBTN);
 
-    pListCtrl->Bind(
-        wxEVT_LIST_ITEM_SELECTED,
-        &EditListDialog::OnItemSelected,
-        this,
-        IDC_LIST
-    );
+    pSearchTextCtrl->Bind(wxEVT_KEY_DOWN, &EditListDialog::OnSearchEnterKeyPressed, this);
 
-    pListCtrl->Bind(
-        wxEVT_LIST_ITEM_ACTIVATED,
-        &EditListDialog::OnItemDoubleClick,
-        this,
-        IDC_LIST
-    );
+    pListCtrl->Bind(wxEVT_LIST_ITEM_SELECTED, &EditListDialog::OnItemSelected, this, IDC_LIST);
 
-    pOkButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnOK,
-        this,
-        wxID_OK
-    );
+    pListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &EditListDialog::OnItemDoubleClick, this, IDC_LIST);
 
-    pCancelButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnCancel,
-        this,
-        wxID_CANCEL
-    );
+    pOkButton->Bind(wxEVT_BUTTON, &EditListDialog::OnOK, this, wxID_OK);
+
+    pCancelButton->Bind(wxEVT_BUTTON, &EditListDialog::OnCancel, this, wxID_CANCEL);
 }
 //clang-format on
 
 void EditListDialog::DataToControls()
 {
-    auto employersTuple = mData.GetAll();
+    auto employersTuple = mData.Filter(mSearchTerm);
     if (std::get<0>(employersTuple) != 0) {
-        ErrorDialog errorDialog(this, pLogger, "Error occured when fetching employers");
+        ErrorDialog errorDialog(this, pLogger, "Error occured when filtering employers");
         errorDialog.ShowModal();
-
-        return;
     } else {
         std::vector<Model::EmployerModel> employers = std::get<1>(employersTuple);
         int listIndex = 0;
         int columnIndex = 0;
         for (auto& employer : employers) {
             listIndex = pListCtrl->InsertItem(columnIndex++, employer.Name);
-            pListCtrl->SetItemPtrData(listIndex, employer.EmployerId);
+            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(employer.EmployerId));
             columnIndex = 0;
         }
     }
+
+    pOkButton->Enable();
+    pCancelButton->Enable();
 }
 
-void EditListDialog::OnSearchTextChange(wxCommandEvent& event) {}
+void EditListDialog::OnSearchTextChange(wxCommandEvent& event)
+{
+    mSearchTerm = pSearchTextCtrl->GetValue().Trim().ToStdString();
+}
 
-void EditListDialog::OnSearch(wxCommandEvent& event) {}
+void EditListDialog::OnSearch(wxCommandEvent& event)
+{
+    SearchEmployers();
+}
+
+void EditListDialog::OnSearchEnterKeyPressed(wxKeyEvent& event)
+{
+    if (event.GetKeyCode() == WXK_RETURN) {
+        SearchEmployers();
+    }
+
+    event.Skip();
+}
 
 void EditListDialog::OnItemSelected(wxCommandEvent& event) {}
 
@@ -198,4 +192,30 @@ void EditListDialog::OnCancel(wxCommandEvent& event)
 {
     EndModal(wxID_CANCEL);
 }
-} // namespace tks::UI
+
+void EditListDialog::SearchEmployers()
+{
+    pOkButton->Disable();
+    pCancelButton->Disable();
+
+    pListCtrl->DeleteAllItems();
+
+    auto employersTuple = mData.Filter(mSearchTerm);
+    if (std::get<0>(employersTuple) != 0) {
+        ErrorDialog errorDialog(this, pLogger, "Error occured when filtering employers");
+        errorDialog.ShowModal();
+    } else {
+        std::vector<Model::EmployerModel> employers = std::get<1>(employersTuple);
+        int listIndex = 0;
+        int columnIndex = 0;
+        for (auto& employer : employers) {
+            listIndex = pListCtrl->InsertItem(columnIndex++, employer.Name);
+            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(employer.EmployerId));
+            columnIndex = 0;
+        }
+    }
+
+    pOkButton->Enable();
+    pCancelButton->Enable();
+}
+} // namespace tks::UI::dlg
