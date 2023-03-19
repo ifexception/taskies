@@ -66,4 +66,9 @@ void* IntToVoidPointer(int value)
     intptr_t p = static_cast<intptr_t>(value);
     return reinterpret_cast<void*>(p);
 }
+
+std::string FormatSearchTerm(const std::string& source)
+{
+    return "%" + source + "%";
+}
 } // namespace tks::Utils

@@ -35,4 +35,6 @@ std::string ToISODateTime(std::int64_t unixTimestamp);
 int VoidPointerToInt(void* value);
 
 void* IntToVoidPointer(int value);
+
+std::string FormatSearchTerm(const std::string& source);
 } // namespace tks::Utils
