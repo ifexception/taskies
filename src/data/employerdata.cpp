@@ -105,7 +105,7 @@ std::tuple<int, std::vector<Model::EmployerModel>> EmployerData::Filter(const st
 {
     std::vector<Model::EmployerModel> employers;
 
-    auto formatedSearchTerm = Utils::FormatSearchTerm(searchTerm);
+    auto formatedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb,

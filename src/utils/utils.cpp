@@ -67,8 +67,11 @@ void* IntToVoidPointer(int value)
     return reinterpret_cast<void*>(p);
 }
 
+namespace sqlite
+{
 std::string FormatSearchTerm(const std::string& source)
 {
     return "%" + source + "%";
 }
+} // namespace sqlite
 } // namespace tks::Utils
