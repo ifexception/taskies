@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -59,8 +60,9 @@ private:
     void OnSearchTextChange(wxCommandEvent& event);
     void OnSearch(wxCommandEvent& event);
     void OnSearchEnterKeyPressed(wxKeyEvent& event);
-    void OnItemSelected(wxCommandEvent& event);
-    void OnItemDoubleClick(wxCommandEvent& event);
+    void OnReset(wxCommandEvent& event);
+    void OnItemSelected(wxListEvent& event);
+    void OnItemDoubleClick(wxListEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
@@ -71,7 +73,8 @@ private:
 
     wxWindow* pParent;
     wxTextCtrl* pSearchTextCtrl;
-    wxButton* pSearchButton;
+    wxBitmapButton* pSearchButton;
+    wxBitmapButton* pResetButton;
     wxListCtrl* pListCtrl;
     wxButton* pOkButton;
     wxButton* pCancelButton;
@@ -79,8 +82,9 @@ private:
     Data::EmployerData mData;
 
     std::string mSearchTerm;
+    std::int64_t mEmployerId;
 
-    enum { IDC_LIST = wxID_HIGHEST + 100, IDC_SEARCHTEXT, IDC_SEARCHBTN };
+    enum { IDC_LIST = wxID_HIGHEST + 100, IDC_SEARCHTEXT, IDC_SEARCHBTN, IDC_RESETBTN };
 };
 } // namespace UI
 } // namespace tks

@@ -19,6 +19,7 @@
 
 #include "editlistdlg.h"
 
+#include <wx/artprov.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -26,6 +27,7 @@
 #include "../../utils/utils.h"
 #include "../../core/environment.h"
 #include "errordlg.h"
+#include "employerdlg.h"
 
 namespace tks::UI::dlg
 {
@@ -46,6 +48,7 @@ EditListDialog::EditListDialog(wxWindow* parent,
     , mData(pEnv, pLogger)
     , pSearchTextCtrl(nullptr)
     , pSearchButton(nullptr)
+    , pResetButton(nullptr)
     , pListCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
@@ -77,14 +80,25 @@ void EditListDialog::CreateControls()
     sizer->Add(searchBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Search Text Control */
-    pSearchTextCtrl = new wxTextCtrl(searchBox, IDC_SEARCHTEXT);
+    pSearchTextCtrl = new wxTextCtrl(
+        searchBox, IDC_SEARCHTEXT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_PROCESS_ENTER);
     pSearchTextCtrl->SetHint("Search employers...");
     pSearchTextCtrl->SetToolTip("Enter a search term");
     searchBoxSizer->Add(pSearchTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* Search Button */
-    pSearchButton = new wxButton(searchBox, IDC_SEARCHBTN, "Search");
+    auto providedFindBitmap =
+        wxArtProvider::GetBitmapBundle(wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    pSearchButton = new wxBitmapButton(searchBox, IDC_SEARCHBTN, providedFindBitmap);
+    pSearchButton->SetToolTip("Search for an employer based on the search term");
     searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    /* Reset Button */
+    auto providedCloseBitmap =
+        wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    pResetButton = new wxBitmapButton(searchBox, IDC_RESETBTN, providedCloseBitmap);
+    pResetButton->SetToolTip("Reset search term");
+    searchBoxSizer->Add(pResetButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     /* Separation Line */
     auto line = new wxStaticLine(this, wxID_ANY);
@@ -127,19 +141,59 @@ void EditListDialog::CreateControls()
 //clang-format off
 void EditListDialog::ConfigureEventBindings()
 {
-    pSearchTextCtrl->Bind(wxEVT_TEXT, &EditListDialog::OnSearchTextChange, this);
+    pSearchTextCtrl->Bind(
+        wxEVT_TEXT,
+        &EditListDialog::OnSearchTextChange,
+        this
+    );
 
-    pSearchButton->Bind(wxEVT_BUTTON, &EditListDialog::OnSearch, this, IDC_SEARCHBTN);
+    pSearchButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnSearch,
+        this,
+        IDC_SEARCHBTN
+    );
 
-    pSearchTextCtrl->Bind(wxEVT_KEY_DOWN, &EditListDialog::OnSearchEnterKeyPressed, this);
+    pSearchTextCtrl->Bind(
+        wxEVT_KEY_DOWN,
+        &EditListDialog::OnSearchEnterKeyPressed,
+        this
+    );
 
-    pListCtrl->Bind(wxEVT_LIST_ITEM_SELECTED, &EditListDialog::OnItemSelected, this, IDC_LIST);
+    pResetButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnReset,
+        this,
+        IDC_RESETBTN
+    );
 
-    pListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &EditListDialog::OnItemDoubleClick, this, IDC_LIST);
+    pListCtrl->Bind(
+        wxEVT_LIST_ITEM_SELECTED,
+        &EditListDialog::OnItemSelected,
+        this,
+        IDC_LIST
+    );
 
-    pOkButton->Bind(wxEVT_BUTTON, &EditListDialog::OnOK, this, wxID_OK);
+    pListCtrl->Bind(
+        wxEVT_LIST_ITEM_ACTIVATED,
+        &EditListDialog::OnItemDoubleClick,
+        this,
+        IDC_LIST
+    );
 
-    pCancelButton->Bind(wxEVT_BUTTON, &EditListDialog::OnCancel, this, wxID_CANCEL);
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnOK,
+        this,
+        wxID_OK
+    );
+
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
 }
 //clang-format on
 
@@ -173,7 +227,6 @@ void EditListDialog::OnSearch(wxCommandEvent& event)
 {
     if (mSearchTerm.length() < 3) {
         wxRichToolTip toolTip("", "Please enter 3 or more characters to search");
-        toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pSearchTextCtrl);
     } else {
         SearchEmployers();
@@ -189,11 +242,34 @@ void EditListDialog::OnSearchEnterKeyPressed(wxKeyEvent& event)
     event.Skip();
 }
 
-void EditListDialog::OnItemSelected(wxCommandEvent& event) {}
+void EditListDialog::OnReset(wxCommandEvent& event)
+{
+    mSearchTerm = "";
+    pSearchTextCtrl->SetValue(wxEmptyString);
+    SearchEmployers();
+}
 
-void EditListDialog::OnItemDoubleClick(wxCommandEvent& event) {}
+void EditListDialog::OnItemSelected(wxListEvent& event)
+{
+    mEmployerId = static_cast<std::int64_t>(event.GetData());
+}
 
-void EditListDialog::OnOK(wxCommandEvent& event) {}
+void EditListDialog::OnItemDoubleClick(wxListEvent& event)
+{
+    mEmployerId = static_cast<std::int64_t>(event.GetData());
+    EmployerDialog employerDlg(this, pEnv, pLogger, true, mEmployerId);
+    employerDlg.ShowModal();
+
+    mEmployerId = -1;
+}
+
+void EditListDialog::OnOK(wxCommandEvent& event)
+{
+    EmployerDialog employerDlg(this, pEnv, pLogger, true, mEmployerId);
+    employerDlg.ShowModal();
+
+    mEmployerId = -1;
+}
 
 void EditListDialog::OnCancel(wxCommandEvent& event)
 {
