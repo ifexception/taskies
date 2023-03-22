@@ -21,9 +21,11 @@
 
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
+#include <fmt/format.h>
 
 #include "../../core/environment.h"
 #include "../../common/common.h"
+#include "../../common/constants.h"
 #include "errordlg.h"
 
 namespace tks::UI::dlg
@@ -46,8 +48,15 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
     , pEnv(env)
     , bIsEdit(isEdit)
     , mEmployerId(employerId)
-    , pEmployer(std::make_unique<Model::EmployerModel>())
+    , mEmployer()
     , mData(pEnv, pLogger)
+    , pNameTextCtrl(nullptr)
+    , pDescriptionTextCtrl(nullptr)
+    , pDateCreatedTextCtrl(nullptr)
+    , pDateModifiedTextCtrl(nullptr)
+    , pIsActiveCtrl(nullptr)
+    , pOkButton(nullptr)
+    , pCancelButton(nullptr)
 {
     Create();
 
@@ -137,7 +146,7 @@ void EmployerDialog::CreateControls()
         auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
         metadataFlexGridSizer->Add(dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
 
-        pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, "2023-02-05 10:39:43");
+        pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
         pDateCreatedTextCtrl->Disable();
         metadataFlexGridSizer->Add(pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
@@ -145,7 +154,7 @@ void EmployerDialog::CreateControls()
         auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
         metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
-        pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, "2023-02-05 10:39:43");
+        pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
         pDateModifiedTextCtrl->Disable();
         metadataFlexGridSizer->Add(pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
@@ -153,7 +162,7 @@ void EmployerDialog::CreateControls()
         metadataFlexGridSizer->Add(0, 0);
 
         pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
-        pIsActiveCtrl->SetToolTip("Indicates if this employer entry is used");
+        pIsActiveCtrl->SetToolTip("Indicates if this employer entry is being used");
         metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
     }
 
@@ -204,7 +213,30 @@ void EmployerDialog::ConfigureEventBindings()
 }
 // clang-format on
 
-void EmployerDialog::DataToControls() {}
+void EmployerDialog::DataToControls()
+{
+    pOkButton->Disable();
+    pCancelButton->Disable();
+
+    Model::EmployerModel employer;
+    int rc = mData.GetById(mEmployerId, employer);
+    if (rc == -1) {
+        ErrorDialog errorDialog(
+            this, pLogger, fmt::format("Error occured when fetching employer with ID: \"{}\"", mEmployerId));
+        errorDialog.ShowModal();
+
+        pCancelButton->Enable();
+    } else {
+        pNameTextCtrl->SetValue(employer.Name);
+        pDescriptionTextCtrl->SetValue(employer.Description.has_value() ? employer.Description.value() : "");
+        pDateCreatedTextCtrl->SetValue(employer.GetDateCreatedString());
+        pDateModifiedTextCtrl->SetValue(employer.GetDateModifiedString());
+        pIsActiveCtrl->SetValue(employer.IsActive);
+
+        pOkButton->Enable();
+        pCancelButton->Enable();
+    }
+}
 
 void EmployerDialog::OnOK(wxCommandEvent& event)
 {
@@ -214,23 +246,23 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     if (TransferDataAndValidate()) {
         int ret = 0;
         if (!bIsEdit) {
-            std::int64_t employerId = mData.Create(std::move(pEmployer));
+            std::int64_t employerId = mData.Create(mEmployer);
             ret = static_cast<int>(employerId);
             if (ret == -1) {
                 pLogger->error("Error occured when creating employer!");
+                goto on_error;
             }
         }
-
-        if (ret == -1) {
-            ErrorDialog errorDialog(this, pLogger, "Error occured when creating employer");
-            errorDialog.ShowModal();
-
-            return;
+        if (bIsEdit && pIsActiveCtrl->IsChecked()) {
+            ret = mData.Update(mEmployer);
         }
 
         EndModal(wxID_OK);
     }
 
+on_error:
+    ErrorDialog errorDialog(this, pLogger, "Error occured when creating employer");
+    errorDialog.ShowModal();
     pOkButton->Enable();
     pCancelButton->Enable();
 }
@@ -240,7 +272,16 @@ void EmployerDialog::OnCancel(wxCommandEvent& event)
     EndModal(wxID_CANCEL);
 }
 
-void EmployerDialog::OnIsActiveCheck(wxCommandEvent& event) {}
+void EmployerDialog::OnIsActiveCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pNameTextCtrl->Enable();
+        pDescriptionTextCtrl->Enable();
+    } else {
+        pNameTextCtrl->Disable();
+        pDescriptionTextCtrl->Disable();
+    }
+}
 
 bool EmployerDialog::TransferDataAndValidate()
 {
@@ -253,8 +294,10 @@ bool EmployerDialog::TransferDataAndValidate()
         return false;
     }
 
-    if (name.length() < 2 || name.length() > 255) {
-        auto valMsg = "Name must be at minimum 2 or maximum 255 characters long";
+    if (name.length() < MIN_CHARACTER_COUNT || name.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pNameTextCtrl);
@@ -262,17 +305,19 @@ bool EmployerDialog::TransferDataAndValidate()
     }
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
-    if (!description.empty() && (description.length() < 2 || description.length() > 2000)) {
-        auto valMsg = "Description must be at minimum 2 or maximum 2000 characters long";
+    if (!description.empty() &&
+        (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_DESCRIPTIONS);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pDescriptionTextCtrl);
         return false;
     }
 
-    pEmployer = std::make_unique<Model::EmployerModel>();
-    pEmployer->Name = name;
-    pEmployer->Description = description.empty() ? std::nullopt : std::make_optional(description);
+    mEmployer.Name = name;
+    mEmployer.Description = description.empty() ? std::nullopt : std::make_optional(description);
 
     return true;
 }

@@ -79,7 +79,7 @@ private:
 
     bool bIsEdit;
     std::int64_t mEmployerId;
-    std::unique_ptr<Model::EmployerModel> pEmployer;
+    Model::EmployerModel mEmployer;
     Data::EmployerData mData;
 
     enum {
