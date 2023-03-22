@@ -43,10 +43,10 @@ public:
     EmployerData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger);
     ~EmployerData();
 
-    std::int64_t Create(std::unique_ptr<Model::EmployerModel> employer);
-    std::unique_ptr<Model::EmployerModel> GetById(const int employerId);
+    std::int64_t Create(const Model::EmployerModel& employer);
+    int GetById(const std::int64_t employerId, Model::EmployerModel& employer);
     std::tuple<int, std::vector<Model::EmployerModel>> Filter(const std::string& searchTerm);
-    void Update(std::unique_ptr<Model::EmployerModel> employer);
+    int Update(Model::EmployerModel employer);
     void Delete(const int employerId);
 
     std::int64_t GetLastInsertId() const;
