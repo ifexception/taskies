@@ -133,8 +133,7 @@ int EmployerData::GetById(const std::int64_t employerId, Model::EmployerModel& e
         employer.Description = std::nullopt;
     } else {
         const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        employer.Description =
-            std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+        employer.Description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
     }
     columnIndex++;
     employer.DateCreated = sqlite3_column_int(stmt, columnIndex++);
@@ -237,9 +236,69 @@ std::tuple<int, std::vector<Model::EmployerModel>> EmployerData::Filter(const st
     return std::make_tuple(0, employers);
 }
 
-int EmployerData::Update(Model::EmployerModel employer) {}
+int EmployerData::Update(Model::EmployerModel employer)
+{
+    sqlite3_stmt* stmt;
+    int rc = sqlite3_prepare_v2(pDb,
+        EmployerData::updateEmployer.c_str(),
+        static_cast<int>(EmployerData::updateEmployer.size()),
+        &stmt,
+        nullptr);
 
-void EmployerData::Delete(const int employerId) {}
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("Error when preparing statement {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // TODO
+}
+
+int EmployerData::Delete(const int employerId)
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        EmployerData::deleteEmployer.c_str(),
+        static_cast<int>(EmployerData::deleteEmployer.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::Delete - Error when preparing statement {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int(stmt, 1, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::Delete - Failed to bind to \"date_modified\" property {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int(stmt, 2, employerId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::Delete - Failed to bind to \"employer_id\" property {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::Delete - Error occured when executing statement {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    return 0;
+}
 
 std::int64_t EmployerData::GetLastInsertId() const
 {
@@ -269,4 +328,14 @@ const std::string EmployerData::getEmployer = "SELECT employer_id, "
                                               "is_active "
                                               "FROM employers "
                                               "WHERE employer_id = ?";
+
+const std::string EmployerData::updateEmployer = "UPDATE employers "
+                                                 "SET name = ?, "
+                                                 "description = ?, "
+                                                 "date_modified = ? "
+                                                 "WHERE employer_id = ?";
+
+const std::string EmployerData::deleteEmployer = "UPDATE employers "
+                                                 "SET is_active = 0, date_modified = ? "
+                                                 "WHERE employer_id = ?";
 } // namespace tks::Data

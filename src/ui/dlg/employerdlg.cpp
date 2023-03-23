@@ -248,13 +248,17 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         if (!bIsEdit) {
             std::int64_t employerId = mData.Create(mEmployer);
             ret = static_cast<int>(employerId);
-            if (ret == -1) {
-                pLogger->error("Error occured when creating employer!");
-                goto on_error;
-            }
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = mData.Update(mEmployer);
+        }
+        if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
+            ret = mData.Delete(mEmployerId);
+        }
+
+        if (ret == -1) {
+            pLogger->error("Error occured when creating employer");
+            goto on_error;
         }
 
         EndModal(wxID_OK);
