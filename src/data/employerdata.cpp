@@ -252,10 +252,59 @@ int EmployerData::Update(Model::EmployerModel employer)
         return -1;
     }
 
-    // TODO
+    rc = sqlite3_bind_text(stmt, 1, employer.Name.c_str(), static_cast<int>(employer.Name.size()), SQLITE_TRANSIENT);
+    if (rc == SQLITE_ERROR) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::Update - Failed to bind to \"name\" property {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    if (employer.Description.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            2,
+            employer.Description.value().c_str(),
+            static_cast<int>(employer.Description.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, 2);
+    }
+    if (rc == SQLITE_ERROR) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::Update - Failed to bind to \"description\" property {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 3, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::Update - Failed to bind to \"date_modified\" property {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 4, employer.EmployerId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::Update - Failed to bind to \"employer_id\" property {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::Update - Error occured when executing statement {0}", std::string(err));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    return 0;
 }
 
-int EmployerData::Delete(const int employerId)
+int EmployerData::Delete(const std::int64_t employerId)
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -272,7 +321,7 @@ int EmployerData::Delete(const int employerId)
         return -1;
     }
 
-    rc = sqlite3_bind_int(stmt, 1, Utils::UnixTimestamp());
+    rc = sqlite3_bind_int64(stmt, 1, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error("EmployerData::Delete - Failed to bind to \"date_modified\" property {0}", std::string(err));
@@ -280,7 +329,7 @@ int EmployerData::Delete(const int employerId)
         return -1;
     }
 
-    rc = sqlite3_bind_int(stmt, 2, employerId);
+    rc = sqlite3_bind_int64(stmt, 2, employerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error("EmployerData::Delete - Failed to bind to \"employer_id\" property {0}", std::string(err));
