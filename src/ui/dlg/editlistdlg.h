@@ -59,7 +59,7 @@ private:
 
     void OnSearchTextChange(wxCommandEvent& event);
     void OnSearch(wxCommandEvent& event);
-    void OnSearchEnterKeyPressed(wxKeyEvent& event);
+    //void OnSearchEnterKeyPressed(wxKeyEvent& event);
     void OnReset(wxCommandEvent& event);
     void OnItemSelected(wxListEvent& event);
     void OnItemDoubleClick(wxListEvent& event);

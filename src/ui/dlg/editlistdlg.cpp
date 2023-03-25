@@ -53,6 +53,7 @@ EditListDialog::EditListDialog(wxWindow* parent,
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mSearchTerm()
+    , mEmployerId(-1)
 {
     Create();
 
@@ -80,8 +81,12 @@ void EditListDialog::CreateControls()
     sizer->Add(searchBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Search Text Control */
-    pSearchTextCtrl = new wxTextCtrl(
-        searchBox, IDC_SEARCHTEXT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_PROCESS_ENTER);
+    pSearchTextCtrl = new wxTextCtrl(searchBox,
+        IDC_SEARCHTEXT,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_LEFT /* | wxTE_PROCESS_ENTER*/);
     pSearchTextCtrl->SetHint("Search employers...");
     pSearchTextCtrl->SetToolTip("Enter a search term");
     searchBoxSizer->Add(pSearchTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
@@ -154,11 +159,11 @@ void EditListDialog::ConfigureEventBindings()
         IDC_SEARCHBTN
     );
 
-    pSearchTextCtrl->Bind(
+    /*pSearchTextCtrl->Bind(
         wxEVT_KEY_DOWN,
         &EditListDialog::OnSearchEnterKeyPressed,
         this
-    );
+    );*/
 
     pResetButton->Bind(
         wxEVT_BUTTON,
@@ -233,14 +238,14 @@ void EditListDialog::OnSearch(wxCommandEvent& event)
     }
 }
 
-void EditListDialog::OnSearchEnterKeyPressed(wxKeyEvent& event)
-{
-    if (event.GetKeyCode() == WXK_RETURN) {
-        SearchEmployers();
-    }
-
-    event.Skip();
-}
+//void EditListDialog::OnSearchEnterKeyPressed(wxKeyEvent& event)
+//{
+//    if (event.GetKeyCode() == WXK_RETURN) {
+//        SearchEmployers();
+//    }
+//
+//    event.Skip();
+//}
 
 void EditListDialog::OnReset(wxCommandEvent& event)
 {
@@ -265,10 +270,16 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
 
 void EditListDialog::OnOK(wxCommandEvent& event)
 {
-    EmployerDialog employerDlg(this, pEnv, pLogger, true, mEmployerId);
-    employerDlg.ShowModal();
+    if (mEmployerId > 0) {
+        EmployerDialog employerDlg(this, pEnv, pLogger, true, mEmployerId);
+        employerDlg.ShowModal();
 
-    mEmployerId = -1;
+        mEmployerId = -1;
+    } else {
+        wxRichToolTip toolTip("Selection Required", "Please select an employer to edit");
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pOkButton);
+    }
 }
 
 void EditListDialog::OnCancel(wxCommandEvent& event)
