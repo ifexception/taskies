@@ -47,7 +47,7 @@ public:
     int GetById(const std::int64_t employerId, Model::EmployerModel& employer);
     std::tuple<int, std::vector<Model::EmployerModel>> Filter(const std::string& searchTerm);
     int Update(Model::EmployerModel employer);
-    int Delete(const int employerId);
+    int Delete(const std::int64_t employerId);
 
     std::int64_t GetLastInsertId() const;
 
