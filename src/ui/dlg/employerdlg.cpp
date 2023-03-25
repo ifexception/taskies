@@ -258,17 +258,14 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 
         if (ret == -1) {
             pLogger->error("Error occured when creating employer");
-            goto on_error;
+            ErrorDialog errorDialog(this, pLogger, "Error occured when creating employer");
+            errorDialog.ShowModal();
+            pOkButton->Enable();
+            pCancelButton->Enable();
+        } else {
+            EndModal(wxID_OK);
         }
-
-        EndModal(wxID_OK);
     }
-
-on_error:
-    ErrorDialog errorDialog(this, pLogger, "Error occured when creating employer");
-    errorDialog.ShowModal();
-    pOkButton->Enable();
-    pCancelButton->Enable();
 }
 
 void EmployerDialog::OnCancel(wxCommandEvent& event)
