@@ -48,6 +48,7 @@ set (SRC
     "ui/events.cpp"
     "resources.rc"
     "common/common.cpp"
+    "common/enums.cpp"
     ${SRC_MODELS}
     ${SRC_DATA}
     ${SRC_DIALOGS}
