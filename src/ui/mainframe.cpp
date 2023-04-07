@@ -23,6 +23,8 @@
 
 #include "events.h"
 #include "../common/common.h"
+#include "../common/enums.h"
+#include "../common/version.h"
 #include "../core/environment.h"
 #include "../core/configuration.h"
 
@@ -61,10 +63,10 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     Create();
 }
 
-bool MainFrame::Create()
+void MainFrame::Create()
 {
     CreateControls();
-    return true;
+    DataToControls();
 }
 
 void MainFrame::CreateControls()
@@ -94,7 +96,25 @@ void MainFrame::CreateControls()
     auto mainPanel = new wxPanel(this);
     mainPanel->SetSizer(mainSizer);
 
+    /* InfoBar */
+    pInfoBar = new wxInfoBar(mainPanel, wxID_ANY);
+    mainSizer->Add(pInfoBar, wxSizerFlags().Expand());
+
     mainSizer->Add(new wxStaticText(mainPanel, wxID_ANY, "Taskies"), wxSizerFlags().Center());
+}
+
+void MainFrame::DataToControls()
+{
+    // Set InfoBar
+    if (pEnv->GetBuildConfiguration() == tks::BuildConfiguration::Debug) {
+        auto infoBarMessage = fmt::format("{0} {1} - v{2}.{3}.{4}",
+            Common::GetProgramName(),
+            tks::BuildConfigurationToString(pEnv->GetBuildConfiguration()),
+            TASKIES_MAJOR,
+            TASKIES_MINOR,
+            TASKIES_PATCH);
+        pInfoBar->ShowMessage(infoBarMessage, wxICON_INFORMATION);
+    }
 }
 
 void MainFrame::OnNewEmployer(wxCommandEvent& event)

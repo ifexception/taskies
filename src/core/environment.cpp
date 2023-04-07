@@ -47,6 +47,11 @@ std::filesystem::path Environment::GetApplicationPath()
     return wxPathOnly(wxStandardPaths::Get().GetExecutablePath()).ToStdString();
 }
 
+BuildConfiguration Environment::GetBuildConfiguration()
+{
+    return mBuildConfig;
+}
+
 std::filesystem::path Environment::GetLogFilePath()
 {
     return GetApplicationLogPath() / GetLogName();

@@ -260,6 +260,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             pLogger->error("Error occured when creating employer");
             ErrorDialog errorDialog(this, pLogger, "Error occured when creating employer");
             errorDialog.ShowModal();
+
             pOkButton->Enable();
             pCancelButton->Enable();
         } else {

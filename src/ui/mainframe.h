@@ -25,6 +25,7 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/infobar.h>
 
 #include <spdlog/spdlog.h>
 
@@ -58,9 +59,10 @@ public:
 private:
     wxDECLARE_EVENT_TABLE();
 
-    bool Create();
+    void Create();
 
     void CreateControls();
+    void DataToControls();
 
     /* Event Table Handlers */
     /* Menu Handlers */
@@ -73,6 +75,8 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
+
+    wxInfoBar* pInfoBar;
 };
 } // namespace UI
 } // namespace tks

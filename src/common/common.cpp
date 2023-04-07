@@ -23,11 +23,7 @@ namespace tks::Common
 {
 std::string GetProgramName()
 {
-#ifdef TKS_DEBUG
-    return "Taskies-DEBUG";
-#else
     return "Taskies";
-#endif // TKS_DEBUG
 }
 
 std::string GetIconBundleName()

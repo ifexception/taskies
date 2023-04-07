@@ -23,13 +23,14 @@
 #include <memory>
 #include <string>
 
+#include "../common/enums.h"
+
 namespace tks::Core
 {
+
 class Environment final
 {
 public:
-    enum class BuildConfiguration { Undefined, Debug, Release };
-
     enum class InstallFolder { Undefined, Portable, ProgramFiles };
 
     Environment();
@@ -37,6 +38,8 @@ public:
     ~Environment() = default;
 
     Environment& operator=(const Environment&) = delete;
+
+    BuildConfiguration GetBuildConfiguration();
 
     std::filesystem::path GetLogFilePath();
     std::filesystem::path GetLanguagesPath();
