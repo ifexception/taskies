@@ -73,7 +73,7 @@ void EmployerDialog::Create()
         DataToControls();
     }
 
-    SetSize(FromDIP(wxSize(400, 380)));
+    //SetSize(FromDIP(wxSize(400, 380)));
     SetMinSize(FromDIP(wxSize(280, 380)));
 }
 
@@ -113,7 +113,6 @@ void EmployerDialog::CreateControls()
 
     detailsGridSizer->Add(employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-    // detailsGridSizer->AddStretchSpacer(0);
 
     detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -122,10 +121,9 @@ void EmployerDialog::CreateControls()
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
     sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    /* Employer Description */
     pDescriptionTextCtrl = new wxTextCtrl(
         descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
-    pDescriptionTextCtrl->SetHint("Optional description");
+    pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for an Employer");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
