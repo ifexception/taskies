@@ -138,7 +138,7 @@ void ClientDialog::CreateControls()
     employerChoiceGridSizer->AddGrowableCol(1, 1);
 
     employerChoiceGridSizer->Add(employerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    employerChoiceGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    employerChoiceGridSizer->Add(pEmployerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     employerChoiceBoxSizer->Add(employerChoiceGridSizer, wxSizerFlags().Expand().Proportion(1));
 
