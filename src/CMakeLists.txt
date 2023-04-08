@@ -33,6 +33,7 @@ set (SRC_DIALOGS
     "ui/dlg/employerdlg.cpp"
     "ui/dlg/errordlg.cpp"
     "ui/dlg/editlistdlg.cpp"
+    "ui/dlg/clientdlg.cpp"
 )
 
 set (SRC
