@@ -1,4 +1,4 @@
-CREATE TABLE clients
+CREATE TABLE IF NOT EXISTS clients
 (
     client_id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,

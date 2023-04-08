@@ -1,4 +1,4 @@
-CREATE TABLE employers
+CREATE TABLE IF NOT EXISTS employers
 (
     employer_id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
