@@ -2,11 +2,15 @@
 #include "common/version.h"
 
 // Icons
+// Note the icon is an embedded icon
+// i.e. Windows will be able to pick an appropriate icon size from:
+// 256,128,96,64,48,32,24,16
 TASKIES_ICO ICON "..\\res\\taskies.ico"
 
 // Migrations
 20230104084922_create_persistent_objects_table MIGRATION "..\\res\\migrations\\20230104084922_create_persistent_objects_table.sql"
-202301223215058_create_employers_table MIGRATION "..\\res\\migrations\\202301223215058_create_employers_table.sql"
+20230122215058_create_employers_table MIGRATION "..\\res\\migrations\\20230122215058_create_employers_table.sql"
+20230408192035_create_clients_table MIGRATION "..\\res\\migrations\\20230408192035_create_clients_table.sql"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION        TASKIES_FILE_VERSION
