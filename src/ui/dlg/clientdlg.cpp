@@ -230,7 +230,10 @@ void ClientDialog::DataToControls() {}
 
 void ClientDialog::OnOK(wxCommandEvent& event) {}
 
-void ClientDialog::OnCancel(wxCommandEvent& event) {}
+void ClientDialog::OnCancel(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
+}
 
 void ClientDialog::OnIsActiveCheck(wxCommandEvent& event) {}
 
