@@ -34,10 +34,60 @@ namespace tks
 namespace Core
 {
 class Environment;
-}
+} // namespace Core
 
 namespace UI::dlg
 {
+class ClientDialog : public wxDialog
+{
+public:
+    ClientDialog() = delete;
+    ClientDialog(const ClientDialog&) = delete;
+    ClientDialog(wxWindow* parent,
+        std::shared_ptr<Core::Environment> env,
+        std::shared_ptr<spdlog::logger> logger,
+        bool isEdit = false,
+        std::int64_t clientId = -1,
+        const wxString& name = "clientdlg");
+    virtual ~ClientDialog() = default;
 
-}
+    ClientDialog& operator=(const ClientDialog&) = delete;
+
+private:
+    void Create();
+
+    void CreateControls();
+    void ConfigureEventBindings();
+    void DataToControls();
+
+    void OnOK(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
+    void OnIsActiveCheck(wxCommandEvent& event);
+
+    bool TransferDataAndValidate();
+
+    std::shared_ptr<Core::Environment> pEnv;
+    std::shared_ptr<spdlog::logger> pLogger;
+
+    wxWindow* pParent;
+    wxTextCtrl* pNameTextCtrl;
+    wxTextCtrl* pDescriptionTextCtrl;
+    wxChoice* pEmployerChoiceCtrl;
+    wxCheckBox* pIsActiveCtrl;
+    wxTextCtrl* pDateCreatedTextCtrl;
+    wxTextCtrl* pDateModifiedTextCtrl;
+    wxButton* pOkButton;
+    wxButton* pCancelButton;
+
+    bool bIsEdit;
+    std::int64_t mClientId;
+
+    enum {
+        IDC_NAME = wxID_HIGHEST + 1,
+        IDC_DESCRIPTION,
+        IDC_CHOICE,
+        IDC_ISACTIVE,
+    };
+};
+} // namespace UI::dlg
 } // namespace tks
