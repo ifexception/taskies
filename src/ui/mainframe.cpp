@@ -106,7 +106,7 @@ void MainFrame::CreateControls()
 void MainFrame::DataToControls()
 {
     // Set InfoBar
-    if (pEnv->GetBuildConfiguration() == tks::BuildConfiguration::Debug) {
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
         auto infoBarMessage = fmt::format("{0} {1} - v{2}.{3}.{4}",
             Common::GetProgramName(),
             tks::BuildConfigurationToString(pEnv->GetBuildConfiguration()),
