@@ -33,10 +33,15 @@ namespace tks
 {
 enum class MenuIds : int {
     File_NewEmployer = wxID_HIGHEST + 102,
+    File_NewClient = wxID_HIGHEST,
     Edit_Employer
 };
 
+/* File */
 static const int ID_NEW_EMPLOYER = static_cast<int>(MenuIds::File_NewEmployer);
+static const int ID_NEW_CLIENT = static_cast<int>(MenuIds::File_NewClient);
+
+/* Edit */
 static const int ID_EDIT_EMPLOYER = static_cast<int>(MenuIds::Edit_Employer);
 
 namespace Core
@@ -50,11 +55,15 @@ namespace UI
 class MainFrame : public wxFrame
 {
 public:
+    MainFrame() = delete;
+    MainFrame(const MainFrame&) = delete;
     MainFrame(std::shared_ptr<Core::Environment> env,
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const wxString& name = "mainfrm");
     virtual ~MainFrame() = default;
+
+    MainFrame& operator=(const MainFrame&) = delete;
 
 private:
     wxDECLARE_EVENT_TABLE();
@@ -67,6 +76,7 @@ private:
     /* Event Table Handlers */
     /* Menu Handlers */
     void OnNewEmployer(wxCommandEvent& event);
+    void OnNewClient(wxCommandEvent& event);
     void OnEditEmployer(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     /* Error Event Handler */

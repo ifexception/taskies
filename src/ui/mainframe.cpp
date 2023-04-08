@@ -31,6 +31,7 @@
 #include "../ui/dlg/errordlg.h"
 #include "../ui/dlg/employerdlg.h"
 #include "../ui/dlg/editlistdlg.h"
+#include "../ui/dlg/clientdlg.h"
 
 namespace tks::UI
 {
@@ -38,6 +39,7 @@ namespace tks::UI
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 /* Menu Handlers */
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
+EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 /* Error Event Handler */
@@ -52,6 +54,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pEnv(env)
     , pCfg(cfg)
     , pLogger(logger)
+    , pInfoBar(nullptr)
 // clang-format on
 {
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
@@ -76,6 +79,7 @@ void MainFrame::CreateControls()
     /* File */
     auto fileMenu = new wxMenu();
     fileMenu->Append(ID_NEW_EMPLOYER, "New &Employer", "Create new employer");
+    fileMenu->Append(ID_NEW_CLIENT, "New C&lient", "Create new client");
     fileMenu->AppendSeparator();
 
     auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit", "Exit the program");
@@ -107,7 +111,7 @@ void MainFrame::DataToControls()
 {
     // Set InfoBar
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        auto infoBarMessage = fmt::format("{0} {1} - v{2}.{3}.{4}",
+        auto infoBarMessage = fmt::format("Running {0} {1} - v{2}.{3}.{4}",
             Common::GetProgramName(),
             tks::BuildConfigurationToString(pEnv->GetBuildConfiguration()),
             TASKIES_MAJOR,
@@ -121,6 +125,12 @@ void MainFrame::OnNewEmployer(wxCommandEvent& event)
 {
     UI::dlg::EmployerDialog newEmployerDialog(this, pEnv, pLogger);
     newEmployerDialog.ShowModal();
+}
+
+void MainFrame::OnNewClient(wxCommandEvent& event)
+{
+    UI::dlg::ClientDialog newClientDialog(this, pEnv, pLogger);
+    newClientDialog.ShowModal();
 }
 
 void MainFrame::OnEditEmployer(wxCommandEvent& event)
