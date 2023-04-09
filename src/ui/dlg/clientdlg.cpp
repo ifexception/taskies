@@ -23,7 +23,9 @@
 #include <wx/statline.h>
 #include <fmt/format.h>
 
+#include "../../common/constants.h"
 #include "../../common/common.h"
+#include "../../utils/utils.h"
 #include "../../core/environment.h"
 
 namespace tks::UI::dlg
@@ -199,6 +201,8 @@ void ClientDialog::CreateControls()
     SetSizerAndFit(sizer);
 }
 
+void ClientDialog::FillControls() {}
+
 // clang-format off
 void ClientDialog::ConfigureEventBindings()
 {
@@ -239,6 +243,47 @@ void ClientDialog::OnIsActiveCheck(wxCommandEvent& event) {}
 
 bool ClientDialog::TransferDataAndValidate()
 {
-    return false;
+    auto name = pNameTextCtrl->GetValue().ToStdString();
+    if (name.empty()) {
+        auto valMsg = "Name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    if (name.length() < MIN_CHARACTER_COUNT || name.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    if (!description.empty() &&
+        (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_DESCRIPTIONS);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pDescriptionTextCtrl);
+        return false;
+    }
+
+    auto employerId =
+        Utils::VoidPointerToInt64(pEmployerChoiceCtrl->GetClientData(pEmployerChoiceCtrl->GetSelection()));
+    if (employerId < 1) {
+        auto valMsg = "An Employer selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pEmployerChoiceCtrl);
+        return false;
+    }
+
+    return true;
 }
 } // namespace tks::UI::dlg

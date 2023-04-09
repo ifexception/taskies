@@ -57,6 +57,7 @@ private:
     void Create();
 
     void CreateControls();
+    void FillControls();
     void ConfigureEventBindings();
     void DataToControls();
 
