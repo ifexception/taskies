@@ -33,8 +33,9 @@ namespace tks
 {
 enum class MenuIds : int {
     File_NewEmployer = wxID_HIGHEST + 102,
-    File_NewClient = wxID_HIGHEST,
-    Edit_Employer
+    File_NewClient,
+    Edit_Employer,
+    Edit_Client
 };
 
 /* File */
@@ -43,6 +44,7 @@ static const int ID_NEW_CLIENT = static_cast<int>(MenuIds::File_NewClient);
 
 /* Edit */
 static const int ID_EDIT_EMPLOYER = static_cast<int>(MenuIds::Edit_Employer);
+static const int ID_EDIT_CLIENT = static_cast<int>(MenuIds::Edit_Client);
 
 namespace Core
 {
@@ -78,6 +80,7 @@ private:
     void OnNewEmployer(wxCommandEvent& event);
     void OnNewClient(wxCommandEvent& event);
     void OnEditEmployer(wxCommandEvent& event);
+    void OnEditClient(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     /* Error Event Handler */
     void OnError(wxCommandEvent& event);

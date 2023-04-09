@@ -41,6 +41,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
+EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 /* Error Event Handler */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
@@ -87,6 +88,7 @@ void MainFrame::CreateControls()
     /* Edit */
     auto editMenu = new wxMenu();
     editMenu->Append(ID_EDIT_EMPLOYER, "Edit &Employer", "Edit an employer");
+    editMenu->Append(ID_EDIT_CLIENT, "Edit C&lient", "Edit a client");
 
     /* Menu bar */
     auto menuBar = new wxMenuBar();
@@ -135,8 +137,14 @@ void MainFrame::OnNewClient(wxCommandEvent& event)
 
 void MainFrame::OnEditEmployer(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger);
+    UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger, EditListEntityType::Employer);
     editEmployer.ShowModal();
+}
+
+void MainFrame::OnEditClient(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editClient(this, pEnv, pLogger, EditListEntityType::Client);
+    editClient.ShowModal();
 }
 
 void MainFrame::OnExit(wxCommandEvent& event)
