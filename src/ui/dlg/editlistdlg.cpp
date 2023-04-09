@@ -28,16 +28,18 @@
 #include "../../core/environment.h"
 #include "errordlg.h"
 #include "employerdlg.h"
+#include "clientdlg.h"
 
 namespace tks::UI::dlg
 {
 EditListDialog::EditListDialog(wxWindow* parent,
     std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
+    EditListEntityType editListEntityType,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          "Edit Employer",
+          wxEmptyString,
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
@@ -45,7 +47,9 @@ EditListDialog::EditListDialog(wxWindow* parent,
     , pParent(parent)
     , pEnv(env)
     , pLogger(logger)
-    , mData(pEnv, pLogger)
+    , mType(editListEntityType)
+    , mEmployerData(pEnv, pLogger)
+    , mClientData(pEnv, pLogger)
     , pSearchTextCtrl(nullptr)
     , pSearchButton(nullptr)
     , pResetButton(nullptr)
@@ -53,12 +57,26 @@ EditListDialog::EditListDialog(wxWindow* parent,
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mSearchTerm()
-    , mEmployerId(-1)
+    , mEntityId(-1)
 {
+
+    SetTitle(GetEditTitle());
     Create();
 
     wxIconBundle iconBundle(Common::GetIconBundleName(), 0);
     SetIcons(iconBundle);
+}
+
+std::string EditListDialog::GetEditTitle()
+{
+    switch (mType) {
+    case EditListEntityType::Employer:
+        return "Edit Employer";
+    case EditListEntityType::Client:
+        return "Edit Client";
+    default:
+        return "Error";
+    }
 }
 
 void EditListDialog::Create()
@@ -87,7 +105,7 @@ void EditListDialog::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxTE_LEFT /* | wxTE_PROCESS_ENTER*/);
-    pSearchTextCtrl->SetHint("Search employers...");
+    pSearchTextCtrl->SetHint(GetSearchHintText());
     pSearchTextCtrl->SetToolTip("Enter a search term");
     searchBoxSizer->Add(pSearchTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
@@ -95,7 +113,7 @@ void EditListDialog::CreateControls()
     auto providedFindBitmap =
         wxArtProvider::GetBitmapBundle(wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pSearchButton = new wxBitmapButton(searchBox, IDC_SEARCHBTN, providedFindBitmap);
-    pSearchButton->SetToolTip("Search for an employer based on the search term");
+    pSearchButton->SetToolTip("Search for an entity based on the search term");
     searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     /* Reset Button */
@@ -204,9 +222,12 @@ void EditListDialog::ConfigureEventBindings()
 
 void EditListDialog::DataToControls()
 {
-    auto employersTuple = mData.Filter(mSearchTerm);
+    auto employersTuple = mEmployerData.Filter(mSearchTerm);
     if (std::get<0>(employersTuple) != 0) {
-        ErrorDialog errorDialog(this, pLogger, "Error occured when filtering employers");
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
         std::vector<Model::EmployerModel> employers = std::get<1>(employersTuple);
@@ -234,7 +255,7 @@ void EditListDialog::OnSearch(wxCommandEvent& event)
         wxRichToolTip toolTip("", "Please enter 3 or more characters to search");
         toolTip.ShowFor(pSearchTextCtrl);
     } else {
-        SearchEmployers();
+        Search();
     }
 }
 
@@ -251,40 +272,58 @@ void EditListDialog::OnReset(wxCommandEvent& event)
 {
     mSearchTerm = "";
     pSearchTextCtrl->SetValue(wxEmptyString);
-    SearchEmployers();
+    Search();
 }
 
 void EditListDialog::OnItemSelected(wxListEvent& event)
 {
-    mEmployerId = static_cast<std::int64_t>(event.GetData());
+    wxRichToolTip tooltip("", "Please double click an item to edit it");
+    tooltip.ShowFor(pListCtrl);
 }
 
 void EditListDialog::OnItemDoubleClick(wxListEvent& event)
 {
-    mEmployerId = static_cast<std::int64_t>(event.GetData());
-    EmployerDialog employerDlg(this, pEnv, pLogger, true, mEmployerId);
-    employerDlg.ShowModal();
+    mEntityId = static_cast<std::int64_t>(event.GetData());
+    switch (mType) {
+    case EditListEntityType::Employer: {
+        EmployerDialog employerDlg(this, pEnv, pLogger, true, mEntityId);
+        employerDlg.ShowModal();
+        break;
+    }
+    case EditListEntityType::Client: {
+        ClientDialog clientDlg(this, pEnv, pLogger, true, mEntityId);
+        clientDlg.ShowModal();
+        break;
+    }
+    default:
+        break;
+    }
 
-    mEmployerId = -1;
+    mEntityId = -1;
 }
 
 void EditListDialog::OnOK(wxCommandEvent& event)
 {
-    if (mEmployerId > 0) {
-        EmployerDialog employerDlg(this, pEnv, pLogger, true, mEmployerId);
-        employerDlg.ShowModal();
-
-        mEmployerId = -1;
-    } else {
-        wxRichToolTip toolTip("Selection Required", "Please select an employer to edit");
-        toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pOkButton);
-    }
+    EndModal(wxID_OK);
 }
 
 void EditListDialog::OnCancel(wxCommandEvent& event)
 {
     EndModal(wxID_CANCEL);
+}
+
+void EditListDialog::Search()
+{
+    switch (mType) {
+    case EditListEntityType::Employer:
+        SearchEmployers();
+        break;
+    case EditListEntityType::Client:
+        SearchClients();
+        break;
+    default:
+        break;
+    }
 }
 
 void EditListDialog::SearchEmployers()
@@ -294,7 +333,7 @@ void EditListDialog::SearchEmployers()
 
     pListCtrl->DeleteAllItems();
 
-    auto employersTuple = mData.Filter(mSearchTerm);
+    auto employersTuple = mEmployerData.Filter(mSearchTerm);
     if (std::get<0>(employersTuple) != 0) {
         ErrorDialog errorDialog(this, pLogger, "Error occured when filtering employers");
         errorDialog.ShowModal();
@@ -311,5 +350,46 @@ void EditListDialog::SearchEmployers()
 
     pOkButton->Enable();
     pCancelButton->Enable();
+}
+
+void EditListDialog::SearchClients()
+{
+    pOkButton->Disable();
+    pCancelButton->Disable();
+
+    pListCtrl->DeleteAllItems();
+
+    std::vector<Model::ClientModel> clients;
+    int rc = mClientData.Filter(mSearchTerm, clients);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        int listIndex = 0;
+        int columnIndex = 0;
+        for (auto& client : clients) {
+            listIndex = pListCtrl->InsertItem(columnIndex++, client.Name);
+            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(client.ClientId));
+            columnIndex++;
+        }
+    }
+
+    pOkButton->Enable();
+    pCancelButton->Enable();
+}
+
+std::string EditListDialog::GetSearchHintText()
+{
+    switch (mType) {
+    case EditListEntityType::Employer:
+        return "Search employers...";
+    case EditListEntityType::Client:
+        return "Search clients...";
+    default:
+        return "";
+    }
 }
 } // namespace tks::UI::dlg

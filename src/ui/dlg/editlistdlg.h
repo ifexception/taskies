@@ -31,7 +31,10 @@
 
 #include <spdlog/spdlog.h>
 
+#include "../../common/enums.h"
+
 #include "../../data/employerdata.h"
+#include "../../data/clientdata.h"
 
 namespace tks
 {
@@ -44,13 +47,19 @@ namespace UI::dlg
 class EditListDialog final : public wxDialog
 {
 public:
+    EditListDialog() = delete;
+    EditListDialog(const EditListDialog&) = delete;
     EditListDialog(wxWindow* parent,
         std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
+        EditListEntityType editListEntityType,
         const wxString& name = "editlistdlg");
     virtual ~EditListDialog() = default;
 
+    EditListDialog& operator=(const EditListDialog&) = delete;
+
 private:
+    std::string GetEditTitle();
     void Create();
 
     void CreateControls();
@@ -66,10 +75,16 @@ private:
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
+    void Search();
     void SearchEmployers();
+    void SearchClients();
+
+    std::string GetSearchHintText();
 
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
+
+    EditListEntityType mType;
 
     wxWindow* pParent;
     wxTextCtrl* pSearchTextCtrl;
@@ -79,10 +94,11 @@ private:
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
-    Data::EmployerData mData;
+    Data::EmployerData mEmployerData;
+    Data::ClientData mClientData;
 
     std::string mSearchTerm;
-    std::int64_t mEmployerId;
+    std::int64_t mEntityId;
 
     enum { IDC_LIST = wxID_HIGHEST + 100, IDC_SEARCHTEXT, IDC_SEARCHBTN, IDC_RESETBTN };
 };

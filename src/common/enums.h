@@ -23,6 +23,8 @@
 
 namespace tks
 {
+enum class EditListEntityType { Employer, Client };
+
 enum class BuildConfiguration { Undefined, Debug, Release };
 
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
