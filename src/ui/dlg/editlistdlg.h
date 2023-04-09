@@ -66,6 +66,9 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
+    void EmployerDataToControls();
+    void ClientDataToControls();
+
     void OnSearchTextChange(wxCommandEvent& event);
     void OnSearch(wxCommandEvent& event);
     //void OnSearchEnterKeyPressed(wxKeyEvent& event);

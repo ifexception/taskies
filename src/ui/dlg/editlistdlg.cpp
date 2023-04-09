@@ -222,6 +222,23 @@ void EditListDialog::ConfigureEventBindings()
 
 void EditListDialog::DataToControls()
 {
+    switch (mType) {
+    case EditListEntityType::Employer:
+        EmployerDataToControls();
+        break;
+    case EditListEntityType::Client:
+        ClientDataToControls();
+        break;
+    default:
+        break;
+    }
+
+    pOkButton->Enable();
+    pCancelButton->Enable();
+}
+
+void EditListDialog::EmployerDataToControls()
+{
     auto employersTuple = mEmployerData.Filter(mSearchTerm);
     if (std::get<0>(employersTuple) != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
@@ -239,9 +256,27 @@ void EditListDialog::DataToControls()
             columnIndex = 0;
         }
     }
+}
 
-    pOkButton->Enable();
-    pCancelButton->Enable();
+void EditListDialog::ClientDataToControls()
+{
+    std::vector<Model::ClientModel> clients;
+    int rc = mClientData.Filter(mSearchTerm, clients);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        int listIndex = 0;
+        int columnIndex = 0;
+        for (auto& client : clients) {
+            listIndex = pListCtrl->InsertItem(columnIndex++, client.Name);
+            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(client.ClientId));
+            columnIndex++;
+        }
+    }
 }
 
 void EditListDialog::OnSearchTextChange(wxCommandEvent& event)
