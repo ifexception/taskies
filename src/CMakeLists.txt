@@ -23,6 +23,7 @@ message (STATUS "fmt found: ${fmt_FOUND}")
 
 set (SRC_MODELS
     "models/employermodel.cpp"
+    "models/clientmodel.cpp"
 )
 
 set (SRC_DATA
