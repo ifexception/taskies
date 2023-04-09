@@ -212,8 +212,66 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
     return 0;
 }
 
-int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& client)
+int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
 {
+    sqlite3_stmt* stmt;
+    int rc = sqlite3_prepare_v2(
+        pDb, ClientData::getClientById.c_str(), static_cast<int>(ClientData::getClientById.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::GetById - Failed to prepare \"getClientById\" statement\n {0} - {1}", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, clientId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            "ClientData::GetById - Failed to bind parameter \"client_id\" \"getClientById\" statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::GetById - Failed to execute \"getClientById\" statement\n {0} - {1}", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+    model.ClientId = sqlite3_column_int64(stmt, columnIndex++);
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    model.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        model.Description = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        model.Description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+    }
+    columnIndex++;
+    model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+    model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::GetById - Statement \"getClientById\" returned more than 1 row of data (expected "
+                       "1)\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
     return 0;
 }
 
@@ -256,4 +314,13 @@ const std::string ClientData::filterClients = "SELECT clients.client_id, "
                                               "AND (client_name LIKE ? "
                                               "OR client_description LIKE ? "
                                               "OR employer_name LIKE ?); ";
+
+const std::string ClientData::getClientById = "SELECT clients.client_id, "
+                                              "clients.name AS client_name, "
+                                              "clients.date_created, "
+                                              "clients.date_modified, "
+                                              "clients.is_active, "
+                                              "clients.employer_id "
+                                              "FROM clients "
+                                              "WHERE clients.client_id = ?";
 } // namespace tks::Data
