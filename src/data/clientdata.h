@@ -48,7 +48,7 @@ public:
     ClientData& operator=(const ClientData&) = delete;
 
     std::int64_t Create(Model::ClientModel& client);
-    int GetById(const std::int64_t clientId, Model::ClientModel& client);
+    int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& client);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ClientModel>& clients);
     int Update(Model::ClientModel& client);
     int Delete(const std::int64_t clientId);
