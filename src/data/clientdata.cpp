@@ -101,10 +101,7 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Create - Failed to execute \"createClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error("ClientData::Create - Failed to execute \"createClient\" statement\n {0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -115,12 +112,107 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
     return rowId;
 }
 
-int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& client)
+int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientModel>& clients)
 {
+    auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
+
+    sqlite3_stmt* stmt;
+    int rc = sqlite3_prepare_v2(
+        pDb, ClientData::filterClients.c_str(), static_cast<int>(ClientData::filterClients.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::Filter - Failed to prepare \"filterClients\" statement\n {0} - {1}", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIdx = 1;
+    // client name
+    rc = sqlite3_bind_text(
+        stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::Filter - Failed to bind parameter \"SearchTerm:Name\" in \"filterClients\" "
+                       "statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // client description
+    rc = sqlite3_bind_text(
+        stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::Filter - Failed to bind parameter \"SearchTerm:Description\" in \"filterClients\" "
+                       "statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // linked employer name
+    rc = sqlite3_bind_text(
+        stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::Filter - Failed to bind parameter \"SearchTerm:EmployerName\" in \"filterClients\" "
+                       "statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            Model::ClientModel model;
+            int columnIndex = 0;
+            model.ClientId = sqlite3_column_int64(stmt, columnIndex++);
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            model.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.Description = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                model.Description =
+                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+            }
+            columnIndex++;
+            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+
+            clients.push_back(model);
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::Filter - Failed to execute \"filterClients\" statement\n {0} - {1}", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
     return 0;
 }
 
-int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientModel>& clients)
+int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& client)
 {
     return 0;
 }
@@ -148,4 +240,20 @@ std::int64_t ClientData::GetLastInsertId() const
 const std::string ClientData::createClient = "INSERT INTO "
                                              "clients (name, description, employer_id) "
                                              "VALUES (?, ?, ?)";
+
+const std::string ClientData::filterClients = "SELECT clients.client_id, "
+                                              "clients.name AS client_name, "
+                                              "clients.description AS client_description, "
+                                              "clients.date_created, "
+                                              "clients.date_modified, "
+                                              "clients.is_active, "
+                                              "clients.employer_id, "
+                                              "clients.name AS employer_name "
+                                              "FROM clients "
+                                              "INNER JOIN employers "
+                                              "ON clients.employer_id = employers.employer_id "
+                                              "WHERE clients.is_active = 1 "
+                                              "AND (client_name LIKE ? "
+                                              "OR client_description LIKE ? "
+                                              "OR employer_name LIKE ?); ";
 } // namespace tks::Data
