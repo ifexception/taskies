@@ -36,10 +36,15 @@ int VoidPointerToInt(void* value);
 
 void* IntToVoidPointer(int value);
 
+std::int64_t VoidPointerToInt64(void* value);
+
+void* Int64ToVoidPointer(std::int64_t value);
+
 namespace sqlite
 {
-// SQLite interprets single quotes as string and performs no parameterization if a parameter is in single quotes
-// This function handles adding the LIKE operator '%' to the string so the parameterization takes effect
+// SQLite interprets single quotes as string and performs no parameterization.
+// If a parameter is in single quotes, then this function handles adding the LIKE operator '%'
+// to the string so the parameterization takes effect
 std::string FormatSearchTerm(const std::string& source);
-}
+} // namespace sqlite
 } // namespace tks::Utils

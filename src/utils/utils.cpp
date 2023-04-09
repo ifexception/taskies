@@ -67,6 +67,18 @@ void* IntToVoidPointer(int value)
     return reinterpret_cast<void*>(p);
 }
 
+std::int64_t VoidPointerToInt64(void* value)
+{
+    intptr_t p = reinterpret_cast<intptr_t>(value);
+    return static_cast<std::int64_t>(p);
+}
+
+void* Int64ToVoidPointer(std::int64_t value)
+{
+    intptr_t p = static_cast<intptr_t>(value);
+    return reinterpret_cast<void*>(p);
+}
+
 namespace sqlite
 {
 std::string FormatSearchTerm(const std::string& source)
