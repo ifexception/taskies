@@ -173,7 +173,7 @@ void ClientDialog::CreateControls()
 
         /* Date Modified */
         auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
-        metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+        metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
 
         pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
         pDateModifiedTextCtrl->Disable();
