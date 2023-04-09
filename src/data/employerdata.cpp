@@ -196,23 +196,23 @@ std::tuple<int, std::vector<Model::EmployerModel>> EmployerData::Filter(const st
         switch (sqlite3_step(stmt)) {
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
-            Model::EmployerModel employer;
+            Model::EmployerModel model;
             int columnIndex = 0;
-            employer.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+            model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
             const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            employer.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            model.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                employer.Description = std::nullopt;
+                model.Description = std::nullopt;
             } else {
                 const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                employer.Description =
+                model.Description =
                     std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
             }
             columnIndex++;
-            employer.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-            employer.DateModified = sqlite3_column_int(stmt, columnIndex++);
-            employer.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
-            employers.push_back(employer);
+            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            employers.push_back(model);
             break;
         }
         case SQLITE_DONE:
