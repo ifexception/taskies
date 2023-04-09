@@ -276,6 +276,7 @@ void ClientDialog::OnOK(wxCommandEvent& event)
             pLogger->error("Failed to execute action with client. Check further logs for more information...");
             auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                                 "check logs for more information...";
+
             ErrorDialog errorDialog(this, pLogger, errorMessage);
             errorDialog.ShowModal();
 
