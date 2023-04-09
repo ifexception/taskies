@@ -245,7 +245,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         int ret = 0;
         if (!bIsEdit) {
             std::int64_t employerId = mData.Create(mEmployer);
-            ret = static_cast<int>(employerId);
+            ret = employerId > 0 ? 1 : -1;
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = mData.Update(mEmployer);
@@ -255,7 +255,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         }
 
         if (ret == -1) {
-            pLogger->error("Error occured when creating employer");
+            pLogger->error("Failed to execute action with client. Check further logs for more information");
             ErrorDialog errorDialog(this, pLogger, "Error occured when creating employer");
             errorDialog.ShowModal();
 
