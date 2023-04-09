@@ -73,7 +73,7 @@ void EmployerDialog::Create()
         DataToControls();
     }
 
-    //SetSize(FromDIP(wxSize(400, 380)));
+    // SetSize(FromDIP(wxSize(400, 380)));
     SetMinSize(FromDIP(wxSize(280, 380)));
 }
 
@@ -255,8 +255,10 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         }
 
         if (ret == -1) {
-            pLogger->error("Failed to execute action with client. Check further logs for more information");
-            ErrorDialog errorDialog(this, pLogger, "Error occured when creating employer");
+            pLogger->error("Failed to execute action with employer. Check further logs for more information");
+            auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                                "check logs for more information...";
+            ErrorDialog errorDialog(this, pLogger, errorMessage);
             errorDialog.ShowModal();
 
             pOkButton->Enable();
