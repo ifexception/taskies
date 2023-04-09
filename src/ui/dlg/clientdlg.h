@@ -29,6 +29,10 @@
 
 #include <spdlog/spdlog.h>
 
+#include "../../data/employerdata.h"
+#include "../../models/clientmodel.h"
+#include "../../data/clientdata.h"
+
 namespace tks
 {
 namespace Core
@@ -82,6 +86,9 @@ private:
 
     bool bIsEdit;
     std::int64_t mClientId;
+    Data::EmployerData mEmployerData;
+    Model::ClientModel mClientModel;
+    Data::ClientData mData;
 
     enum {
         IDC_NAME = wxID_HIGHEST + 1,

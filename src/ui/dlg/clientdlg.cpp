@@ -25,8 +25,12 @@
 
 #include "../../common/constants.h"
 #include "../../common/common.h"
-#include "../../utils/utils.h"
 #include "../../core/environment.h"
+#include "../../utils/utils.h"
+
+#include "../../models/employermodel.h"
+
+#include "errordlg.h"
 
 namespace tks::UI::dlg
 {
@@ -56,6 +60,9 @@ ClientDialog::ClientDialog(wxWindow* parent,
     , pIsActiveCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mEmployerData(pEnv, pLogger)
+    , mClientModel()
+    , mData(pEnv, pLogger)
 {
     Create();
 
@@ -66,6 +73,7 @@ ClientDialog::ClientDialog(wxWindow* parent,
 void ClientDialog::Create()
 {
     CreateControls();
+    FillControls();
     ConfigureEventBindings();
 
     if (bIsEdit) {
@@ -132,8 +140,6 @@ void ClientDialog::CreateControls()
     auto employerLabel = new wxStaticText(employerChoiceBox, wxID_ANY, "Employer");
 
     pEmployerChoiceCtrl = new wxChoice(employerChoiceBox, IDC_CHOICE);
-    pEmployerChoiceCtrl->AppendString("Please select");
-    pEmployerChoiceCtrl->SetSelection(0);
     pEmployerChoiceCtrl->SetToolTip("Select an Employer to associate this Client with");
 
     auto employerChoiceGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
@@ -195,13 +201,35 @@ void ClientDialog::CreateControls()
     pOkButton->SetDefault();
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
+    pOkButton->Disable();
+    pCancelButton->Disable();
+
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     SetSizerAndFit(sizer);
 }
 
-void ClientDialog::FillControls() {}
+void ClientDialog::FillControls()
+{
+    pEmployerChoiceCtrl->Append("Please select", Utils::IntToVoidPointer(0));
+    pEmployerChoiceCtrl->SetSelection(0);
+
+    std::string defaultSearhTerm = "";
+    auto employersTuple = mEmployerData.Filter(defaultSearhTerm);
+    if (std::get<0>(employersTuple) != 0) {
+        ErrorDialog errorDialog(this, pLogger, "An unexpected error occurred during the employer filter operation");
+        errorDialog.ShowModal();
+    } else {
+        std::vector<Model::EmployerModel> employers = std::get<1>(employersTuple);
+        for (auto& employer : employers) {
+            pEmployerChoiceCtrl->Append(employer.Name, Utils::Int64ToVoidPointer(employer.EmployerId));
+        }
+    }
+
+    pOkButton->Enable();
+    pCancelButton->Enable();
+}
 
 // clang-format off
 void ClientDialog::ConfigureEventBindings()
@@ -232,7 +260,34 @@ void ClientDialog::ConfigureEventBindings()
 
 void ClientDialog::DataToControls() {}
 
-void ClientDialog::OnOK(wxCommandEvent& event) {}
+void ClientDialog::OnOK(wxCommandEvent& event)
+{
+    pOkButton->Disable();
+    pCancelButton->Disable();
+
+    if (TransferDataAndValidate()) {
+        int ret = 0;
+        if (!bIsEdit) {
+            std::int64_t clientId = mData.Create(mClientModel);
+            ret = clientId > 0 ? 1 : -1;
+        }
+
+        if (ret == -1) {
+            pLogger->error("Failed to execute action with client. Check further logs for more information");
+            auto errorMessage = "An unexpected error occured. Please check logs for more information...";
+            ErrorDialog errorDialog(this, pLogger, errorMessage);
+            errorDialog.ShowModal();
+
+            pOkButton->Enable();
+            pCancelButton->Enable();
+        } else {
+            EndModal(wxID_OK);
+        }
+    } else {
+        pOkButton->Enable();
+        pCancelButton->Enable();
+    }
+}
 
 void ClientDialog::OnCancel(wxCommandEvent& event)
 {
@@ -283,6 +338,10 @@ bool ClientDialog::TransferDataAndValidate()
         tooltip.ShowFor(pEmployerChoiceCtrl);
         return false;
     }
+
+    mClientModel.Name = name;
+    mClientModel.Description = description;
+    mClientModel.EmployerId = employerId;
 
     return true;
 }
