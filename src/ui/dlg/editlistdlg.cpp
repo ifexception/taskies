@@ -335,6 +335,10 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
     }
 
     mEntityId = -1;
+    mSearchTerm = "";
+    pSearchTextCtrl->SetValue(wxEmptyString);
+    pListCtrl->DeleteAllItems();
+    Search();
 }
 
 void EditListDialog::OnOK(wxCommandEvent& event)
