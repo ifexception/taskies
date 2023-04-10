@@ -438,6 +438,7 @@ const std::string ClientData::filterClients = "SELECT clients.client_id, "
 
 const std::string ClientData::getClientById = "SELECT clients.client_id, "
                                               "clients.name AS client_name, "
+                                              "clients.description, "
                                               "clients.date_created, "
                                               "clients.date_modified, "
                                               "clients.is_active, "
