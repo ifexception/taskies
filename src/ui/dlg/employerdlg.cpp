@@ -321,6 +321,7 @@ bool EmployerDialog::TransferDataAndValidate()
 
     mEmployer.Name = name;
     mEmployer.Description = description.empty() ? std::nullopt : std::make_optional(description);
+    mEmployer.EmployerId = mEmployerId;
 
     return true;
 }
