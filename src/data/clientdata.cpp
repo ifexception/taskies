@@ -21,6 +21,7 @@
 
 #include "../core/environment.h"
 #include "../utils/utils.h"
+#include "../models/employermodel.h"
 
 namespace tks::Data
 {
@@ -275,13 +276,102 @@ int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
     return 0;
 }
 
-int ClientData::Update(Model::ClientModel& client)
+int ClientData::Update(Model::ClientModel& model)
 {
+    sqlite3_stmt* stmt;
+    int rc = sqlite3_prepare_v2(
+        pDb, ClientData::updateClient.c_str(), static_cast<int>(ClientData::updateClient.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::Update - Failed to prepare \"updateClient\" statement\n {0} - {1}", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIdx = 1;
+    rc =
+        sqlite3_bind_text(stmt, bindIdx++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            "ClientData::Update - Failed to bind parameter \"name\" in \"updateClient\" statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    if (model.Description.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIdx,
+            model.Description.value().c_str(),
+            static_cast<int>(model.Description.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIdx);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            "ClientData::Update - Failed to bind paramater \"description\" in \"updateClient\" statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIdx++;
+
+    rc = sqlite3_bind_int(stmt, bindIdx++, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            "ClientData::Update - Failed to bind paramater \"date_modified\" in \"updateClient\" statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, bindIdx, model.EmployerId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            "ClientData::Update - Failed to bind paramater \"employer_id\" in \"updateClient\" statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::Update - Failed to execute \"updateClient\" statement\n {0} - {1}", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
     return 0;
 }
 
 int ClientData::Delete(const std::int64_t clientId)
 {
+    sqlite3_stmt* stmt;
+    int rc = sqlite3_prepare_v2(
+        pDb, ClientData::deleteClient.c_str(), static_cast<int>(ClientData::deleteClient.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::Delete - Failed to prepare \"deleteClient\" statement\n {0} - {1}", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIdx = 1;
+
     return 0;
 }
 
@@ -323,4 +413,12 @@ const std::string ClientData::getClientById = "SELECT clients.client_id, "
                                               "clients.employer_id "
                                               "FROM clients "
                                               "WHERE clients.client_id = ?";
+
+const std::string ClientData::updateClient = "UPDATE clients "
+                                             "SET name = ?, description = ?, date_modified = ?, employer_id = ? "
+                                             "WHERE client_id = ?";
+
+const std::string ClientData::deleteClient = "UPDATE clients "
+                                             "SET is_active = 0, date_modified = ? "
+                                             "WHERE client_id = ?";
 } // namespace tks::Data

@@ -258,7 +258,48 @@ void ClientDialog::ConfigureEventBindings()
 }
 // clang-format on
 
-void ClientDialog::DataToControls() {}
+void ClientDialog::DataToControls()
+{
+    Model::ClientModel client;
+    int rc = mData.GetById(mClientId, client);
+    bool isSuccess = false;
+    if (rc == -1) {
+        pLogger->error("Failed to execute action with client. Check further logs for more information...");
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+
+    } else {
+        pNameTextCtrl->SetValue(client.Name);
+        pDescriptionTextCtrl->SetValue(client.Description.has_value() ? client.Description.value() : "");
+        pDateCreatedTextCtrl->SetValue(client.GetDateCreatedString());
+        pDateModifiedTextCtrl->SetValue(client.GetDateModifiedString());
+        pIsActiveCtrl->SetValue(client.IsActive);
+        isSuccess = true;
+    }
+
+    Model::EmployerModel employer;
+    rc = mEmployerData.GetById(client.EmployerId, employer);
+    if (rc == -1) {
+        pLogger->error("Failed to execute action with employer. Check further logs for more information...");
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+        isSuccess = false;
+    } else {
+        pEmployerChoiceCtrl->SetStringSelection(employer.Name);
+        isSuccess = true;
+    }
+
+    if (isSuccess) {
+        pOkButton->Enable();
+        pCancelButton->Enable();
+    }
+}
 
 void ClientDialog::OnOK(wxCommandEvent& event)
 {
@@ -270,6 +311,9 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         if (!bIsEdit) {
             std::int64_t clientId = mData.Create(mClientModel);
             ret = clientId > 0 ? 1 : -1;
+        }
+        if (bIsEdit && pIsActiveCtrl->IsChecked()) {
+            ret = mData.Update(mClientModel);
         }
 
         if (ret == -1) {
@@ -296,7 +340,18 @@ void ClientDialog::OnCancel(wxCommandEvent& event)
     EndModal(wxID_CANCEL);
 }
 
-void ClientDialog::OnIsActiveCheck(wxCommandEvent& event) {}
+void ClientDialog::OnIsActiveCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pNameTextCtrl->Enable();
+        pDescriptionTextCtrl->Enable();
+        pEmployerChoiceCtrl->Enable();
+    } else {
+        pNameTextCtrl->Disable();
+        pDescriptionTextCtrl->Disable();
+        pEmployerChoiceCtrl->Disable();
+    }
+}
 
 bool ClientDialog::TransferDataAndValidate()
 {
