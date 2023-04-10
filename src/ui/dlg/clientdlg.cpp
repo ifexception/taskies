@@ -403,6 +403,7 @@ bool ClientDialog::TransferDataAndValidate()
     mClientModel.Name = name;
     mClientModel.Description = description;
     mClientModel.EmployerId = employerId;
+    mClientModel.ClientId = mClientId;
 
     return true;
 }

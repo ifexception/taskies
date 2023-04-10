@@ -191,6 +191,7 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
             model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
             clients.push_back(model);
+            break;
         }
         case SQLITE_DONE:
             rc = SQLITE_DONE;
@@ -333,11 +334,22 @@ int ClientData::Update(Model::ClientModel& model)
         return -1;
     }
 
-    rc = sqlite3_bind_int64(stmt, bindIdx, model.EmployerId);
+    rc = sqlite3_bind_int64(stmt, bindIdx++, model.EmployerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(
             "ClientData::Update - Failed to bind paramater \"employer_id\" in \"updateClient\" statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, bindIdx++, model.ClientId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            "ClientData::Update - Failed to bind paramater \"client_id\" in \"updateClient\" statement\n {0} - {1}",
             rc,
             err);
         sqlite3_finalize(stmt);
