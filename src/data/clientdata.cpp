@@ -289,8 +289,7 @@ int ClientData::Update(Model::ClientModel& model)
     }
 
     int bindIdx = 1;
-    rc =
-        sqlite3_bind_text(stmt, bindIdx++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt, bindIdx++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(
@@ -323,7 +322,7 @@ int ClientData::Update(Model::ClientModel& model)
 
     bindIdx++;
 
-    rc = sqlite3_bind_int(stmt, bindIdx++, Utils::UnixTimestamp());
+    rc = sqlite3_bind_int64(stmt, bindIdx++, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(
@@ -371,6 +370,38 @@ int ClientData::Delete(const std::int64_t clientId)
     }
 
     int bindIdx = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIdx++, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            "ClientData::Delete - Failed to bind paramater \"date_modified\" in \"deleteClient\" statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, bindIdx++, clientId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            "ClientData::Delete - Failed to bind paramater \"client_id\" in \"deleteClient\" statement\n {0} - {1}",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ClientData::Delete - Failed to execute \"deleteClient\" statement\n {0} - {1}", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
 
     return 0;
 }

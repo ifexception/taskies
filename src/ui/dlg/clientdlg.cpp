@@ -316,6 +316,10 @@ void ClientDialog::OnOK(wxCommandEvent& event)
             ret = mData.Update(mClientModel);
         }
 
+        if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
+            ret = mData.Delete(mClientId);
+        }
+
         if (ret == -1) {
             pLogger->error("Failed to execute action with client. Check further logs for more information...");
             auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
