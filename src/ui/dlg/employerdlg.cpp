@@ -66,15 +66,13 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
 
 void EmployerDialog::Create()
 {
+    SetMinSize(FromDIP(wxSize(280, 380)));
     CreateControls();
     ConfigureEventBindings();
 
     if (bIsEdit) {
         DataToControls();
     }
-
-    // SetSize(FromDIP(wxSize(400, 380)));
-    SetMinSize(FromDIP(wxSize(280, 380)));
 }
 
 void EmployerDialog::CreateControls()
@@ -181,7 +179,8 @@ void EmployerDialog::CreateControls()
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
-    SetSizerAndFit(sizer);
+    SetSizer(sizer);
+    Fit();
 }
 
 // clang-format off
