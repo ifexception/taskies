@@ -58,7 +58,7 @@ private:
 
     static const std::string createEmployer;
     static const std::string filterEmployers;
-    static const std::string getEmployer;
+    static const std::string getEmployerById;
     static const std::string updateEmployer;
     static const std::string deleteEmployer;
 };

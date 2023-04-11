@@ -33,7 +33,7 @@ EmployerData::EmployerData(std::shared_ptr<Core::Environment> env, std::shared_p
     int rc = sqlite3_open(databaseFile.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData - Failed to open database {0}", std::string(err));
+        pLogger->error("EmployerData - Failed to open database\n\t{0} - {1}", rc, err);
     }
 }
 
@@ -53,7 +53,7 @@ std::int64_t EmployerData::Create(const Model::EmployerModel& employer)
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("Error when preparing statement {0}", std::string(err));
+        pLogger->error("EmployerData::Create - Failed to prepare \"createEmployer\" statement\n{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -61,7 +61,10 @@ std::int64_t EmployerData::Create(const Model::EmployerModel& employer)
     rc = sqlite3_bind_text(stmt, 1, employer.Name.c_str(), static_cast<int>(employer.Name.size()), SQLITE_TRANSIENT);
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("Failed to bind parameter {0}", std::string(err));
+        pLogger->error(
+            "EmployerData::Create - Failed to bind \"name\" parameter in \"createEmployer\" statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -77,7 +80,10 @@ std::int64_t EmployerData::Create(const Model::EmployerModel& employer)
     }
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("Failed to bind parameter {0}", std::string(err));
+        pLogger->error("EmployerData::Create - Failed to bind \"description\" parameter in \"createEmployer\" "
+                       "statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -85,7 +91,7 @@ std::int64_t EmployerData::Create(const Model::EmployerModel& employer)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("Error when executing statement {0}", std::string(err));
+        pLogger->error("EmployerData::Create - Failed to execute \"createEmployer\" statement\n\t{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -99,12 +105,15 @@ std::int64_t EmployerData::Create(const Model::EmployerModel& employer)
 int EmployerData::GetById(const std::int64_t employerId, Model::EmployerModel& employer)
 {
     sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(
-        pDb, EmployerData::getEmployer.c_str(), static_cast<int>(EmployerData::getEmployer.size()), &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(pDb,
+        EmployerData::getEmployerById.c_str(),
+        static_cast<int>(EmployerData::getEmployerById.size()),
+        &stmt,
+        nullptr);
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::GetById - Error when preparing statement {0}", std::string(err));
+        pLogger->error("EmployerData::GetById - Failed to prepare \"getEmployerById\" statement\n\t{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -112,7 +121,10 @@ int EmployerData::GetById(const std::int64_t employerId, Model::EmployerModel& e
     rc = sqlite3_bind_int64(stmt, 1, employerId);
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::GetById - Failed to bind parameter {0}", std::string(err));
+        pLogger->error("EmployerData::GetById - Failed to bind \"employer_id\" parameter in \"getEmployerById\" "
+                       "statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -120,7 +132,7 @@ int EmployerData::GetById(const std::int64_t employerId, Model::EmployerModel& e
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::GetById - Error when stepping into result {0}", std::string(err));
+        pLogger->error("EmployerData::GetById - Failed to execute \"getEmployerById\" statement\n\t{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -143,7 +155,11 @@ int EmployerData::GetById(const std::int64_t employerId, Model::EmployerModel& e
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        pLogger->error("EmployerData::GetById - Statement EmployerData::getEmployer returned more than 1 row");
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("EmployerData::GetById - Statement \"getEmployerById\" returned more than 1 row of data "
+                       "(expected 1)\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -168,25 +184,33 @@ std::tuple<int, std::vector<Model::EmployerModel>> EmployerData::Filter(const st
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("Error when preparing statement {0}", std::string(err));
+        pLogger->error("EmployerData::Filter - Failed to prepare \"filterEmployers\" statement\n\t{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return std::make_tuple(-1, std::vector<Model::EmployerModel>());
     }
 
+    // name
     rc = sqlite3_bind_text(
         stmt, 1, formatedSearchTerm.c_str(), static_cast<int>(formatedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("Failed to bind parameter {0}", std::string(err));
+        pLogger->error(
+            "EmployerData::Filter - Failed to bind \"name\" parameter in \"filterEmployers\" statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return std::make_tuple(-1, std::vector<Model::EmployerModel>());
     }
 
+    // description
     rc = sqlite3_bind_text(
         stmt, 2, formatedSearchTerm.c_str(), static_cast<int>(formatedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("Failed to bind parameter {0}", std::string(err));
+        pLogger->error("EmployerData::Filter - Failed to bind \"description\" parameter in \"filterEmployers\" "
+                       "statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return std::make_tuple(-1, std::vector<Model::EmployerModel>());
     }
@@ -226,7 +250,7 @@ std::tuple<int, std::vector<Model::EmployerModel>> EmployerData::Filter(const st
 
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("Error when executing statement {0}", std::string(err));
+        pLogger->error("EmployerData::Filter - Failed to execute \"filterEmployers\" statement\n\t{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return std::make_tuple(-1, std::vector<Model::EmployerModel>());
     }
@@ -247,7 +271,7 @@ int EmployerData::Update(Model::EmployerModel employer)
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("Error when preparing statement {0}", std::string(err));
+        pLogger->error("EmployerData::Update - Failed to prepare \"updateEmployer\" statement\n\t{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -255,7 +279,10 @@ int EmployerData::Update(Model::EmployerModel employer)
     rc = sqlite3_bind_text(stmt, 1, employer.Name.c_str(), static_cast<int>(employer.Name.size()), SQLITE_TRANSIENT);
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::Update - Failed to bind to \"name\" property {0}", std::string(err));
+        pLogger->error(
+            "EmployerData::Update - Failed to bind \"name\" parameter in \"updateEmployer\" statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -271,7 +298,10 @@ int EmployerData::Update(Model::EmployerModel employer)
     }
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::Update - Failed to bind to \"description\" property {0}", std::string(err));
+        pLogger->error("EmployerData::Update - Failed to bind \"description\" parameter in \"updateEmployer\" "
+                       "statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -279,7 +309,10 @@ int EmployerData::Update(Model::EmployerModel employer)
     rc = sqlite3_bind_int64(stmt, 3, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::Update - Failed to bind to \"date_modified\" property {0}", std::string(err));
+        pLogger->error("EmployerData::Update - Failed to bind \"date_modified\" parameter in \"updateEmployer\" "
+                       "statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -287,7 +320,10 @@ int EmployerData::Update(Model::EmployerModel employer)
     rc = sqlite3_bind_int64(stmt, 4, employer.EmployerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::Update - Failed to bind to \"employer_id\" property {0}", std::string(err));
+        pLogger->error("EmployerData::Update - Failed to bind \"employer_id\" parameter in \"updateEmployer\" "
+                       "statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -295,7 +331,7 @@ int EmployerData::Update(Model::EmployerModel employer)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::Update - Error occured when executing statement {0}", std::string(err));
+        pLogger->error("EmployerData::Update - Failed to execute \"updateEmployer\" statement\n\t{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -316,7 +352,7 @@ int EmployerData::Delete(const std::int64_t employerId)
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::Delete - Error when preparing statement {0}", std::string(err));
+        pLogger->error("EmployerData::Delete - Failed to prepare \"deleteEmployer\" statement\n\t{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -324,7 +360,10 @@ int EmployerData::Delete(const std::int64_t employerId)
     rc = sqlite3_bind_int64(stmt, 1, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::Delete - Failed to bind to \"date_modified\" property {0}", std::string(err));
+        pLogger->error("EmployerData::Delete - Failed to bind \"date_modified\" parameter in \"deleteEmployer\" "
+                       "statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -332,7 +371,10 @@ int EmployerData::Delete(const std::int64_t employerId)
     rc = sqlite3_bind_int64(stmt, 2, employerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::Delete - Failed to bind to \"employer_id\" property {0}", std::string(err));
+        pLogger->error("EmployerData::Delete - Failed to bind \"employer_id\" parameter in \"deleteEmployer\" "
+                       "statement\n\t{0} - {1}",
+            rc,
+            err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -340,7 +382,7 @@ int EmployerData::Delete(const std::int64_t employerId)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("EmployerData::Delete - Error occured when executing statement {0}", std::string(err));
+        pLogger->error("EmployerData::Delete - Failed to execute \"deleteEmployer\" statement\n\t{0} - {1}", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -369,14 +411,14 @@ const std::string EmployerData::filterEmployers = "SELECT employer_id, "
                                                   "AND (name LIKE ? "
                                                   "OR description LIKE ?)";
 
-const std::string EmployerData::getEmployer = "SELECT employer_id, "
-                                              "name, "
-                                              "description, "
-                                              "date_created, "
-                                              "date_modified, "
-                                              "is_active "
-                                              "FROM employers "
-                                              "WHERE employer_id = ?";
+const std::string EmployerData::getEmployerById = "SELECT employer_id, "
+                                                  "name, "
+                                                  "description, "
+                                                  "date_created, "
+                                                  "date_modified, "
+                                                  "is_active "
+                                                  "FROM employers "
+                                                  "WHERE employer_id = ?";
 
 const std::string EmployerData::updateEmployer = "UPDATE employers "
                                                  "SET name = ?, "
