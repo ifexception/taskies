@@ -78,10 +78,10 @@ private:
     wxTextCtrl* pNameTextCtrl;
     wxTextCtrl* pDisplayNameCtrl;
     wxTextCtrl* pDescriptionTextCtrl;
+    wxCheckBox* pIsDefaultCtrl;
     wxChoice* pEmployerChoiceCtrl;
     wxChoice* pClientChoiceCtrl;
     wxCheckBox* pIsActiveCtrl;
-    wxCheckBox* pIsDefaultCtrl;
     wxTextCtrl* pDateCreatedTextCtrl;
     wxTextCtrl* pDateModifiedTextCtrl;
     wxButton* pOkButton;
@@ -95,9 +95,9 @@ private:
         IDC_NAME = wxID_HIGHEST + 1,
         IDC_DISPLAYNAME,
         IDC_DESCRIPTION,
+        IDC_ISDEFAULT,
         IDC_EMPLOYERCHOICE,
         IDC_CLIENTCHOICE,
-        IDC_ISDEFAULT,
         IDC_ISACTIVE
     };
 };
