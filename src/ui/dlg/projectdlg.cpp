@@ -130,7 +130,7 @@ void ProjectDialog::CreateControls()
     detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     detailsGridSizer->Add(displayNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    detailsGridSizer->Add(pDisplayNameCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     detailsGridSizer->Add(0, 0);
     detailsGridSizer->Add(pIsDefaultCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
