@@ -83,6 +83,7 @@ void MainFrame::CreateControls()
     auto fileMenu = new wxMenu();
     fileMenu->Append(ID_NEW_EMPLOYER, "New &Employer", "Create new employer");
     fileMenu->Append(ID_NEW_CLIENT, "New C&lient", "Create new client");
+    fileMenu->Append(ID_NEW_PROJECT, "New &Project", "Create new project");
     fileMenu->AppendSeparator();
 
     auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit", "Exit the program");
