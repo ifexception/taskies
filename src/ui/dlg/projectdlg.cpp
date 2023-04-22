@@ -238,7 +238,14 @@ void ProjectDialog::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-void ProjectDialog::FillControls() {}
+void ProjectDialog::FillControls()
+{
+    pEmployerChoiceCtrl->AppendString("Please select");
+    pEmployerChoiceCtrl->SetSelection(0);
+
+    pClientChoiceCtrl->AppendString("Please select");
+    pClientChoiceCtrl->SetSelection(0);
+}
 
 void ProjectDialog::ConfigureEventBindings() {}
 
