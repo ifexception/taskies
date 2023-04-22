@@ -32,6 +32,7 @@
 #include "../ui/dlg/employerdlg.h"
 #include "../ui/dlg/editlistdlg.h"
 #include "../ui/dlg/clientdlg.h"
+#include "../ui/dlg/projectdlg.h"
 
 namespace tks::UI
 {
@@ -40,6 +41,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 /* Menu Handlers */
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
+EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
@@ -133,6 +135,12 @@ void MainFrame::OnNewClient(wxCommandEvent& event)
 {
     UI::dlg::ClientDialog newClientDialog(this, pEnv, pLogger);
     newClientDialog.ShowModal();
+}
+
+void MainFrame::OnNewProject(wxCommandEvent& event)
+{
+    UI::dlg::ProjectDialog newProjectDialog(this, pEnv, pLogger);
+    newProjectDialog.ShowModal();
 }
 
 void MainFrame::OnEditEmployer(wxCommandEvent& event)

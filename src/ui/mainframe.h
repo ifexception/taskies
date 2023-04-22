@@ -34,6 +34,7 @@ namespace tks
 enum class MenuIds : int {
     File_NewEmployer = wxID_HIGHEST + 102,
     File_NewClient,
+    File_NewProject,
     Edit_Employer,
     Edit_Client
 };
@@ -41,6 +42,7 @@ enum class MenuIds : int {
 /* File */
 static const int ID_NEW_EMPLOYER = static_cast<int>(MenuIds::File_NewEmployer);
 static const int ID_NEW_CLIENT = static_cast<int>(MenuIds::File_NewClient);
+static const int ID_NEW_PROJECT = static_cast<int>(MenuIds::File_NewProject);
 
 /* Edit */
 static const int ID_EDIT_EMPLOYER = static_cast<int>(MenuIds::Edit_Employer);
@@ -79,6 +81,7 @@ private:
     /* Menu Handlers */
     void OnNewEmployer(wxCommandEvent& event);
     void OnNewClient(wxCommandEvent& event);
+    void OnNewProject(wxCommandEvent& event);
     void OnEditEmployer(wxCommandEvent& event);
     void OnEditClient(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
