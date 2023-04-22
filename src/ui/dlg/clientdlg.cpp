@@ -108,6 +108,7 @@ void ClientDialog::CreateControls()
     allowedCharacters.Add("|");
     allowedCharacters.Add("(");
     allowedCharacters.Add(")");
+    allowedCharacters.Add("+");
     nameValidator.SetIncludes(allowedCharacters);
 
     pNameTextCtrl->SetValidator(nameValidator);
