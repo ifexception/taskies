@@ -25,26 +25,37 @@
 
 namespace tks::Data
 {
-ProjectData::ProjectData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger) {}
+ProjectData::ProjectData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger)
+    : pEnv(env)
+    , pLogger(logger)
+    , pDb(nullptr)
+{
+    auto databaseFile = pEnv->GetDatabasePath().string();
+    int rc = sqlite3_open(databaseFile.c_str(), &pDb);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error("ProjectData - Failed to open database\n {0} - {1}", rc, err);
+    }
+}
 
 ProjectData::~ProjectData() {}
 
-std::int64_t ProjectData::Create(Model::ProjectData& client)
+std::int64_t ProjectData::Create(Model::ProjectModel& client)
 {
     return std::int64_t();
 }
 
-int ProjectData::Filter(const std::string& searchTerm, std::vector<Model::ProjectData>& clients)
+int ProjectData::Filter(const std::string& searchTerm, std::vector<Model::ProjectModel>& clients)
 {
     return 0;
 }
 
-int ProjectData::GetById(const std::int64_t clientId, Model::ProjectData& model)
+int ProjectData::GetById(const std::int64_t clientId, Model::ProjectModel& model)
 {
     return 0;
 }
 
-int ProjectData::Update(Model::ProjectData& client)
+int ProjectData::Update(Model::ProjectModel& client)
 {
     return 0;
 }
