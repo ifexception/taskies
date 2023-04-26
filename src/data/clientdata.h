@@ -21,7 +21,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <tuple>
 #include <vector>
 
 #include <spdlog/logger.h>
