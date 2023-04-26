@@ -25,5 +25,21 @@
 
 namespace tks::Model
 {
+struct ProjectModel {
+    ProjectModel();
 
-}
+    std::int64_t ProjectId;
+    std::string Name;
+    std::string DisplayName;
+    std::optional<std::string> Description;
+    bool IsDefault;
+    std::int32_t DateCreated;
+    std::int32_t DateModified;
+    bool IsActive;
+    std::int64_t EmployerId;
+    std::int64_t ClientId;
+
+    const std::string GetDateCreatedString() const;
+    const std::string GetDateModifiedString() const;
+};
+} // namespace tks::Model

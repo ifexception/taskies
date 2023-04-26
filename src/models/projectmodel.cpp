@@ -23,4 +23,31 @@
 
 namespace tks::Model
 {
+ProjectModel::ProjectModel()
+    : ProjectId(-1)
+    , Name()
+    , DisplayName()
+    , Description()
+    , IsDefault(false)
+    , DateCreated()
+    , DateModified()
+    , IsActive(false)
+    , EmployerId(-1)
+    , ClientId(-1)
+{
 }
+
+const std::string ProjectModel::GetDateCreatedString() const
+{
+    date::sys_seconds dateTime{ std::chrono::seconds{ DateCreated } };
+    std::string dateString = date::format("%Y-%m-%d %I:%M:%S %p", dateTime);
+    return dateString;
+}
+
+const std::string ProjectModel::GetDateModifiedString() const
+{
+    date::sys_seconds dateTime{ std::chrono::seconds{ DateModified } };
+    std::string dateString = date::format("%Y-%m-%d %I:%M:%S %p", dateTime);
+    return dateString;
+}
+} // namespace tks::Model
