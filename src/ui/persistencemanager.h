@@ -55,9 +55,8 @@ public:
     bool SaveValue(const wxPersistentObject& who, const wxString& name, wxString value) override;
 
 private:
-    bool ReadValue(const wxPersistentObject& who, const wxString& name, sqlite3_stmt** stmt);
     wxString GetKey(const wxPersistentObject& who, const wxString& name);
-    void SaveValue(const wxString& key, const std::string& value);
+    bool SaveValue(const std::string& key, const std::string& value);
 
     sqlite3* pDb;
     std::shared_ptr<Core::Environment> pEnv;
