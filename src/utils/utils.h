@@ -46,5 +46,15 @@ namespace sqlite
 // If a parameter is in single quotes, then this function handles adding the LIKE operator '%'
 // to the string so the parameterization takes effect
 std::string FormatSearchTerm(const std::string& source);
+
+namespace pragmas
+{
+// https://phiresky.github.io/blog/2020/sqlite-performance-tuning/
+extern const char* ForeignKeys;
+extern const char* JournalMode;
+extern const char* Synchronous;
+extern const char* TempStore;
+extern const char* MmapSize;
+} // namespace pragmas
 } // namespace sqlite
 } // namespace tks::Utils

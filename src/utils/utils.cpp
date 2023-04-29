@@ -85,5 +85,14 @@ std::string FormatSearchTerm(const std::string& source)
 {
     return "%" + source + "%";
 }
+
+namespace pragmas
+{
+const char* ForeignKeys = "PRAGMA foreign_keys = ON;";
+const char* JournalMode = "PRAGMA journal_mode = WAL;";
+const char* Synchronous = "PRAGMA synchronous = normal;";
+const char* TempStore = "PRAGMA temp_store = memory;";
+const char* MmapSize = "PRAGMA mmap_size = 30000000000;";
+}
 } // namespace sqlite
 } // namespace tks::Utils
