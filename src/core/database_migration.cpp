@@ -69,7 +69,7 @@ DatabaseMigration::DatabaseMigration(std::shared_ptr<Environment> env, std::shar
     int rc = sqlite3_open(databaseFile.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("{0} - Failed to open database \"{1}\" at \"{2}\". Error {3}: \"{4}\"",
+        pLogger->error(LogMessage::OpenDatabaseTemplate,
             "DatabaseMigration",
             pEnv->GetDatabaseName(),
             pEnv->GetDatabasePath().string(),
@@ -80,35 +80,38 @@ DatabaseMigration::DatabaseMigration(std::shared_ptr<Environment> env, std::shar
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        pLogger->error(
+            LogMessage::ExecQueryTemplate, "DatabaseMigration", Utils::sqlite::pragmas::ForeignKeys, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, Utils::sqlite::pragmas::JournalMode, rc, err);
+        pLogger->error(
+            LogMessage::ExecQueryTemplate, "DatabaseMigration", Utils::sqlite::pragmas::JournalMode, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, Utils::sqlite::pragmas::Synchronous, rc, err);
+        pLogger->error(
+            LogMessage::ExecQueryTemplate, "DatabaseMigration", Utils::sqlite::pragmas::Synchronous, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, Utils::sqlite::pragmas::TempStore, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "DatabaseMigration", Utils::sqlite::pragmas::TempStore, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, Utils::sqlite::pragmas::MmapSize, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "DatabaseMigration", Utils::sqlite::pragmas::MmapSize, rc, err);
         return;
     }
 }
@@ -203,6 +206,12 @@ bool DatabaseMigration::Migrate()
             sqlite3_finalize(migrationHistoryStmt);
             return false;
         }
+
+        mhrc = sqlite3_step(migrationHistoryStmt);
+        if (mhrc != SQLITE_DONE) {
+            const char* err = sqlite3_errmsg(pDb);
+            pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "DatabaseMigration", rc, err);
+        }
     }
 
     rc = sqlite3_exec(pDb, CommitTransactionQuery.c_str(), nullptr, nullptr, nullptr);
@@ -269,7 +278,6 @@ bool DatabaseMigration::MigrationExists(const std::string& name)
     int count = sqlite3_column_int(stmt, 0);
 
     rc = sqlite3_step(stmt);
-
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "DatabaseMigration", rc, err);
