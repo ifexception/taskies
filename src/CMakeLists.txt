@@ -55,6 +55,7 @@ set (SRC
     "resources.rc"
     "common/common.cpp"
     "common/enums.cpp"
+    "common/constants.cpp"
     ${SRC_MODELS}
     ${SRC_DATA}
     ${SRC_DIALOGS}

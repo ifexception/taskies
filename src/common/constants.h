@@ -22,3 +22,78 @@
 constexpr int MIN_CHARACTER_COUNT = 2;
 constexpr int MAX_CHARACTER_COUNT_NAMES = 255;
 constexpr int MAX_CHARACTER_COUNT_DESCRIPTIONS = 3000;
+
+namespace tks::LogMessage
+{
+/// <summary>
+/// Use this template when we could not open a connection to the data
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Failed to open database "{DatabaseName}" at "{LocationToDatabaseFile}". Error {Code}: "{Message}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* OpenDatabaseTemplate;
+
+/// <summary>
+/// Use this template when a (simple) SQLite query failed to execute
+/// <para>
+/// <code>
+/// <a href="https://www.sqlite.org/c3ref/exec.html">sqlite3_exec()</a>
+/// </code>
+/// </para>
+/// /// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Failed to execute "{QueryName}" statement. Error {Code}: "{Message}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* ExecQueryTemplate;
+
+/// <summary>
+/// Use this template when a statement could not be prepared
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Failed to prepare statement "{StatementQuery}". Error {Code}: "{Message}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* PrepareStatementTemplate;
+
+/// <summary>
+/// Use this template when a parameter could not be bound to the statement at specified location
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Failed to bind parameter "{ParameterName}" at "{Index}" index. Error {Code}: "{Message}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* BindParameterTemplate;
+
+/// <summary>
+/// Use this template when a statement could not be stepped through
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Failed to step through statement "{Query}". Error {Code}: "{Message}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* ExecStepTemplate;
+
+/// <summary>
+/// Use this template when a statement that should have returned one (1) result, but returned more than one (1) result
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Failed step execute, returned more than one (1) result when expected one (1) result". Error {Code}:
+/// "{Message}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* ExecStepMoreResultsThanExpectedTemplate;
+} // namespace tks::LogMessage
