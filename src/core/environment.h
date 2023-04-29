@@ -46,6 +46,7 @@ public:
     std::filesystem::path GetConfigurationPath();
     std::filesystem::path GetDatabasePath();
 
+    std::string GetDatabaseName();
     std::string GetCurrentLocale();
 
     void SetInstallFolder();
@@ -61,7 +62,6 @@ private:
 
     std::string GetLogName();
     std::string GetConfigName();
-    std::string GetDatabaseName();
 
     std::string GetRegistryKey();
 
