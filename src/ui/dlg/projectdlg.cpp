@@ -349,6 +349,33 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     if (!TransferDataAndValidate()) {
+        Data::ProjectData projectData(pEnv, pLogger);
+        int ret = 0;
+        // handle is_default
+        if (!bIsEdit) {
+            std::int64_t projectId = projectData.Create(mProjectModel);
+            ret = projectId > 0 ? 0 : -1;
+        }
+        if (bIsEdit && pIsActiveCtrl->IsChecked()) {
+            ret = projectData.Update(mProjectModel);
+        }
+        if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
+            ret = projectData.Delete(mProjectId);
+        }
+
+        if (ret == -1) {
+            pLogger->error("Failed to execute action with project. Check further logs for more information");
+            auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                                "check logs for more information...";
+
+            ErrorDialog errorDialog(this, pLogger, errorMessage);
+            errorDialog.ShowModal();
+
+            pOkButton->Enable();
+            pCancelButton->Enable();
+        } else {
+            EndModal(wxID_OK);
+        }
     }
 }
 
