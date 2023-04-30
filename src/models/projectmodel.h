@@ -31,13 +31,13 @@ struct ProjectModel {
     std::int64_t ProjectId;
     std::string Name;
     std::string DisplayName;
-    std::optional<std::string> Description;
     bool IsDefault;
+    std::optional<std::string> Description;
     std::int32_t DateCreated;
     std::int32_t DateModified;
     bool IsActive;
     std::int64_t EmployerId;
-    std::int64_t ClientId;
+    std::optional<std::int64_t> ClientId;
 
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;

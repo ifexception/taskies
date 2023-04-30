@@ -27,13 +27,13 @@ ProjectModel::ProjectModel()
     : ProjectId(-1)
     , Name()
     , DisplayName()
-    , Description()
     , IsDefault(false)
+    , Description()
     , DateCreated()
     , DateModified()
     , IsActive(false)
     , EmployerId(-1)
-    , ClientId(-1)
+    , ClientId()
 {
 }
 
