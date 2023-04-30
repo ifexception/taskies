@@ -271,7 +271,7 @@ bool DatabaseMigration::MigrationExists(const std::string& name)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, SelectMigrationExistsQuery.c_str(), rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "DatabaseMigration", SelectMigrationExistsQuery.c_str(), rc, err);
         sqlite3_finalize(stmt);
         return false;
     }
