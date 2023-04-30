@@ -97,7 +97,7 @@ std::int64_t EmployerData::Create(const Model::EmployerModel& employer)
     }
 
     rc = sqlite3_bind_text(stmt, 1, employer.Name.c_str(), static_cast<int>(employer.Name.size()), SQLITE_TRANSIENT);
-    if (rc == SQLITE_ERROR) {
+    if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "EmployerData", "name", 1, rc, err);
         sqlite3_finalize(stmt);
@@ -113,7 +113,7 @@ std::int64_t EmployerData::Create(const Model::EmployerModel& employer)
     } else {
         rc = sqlite3_bind_null(stmt, 2);
     }
-    if (rc == SQLITE_ERROR) {
+    if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "EmployerData", "description", 2, rc, err);
         sqlite3_finalize(stmt);
@@ -148,7 +148,7 @@ int EmployerData::GetById(const std::int64_t employerId, Model::EmployerModel& e
     }
 
     rc = sqlite3_bind_int64(stmt, 1, employerId);
-    if (rc == SQLITE_ERROR) {
+    if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "EmployerData", "employer_id", 1, rc, err);
         sqlite3_finalize(stmt);
@@ -210,7 +210,7 @@ int EmployerData::Filter(const std::string& searchTerm, std::vector<Model::Emplo
     // name
     rc = sqlite3_bind_text(
         stmt, 1, formatedSearchTerm.c_str(), static_cast<int>(formatedSearchTerm.size()), SQLITE_TRANSIENT);
-    if (rc == SQLITE_ERROR) {
+    if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "EmployerData", "name", 1, rc, err);
         sqlite3_finalize(stmt);
@@ -220,7 +220,7 @@ int EmployerData::Filter(const std::string& searchTerm, std::vector<Model::Emplo
     // description
     rc = sqlite3_bind_text(
         stmt, 2, formatedSearchTerm.c_str(), static_cast<int>(formatedSearchTerm.size()), SQLITE_TRANSIENT);
-    if (rc == SQLITE_ERROR) {
+    if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "EmployerData", "description", 2, rc, err);
         sqlite3_finalize(stmt);
@@ -286,7 +286,7 @@ int EmployerData::Update(Model::EmployerModel employer)
     }
 
     rc = sqlite3_bind_text(stmt, 1, employer.Name.c_str(), static_cast<int>(employer.Name.size()), SQLITE_TRANSIENT);
-    if (rc == SQLITE_ERROR) {
+    if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "EmployerData", "name", 1, rc, err);
         sqlite3_finalize(stmt);
@@ -302,7 +302,7 @@ int EmployerData::Update(Model::EmployerModel employer)
     } else {
         rc = sqlite3_bind_null(stmt, 2);
     }
-    if (rc == SQLITE_ERROR) {
+    if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "EmployerData", "description", 2, rc, err);
         sqlite3_finalize(stmt);
