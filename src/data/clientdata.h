@@ -60,12 +60,12 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string createClient;
-    static const std::string filterClients;
-    static const std::string getClientById;
-    static const std::string filterClientsByEmployerId;
-    static const std::string updateClient;
-    static const std::string deleteClient;
+    static const std::string create;
+    static const std::string filter;
+    static const std::string getById;
+    static const std::string filterByEmployerId;
+    static const std::string update;
+    static const std::string isActive;
 };
 } // namespace Data
 } // namespace tks

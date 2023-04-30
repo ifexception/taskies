@@ -20,6 +20,7 @@
 #include "clientdata.h"
 
 #include "../core/environment.h"
+#include "../common/constants.h"
 #include "../utils/utils.h"
 #include "../models/employermodel.h"
 
@@ -34,7 +35,47 @@ ClientData::ClientData(std::shared_ptr<Core::Environment> env, std::shared_ptr<s
     int rc = sqlite3_open(databaseFile.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData - Failed to open database\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::OpenDatabaseTemplate,
+            "ClientData",
+            pEnv->GetDatabaseName(),
+            pEnv->GetDatabasePath().string(),
+            rc,
+            std::string(err));
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::JournalMode, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::Synchronous, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::TempStore, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::MmapSize, rc, err);
+        return;
     }
 }
 
@@ -45,56 +86,49 @@ ClientData::~ClientData()
 
 std::int64_t ClientData::Create(Model::ClientModel& model)
 {
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = nullptr;
+
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::createClient.c_str(), static_cast<int>(ClientData::createClient.size()), &stmt, nullptr);
+        pDb, ClientData::create.c_str(), static_cast<int>(ClientData::create.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Create - Failed to prepare \"createClient\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::create, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
-    int bindIdx = 1;
-    rc = sqlite3_bind_text(stmt, bindIdx++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
+    int bindIndex = 1;
+    rc =
+        sqlite3_bind_text(stmt, bindIndex++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Create - Failed to bind paramater \"Name\" in \"createClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "name", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
     if (model.Description.has_value()) {
         rc = sqlite3_bind_text(stmt,
-            bindIdx,
+            bindIndex,
             model.Description.value().c_str(),
             static_cast<int>(model.Description.value().size()),
             SQLITE_TRANSIENT);
     } else {
-        rc = sqlite3_bind_null(stmt, bindIdx);
+        rc = sqlite3_bind_null(stmt, bindIndex);
     }
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Create - Failed to bind paramater \"Description\" in \"createClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "description", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
-    bindIdx++;
-    rc = sqlite3_bind_int64(stmt, bindIdx++, model.EmployerId);
+    bindIndex++;
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.EmployerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Create - Failed to bind paramater \"EmployerId\" in \"createClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_id", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -102,7 +136,7 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Create - Failed to execute \"createClient\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::getById, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -115,14 +149,14 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
 
 int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientModel>& clients)
 {
+    sqlite3_stmt* stmt = nullptr;
     auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
 
-    sqlite3_stmt* stmt;
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::filterClients.c_str(), static_cast<int>(ClientData::filterClients.size()), &stmt, nullptr);
+        pDb, ClientData::filter.c_str(), static_cast<int>(ClientData::filter.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Filter - Failed to prepare \"filterClients\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::filter, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -133,10 +167,7 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
         stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Filter - Failed to bind parameter \"SearchTerm:Name\" in \"filterClients\" "
-                       "statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "name", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -146,10 +177,7 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
         stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Filter - Failed to bind parameter \"SearchTerm:Description\" in \"filterClients\" "
-                       "statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "description", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -159,10 +187,7 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
         stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Filter - Failed to bind parameter \"SearchTerm:EmployerName\" in \"filterClients\" "
-                       "statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_name", 3, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -204,7 +229,7 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
 
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Filter - Failed to execute \"filterClients\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::filter, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -216,12 +241,13 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
 
 int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
 {
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = nullptr;
+
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::getClientById.c_str(), static_cast<int>(ClientData::getClientById.size()), &stmt, nullptr);
+        pDb, ClientData::getById.c_str(), static_cast<int>(ClientData::getById.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::GetById - Failed to prepare \"getClientById\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::getById, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -229,10 +255,7 @@ int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
     rc = sqlite3_bind_int64(stmt, 1, clientId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::GetById - Failed to bind parameter \"client_id\" \"getClientById\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "client_id", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -240,7 +263,7 @@ int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::GetById - Failed to execute \"getClientById\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::getById, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -264,10 +287,7 @@ int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::GetById - Statement \"getClientById\" returned more than 1 row of data (expected "
-                       "1)\n {0} - {1}",
-            rc,
-            err);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "ClientData", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -279,79 +299,65 @@ int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
 
 int ClientData::Update(Model::ClientModel& model)
 {
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = nullptr;
+
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::updateClient.c_str(), static_cast<int>(ClientData::updateClient.size()), &stmt, nullptr);
+        pDb, ClientData::update.c_str(), static_cast<int>(ClientData::update.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Update - Failed to prepare \"updateClient\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::update, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
-    int bindIdx = 1;
-    rc = sqlite3_bind_text(stmt, bindIdx++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
+    int bindIndex = 1;
+    rc =
+        sqlite3_bind_text(stmt, bindIndex++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Update - Failed to bind parameter \"name\" in \"updateClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "name", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
     if (model.Description.has_value()) {
         rc = sqlite3_bind_text(stmt,
-            bindIdx,
+            bindIndex,
             model.Description.value().c_str(),
             static_cast<int>(model.Description.value().size()),
             SQLITE_TRANSIENT);
     } else {
-        rc = sqlite3_bind_null(stmt, bindIdx);
+        rc = sqlite3_bind_null(stmt, bindIndex);
     }
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Update - Failed to bind paramater \"description\" in \"updateClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "description", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
-    bindIdx++;
-
-    rc = sqlite3_bind_int64(stmt, bindIdx++, Utils::UnixTimestamp());
+    bindIndex++;
+    rc = sqlite3_bind_int64(stmt, bindIndex++, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Update - Failed to bind paramater \"date_modified\" in \"updateClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "date_modified", 3, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
-    rc = sqlite3_bind_int64(stmt, bindIdx++, model.EmployerId);
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.EmployerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Update - Failed to bind paramater \"employer_id\" in \"updateClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_id", 4, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
-    rc = sqlite3_bind_int64(stmt, bindIdx++, model.ClientId);
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.ClientId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Update - Failed to bind paramater \"client_id\" in \"updateClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "client_id", 5, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -359,7 +365,7 @@ int ClientData::Update(Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Update - Failed to execute \"updateClient\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::update, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -371,12 +377,12 @@ int ClientData::Update(Model::ClientModel& model)
 
 int ClientData::Delete(const std::int64_t clientId)
 {
-    sqlite3_stmt* stmt;
+    sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::deleteClient.c_str(), static_cast<int>(ClientData::deleteClient.size()), &stmt, nullptr);
+        pDb, ClientData::isActive.c_str(), static_cast<int>(ClientData::isActive.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Delete - Failed to prepare \"deleteClient\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::isActive, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -386,10 +392,7 @@ int ClientData::Delete(const std::int64_t clientId)
     rc = sqlite3_bind_int64(stmt, bindIdx++, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Delete - Failed to bind paramater \"date_modified\" in \"deleteClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "date_modified", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -397,10 +400,7 @@ int ClientData::Delete(const std::int64_t clientId)
     rc = sqlite3_bind_int64(stmt, bindIdx++, clientId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            "ClientData::Delete - Failed to bind paramater \"client_id\" in \"deleteClient\" statement\n {0} - {1}",
-            rc,
-            err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "client_id", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -408,7 +408,7 @@ int ClientData::Delete(const std::int64_t clientId)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error("ClientData::Delete - Failed to execute \"deleteClient\" statement\n {0} - {1}", rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::isActive, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -428,41 +428,44 @@ std::int64_t ClientData::GetLastInsertId() const
     return sqlite3_last_insert_rowid(pDb);
 }
 
-const std::string ClientData::createClient = "INSERT INTO "
-                                             "clients (name, description, employer_id) "
-                                             "VALUES (?, ?, ?)";
+const std::string ClientData::create = "INSERT INTO "
+                                       "clients (name, description, employer_id) "
+                                       "VALUES (?, ?, ?)";
 
-const std::string ClientData::filterClients = "SELECT clients.client_id, "
-                                              "clients.name AS client_name, "
-                                              "clients.description AS client_description, "
-                                              "clients.date_created, "
-                                              "clients.date_modified, "
-                                              "clients.is_active, "
-                                              "clients.employer_id, "
-                                              "clients.name AS employer_name "
-                                              "FROM clients "
-                                              "INNER JOIN employers "
-                                              "ON clients.employer_id = employers.employer_id "
-                                              "WHERE clients.is_active = 1 "
-                                              "AND (client_name LIKE ? "
-                                              "OR client_description LIKE ? "
-                                              "OR employer_name LIKE ?); ";
+const std::string ClientData::filter = "SELECT clients.client_id, "
+                                       "clients.name AS client_name, "
+                                       "clients.description AS client_description, "
+                                       "clients.date_created, "
+                                       "clients.date_modified, "
+                                       "clients.is_active, "
+                                       "clients.employer_id, "
+                                       "clients.name AS employer_name "
+                                       "FROM clients "
+                                       "INNER JOIN employers "
+                                       "ON clients.employer_id = employers.employer_id "
+                                       "WHERE clients.is_active = 1 "
+                                       "AND (client_name LIKE ? "
+                                       "OR client_description LIKE ? "
+                                       "OR employer_name LIKE ?); ";
 
-const std::string ClientData::getClientById = "SELECT clients.client_id, "
-                                              "clients.name AS client_name, "
-                                              "clients.description, "
-                                              "clients.date_created, "
-                                              "clients.date_modified, "
-                                              "clients.is_active, "
-                                              "clients.employer_id "
-                                              "FROM clients "
-                                              "WHERE clients.client_id = ?";
+const std::string ClientData::getById = "SELECT clients.client_id, "
+                                        "clients.name AS client_name, "
+                                        "clients.description, "
+                                        "clients.date_created, "
+                                        "clients.date_modified, "
+                                        "clients.is_active, "
+                                        "clients.employer_id "
+                                        "FROM clients "
+                                        "WHERE clients.client_id = ?";
 
-const std::string ClientData::updateClient = "UPDATE clients "
-                                             "SET name = ?, description = ?, date_modified = ?, employer_id = ? "
-                                             "WHERE client_id = ?";
+const std::string ClientData::update = "UPDATE clients "
+                                       "SET name = ?, "
+                                       "description = ?, "
+                                       "date_modified = ?, "
+                                       "employer_id = ? "
+                                       "WHERE client_id = ?";
 
-const std::string ClientData::deleteClient = "UPDATE clients "
-                                             "SET is_active = 0, date_modified = ? "
-                                             "WHERE client_id = ?";
+const std::string ClientData::isActive = "UPDATE clients "
+                                         "SET is_active = 0, date_modified = ? "
+                                         "WHERE client_id = ?";
 } // namespace tks::Data
