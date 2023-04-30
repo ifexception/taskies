@@ -30,6 +30,12 @@
 
 #include <spdlog/logger.h>
 
+#include "../../data/employerdata.h"
+#include "../../data/clientdata.h"
+#include "../../data/projectdata.h"
+
+#include "../../models/projectmodel.h"
+
 namespace tks
 {
 namespace Core
@@ -63,7 +69,6 @@ private:
 
     void OnNameChange(wxCommandEvent& event);
     void OnEmployerChoiceSelection(wxCommandEvent& event);
-    void OnIsDefaultCheck(wxCommandEvent& event);
 
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
@@ -87,7 +92,7 @@ private:
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
-    // Model::ProjectModel mProjectModel;
+    Model::ProjectModel mProjectModel;
     std::int64_t mProjectId;
     bool bIsEdit;
 

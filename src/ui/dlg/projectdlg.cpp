@@ -19,6 +19,8 @@
 
 #include "projectdlg.h"
 
+#include <vector>
+
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 #include <fmt/format.h>
@@ -230,7 +232,6 @@ void ProjectDialog::CreateControls()
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
     pOkButton->Disable();
-    pCancelButton->Disable();
 
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
@@ -243,28 +244,200 @@ void ProjectDialog::FillControls()
     pEmployerChoiceCtrl->AppendString("Please select");
     pEmployerChoiceCtrl->SetSelection(0);
 
+    std::vector<Model::EmployerModel> employers;
+    std::string defaultSearhTerm = "";
+    Data::EmployerData employerData(pEnv, pLogger);
+    int rc = employerData.Filter(defaultSearhTerm, employers);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        for (auto& employer : employers) {
+            pEmployerChoiceCtrl->Append(employer.Name, Utils::Int64ToVoidPointer(employer.EmployerId));
+        }
+    }
+
+    pOkButton->Enable();
+
     pClientChoiceCtrl->AppendString("Please select");
     pClientChoiceCtrl->SetSelection(0);
+    pClientChoiceCtrl->Disable();
 }
 
-void ProjectDialog::ConfigureEventBindings() {}
+//clang-format off
+void ProjectDialog::ConfigureEventBindings()
+{
+    pNameTextCtrl->Bind(wxEVT_TEXT, &ProjectDialog::OnNameChange, this);
+
+    pEmployerChoiceCtrl->Bind(wxEVT_CHOICE, &ProjectDialog::OnEmployerChoiceSelection, this);
+
+    if (bIsEdit) {
+        pIsActiveCtrl->Bind(wxEVT_CHECKBOX, &ProjectDialog::OnIsActiveCheck, this);
+    }
+
+    pOkButton->Bind(wxEVT_BUTTON, &ProjectDialog::OnOK, this, wxID_OK);
+
+    pCancelButton->Bind(wxEVT_BUTTON, &ProjectDialog::OnCancel, this, wxID_CANCEL);
+}
+// clang-format on
 
 void ProjectDialog::DataToControls() {}
 
-void ProjectDialog::OnNameChange(wxCommandEvent& event) {}
+void ProjectDialog::OnNameChange(wxCommandEvent& event)
+{
+    auto name = pNameTextCtrl->GetValue().ToStdString();
+    pDisplayNameCtrl->ChangeValue(name);
+}
 
-void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event) {}
+void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
+{
+    pOkButton->Disable();
+    pClientChoiceCtrl->Clear();
+    pClientChoiceCtrl->AppendString("Please select");
+    pClientChoiceCtrl->SetSelection(0);
 
-void ProjectDialog::OnIsDefaultCheck(wxCommandEvent& event) {}
+    if (event.GetSelection() < 1) {
+        pClientChoiceCtrl->Disable();
+        pOkButton->Enable();
 
-void ProjectDialog::OnOK(wxCommandEvent& event) {}
+        return;
+    }
 
-void ProjectDialog::OnCancel(wxCommandEvent& event) {}
+    auto employerChoiceClientData = pEmployerChoiceCtrl->GetClientData(event.GetSelection());
+    if (employerChoiceClientData == nullptr) {
+        pClientChoiceCtrl->Disable();
+
+        return;
+    }
+
+    auto employerId = Utils::VoidPointerToInt64(employerChoiceClientData);
+    Data::ClientData clientData(pEnv, pLogger);
+    std::vector<Model::ClientModel> clients;
+    int rc = clientData.FilterByEmployerId(employerId, clients);
+
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        if (clients.empty()) {
+            pClientChoiceCtrl->Disable();
+            pOkButton->Enable();
+
+            return;
+        }
+
+        for (auto& client : clients) {
+            pClientChoiceCtrl->Append(client.Name, Utils::Int64ToVoidPointer(client.ClientId));
+        }
+
+        if (!pClientChoiceCtrl->IsEnabled()) {
+            pClientChoiceCtrl->Enable();
+        }
+    }
+
+    pOkButton->Enable();
+}
+
+void ProjectDialog::OnOK(wxCommandEvent& event)
+{
+    pOkButton->Disable();
+
+    if (!TransferDataAndValidate()) {
+    }
+}
+
+void ProjectDialog::OnCancel(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
+}
 
 void ProjectDialog::OnIsActiveCheck(wxCommandEvent& event) {}
 
 bool ProjectDialog::TransferDataAndValidate()
 {
-    return false;
+    auto name = pNameTextCtrl->GetValue().ToStdString();
+    if (name.empty()) {
+        auto valMsg = "Name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    if (name.length() < MIN_CHARACTER_COUNT || name.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    auto displayName = pDisplayNameCtrl->GetValue().ToStdString();
+    if (displayName.empty()) {
+        auto valMsg = "Display Name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    if (displayName.length() < MIN_CHARACTER_COUNT || displayName.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Display Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    if (!description.empty() &&
+        (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_DESCRIPTIONS);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pDescriptionTextCtrl);
+        return false;
+    }
+
+    auto employerId =
+        Utils::VoidPointerToInt64(pEmployerChoiceCtrl->GetClientData(pEmployerChoiceCtrl->GetSelection()));
+    if (employerId < 1) {
+        auto valMsg = "An Employer selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pEmployerChoiceCtrl);
+        return false;
+    }
+
+    if (pClientChoiceCtrl->IsEnabled()) {
+        auto clientChoiceCtrlData = pClientChoiceCtrl->GetClientData(pClientChoiceCtrl->GetSelection());
+        if (clientChoiceCtrlData != nullptr) {
+            auto clientId =
+                Utils::VoidPointerToInt(pClientChoiceCtrl->GetClientData(pClientChoiceCtrl->GetSelection()));
+            mProjectModel.ClientId = std::make_optional(clientId);
+        } else {
+            mProjectModel.ClientId = std::nullopt;
+        }
+    }
+
+    mProjectModel.Name = name;
+    mProjectModel.DisplayName = displayName;
+    mProjectModel.IsDefault = pIsDefaultCtrl->GetValue();
+    mProjectModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
+    mProjectModel.EmployerId = employerId;
+
+    return true;
 }
 } // namespace tks::UI::dlg
