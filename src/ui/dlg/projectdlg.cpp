@@ -348,7 +348,7 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
-    if (!TransferDataAndValidate()) {
+    if (TransferDataAndValidate()) {
         Data::ProjectData projectData(pEnv, pLogger);
         int ret = 0;
         // handle is_default
@@ -372,7 +372,6 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
             errorDialog.ShowModal();
 
             pOkButton->Enable();
-            pCancelButton->Enable();
         } else {
             EndModal(wxID_OK);
         }
