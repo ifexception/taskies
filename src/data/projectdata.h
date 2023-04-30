@@ -58,12 +58,12 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-     static const std::string createProject;
-    static const std::string filterProjects;
-    static const std::string getProject;
-    static const std::string updateProject;
-    static const std::string deleteProject;
-    static const std::string unmarkDefaultProjects;
+    static const std::string create;
+    static const std::string filter;
+    static const std::string getById;
+    static const std::string update;
+    static const std::string isActive;
+    static const std::string unmarkDefault;
 };
 } // namespace Data
 } // namespace tks
