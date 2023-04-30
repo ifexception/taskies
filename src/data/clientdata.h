@@ -63,9 +63,9 @@ private:
     static const std::string create;
     static const std::string filter;
     static const std::string getById;
-    static const std::string filterByEmployerId;
     static const std::string update;
     static const std::string isActive;
+    static const std::string filterByEmployerId;
 };
 } // namespace Data
 } // namespace tks

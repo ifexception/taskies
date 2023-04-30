@@ -128,7 +128,7 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
     rc = sqlite3_bind_int64(stmt, bindIndex++, model.EmployerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_id", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_id", 3, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -420,6 +420,75 @@ int ClientData::Delete(const std::int64_t clientId)
 
 int ClientData::FilterByEmployerId(const std::int64_t employerId, std::vector<Model::ClientModel>& clients)
 {
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        ClientData::filterByEmployerId.c_str(),
+        static_cast<int>(ClientData::filterByEmployerId.size()),
+        &stmt,
+        nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::filterByEmployerId, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIdx = 1;
+    // employer name
+    rc = sqlite3_bind_int64(stmt, bindIdx++, employerId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_id", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            Model::ClientModel model;
+            int columnIndex = 0;
+
+            model.ClientId = sqlite3_column_int64(stmt, columnIndex++);
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            model.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.Description = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                model.Description =
+                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+            }
+            columnIndex++;
+            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+
+            clients.push_back(model);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::filterByEmployerId, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
     return 0;
 }
 
@@ -449,7 +518,7 @@ const std::string ClientData::filter = "SELECT clients.client_id, "
                                        "OR employer_name LIKE ?); ";
 
 const std::string ClientData::getById = "SELECT clients.client_id, "
-                                        "clients.name AS client_name, "
+                                        "clients.name, "
                                         "clients.description, "
                                         "clients.date_created, "
                                         "clients.date_modified, "
@@ -468,4 +537,14 @@ const std::string ClientData::update = "UPDATE clients "
 const std::string ClientData::isActive = "UPDATE clients "
                                          "SET is_active = 0, date_modified = ? "
                                          "WHERE client_id = ?";
+
+const std::string ClientData::filterByEmployerId = "SELECT clients.client_id, "
+                                                   "clients.name, "
+                                                   "clients.description, "
+                                                   "clients.date_created, "
+                                                   "clients.date_modified, "
+                                                   "clients.is_active, "
+                                                   "clients.employer_id "
+                                                   "FROM clients "
+                                                   "WHERE employer_id = ?";
 } // namespace tks::Data
