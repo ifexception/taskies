@@ -44,8 +44,8 @@ public:
     ~EmployerData();
 
     std::int64_t Create(const Model::EmployerModel& employer);
-    int GetById(const std::int64_t employerId, Model::EmployerModel& employer);
-    std::tuple<int, std::vector<Model::EmployerModel>> Filter(const std::string& searchTerm);
+    int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
+    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employers);
     int Update(Model::EmployerModel employer);
     int Delete(const std::int64_t employerId);
 
@@ -56,11 +56,11 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string createEmployer;
-    static const std::string filterEmployers;
-    static const std::string getEmployerById;
-    static const std::string updateEmployer;
-    static const std::string deleteEmployer;
+    static const std::string create;
+    static const std::string filter;
+    static const std::string getById;
+    static const std::string update;
+    static const std::string isActive;
 };
 } // namespace Data
 } // namespace tks

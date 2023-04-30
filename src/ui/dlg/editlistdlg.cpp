@@ -59,7 +59,6 @@ EditListDialog::EditListDialog(wxWindow* parent,
     , mSearchTerm()
     , mEntityId(-1)
 {
-
     SetTitle(GetEditTitle());
     Create();
 
@@ -164,18 +163,9 @@ void EditListDialog::CreateControls()
 //clang-format off
 void EditListDialog::ConfigureEventBindings()
 {
-    pSearchTextCtrl->Bind(
-        wxEVT_TEXT,
-        &EditListDialog::OnSearchTextChange,
-        this
-    );
+    pSearchTextCtrl->Bind(wxEVT_TEXT, &EditListDialog::OnSearchTextChange, this);
 
-    pSearchButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnSearch,
-        this,
-        IDC_SEARCHBTN
-    );
+    pSearchButton->Bind(wxEVT_BUTTON, &EditListDialog::OnSearch, this, IDC_SEARCHBTN);
 
     /*pSearchTextCtrl->Bind(
         wxEVT_KEY_DOWN,
@@ -183,40 +173,15 @@ void EditListDialog::ConfigureEventBindings()
         this
     );*/
 
-    pResetButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnReset,
-        this,
-        IDC_RESETBTN
-    );
+    pResetButton->Bind(wxEVT_BUTTON, &EditListDialog::OnReset, this, IDC_RESETBTN);
 
-    pListCtrl->Bind(
-        wxEVT_LIST_ITEM_SELECTED,
-        &EditListDialog::OnItemSelected,
-        this,
-        IDC_LIST
-    );
+    pListCtrl->Bind(wxEVT_LIST_ITEM_SELECTED, &EditListDialog::OnItemSelected, this, IDC_LIST);
 
-    pListCtrl->Bind(
-        wxEVT_LIST_ITEM_ACTIVATED,
-        &EditListDialog::OnItemDoubleClick,
-        this,
-        IDC_LIST
-    );
+    pListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &EditListDialog::OnItemDoubleClick, this, IDC_LIST);
 
-    pOkButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnOK,
-        this,
-        wxID_OK
-    );
+    pOkButton->Bind(wxEVT_BUTTON, &EditListDialog::OnOK, this, wxID_OK);
 
-    pCancelButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnCancel,
-        this,
-        wxID_CANCEL
-    );
+    pCancelButton->Bind(wxEVT_BUTTON, &EditListDialog::OnCancel, this, wxID_CANCEL);
 }
 //clang-format on
 
@@ -239,15 +204,15 @@ void EditListDialog::DataToControls()
 
 void EditListDialog::EmployerDataToControls()
 {
-    auto employersTuple = mEmployerData.Filter(mSearchTerm);
-    if (std::get<0>(employersTuple) != 0) {
+    std::vector<Model::EmployerModel> employers;
+    int rc = mEmployerData.Filter(mSearchTerm, employers);
+    if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
 
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        std::vector<Model::EmployerModel> employers = std::get<1>(employersTuple);
         int listIndex = 0;
         int columnIndex = 0;
         for (auto& employer : employers) {
@@ -294,14 +259,14 @@ void EditListDialog::OnSearch(wxCommandEvent& event)
     }
 }
 
-//void EditListDialog::OnSearchEnterKeyPressed(wxKeyEvent& event)
+// void EditListDialog::OnSearchEnterKeyPressed(wxKeyEvent& event)
 //{
-//    if (event.GetKeyCode() == WXK_RETURN) {
-//        SearchEmployers();
-//    }
+//     if (event.GetKeyCode() == WXK_RETURN) {
+//         SearchEmployers();
+//     }
 //
-//    event.Skip();
-//}
+//     event.Skip();
+// }
 
 void EditListDialog::OnReset(wxCommandEvent& event)
 {
@@ -372,12 +337,15 @@ void EditListDialog::SearchEmployers()
 
     pListCtrl->DeleteAllItems();
 
-    auto employersTuple = mEmployerData.Filter(mSearchTerm);
-    if (std::get<0>(employersTuple) != 0) {
-        ErrorDialog errorDialog(this, pLogger, "Error occured when filtering employers");
+    std::vector<Model::EmployerModel> employers;
+    int rc = mEmployerData.Filter(mSearchTerm, employers);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        std::vector<Model::EmployerModel> employers = std::get<1>(employersTuple);
         int listIndex = 0;
         int columnIndex = 0;
         for (auto& employer : employers) {

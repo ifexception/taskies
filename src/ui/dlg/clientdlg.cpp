@@ -217,12 +217,15 @@ void ClientDialog::FillControls()
     pEmployerChoiceCtrl->SetSelection(0);
 
     std::string defaultSearhTerm = "";
-    auto employersTuple = mEmployerData.Filter(defaultSearhTerm);
-    if (std::get<0>(employersTuple) != 0) {
-        ErrorDialog errorDialog(this, pLogger, "An unexpected error occurred during the employer filter operation");
+    std::vector<Model::EmployerModel> employers;
+    int rc = mEmployerData.Filter(defaultSearhTerm, employers);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        std::vector<Model::EmployerModel> employers = std::get<1>(employersTuple);
         for (auto& employer : employers) {
             pEmployerChoiceCtrl->Append(employer.Name, Utils::Int64ToVoidPointer(employer.EmployerId));
         }
