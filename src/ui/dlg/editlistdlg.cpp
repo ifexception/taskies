@@ -29,6 +29,7 @@
 #include "errordlg.h"
 #include "employerdlg.h"
 #include "clientdlg.h"
+#include "projectdlg.h"
 
 namespace tks::UI::dlg
 {
@@ -70,9 +71,11 @@ std::string EditListDialog::GetEditTitle()
 {
     switch (mType) {
     case EditListEntityType::Employer:
-        return "Edit Employer";
+        return "Find Employer";
     case EditListEntityType::Client:
-        return "Edit Client";
+        return "Find Client";
+    case EditListEntityType::Project:
+        return "Find Project";
     default:
         return "Error";
     }
@@ -244,6 +247,29 @@ void EditListDialog::ClientDataToControls()
     }
 }
 
+void EditListDialog::ProjectDataToControls()
+{
+    std::vector<Model::ProjectModel> projects;
+    Data::ProjectData data(pEnv, pLogger);
+
+    int rc = data.Filter(mSearchTerm, projects);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        int listIndex = 0;
+        int columnIndex = 0;
+        for (auto& project : projects) {
+            listIndex = pListCtrl->InsertItem(columnIndex++, project.Name);
+            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(project.ProjectId));
+            columnIndex++;
+        }
+    }
+}
+
 void EditListDialog::OnSearchTextChange(wxCommandEvent& event)
 {
     mSearchTerm = pSearchTextCtrl->GetValue().Trim().ToStdString();
@@ -295,6 +321,11 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
         clientDlg.ShowModal();
         break;
     }
+    case EditListEntityType::Project: {
+        ProjectDialog projectDlg(this, pEnv, pLogger, true, mEntityId);
+        projectDlg.ShowModal();
+        break;
+    }
     default:
         break;
     }
@@ -324,6 +355,9 @@ void EditListDialog::Search()
         break;
     case EditListEntityType::Client:
         SearchClients();
+        break;
+    case EditListEntityType::Project:
+        SearchProjects();
         break;
     default:
         break;
@@ -388,6 +422,34 @@ void EditListDialog::SearchClients()
     pCancelButton->Enable();
 }
 
+void EditListDialog::SearchProjects()
+{
+    pOkButton->Disable();
+    pListCtrl->DeleteAllItems();
+
+    std::vector<Model::ProjectModel> projects;
+    Data::ProjectData data(pEnv, pLogger);
+
+    int rc = data.Filter(mSearchTerm, projects);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        int listIndex = 0;
+        int columnIndex = 0;
+        for (auto& project : projects) {
+            listIndex = pListCtrl->InsertItem(columnIndex++, project.Name);
+            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(project.ProjectId));
+            columnIndex++;
+        }
+    }
+
+    pOkButton->Enable();
+}
+
 std::string EditListDialog::GetSearchHintText()
 {
     switch (mType) {
@@ -395,6 +457,8 @@ std::string EditListDialog::GetSearchHintText()
         return "Search employers...";
     case EditListEntityType::Client:
         return "Search clients...";
+    case EditListEntityType::Project:
+        return "Search projects...";
     default:
         return "";
     }
