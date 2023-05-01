@@ -186,6 +186,123 @@ std::int64_t ProjectData::Create(Model::ProjectModel& model)
 
 int ProjectData::Filter(const std::string& searchTerm, std::vector<Model::ProjectModel>& projects)
 {
+    sqlite3_stmt* stmt = nullptr;
+    auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
+
+    int rc = sqlite3_prepare_v2(
+        pDb, ProjectData::filter.c_str(), static_cast<int>(ProjectData::filter.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ProjectData", ProjectData::filter, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+    // project name
+    rc = sqlite3_bind_text(
+        stmt, bindIndex++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectData", "name", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // display name
+    rc = sqlite3_bind_text(
+        stmt, bindIndex++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectData", "display_name", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // project description
+    rc = sqlite3_bind_text(
+        stmt, bindIndex++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectData", "description", 3, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // linked employer name
+    rc = sqlite3_bind_text(
+        stmt, bindIndex++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectData", "employer_name", 4, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // (optional) linked client name
+    rc = sqlite3_bind_text(
+        stmt, bindIndex++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectData", "client_name", 5, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            Model::ProjectModel model;
+            int columnIndex = 0;
+
+            model.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            model.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            const unsigned char* res2 = sqlite3_column_text(stmt, columnIndex);
+            model.DisplayName =
+                std::string(reinterpret_cast<const char*>(res2), sqlite3_column_bytes(stmt, columnIndex++));
+            model.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.Description = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                model.Description = std::make_optional(
+                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+            }
+            columnIndex++;
+            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.ClientId = std::nullopt;
+            } else {
+                model.ClientId = std::make_optional(sqlite3_column_int64(stmt, columnIndex));
+            }
+
+            projects.push_back(model);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "ProjectData", ProjectData::filter, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
     return 0;
 }
 
@@ -249,6 +366,29 @@ const std::string ProjectData::create = "INSERT INTO "
                                         "client_id"
                                         ") "
                                         "VALUES(?, ?, ?, ?, ?, ?)";
+
+const std::string ProjectData::filter = "SELECT "
+                                        "projects.project_id, "
+                                        "projects.name AS project_name, "
+                                        "projects.display_name, "
+                                        "projects.is_default, "
+                                        "projects.description AS project_description, "
+                                        "projects.date_created, "
+                                        "projects.date_modified, "
+                                        "projects.is_active, "
+                                        "projects.employer_id, "
+                                        "projects.client_id, "
+                                        "employers.name AS employer_name, "
+                                        "clients.name AS client_name "
+                                        "FROM projects "
+                                        "INNER JOIN employers ON projects.employer_id = employers.employer_id "
+                                        "LEFT JOIN clients ON projects.client_id = clients.client_id "
+                                        "WHERE projects.is_active = 1 "
+                                        "AND (project_name LIKE ? "
+                                        "OR display_name LIKE ? "
+                                        "OR project_description LIKE ? "
+                                        "OR employer_name LIKE ? "
+                                        "OR client_name LIKE ?);";
 
 const std::string ProjectData::unmarkDefault = "UPDATE projects "
                                                "SET is_default = 0, "
