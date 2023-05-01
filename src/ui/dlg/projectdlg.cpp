@@ -351,7 +351,11 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
     if (TransferDataAndValidate()) {
         Data::ProjectData projectData(pEnv, pLogger);
         int ret = 0;
-        // handle is_default
+
+        if (pIsDefaultCtrl->IsChecked()) {
+            ret = projectData.UnmarkDefault();
+        }
+
         if (!bIsEdit) {
             std::int64_t projectId = projectData.Create(mProjectModel);
             ret = projectId > 0 ? 0 : -1;
