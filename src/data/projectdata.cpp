@@ -209,7 +209,7 @@ int ProjectData::UnmarkDefault()
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, ProjectData::create.c_str(), static_cast<int>(ProjectData::create.size()), &stmt, nullptr);
+        pDb, ProjectData::unmarkDefault.c_str(), static_cast<int>(ProjectData::unmarkDefault.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::PrepareStatementTemplate, "ProjectData", ProjectData::unmarkDefault, rc, err);
@@ -220,7 +220,7 @@ int ProjectData::UnmarkDefault()
     rc = sqlite3_bind_int64(stmt, 1, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ProjectData", "date_modified", 3, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectData", "date_modified", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
