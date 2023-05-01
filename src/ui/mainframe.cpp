@@ -44,6 +44,7 @@ EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
+EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 /* Error Event Handler */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
@@ -92,6 +93,7 @@ void MainFrame::CreateControls()
     auto editMenu = new wxMenu();
     editMenu->Append(ID_EDIT_EMPLOYER, "Edit &Employer", "Edit an employer");
     editMenu->Append(ID_EDIT_CLIENT, "Edit C&lient", "Edit a client");
+    editMenu->Append(ID_EDIT_PROJECT, "Edit &Project", "Edit an project");
 
     /* Menu bar */
     auto menuBar = new wxMenuBar();
@@ -154,6 +156,11 @@ void MainFrame::OnEditClient(wxCommandEvent& event)
 {
     UI::dlg::EditListDialog editClient(this, pEnv, pLogger, EditListEntityType::Client);
     editClient.ShowModal();
+}
+
+void MainFrame::OnEditProject(wxCommandEvent& event) {
+    UI::dlg::EditListDialog editProject(this, pEnv, pLogger, EditListEntityType::Project);
+    editProject.ShowModal();
 }
 
 void MainFrame::OnExit(wxCommandEvent& event)

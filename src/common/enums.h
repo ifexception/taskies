@@ -23,7 +23,7 @@
 
 namespace tks
 {
-enum class EditListEntityType { Employer, Client };
+enum class EditListEntityType { Employer, Client, Project };
 
 enum class BuildConfiguration { Undefined, Debug, Release };
 
