@@ -51,7 +51,7 @@ public:
     int GetById(const std::int64_t clientId, /*out*/ Model::ProjectModel& model);
     int Update(Model::ProjectModel& client);
     int Delete(const std::int64_t clientId);
-    int UnmarkDefaultProjects();
+    int UnmarkDefault();
 
 private:
     std::shared_ptr<Core::Environment> pEnv;

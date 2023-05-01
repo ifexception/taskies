@@ -99,8 +99,8 @@ std::int64_t ProjectData::Create(Model::ProjectModel& model)
 
     int bindIndex = 1;
     // name
-    rc = sqlite3_bind_text(
-        stmt, bindIndex++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
+    rc =
+        sqlite3_bind_text(stmt, bindIndex++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "ProjectData", "name", 1, rc, err);
@@ -156,7 +156,7 @@ std::int64_t ProjectData::Create(Model::ProjectModel& model)
         return -1;
     }
 
-    //client id
+    // client id
     if (model.ClientId.has_value()) {
         rc = sqlite3_bind_int64(stmt, bindIndex, model.ClientId.value());
     } else {
@@ -204,8 +204,37 @@ int ProjectData::Delete(const std::int64_t clientId)
     return 0;
 }
 
-int ProjectData::UnmarkDefaultProjects()
+int ProjectData::UnmarkDefault()
 {
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, ProjectData::create.c_str(), static_cast<int>(ProjectData::create.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ProjectData", ProjectData::unmarkDefault, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectData", "date_modified", 3, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "ProjectData", ProjectData::unmarkDefault, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
     return 0;
 }
 
@@ -220,4 +249,8 @@ const std::string ProjectData::create = "INSERT INTO "
                                         "client_id"
                                         ") "
                                         "VALUES(?, ?, ?, ?, ?, ?)";
+
+const std::string ProjectData::unmarkDefault = "UPDATE projects "
+                                               "SET is_default = 0, "
+                                               "date_modified = ?";
 } // namespace tks::Data
