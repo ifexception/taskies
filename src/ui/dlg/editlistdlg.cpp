@@ -197,6 +197,9 @@ void EditListDialog::DataToControls()
     case EditListEntityType::Client:
         ClientDataToControls();
         break;
+    case EditListEntityType::Project:
+        ProjectDataToControls();
+        break;
     default:
         break;
     }
