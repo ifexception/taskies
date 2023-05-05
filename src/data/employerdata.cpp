@@ -385,10 +385,15 @@ std::int64_t EmployerData::GetLastInsertId() const
 }
 
 const std::string EmployerData::create = "INSERT INTO "
-                                         "employers (name, description) "
+                                         "employers "
+                                         "("
+                                         "name, "
+                                         "description"
+                                         ") "
                                          "VALUES (?, ?);";
 
-const std::string EmployerData::filter = "SELECT employer_id, "
+const std::string EmployerData::filter = "SELECT "
+                                         "employer_id, "
                                          "name, "
                                          "description, "
                                          "date_created, "
@@ -399,7 +404,8 @@ const std::string EmployerData::filter = "SELECT employer_id, "
                                          "AND (name LIKE ? "
                                          "OR description LIKE ?)";
 
-const std::string EmployerData::getById = "SELECT employer_id, "
+const std::string EmployerData::getById = "SELECT "
+                                          "employer_id, "
                                           "name, "
                                           "description, "
                                           "date_created, "
@@ -409,12 +415,15 @@ const std::string EmployerData::getById = "SELECT employer_id, "
                                           "WHERE employer_id = ?";
 
 const std::string EmployerData::update = "UPDATE employers "
-                                         "SET name = ?, "
+                                         "SET "
+                                         "name = ?, "
                                          "description = ?, "
                                          "date_modified = ? "
                                          "WHERE employer_id = ?";
 
 const std::string EmployerData::isActive = "UPDATE employers "
-                                           "SET is_active = 0, date_modified = ? "
+                                           "SET "
+                                           "is_active = 0, "
+                                           "date_modified = ? "
                                            "WHERE employer_id = ?";
 } // namespace tks::Data

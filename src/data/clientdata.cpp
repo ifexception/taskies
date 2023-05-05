@@ -498,10 +498,16 @@ std::int64_t ClientData::GetLastInsertId() const
 }
 
 const std::string ClientData::create = "INSERT INTO "
-                                       "clients (name, description, employer_id) "
+                                       "clients "
+                                       "("
+                                       "name, "
+                                       "description, "
+                                       "employer_id"
+                                       ") "
                                        "VALUES (?, ?, ?)";
 
-const std::string ClientData::filter = "SELECT clients.client_id, "
+const std::string ClientData::filter = "SELECT "
+                                       "clients.client_id, "
                                        "clients.name AS client_name, "
                                        "clients.description AS client_description, "
                                        "clients.date_created, "
@@ -517,7 +523,8 @@ const std::string ClientData::filter = "SELECT clients.client_id, "
                                        "OR client_description LIKE ? "
                                        "OR employer_name LIKE ?); ";
 
-const std::string ClientData::getById = "SELECT clients.client_id, "
+const std::string ClientData::getById = "SELECT "
+                                        "clients.client_id, "
                                         "clients.name, "
                                         "clients.description, "
                                         "clients.date_created, "
@@ -528,17 +535,21 @@ const std::string ClientData::getById = "SELECT clients.client_id, "
                                         "WHERE clients.client_id = ?";
 
 const std::string ClientData::update = "UPDATE clients "
-                                       "SET name = ?, "
+                                       "SET "
+                                       "name = ?, "
                                        "description = ?, "
                                        "date_modified = ?, "
                                        "employer_id = ? "
                                        "WHERE client_id = ?";
 
 const std::string ClientData::isActive = "UPDATE clients "
-                                         "SET is_active = 0, date_modified = ? "
+                                         "SET "
+                                         "is_active = 0, "
+                                         "date_modified = ? "
                                          "WHERE client_id = ?";
 
-const std::string ClientData::filterByEmployerId = "SELECT clients.client_id, "
+const std::string ClientData::filterByEmployerId = "SELECT "
+                                                   "clients.client_id, "
                                                    "clients.name, "
                                                    "clients.description, "
                                                    "clients.date_created, "
