@@ -629,7 +629,7 @@ const std::string ProjectData::update = "UPDATE projects "
                                         "client_id = ? "
                                         "WHERE project_id = ?";
 
-const std::string ProjectData::isActive = "UPDATE projects"
+const std::string ProjectData::isActive = "UPDATE projects "
                                           "SET "
                                           "is_active = 0, "
                                           "date_modified = ? "
