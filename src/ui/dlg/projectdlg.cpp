@@ -284,7 +284,68 @@ void ProjectDialog::ConfigureEventBindings()
 }
 // clang-format on
 
-void ProjectDialog::DataToControls() {}
+void ProjectDialog::DataToControls()
+{
+    Model::ProjectModel project;
+    Data::ProjectData data(pEnv, pLogger);
+    bool isSuccess = false;
+    int rc = data.GetById(mProjectId, project);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        mProjectId = project.ProjectId;
+        pNameTextCtrl->ChangeValue(project.Name);
+        pDisplayNameCtrl->ChangeValue(project.DisplayName);
+        pIsDefaultCtrl->SetValue(project.IsDefault);
+        pDescriptionTextCtrl->SetValue(project.Description.has_value() ? project.Description.value() : "");
+        pIsActiveCtrl->SetValue(project.IsActive);
+        pDateCreatedTextCtrl->SetValue(project.GetDateCreatedString());
+        pDateModifiedTextCtrl->SetValue(project.GetDateModifiedString());
+        isSuccess = true;
+    }
+
+    Model::EmployerModel employer;
+    Data::EmployerData employerData(pEnv, pLogger);
+    rc = employerData.GetById(project.EmployerId, employer);
+    if (rc == -1) {
+        pLogger->error("Failed to execute action with employer. Check further logs for more information...");
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+        isSuccess = false;
+    } else {
+        pEmployerChoiceCtrl->SetStringSelection(employer.Name);
+        isSuccess = true;
+    }
+
+    if (project.ClientId.has_value()) {
+        Model::ClientModel client;
+        Data::ClientData clientData(pEnv, pLogger);
+        rc = clientData.GetById(project.ClientId.value(), client);
+        if (rc == -1) {
+            pLogger->error("Failed to execute action with client. Check further logs for more information...");
+            auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                                "check logs for more information...";
+
+            ErrorDialog errorDialog(this, pLogger, errorMessage);
+            errorDialog.ShowModal();
+            isSuccess = false;
+        } else {
+            pClientChoiceCtrl->SetStringSelection(client.Name);
+            isSuccess = true;
+        }
+    }
+
+    if (isSuccess) {
+        pOkButton->Enable();
+    }
+}
 
 void ProjectDialog::OnNameChange(wxCommandEvent& event)
 {
@@ -387,7 +448,28 @@ void ProjectDialog::OnCancel(wxCommandEvent& event)
     EndModal(wxID_CANCEL);
 }
 
-void ProjectDialog::OnIsActiveCheck(wxCommandEvent& event) {}
+void ProjectDialog::OnIsActiveCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pNameTextCtrl->Enable();
+        pDisplayNameCtrl->Enable();
+        pIsDefaultCtrl->Enable();
+        pDescriptionTextCtrl->Enable();
+        pEmployerChoiceCtrl->Enable();
+
+        if (mProjectModel.ClientId.has_value()) {
+            pClientChoiceCtrl->Enable();
+        }
+
+    } else {
+        pNameTextCtrl->Disable();
+        pDisplayNameCtrl->Disable();
+        pIsDefaultCtrl->Disable();
+        pDescriptionTextCtrl->Disable();
+        pEmployerChoiceCtrl->Disable();
+        pClientChoiceCtrl->Disable();
+    }
+}
 
 bool ProjectDialog::TransferDataAndValidate()
 {
@@ -467,6 +549,7 @@ bool ProjectDialog::TransferDataAndValidate()
     mProjectModel.IsDefault = pIsDefaultCtrl->GetValue();
     mProjectModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
     mProjectModel.EmployerId = employerId;
+    mProjectModel.ProjectId = mProjectId;
 
     return true;
 }
