@@ -48,9 +48,9 @@ public:
 
     std::int64_t Create(Model::ProjectModel& client);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ProjectModel>& clients);
-    int GetById(const std::int64_t clientId, /*out*/ Model::ProjectModel& model);
-    int Update(Model::ProjectModel& client);
-    int Delete(const std::int64_t clientId);
+    int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& model);
+    int Update(Model::ProjectModel& project);
+    int Delete(const std::int64_t projectId);
     int UnmarkDefault();
 
 private:
