@@ -63,7 +63,6 @@ private:
     // void AppendListControlEntry(Model::CategoryModel category);
     // void UpdateListControlEntry(Model::CategoryModel category);
 
-    void OnClear(wxCommandEvent& event);
     void OnAdd(wxCommandEvent& event);
     void OnEdit(wxCommandEvent& event);
     void OnRemove(wxCommandEvent& event);

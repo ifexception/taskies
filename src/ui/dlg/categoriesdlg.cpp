@@ -77,11 +77,11 @@ void CategoriesDialog::CreateControls()
 
     /* Layout Sizer */
     auto layoutSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(layoutSizer, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(layoutSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* Left Sizer */
     auto leftSizer = new wxBoxSizer(wxVERTICAL);
-    layoutSizer->Add(leftSizer, 0);
+    layoutSizer->Add(leftSizer, wxSizerFlags().Expand().Proportion(1));
 
     /* Details Box */
     auto detailsBox = new wxStaticBox(this, wxID_ANY, "Details");
@@ -159,12 +159,12 @@ void CategoriesDialog::CreateControls()
 
     /* Right Sizer */
     auto rightSizer = new wxBoxSizer(wxVERTICAL);
-    layoutSizer->Add(rightSizer, 0);
+    layoutSizer->Add(rightSizer, wxSizerFlags().Expand().Proportion(1));
 
     /* List Box */
     auto listStaticBox = new wxStaticBox(this, wxID_ANY, "Categories to add");
     auto listStaticBoxSizer = new wxStaticBoxSizer(listStaticBox, wxVERTICAL);
-    rightSizer->Add(detailsBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    rightSizer->Add(listStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* List Ctrl */
     pListCtrl = new wxListCtrl(listStaticBox, IDC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_HRULES);
@@ -178,29 +178,32 @@ void CategoriesDialog::CreateControls()
 
     listStaticBoxSizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
+    /* Horizontal Line*/
+    auto bottomSeparationLine = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(bottomSeparationLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
     /* Bottom Sizer */
     auto layoutBottomSizer = new wxBoxSizer(wxHORIZONTAL);
-    layoutSizer->Add(layoutBottomSizer, wxSizerFlags().Border(wxALL, 5).Expand());
+    sizer->Add(layoutBottomSizer, wxSizerFlags().Border(wxALL, 5).Expand());
 
-    auto bottomSizer = new wxBoxSizer(wxVERTICAL);
-    layoutBottomSizer->Add(bottomSizer, 1);
-
-    /* Horizontal Line*/
-    auto bottomSeparationLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
-    bottomSizer->Add(bottomSeparationLine, wxSizerFlags().Expand());
+    layoutBottomSizer->AddStretchSpacer();
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
-    layoutBottomSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
-
+    pOkButton->SetDefault();
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
+
+    layoutBottomSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     layoutBottomSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    /* Set Dialog Sizer  */
+    SetSizerAndFit(sizer);
 }
 
 void CategoriesDialog::FillControls()
 {
-    pOkButton->Disable();
+    /*pOkButton->Disable();
     pRemoveButton->Disable();
-    pRemoveAllButton->Disable();
+    pRemoveAllButton->Disable();*/
 }
 
 void CategoriesDialog::ConfigureEventBindings() {}
