@@ -12,6 +12,7 @@ TASKIES_ICO ICON "..\\res\\taskies.ico"
 20230122215058_create_employers_table MIGRATION "..\\res\\migrations\\20230122215058_create_employers_table.sql"
 20230408192035_create_clients_table MIGRATION "..\\res\\migrations\\20230408192035_create_clients_table.sql"
 20230414235012_create_projects_table MIGRATION "..\\res\\migrations\\20230414235012_create_projects_table.sql"
+20230506183926_create_categories_table MIGRATION "..\\res\\migrations\\20230506183926_create_categories_table.sql"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION        TASKIES_FILE_VERSION
