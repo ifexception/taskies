@@ -21,12 +21,16 @@
 
 #include <wx/persist/toplevel.h>
 
+#include <sqlite3.h>
+
 #include "events.h"
 #include "../common/common.h"
+#include "../common/constants.h"
 #include "../common/enums.h"
 #include "../common/version.h"
 #include "../core/environment.h"
 #include "../core/configuration.h"
+#include "../utils/utils.h"
 
 #include "../ui/dlg/errordlg.h"
 #include "../ui/dlg/employerdlg.h"
@@ -165,6 +169,27 @@ void MainFrame::OnEditProject(wxCommandEvent& event) {
 
 void MainFrame::OnExit(wxCommandEvent& event)
 {
+    sqlite3* db = nullptr;
+    auto databaseFile = pEnv->GetDatabasePath().string();
+    int rc = sqlite3_open(databaseFile.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(db);
+        pLogger->error(LogMessage::OpenDatabaseTemplate,
+            "MainFrame",
+            pEnv->GetDatabaseName(),
+            pEnv->GetDatabasePath().string(),
+            rc,
+            std::string(err));
+    }
+
+    rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(db);
+        pLogger->error(LogMessage::ExecQueryTemplate, "MainFrame", Utils::sqlite::pragmas::Optimize, rc, err);
+    }
+
+    sqlite3_close(db);
+
     Close();
 }
 

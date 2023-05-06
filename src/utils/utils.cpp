@@ -93,6 +93,8 @@ const char* JournalMode = "PRAGMA journal_mode = WAL;";
 const char* Synchronous = "PRAGMA synchronous = normal;";
 const char* TempStore = "PRAGMA temp_store = memory;";
 const char* MmapSize = "PRAGMA mmap_size = 30000000000;";
+
+const char* Optimize = "PRAGMA optimize;";
 }
 } // namespace sqlite
 } // namespace tks::Utils

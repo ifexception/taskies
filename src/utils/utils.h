@@ -55,6 +55,8 @@ extern const char* JournalMode;
 extern const char* Synchronous;
 extern const char* TempStore;
 extern const char* MmapSize;
+
+extern const char* Optimize;
 } // namespace pragmas
 } // namespace sqlite
 } // namespace tks::Utils
