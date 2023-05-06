@@ -81,11 +81,10 @@ private:
 
     wxWindow* pParent;
     wxTextCtrl* pNameTextCtrl;
-    wxTextCtrl* pDescriptionTextCtrl;
     wxColourPickerCtrl* pColorPickerCtrl;
     wxCheckBox* pBillableCtrl;
+    wxTextCtrl* pDescriptionTextCtrl;
     wxListCtrl* pListCtrl;
-    wxButton* pClearButton;
     wxButton* pAddButton;
     wxButton* pRemoveButton;
     wxButton* pRemoveAllButton;
