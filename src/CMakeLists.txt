@@ -25,6 +25,7 @@ set (SRC_MODELS
     "models/employermodel.cpp"
     "models/clientmodel.cpp"
     "models/projectmodel.cpp"
+    "models/categorymodel.cpp"
 )
 
 set (SRC_DATA
