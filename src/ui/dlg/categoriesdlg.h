@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -30,6 +31,8 @@
 #include <wx/clrpicker.h>
 
 #include <spdlog/spdlog.h>
+
+#include "../../models/categorymodel.h"
 
 namespace tks
 {
@@ -60,8 +63,8 @@ private:
     void FillControls();
     void ConfigureEventBindings();
 
-    // void AppendListControlEntry(Model::CategoryModel category);
-    // void UpdateListControlEntry(Model::CategoryModel category);
+    void Append(Model::CategoryModel category);
+    void Update(Model::CategoryModel category);
 
     void OnAdd(wxCommandEvent& event);
     void OnEdit(wxCommandEvent& event);
@@ -89,6 +92,10 @@ private:
     wxButton* pRemoveAllButton;
     wxButton* pOkButton;
     wxButton* pCancelButton;
+
+    bool bEditFromListCtrl;
+    Model::CategoryModel mCategoryToAdd;
+    std::vector<Model::CategoryModel> mCategoriesToAdd;
 
     enum { IDC_NAME = wxID_HIGHEST + 1, IDC_DESCRIPTION, IDC_COLORPICKER, IDC_BILLABLE, IDC_LIST };
 };

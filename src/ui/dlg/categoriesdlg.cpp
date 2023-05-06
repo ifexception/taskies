@@ -54,6 +54,9 @@ CategoriesDialog::CategoriesDialog(wxWindow* parent,
     , pRemoveAllButton(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , bEditFromListCtrl(false)
+    , mCategoryToAdd()
+    , mCategoriesToAdd()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -270,7 +273,32 @@ void CategoriesDialog::ConfigureEventBindings()
 }
 // clang-format on
 
-void CategoriesDialog::OnAdd(wxCommandEvent& event) {}
+void CategoriesDialog::Append(Model::CategoryModel category)
+{
+    int listIndex = 0;
+    int columnIndex = 0;
+
+    listIndex = pListCtrl->InsertItem(columnIndex++, category.Name);
+    pListCtrl->SetItemBackgroundColour(listIndex, category.Color);
+}
+
+void CategoriesDialog::Update(Model::CategoryModel category) {}
+
+void CategoriesDialog::OnAdd(wxCommandEvent& event)
+{
+    if (TransferDataAndValidate()) {
+        if (!bEditFromListCtrl) {
+            Append(mCategoryToAdd);
+            mCategoriesToAdd.push_back(mCategoryToAdd);
+            pRemoveAllButton->Enable();
+        } else {
+
+        }
+
+        mCategoryToAdd = Model::CategoryModel();
+        ResetControlValues();
+    }
+}
 
 void CategoriesDialog::OnEdit(wxCommandEvent& event) {}
 
@@ -291,10 +319,52 @@ void CategoriesDialog::OnItemUnchecked(wxListEvent& event) {}
 
 void CategoriesDialog::OnItemRightClick(wxListEvent& event) {}
 
-void CategoriesDialog::ResetControlValues() {}
+void CategoriesDialog::ResetControlValues()
+{
+    pNameTextCtrl->ChangeValue(wxEmptyString);
+    pColorPickerCtrl->SetColour(*wxBLACK);
+    pBillableCtrl->SetValue(false);
+    pDescriptionTextCtrl->ChangeValue(wxEmptyString);
+}
 
 bool CategoriesDialog::TransferDataAndValidate()
 {
+    auto name = pNameTextCtrl->GetValue().ToStdString();
+    if (name.empty()) {
+        auto valMsg = "Name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    if (name.length() < MIN_CHARACTER_COUNT || name.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    if (!description.empty() &&
+        (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_DESCRIPTIONS);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pDescriptionTextCtrl);
+        return false;
+    }
+
+    mCategoryToAdd.Name = name;
+    mCategoryToAdd.Color = pColorPickerCtrl->GetColour().GetRGB();
+    mCategoryToAdd.Billable = pBillableCtrl->IsChecked();
+    mCategoryToAdd.Description = description.empty() ? std::nullopt : std::make_optional(description);
+
     return true;
 }
 } // namespace tks::UI::dlg
