@@ -166,9 +166,18 @@ void EditListDialog::CreateControls()
 //clang-format off
 void EditListDialog::ConfigureEventBindings()
 {
-    pSearchTextCtrl->Bind(wxEVT_TEXT, &EditListDialog::OnSearchTextChange, this);
+    pSearchTextCtrl->Bind(
+        wxEVT_TEXT,
+        &EditListDialog::OnSearchTextChange,
+        this
+    );
 
-    pSearchButton->Bind(wxEVT_BUTTON, &EditListDialog::OnSearch, this, IDC_SEARCHBTN);
+    pSearchButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnSearch,
+        this,
+        IDC_SEARCHBTN
+    );
 
     /*pSearchTextCtrl->Bind(
         wxEVT_KEY_DOWN,
@@ -176,15 +185,40 @@ void EditListDialog::ConfigureEventBindings()
         this
     );*/
 
-    pResetButton->Bind(wxEVT_BUTTON, &EditListDialog::OnReset, this, IDC_RESETBTN);
+    pResetButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnReset,
+        this,
+        IDC_RESETBTN
+    );
 
-    pListCtrl->Bind(wxEVT_LIST_ITEM_SELECTED, &EditListDialog::OnItemSelected, this, IDC_LIST);
+    pListCtrl->Bind(
+        wxEVT_LIST_ITEM_SELECTED,
+        &EditListDialog::OnItemSelected,
+        this,
+        IDC_LIST
+    );
 
-    pListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &EditListDialog::OnItemDoubleClick, this, IDC_LIST);
+    pListCtrl->Bind(
+        wxEVT_LIST_ITEM_ACTIVATED,
+        &EditListDialog::OnItemDoubleClick,
+        this,
+        IDC_LIST
+    );
 
-    pOkButton->Bind(wxEVT_BUTTON, &EditListDialog::OnOK, this, wxID_OK);
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnOK,
+        this,
+        wxID_OK
+    );
 
-    pCancelButton->Bind(wxEVT_BUTTON, &EditListDialog::OnCancel, this, wxID_CANCEL);
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &EditListDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
 }
 //clang-format on
 
