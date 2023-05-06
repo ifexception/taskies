@@ -37,6 +37,7 @@
 #include "../ui/dlg/editlistdlg.h"
 #include "../ui/dlg/clientdlg.h"
 #include "../ui/dlg/projectdlg.h"
+#include "../ui/dlg/categoriesdlg.h"
 
 namespace tks::UI
 {
@@ -46,6 +47,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
+EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnNewCategory)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
@@ -71,6 +73,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
     wxIconBundle iconBundle("TASKIES_ICO", 0);
     SetIcons(iconBundle);
+
     Create();
 }
 
@@ -89,6 +92,7 @@ void MainFrame::CreateControls()
     fileMenu->Append(ID_NEW_EMPLOYER, "New &Employer", "Create new employer");
     fileMenu->Append(ID_NEW_CLIENT, "New C&lient", "Create new client");
     fileMenu->Append(ID_NEW_PROJECT, "New &Project", "Create new project");
+    fileMenu->Append(ID_NEW_CATEGORY, "New Cate&gory", "Create new category");
     fileMenu->AppendSeparator();
 
     auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit", "Exit the program");
@@ -165,6 +169,12 @@ void MainFrame::OnEditClient(wxCommandEvent& event)
 void MainFrame::OnEditProject(wxCommandEvent& event) {
     UI::dlg::EditListDialog editProject(this, pEnv, pLogger, EditListEntityType::Project);
     editProject.ShowModal();
+}
+
+void MainFrame::OnNewCategory(wxCommandEvent& event)
+{
+    UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger);
+    addCategories.ShowModal();
 }
 
 void MainFrame::OnExit(wxCommandEvent& event)
