@@ -35,12 +35,36 @@ namespace tks::UI::dlg
 CategoriesDialog::CategoriesDialog(wxWindow* parent,
     std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
-    bool isEdit,
     const wxString& name)
+    : wxDialog(parent,
+          wxID_ANY,
+          "Add Categories",
+          wxDefaultPosition,
+          wxDefaultSize,
+          wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
+          name)
+    , pParent(parent)
+    , pNameTextCtrl(nullptr)
+    , pDescriptionTextCtrl(nullptr)
+    , pColorPickerCtrl(nullptr)
+    , pBillableCtrl(nullptr)
+    , pListCtrl(nullptr)
+    , pClearButton(nullptr)
+    , pAddButton(nullptr)
+    , pRemoveButton(nullptr)
+    , pRemoveAllButton(nullptr)
+    , pOkButton(nullptr)
+    , pCancelButton(nullptr)
 {
+    SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
+
+    Initialize();
+
+    wxIconBundle iconBundle(Common::GetIconBundleName(), 0);
+    SetIcons(iconBundle);
 }
 
-void CategoriesDialog::Create() {}
+void CategoriesDialog::Initialize() {}
 
 void CategoriesDialog::CreateControls() {}
 

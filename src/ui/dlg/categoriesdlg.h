@@ -27,6 +27,7 @@
 #include <wx/wx.h>
 #endif
 #include <wx/listctrl.h>
+#include <wx/clrpicker.h>
 
 #include <spdlog/spdlog.h>
 
@@ -47,14 +48,13 @@ public:
     CategoriesDialog(wxWindow* parent,
         std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
-        bool isEdit = false,
         const wxString& name = "categoriesdlg");
     virtual ~CategoriesDialog() = default;
 
     CategoriesDialog& operator=(const CategoriesDialog&&) = delete;
 
 private:
-    void Create();
+    void Initialize();
 
     void CreateControls();
     void FillControls();
@@ -78,6 +78,21 @@ private:
     void ResetControlValues();
 
     bool TransferDataAndValidate();
+
+    wxWindow* pParent;
+    wxTextCtrl* pNameTextCtrl;
+    wxTextCtrl* pDescriptionTextCtrl;
+    wxColourPickerCtrl* pColorPickerCtrl;
+    wxCheckBox* pBillableCtrl;
+    wxListCtrl* pListCtrl;
+    wxButton* pClearButton;
+    wxButton* pAddButton;
+    wxButton* pRemoveButton;
+    wxButton* pRemoveAllButton;
+    wxButton* pOkButton;
+    wxButton* pCancelButton;
+
+    enum { IDC_NAME = wxID_HIGHEST + 1, IDC_DESCRIPTION, IDC_COLORPICKER, IDC_BILLABLE, IDC_LIST };
 };
 } // namespace UI::dlg
 } // namespace tks
