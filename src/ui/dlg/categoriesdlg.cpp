@@ -201,12 +201,74 @@ void CategoriesDialog::CreateControls()
 
 void CategoriesDialog::FillControls()
 {
-    /*pOkButton->Disable();
     pRemoveButton->Disable();
-    pRemoveAllButton->Disable();*/
+    pRemoveAllButton->Disable();
 }
 
-void CategoriesDialog::ConfigureEventBindings() {}
+// clang-format off
+void CategoriesDialog::ConfigureEventBindings()
+{
+    pAddButton->Bind(
+        wxEVT_BUTTON,
+        &CategoriesDialog::OnAdd,
+        this,
+        wxID_ADD
+    );
+
+    pRemoveButton->Bind(
+        wxEVT_BUTTON,
+        &CategoriesDialog::OnRemove,
+        this,
+        wxID_REMOVE
+    );
+
+    pRemoveAllButton->Bind(
+        wxEVT_BUTTON,
+        &CategoriesDialog::OnRemoveAll,
+        this,
+        wxID_DELETE
+    );
+
+    pListCtrl->Bind(
+        wxEVT_LIST_ITEM_CHECKED,
+        &CategoriesDialog::OnItemChecked,
+        this
+    );
+
+    pListCtrl->Bind(
+        wxEVT_LIST_ITEM_UNCHECKED,
+        &CategoriesDialog::OnItemUnchecked,
+        this
+    );
+
+    pListCtrl->Bind(
+        wxEVT_LIST_ITEM_RIGHT_CLICK,
+        &CategoriesDialog::OnItemRightClick,
+        this
+    );
+
+    Bind(
+        wxEVT_MENU,
+        &CategoriesDialog::OnEdit,
+        this,
+        wxID_EDIT
+    );
+
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &CategoriesDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
+
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &CategoriesDialog::OnOK,
+        this,
+        wxID_OK
+    );
+}
+// clang-format on
 
 void CategoriesDialog::OnAdd(wxCommandEvent& event) {}
 
