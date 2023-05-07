@@ -59,6 +59,7 @@ CategoriesDialog::CategoriesDialog(wxWindow* parent,
     , bEditFromListCtrl(false)
     , mCategoryIndexEdit(-1)
     , mListItemIndex(-1)
+    , mListItemIndexes()
     , mCategoryToAdd()
     , mCategoriesToAdd()
 {
@@ -337,7 +338,22 @@ void CategoriesDialog::OnEdit(wxCommandEvent& event)
     FillControls(category);
 }
 
-void CategoriesDialog::OnRemove(wxCommandEvent& event) {}
+void CategoriesDialog::OnRemove(wxCommandEvent& event)
+{
+    for (long index : mListItemIndexes) {
+        auto nameAtIndex = ExtractNameFromListIndex(index);
+
+        mCategoriesToAdd.erase(std::remove_if(mCategoriesToAdd.begin(),
+            mCategoriesToAdd.end(),
+            [&](Model::CategoryModel& category) { return category.Name == nameAtIndex; }));
+
+        pListCtrl->DeleteItem(index);
+    }
+
+    pAddButton->Enable();
+    pRemoveButton->Disable();
+    mListItemIndexes.clear();
+}
 
 void CategoriesDialog::OnRemoveAll(wxCommandEvent& event)
 {
@@ -357,9 +373,28 @@ void CategoriesDialog::OnCancel(wxCommandEvent& event)
     EndModal(wxID_CANCEL);
 }
 
-void CategoriesDialog::OnItemChecked(wxListEvent& event) {}
+void CategoriesDialog::OnItemChecked(wxListEvent& event)
+{
+    long index = event.GetIndex();
+    mListItemIndexes.push_back(index);
 
-void CategoriesDialog::OnItemUnchecked(wxListEvent& event) {}
+    if (mListItemIndexes.size() >= 1) {
+        pAddButton->Disable();
+        pRemoveButton->Enable();
+    }
+}
+
+void CategoriesDialog::OnItemUnchecked(wxListEvent& event)
+{
+    long index = event.GetIndex();
+    mListItemIndexes.erase(
+        std::remove(mListItemIndexes.begin(), mListItemIndexes.end(), index), mListItemIndexes.end());
+
+    if (mListItemIndexes.size() == 0) {
+        pAddButton->Enable();
+        pRemoveButton->Disable();
+    }
+}
 
 void CategoriesDialog::OnItemRightClick(wxListEvent& event)
 {
@@ -381,12 +416,12 @@ void CategoriesDialog::ResetControlValues()
 
 std::string CategoriesDialog::ExtractNameFromListIndex(long itemIndex)
 {
-    assert(mListItemIndex != -1);
+    assert(itemIndex != -1);
 
     std::string name;
 
     wxListItem item;
-    item.m_itemId = mListItemIndex;
+    item.m_itemId = itemIndex;
     item.m_col = 0;
     item.m_mask = wxLIST_MASK_TEXT;
     pListCtrl->GetItem(item);

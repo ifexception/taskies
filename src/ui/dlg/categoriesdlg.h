@@ -99,6 +99,7 @@ private:
     bool bEditFromListCtrl;
     long mListItemIndex;
     int mCategoryIndexEdit;
+    std::vector<long> mListItemIndexes;
     Model::CategoryModel mCategoryToAdd;
     std::vector<Model::CategoryModel> mCategoriesToAdd;
 
