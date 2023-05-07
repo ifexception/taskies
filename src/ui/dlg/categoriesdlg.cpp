@@ -19,6 +19,8 @@
 
 #include "categoriesdlg.h"
 
+#include <algorithm>
+
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 #include <fmt/format.h>
@@ -55,6 +57,8 @@ CategoriesDialog::CategoriesDialog(wxWindow* parent,
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , bEditFromListCtrl(false)
+    , mCategoryIndexEdit(-1)
+    , mListItemIndex(-1)
     , mCategoryToAdd()
     , mCategoriesToAdd()
 {
@@ -273,6 +277,14 @@ void CategoriesDialog::ConfigureEventBindings()
 }
 // clang-format on
 
+void CategoriesDialog::FillControls(const Model::CategoryModel& category)
+{
+    pNameTextCtrl->ChangeValue(category.Name);
+    pColorPickerCtrl->SetColour(category.Color);
+    pBillableCtrl->SetValue(category.Billable);
+    pDescriptionTextCtrl->SetValue(category.Description.has_value() ? category.Description.value() : "");
+}
+
 void CategoriesDialog::Append(Model::CategoryModel category)
 {
     int listIndex = 0;
@@ -282,7 +294,15 @@ void CategoriesDialog::Append(Model::CategoryModel category)
     pListCtrl->SetItemBackgroundColour(listIndex, category.Color);
 }
 
-void CategoriesDialog::Update(Model::CategoryModel category) {}
+void CategoriesDialog::Update(Model::CategoryModel category)
+{
+    int columnIndex = 0;
+
+    pListCtrl->SetItem(mListItemIndex, columnIndex++, category.Name);
+    pListCtrl->SetItemBackgroundColour(mListItemIndex, category.Color);
+
+    mListItemIndex = -1;
+}
 
 void CategoriesDialog::OnAdd(wxCommandEvent& event)
 {
@@ -292,19 +312,43 @@ void CategoriesDialog::OnAdd(wxCommandEvent& event)
             mCategoriesToAdd.push_back(mCategoryToAdd);
             pRemoveAllButton->Enable();
         } else {
-
+            mCategoriesToAdd[mCategoryIndexEdit] = mCategoryToAdd;
+            Update(mCategoryToAdd);
         }
 
         mCategoryToAdd = Model::CategoryModel();
+        mCategoryIndexEdit = -1;
         ResetControlValues();
     }
 }
 
-void CategoriesDialog::OnEdit(wxCommandEvent& event) {}
+void CategoriesDialog::OnEdit(wxCommandEvent& event)
+{
+    bEditFromListCtrl = true;
+    auto name = ExtractNameFromListIndex(mListItemIndex);
+    auto iterator = std::find_if(mCategoriesToAdd.begin(), mCategoriesToAdd.end(), [&](Model::CategoryModel& category) {
+        return category.Name == name;
+    });
+
+    int index = std::distance(mCategoriesToAdd.begin(), iterator);
+    auto& category = mCategoriesToAdd[index];
+    mCategoryIndexEdit = index;
+
+    FillControls(category);
+}
 
 void CategoriesDialog::OnRemove(wxCommandEvent& event) {}
 
-void CategoriesDialog::OnRemoveAll(wxCommandEvent& event) {}
+void CategoriesDialog::OnRemoveAll(wxCommandEvent& event)
+{
+    mCategoriesToAdd.clear();
+    pListCtrl->DeleteAllItems();
+    pRemoveAllButton->Disable();
+
+    mCategoryToAdd = Model::CategoryModel();
+    mCategoryIndexEdit = -1;
+    ResetControlValues();
+}
 
 void CategoriesDialog::OnOK(wxCommandEvent& event) {}
 
@@ -317,7 +361,15 @@ void CategoriesDialog::OnItemChecked(wxListEvent& event) {}
 
 void CategoriesDialog::OnItemUnchecked(wxListEvent& event) {}
 
-void CategoriesDialog::OnItemRightClick(wxListEvent& event) {}
+void CategoriesDialog::OnItemRightClick(wxListEvent& event)
+{
+    mListItemIndex = event.GetIndex();
+
+    wxMenu menu;
+    menu.Append(wxID_EDIT, "Edit");
+
+    PopupMenu(&menu);
+}
 
 void CategoriesDialog::ResetControlValues()
 {
@@ -325,6 +377,23 @@ void CategoriesDialog::ResetControlValues()
     pColorPickerCtrl->SetColour(*wxBLACK);
     pBillableCtrl->SetValue(false);
     pDescriptionTextCtrl->ChangeValue(wxEmptyString);
+}
+
+std::string CategoriesDialog::ExtractNameFromListIndex(long itemIndex)
+{
+    assert(mListItemIndex != -1);
+
+    std::string name;
+
+    wxListItem item;
+    item.m_itemId = mListItemIndex;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pListCtrl->GetItem(item);
+
+    name = item.GetText().ToStdString();
+
+    return name;
 }
 
 bool CategoriesDialog::TransferDataAndValidate()

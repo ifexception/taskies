@@ -62,6 +62,7 @@ private:
     void CreateControls();
     void FillControls();
     void ConfigureEventBindings();
+    void FillControls(const Model::CategoryModel& category);
 
     void Append(Model::CategoryModel category);
     void Update(Model::CategoryModel category);
@@ -79,6 +80,8 @@ private:
 
     void ResetControlValues();
 
+    std::string ExtractNameFromListIndex(long itemIndex);
+
     bool TransferDataAndValidate();
 
     wxWindow* pParent;
@@ -94,6 +97,8 @@ private:
     wxButton* pCancelButton;
 
     bool bEditFromListCtrl;
+    long mListItemIndex;
+    int mCategoryIndexEdit;
     Model::CategoryModel mCategoryToAdd;
     std::vector<Model::CategoryModel> mCategoriesToAdd;
 
