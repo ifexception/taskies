@@ -51,6 +51,7 @@ EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnNewCategory)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
+EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 /* Error Event Handler */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
@@ -101,7 +102,8 @@ void MainFrame::CreateControls()
     auto editMenu = new wxMenu();
     editMenu->Append(ID_EDIT_EMPLOYER, "Edit &Employer", "Edit an employer");
     editMenu->Append(ID_EDIT_CLIENT, "Edit C&lient", "Edit a client");
-    editMenu->Append(ID_EDIT_PROJECT, "Edit &Project", "Edit an project");
+    editMenu->Append(ID_EDIT_PROJECT, "Edit &Project", "Edit a project");
+    editMenu->Append(ID_EDIT_CATEGORY, "Edit Cate&gory", "Edit a category");
 
     /* Menu bar */
     auto menuBar = new wxMenuBar();
@@ -154,6 +156,12 @@ void MainFrame::OnNewProject(wxCommandEvent& event)
     newProjectDialog.ShowModal();
 }
 
+void MainFrame::OnNewCategory(wxCommandEvent& event)
+{
+    UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger);
+    addCategories.ShowModal();
+}
+
 void MainFrame::OnEditEmployer(wxCommandEvent& event)
 {
     UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger, EditListEntityType::Employer);
@@ -166,15 +174,16 @@ void MainFrame::OnEditClient(wxCommandEvent& event)
     editClient.ShowModal();
 }
 
-void MainFrame::OnEditProject(wxCommandEvent& event) {
+void MainFrame::OnEditProject(wxCommandEvent& event)
+{
     UI::dlg::EditListDialog editProject(this, pEnv, pLogger, EditListEntityType::Project);
     editProject.ShowModal();
 }
 
-void MainFrame::OnNewCategory(wxCommandEvent& event)
+void MainFrame::OnEditCategory(wxCommandEvent& event)
 {
-    UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger);
-    addCategories.ShowModal();
+    UI::dlg::EditListDialog editCategory(this, pEnv, pLogger, EditListEntityType::Category);
+    editCategory.ShowModal();
 }
 
 void MainFrame::OnExit(wxCommandEvent& event)
