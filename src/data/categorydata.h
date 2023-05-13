@@ -49,7 +49,7 @@ public:
     std::int64_t Create(Model::CategoryModel& category);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::CategoryModel>& categories);
     int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& model);
-    int Update(Model::CategoryModel& category);
+    int Update(Model::CategoryModel& model);
     int Delete(const std::int64_t categoryId);
 
     std::int64_t GetLastInsertId() const;
