@@ -136,7 +136,7 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::getById, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::create, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
