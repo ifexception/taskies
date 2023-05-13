@@ -32,6 +32,7 @@ set (SRC_DATA
     "data/employerdata.cpp"
     "data/clientdata.cpp"
     "data/projectdata.cpp"
+    "data/categorydata.cpp"
 )
 
 set (SRC_DIALOGS

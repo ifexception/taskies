@@ -46,11 +46,11 @@ public:
 
     CategoryData& operator=(const CategoryData&) = delete;
 
-    std::int64_t Create(Model::CategoryModel& client);
-    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::CategoryModel>& clients);
-    int GetById(const std::int64_t clientId, /*out*/ Model::CategoryModel& model);
-    int Update(Model::CategoryModel& client);
-    int Delete(const std::int64_t clientId);
+    std::int64_t Create(Model::CategoryModel& category);
+    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::CategoryModel>& categories);
+    int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& model);
+    int Update(Model::CategoryModel& category);
+    int Delete(const std::int64_t categoryId);
 
     std::int64_t GetLastInsertId() const;
 

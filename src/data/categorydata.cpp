@@ -25,25 +25,150 @@
 
 namespace tks::Data
 {
-CategoryData::CategoryData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger) {}
-CategoryData::~CategoryData() {}
-std::int64_t CategoryData::Create(Model::CategoryModel& client)
+CategoryData::CategoryData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger)
+    : pEnv(env)
+    , pLogger(logger)
+    , pDb(nullptr)
 {
-    return std::int64_t();
+    auto databaseFile = pEnv->GetDatabasePath().string();
+    int rc = sqlite3_open(databaseFile.c_str(), &pDb);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::OpenDatabaseTemplate,
+            "CategoryData",
+            pEnv->GetDatabaseName(),
+            pEnv->GetDatabasePath().string(),
+            rc,
+            std::string(err));
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::JournalMode, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::Synchronous, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::TempStore, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::MmapSize, rc, err);
+        return;
+    }
 }
-int CategoryData::Filter(const std::string& searchTerm, std::vector<Model::CategoryModel>& clients)
+
+CategoryData::~CategoryData()
+{
+    sqlite3_close(pDb);
+}
+
+std::int64_t CategoryData::Create(Model::CategoryModel& category)
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, CategoryData::create.c_str(), static_cast<int>(CategoryData::create.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryData", CategoryData::create, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+    rc = sqlite3_bind_text(
+        stmt, bindIndex++, category.Name.c_str(), static_cast<int>(category.Name.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "name", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int(stmt, bindIndex++, static_cast<int>(category.Color));
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "color", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int(stmt, bindIndex++, category.Billable);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "billable", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    if (category.Description.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            category.Description.value().c_str(),
+            static_cast<int>(category.Description.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "description", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "CategoryData", CategoryData::create, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    auto rowId = sqlite3_last_insert_rowid(pDb);
+
+    return rowId;
+}
+
+int CategoryData::Filter(const std::string& searchTerm, std::vector<Model::CategoryModel>& categories)
 {
     return 0;
 }
-int CategoryData::GetById(const std::int64_t clientId, Model::CategoryModel& model)
+
+int CategoryData::GetById(const std::int64_t categoryId, Model::CategoryModel& model)
 {
     return 0;
 }
-int CategoryData::Update(Model::CategoryModel& client)
+
+int CategoryData::Update(Model::CategoryModel& category)
 {
     return 0;
 }
-int CategoryData::Delete(const std::int64_t clientId)
+
+int CategoryData::Delete(const std::int64_t categoryId)
 {
     return 0;
 }
