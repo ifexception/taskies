@@ -28,6 +28,7 @@
 #include "../../common/constants.h"
 #include "../../common/common.h"
 #include "../../core/environment.h"
+#include "../../data/categorydata.h"
 #include "../../utils/utils.h"
 
 #include "errordlg.h"
@@ -46,6 +47,8 @@ CategoriesDialog::CategoriesDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
+    , pEnv(env)
+    , pLogger(logger)
     , pNameTextCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pColorPickerCtrl(nullptr)
@@ -366,7 +369,34 @@ void CategoriesDialog::OnRemoveAll(wxCommandEvent& event)
     ResetControlValues();
 }
 
-void CategoriesDialog::OnOK(wxCommandEvent& event) {}
+void CategoriesDialog::OnOK(wxCommandEvent& event)
+{
+    pOkButton->Disable();
+
+    int ret = 0;
+    Data::CategoryData categoryData(pEnv, pLogger);
+    for (auto& category : mCategoriesToAdd) {
+        std::int64_t categoryId = categoryData.Create(category);
+        ret = categoryId > 0 ? 1 : -1;
+        if (ret == -1) {
+            break;
+        }
+    }
+
+    if (ret == -1) {
+        pLogger->error("Failed to execute action with client. Check further logs for more information...");
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+
+        pOkButton->Enable();
+        pCancelButton->Enable();
+    } else {
+        EndModal(wxID_OK);
+    }
+}
 
 void CategoriesDialog::OnCancel(wxCommandEvent& event)
 {

@@ -84,6 +84,9 @@ private:
 
     bool TransferDataAndValidate();
 
+    std::shared_ptr<Core::Environment> pEnv;
+    std::shared_ptr<spdlog::logger> pLogger;
+
     wxWindow* pParent;
     wxTextCtrl* pNameTextCtrl;
     wxColourPickerCtrl* pColorPickerCtrl;
