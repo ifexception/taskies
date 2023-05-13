@@ -30,6 +30,7 @@
 #include "employerdlg.h"
 #include "clientdlg.h"
 #include "projectdlg.h"
+#include "categorydlg.h"
 
 namespace tks::UI::dlg
 {
@@ -391,6 +392,11 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
         projectDlg.ShowModal();
         break;
     }
+    case EditListEntityType::Category: {
+        CategoryDialog categoryDlg(this, pEnv, pLogger, mEntityId);
+        categoryDlg.ShowModal();
+        break;
+    }
     default:
         break;
     }
@@ -426,6 +432,7 @@ void EditListDialog::Search()
         break;
     case EditListEntityType::Category:
         SearchCategories();
+        break;
     default:
         break;
     }
