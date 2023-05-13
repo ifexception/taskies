@@ -251,7 +251,10 @@ void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event) {}
 
 void CategoryDialog::OnOK(wxCommandEvent& event) {}
 
-void CategoryDialog::OnCancel(wxCommandEvent& event) {}
+void CategoryDialog::OnCancel(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
+}
 
 bool CategoryDialog::TransferDataAndValidate()
 {
