@@ -155,6 +155,84 @@ std::int64_t CategoryData::Create(Model::CategoryModel& category)
 
 int CategoryData::Filter(const std::string& searchTerm, std::vector<Model::CategoryModel>& categories)
 {
+    sqlite3_stmt* stmt = nullptr;
+    auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
+
+    int rc = sqlite3_prepare_v2(
+        pDb, CategoryData::filter.c_str(), static_cast<int>(CategoryData::filter.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryData", CategoryData::filter, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIdx = 1;
+    // category name
+    rc = sqlite3_bind_text(
+        stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "name", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // category description
+    rc = sqlite3_bind_text(
+        stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "description", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            Model::CategoryModel model;
+            int columnIndex = 0;
+
+            model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            model.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            model.Color = sqlite3_column_int(stmt, columnIndex++);
+            model.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.Description = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                model.Description =
+                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+            }
+            columnIndex++;
+            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+
+            categories.push_back(model);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "CategoryData", CategoryData::filter, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
     return 0;
 }
 
@@ -188,24 +266,26 @@ const std::string CategoryData::create = "INSERT INTO "
                                          "VALUES (?, ?, ?, ?)";
 
 const std::string CategoryData::filter = "SELECT "
-                                         "categories.category_id, "
-                                         "categories.name, "
-                                         "categories.color, "
-                                         "categories.date_created, "
-                                         "categories.date_modified, "
-                                         "categories.is_active "
+                                         "category_id, "
+                                         "name, "
+                                         "color, "
+                                         "date_created, "
+                                         "date_modified, "
+                                         "is_active "
                                          "FROM categories "
-                                         "WHERE categories.is_active = 1";
+                                         "WHERE categories.is_active = 1"
+                                         "AND (name LIKE ? "
+                                         "OR description LIKE ?);";
 
 const std::string CategoryData::getById = "SELECT "
-                                          "categories.category_id, "
-                                          "categories.name, "
-                                          "categories.color, "
-                                          "categories.billable, "
-                                          "categories.description, "
-                                          "categories.date_created, "
-                                          "categories.date_modified, "
-                                          "categories.is_active "
+                                          "category_id, "
+                                          "name, "
+                                          "color, "
+                                          "billable, "
+                                          "description, "
+                                          "date_created, "
+                                          "date_modified, "
+                                          "is_active "
                                           "FROM categories "
                                           "WHERE categories.is_active = 1";
 
