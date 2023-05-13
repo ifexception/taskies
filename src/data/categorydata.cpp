@@ -238,6 +238,61 @@ int CategoryData::Filter(const std::string& searchTerm, std::vector<Model::Categ
 
 int CategoryData::GetById(const std::int64_t categoryId, Model::CategoryModel& model)
 {
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, CategoryData::getById.c_str(), static_cast<int>(CategoryData::getById.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryData", CategoryData::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, categoryId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "category_id", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "CategoryData", CategoryData::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+
+    model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    model.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    model.Color = sqlite3_column_int(stmt, columnIndex++);
+    model.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        model.Description = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        model.Description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+    }
+    columnIndex++;
+    model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "CategoryData", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
     return 0;
 }
 
