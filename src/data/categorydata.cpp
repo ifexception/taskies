@@ -344,7 +344,7 @@ const std::string CategoryData::getById = "SELECT "
                                           "date_modified, "
                                           "is_active "
                                           "FROM categories "
-                                          "WHERE is_active = 1;";
+                                          "WHERE category_id = ?;";
 
 const std::string CategoryData::update = "UPDATE categories "
                                          "SET "
