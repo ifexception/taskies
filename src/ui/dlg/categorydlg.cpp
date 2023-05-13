@@ -33,4 +33,11 @@
 
 namespace tks::UI::dlg
 {
+CategoryDialog::CategoryDialog(wxWindow* parent,
+    std::shared_ptr<Core::Environment> env,
+    std::shared_ptr<spdlog::logger> logger,
+    std::int64_t categoryId,
+    const wxString& name)
+{
 }
+} // namespace tks::UI::dlg

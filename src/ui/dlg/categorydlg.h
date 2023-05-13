@@ -44,6 +44,17 @@ namespace UI::dlg
 class CategoryDialog final : public wxDialog
 {
 public:
+    CategoryDialog() = delete;
+    CategoryDialog(const CategoryDialog&) = delete;
+    CategoryDialog(wxWindow* parent,
+        std::shared_ptr<Core::Environment> env,
+        std::shared_ptr<spdlog::logger> logger,
+        std::int64_t categoryId,
+        const wxString& name = "categorydlg");
+    virtual ~CategoryDialog() = default;
+
+    CategoryDialog& operator=(const CategoryDialog&) = delete;
+
 private:
 };
 } // namespace UI::dlg
