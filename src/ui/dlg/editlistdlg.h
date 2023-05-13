@@ -36,6 +36,7 @@
 #include "../../data/employerdata.h"
 #include "../../data/clientdata.h"
 #include "../../data/projectdata.h"
+#include "../../data/categorydata.h"
 
 namespace tks
 {
@@ -70,6 +71,7 @@ private:
     void EmployerDataToControls();
     void ClientDataToControls();
     void ProjectDataToControls();
+    void CategoryDataToControls();
 
     void OnSearchTextChange(wxCommandEvent& event);
     void OnSearch(wxCommandEvent& event);
@@ -84,6 +86,7 @@ private:
     void SearchEmployers();
     void SearchClients();
     void SearchProjects();
+    void SearchCategories();
 
     std::string GetSearchHintText();
 

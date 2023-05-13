@@ -76,6 +76,8 @@ std::string EditListDialog::GetEditTitle()
         return "Find Client";
     case EditListEntityType::Project:
         return "Find Project";
+    case EditListEntityType::Category:
+        return "Find Category";
     default:
         return "Error";
     }
@@ -234,6 +236,9 @@ void EditListDialog::DataToControls()
     case EditListEntityType::Project:
         ProjectDataToControls();
         break;
+    case EditListEntityType::Category:
+        CategoryDataToControls();
+        break;
     default:
         break;
     }
@@ -302,6 +307,29 @@ void EditListDialog::ProjectDataToControls()
         for (auto& project : projects) {
             listIndex = pListCtrl->InsertItem(columnIndex++, project.Name);
             pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(project.ProjectId));
+            columnIndex++;
+        }
+    }
+}
+
+void EditListDialog::CategoryDataToControls()
+{
+    std::vector<Model::CategoryModel> categories;
+    Data::CategoryData data(pEnv, pLogger);
+
+    int rc = data.Filter(mSearchTerm, categories);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        int listIndex = 0;
+        int columnIndex = 0;
+        for (auto& category : categories) {
+            listIndex = pListCtrl->InsertItem(columnIndex++, category.Name);
+            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(category.CategoryId));
             columnIndex++;
         }
     }
@@ -396,6 +424,8 @@ void EditListDialog::Search()
     case EditListEntityType::Project:
         SearchProjects();
         break;
+    case EditListEntityType::Category:
+        SearchCategories();
     default:
         break;
     }
@@ -404,8 +434,6 @@ void EditListDialog::Search()
 void EditListDialog::SearchEmployers()
 {
     pOkButton->Disable();
-    pCancelButton->Disable();
-
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::EmployerModel> employers;
@@ -427,14 +455,11 @@ void EditListDialog::SearchEmployers()
     }
 
     pOkButton->Enable();
-    pCancelButton->Enable();
 }
 
 void EditListDialog::SearchClients()
 {
     pOkButton->Disable();
-    pCancelButton->Disable();
-
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::ClientModel> clients;
@@ -456,7 +481,6 @@ void EditListDialog::SearchClients()
     }
 
     pOkButton->Enable();
-    pCancelButton->Enable();
 }
 
 void EditListDialog::SearchProjects()
@@ -487,6 +511,34 @@ void EditListDialog::SearchProjects()
     pOkButton->Enable();
 }
 
+void EditListDialog::SearchCategories()
+{
+    pOkButton->Disable();
+    pListCtrl->DeleteAllItems();
+
+    std::vector<Model::CategoryModel> categories;
+    Data::CategoryData data(pEnv, pLogger);
+
+    int rc = data.Filter(mSearchTerm, categories);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        int listIndex = 0;
+        int columnIndex = 0;
+        for (auto& category : categories) {
+            listIndex = pListCtrl->InsertItem(columnIndex++, category.Name);
+            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(category.CategoryId));
+            columnIndex++;
+        }
+    }
+
+    pOkButton->Enable();
+}
+
 std::string EditListDialog::GetSearchHintText()
 {
     switch (mType) {
@@ -496,6 +548,8 @@ std::string EditListDialog::GetSearchHintText()
         return "Search clients...";
     case EditListEntityType::Project:
         return "Search projects...";
+    case EditListEntityType::Category:
+        return "Search categories...";
     default:
         return "";
     }
