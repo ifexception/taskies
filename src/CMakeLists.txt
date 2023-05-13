@@ -42,6 +42,7 @@ set (SRC_DIALOGS
     "ui/dlg/clientdlg.cpp"
     "ui/dlg/projectdlg.cpp"
     "ui/dlg/categoriesdlg.cpp"
+    "ui/dlg/categorydlg.cpp"
 )
 
 set (SRC
