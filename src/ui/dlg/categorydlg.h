@@ -78,9 +78,9 @@ private:
     wxColourPickerCtrl* pColorPickerCtrl;
     wxCheckBox* pBillableCtrl;
     wxTextCtrl* pDescriptionTextCtrl;
-    wxCheckBox* pIsActiveCtrl;
     wxTextCtrl* pDateCreatedTextCtrl;
     wxTextCtrl* pDateModifiedTextCtrl;
+    wxCheckBox* pIsActiveCtrl;
     wxButton* pOkButton;
     wxButton* pCancelButton;
 

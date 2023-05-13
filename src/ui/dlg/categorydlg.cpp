@@ -52,9 +52,9 @@ CategoryDialog::CategoryDialog(wxWindow* parent,
     , pColorPickerCtrl(nullptr)
     , pBillableCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
-    , pIsActiveCtrl(nullptr)
     , pDateCreatedTextCtrl(nullptr)
     , pDateModifiedTextCtrl(nullptr)
+    , pIsActiveCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mCategoryId(categoryId)
@@ -241,15 +241,58 @@ void CategoryDialog::DataToControls()
         pColorPickerCtrl->SetColour(model.Color);
         pBillableCtrl->SetValue(model.Billable);
         pDescriptionTextCtrl->SetValue(model.Description.has_value() ? model.Description.value() : "");
-        pIsActiveCtrl->SetValue(model.IsActive);
         pDateCreatedTextCtrl->SetValue(model.GetDateCreatedString());
         pDateModifiedTextCtrl->SetValue(model.GetDateModifiedString());
+        pIsActiveCtrl->SetValue(model.IsActive);
+    }
+
+    pOkButton->Enable();
+}
+
+void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pNameTextCtrl->Enable();
+        pColorPickerCtrl->Enable();
+        pBillableCtrl->Enable();
+        pDescriptionTextCtrl->Enable();
+    } else {
+        pNameTextCtrl->Disable();
+        pColorPickerCtrl->Disable();
+        pBillableCtrl->Disable();
+        pDescriptionTextCtrl->Disable();
     }
 }
 
-void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event) {}
+void CategoryDialog::OnOK(wxCommandEvent& event)
+{
+    pOkButton->Disable();
 
-void CategoryDialog::OnOK(wxCommandEvent& event) {}
+    if (TransferDataAndValidate()) {
+        int ret = 0;
+        Data::CategoryData data(pEnv, pLogger);
+
+        if (pIsActiveCtrl->IsChecked()) {
+            ret = data.Update(mModel);
+        }
+        if (!pIsActiveCtrl->IsChecked()) {
+            ret = data.Delete(mCategoryId);
+        }
+
+        if (ret == -1) {
+            pLogger->error("Failed to execute action with project. Check further logs for more information");
+            auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                                "check logs for more information...";
+
+            ErrorDialog errorDialog(this, pLogger, errorMessage);
+            errorDialog.ShowModal();
+
+            pOkButton->Enable();
+        } else {
+            EndModal(wxID_OK);
+        }
+    }
+}
 
 void CategoryDialog::OnCancel(wxCommandEvent& event)
 {
@@ -258,6 +301,43 @@ void CategoryDialog::OnCancel(wxCommandEvent& event)
 
 bool CategoryDialog::TransferDataAndValidate()
 {
-    return false;
+    auto name = pNameTextCtrl->GetValue().ToStdString();
+    if (name.empty()) {
+        auto valMsg = "Name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    if (name.length() < MIN_CHARACTER_COUNT || name.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    if (!description.empty() &&
+        (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_DESCRIPTIONS);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pDescriptionTextCtrl);
+        return false;
+    }
+
+    mModel.CategoryId = mCategoryId;
+    mModel.Name = name;
+    mModel.Color = pColorPickerCtrl->GetColour().GetRGB();
+    mModel.Billable = pBillableCtrl->IsChecked();
+    mModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
+
+    return true;
 }
 } // namespace tks::UI::dlg
