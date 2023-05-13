@@ -250,9 +250,10 @@ int CategoryData::Delete(const std::int64_t categoryId)
 {
     return 0;
 }
+
 std::int64_t CategoryData::GetLastInsertId() const
 {
-    return std::int64_t();
+    return sqlite3_last_insert_rowid(pDb);
 }
 
 const std::string CategoryData::create = "INSERT INTO "
@@ -269,11 +270,12 @@ const std::string CategoryData::filter = "SELECT "
                                          "category_id, "
                                          "name, "
                                          "color, "
+                                         "description, "
                                          "date_created, "
                                          "date_modified, "
                                          "is_active "
                                          "FROM categories "
-                                         "WHERE categories.is_active = 1"
+                                         "WHERE is_active = 1 "
                                          "AND (name LIKE ? "
                                          "OR description LIKE ?);";
 
@@ -287,7 +289,7 @@ const std::string CategoryData::getById = "SELECT "
                                           "date_modified, "
                                           "is_active "
                                           "FROM categories "
-                                          "WHERE categories.is_active = 1";
+                                          "WHERE is_active = 1;";
 
 const std::string CategoryData::update = "UPDATE categories "
                                          "SET "
@@ -296,11 +298,11 @@ const std::string CategoryData::update = "UPDATE categories "
                                          "billable = ?, "
                                          "description = ?, "
                                          "date_modified = ? "
-                                         "WHERE category_id = ?";
+                                         "WHERE category_id = ?;";
 
 const std::string CategoryData::isActive = "UPDATE categories "
                                            "SET "
                                            "is_active = 0, "
                                            "date_modified = ? "
-                                           "WHERE category_id = ?";
+                                           "WHERE category_id = ?;";
 } // namespace tks::Data
