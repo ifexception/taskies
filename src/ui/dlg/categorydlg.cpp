@@ -38,6 +38,223 @@ CategoryDialog::CategoryDialog(wxWindow* parent,
     std::shared_ptr<spdlog::logger> logger,
     std::int64_t categoryId,
     const wxString& name)
+    : wxDialog(parent,
+          wxID_ANY,
+          "Edit Category",
+          wxDefaultPosition,
+          wxDefaultSize,
+          wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
+          name)
+    , pParent(parent)
+    , pEnv(env)
+    , pLogger(logger)
+    , pNameTextCtrl(nullptr)
+    , pColorPickerCtrl(nullptr)
+    , pBillableCtrl(nullptr)
+    , pDescriptionTextCtrl(nullptr)
+    , pIsActiveCtrl(nullptr)
+    , pDateCreatedTextCtrl(nullptr)
+    , pDateModifiedTextCtrl(nullptr)
+    , pOkButton(nullptr)
+    , pCancelButton(nullptr)
+    , mCategoryId(categoryId)
+    , mModel()
 {
+    SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
+
+    Initialize();
+
+    wxIconBundle iconBundle(Common::GetIconBundleName(), 0);
+    SetIcons(iconBundle);
+}
+
+void CategoryDialog::Initialize()
+{
+    CreateControls();
+    ConfigureEventBindings();
+    DataToControls();
+}
+
+void CategoryDialog::CreateControls()
+{
+    /* Base Sizer */
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Details Box */
+    auto detailsBox = new wxStaticBox(this, wxID_ANY, "Details");
+    auto detailsBoxSizer = new wxStaticBoxSizer(detailsBox, wxVERTICAL);
+    sizer->Add(detailsBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Name Ctrl */
+    auto categoryNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Name");
+
+    pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
+    pNameTextCtrl->SetHint("Category name");
+    pNameTextCtrl->SetToolTip("Enter a name for a Category");
+
+    wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
+    wxArrayString allowedCharacters;
+    allowedCharacters.Add(" ");
+    allowedCharacters.Add("-");
+    allowedCharacters.Add(":");
+    allowedCharacters.Add(";");
+    allowedCharacters.Add(".");
+    allowedCharacters.Add("|");
+    allowedCharacters.Add("(");
+    allowedCharacters.Add(")");
+    allowedCharacters.Add("+");
+    nameValidator.SetIncludes(allowedCharacters);
+
+    pNameTextCtrl->SetValidator(nameValidator);
+
+    /* Color Picker Ctrl */
+    pColorPickerCtrl = new wxColourPickerCtrl(detailsBox, IDC_COLORPICKER);
+    pColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
+
+    pBillableCtrl = new wxCheckBox(detailsBox, IDC_BILLABLE, "Billable");
+    pBillableCtrl->SetToolTip("Indicates if a task captured with associated category is billable");
+
+    /* Details Grid Sizer */
+    auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    detailsGridSizer->AddGrowableCol(1, 1);
+
+    detailsGridSizer->Add(categoryNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    detailsGridSizer->Add(0, 0);
+    detailsGridSizer->Add(pColorPickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    detailsGridSizer->Add(0, 0);
+    detailsGridSizer->Add(pBillableCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
+
+    /* Description Box */
+    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Description (optional)");
+    auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
+    sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    /* Description Text Ctrl */
+    pDescriptionTextCtrl = new wxTextCtrl(
+        descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
+    pDescriptionTextCtrl->SetHint("Description (optional)");
+    pDescriptionTextCtrl->SetToolTip("Enter an optional description for a category");
+    descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+
+    auto metadataLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), FromDIP(3)));
+    sizer->Add(metadataLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
+    auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
+    sizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
+    /* FlexGrid sizer */
+    auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    metadataBoxSizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
+    metadataFlexGridSizer->AddGrowableCol(1, 1);
+
+    /* Date Created */
+    auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
+    metadataFlexGridSizer->Add(dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+
+    pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
+    pDateCreatedTextCtrl->Disable();
+    metadataFlexGridSizer->Add(pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
+    /* Date Modified */
+    auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
+    metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+
+    pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
+    pDateModifiedTextCtrl->Disable();
+    metadataFlexGridSizer->Add(pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
+    /* Is Active checkbox control */
+    metadataFlexGridSizer->Add(0, 0);
+
+    pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
+    pIsActiveCtrl->SetToolTip("Indicates if this category entry is being used");
+    metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    /* Horizontal Line */
+    auto line = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
+    /* OK|Cancel buttons */
+    auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
+    buttonsSizer->AddStretchSpacer();
+
+    pOkButton = new wxButton(this, wxID_OK, "OK");
+    pOkButton->SetDefault();
+    pOkButton->Disable();
+
+    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
+
+    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    SetSizerAndFit(sizer);
+}
+
+// clang-format off
+void CategoryDialog::ConfigureEventBindings()
+{
+    pIsActiveCtrl->Bind(
+            wxEVT_CHECKBOX,
+            &CategoryDialog::OnIsActiveCheck,
+            this
+        );
+
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &CategoryDialog::OnOK,
+        this,
+        wxID_OK
+    );
+
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &CategoryDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
+}
+// clang-format on
+
+void CategoryDialog::DataToControls()
+{
+    Model::CategoryModel model;
+    Data::CategoryData data(pEnv, pLogger);
+    int rc = 0;
+
+    rc = data.GetById(mCategoryId, model);
+    if (rc != 0) {
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+    } else {
+        pNameTextCtrl->ChangeValue(model.Name);
+        pColorPickerCtrl->SetColour(model.Color);
+        pBillableCtrl->SetValue(model.Billable);
+        pDescriptionTextCtrl->SetValue(model.Description.has_value() ? model.Description.value() : "");
+        pIsActiveCtrl->SetValue(model.IsActive);
+        pDateCreatedTextCtrl->SetValue(model.GetDateCreatedString());
+        pDateModifiedTextCtrl->SetValue(model.GetDateModifiedString());
+    }
+}
+
+void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event) {}
+
+void CategoryDialog::OnOK(wxCommandEvent& event) {}
+
+void CategoryDialog::OnCancel(wxCommandEvent& event) {}
+
+bool CategoryDialog::TransferDataAndValidate()
+{
+    return false;
 }
 } // namespace tks::UI::dlg

@@ -56,6 +56,38 @@ public:
     CategoryDialog& operator=(const CategoryDialog&) = delete;
 
 private:
+    void Initialize();
+
+    void CreateControls();
+    // void FillControls();
+    void ConfigureEventBindings();
+    void DataToControls();
+
+    void OnIsActiveCheck(wxCommandEvent& event);
+
+    void OnOK(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
+
+    bool TransferDataAndValidate();
+
+    std::shared_ptr<Core::Environment> pEnv;
+    std::shared_ptr<spdlog::logger> pLogger;
+
+    wxWindow* pParent;
+    wxTextCtrl* pNameTextCtrl;
+    wxColourPickerCtrl* pColorPickerCtrl;
+    wxCheckBox* pBillableCtrl;
+    wxTextCtrl* pDescriptionTextCtrl;
+    wxCheckBox* pIsActiveCtrl;
+    wxTextCtrl* pDateCreatedTextCtrl;
+    wxTextCtrl* pDateModifiedTextCtrl;
+    wxButton* pOkButton;
+    wxButton* pCancelButton;
+
+    std::int64_t mCategoryId;
+    Model::CategoryModel mModel;
+
+    enum { IDC_NAME = wxID_HIGHEST + 1, IDC_COLORPICKER, IDC_BILLABLE, IDC_DESCRIPTION, IDC_ISACTIVE };
 };
 } // namespace UI::dlg
 } // namespace tks
