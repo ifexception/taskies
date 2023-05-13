@@ -26,6 +26,7 @@
 #include "../../common/constants.h"
 #include "../../common/common.h"
 #include "../../core/environment.h"
+#include "../../data/clientdata.h"
 #include "../../utils/utils.h"
 
 #include "../../models/employermodel.h"
@@ -60,9 +61,7 @@ ClientDialog::ClientDialog(wxWindow* parent,
     , pIsActiveCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
-    , mEmployerData(pEnv, pLogger)
     , mClientModel()
-    , mData(pEnv, pLogger)
 {
     Create();
 
@@ -200,10 +199,9 @@ void ClientDialog::CreateControls()
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
-    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
-
     pOkButton->Disable();
-    pCancelButton->Disable();
+
+    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
@@ -218,7 +216,8 @@ void ClientDialog::FillControls()
 
     std::string defaultSearhTerm = "";
     std::vector<Model::EmployerModel> employers;
-    int rc = mEmployerData.Filter(defaultSearhTerm, employers);
+    Data::EmployerData data(pEnv, pLogger);
+    int rc = data.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
@@ -232,7 +231,6 @@ void ClientDialog::FillControls()
     }
 
     pOkButton->Enable();
-    pCancelButton->Enable();
 }
 
 // clang-format off
@@ -265,7 +263,8 @@ void ClientDialog::ConfigureEventBindings()
 void ClientDialog::DataToControls()
 {
     Model::ClientModel client;
-    int rc = mData.GetById(mClientId, client);
+    Data::ClientData data(pEnv, pLogger);
+    int rc = data.GetById(mClientId, client);
     bool isSuccess = false;
     if (rc == -1) {
         pLogger->error("Failed to execute action with client. Check further logs for more information...");
@@ -285,7 +284,8 @@ void ClientDialog::DataToControls()
     }
 
     Model::EmployerModel employer;
-    rc = mEmployerData.GetById(client.EmployerId, employer);
+    Data::EmployerData employerData(pEnv, pLogger);
+    rc = employerData.GetById(client.EmployerId, employer);
     if (rc == -1) {
         pLogger->error("Failed to execute action with employer. Check further logs for more information...");
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
@@ -301,7 +301,6 @@ void ClientDialog::DataToControls()
 
     if (isSuccess) {
         pOkButton->Enable();
-        pCancelButton->Enable();
     }
 }
 
@@ -311,17 +310,18 @@ void ClientDialog::OnOK(wxCommandEvent& event)
     pCancelButton->Disable();
 
     if (TransferDataAndValidate()) {
+        Data::ClientData data(pEnv, pLogger);
         int ret = 0;
         if (!bIsEdit) {
-            std::int64_t clientId = mData.Create(mClientModel);
+            std::int64_t clientId = data.Create(mClientModel);
             ret = clientId > 0 ? 1 : -1;
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = mData.Update(mClientModel);
+            ret = data.Update(mClientModel);
         }
 
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = mData.Delete(mClientId);
+            ret = data.Delete(mClientId);
         }
 
         if (ret == -1) {
@@ -333,13 +333,11 @@ void ClientDialog::OnOK(wxCommandEvent& event)
             errorDialog.ShowModal();
 
             pOkButton->Enable();
-            pCancelButton->Enable();
         } else {
             EndModal(wxID_OK);
         }
     } else {
         pOkButton->Enable();
-        pCancelButton->Enable();
     }
 }
 

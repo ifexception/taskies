@@ -30,7 +30,6 @@
 #include <spdlog/spdlog.h>
 
 #include "../../models/employermodel.h"
-#include "../../data/employerdata.h"
 
 namespace tks
 {
@@ -71,16 +70,15 @@ private:
     wxWindow* pParent;
     wxTextCtrl* pNameTextCtrl;
     wxTextCtrl* pDescriptionTextCtrl;
-    wxCheckBox* pIsActiveCtrl;
     wxTextCtrl* pDateCreatedTextCtrl;
     wxTextCtrl* pDateModifiedTextCtrl;
+    wxCheckBox* pIsActiveCtrl;
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
     bool bIsEdit;
     std::int64_t mEmployerId;
     Model::EmployerModel mEmployer;
-    Data::EmployerData mData;
 
     enum {
         IDC_NAME = wxID_HIGHEST + 1,

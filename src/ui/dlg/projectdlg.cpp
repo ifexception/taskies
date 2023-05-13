@@ -229,9 +229,9 @@ void ProjectDialog::CreateControls()
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
-    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
-
     pOkButton->Disable();
+
+    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
@@ -311,6 +311,7 @@ void ProjectDialog::DataToControls()
     Model::ProjectModel project;
     Data::ProjectData data(pEnv, pLogger);
     bool isSuccess = false;
+
     int rc = data.GetById(mProjectId, project);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
@@ -332,6 +333,7 @@ void ProjectDialog::DataToControls()
 
     Model::EmployerModel employer;
     Data::EmployerData employerData(pEnv, pLogger);
+
     rc = employerData.GetById(project.EmployerId, employer);
     if (rc == -1) {
         pLogger->error("Failed to execute action with employer. Check further logs for more information...");
@@ -349,6 +351,7 @@ void ProjectDialog::DataToControls()
     if (project.ClientId.has_value()) {
         Model::ClientModel client;
         Data::ClientData clientData(pEnv, pLogger);
+
         rc = clientData.GetById(project.ClientId.value(), client);
         if (rc == -1) {
             pLogger->error("Failed to execute action with client. Check further logs for more information...");
@@ -559,7 +562,7 @@ bool ProjectDialog::TransferDataAndValidate()
         auto clientChoiceCtrlData = pClientChoiceCtrl->GetClientData(pClientChoiceCtrl->GetSelection());
         if (clientChoiceCtrlData != nullptr) {
             auto clientId =
-                Utils::VoidPointerToInt(pClientChoiceCtrl->GetClientData(pClientChoiceCtrl->GetSelection()));
+                Utils::VoidPointerToInt64(pClientChoiceCtrl->GetClientData(pClientChoiceCtrl->GetSelection()));
             mProjectModel.ClientId = std::make_optional(clientId);
         } else {
             mProjectModel.ClientId = std::nullopt;

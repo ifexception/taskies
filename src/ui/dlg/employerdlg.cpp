@@ -26,6 +26,7 @@
 #include "../../core/environment.h"
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../data/employerdata.h"
 #include "errordlg.h"
 
 namespace tks::UI::dlg
@@ -49,7 +50,6 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
     , bIsEdit(isEdit)
     , mEmployerId(employerId)
     , mEmployer()
-    , mData(pEnv, pLogger)
     , pNameTextCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pDateCreatedTextCtrl(nullptr)
@@ -175,6 +175,8 @@ void EmployerDialog::CreateControls()
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
+    pOkButton->Disable();
+
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
@@ -214,16 +216,15 @@ void EmployerDialog::ConfigureEventBindings()
 void EmployerDialog::DataToControls()
 {
     pOkButton->Disable();
-    pCancelButton->Disable();
 
     Model::EmployerModel employer;
-    int rc = mData.GetById(mEmployerId, employer);
+    Data::EmployerData data(pEnv, pLogger);
+
+    int rc = data.GetById(mEmployerId, employer);
     if (rc == -1) {
         ErrorDialog errorDialog(
             this, pLogger, fmt::format("Error occured when fetching employer with ID: \"{}\"", mEmployerId));
         errorDialog.ShowModal();
-
-        pCancelButton->Enable();
     } else {
         pNameTextCtrl->SetValue(employer.Name);
         pDescriptionTextCtrl->SetValue(employer.Description.has_value() ? employer.Description.value() : "");
@@ -232,7 +233,6 @@ void EmployerDialog::DataToControls()
         pIsActiveCtrl->SetValue(employer.IsActive);
 
         pOkButton->Enable();
-        pCancelButton->Enable();
     }
 }
 
@@ -242,16 +242,17 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     pCancelButton->Disable();
 
     if (TransferDataAndValidate()) {
+        Data::EmployerData data(pEnv, pLogger);
         int ret = 0;
         if (!bIsEdit) {
-            std::int64_t employerId = mData.Create(mEmployer);
+            std::int64_t employerId = data.Create(mEmployer);
             ret = employerId > 0 ? 1 : -1;
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = mData.Update(mEmployer);
+            ret = data.Update(mEmployer);
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = mData.Delete(mEmployerId);
+            ret = data.Delete(mEmployerId);
         }
 
         if (ret == -1) {
@@ -263,7 +264,6 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             errorDialog.ShowModal();
 
             pOkButton->Enable();
-            pCancelButton->Enable();
         } else {
             EndModal(wxID_OK);
         }
@@ -319,9 +319,9 @@ bool EmployerDialog::TransferDataAndValidate()
         return false;
     }
 
+    mEmployer.EmployerId = mEmployerId;
     mEmployer.Name = name;
     mEmployer.Description = description.empty() ? std::nullopt : std::make_optional(description);
-    mEmployer.EmployerId = mEmployerId;
 
     return true;
 }

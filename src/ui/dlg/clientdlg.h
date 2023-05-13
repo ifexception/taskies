@@ -31,7 +31,6 @@
 
 #include "../../data/employerdata.h"
 #include "../../models/clientmodel.h"
-#include "../../data/clientdata.h"
 
 namespace tks
 {
@@ -78,17 +77,15 @@ private:
     wxTextCtrl* pNameTextCtrl;
     wxTextCtrl* pDescriptionTextCtrl;
     wxChoice* pEmployerChoiceCtrl;
-    wxCheckBox* pIsActiveCtrl;
     wxTextCtrl* pDateCreatedTextCtrl;
     wxTextCtrl* pDateModifiedTextCtrl;
+    wxCheckBox* pIsActiveCtrl;
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
     bool bIsEdit;
     std::int64_t mClientId;
-    Data::EmployerData mEmployerData;
     Model::ClientModel mClientModel;
-    Data::ClientData mData;
 
     enum {
         IDC_NAME = wxID_HIGHEST + 1,

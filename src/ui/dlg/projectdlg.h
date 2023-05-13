@@ -86,9 +86,9 @@ private:
     wxCheckBox* pIsDefaultCtrl;
     wxChoice* pEmployerChoiceCtrl;
     wxChoice* pClientChoiceCtrl;
-    wxCheckBox* pIsActiveCtrl;
     wxTextCtrl* pDateCreatedTextCtrl;
     wxTextCtrl* pDateModifiedTextCtrl;
+    wxCheckBox* pIsActiveCtrl;
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
