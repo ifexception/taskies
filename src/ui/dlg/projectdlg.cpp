@@ -270,17 +270,39 @@ void ProjectDialog::FillControls()
 //clang-format off
 void ProjectDialog::ConfigureEventBindings()
 {
-    pNameTextCtrl->Bind(wxEVT_TEXT, &ProjectDialog::OnNameChange, this);
+    pNameTextCtrl->Bind(
+        wxEVT_TEXT,
+        &ProjectDialog::OnNameChange,
+        this
+    );
 
-    pEmployerChoiceCtrl->Bind(wxEVT_CHOICE, &ProjectDialog::OnEmployerChoiceSelection, this);
+    pEmployerChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &ProjectDialog::OnEmployerChoiceSelection,
+        this
+    );
 
     if (bIsEdit) {
-        pIsActiveCtrl->Bind(wxEVT_CHECKBOX, &ProjectDialog::OnIsActiveCheck, this);
+        pIsActiveCtrl->Bind(
+            wxEVT_CHECKBOX,
+            &ProjectDialog::OnIsActiveCheck,
+            this
+        );
     }
 
-    pOkButton->Bind(wxEVT_BUTTON, &ProjectDialog::OnOK, this, wxID_OK);
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &ProjectDialog::OnOK,
+        this,
+        wxID_OK
+    );
 
-    pCancelButton->Bind(wxEVT_BUTTON, &ProjectDialog::OnCancel, this, wxID_CANCEL);
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &ProjectDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
 }
 // clang-format on
 
