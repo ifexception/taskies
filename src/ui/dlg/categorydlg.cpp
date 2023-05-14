@@ -64,7 +64,7 @@ CategoryDialog::CategoryDialog(wxWindow* parent,
 
     Initialize();
 
-    wxIconBundle iconBundle(Common::GetIconBundleName(), 0);
+    wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 }
 

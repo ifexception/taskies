@@ -66,7 +66,7 @@ ProjectDialog::ProjectDialog(wxWindow* parent,
 
     Create();
 
-    wxIconBundle iconBundle(Common::GetIconBundleName(), 0);
+    wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 }
 

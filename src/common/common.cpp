@@ -26,8 +26,13 @@ std::string GetProgramName()
     return "Taskies";
 }
 
-std::string GetIconBundleName()
+std::string GetProgramIconBundleName()
 {
     return "TASKIES_ICO";
+}
+
+std::string GetExitIconBundleName()
+{
+    return "EXIT_ICO";
 }
 } // namespace tks::Common
