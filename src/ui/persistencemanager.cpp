@@ -262,25 +262,25 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
 bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString& name, bool value)
 {
     bool ret = SaveValue(GetKey(who, name).ToStdString(), std::to_string(value));
-    return true;
+    return ret;
 }
 
 bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString& name, int value)
 {
     bool ret = SaveValue(GetKey(who, name).ToStdString(), std::to_string(value));
-    return true;
+    return ret;
 }
 
 bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString& name, long value)
 {
     bool ret = SaveValue(GetKey(who, name).ToStdString(), std::to_string(value));
-    return true;
+    return ret;
 }
 
 bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString& name, wxString value)
 {
     bool ret = SaveValue(GetKey(who, name).ToStdString(), value.ToStdString());
-    return true;
+    return ret;
 }
 
 wxString PersistenceManager::GetKey(const wxPersistentObject& who, const wxString& name)
