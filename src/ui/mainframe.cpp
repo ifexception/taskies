@@ -88,15 +88,20 @@ void MainFrame::CreateControls()
 {
     /* Menu Controls */
     /* Menubar */
-    /* File */
+    /* File */ 
     auto fileMenu = new wxMenu();
-    fileMenu->Append(ID_NEW_EMPLOYER, "New &Employer", "Create new employer");
-    fileMenu->Append(ID_NEW_CLIENT, "New C&lient", "Create new client");
-    fileMenu->Append(ID_NEW_PROJECT, "New &Project", "Create new project");
-    fileMenu->Append(ID_NEW_CATEGORY, "New Cate&gory", "Create new category");
     fileMenu->AppendSeparator();
-
+    auto fileNewMenu = new wxMenu();
+    fileNewMenu->Append(ID_NEW_EMPLOYER, "New &Employer", "Create new employer");
+    fileNewMenu->Append(ID_NEW_CLIENT, "New C&lient", "Create new client");
+    fileNewMenu->Append(ID_NEW_PROJECT, "New &Project", "Create new project");
+    fileNewMenu->Append(ID_NEW_CATEGORY, "New Cate&gory", "Create new category");
+    fileMenu->AppendSubMenu(fileNewMenu, "New");
+    fileMenu->AppendSeparator();
     auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit", "Exit the program");
+
+    wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
+    exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
 
     /* Edit */
     auto editMenu = new wxMenu();
