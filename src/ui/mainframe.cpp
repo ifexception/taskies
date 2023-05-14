@@ -38,6 +38,7 @@
 #include "../ui/dlg/clientdlg.h"
 #include "../ui/dlg/projectdlg.h"
 #include "../ui/dlg/categoriesdlg.h"
+#include "../ui/dlg/aboutdlg.h"
 
 namespace tks::UI
 {
@@ -48,11 +49,12 @@ EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
 EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnNewCategory)
+EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
 EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
-EVT_MENU(wxID_EXIT, MainFrame::OnExit)
+EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Error Event Handler */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 wxEND_EVENT_TABLE()
@@ -92,11 +94,11 @@ void MainFrame::CreateControls()
     auto fileMenu = new wxMenu();
     fileMenu->AppendSeparator();
     auto fileNewMenu = new wxMenu();
-    fileNewMenu->Append(ID_NEW_EMPLOYER, "New &Employer", "Create new employer");
+    fileNewMenu->Append(ID_NEW_EMPLOYER, "New E&mployer", "Create new employer");
     fileNewMenu->Append(ID_NEW_CLIENT, "New C&lient", "Create new client");
     fileNewMenu->Append(ID_NEW_PROJECT, "New &Project", "Create new project");
     fileNewMenu->Append(ID_NEW_CATEGORY, "New Cate&gory", "Create new category");
-    fileMenu->AppendSubMenu(fileNewMenu, "New");
+    fileMenu->AppendSubMenu(fileNewMenu, "&New");
     fileMenu->AppendSeparator();
     auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit", "Exit the program");
 
@@ -105,15 +107,20 @@ void MainFrame::CreateControls()
 
     /* Edit */
     auto editMenu = new wxMenu();
-    editMenu->Append(ID_EDIT_EMPLOYER, "Edit &Employer", "Edit an employer");
+    editMenu->Append(ID_EDIT_EMPLOYER, "Edit E&mployer", "Edit an employer");
     editMenu->Append(ID_EDIT_CLIENT, "Edit C&lient", "Edit a client");
     editMenu->Append(ID_EDIT_PROJECT, "Edit &Project", "Edit a project");
     editMenu->Append(ID_EDIT_CATEGORY, "Edit Cate&gory", "Edit a category");
 
+    /* Help */
+    auto helpMenu = new wxMenu();
+    helpMenu->Append(ID_HELP_ABOUT, "&About", "Information about Taskies");
+
     /* Menu bar */
     auto menuBar = new wxMenuBar();
-    menuBar->Append(fileMenu, "File");
-    menuBar->Append(editMenu, "Edit");
+    menuBar->Append(fileMenu, "&File");
+    menuBar->Append(editMenu, "&Edit");
+    menuBar->Append(helpMenu, "&Help");
 
     SetMenuBar(menuBar);
 
@@ -167,30 +174,6 @@ void MainFrame::OnNewCategory(wxCommandEvent& event)
     addCategories.ShowModal();
 }
 
-void MainFrame::OnEditEmployer(wxCommandEvent& event)
-{
-    UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger, EditListEntityType::Employer);
-    editEmployer.ShowModal();
-}
-
-void MainFrame::OnEditClient(wxCommandEvent& event)
-{
-    UI::dlg::EditListDialog editClient(this, pEnv, pLogger, EditListEntityType::Client);
-    editClient.ShowModal();
-}
-
-void MainFrame::OnEditProject(wxCommandEvent& event)
-{
-    UI::dlg::EditListDialog editProject(this, pEnv, pLogger, EditListEntityType::Project);
-    editProject.ShowModal();
-}
-
-void MainFrame::OnEditCategory(wxCommandEvent& event)
-{
-    UI::dlg::EditListDialog editCategory(this, pEnv, pLogger, EditListEntityType::Category);
-    editCategory.ShowModal();
-}
-
 void MainFrame::OnExit(wxCommandEvent& event)
 {
     sqlite3* db = nullptr;
@@ -215,6 +198,35 @@ void MainFrame::OnExit(wxCommandEvent& event)
     sqlite3_close(db);
 
     Close();
+}
+
+void MainFrame::OnEditEmployer(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger, EditListEntityType::Employer);
+    editEmployer.ShowModal();
+}
+
+void MainFrame::OnEditClient(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editClient(this, pEnv, pLogger, EditListEntityType::Client);
+    editClient.ShowModal();
+}
+
+void MainFrame::OnEditProject(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editProject(this, pEnv, pLogger, EditListEntityType::Project);
+    editProject.ShowModal();
+}
+
+void MainFrame::OnEditCategory(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editCategory(this, pEnv, pLogger, EditListEntityType::Category);
+    editCategory.ShowModal();
+}
+
+void MainFrame::OnAbout(wxCommandEvent& event) {
+    UI::dlg::AboutDialog aboutDlg(this);
+    aboutDlg.ShowModal();
 }
 
 void MainFrame::OnError(wxCommandEvent& event)

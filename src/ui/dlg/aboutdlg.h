@@ -19,15 +19,30 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
-namespace tks::Common
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
+namespace tks::UI::dlg
 {
-std::string GetProgramName();
+class AboutDialog final : public wxDialog
+{
+public:
+    AboutDialog() = delete;
+    AboutDialog(const AboutDialog&) = delete;
+    AboutDialog(wxWindow* parent, const wxString& name = "aboutdlg");
+    virtual ~AboutDialog() = default;
 
-std::string GetProgramIconBundleName();
+    AboutDialog& operator=(const AboutDialog&) = delete;
 
-std::string GetExitIconBundleName();
+private:
+    void Initialize();
 
-std::string GetLicense();
-}
+    void CreateControls();
+    void FillControls();
+};
+} // namespace tks::UI::dlg

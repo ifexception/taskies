@@ -39,7 +39,8 @@ enum class MenuIds : int {
     Edit_Employer,
     Edit_Client,
     Edit_Project,
-    Edit_Category
+    Edit_Category,
+    Help_About
 };
 
 /* File */
@@ -53,6 +54,9 @@ static const int ID_EDIT_EMPLOYER = static_cast<int>(MenuIds::Edit_Employer);
 static const int ID_EDIT_CLIENT = static_cast<int>(MenuIds::Edit_Client);
 static const int ID_EDIT_PROJECT = static_cast<int>(MenuIds::Edit_Project);
 static const int ID_EDIT_CATEGORY = static_cast<int>(MenuIds::Edit_Category);
+
+/* Help */
+static const int ID_HELP_ABOUT = static_cast<int>(MenuIds::Help_About);
 
 namespace Core
 {
@@ -89,11 +93,12 @@ private:
     void OnNewClient(wxCommandEvent& event);
     void OnNewProject(wxCommandEvent& event);
     void OnNewCategory(wxCommandEvent& event);
+    void OnExit(wxCommandEvent& event);
     void OnEditEmployer(wxCommandEvent& event);
     void OnEditClient(wxCommandEvent& event);
     void OnEditProject(wxCommandEvent& event);
     void OnEditCategory(wxCommandEvent& event);
-    void OnExit(wxCommandEvent& event);
+    void OnAbout(wxCommandEvent& event);
     /* Error Event Handler */
     void OnError(wxCommandEvent& event);
 
