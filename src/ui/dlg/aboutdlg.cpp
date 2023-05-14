@@ -21,7 +21,6 @@
 
 #include <wx/collpane.h>
 #include <wx/hyperlink.h>
-#include <wx/listctrl.h>
 #include <wx/statline.h>
 
 #include <fmt/format.h>
@@ -33,6 +32,7 @@ namespace tks::UI::dlg
 {
 AboutDialog::AboutDialog(wxWindow* parent, const wxString& name)
     : wxDialog(parent, wxID_ANY, "About", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    , pAttributionsListView(nullptr)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -45,7 +45,7 @@ AboutDialog::AboutDialog(wxWindow* parent, const wxString& name)
 void AboutDialog::Initialize()
 {
     CreateControls();
-    FillControls();
+    ConfigureEventBindings();
 }
 
 void AboutDialog::CreateControls()
@@ -72,10 +72,11 @@ void AboutDialog::CreateControls()
     auto description = "Taskies is a time tracking productivity tool built with date, fmt, nlohmann_json, spdlog, "
                        "SQLite, and wxWidgets";
     auto descriptionCtrl = new wxTextCtrl(
-        this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(340, -1), wxTE_MULTILINE | wxTE_READONLY);
+        this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(360, -1), wxTE_MULTILINE | wxTE_READONLY);
     descriptionCtrl->AppendText(description);
     descriptionSizer->Add(descriptionCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
+    /* License */
     /* License collaspible pane */
     auto licenseCollPane = new wxCollapsiblePane(this, wxID_ANY, "License");
     auto* licenseCollPaneWindow = licenseCollPane->GetPane();
@@ -97,6 +98,7 @@ void AboutDialog::CreateControls()
     licenseCollPaneWindowSizer->SetSizeHints(licenseCollPaneWindow);
     sizer->Add(licenseCollPane, wxSizerFlags().Expand());
 
+    /* Software */
     /* Software collaspible pane */
     auto softwareCollPane = new wxCollapsiblePane(this, wxID_ANY, "Software");
     auto* softwareCollPaneWindow = softwareCollPane->GetPane();
@@ -105,45 +107,78 @@ void AboutDialog::CreateControls()
     auto softwareCollPaneWindowSizer = new wxBoxSizer(wxVERTICAL);
 
     /* Software list view */
-    auto listView = new wxListView(softwareCollPaneWindow, wxID_ANY);
-    listView->AppendColumn("Component", wxLIST_FORMAT_LEFT, FromDIP(200));
-    listView->AppendColumn("Version", wxLIST_FORMAT_LEFT, FromDIP(80));
+    auto softwaresListView = new wxListView(softwareCollPaneWindow, wxID_ANY);
+    softwaresListView->AppendColumn("Component", wxLIST_FORMAT_LEFT, FromDIP(260));
+    softwaresListView->AppendColumn("Version", wxLIST_FORMAT_LEFT, FromDIP(80));
 
     int listIndex = 0;
     int columnIndex = 0;
 
-    listIndex = listView->InsertItem(columnIndex++, "date");
-    listView->SetItem(listIndex, columnIndex++, "3.0.1#2");
+    listIndex = softwaresListView->InsertItem(columnIndex++, "date");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.0.1#2");
     columnIndex = 0;
 
-    listIndex = listView->InsertItem(columnIndex++, "fmt");
-    listView->SetItem(listIndex, columnIndex++, "9.1.0#1");
+    listIndex = softwaresListView->InsertItem(columnIndex++, "fmt");
+    softwaresListView->SetItem(listIndex, columnIndex++, "9.1.0#1");
     columnIndex = 0;
 
-    listIndex = listView->InsertItem(columnIndex++, "nlohmann_json");
-    listView->SetItem(listIndex, columnIndex++, "3.11.2");
+    listIndex = softwaresListView->InsertItem(columnIndex++, "nlohmann_json");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.11.2");
     columnIndex = 0;
 
-    listIndex = listView->InsertItem(columnIndex++, "spdlog");
-    listView->SetItem(listIndex, columnIndex++, "1.11.0");
+    listIndex = softwaresListView->InsertItem(columnIndex++, "spdlog");
+    softwaresListView->SetItem(listIndex, columnIndex++, "1.11.0");
     columnIndex = 0;
 
-    listIndex = listView->InsertItem(columnIndex++, "SQLite");
-    listView->SetItem(listIndex, columnIndex++, "3.40.1#3");
+    listIndex = softwaresListView->InsertItem(columnIndex++, "SQLite");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.40.1#3");
     columnIndex = 0;
 
-    listIndex = listView->InsertItem(columnIndex++, "toml11");
-    listView->SetItem(listIndex, columnIndex++, "3.7.1");
+    listIndex = softwaresListView->InsertItem(columnIndex++, "toml11");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.7.1");
     columnIndex = 0;
 
-    listIndex = listView->InsertItem(columnIndex++, "wxWidgets");
-    listView->SetItem(listIndex, columnIndex++, "3.2.2.1#2");
+    listIndex = softwaresListView->InsertItem(columnIndex++, "wxWidgets");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.2.2.1#2");
 
-    softwareCollPaneWindowSizer->Add(listView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
+    softwareCollPaneWindowSizer->Add(softwaresListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
 
     softwareCollPaneWindow->SetSizer(softwareCollPaneWindowSizer);
     softwareCollPaneWindowSizer->SetSizeHints(softwareCollPaneWindow);
     sizer->Add(softwareCollPane, wxSizerFlags(1).Expand());
+
+    /* Attributions */
+    /* Attributions collaspible pane */
+    auto attributionsCollPane = new wxCollapsiblePane(this, wxID_ANY, "Attributions");
+    auto* attributionsCollPaneWindow = attributionsCollPane->GetPane();
+
+    /* Attributions collaspible pane sizer */
+    auto attributionsCollPaneWindowSizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Attributions list view */
+    pAttributionsListView = new wxListView(attributionsCollPaneWindow, wxID_ANY);
+    pAttributionsListView->AppendColumn("Author", wxLIST_FORMAT_LEFT, FromDIP(120));
+    pAttributionsListView->AppendColumn("Name", wxLIST_FORMAT_LEFT, FromDIP(60));
+    pAttributionsListView->AppendColumn("Link", wxLIST_FORMAT_LEFT, FromDIP(180));
+
+    listIndex = 0;
+    columnIndex = 0;
+
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Paul J.");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Paprika");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/paprika");
+    columnIndex = 0;
+
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Fathema Khanom");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Logout");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/logout");
+    columnIndex = 0;
+
+    attributionsCollPaneWindowSizer->Add(pAttributionsListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
+
+    attributionsCollPaneWindow->SetSizer(attributionsCollPaneWindowSizer);
+    attributionsCollPaneWindowSizer->SetSizeHints(attributionsCollPaneWindow);
+    sizer->Add(attributionsCollPane, wxSizerFlags(1).Expand());
 
     /* Footer */
     auto footerLine = new wxStaticLine(this, wxID_ANY);
@@ -165,5 +200,42 @@ void AboutDialog::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-void AboutDialog::FillControls() {}
+// clang-format off
+void AboutDialog::ConfigureEventBindings()
+{
+    pAttributionsListView->Bind(
+        wxEVT_LIST_ITEM_RIGHT_CLICK,
+        &AboutDialog::OnItemRightClick,
+        this
+    );
+
+    Bind(
+        wxEVT_MENU,
+        &AboutDialog::OnOpen,
+        this,
+        wxID_OPEN
+    );
+}
+// clang-format on
+
+void AboutDialog::OnItemRightClick(wxListEvent& event)
+{
+    auto index = event.GetIndex();
+    wxListItem linkListItem;
+    linkListItem.m_itemId = index;
+    linkListItem.m_col = 2;
+    linkListItem.m_mask = wxLIST_MASK_TEXT;
+    pAttributionsListView->GetItem(linkListItem);
+
+    mAttrAuthorLink = linkListItem.GetText().ToStdString();
+
+    wxMenu popupMenu;
+    popupMenu.Append(wxID_OPEN, "Open");
+    PopupMenu(&popupMenu);
+}
+
+void AboutDialog::OnOpen(wxCommandEvent& event)
+{
+    wxLaunchDefaultBrowser(mAttrAuthorLink);
+}
 } // namespace tks::UI::dlg

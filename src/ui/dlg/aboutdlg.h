@@ -26,6 +26,7 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/listctrl.h>
 
 namespace tks::UI::dlg
 {
@@ -43,6 +44,14 @@ private:
     void Initialize();
 
     void CreateControls();
-    void FillControls();
+    void ConfigureEventBindings();
+
+    void OnItemRightClick(wxListEvent& event);
+    void OnOpen(wxCommandEvent& event);
+
+    wxListView* pAttributionsListView;
+    std::string mAttrAuthorLink;
+
+    enum { IDC_ATTRLISTVIEW };
 };
 } // namespace tks::UI::dlg
