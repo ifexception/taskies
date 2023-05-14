@@ -6,6 +6,7 @@
 // i.e. Windows will be able to pick an appropriate icon size from:
 // 256,128,96,64,48,32,24,16
 TASKIES_ICO ICON "..\\res\\taskies.ico"
+EXIT_ICO ICON "..\\res\\exit.ico"
 
 // Migrations
 20230104084922_create_persistent_objects_table MIGRATION "..\\res\\migrations\\20230104084922_create_persistent_objects_table.sql"
