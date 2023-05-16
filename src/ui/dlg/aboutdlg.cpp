@@ -72,7 +72,7 @@ void AboutDialog::CreateControls()
     auto description = "Taskies is a time tracking productivity tool built with date, fmt, nlohmann_json, spdlog, "
                        "SQLite, and wxWidgets";
     auto descriptionCtrl = new wxTextCtrl(
-        this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(410, -1), wxTE_MULTILINE | wxTE_READONLY);
+        this, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(410, -1)), wxTE_MULTILINE | wxTE_READONLY);
     descriptionCtrl->AppendText(description);
     descriptionSizer->Add(descriptionCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
@@ -89,7 +89,7 @@ void AboutDialog::CreateControls()
         wxID_ANY,
         wxEmptyString,
         wxDefaultPosition,
-        wxSize(410, 150),
+        FromDIP(wxSize(410, 150)),
         wxTE_MULTILINE | wxTE_READONLY);
     licenseTextCtrl->AppendText(Common::GetLicense());
     licenseCollPaneWindowSizer->Add(licenseTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
