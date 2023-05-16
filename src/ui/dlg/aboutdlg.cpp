@@ -72,7 +72,7 @@ void AboutDialog::CreateControls()
     auto description = "Taskies is a time tracking productivity tool built with date, fmt, nlohmann_json, spdlog, "
                        "SQLite, and wxWidgets";
     auto descriptionCtrl = new wxTextCtrl(
-        this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(360, -1), wxTE_MULTILINE | wxTE_READONLY);
+        this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(410, -1), wxTE_MULTILINE | wxTE_READONLY);
     descriptionCtrl->AppendText(description);
     descriptionSizer->Add(descriptionCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
@@ -89,7 +89,7 @@ void AboutDialog::CreateControls()
         wxID_ANY,
         wxEmptyString,
         wxDefaultPosition,
-        wxDefaultSize,
+        wxSize(410, 150),
         wxTE_MULTILINE | wxTE_READONLY);
     licenseTextCtrl->AppendText(Common::GetLicense());
     licenseCollPaneWindowSizer->Add(licenseTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
@@ -108,7 +108,7 @@ void AboutDialog::CreateControls()
 
     /* Software list view */
     auto softwaresListView = new wxListView(softwareCollPaneWindow, wxID_ANY);
-    softwaresListView->AppendColumn("Component", wxLIST_FORMAT_LEFT, FromDIP(260));
+    softwaresListView->AppendColumn("Component", wxLIST_FORMAT_LEFT, FromDIP(305));
     softwaresListView->AppendColumn("Version", wxLIST_FORMAT_LEFT, FromDIP(80));
 
     int listIndex = 0;
@@ -145,7 +145,7 @@ void AboutDialog::CreateControls()
 
     softwareCollPaneWindow->SetSizer(softwareCollPaneWindowSizer);
     softwareCollPaneWindowSizer->SetSizeHints(softwareCollPaneWindow);
-    sizer->Add(softwareCollPane, wxSizerFlags(1).Expand());
+    sizer->Add(softwareCollPane, wxSizerFlags().Expand());
 
     /* Attributions */
     /* Attributions collaspible pane */
@@ -158,8 +158,8 @@ void AboutDialog::CreateControls()
     /* Attributions list view */
     pAttributionsListView = new wxListView(attributionsCollPaneWindow, wxID_ANY);
     pAttributionsListView->AppendColumn("Author", wxLIST_FORMAT_LEFT, FromDIP(120));
-    pAttributionsListView->AppendColumn("Name", wxLIST_FORMAT_LEFT, FromDIP(60));
-    pAttributionsListView->AppendColumn("Link", wxLIST_FORMAT_LEFT, FromDIP(180));
+    pAttributionsListView->AppendColumn("Name", wxLIST_FORMAT_LEFT, FromDIP(70));
+    pAttributionsListView->AppendColumn("Link", wxLIST_FORMAT_LEFT, FromDIP(220));
 
     listIndex = 0;
     columnIndex = 0;
