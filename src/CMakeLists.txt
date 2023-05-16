@@ -58,6 +58,7 @@ set (SRC
     "ui/mainframe.cpp"
     "ui/events.cpp"
     "resources.rc"
+    "application.manifest"
     "common/common.cpp"
     "common/enums.cpp"
     "common/constants.cpp"

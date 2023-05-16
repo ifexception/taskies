@@ -42,7 +42,6 @@ Application::Application()
     , pCfg(nullptr)
     , pPersistenceManager(nullptr)
 {
-    SetProcessDPIAware();
 }
 
 bool Application::OnInit()
