@@ -57,58 +57,72 @@ bool Configuration::Load()
 
 void Configuration::Save()
 {
-    const toml::value data{
-        { Sections::GeneralSection, { { "lang", mSettings.UserInterfaceLanguage } } },
-        { Sections::DatabaseSection, { { "backupPath", mSettings.DatabasePath } } },
-    };
+    const toml::value data
+    {
+        {
+            Sections::GeneralSection,
+            { { "lang", mSettings.UserInterfaceLanguage }, { "startOnBoot", mSettings.StartOnBoot } },
+            { Sections::DatabaseSection, { { "backupPath", mSettings.DatabasePath } } },
+        };
 
-    const std::string configString = toml::format(data);
+        const std::string configString = toml::format(data);
 
-    const std::string configFilePath = pEnv->GetConfigurationPath().u8string();
-    std::ofstream configFile;
-    configFile.open(configFilePath, std::ios_base::out);
-    if (!configFile) {
-        pLogger->error("Failed to open config file at specified location {0}", configFilePath);
-        return;
+        const std::string configFilePath = pEnv->GetConfigurationPath().u8string();
+        std::ofstream configFile;
+        configFile.open(configFilePath, std::ios_base::out);
+        if (!configFile) {
+            pLogger->error("Failed to open config file at specified location {0}", configFilePath);
+            return;
+        }
+
+        configFile << configString;
+
+        configFile.close();
     }
 
-    configFile << configString;
+    std::string Configuration::GetUserInterfaceLanguage()
+    {
+        return mSettings.UserInterfaceLanguage;
+    }
 
-    configFile.close();
-}
+    void Configuration::SetUserInterfaceLanguage(const std::string& value)
+    {
+        mSettings.UserInterfaceLanguage = value;
+    }
 
-std::string Configuration::GetUserInterfaceLanguage()
-{
-    return mSettings.UserInterfaceLanguage;
-}
+    bool Configuration::StartOnBoot()
+    {
+        return mSettings.StartOnBoot;
+    }
 
-void Configuration::SetUserInterfaceLanguage(const std::string& value)
-{
-    mSettings.UserInterfaceLanguage = value;
-}
+    void Configuration::StartOnBoot(const bool value)
+    {
+        mSettings.StartOnBoot = value;
+    }
 
-std::string Configuration::GetDatabasePath() const
-{
-    return mSettings.DatabasePath;
-}
+    std::string Configuration::GetDatabasePath() const
+    {
+        return mSettings.DatabasePath;
+    }
 
-void Configuration::SetDatabasePath(const std::string& value)
-{
-    mSettings.DatabasePath = value;
-}
+    void Configuration::SetDatabasePath(const std::string& value)
+    {
+        mSettings.DatabasePath = value;
+    }
 
-void Configuration::GetGeneralConfig(const toml::value& config)
-{
-    const auto& generalSection = toml::find(config, Sections::GeneralSection);
+    void Configuration::GetGeneralConfig(const toml::value& config)
+    {
+        const auto& generalSection = toml::find(config, Sections::GeneralSection);
 
-    mSettings.UserInterfaceLanguage = toml::find<std::string>(generalSection, "lang");
-}
+        mSettings.UserInterfaceLanguage = toml::find<std::string>(generalSection, "lang");
+        mSettings.StartOnBoot = toml::find<bool>(generalSection, "startOnBoot");
+    }
 
-void Configuration::GetDatabaseConfig(const toml::value& config)
-{
-    const auto& databaseSection = toml::find(config, Sections::DatabaseSection);
+    void Configuration::GetDatabaseConfig(const toml::value& config)
+    {
+        const auto& databaseSection = toml::find(config, Sections::DatabaseSection);
 
-    mSettings.DatabasePath = toml::find<std::string>(databaseSection, "databasePath");
-}
+        mSettings.DatabasePath = toml::find<std::string>(databaseSection, "databasePath");
+    }
 
 } // namespace tks::Core

@@ -42,6 +42,9 @@ public:
     std::string GetUserInterfaceLanguage();
     void SetUserInterfaceLanguage(const std::string& value);
 
+    bool StartOnBoot();
+    void StartOnBoot(const bool value);
+
     std::string GetDatabasePath() const;
     void SetDatabasePath(const std::string& value);
 
@@ -56,6 +59,7 @@ private:
 
     struct Settings {
         std::string UserInterfaceLanguage;
+        bool StartOnBoot;
         std::string DatabasePath;
     };
 
