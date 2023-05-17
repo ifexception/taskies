@@ -44,6 +44,7 @@ set (SRC_DIALOGS
     "ui/dlg/categoriesdlg.cpp"
     "ui/dlg/categorydlg.cpp"
     "ui/dlg/aboutdlg.cpp"
+    "ui/dlg/preferencesdlg.cpp"
 )
 
 set (SRC
