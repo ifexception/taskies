@@ -19,17 +19,77 @@
 
 #include "preferencesdlg.h"
 
+#include "../../common/common.h"
 #include "../../core/configuration.h"
+#include "preferencesgeneralpage.h"
 
 namespace tks::UI::dlg
 {
-PreferencesDialog::PreferencesDialog(wxWindow* parent, std::shared_ptr<Core::Configuration> cfg, const wxString& name)
+PreferencesDialog::PreferencesDialog(wxWindow* parent,
+    std::shared_ptr<Core::Configuration> cfg,
+    std::shared_ptr<spdlog::logger> logger,
+    const wxString& name)
+    : wxDialog(parent,
+          wxID_ANY,
+          "Preferences",
+          wxDefaultPosition,
+          wxDefaultSize,
+          wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER,
+          name)
+    , pCfg(cfg)
+    , pLogger(logger)
+    , pListBox(nullptr)
+    , pSimpleBook(nullptr)
+    , pGeneralPage(nullptr)
+    , pOkButton(nullptr)
+    , pCancelButton(nullptr)
 {
+    Initialize();
+
+    wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
+    SetIcons(iconBundle);
 }
 
-void PreferencesDialog::Initialize() {}
+void PreferencesDialog::Initialize()
+{
+    CreateControls();
+    ConfigureEventBindings();
+}
 
-void PreferencesDialog::CreateControls() {}
+void PreferencesDialog::CreateControls()
+{
+    /* Base Sizer */
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    /* List box */
+    auto listBox = new wxListBox(this, wxID_ANY);
+    // move to fill controls method
+    listBox->Append("General");
+    listBox->Append("Database");
+    listBox->SetSelection(0);
+
+    /* Simple Book*/
+    auto book = new wxSimplebook(this, wxID_ANY);
+    pGeneralPage = new PreferencesGeneralPage(book, pCfg, pLogger);
+
+    book->AddPage(pGeneralPage, wxEmptyString, true);
+
+    /* OK|Cancel buttons */
+    auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
+    buttonsSizer->AddStretchSpacer();
+
+    pOkButton = new wxButton(this, wxID_OK, "OK");
+    pOkButton->SetDefault();
+
+    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
+
+    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    SetSizerAndFit(sizer);
+}
 
 void PreferencesDialog::ConfigureEventBindings() {}
 

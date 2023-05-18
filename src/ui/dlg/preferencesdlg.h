@@ -33,6 +33,8 @@
 #include <wx/persist/toplevel.h>
 #include <wx/simplebook.h>
 
+#include <spdlog/logger.h>
+
 namespace tks
 {
 namespace Core
@@ -43,6 +45,8 @@ namespace UI
 {
 namespace dlg
 {
+class PreferencesGeneralPage;
+
 class PreferencesDialog : public wxDialog
 {
 public:
@@ -50,6 +54,7 @@ public:
     PreferencesDialog(const PreferencesDialog&) = delete;
     PreferencesDialog(wxWindow* parent,
         std::shared_ptr<Core::Configuration> cfg,
+        std::shared_ptr<spdlog::logger> logger,
         const wxString& name = "preferencesdlg");
     virtual ~PreferencesDialog() = default;
 
@@ -62,6 +67,15 @@ private:
     void ConfigureEventBindings();
 
     void OnOK(wxCommandEvent& event);
+
+    std::shared_ptr<Core::Configuration> pCfg;
+    std::shared_ptr<spdlog::logger> pLogger;
+
+    wxListBox* pListBox;
+    wxSimplebook* pSimpleBook;
+    PreferencesGeneralPage* pGeneralPage;
+    wxButton* pOkButton;
+    wxButton* pCancelButton;
 };
 } // namespace dlg
 } // namespace UI
