@@ -47,14 +47,14 @@ class CategoriesDialog final : public wxDialog
 {
 public:
     CategoriesDialog() = delete;
-    CategoriesDialog(const CategoriesDialog&&) = delete;
+    CategoriesDialog(const CategoriesDialog&) = delete;
     CategoriesDialog(wxWindow* parent,
         std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const wxString& name = "categoriesdlg");
     virtual ~CategoriesDialog() = default;
 
-    CategoriesDialog& operator=(const CategoriesDialog&&) = delete;
+    CategoriesDialog& operator=(const CategoriesDialog&) = delete;
 
 private:
     void Initialize();
