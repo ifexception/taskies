@@ -50,7 +50,7 @@ void PreferencesGeneralPage::CreateControls()
     /* User Interface box */
     auto uiBox = new wxStaticBox(this, wxID_ANY, "User Interface");
     auto uiBoxSizer = new wxStaticBoxSizer(uiBox, wxHORIZONTAL);
-    sizer->Add(uiBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    sizer->Add(uiBoxSizer, wxSizerFlags().Expand().Proportion(1));
     auto uiGridSizer = new wxFlexGridSizer(2, FromDIP(10), FromDIP(10));
     uiGridSizer->AddGrowableCol(1, 1);
 
@@ -60,10 +60,10 @@ void PreferencesGeneralPage::CreateControls()
     pUserInterfaceLanguageCtrl = new wxComboBox(uiBox, IDC_LANG, wxEmptyString);
     pUserInterfaceLanguageCtrl->SetToolTip("Set the language for the program to use");
 
-    uiGridSizer->Add(languageLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    uiGridSizer->Add(pUserInterfaceLanguageCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    uiGridSizer->Add(languageLabel, wxSizerFlags().CenterVertical());
+    uiGridSizer->Add(pUserInterfaceLanguageCtrl, wxSizerFlags().Right().Expand().Proportion(1));
 
-    uiBoxSizer->Add(uiGridSizer, wxSizerFlags().Expand().Proportion(1));
+    uiBoxSizer->Add(uiGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     SetSizerAndFit(sizer);
 }

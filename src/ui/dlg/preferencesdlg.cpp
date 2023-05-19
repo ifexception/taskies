@@ -59,7 +59,10 @@ void PreferencesDialog::Initialize()
 void PreferencesDialog::CreateControls()
 {
     /* Base Sizer */
-    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Main Sizer */
+    auto mainSizer = new wxBoxSizer(wxHORIZONTAL);
 
     /* List box */
     auto listBox = new wxListBox(this, wxID_ANY);
@@ -73,6 +76,10 @@ void PreferencesDialog::CreateControls()
     pGeneralPage = new PreferencesGeneralPage(book, pCfg, pLogger);
 
     book->AddPage(pGeneralPage, wxEmptyString, true);
+
+    mainSizer->Add(listBox, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Expand());
+    mainSizer->Add(book, wxSizerFlags().Expand().Proportion(1));
+    sizer->Add(mainSizer, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(10)).Expand().Proportion(1));
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);

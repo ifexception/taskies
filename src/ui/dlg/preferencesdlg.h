@@ -27,8 +27,8 @@
 #include <wx/wx.h>
 #endif
 #include <wx/bookctrl.h>
-#include <wx/listbook.h>
 #include <wx/hyperlink.h>
+#include <wx/listbook.h>
 #include <wx/persist.h>
 #include <wx/persist/toplevel.h>
 #include <wx/simplebook.h>
