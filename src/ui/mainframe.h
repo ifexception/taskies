@@ -40,6 +40,7 @@ enum class MenuIds : int {
     Edit_Client,
     Edit_Project,
     Edit_Category,
+    View_Preferences,
     Help_About
 };
 
@@ -54,6 +55,9 @@ static const int ID_EDIT_EMPLOYER = static_cast<int>(MenuIds::Edit_Employer);
 static const int ID_EDIT_CLIENT = static_cast<int>(MenuIds::Edit_Client);
 static const int ID_EDIT_PROJECT = static_cast<int>(MenuIds::Edit_Project);
 static const int ID_EDIT_CATEGORY = static_cast<int>(MenuIds::Edit_Category);
+
+/* View */
+static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preferences);
 
 /* Help */
 static const int ID_HELP_ABOUT = static_cast<int>(MenuIds::Help_About);
@@ -98,6 +102,7 @@ private:
     void OnEditClient(wxCommandEvent& event);
     void OnEditProject(wxCommandEvent& event);
     void OnEditCategory(wxCommandEvent& event);
+    void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     /* Error Event Handler */
     void OnError(wxCommandEvent& event);

@@ -39,6 +39,7 @@
 #include "../ui/dlg/projectdlg.h"
 #include "../ui/dlg/categoriesdlg.h"
 #include "../ui/dlg/aboutdlg.h"
+#include "../ui/dlg/preferencesdlg.h"
 
 namespace tks::UI
 {
@@ -54,6 +55,7 @@ EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
 EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
+EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Error Event Handler */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
@@ -112,6 +114,10 @@ void MainFrame::CreateControls()
     editMenu->Append(ID_EDIT_PROJECT, "Edit &Project", "Edit a project");
     editMenu->Append(ID_EDIT_CATEGORY, "Edit Cate&gory", "Edit a category");
 
+    /* View */
+    auto viewMenu = new wxMenu();
+    viewMenu->Append(ID_VIEW_PREFERENCES, "Pre&ferences", "View and adjust program options");
+
     /* Help */
     auto helpMenu = new wxMenu();
     helpMenu->Append(ID_HELP_ABOUT, "&About", "Information about Taskies");
@@ -120,6 +126,7 @@ void MainFrame::CreateControls()
     auto menuBar = new wxMenuBar();
     menuBar->Append(fileMenu, "&File");
     menuBar->Append(editMenu, "&Edit");
+    menuBar->Append(viewMenu, "&View");
     menuBar->Append(helpMenu, "&Help");
 
     SetMenuBar(menuBar);
@@ -222,6 +229,12 @@ void MainFrame::OnEditCategory(wxCommandEvent& event)
 {
     UI::dlg::EditListDialog editCategory(this, pEnv, pLogger, EditListEntityType::Category);
     editCategory.ShowModal();
+}
+
+void MainFrame::OnViewPreferences(wxCommandEvent& event)
+{
+    UI::dlg::PreferencesDialog preferencesDlg(this, pCfg, pLogger);
+    preferencesDlg.ShowModal();
 }
 
 void MainFrame::OnAbout(wxCommandEvent& event) {
