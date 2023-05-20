@@ -20,9 +20,48 @@
 #include "preferencesgeneralpage.h"
 
 #include <wx/richtooltip.h>
+#include <wx/stdpaths.h>
+#include <wx/msw/registry.h>
 
+#include "../../common/common.h"
 #include "../../core/configuration.h"
 #include "../clientdata.h"
+
+#ifdef _WIN32
+namespace
+{
+struct StartWithWindowsRegKey {
+    StartWithWindowsRegKey(std::shared_ptr<spdlog::logger> logger)
+        : pLogger(logger)
+        , mKey(wxRegKey::HKCU, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run")
+    {
+    }
+
+    void Create()
+    {
+        auto executablePath = wxStandardPaths::Get().GetExecutablePath().ToStdString();
+        if (!mKey.SetValue(tks::Common::GetProgramName(), executablePath)) {
+            // log error
+        }
+    }
+
+    void Delete()
+    {
+        if (!mKey.DeleteValue(tks::Common::GetProgramName())) {
+            // log error
+        }
+    }
+
+    bool Exists()
+    {
+        return mKey.Exists();
+    }
+
+    std::shared_ptr<spdlog::logger> pLogger;
+    wxRegKey mKey;
+};
+} // namespace
+#endif
 
 namespace tks::UI::dlg
 {
@@ -76,9 +115,20 @@ void PreferencesGeneralPage::Save()
     if (langData->GetValue() != pCfg->GetUserInterfaceLanguage()) {
         // program will need a restart
     }
+
     pCfg->SetUserInterfaceLanguage(langData->GetValue());
     pCfg->StartOnBoot(pStartWithWindowsCtrl->GetValue());
     pCfg->SetWindowState(startPosData->GetValue());
+
+    {
+        StartWithWindowsRegKey key(pLogger);
+        if (key.Exists() && !pCfg->StartOnBoot()) {
+            key.Delete();
+        }
+        if (!key.Exists() && pCfg->StartOnBoot()) {
+            key.Create();
+        }
+    }
 }
 
 void PreferencesGeneralPage::CreateControls()
@@ -133,8 +183,12 @@ void PreferencesGeneralPage::ConfigureEventBindings() {}
 
 void PreferencesGeneralPage::FillControls()
 {
-    pUserInterfaceLanguageCtrl->Append("Please Select", new ClientData<int>(-1));
-    pWindowStartPositionCtrl->Append("Please Select", new ClientData<int>(-1));
+    pUserInterfaceLanguageCtrl->Append("Please Select");
+    pWindowStartPositionCtrl->Append("Please Select");
+    pWindowStartPositionCtrl->Append("Normal", new ClientData<WindowState>(WindowState::Normal));
+    pWindowStartPositionCtrl->Append("Minimized", new ClientData<WindowState>(WindowState::Minimized));
+    pWindowStartPositionCtrl->Append("Hidden", new ClientData<WindowState>(WindowState::Hidden));
+    pWindowStartPositionCtrl->Append("Maximized", new ClientData<WindowState>(WindowState::Maximized));
 
     pUserInterfaceLanguageCtrl->SetSelection(0);
     pWindowStartPositionCtrl->SetSelection(0);
@@ -144,9 +198,6 @@ void PreferencesGeneralPage::DataToControls()
     pUserInterfaceLanguageCtrl->Append("en-US", new ClientData<std::string>("en-US"));
     pUserInterfaceLanguageCtrl->SetSelection(1);
 
-    pWindowStartPositionCtrl->Append("Normal", new ClientData<WindowState>(WindowState::Normal));
-    pWindowStartPositionCtrl->Append("Minimized", new ClientData<WindowState>(WindowState::Minimized));
-    pWindowStartPositionCtrl->Append("Hidden", new ClientData<WindowState>(WindowState::Hidden));
-    pWindowStartPositionCtrl->Append("Maximized", new ClientData<WindowState>(WindowState::Maximized));
+    pWindowStartPositionCtrl->SetSelection(static_cast<int>(pCfg->GetWindowState()));
 }
 } // namespace tks::UI::dlg
