@@ -54,16 +54,19 @@ private:
     void CreateControls();
     void ConfigureEventBindings();
     void FillControls();
+    void DataToControls();
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
-    wxComboBox* pUserInterfaceLanguageCtrl;
+    wxChoice* pUserInterfaceLanguageCtrl;
     wxCheckBox* pStartWithWindowsCtrl;
+    wxChoice* pWindowStartPositionCtrl;
 
     enum {
         IDC_LANG = wxID_HIGHEST + 1,
         IDC_START_WITH_WINDOWS,
+        IDC_START_POSITION
     };
 };
 } // namespace dlg

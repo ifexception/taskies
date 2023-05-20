@@ -19,6 +19,9 @@
 
 #include "preferencesgeneralpage.h"
 
+#include "../../core/configuration.h"
+#include "../clientdata.h"
+
 namespace tks::UI::dlg
 {
 PreferencesGeneralPage::PreferencesGeneralPage(wxWindow* parent,
@@ -33,6 +36,7 @@ PreferencesGeneralPage::PreferencesGeneralPage(wxWindow* parent,
     CreateControls();
     ConfigureEventBindings();
     FillControls();
+    DataToControls();
 }
 
 bool PreferencesGeneralPage::IsValid()
@@ -50,14 +54,14 @@ void PreferencesGeneralPage::CreateControls()
     /* User Interface box */
     auto uiBox = new wxStaticBox(this, wxID_ANY, "User Interface");
     auto uiBoxSizer = new wxStaticBoxSizer(uiBox, wxHORIZONTAL);
-    sizer->Add(uiBoxSizer, wxSizerFlags().Expand().Proportion(1));
+    sizer->Add(uiBoxSizer, wxSizerFlags().Expand());
     auto uiGridSizer = new wxFlexGridSizer(2, FromDIP(10), FromDIP(10));
     uiGridSizer->AddGrowableCol(1, 1);
 
     /* Language label*/
     auto languageLabel = new wxStaticText(uiBox, wxID_ANY, "Language");
 
-    pUserInterfaceLanguageCtrl = new wxComboBox(uiBox, IDC_LANG, wxEmptyString);
+    pUserInterfaceLanguageCtrl = new wxChoice(uiBox, IDC_LANG);
     pUserInterfaceLanguageCtrl->SetToolTip("Set the language for the program to use");
 
     uiGridSizer->Add(languageLabel, wxSizerFlags().CenterVertical());
@@ -65,10 +69,49 @@ void PreferencesGeneralPage::CreateControls()
 
     uiBoxSizer->Add(uiGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
+    /* Misc options */
+    auto miscBox = new wxStaticBox(this, wxID_ANY, "Miscellaneous");
+    auto miscBoxSizer = new wxStaticBoxSizer(miscBox, wxVERTICAL);
+    sizer->Add(miscBoxSizer, wxSizerFlags().Expand());
+    auto miscGridSizer = new wxFlexGridSizer(2, FromDIP(10), FromDIP(10));
+    miscGridSizer->AddGrowableCol(1, 1);
+
+    /* Start with Windows */
+    pStartWithWindowsCtrl = new wxCheckBox(miscBox, wxID_ANY, "Start with Windows");
+    pStartWithWindowsCtrl->SetToolTip("Program gets launched by Windows on start");
+    miscGridSizer->Add(pStartWithWindowsCtrl, wxSizerFlags().CenterVertical());
+    miscGridSizer->Add(0, 0);
+
+    /* Start Position */
+    auto startPositionLabel = new wxStaticText(miscBox, wxID_ANY, "Start Position");
+
+    pWindowStartPositionCtrl = new wxChoice(miscBox, IDC_START_POSITION);
+    pWindowStartPositionCtrl->SetToolTip("Select the state of the program launched");
+    miscGridSizer->Add(startPositionLabel, wxSizerFlags().CenterVertical());
+    miscGridSizer->Add(pWindowStartPositionCtrl, wxSizerFlags().Right().CenterVertical().Proportion(1));
+    miscBoxSizer->Add(miscGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+
     SetSizerAndFit(sizer);
 }
 
 void PreferencesGeneralPage::ConfigureEventBindings() {}
 
-void PreferencesGeneralPage::FillControls() {}
+void PreferencesGeneralPage::FillControls()
+{
+    pUserInterfaceLanguageCtrl->Append("Please Select", new ClientData<int>(-1));
+    pWindowStartPositionCtrl->Append("Please Select", new ClientData<int>(-1));
+
+    pUserInterfaceLanguageCtrl->SetSelection(0);
+    pWindowStartPositionCtrl->SetSelection(0);
+}
+void PreferencesGeneralPage::DataToControls()
+{
+    pUserInterfaceLanguageCtrl->Append("en-US");
+    pUserInterfaceLanguageCtrl->SetSelection(1);
+
+    pWindowStartPositionCtrl->Append("Normal", new ClientData<int>(static_cast<int>(WindowState::Normal)));
+    pWindowStartPositionCtrl->Append("Minimized", new ClientData<int>(static_cast<int>(WindowState::Minimized)));
+    pWindowStartPositionCtrl->Append("Hidden", new ClientData<int>(static_cast<int>(WindowState::Hidden)));
+    pWindowStartPositionCtrl->Append("Maximized", new ClientData<int>(static_cast<int>(WindowState::Maximized)));
+}
 } // namespace tks::UI::dlg
