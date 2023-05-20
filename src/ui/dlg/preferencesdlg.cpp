@@ -92,13 +92,34 @@ void PreferencesDialog::CreateControls()
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
-    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
-    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
 
-void PreferencesDialog::ConfigureEventBindings() {}
+// clang-format off
+void PreferencesDialog::ConfigureEventBindings()
+{
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesDialog::OnOK,
+        this,
+        wxID_OK
+    );
+}
+// clang-format on
 
-void PreferencesDialog::OnOK(wxCommandEvent& event) {}
+void PreferencesDialog::OnOK(wxCommandEvent& event)
+{
+    if (!pGeneralPage->IsValid()) {
+        return;
+    }
+
+    // Save changes to cfg pointer in memory
+    pGeneralPage->Save();
+
+    // Save changes to disk
+    pCfg->Save();
+}
 } // namespace tks::UI::dlg
