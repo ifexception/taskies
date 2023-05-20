@@ -59,6 +59,7 @@ set (SRC
     "ui/translator.cpp"
     "ui/mainframe.cpp"
     "ui/events.cpp"
+    "ui/clientdata.cpp"
     "resources.rc"
     "application.manifest"
     "common/common.cpp"
