@@ -25,6 +25,8 @@ namespace tks
 {
 enum class EditListEntityType { Employer, Client, Project, Category };
 
+enum class WindowState : int { Normal = 0, Minimized = 1, Hidden = 2, Maximized = 3 };
+
 enum class BuildConfiguration { Undefined, Debug, Release };
 
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);

@@ -1,6 +1,7 @@
 [general]
 lang="en-US"
 startOnBoot=false
+startPosition=0
 
 [database]
 databasePath=""

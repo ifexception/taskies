@@ -59,7 +59,9 @@ void Configuration::Save()
 {
     const toml::value data{ {
         Sections::GeneralSection,
-        { { "lang", mSettings.UserInterfaceLanguage }, { "startOnBoot", mSettings.StartOnBoot } },
+        { { "lang", mSettings.UserInterfaceLanguage },
+            { "startOnBoot", mSettings.StartOnBoot },
+            { "startPosition", static_cast<int>(mSettings.StartPosition) } },
         { Sections::DatabaseSection, { { "backupPath", mSettings.DatabasePath } } },
     } };
 
@@ -98,6 +100,16 @@ void Configuration::StartOnBoot(const bool value)
     mSettings.StartOnBoot = value;
 }
 
+WindowState Configuration::GetWindowState()
+{
+    return mSettings.StartPosition;
+}
+
+void Configuration::SetWindowState(const WindowState value)
+{
+    mSettings.StartPosition = value;
+}
+
 std::string Configuration::GetDatabasePath() const
 {
     return mSettings.DatabasePath;
@@ -114,6 +126,8 @@ void Configuration::GetGeneralConfig(const toml::value& config)
 
     mSettings.UserInterfaceLanguage = toml::find<std::string>(generalSection, "lang");
     mSettings.StartOnBoot = toml::find<bool>(generalSection, "startOnBoot");
+    auto tomlStartPosition = toml::find<int>(generalSection, "startPosition");
+    mSettings.StartPosition = static_cast<WindowState>(tomlStartPosition);
 }
 
 void Configuration::GetDatabaseConfig(const toml::value& config)

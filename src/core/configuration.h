@@ -25,6 +25,8 @@
 #include <toml.hpp>
 #include <spdlog/spdlog.h>
 
+#include "../common/enums.h"
+
 namespace tks::Core
 {
 class Environment;
@@ -45,6 +47,9 @@ public:
     bool StartOnBoot();
     void StartOnBoot(const bool value);
 
+    WindowState GetWindowState();
+    void SetWindowState(const WindowState value);
+
     std::string GetDatabasePath() const;
     void SetDatabasePath(const std::string& value);
 
@@ -60,6 +65,7 @@ private:
     struct Settings {
         std::string UserInterfaceLanguage;
         bool StartOnBoot;
+        WindowState StartPosition;
         std::string DatabasePath;
     };
 
