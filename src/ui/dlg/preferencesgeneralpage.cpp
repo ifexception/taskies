@@ -19,6 +19,8 @@
 
 #include "preferencesgeneralpage.h"
 
+#include <wx/richtooltip.h>
+
 #include "../../core/configuration.h"
 #include "../clientdata.h"
 
@@ -41,10 +43,43 @@ PreferencesGeneralPage::PreferencesGeneralPage(wxWindow* parent,
 
 bool PreferencesGeneralPage::IsValid()
 {
-    return false;
+    int langIndex = pUserInterfaceLanguageCtrl->GetSelection();
+    if (langIndex == 0) {
+        auto valMsg = "A user interface language selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pUserInterfaceLanguageCtrl);
+        return false;
+    }
+
+    int startPosIndex = pWindowStartPositionCtrl->GetSelection();
+    if (startPosIndex == 0) {
+        auto valMsg = "A start position selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pWindowStartPositionCtrl);
+        return false;
+    }
+    return true;
 }
 
-void PreferencesGeneralPage::Save() {}
+void PreferencesGeneralPage::Save()
+{
+    int langIndex = pUserInterfaceLanguageCtrl->GetSelection();
+    ClientData<std::string>* langData =
+        reinterpret_cast<ClientData<std::string>*>(pUserInterfaceLanguageCtrl->GetClientObject(langIndex));
+
+    int startPosIndex = pWindowStartPositionCtrl->GetSelection();
+    ClientData<WindowState>* startPosData =
+        reinterpret_cast<ClientData<WindowState>*>(pWindowStartPositionCtrl->GetClientObject(startPosIndex));
+
+    if (langData->GetValue() != pCfg->GetUserInterfaceLanguage()) {
+        // program will need a restart
+    }
+    pCfg->SetUserInterfaceLanguage(langData->GetValue());
+    pCfg->StartOnBoot(pStartWithWindowsCtrl->GetValue());
+    pCfg->SetWindowState(startPosData->GetValue());
+}
 
 void PreferencesGeneralPage::CreateControls()
 {
@@ -106,12 +141,12 @@ void PreferencesGeneralPage::FillControls()
 }
 void PreferencesGeneralPage::DataToControls()
 {
-    pUserInterfaceLanguageCtrl->Append("en-US");
+    pUserInterfaceLanguageCtrl->Append("en-US", new ClientData<std::string>("en-US"));
     pUserInterfaceLanguageCtrl->SetSelection(1);
 
-    pWindowStartPositionCtrl->Append("Normal", new ClientData<int>(static_cast<int>(WindowState::Normal)));
-    pWindowStartPositionCtrl->Append("Minimized", new ClientData<int>(static_cast<int>(WindowState::Minimized)));
-    pWindowStartPositionCtrl->Append("Hidden", new ClientData<int>(static_cast<int>(WindowState::Hidden)));
-    pWindowStartPositionCtrl->Append("Maximized", new ClientData<int>(static_cast<int>(WindowState::Maximized)));
+    pWindowStartPositionCtrl->Append("Normal", new ClientData<WindowState>(WindowState::Normal));
+    pWindowStartPositionCtrl->Append("Minimized", new ClientData<WindowState>(WindowState::Minimized));
+    pWindowStartPositionCtrl->Append("Hidden", new ClientData<WindowState>(WindowState::Hidden));
+    pWindowStartPositionCtrl->Append("Maximized", new ClientData<WindowState>(WindowState::Maximized));
 }
 } // namespace tks::UI::dlg
