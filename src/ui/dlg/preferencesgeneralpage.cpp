@@ -73,6 +73,7 @@ PreferencesGeneralPage::PreferencesGeneralPage(wxWindow* parent,
     , pLogger(logger)
     , pUserInterfaceLanguageCtrl(nullptr)
     , pStartWithWindowsCtrl(nullptr)
+    , pWindowStartPositionCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
