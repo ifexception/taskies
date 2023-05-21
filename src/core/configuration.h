@@ -53,6 +53,12 @@ public:
     std::string GetDatabasePath() const;
     void SetDatabasePath(const std::string& value);
 
+    bool BackupDatabase();
+    void BackupDatabase(const bool value);
+
+    std::string GetBackupPath();
+    void SetBackupPath(const std::string& value);
+
 private:
     void GetGeneralConfig(const toml::value& config);
     void GetDatabaseConfig(const toml::value& config);
@@ -67,6 +73,8 @@ private:
         bool StartOnBoot;
         WindowState StartPosition;
         std::string DatabasePath;
+        bool BackupDatabase;
+        std::string BackupPath;
     };
 
     Settings mSettings;

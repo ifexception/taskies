@@ -5,3 +5,5 @@ startPosition=0
 
 [database]
 databasePath=""
+backupDatabase=false
+backupPath=""

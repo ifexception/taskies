@@ -120,6 +120,26 @@ void Configuration::SetDatabasePath(const std::string& value)
     mSettings.DatabasePath = value;
 }
 
+bool Configuration::BackupDatabase()
+{
+    return mSettings.BackupDatabase;
+}
+
+void Configuration::BackupDatabase(const bool value)
+{
+    mSettings.BackupDatabase = value;
+}
+
+std::string Configuration::GetBackupPath()
+{
+    return mSettings.BackupPath;
+}
+
+void Configuration::SetBackupPath(const std::string& value)
+{
+    mSettings.BackupPath = value;
+}
+
 void Configuration::GetGeneralConfig(const toml::value& config)
 {
     const auto& generalSection = toml::find(config, Sections::GeneralSection);
@@ -135,6 +155,8 @@ void Configuration::GetDatabaseConfig(const toml::value& config)
     const auto& databaseSection = toml::find(config, Sections::DatabaseSection);
 
     mSettings.DatabasePath = toml::find<std::string>(databaseSection, "databasePath");
+    mSettings.BackupDatabase = toml::find<bool>(databaseSection, "backupDatabase");
+    mSettings.BackupPath = toml::find<std::string>(databaseSection, "backupPath");
 }
 
 } // namespace tks::Core
