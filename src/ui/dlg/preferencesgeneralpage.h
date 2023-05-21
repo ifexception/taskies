@@ -42,7 +42,9 @@ class PreferencesGeneralPage : public wxPanel
 public:
     PreferencesGeneralPage() = delete;
     PreferencesGeneralPage(const PreferencesGeneralPage&) = delete;
-    PreferencesGeneralPage(wxWindow* parent, std::shared_ptr<Core::Configuration> cfg, std::shared_ptr<spdlog::logger> logger);
+    PreferencesGeneralPage(wxWindow* parent,
+        std::shared_ptr<Core::Configuration> cfg,
+        std::shared_ptr<spdlog::logger> logger);
     virtual ~PreferencesGeneralPage() = default;
 
     PreferencesGeneralPage& operator=(PreferencesGeneralPage&) = delete;
@@ -63,11 +65,7 @@ private:
     wxCheckBox* pStartWithWindowsCtrl;
     wxChoice* pWindowStartPositionCtrl;
 
-    enum {
-        IDC_LANG = wxID_HIGHEST + 1,
-        IDC_START_WITH_WINDOWS,
-        IDC_START_POSITION
-    };
+    enum { IDC_LANG = wxID_HIGHEST + 1, IDC_START_WITH_WINDOWS, IDC_START_POSITION };
 };
 } // namespace dlg
 } // namespace UI
