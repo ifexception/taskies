@@ -7,3 +7,4 @@ startPosition=0
 databasePath=""
 backupDatabase=false
 backupPath=""
+backupRetentionPeriod=-1

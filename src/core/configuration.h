@@ -59,6 +59,9 @@ public:
     std::string GetBackupPath();
     void SetBackupPath(const std::string& value);
 
+    int GetBackupRetentionPeriod();
+    void SetBackupRetentionPeriod(const int value);
+
 private:
     void GetGeneralConfig(const toml::value& config);
     void GetDatabaseConfig(const toml::value& config);
@@ -75,6 +78,7 @@ private:
         std::string DatabasePath;
         bool BackupDatabase;
         std::string BackupPath;
+        int BackupRetentionPeriod;
     };
 
     Settings mSettings;

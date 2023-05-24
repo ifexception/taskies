@@ -140,6 +140,16 @@ void Configuration::SetBackupPath(const std::string& value)
     mSettings.BackupPath = value;
 }
 
+int Configuration::GetBackupRetentionPeriod()
+{
+    return mSettings.BackupRetentionPeriod;
+}
+
+void Configuration::SetBackupRetentionPeriod(const int value)
+{
+    mSettings.BackupRetentionPeriod = value;
+}
+
 void Configuration::GetGeneralConfig(const toml::value& config)
 {
     const auto& generalSection = toml::find(config, Sections::GeneralSection);
@@ -157,6 +167,7 @@ void Configuration::GetDatabaseConfig(const toml::value& config)
     mSettings.DatabasePath = toml::find<std::string>(databaseSection, "databasePath");
     mSettings.BackupDatabase = toml::find<bool>(databaseSection, "backupDatabase");
     mSettings.BackupPath = toml::find<std::string>(databaseSection, "backupPath");
+    mSettings.BackupRetentionPeriod = toml::find<int>(databaseSection, "backupRetentionPeriod");
 }
 
 } // namespace tks::Core
