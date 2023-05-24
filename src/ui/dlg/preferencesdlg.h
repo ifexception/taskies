@@ -46,6 +46,7 @@ namespace UI
 namespace dlg
 {
 class PreferencesGeneralPage;
+class PreferencesDatabasePage;
 
 class PreferencesDialog : public wxDialog
 {
@@ -66,6 +67,7 @@ private:
     void CreateControls();
     void ConfigureEventBindings();
 
+    void OnListBoxSelection(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
 
     std::shared_ptr<Core::Configuration> pCfg;
@@ -74,6 +76,7 @@ private:
     wxListBox* pListBox;
     wxSimplebook* pSimpleBook;
     PreferencesGeneralPage* pGeneralPage;
+    PreferencesDatabasePage* pDatabasePage;
     wxButton* pOkButton;
     wxButton* pCancelButton;
 };

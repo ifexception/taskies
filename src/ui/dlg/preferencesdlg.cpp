@@ -22,6 +22,7 @@
 #include "../../common/common.h"
 #include "../../core/configuration.h"
 #include "preferencesgeneralpage.h"
+#include "preferencesdatabasepage.h"
 
 namespace tks::UI::dlg
 {
@@ -41,6 +42,7 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     , pListBox(nullptr)
     , pSimpleBook(nullptr)
     , pGeneralPage(nullptr)
+    , pDatabasePage(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
 {
@@ -65,20 +67,22 @@ void PreferencesDialog::CreateControls()
     auto mainSizer = new wxBoxSizer(wxHORIZONTAL);
 
     /* List box */
-    auto listBox = new wxListBox(this, wxID_ANY);
+    pListBox = new wxListBox(this, wxID_ANY);
     // move to fill controls method
-    listBox->Append("General");
-    listBox->Append("Database");
-    listBox->SetSelection(0);
+    pListBox->Append("General");
+    pListBox->Append("Database");
+    pListBox->SetSelection(0);
 
     /* Simple Book*/
-    auto book = new wxSimplebook(this, wxID_ANY);
-    pGeneralPage = new PreferencesGeneralPage(book, pCfg, pLogger);
+    pSimpleBook = new wxSimplebook(this, wxID_ANY);
+    pGeneralPage = new PreferencesGeneralPage(pSimpleBook, pCfg, pLogger);
+    pDatabasePage = new PreferencesDatabasePage(pSimpleBook, pCfg);
 
-    book->AddPage(pGeneralPage, wxEmptyString, true);
+    pSimpleBook->AddPage(pGeneralPage, wxEmptyString, true);
+    pSimpleBook->AddPage(pDatabasePage, wxEmptyString, false);
 
-    mainSizer->Add(listBox, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Expand());
-    mainSizer->Add(book, wxSizerFlags().Expand().Proportion(1));
+    mainSizer->Add(pListBox, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Expand());
+    mainSizer->Add(pSimpleBook, wxSizerFlags().Expand().Proportion(1));
     sizer->Add(mainSizer, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(10)).Expand().Proportion(1));
 
     /* OK|Cancel buttons */
@@ -101,6 +105,12 @@ void PreferencesDialog::CreateControls()
 // clang-format off
 void PreferencesDialog::ConfigureEventBindings()
 {
+    Bind(
+        wxEVT_LISTBOX,
+        &PreferencesDialog::OnListBoxSelection,
+        this
+    );
+
     pOkButton->Bind(
         wxEVT_BUTTON,
         &PreferencesDialog::OnOK,
@@ -110,9 +120,16 @@ void PreferencesDialog::ConfigureEventBindings()
 }
 // clang-format on
 
+void PreferencesDialog::OnListBoxSelection(wxCommandEvent& event)
+{
+    pSimpleBook->ChangeSelection(pListBox->GetSelection());
+}
+
 void PreferencesDialog::OnOK(wxCommandEvent& event)
 {
     if (!pGeneralPage->IsValid()) {
+        pListBox->SetSelection(0);
+        pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
 
