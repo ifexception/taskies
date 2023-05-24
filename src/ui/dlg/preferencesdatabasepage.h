@@ -26,17 +26,57 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/spinctrl.h>
 
-namespace tks::UI
+namespace tks
 {
 namespace Core
 {
 class Configuration;
 } // namespace Core
-namespace dlg
+namespace UI::dlg
 {
 class PreferencesDatabasePage : public wxPanel
 {
+public:
+    PreferencesDatabasePage() = delete;
+    PreferencesDatabasePage(const PreferencesDatabasePage&) = delete;
+    PreferencesDatabasePage(wxWindow* parent, std::shared_ptr<Core::Configuration> cfg);
+    virtual ~PreferencesDatabasePage() = default;
+
+    PreferencesDatabasePage& operator=(const PreferencesDatabasePage&) = delete;
+
+    bool IsValid();
+    void Save();
+
+private:
+    void CreateControls();
+    void ConfigureEventBindings();
+    void FillControls();
+    void DataToControls();
+
+    void OnOpenDirectoryForDatabaseLocation(wxCommandEvent& event);
+    void OnBackupDatabaseCheck(wxCommandEvent& event);
+    void OnOpenDirectoryForBackupLocation(wxCommandEvent& event);
+
+    std::shared_ptr<Core::Configuration> pCfg;
+
+    wxTextCtrl* pDatabasePathTextCtrl;
+    wxButton* pBrowseDatabasePathButton;
+    wxCheckBox* pBackupDatabaseCheckBoxCtrl;
+    wxTextCtrl* pBackupPathTextCtrl;
+    wxButton* pBrowseBackupPathButton;
+    wxSpinCtrl* pBackupsRetentionPeriodSpinCtrl;
+
+    enum {
+        IDC_DATABASE_PATH = wxID_HIGHEST + 1,
+        IDC_DATABASE_PATH_BUTTON,
+        IDC_BACKUP_DATABASE_CHECK,
+        IDC_BACKUP_DATABASE,
+        IDC_BACKUP_PATH,
+        IDC_BACKUP_PATH_BUTTON,
+        IDC_BACKUPS_RETENTION_PERIOD
+    };
 };
-} // namespace dlg
-} // namespace tks::UI
+} // namespace UI::dlg
+} // namespace tks
