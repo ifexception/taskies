@@ -92,7 +92,7 @@ void MainFrame::CreateControls()
 {
     /* Menu Controls */
     /* Menubar */
-    /* File */ 
+    /* File */
     auto fileMenu = new wxMenu();
     fileMenu->AppendSeparator();
     auto fileNewMenu = new wxMenu();
@@ -233,11 +233,12 @@ void MainFrame::OnEditCategory(wxCommandEvent& event)
 
 void MainFrame::OnViewPreferences(wxCommandEvent& event)
 {
-    UI::dlg::PreferencesDialog preferencesDlg(this, pCfg, pLogger);
+    UI::dlg::PreferencesDialog preferencesDlg(this, pEnv, pCfg, pLogger);
     preferencesDlg.ShowModal();
 }
 
-void MainFrame::OnAbout(wxCommandEvent& event) {
+void MainFrame::OnAbout(wxCommandEvent& event)
+{
     UI::dlg::AboutDialog aboutDlg(this);
     aboutDlg.ShowModal();
 }

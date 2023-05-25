@@ -39,6 +39,7 @@ namespace tks
 {
 namespace Core
 {
+class Environment;
 class Configuration;
 } // namespace Core
 namespace UI
@@ -54,6 +55,7 @@ public:
     PreferencesDialog() = delete;
     PreferencesDialog(const PreferencesDialog&) = delete;
     PreferencesDialog(wxWindow* parent,
+        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const wxString& name = "preferencesdlg");
@@ -70,6 +72,7 @@ private:
     void OnListBoxSelection(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
 
+    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 

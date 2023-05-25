@@ -27,6 +27,7 @@
 namespace tks::UI::dlg
 {
 PreferencesDialog::PreferencesDialog(wxWindow* parent,
+    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const wxString& name)
@@ -37,6 +38,7 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
           wxDefaultSize,
           wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER,
           name)
+    , pEnv(env)
     , pCfg(cfg)
     , pLogger(logger)
     , pListBox(nullptr)
@@ -76,7 +78,7 @@ void PreferencesDialog::CreateControls()
     /* Simple Book*/
     pSimpleBook = new wxSimplebook(this, wxID_ANY);
     pGeneralPage = new PreferencesGeneralPage(pSimpleBook, pCfg, pLogger);
-    pDatabasePage = new PreferencesDatabasePage(pSimpleBook, pCfg);
+    pDatabasePage = new PreferencesDatabasePage(pSimpleBook, pEnv, pCfg);
 
     pSimpleBook->AddPage(pGeneralPage, wxEmptyString, true);
     pSimpleBook->AddPage(pDatabasePage, wxEmptyString, false);
@@ -133,8 +135,14 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
+    if (!pDatabasePage->IsValid()) {
+        pListBox->SetSelection(1);
+        pSimpleBook->ChangeSelection(pListBox->GetSelection());
+    }
+
     // Save changes to cfg pointer in memory
     pGeneralPage->Save();
+    pDatabasePage->Save();
 
     // Save changes to disk
     pCfg->Save();

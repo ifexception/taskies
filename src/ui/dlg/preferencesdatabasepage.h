@@ -32,6 +32,7 @@ namespace tks
 {
 namespace Core
 {
+class Environment;
 class Configuration;
 } // namespace Core
 namespace UI::dlg
@@ -41,7 +42,9 @@ class PreferencesDatabasePage : public wxPanel
 public:
     PreferencesDatabasePage() = delete;
     PreferencesDatabasePage(const PreferencesDatabasePage&) = delete;
-    PreferencesDatabasePage(wxWindow* parent, std::shared_ptr<Core::Configuration> cfg);
+    PreferencesDatabasePage(wxWindow* parent,
+        std::shared_ptr<Core::Environment> env,
+        std::shared_ptr<Core::Configuration> cfg);
     virtual ~PreferencesDatabasePage() = default;
 
     PreferencesDatabasePage& operator=(const PreferencesDatabasePage&) = delete;
@@ -59,6 +62,7 @@ private:
     void OnBackupDatabaseCheck(wxCommandEvent& event);
     void OnOpenDirectoryForBackupLocation(wxCommandEvent& event);
 
+    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
 
     wxTextCtrl* pDatabasePathTextCtrl;
