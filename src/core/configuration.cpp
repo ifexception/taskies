@@ -52,22 +52,39 @@ bool Configuration::Load()
         pLogger->error("Error occured when parsing toml configuration {0}", error.what());
         return false;
     }
+
+    ConfigureDatabasePath();
     return true;
 }
 
 void Configuration::Save()
 {
-    const toml::value data{ {
-        Sections::GeneralSection,
-        { { "lang", mSettings.UserInterfaceLanguage },
-            { "startOnBoot", mSettings.StartOnBoot },
-            { "startPosition", static_cast<int>(mSettings.StartPosition) } },
-        { Sections::DatabaseSection, { { "backupPath", mSettings.DatabasePath } } },
-    } };
+    // clang-format off
+    const toml::value data
+    {
+        {
+            Sections::GeneralSection,
+            {
+                { "lang", mSettings.UserInterfaceLanguage },
+                { "startOnBoot", mSettings.StartOnBoot },
+                { "startPosition", 0 }
+            }
+        },
+        {
+            Sections::DatabaseSection,
+            {
+                { "databasePath", mSettings.DatabasePath },
+                { "backupDatabase", mSettings.BackupDatabase },
+                { "backupPath", mSettings.BackupPath },
+                { "backupRetentionPeriod", mSettings.BackupRetentionPeriod }
+            }
+        }
+    };
+    // clang-format on
 
     const std::string configString = toml::format(data);
 
-    const std::string configFilePath = pEnv->GetConfigurationPath().u8string();
+    const std::string configFilePath = pEnv->GetConfigurationPath().string();
     std::ofstream configFile;
     configFile.open(configFilePath, std::ios_base::out);
     if (!configFile) {
@@ -168,6 +185,14 @@ void Configuration::GetDatabaseConfig(const toml::value& config)
     mSettings.BackupDatabase = toml::find<bool>(databaseSection, "backupDatabase");
     mSettings.BackupPath = toml::find<std::string>(databaseSection, "backupPath");
     mSettings.BackupRetentionPeriod = toml::find<int>(databaseSection, "backupRetentionPeriod");
+}
+
+void Configuration::ConfigureDatabasePath()
+{
+    if (mSettings.DatabasePath.empty()) {
+        mSettings.DatabasePath = pEnv->GetApplicationDatabasePath().string();
+        //Save();
+    }
 }
 
 } // namespace tks::Core

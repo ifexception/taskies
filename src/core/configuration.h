@@ -66,6 +66,8 @@ private:
     void GetGeneralConfig(const toml::value& config);
     void GetDatabaseConfig(const toml::value& config);
 
+    void ConfigureDatabasePath();
+
     struct Sections {
         static const std::string GeneralSection;
         static const std::string DatabaseSection;
