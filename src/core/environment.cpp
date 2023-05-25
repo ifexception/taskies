@@ -72,6 +72,28 @@ std::filesystem::path Environment::GetDatabasePath()
     return GetApplicationDatabasePath() / GetDatabaseName();
 }
 
+std::filesystem::path Environment::GetApplicationDatabasePath()
+{
+    std::filesystem::path appDataPath;
+    switch (mBuildConfig) {
+    case BuildConfiguration::Debug:
+        appDataPath = GetApplicationPath() / "data";
+        std::filesystem::create_directories(appDataPath);
+        break;
+    case BuildConfiguration::Release:
+        appDataPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
+        break;
+    default:
+        break;
+    }
+    return appDataPath;
+}
+
+std::string Environment::GetDatabaseName()
+{
+    return "taskies.db";
+}
+
 std::string Environment::GetCurrentLocale()
 {
 #ifdef _WIN32
@@ -185,23 +207,6 @@ std::filesystem::path Environment::GetApplicationConfigurationPath()
     return appConfigPath;
 }
 
-std::filesystem::path Environment::GetApplicationDatabasePath()
-{
-    std::filesystem::path appDataPath;
-    switch (mBuildConfig) {
-    case BuildConfiguration::Debug:
-        appDataPath = GetApplicationPath() / "data";
-        std::filesystem::create_directories(appDataPath);
-        break;
-    case BuildConfiguration::Release:
-        appDataPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
-        break;
-    default:
-        break;
-    }
-    return appDataPath;
-}
-
 std::string Environment::GetLogName()
 {
     return "taskies.log";
@@ -210,11 +215,6 @@ std::string Environment::GetLogName()
 std::string Environment::GetConfigName()
 {
     return "taskies.toml";
-}
-
-std::string Environment::GetDatabaseName()
-{
-    return "taskies.db";
 }
 
 std::string Environment::GetRegistryKey()
