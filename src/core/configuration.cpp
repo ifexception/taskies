@@ -60,14 +60,16 @@ bool Configuration::Load()
 void Configuration::Save()
 {
     // clang-format off
-    const toml::value data
-    {
+    const toml::value data{
         {
             Sections::GeneralSection,
             {
-                { "lang", mSettings.UserInterfaceLanguage },
-                { "startOnBoot", mSettings.StartOnBoot },
-                { "startPosition", 0 }
+                { "lang", mSettings.UserInterfaceLanguage    },
+                { "startOnBoot", mSettings.StartOnBoot    },
+                { "startPosition", static_cast<int>(mSettings.StartPosition) },
+                { "showInTray", mSettings.ShowInTray },
+                { "minimizeToTray", mSettings.MinimizeToTray },
+                { "closeToTray", mSettings.CloseToTray },
             }
         },
         {
@@ -84,7 +86,7 @@ void Configuration::Save()
 
     const std::string configString = toml::format(data);
 
-    const std::string configFilePath = pEnv->GetConfigurationPath().string();
+    /*const std::string configFilePath = pEnv->GetConfigurationPath().string();
     std::ofstream configFile;
     configFile.open(configFilePath, std::ios_base::out);
     if (!configFile) {
@@ -94,10 +96,10 @@ void Configuration::Save()
 
     configFile << configString;
 
-    configFile.close();
+    configFile.close();*/
 }
 
-std::string Configuration::GetUserInterfaceLanguage()
+std::string Configuration::GetUserInterfaceLanguage() const
 {
     return mSettings.UserInterfaceLanguage;
 }
@@ -107,7 +109,7 @@ void Configuration::SetUserInterfaceLanguage(const std::string& value)
     mSettings.UserInterfaceLanguage = value;
 }
 
-bool Configuration::StartOnBoot()
+bool Configuration::StartOnBoot() const
 {
     return mSettings.StartOnBoot;
 }
@@ -117,7 +119,7 @@ void Configuration::StartOnBoot(const bool value)
     mSettings.StartOnBoot = value;
 }
 
-WindowState Configuration::GetWindowState()
+WindowState Configuration::GetWindowState() const
 {
     return mSettings.StartPosition;
 }
@@ -125,6 +127,36 @@ WindowState Configuration::GetWindowState()
 void Configuration::SetWindowState(const WindowState value)
 {
     mSettings.StartPosition = value;
+}
+
+bool Configuration::ShowInTray() const
+{
+    return mSettings.ShowInTray;
+}
+
+void Configuration::ShowInTray(const bool value)
+{
+    mSettings.ShowInTray = value;
+}
+
+bool Configuration::MinimizeToTray() const
+{
+    return mSettings.MinimizeToTray;
+}
+
+void Configuration::MinimizeToTray(const bool value)
+{
+    mSettings.MinimizeToTray = value;
+}
+
+bool Configuration::CloseToTray() const
+{
+    return mSettings.CloseToTray;
+}
+
+void Configuration::CloseToTray(const bool value)
+{
+    mSettings.CloseToTray = value;
 }
 
 std::string Configuration::GetDatabasePath() const
@@ -137,7 +169,7 @@ void Configuration::SetDatabasePath(const std::string& value)
     mSettings.DatabasePath = value;
 }
 
-bool Configuration::BackupDatabase()
+bool Configuration::BackupDatabase() const
 {
     return mSettings.BackupDatabase;
 }
@@ -147,7 +179,7 @@ void Configuration::BackupDatabase(const bool value)
     mSettings.BackupDatabase = value;
 }
 
-std::string Configuration::GetBackupPath()
+std::string Configuration::GetBackupPath() const
 {
     return mSettings.BackupPath;
 }
@@ -157,7 +189,7 @@ void Configuration::SetBackupPath(const std::string& value)
     mSettings.BackupPath = value;
 }
 
-int Configuration::GetBackupRetentionPeriod()
+int Configuration::GetBackupRetentionPeriod() const
 {
     return mSettings.BackupRetentionPeriod;
 }
@@ -175,6 +207,9 @@ void Configuration::GetGeneralConfig(const toml::value& config)
     mSettings.StartOnBoot = toml::find<bool>(generalSection, "startOnBoot");
     auto tomlStartPosition = toml::find<int>(generalSection, "startPosition");
     mSettings.StartPosition = static_cast<WindowState>(tomlStartPosition);
+    mSettings.ShowInTray = toml::find<bool>(generalSection, "showInTray");
+    mSettings.MinimizeToTray = toml::find<bool>(generalSection, "minimizeToTray");
+    mSettings.CloseToTray = toml::find<bool>(generalSection, "closeToTray");
 }
 
 void Configuration::GetDatabaseConfig(const toml::value& config)
@@ -191,7 +226,7 @@ void Configuration::ConfigureDatabasePath()
 {
     if (mSettings.DatabasePath.empty()) {
         mSettings.DatabasePath = pEnv->GetApplicationDatabasePath().string();
-        //Save();
+        Save();
     }
 }
 

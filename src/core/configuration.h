@@ -41,25 +41,34 @@ public:
 
     void Save();
 
-    std::string GetUserInterfaceLanguage();
+    std::string GetUserInterfaceLanguage() const;
     void SetUserInterfaceLanguage(const std::string& value);
 
-    bool StartOnBoot();
+    bool StartOnBoot() const;
     void StartOnBoot(const bool value);
 
-    WindowState GetWindowState();
+    WindowState GetWindowState() const;
     void SetWindowState(const WindowState value);
+
+    bool ShowInTray() const;
+    void ShowInTray(const bool value);
+
+    bool MinimizeToTray() const;
+    void MinimizeToTray(const bool value);
+
+    bool CloseToTray() const;
+    void CloseToTray(const bool value);
 
     std::string GetDatabasePath() const;
     void SetDatabasePath(const std::string& value);
 
-    bool BackupDatabase();
+    bool BackupDatabase() const;
     void BackupDatabase(const bool value);
 
-    std::string GetBackupPath();
+    std::string GetBackupPath() const;
     void SetBackupPath(const std::string& value);
 
-    int GetBackupRetentionPeriod();
+    int GetBackupRetentionPeriod() const;
     void SetBackupRetentionPeriod(const int value);
 
 private:
@@ -77,6 +86,10 @@ private:
         std::string UserInterfaceLanguage;
         bool StartOnBoot;
         WindowState StartPosition;
+        bool ShowInTray;
+        bool MinimizeToTray;
+        bool CloseToTray;
+
         std::string DatabasePath;
         bool BackupDatabase;
         std::string BackupPath;
