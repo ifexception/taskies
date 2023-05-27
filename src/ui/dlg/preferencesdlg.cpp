@@ -146,5 +146,7 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
 
     // Save changes to disk
     pCfg->Save();
+
+    event.Skip();
 }
 } // namespace tks::UI::dlg
