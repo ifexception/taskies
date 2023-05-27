@@ -19,6 +19,8 @@
 
 #include "preferencesdatabasepage.h"
 
+#include <wx/richtooltip.h>
+
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
 
@@ -45,10 +47,41 @@ PreferencesDatabasePage::PreferencesDatabasePage(wxWindow* parent,
 
 bool PreferencesDatabasePage::IsValid()
 {
-    return false;
+    auto databasePathSelected = pDatabasePathTextCtrl->GetValue().ToStdString();
+    if (databasePathSelected.empty()) {
+        auto valMsg = "A database directory is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pDatabasePathTextCtrl);
+        return false;
+    }
+
+    if (pBackupDatabaseCheckBoxCtrl->IsChecked()) {
+        auto exportPathSelected = pBackupPathTextCtrl->GetValue().ToStdString();
+        if (exportPathSelected.empty()) {
+            auto valMsg = "A backup database directory is required";
+            wxRichToolTip tooltip("Validation", valMsg);
+            tooltip.SetIcon(wxICON_WARNING);
+            tooltip.ShowFor(pBackupPathTextCtrl);
+            return false;
+        }
+    }
+
+    return true;
 }
 
-void PreferencesDatabasePage::Save() {}
+void PreferencesDatabasePage::Save()
+{
+    pCfg->SetDatabasePath(pDatabasePathTextCtrl->GetValue().ToStdString());
+    pCfg->BackupDatabase(pBackupDatabaseCheckBoxCtrl->IsChecked());
+    if (pCfg->BackupDatabase()) {
+        pCfg->SetBackupPath(pBackupPathTextCtrl->GetValue().ToStdString());
+        pCfg->SetBackupRetentionPeriod(pBackupsRetentionPeriodSpinCtrl->GetValue());
+    } else {
+        pCfg->SetBackupPath("");
+        pCfg->SetBackupRetentionPeriod(-1);
+    }
+}
 
 void PreferencesDatabasePage::CreateControls()
 {
@@ -104,8 +137,9 @@ void PreferencesDatabasePage::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
-        0,
+        1,
         14);
+    pBackupsRetentionPeriodSpinCtrl->SetValue(3);
     pBackupsRetentionPeriodSpinCtrl->SetToolTip("Select for how many days to retain the backups for");
     retentionPeriodSizer->Add(retentionPeriodLabel, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).CenterVertical());
     retentionPeriodSizer->AddStretchSpacer();
@@ -193,5 +227,25 @@ void PreferencesDatabasePage::OnOpenDirectoryForDatabaseLocation(wxCommandEvent&
     openDirDialog->Destroy();
 }
 
-void PreferencesDatabasePage::OnOpenDirectoryForBackupLocation(wxCommandEvent& event) {}
+void PreferencesDatabasePage::OnOpenDirectoryForBackupLocation(wxCommandEvent& event)
+{
+    std::string pathDirectoryToOpenOn;
+    if (pCfg->GetDatabasePath().empty()) {
+        pathDirectoryToOpenOn = pEnv->GetApplicationDatabasePath().string();
+    } else {
+        pathDirectoryToOpenOn = pCfg->GetDatabasePath();
+    }
+
+    auto openDirDialog = new wxDirDialog(
+        this, wxT("Select a backup directory for the database"), pathDirectoryToOpenOn, wxDD_DEFAULT_STYLE, wxDefaultPosition);
+    int res = openDirDialog->ShowModal();
+
+    if (res == wxID_OK) {
+        auto selectedBackupPath = openDirDialog->GetPath().ToStdString();
+        pBackupPathTextCtrl->SetValue(selectedBackupPath);
+        pBackupPathTextCtrl->SetToolTip(selectedBackupPath);
+    }
+
+    openDirDialog->Destroy();
+}
 } // namespace tks::UI::dlg
