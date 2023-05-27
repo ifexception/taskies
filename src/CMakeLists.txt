@@ -61,6 +61,7 @@ set (SRC
     "ui/mainframe.cpp"
     "ui/events.cpp"
     "ui/clientdata.cpp"
+    "ui/taskbaricon.cpp"
     "resources.rc"
     "application.manifest"
     "common/common.cpp"
