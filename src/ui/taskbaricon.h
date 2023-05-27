@@ -29,17 +29,29 @@
 
 #include <spdlog/spdlog.h>
 
-namespace tks::UI
+namespace tks
+{
+namespace Core
+{
+class Environment;
+class Configuration;
+} // namespace Core
+namespace UI
 {
 class TaskBarIcon : public wxTaskBarIcon
 {
 public:
     TaskBarIcon() = delete;
     TaskBarIcon(const TaskBarIcon&) = delete;
-    TaskBarIcon(wxFrame* parent, std::shared_ptr<spdlog::logger> logger);
+    TaskBarIcon(wxFrame* parent,
+        std::shared_ptr<Core::Environment> env,
+        std::shared_ptr<Core::Configuration> cfg,
+        std::shared_ptr<spdlog::logger> logger);
     virtual ~TaskBarIcon() = default;
 
     TaskBarIcon& operator=(const TaskBarIcon&) = delete;
+
+    void SetTaskBarIcon();
 
 private:
     void ConfigureEventBindings();
@@ -48,12 +60,15 @@ private:
 
     void OnPreferences(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
-    void OnLeftButtonDown(wxCommandEvent& event);
+    void OnLeftButtonDown(wxTaskBarIconEvent& event);
 
     wxFrame* pParent;
 
+    std::shared_ptr<Core::Environment> pEnv;
+    std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
     enum { IDC_PREFERENCES = wxID_HIGHEST + 100 };
 };
-} // namespace tks::UI
+} // namespace UI
+} // namespace tks
