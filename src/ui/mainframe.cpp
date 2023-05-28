@@ -20,6 +20,7 @@
 #include "mainframe.h"
 
 #include <wx/persist/toplevel.h>
+#include <wx/taskbarbutton.h>
 
 #include <sqlite3.h>
 
@@ -45,6 +46,9 @@ namespace tks::UI
 {
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
+/* General Event Handlers */
+EVT_CLOSE(MainFrame::OnClose)
+EVT_ICONIZE(MainFrame::OnIconize)
 /* Menu Handlers */
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
@@ -76,10 +80,23 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
         SetSize(FromDIP(wxSize(800, 600)));
     }
 
-    wxIconBundle iconBundle("TASKIES_ICO", 0);
+    wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 
+    pTaskBarIcon = new TaskBarIcon(this, pEnv, pCfg, pLogger);
+    if (pCfg->ShowInTray()) {
+        pTaskBarIcon->SetTaskBarIcon();
+    }
+
     Create();
+}
+
+MainFrame::~MainFrame()
+{
+    if (pTaskBarIcon) {
+        pTaskBarIcon->RemoveIcon();
+        delete pTaskBarIcon;
+    }
 }
 
 void MainFrame::Create()
@@ -154,6 +171,24 @@ void MainFrame::DataToControls()
             TASKIES_MINOR,
             TASKIES_PATCH);
         pInfoBar->ShowMessage(infoBarMessage, wxICON_INFORMATION);
+    }
+}
+
+void MainFrame::OnClose(wxCloseEvent& event)
+{
+    if (pCfg->CloseToTray() && pCfg->ShowInTray() && event.CanVeto()) {
+        Hide();
+        MSWGetTaskBarButton()->Hide();
+    } else {
+        Hide();
+        event.Skip();
+    }
+}
+
+void MainFrame::OnIconize(wxIconizeEvent& event)
+{
+    if (event.IsIconized() && pCfg->ShowInTray() && pCfg->MinimizeToTray()) {
+        MSWGetTaskBarButton()->Hide();
     }
 }
 
@@ -234,7 +269,16 @@ void MainFrame::OnEditCategory(wxCommandEvent& event)
 void MainFrame::OnViewPreferences(wxCommandEvent& event)
 {
     UI::dlg::PreferencesDialog preferencesDlg(this, pEnv, pCfg, pLogger);
-    preferencesDlg.ShowModal();
+    int ret = preferencesDlg.ShowModal();
+
+    if (ret == wxID_OK) {
+        if (pCfg->ShowInTray() && !pTaskBarIcon->IsIconInstalled()) {
+            pTaskBarIcon->SetTaskBarIcon();
+        }
+        if (!pCfg->ShowInTray() && pTaskBarIcon->IsIconInstalled()) {
+            pTaskBarIcon->RemoveIcon();
+        }
+    }
 }
 
 void MainFrame::OnAbout(wxCommandEvent& event)

@@ -29,6 +29,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include "taskbaricon.h"
+
 namespace tks
 {
 enum class MenuIds : int {
@@ -79,7 +81,7 @@ public:
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const wxString& name = "mainfrm");
-    virtual ~MainFrame() = default;
+    virtual ~MainFrame();
 
     MainFrame& operator=(const MainFrame&) = delete;
 
@@ -92,6 +94,9 @@ private:
     void DataToControls();
 
     /* Event Table Handlers */
+    /* General Event Handlers */
+    void OnClose(wxCloseEvent& event);
+    void OnIconize(wxIconizeEvent& event);
     /* Menu Handlers */
     void OnNewEmployer(wxCommandEvent& event);
     void OnNewClient(wxCommandEvent& event);
@@ -112,6 +117,7 @@ private:
     std::shared_ptr<Core::Configuration> pCfg;
 
     wxInfoBar* pInfoBar;
+    TaskBarIcon* pTaskBarIcon;
 };
 } // namespace UI
 } // namespace tks
