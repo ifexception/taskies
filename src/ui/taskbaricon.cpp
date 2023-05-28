@@ -40,6 +40,7 @@ TaskBarIcon::TaskBarIcon(wxFrame* parent,
     , pCfg(cfg)
     , pLogger(logger)
 {
+    ConfigureEventBindings();
 }
 
 void TaskBarIcon::SetTaskBarIcon()
@@ -60,7 +61,7 @@ void TaskBarIcon::ConfigureEventBindings()
 
     Bind(
         wxEVT_MENU,
-        &TaskBarIcon::OnPreferences,
+        &TaskBarIcon::OnExit,
         this,
         wxID_EXIT
     );
