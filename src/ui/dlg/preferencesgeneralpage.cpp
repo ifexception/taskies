@@ -74,6 +74,9 @@ PreferencesGeneralPage::PreferencesGeneralPage(wxWindow* parent,
     , pUserInterfaceLanguageCtrl(nullptr)
     , pStartWithWindowsCtrl(nullptr)
     , pWindowStartPositionCtrl(nullptr)
+    , pShowInTrayCtrl(nullptr)
+    , pMinimizeToTrayCtrl(nullptr)
+    , pCloseToTrayCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -130,6 +133,10 @@ void PreferencesGeneralPage::Save()
             key.Create();
         }
     }
+
+    pCfg->ShowInTray(pShowInTrayCtrl->GetValue());
+    pCfg->MinimizeToTray(pMinimizeToTrayCtrl->GetValue());
+    pCfg->CloseToTray(pCloseToTrayCtrl->GetValue());
 }
 
 void PreferencesGeneralPage::CreateControls()
@@ -177,10 +184,35 @@ void PreferencesGeneralPage::CreateControls()
     miscGridSizer->Add(pWindowStartPositionCtrl, wxSizerFlags().Right().CenterVertical().Proportion(1));
     miscBoxSizer->Add(miscGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
+    /* System Tray */
+    auto systemTrayBox = new wxStaticBox(this, wxID_ANY, "System Tray");
+    auto systemTrayBoxSizer = new wxStaticBoxSizer(systemTrayBox, wxVERTICAL);
+    sizer->Add(systemTrayBoxSizer, wxSizerFlags().Expand());
+    auto systemTrayFlexSizer = new wxFlexGridSizer(2, FromDIP(10), FromDIP(10));
+    systemTrayFlexSizer->AddGrowableCol(0, 1);
+
+    pShowInTrayCtrl = new wxCheckBox(systemTrayBox, IDC_SHOW_IN_TRAY, "Show in system tray area");
+    pMinimizeToTrayCtrl = new wxCheckBox(systemTrayBox, IDC_MINIMIZE_TO_TRAY, "Minimize to system tray area");
+    pCloseToTrayCtrl = new wxCheckBox(systemTrayBox, IDC_CLOSE_TO_TRAY, "Close to system tray area");
+
+    systemTrayFlexSizer->Add(pShowInTrayCtrl);
+    systemTrayFlexSizer->Add(pMinimizeToTrayCtrl, wxSizerFlags().Border(wxLEFT, FromDIP(15)));
+    systemTrayFlexSizer->Add(pCloseToTrayCtrl, wxSizerFlags().Border(wxLEFT, FromDIP(15)));
+    systemTrayBoxSizer->Add(systemTrayFlexSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+
     SetSizerAndFit(sizer);
 }
 
-void PreferencesGeneralPage::ConfigureEventBindings() {}
+// clang-format off
+void PreferencesGeneralPage::ConfigureEventBindings()
+{
+    pShowInTrayCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &PreferencesGeneralPage::OnShowInTrayCheck,
+        this
+    );
+}
+// clang-format on
 
 void PreferencesGeneralPage::FillControls()
 {
@@ -198,7 +230,25 @@ void PreferencesGeneralPage::DataToControls()
 {
     pUserInterfaceLanguageCtrl->Append("en-US", new ClientData<std::string>("en-US"));
     pUserInterfaceLanguageCtrl->SetSelection(1);
+    pStartWithWindowsCtrl->SetValue(pCfg->StartOnBoot());
 
     pWindowStartPositionCtrl->SetSelection(static_cast<int>(pCfg->GetWindowState()));
+
+    pShowInTrayCtrl->SetValue(pCfg->ShowInTray());
+    pMinimizeToTrayCtrl->SetValue(pCfg->MinimizeToTray());
+    pCloseToTrayCtrl->SetValue(pCfg->CloseToTray());
+}
+
+void PreferencesGeneralPage::OnShowInTrayCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pMinimizeToTrayCtrl->Enable();
+        pCloseToTrayCtrl->Enable();
+    } else {
+        pMinimizeToTrayCtrl->Disable();
+        pMinimizeToTrayCtrl->SetValue(false);
+        pCloseToTrayCtrl->Disable();
+        pCloseToTrayCtrl->SetValue(false);
+    }
 }
 } // namespace tks::UI::dlg

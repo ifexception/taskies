@@ -60,14 +60,26 @@ private:
     void FillControls();
     void DataToControls();
 
+    void OnShowInTrayCheck(wxCommandEvent& event);
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxChoice* pUserInterfaceLanguageCtrl;
     wxCheckBox* pStartWithWindowsCtrl;
     wxChoice* pWindowStartPositionCtrl;
+    wxCheckBox* pShowInTrayCtrl;
+    wxCheckBox* pMinimizeToTrayCtrl;
+    wxCheckBox* pCloseToTrayCtrl;
 
-    enum { IDC_LANG = wxID_HIGHEST + 1, IDC_START_WITH_WINDOWS, IDC_START_POSITION };
+    enum {
+        IDC_LANG = wxID_HIGHEST + 1,
+        IDC_START_WITH_WINDOWS,
+        IDC_START_POSITION,
+        IDC_SHOW_IN_TRAY,
+        IDC_MINIMIZE_TO_TRAY,
+        IDC_CLOSE_TO_TRAY,
+    };
 };
 } // namespace dlg
 } // namespace UI
