@@ -41,14 +41,17 @@ struct StartWithWindowsRegKey {
     {
         auto executablePath = wxStandardPaths::Get().GetExecutablePath().ToStdString();
         if (!mKey.SetValue(tks::Common::GetProgramName(), executablePath)) {
-            // log error
+            pLogger->error("StartWithWindowsRegKey - Failed to set registry key of \"{0}\" with value \"{1}\"",
+                tks::Common::GetProgramName(),
+                executablePath);
         }
     }
 
     void Delete()
     {
         if (!mKey.DeleteValue(tks::Common::GetProgramName())) {
-            // log error
+            pLogger->error(
+                "StartWithWindowsRegKey - Failed to delete registry key of \"{0}\"", tks::Common::GetProgramName());
         }
     }
 
