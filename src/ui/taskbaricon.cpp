@@ -45,7 +45,7 @@ TaskBarIcon::TaskBarIcon(wxFrame* parent,
 void TaskBarIcon::SetTaskBarIcon()
 {
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
-    SetIcon(iconBundle.GetIcon(wxDefaultSize), Common::GetProgramName());
+    SetIcon(iconBundle.GetIcon(wxDefaultSize), "Taskies is running from the system tray");
 }
 
 // clang-format off
@@ -122,8 +122,12 @@ void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
 void TaskBarIcon::OnLeftButtonDown(wxTaskBarIconEvent& WXUNUSED(event))
 {
     pParent->MSWGetTaskBarButton()->Show();
-    pParent->Restore();
+    if (pParent->IsIconized())
+    {
+        pParent->Restore();
+    }
     pParent->Raise();
     pParent->Show();
+    pParent->SendSizeEvent();
 }
 } // namespace tks::UI
