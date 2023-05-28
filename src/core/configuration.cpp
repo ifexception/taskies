@@ -86,7 +86,7 @@ void Configuration::Save()
 
     const std::string configString = toml::format(data);
 
-    /*const std::string configFilePath = pEnv->GetConfigurationPath().string();
+    const std::string configFilePath = pEnv->GetConfigurationPath().string();
     std::ofstream configFile;
     configFile.open(configFilePath, std::ios_base::out);
     if (!configFile) {
@@ -96,7 +96,7 @@ void Configuration::Save()
 
     configFile << configString;
 
-    configFile.close();*/
+    configFile.close();
 }
 
 std::string Configuration::GetUserInterfaceLanguage() const
@@ -224,10 +224,11 @@ void Configuration::GetDatabaseConfig(const toml::value& config)
 
 void Configuration::ConfigureDatabasePath()
 {
-    if (mSettings.DatabasePath.empty()) {
+    // TODO: Uncomment once toml11 directory path serialization issue is fixed
+    /*if (mSettings.DatabasePath.empty()) {
         mSettings.DatabasePath = pEnv->GetApplicationDatabasePath().string();
         Save();
-    }
+    }*/
 }
 
 } // namespace tks::Core
