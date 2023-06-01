@@ -84,7 +84,7 @@ void Configuration::Save()
     };
     // clang-format on
 
-    const std::string configString = toml::format(data);
+    const std::string configString = toml::format(data, 100);
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
     std::ofstream configFile;
