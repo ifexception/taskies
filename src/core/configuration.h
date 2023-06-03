@@ -60,6 +60,7 @@ public:
     void CloseToTray(const bool value);
 
     std::string GetDatabasePath() const;
+    std::string GetFullDatabasePath() const;
     void SetDatabasePath(const std::string& value);
 
     bool BackupDatabase() const;
@@ -74,8 +75,6 @@ public:
 private:
     void GetGeneralConfig(const toml::value& config);
     void GetDatabaseConfig(const toml::value& config);
-
-    void ConfigureDatabasePath();
 
     struct Sections {
         static const std::string GeneralSection;

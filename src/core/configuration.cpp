@@ -53,7 +53,6 @@ bool Configuration::Load()
         return false;
     }
 
-    ConfigureDatabasePath();
     return true;
 }
 
@@ -164,6 +163,12 @@ std::string Configuration::GetDatabasePath() const
     return mSettings.DatabasePath;
 }
 
+std::string Configuration::GetFullDatabasePath() const
+{
+    std::filesystem::path fullPath = std::filesystem::path(mSettings.DatabasePath) / pEnv->GetDatabaseName();
+    return fullPath.string();
+}
+
 void Configuration::SetDatabasePath(const std::string& value)
 {
     mSettings.DatabasePath = value;
@@ -220,15 +225,6 @@ void Configuration::GetDatabaseConfig(const toml::value& config)
     mSettings.BackupDatabase = toml::find<bool>(databaseSection, "backupDatabase");
     mSettings.BackupPath = toml::find<std::string>(databaseSection, "backupPath");
     mSettings.BackupRetentionPeriod = toml::find<int>(databaseSection, "backupRetentionPeriod");
-}
-
-void Configuration::ConfigureDatabasePath()
-{
-    // TODO: Uncomment once toml11 directory path serialization issue is fixed
-    /*if (mSettings.DatabasePath.empty()) {
-        mSettings.DatabasePath = pEnv->GetApplicationDatabasePath().string();
-        Save();
-    }*/
 }
 
 } // namespace tks::Core
