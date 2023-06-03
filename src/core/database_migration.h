@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include <sqlite3.h>
@@ -37,9 +38,7 @@ struct Migration {
 class DatabaseMigration
 {
 public:
-    DatabaseMigration(std::shared_ptr<Environment> env,
-        std::shared_ptr<Configuration> cfg,
-        std::shared_ptr<spdlog::logger> logger);
+    DatabaseMigration(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~DatabaseMigration();
 
     bool Migrate();
@@ -49,8 +48,6 @@ private:
     bool MigrationExists(const std::string& name);
 
     sqlite3* pDb;
-    std::shared_ptr<Environment> pEnv;
-    std::shared_ptr<Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
     static const std::string BeginTransactionQuery;

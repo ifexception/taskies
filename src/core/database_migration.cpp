@@ -19,12 +19,12 @@
 
 #include "database_migration.h"
 
-#include <sqlite3.h>
+#include "../common/constants.h"
+
+#include "../utils/utils.h"
 
 #include "environment.h"
 #include "configuration.h"
-#include "../common/constants.h"
-#include "../utils/utils.h"
 
 namespace
 {
@@ -61,23 +61,17 @@ const std::string DatabaseMigration::SelectMigrationExistsQuery =
     "SELECT COUNT(*) FROM migration_history WHERE name = ?";
 const std::string DatabaseMigration::InsertMigrationHistoryQuery = "INSERT INTO migration_history (name) VALUES (?);";
 
-DatabaseMigration::DatabaseMigration(std::shared_ptr<Environment> env,
-    std::shared_ptr<Configuration> cfg,
-    std::shared_ptr<spdlog::logger> logger)
-    : pEnv(env)
-    , pCfg(cfg)
-    , pLogger(logger)
+DatabaseMigration::DatabaseMigration(
+    std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
+    : pLogger(logger)
     , pDb(nullptr)
 {
-    auto databaseFile =
-        pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
-    int rc = sqlite3_open(databaseFile.c_str(), &pDb);
+    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::OpenDatabaseTemplate,
             "DatabaseMigration",
-            pEnv->GetDatabaseName(),
-            databaseFile,
+            databaseFilePath,
             rc,
             std::string(err));
     }

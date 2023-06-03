@@ -157,7 +157,9 @@ bool Application::InitializeConfiguration()
 
 bool Application::RunMigrations()
 {
-    Core::DatabaseMigration migrations(pEnv, pCfg, pLogger);
+    const std::string& databaseFilePath =
+        pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
+    Core::DatabaseMigration migrations(pLogger, databaseFilePath);
 
     return migrations.Migrate();
 }

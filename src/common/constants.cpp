@@ -21,7 +21,7 @@
 
 namespace tks::LogMessage
 {
-const char* OpenDatabaseTemplate = "{0} - Failed to open database \"{1}\" at \"{2}\". Error {3}: \"{4}\"";
+const char* OpenDatabaseTemplate = "{0} - Failed to open database \"taskies.db\" at \"{2}\". Error {3}: \"{4}\"";
 const char* ExecQueryTemplate = "{0} - Failed to execute \"{1}\" statement. Error {3}: \"{4}\"";
 const char* PrepareStatementTemplate = "{0} - Failed to prepare statment \"{1}\". Error {2}: \"{3}\"";
 const char* BindParameterTemplate = "{0} - Failed to bind parameter \"{1}\" at \"{2}\" index. Error {3}: \"{4}\"";
