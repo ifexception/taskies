@@ -19,12 +19,15 @@
 
 #include "application.h"
 
+#include <wx/taskbarbutton.h>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/dist_sink.h>
 #include <spdlog/sinks/daily_file_sink.h>
 #include <spdlog/sinks/msvc_sink.h>
 
 #include "common/common.h"
+#include "common/enums.h"
 
 #include "core/environment.h"
 #include "core/configuration.h"
@@ -86,8 +89,32 @@ bool Application::OnInit()
     }
 
     auto frame = new UI::MainFrame(pEnv, pCfg, pLogger);
-    frame->Show(true);
     SetTopWindow(frame);
+
+    auto windowState = pCfg->GetWindowState();
+    switch (windowState) {
+    case WindowState::Normal:
+        frame->Show(true);
+        break;
+    case WindowState::Minimized:
+        frame->Iconize();
+        frame->Show(true);
+        break;
+    case WindowState::Hidden: {
+        if (pCfg->ShowInTray()) {
+            frame->MSWGetTaskBarButton()->Hide();
+        } else {
+            frame->Show(true);
+        }
+        break;
+    }
+    case WindowState::Maximized:
+        frame->Maximize();
+        frame->Show(true);
+        break;
+    default:
+        break;
+    }
 
     return true;
 }
