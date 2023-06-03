@@ -159,7 +159,7 @@ void AboutDialog::CreateControls()
     pAttributionsListView = new wxListView(attributionsCollPaneWindow, wxID_ANY);
     pAttributionsListView->AppendColumn("Author", wxLIST_FORMAT_LEFT, FromDIP(120));
     pAttributionsListView->AppendColumn("Name", wxLIST_FORMAT_LEFT, FromDIP(70));
-    pAttributionsListView->AppendColumn("Link", wxLIST_FORMAT_LEFT, FromDIP(220));
+    pAttributionsListView->AppendColumn("Link", wxLIST_FORMAT_LEFT, FromDIP(214));
 
     listIndex = 0;
     columnIndex = 0;
