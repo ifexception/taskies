@@ -27,6 +27,7 @@
 namespace tks::Core
 {
 class Environment;
+class Configuration;
 
 struct Migration {
     std::string name;
@@ -36,7 +37,9 @@ struct Migration {
 class DatabaseMigration
 {
 public:
-    DatabaseMigration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
+    DatabaseMigration(std::shared_ptr<Environment> env,
+        std::shared_ptr<Configuration> cfg,
+        std::shared_ptr<spdlog::logger> logger);
     ~DatabaseMigration();
 
     bool Migrate();
@@ -47,6 +50,7 @@ private:
 
     sqlite3* pDb;
     std::shared_ptr<Environment> pEnv;
+    std::shared_ptr<Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
     static const std::string BeginTransactionQuery;

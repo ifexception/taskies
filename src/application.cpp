@@ -157,7 +157,7 @@ bool Application::InitializeConfiguration()
 
 bool Application::RunMigrations()
 {
-    Core::DatabaseMigration migrations(pEnv, pLogger);
+    Core::DatabaseMigration migrations(pEnv, pCfg, pLogger);
 
     return migrations.Migrate();
 }
