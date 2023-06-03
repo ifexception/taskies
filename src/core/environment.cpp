@@ -72,23 +72,6 @@ std::filesystem::path Environment::GetDatabasePath()
     return GetApplicationDatabasePath() / GetDatabaseName();
 }
 
-std::filesystem::path Environment::GetApplicationDatabasePath()
-{
-    std::filesystem::path appDataPath;
-    switch (mBuildConfig) {
-    case BuildConfiguration::Debug:
-        appDataPath = GetApplicationPath() / "data";
-        std::filesystem::create_directories(appDataPath);
-        break;
-    case BuildConfiguration::Release:
-        appDataPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
-        break;
-    default:
-        break;
-    }
-    return appDataPath;
-}
-
 std::string Environment::GetDatabaseName()
 {
     return "taskies.db";
@@ -146,6 +129,23 @@ bool Environment::SetIsSetup()
     }
 
     return key.SetValue("IsSetup", true);
+}
+
+std::filesystem::path Environment::GetApplicationDatabasePath()
+{
+    std::filesystem::path appDataPath;
+    switch (mBuildConfig) {
+    case BuildConfiguration::Debug:
+        appDataPath = GetApplicationPath() / "data";
+        std::filesystem::create_directories(appDataPath);
+        break;
+    case BuildConfiguration::Release:
+        appDataPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
+        break;
+    default:
+        break;
+    }
+    return appDataPath;
 }
 
 std::filesystem::path Environment::GetApplicationLogPath()

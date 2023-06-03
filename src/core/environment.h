@@ -46,8 +46,6 @@ public:
     std::filesystem::path GetConfigurationPath();
     std::filesystem::path GetDatabasePath();
 
-    std::filesystem::path GetApplicationDatabasePath();
-
     std::string GetDatabaseName();
     std::string GetCurrentLocale();
 
@@ -57,6 +55,7 @@ public:
 
 private:
     std::filesystem::path GetApplicationPath();
+    std::filesystem::path GetApplicationDatabasePath();
     std::filesystem::path GetApplicationLogPath();
     std::filesystem::path GetApplicationLanguagesPath();
     std::filesystem::path GetApplicationConfigurationPath();
