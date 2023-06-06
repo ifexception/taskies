@@ -210,7 +210,7 @@ void PreferencesDatabasePage::OnOpenDirectoryForDatabaseLocation(wxCommandEvent&
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetDatabasePath().empty()) {
-        pathDirectoryToOpenOn = pEnv->GetApplicationDatabasePath().string();
+        pathDirectoryToOpenOn = pEnv->GetDatabasePath().string();
     } else {
         pathDirectoryToOpenOn = pCfg->GetDatabasePath();
     }
@@ -231,9 +231,9 @@ void PreferencesDatabasePage::OnOpenDirectoryForBackupLocation(wxCommandEvent& e
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetDatabasePath().empty()) {
-        pathDirectoryToOpenOn = pEnv->GetApplicationDatabasePath().string();
+        pathDirectoryToOpenOn = pEnv->GetDatabasePath().string();
     } else {
-        pathDirectoryToOpenOn = pCfg->GetDatabasePath();
+        pathDirectoryToOpenOn = pCfg->GetBackupPath();
     }
 
     auto openDirDialog = new wxDirDialog(
