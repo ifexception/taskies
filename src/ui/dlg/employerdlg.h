@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -33,19 +34,14 @@
 
 namespace tks
 {
-namespace Core
-{
-class Environment;
-} // namespace Core
-
 namespace UI::dlg
 {
 class EmployerDialog final : public wxDialog
 {
 public:
     EmployerDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath,
         bool isEdit = false,
         std::int64_t employerId = -1,
         const wxString& name = "employerdlg");
@@ -64,8 +60,8 @@ private:
 
     bool TransferDataAndValidate();
 
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
+    std::string mDatabaseFilePath;
 
     wxWindow* pParent;
     wxTextCtrl* pNameTextCtrl;

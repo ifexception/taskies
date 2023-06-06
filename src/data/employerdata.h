@@ -21,10 +21,11 @@
 
 #include <cstdint>
 #include <memory>
-#include <tuple>
+#include <string>
 #include <vector>
 
 #include <spdlog/logger.h>
+
 #include <sqlite3.h>
 
 #include "../models/employermodel.h"
@@ -34,13 +35,14 @@ namespace tks
 namespace Core
 {
 class Environment;
-}
+class Configuration;
+} // namespace Core
 namespace Data
 {
 class EmployerData final
 {
 public:
-    EmployerData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger);
+    EmployerData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~EmployerData();
 
     std::int64_t Create(const Model::EmployerModel& employer);
@@ -52,9 +54,9 @@ public:
     std::int64_t GetLastInsertId() const;
 
 private:
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
+    std::string mDatabaseFilePath;
 
     static const std::string create;
     static const std::string filter;

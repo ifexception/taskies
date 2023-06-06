@@ -24,13 +24,14 @@
 
 #include <sqlite3.h>
 
-#include "events.h"
 #include "../common/common.h"
 #include "../common/constants.h"
 #include "../common/enums.h"
 #include "../common/version.h"
+
 #include "../core/environment.h"
 #include "../core/configuration.h"
+
 #include "../utils/utils.h"
 
 #include "../ui/dlg/errordlg.h"
@@ -41,6 +42,8 @@
 #include "../ui/dlg/categoriesdlg.h"
 #include "../ui/dlg/aboutdlg.h"
 #include "../ui/dlg/preferencesdlg.h"
+
+#include "events.h"
 
 namespace tks::UI
 {
@@ -73,6 +76,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pEnv(env)
     , pCfg(cfg)
     , pLogger(logger)
+    , mDatabaseFilePath()
     , pInfoBar(nullptr)
 // clang-format on
 {
@@ -87,6 +91,9 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     if (pCfg->ShowInTray()) {
         pTaskBarIcon->SetTaskBarIcon();
     }
+
+    mDatabaseFilePath =
+        pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
 
     Create();
 }
@@ -194,7 +201,7 @@ void MainFrame::OnIconize(wxIconizeEvent& event)
 
 void MainFrame::OnNewEmployer(wxCommandEvent& event)
 {
-    UI::dlg::EmployerDialog newEmployerDialog(this, pEnv, pLogger);
+    UI::dlg::EmployerDialog newEmployerDialog(this, pLogger, mDatabaseFilePath);
     newEmployerDialog.ShowModal();
 }
 
@@ -219,16 +226,10 @@ void MainFrame::OnNewCategory(wxCommandEvent& event)
 void MainFrame::OnExit(wxCommandEvent& event)
 {
     sqlite3* db = nullptr;
-    auto databaseFile = pEnv->GetDatabasePath().string();
-    int rc = sqlite3_open(databaseFile.c_str(), &db);
+    int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "MainFrame",
-            pEnv->GetDatabaseName(),
-            pEnv->GetDatabasePath().string(),
-            rc,
-            std::string(err));
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "MainFrame", mDatabaseFilePath, rc, std::string(err));
     }
 
     rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);

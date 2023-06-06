@@ -20,6 +20,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -115,6 +116,7 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
+    std::string mDatabaseFilePath;
 
     wxInfoBar* pInfoBar;
     TaskBarIcon* pTaskBarIcon;

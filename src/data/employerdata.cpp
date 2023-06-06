@@ -19,25 +19,26 @@
 
 #include "employerdata.h"
 
-#include "../core/environment.h"
 #include "../common/constants.h"
+
+#include "../core/environment.h"
+#include "../core/configuration.h"
+
 #include "../utils/utils.h"
 
 namespace tks::Data
 {
-EmployerData::EmployerData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger)
-    : pEnv(env)
-    , pLogger(logger)
+EmployerData::EmployerData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
+    : pLogger(logger)
     , pDb(nullptr)
+    , mDatabaseFilePath()
 {
-    auto databaseFile = pEnv->GetDatabasePath().string();
-    int rc = sqlite3_open(databaseFile.c_str(), &pDb);
+    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::OpenDatabaseTemplate,
             "EmployerData",
-            pEnv->GetDatabaseName(),
-            pEnv->GetDatabasePath().string(),
+            databaseFilePath,
             rc,
             std::string(err));
     }

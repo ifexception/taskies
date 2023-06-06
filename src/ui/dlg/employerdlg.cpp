@@ -21,19 +21,24 @@
 
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
+
 #include <fmt/format.h>
 
-#include "../../core/environment.h"
 #include "../../common/common.h"
 #include "../../common/constants.h"
+
+#include "../../core/environment.h"
+#include "../../core/configuration.h"
+
 #include "../../data/employerdata.h"
+
 #include "errordlg.h"
 
 namespace tks::UI::dlg
 {
 EmployerDialog::EmployerDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath,
     bool isEdit,
     std::int64_t employerId,
     const wxString& name)
@@ -46,7 +51,7 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
-    , pEnv(env)
+    , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , mEmployerId(employerId)
     , mEmployer()
@@ -218,7 +223,7 @@ void EmployerDialog::DataToControls()
     pOkButton->Disable();
 
     Model::EmployerModel employer;
-    Data::EmployerData data(pEnv, pLogger);
+    Data::EmployerData data(pLogger, mDatabaseFilePath);
 
     int rc = data.GetById(mEmployerId, employer);
     if (rc == -1) {
@@ -242,7 +247,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     pCancelButton->Disable();
 
     if (TransferDataAndValidate()) {
-        Data::EmployerData data(pEnv, pLogger);
+        Data::EmployerData data(pLogger, mDatabaseFilePath);
         int ret = 0;
         if (!bIsEdit) {
             std::int64_t employerId = data.Create(mEmployer);
