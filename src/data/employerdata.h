@@ -32,11 +32,6 @@
 
 namespace tks
 {
-namespace Core
-{
-class Environment;
-class Configuration;
-} // namespace Core
 namespace Data
 {
 class EmployerData final
@@ -48,7 +43,7 @@ public:
     std::int64_t Create(const Model::EmployerModel& employer);
     int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employers);
-    int Update(Model::EmployerModel employer);
+    int Update(/*out*/ Model::EmployerModel employer);
     int Delete(const std::int64_t employerId);
 
     std::int64_t GetLastInsertId() const;
@@ -56,7 +51,6 @@ public:
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
-    std::string mDatabaseFilePath;
 
     static const std::string create;
     static const std::string filter;

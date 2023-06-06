@@ -24,16 +24,13 @@
 #include <vector>
 
 #include <spdlog/logger.h>
+
 #include <sqlite3.h>
 
 #include "../models/projectmodel.h"
 
 namespace tks
 {
-namespace Core
-{
-class Environment;
-} // namespace Core
 namespace Data
 {
 class ProjectData final
@@ -41,7 +38,7 @@ class ProjectData final
 public:
     ProjectData() = delete;
     ProjectData(const ProjectData&) = delete;
-    ProjectData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger);
+    ProjectData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~ProjectData();
 
     ProjectData& operator=(const ProjectData&) = delete;
@@ -54,7 +51,6 @@ public:
     int UnmarkDefault();
 
 private:
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 

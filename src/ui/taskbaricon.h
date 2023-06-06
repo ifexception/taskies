@@ -46,7 +46,8 @@ public:
     TaskBarIcon(wxFrame* parent,
         std::shared_ptr<Core::Environment> env,
         std::shared_ptr<Core::Configuration> cfg,
-        std::shared_ptr<spdlog::logger> logger);
+        std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~TaskBarIcon() = default;
 
     TaskBarIcon& operator=(const TaskBarIcon&) = delete;
@@ -67,8 +68,9 @@ private:
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
+    std::string mDatabaseFilePath;
 
-    enum { IDC_PREFERENCES = wxID_HIGHEST + 100 };
+    enum { IDC_PREFERENCES = wxID_HIGHEST + 1000 };
 };
 } // namespace UI
 } // namespace tks

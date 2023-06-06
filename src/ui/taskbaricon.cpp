@@ -34,11 +34,13 @@ namespace tks::UI
 TaskBarIcon::TaskBarIcon(wxFrame* parent,
     std::shared_ptr<Core::Environment> env,
     std::shared_ptr<Core::Configuration> cfg,
-    std::shared_ptr<spdlog::logger> logger)
+    std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath)
     : pParent(parent)
     , pEnv(env)
     , pCfg(cfg)
     , pLogger(logger)
+    , mDatabaseFilePath(databaseFilePath)
 {
     ConfigureEventBindings();
 }
@@ -97,8 +99,8 @@ void TaskBarIcon::OnPreferences(wxCommandEvent& WXUNUSED(event))
 void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
 {
     sqlite3* db = nullptr;
-    auto databaseFile = pEnv->GetDatabasePath().string();
-    int rc = sqlite3_open(databaseFile.c_str(), &db);
+
+    int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
         pLogger->error(LogMessage::OpenDatabaseTemplate,

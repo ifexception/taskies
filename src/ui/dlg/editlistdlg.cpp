@@ -24,8 +24,9 @@
 #include <wx/statline.h>
 
 #include "../../common/common.h"
+
 #include "../../utils/utils.h"
-#include "../../core/environment.h"
+
 #include "errordlg.h"
 #include "employerdlg.h"
 #include "clientdlg.h"
@@ -35,8 +36,8 @@
 namespace tks::UI::dlg
 {
 EditListDialog::EditListDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath,
     EditListEntityType editListEntityType,
     const wxString& name)
     : wxDialog(parent,
@@ -47,11 +48,9 @@ EditListDialog::EditListDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
+    , mDatabaseFilePath(databaseFilePath)
     , mType(editListEntityType)
-    , mEmployerData(pEnv, pLogger)
-    , mClientData(pEnv, pLogger)
     , pSearchTextCtrl(nullptr)
     , pSearchButton(nullptr)
     , pResetButton(nullptr)
@@ -251,7 +250,9 @@ void EditListDialog::DataToControls()
 void EditListDialog::EmployerDataToControls()
 {
     std::vector<Model::EmployerModel> employers;
-    int rc = mEmployerData.Filter(mSearchTerm, employers);
+    Data::EmployerData data(pLogger, mDatabaseFilePath);
+
+    int rc = data.Filter(mSearchTerm, employers);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
@@ -272,7 +273,8 @@ void EditListDialog::EmployerDataToControls()
 void EditListDialog::ClientDataToControls()
 {
     std::vector<Model::ClientModel> clients;
-    int rc = mClientData.Filter(mSearchTerm, clients);
+    Data::ClientData data(pLogger, mDatabaseFilePath);
+    int rc = data.Filter(mSearchTerm, clients);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
@@ -293,7 +295,7 @@ void EditListDialog::ClientDataToControls()
 void EditListDialog::ProjectDataToControls()
 {
     std::vector<Model::ProjectModel> projects;
-    Data::ProjectData data(pEnv, pLogger);
+    Data::ProjectData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, projects);
     if (rc != 0) {
@@ -316,7 +318,7 @@ void EditListDialog::ProjectDataToControls()
 void EditListDialog::CategoryDataToControls()
 {
     std::vector<Model::CategoryModel> categories;
-    Data::CategoryData data(pEnv, pLogger);
+    Data::CategoryData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, categories);
     if (rc != 0) {
@@ -378,22 +380,22 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
     mEntityId = static_cast<std::int64_t>(event.GetData());
     switch (mType) {
     case EditListEntityType::Employer: {
-        EmployerDialog employerDlg(this, pEnv, pLogger, true, mEntityId);
+        EmployerDialog employerDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         employerDlg.ShowModal();
         break;
     }
     case EditListEntityType::Client: {
-        ClientDialog clientDlg(this, pEnv, pLogger, true, mEntityId);
+        ClientDialog clientDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         clientDlg.ShowModal();
         break;
     }
     case EditListEntityType::Project: {
-        ProjectDialog projectDlg(this, pEnv, pLogger, true, mEntityId);
+        ProjectDialog projectDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         projectDlg.ShowModal();
         break;
     }
     case EditListEntityType::Category: {
-        CategoryDialog categoryDlg(this, pEnv, pLogger, mEntityId);
+        CategoryDialog categoryDlg(this, pLogger, mDatabaseFilePath, mEntityId);
         categoryDlg.ShowModal();
         break;
     }
@@ -444,7 +446,9 @@ void EditListDialog::SearchEmployers()
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::EmployerModel> employers;
-    int rc = mEmployerData.Filter(mSearchTerm, employers);
+    Data::EmployerData data(pLogger, mDatabaseFilePath);
+
+    int rc = data.Filter(mSearchTerm, employers);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
@@ -470,7 +474,9 @@ void EditListDialog::SearchClients()
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::ClientModel> clients;
-    int rc = mClientData.Filter(mSearchTerm, clients);
+    Data::ClientData data(pLogger, mDatabaseFilePath);
+
+    int rc = data.Filter(mSearchTerm, clients);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
@@ -496,7 +502,7 @@ void EditListDialog::SearchProjects()
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::ProjectModel> projects;
-    Data::ProjectData data(pEnv, pLogger);
+    Data::ProjectData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, projects);
     if (rc != 0) {
@@ -524,7 +530,7 @@ void EditListDialog::SearchCategories()
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::CategoryModel> categories;
-    Data::CategoryData data(pEnv, pLogger);
+    Data::CategoryData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, categories);
     if (rc != 0) {

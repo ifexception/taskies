@@ -23,10 +23,11 @@
 #include <wx/statline.h>
 #include <fmt/format.h>
 
-#include "../../common/constants.h"
 #include "../../common/common.h"
-#include "../../core/environment.h"
+#include "../../common/constants.h"
+
 #include "../../data/categorydata.h"
+
 #include "../../utils/utils.h"
 
 #include "errordlg.h"
@@ -34,8 +35,8 @@
 namespace tks::UI::dlg
 {
 CategoryDialog::CategoryDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath,
     std::int64_t categoryId,
     const wxString& name)
     : wxDialog(parent,
@@ -46,8 +47,8 @@ CategoryDialog::CategoryDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
+    , mDatabaseFilePath(databaseFilePath)
     , pNameTextCtrl(nullptr)
     , pColorPickerCtrl(nullptr)
     , pBillableCtrl(nullptr)
@@ -226,7 +227,7 @@ void CategoryDialog::ConfigureEventBindings()
 void CategoryDialog::DataToControls()
 {
     Model::CategoryModel model;
-    Data::CategoryData data(pEnv, pLogger);
+    Data::CategoryData data(pLogger, mDatabaseFilePath);
     int rc = 0;
 
     rc = data.GetById(mCategoryId, model);
@@ -270,7 +271,7 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
 
     if (TransferDataAndValidate()) {
         int ret = 0;
-        Data::CategoryData data(pEnv, pLogger);
+        Data::CategoryData data(pLogger, mDatabaseFilePath);
 
         if (pIsActiveCtrl->IsChecked()) {
             ret = data.Update(mModel);

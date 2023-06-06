@@ -24,16 +24,13 @@
 #include <vector>
 
 #include <spdlog/logger.h>
+
 #include <sqlite3.h>
 
 #include "../models/categorymodel.h"
 
 namespace tks
 {
-namespace Core
-{
-class Environment;
-}
 namespace Data
 {
 class CategoryData final
@@ -41,7 +38,7 @@ class CategoryData final
 public:
     CategoryData() = delete;
     CategoryData(const CategoryData&) = delete;
-    CategoryData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger);
+    CategoryData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~CategoryData();
 
     CategoryData& operator=(const CategoryData&) = delete;
@@ -55,7 +52,6 @@ public:
     std::int64_t GetLastInsertId() const;
 
 private:
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 

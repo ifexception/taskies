@@ -40,10 +40,6 @@
 
 namespace tks
 {
-namespace Core
-{
-class Environment;
-} // namespace Core
 namespace UI::dlg
 {
 class EditListDialog final : public wxDialog
@@ -52,8 +48,8 @@ public:
     EditListDialog() = delete;
     EditListDialog(const EditListDialog&) = delete;
     EditListDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath,
         EditListEntityType editListEntityType,
         const wxString& name = "editlistdlg");
     virtual ~EditListDialog() = default;
@@ -75,7 +71,7 @@ private:
 
     void OnSearchTextChange(wxCommandEvent& event);
     void OnSearch(wxCommandEvent& event);
-    //void OnSearchEnterKeyPressed(wxKeyEvent& event);
+    // void OnSearchEnterKeyPressed(wxKeyEvent& event);
     void OnReset(wxCommandEvent& event);
     void OnItemSelected(wxListEvent& event);
     void OnItemDoubleClick(wxListEvent& event);
@@ -90,9 +86,9 @@ private:
 
     std::string GetSearchHintText();
 
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 
+    std::string mDatabaseFilePath;
     EditListEntityType mType;
 
     wxWindow* pParent;
@@ -103,13 +99,10 @@ private:
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
-    Data::EmployerData mEmployerData;
-    Data::ClientData mClientData;
-
     std::string mSearchTerm;
     std::int64_t mEntityId;
 
     enum { IDC_LIST = wxID_HIGHEST + 100, IDC_SEARCHTEXT, IDC_SEARCHBTN, IDC_RESETBTN };
 };
-} // namespace UI
+} // namespace UI::dlg
 } // namespace tks

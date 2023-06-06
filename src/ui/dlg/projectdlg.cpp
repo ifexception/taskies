@@ -25,9 +25,9 @@
 #include <wx/statline.h>
 #include <fmt/format.h>
 
-#include "../../common/constants.h"
 #include "../../common/common.h"
-#include "../../core/environment.h"
+#include "../../common/constants.h"
+
 #include "../../utils/utils.h"
 
 #include "errordlg.h"
@@ -35,8 +35,8 @@
 namespace tks::UI::dlg
 {
 ProjectDialog::ProjectDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath,
     bool isEdit,
     std::int64_t projectId,
     const wxString& name)
@@ -48,8 +48,8 @@ ProjectDialog::ProjectDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
+    , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , mProjectId(projectId)
     , pNameTextCtrl(nullptr)
@@ -246,7 +246,8 @@ void ProjectDialog::FillControls()
 
     std::vector<Model::EmployerModel> employers;
     std::string defaultSearhTerm = "";
-    Data::EmployerData employerData(pEnv, pLogger);
+    Data::EmployerData employerData(pLogger, mDatabaseFilePath);
+
     int rc = employerData.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
@@ -309,7 +310,7 @@ void ProjectDialog::ConfigureEventBindings()
 void ProjectDialog::DataToControls()
 {
     Model::ProjectModel project;
-    Data::ProjectData data(pEnv, pLogger);
+    Data::ProjectData data(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
     int rc = data.GetById(mProjectId, project);
@@ -332,7 +333,7 @@ void ProjectDialog::DataToControls()
     }
 
     Model::EmployerModel employer;
-    Data::EmployerData employerData(pEnv, pLogger);
+    Data::EmployerData employerData(pLogger, mDatabaseFilePath);
 
     rc = employerData.GetById(project.EmployerId, employer);
     if (rc == -1) {
@@ -350,7 +351,7 @@ void ProjectDialog::DataToControls()
 
     if (project.ClientId.has_value()) {
         Model::ClientModel client;
-        Data::ClientData clientData(pEnv, pLogger);
+        Data::ClientData clientData(pLogger, mDatabaseFilePath);
 
         rc = clientData.GetById(project.ClientId.value(), client);
         if (rc == -1) {
@@ -400,7 +401,8 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     }
 
     auto employerId = Utils::VoidPointerToInt64(employerChoiceClientData);
-    Data::ClientData clientData(pEnv, pLogger);
+    Data::ClientData clientData(pLogger, mDatabaseFilePath);
+
     std::vector<Model::ClientModel> clients;
     int rc = clientData.FilterByEmployerId(employerId, clients);
 
@@ -435,7 +437,7 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     if (TransferDataAndValidate()) {
-        Data::ProjectData projectData(pEnv, pLogger);
+        Data::ProjectData projectData(pLogger, mDatabaseFilePath);
         int ret = 0;
 
         if (pIsDefaultCtrl->IsChecked()) {

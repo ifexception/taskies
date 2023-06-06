@@ -30,10 +30,6 @@
 
 namespace tks
 {
-namespace Core
-{
-class Environment;
-} // namespace Core
 namespace Data
 {
 class ClientData final
@@ -41,7 +37,7 @@ class ClientData final
 public:
     ClientData() = delete;
     ClientData(const ClientData&) = delete;
-    ClientData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger);
+    ClientData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~ClientData();
 
     ClientData& operator=(const ClientData&) = delete;
@@ -49,14 +45,13 @@ public:
     std::int64_t Create(Model::ClientModel& client);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ClientModel>& clients);
     int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& model);
-    int Update(Model::ClientModel& client);
+    int Update(/*out*/ Model::ClientModel& client);
     int Delete(const std::int64_t clientId);
     int FilterByEmployerId(const std::int64_t employerId, /*out*/ std::vector<Model::ClientModel>& clients);
 
     std::int64_t GetLastInsertId() const;
 
 private:
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 

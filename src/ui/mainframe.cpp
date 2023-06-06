@@ -87,13 +87,13 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 
-    pTaskBarIcon = new TaskBarIcon(this, pEnv, pCfg, pLogger);
+    mDatabaseFilePath =
+        pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
+
+    pTaskBarIcon = new TaskBarIcon(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
     if (pCfg->ShowInTray()) {
         pTaskBarIcon->SetTaskBarIcon();
     }
-
-    mDatabaseFilePath =
-        pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
 
     Create();
 }
@@ -207,19 +207,19 @@ void MainFrame::OnNewEmployer(wxCommandEvent& event)
 
 void MainFrame::OnNewClient(wxCommandEvent& event)
 {
-    UI::dlg::ClientDialog newClientDialog(this, pEnv, pLogger);
+    UI::dlg::ClientDialog newClientDialog(this, pLogger, mDatabaseFilePath);
     newClientDialog.ShowModal();
 }
 
 void MainFrame::OnNewProject(wxCommandEvent& event)
 {
-    UI::dlg::ProjectDialog newProjectDialog(this, pEnv, pLogger);
+    UI::dlg::ProjectDialog newProjectDialog(this, pLogger, mDatabaseFilePath);
     newProjectDialog.ShowModal();
 }
 
 void MainFrame::OnNewCategory(wxCommandEvent& event)
 {
-    UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger);
+    UI::dlg::CategoriesDialog addCategories(this, pLogger, mDatabaseFilePath);
     addCategories.ShowModal();
 }
 
@@ -245,25 +245,25 @@ void MainFrame::OnExit(wxCommandEvent& event)
 
 void MainFrame::OnEditEmployer(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger, EditListEntityType::Employer);
+    UI::dlg::EditListDialog editEmployer(this, pLogger, mDatabaseFilePath, EditListEntityType::Employer);
     editEmployer.ShowModal();
 }
 
 void MainFrame::OnEditClient(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editClient(this, pEnv, pLogger, EditListEntityType::Client);
+    UI::dlg::EditListDialog editClient(this, pLogger, mDatabaseFilePath, EditListEntityType::Client);
     editClient.ShowModal();
 }
 
 void MainFrame::OnEditProject(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editProject(this, pEnv, pLogger, EditListEntityType::Project);
+    UI::dlg::EditListDialog editProject(this, pLogger, mDatabaseFilePath, EditListEntityType::Project);
     editProject.ShowModal();
 }
 
 void MainFrame::OnEditCategory(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editCategory(this, pEnv, pLogger, EditListEntityType::Category);
+    UI::dlg::EditListDialog editCategory(this, pLogger, mDatabaseFilePath, EditListEntityType::Category);
     editCategory.ShowModal();
 }
 

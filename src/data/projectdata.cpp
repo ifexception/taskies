@@ -19,28 +19,22 @@
 
 #include "projectdata.h"
 
-#include "../core/environment.h"
 #include "../common/constants.h"
-#include "../utils/utils.h"
+
 #include "../models/projectmodel.h"
+
+#include "../utils/utils.h"
 
 namespace tks::Data
 {
-ProjectData::ProjectData(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger)
-    : pEnv(env)
-    , pLogger(logger)
+ProjectData::ProjectData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
+    : pLogger(logger)
     , pDb(nullptr)
 {
-    auto databaseFile = pEnv->GetDatabasePath().string();
-    int rc = sqlite3_open(databaseFile.c_str(), &pDb);
+    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "ProjectData",
-            pEnv->GetDatabaseName(),
-            pEnv->GetDatabasePath().string(),
-            rc,
-            std::string(err));
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "ProjectData", databaseFilePath, rc, std::string(err));
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);

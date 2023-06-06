@@ -36,11 +36,6 @@
 
 namespace tks
 {
-namespace Core
-{
-class Environment;
-} // namespace Core
-
 namespace UI::dlg
 {
 class CategoriesDialog final : public wxDialog
@@ -49,8 +44,8 @@ public:
     CategoriesDialog() = delete;
     CategoriesDialog(const CategoriesDialog&) = delete;
     CategoriesDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath,
         const wxString& name = "categoriesdlg");
     virtual ~CategoriesDialog() = default;
 
@@ -84,7 +79,6 @@ private:
 
     bool TransferDataAndValidate();
 
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
@@ -98,6 +92,8 @@ private:
     wxButton* pRemoveAllButton;
     wxButton* pOkButton;
     wxButton* pCancelButton;
+
+    std::string mDatabaseFilePath;
 
     bool bEditFromListCtrl;
     long mListItemIndex;

@@ -25,10 +25,11 @@
 #include <wx/statline.h>
 #include <fmt/format.h>
 
-#include "../../common/constants.h"
 #include "../../common/common.h"
-#include "../../core/environment.h"
+#include "../../common/constants.h"
+
 #include "../../data/categorydata.h"
+
 #include "../../utils/utils.h"
 
 #include "errordlg.h"
@@ -36,8 +37,8 @@
 namespace tks::UI::dlg
 {
 CategoriesDialog::CategoriesDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
@@ -47,8 +48,8 @@ CategoriesDialog::CategoriesDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
+    , mDatabaseFilePath(databaseFilePath)
     , pNameTextCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pColorPickerCtrl(nullptr)
@@ -374,7 +375,8 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     int ret = 0;
-    Data::CategoryData categoryData(pEnv, pLogger);
+    Data::CategoryData categoryData(pLogger, mDatabaseFilePath);
+
     for (auto& category : mCategoriesToAdd) {
         std::int64_t categoryId = categoryData.Create(category);
         ret = categoryId > 0 ? 1 : -1;

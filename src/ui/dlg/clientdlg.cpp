@@ -25,19 +25,20 @@
 
 #include "../../common/constants.h"
 #include "../../common/common.h"
-#include "../../core/environment.h"
+
 #include "../../data/clientdata.h"
-#include "../../utils/utils.h"
 
 #include "../../models/employermodel.h"
+
+#include "../../utils/utils.h"
 
 #include "errordlg.h"
 
 namespace tks::UI::dlg
 {
 ClientDialog::ClientDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath,
     bool isEdit,
     std::int64_t clientId,
     const wxString& name)
@@ -49,8 +50,8 @@ ClientDialog::ClientDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
+    , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , mClientId(clientId)
     , pNameTextCtrl(nullptr)
@@ -216,7 +217,8 @@ void ClientDialog::FillControls()
 
     std::string defaultSearhTerm = "";
     std::vector<Model::EmployerModel> employers;
-    Data::EmployerData data(pEnv, pLogger);
+    Data::EmployerData data(pLogger, mDatabaseFilePath);
+
     int rc = data.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
@@ -263,7 +265,8 @@ void ClientDialog::ConfigureEventBindings()
 void ClientDialog::DataToControls()
 {
     Model::ClientModel client;
-    Data::ClientData data(pEnv, pLogger);
+    Data::ClientData data(pLogger, mDatabaseFilePath);
+
     int rc = data.GetById(mClientId, client);
     bool isSuccess = false;
     if (rc == -1) {
@@ -284,7 +287,8 @@ void ClientDialog::DataToControls()
     }
 
     Model::EmployerModel employer;
-    Data::EmployerData employerData(pEnv, pLogger);
+    Data::EmployerData employerData(pLogger, mDatabaseFilePath);
+
     rc = employerData.GetById(client.EmployerId, employer);
     if (rc == -1) {
         pLogger->error("Failed to execute action with employer. Check further logs for more information...");
@@ -310,7 +314,8 @@ void ClientDialog::OnOK(wxCommandEvent& event)
     pCancelButton->Disable();
 
     if (TransferDataAndValidate()) {
-        Data::ClientData data(pEnv, pLogger);
+        Data::ClientData data(pLogger, mDatabaseFilePath);
+
         int ret = 0;
         if (!bIsEdit) {
             std::int64_t clientId = data.Create(mClientModel);
