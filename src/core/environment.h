@@ -49,6 +49,8 @@ public:
     std::string GetDatabaseName();
     std::string GetCurrentLocale();
 
+    std::filesystem::path ApplicationDatabasePath();
+
     void SetInstallFolder();
     bool IsSetup();
     bool SetIsSetup();

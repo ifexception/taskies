@@ -96,6 +96,11 @@ std::string Environment::GetCurrentLocale()
 #endif // __linux__
 }
 
+std::filesystem::path Environment::ApplicationDatabasePath()
+{
+    return GetApplicationDatabasePath();
+}
+
 void Environment::SetInstallFolder()
 {
     const std::string ProgramFilesSubstring = "Program Files";
