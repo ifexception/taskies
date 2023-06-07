@@ -108,7 +108,7 @@ bool Configuration::RestoreDefaults()
     MinimizeToTray(false);
     CloseToTray(false);
 
-    SetDatabasePath(pEnv->GetDatabasePath().string());
+    SetDatabasePath(pEnv->ApplicationDatabasePath().string());
     BackupDatabase(false);
     SetBackupPath("");
     SetBackupRetentionPeriod(0);
@@ -129,7 +129,7 @@ bool Configuration::RestoreDefaults()
         {
             Sections::DatabaseSection,
             {
-                { "databasePath", pEnv->GetDatabasePath().string() },
+                { "databasePath", pEnv->ApplicationDatabasePath().string() },
                 { "backupDatabase", false },
                 { "backupPath", "" },
                 { "backupRetentionPeriod", 0 }
