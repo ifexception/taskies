@@ -33,8 +33,8 @@
 #define FILE_DESCRIPTION_STR "Time and Task Management"
 #define TASKIES_FILE_VERSION TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH
 
-#define FILE_VERSION_STR                                                                                               \
-    STRINGIFY(TASKIES_MAJOR)                                                                                          \
+#define FILE_VERSION_STR \
+    STRINGIFY(TASKIES_MAJOR) \
     "." STRINGIFY(TASKIES_MINOR) "." STRINGIFY(TASKIES_PATCH)
 
 #define PRODUCT_VERSION TASKIES_FILE_VERSION
