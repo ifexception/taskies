@@ -39,7 +39,8 @@ public:
 
     bool Load();
 
-    void Save();
+    bool Save();
+    bool RestoreDefaults();
 
     std::string GetUserInterfaceLanguage() const;
     void SetUserInterfaceLanguage(const std::string& value);

@@ -70,6 +70,7 @@ private:
     void ConfigureEventBindings();
 
     void OnListBoxSelection(wxCommandEvent& event);
+    void OnRestoreDefaults(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
 
     std::shared_ptr<Core::Environment> pEnv;
@@ -81,7 +82,9 @@ private:
     PreferencesGeneralPage* pGeneralPage;
     PreferencesDatabasePage* pDatabasePage;
     wxButton* pOkButton;
-    wxButton* pCancelButton;
+    wxButton* pRestoreDefaultsButton;
+
+    enum { IDC_RESTOREDEFAULTBUTTON = wxID_HIGHEST + 1000 };
 };
 } // namespace dlg
 } // namespace UI

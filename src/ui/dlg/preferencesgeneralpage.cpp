@@ -142,6 +142,24 @@ void PreferencesGeneralPage::Save()
     pCfg->CloseToTray(pCloseToTrayCtrl->GetValue());
 }
 
+void PreferencesGeneralPage::Reset()
+{
+    pUserInterfaceLanguageCtrl->Append("en-US", new ClientData<std::string>("en-US"));
+    pUserInterfaceLanguageCtrl->SetSelection(1);
+    pStartWithWindowsCtrl->SetValue(pCfg->StartOnBoot());
+
+    pWindowStartPositionCtrl->SetSelection(static_cast<int>(pCfg->GetWindowState()));
+
+    pShowInTrayCtrl->SetValue(pCfg->ShowInTray());
+    pMinimizeToTrayCtrl->SetValue(pCfg->MinimizeToTray());
+    pCloseToTrayCtrl->SetValue(pCfg->CloseToTray());
+
+    if (!pCfg->ShowInTray()) {
+        pMinimizeToTrayCtrl->Disable();
+        pCloseToTrayCtrl->Disable();
+    }
+}
+
 void PreferencesGeneralPage::CreateControls()
 {
     /* Base Sizer */

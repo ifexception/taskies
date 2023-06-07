@@ -56,15 +56,15 @@ bool Configuration::Load()
     return true;
 }
 
-void Configuration::Save()
+bool Configuration::Save()
 {
     // clang-format off
     const toml::value data{
         {
             Sections::GeneralSection,
             {
-                { "lang", mSettings.UserInterfaceLanguage    },
-                { "startOnBoot", mSettings.StartOnBoot    },
+                { "lang", mSettings.UserInterfaceLanguage },
+                { "startOnBoot", mSettings.StartOnBoot },
                 { "startPosition", static_cast<int>(mSettings.StartPosition) },
                 { "showInTray", mSettings.ShowInTray },
                 { "minimizeToTray", mSettings.MinimizeToTray },
@@ -90,12 +90,68 @@ void Configuration::Save()
     configFile.open(configFilePath, std::ios_base::out);
     if (!configFile) {
         pLogger->error("Failed to open config file at specified location {0}", configFilePath);
-        return;
+        return false;
     }
 
     configFile << configString;
 
     configFile.close();
+    return true;
+}
+
+bool Configuration::RestoreDefaults()
+{
+    SetUserInterfaceLanguage("en-US");
+    StartOnBoot(false);
+    SetWindowState(WindowState::Normal);
+    ShowInTray(false);
+    MinimizeToTray(false);
+    CloseToTray(false);
+
+    SetDatabasePath(pEnv->GetDatabasePath().string());
+    BackupDatabase(false);
+    SetBackupPath("");
+    SetBackupRetentionPeriod(0);
+
+    // clang-format off
+    const toml::value data{
+        {
+            Sections::GeneralSection,
+            {
+                { "lang", "en-US" },
+                { "startOnBoot", false },
+                { "startPosition", static_cast<int>(WindowState::Normal) },
+                { "showInTray", false },
+                { "minimizeToTray", false },
+                { "closeToTray", false },
+            }
+        },
+        {
+            Sections::DatabaseSection,
+            {
+                { "databasePath", pEnv->GetDatabasePath().string() },
+                { "backupDatabase", false },
+                { "backupPath", "" },
+                { "backupRetentionPeriod", 0 }
+            }
+        }
+    };
+    // clang-format on
+
+    const std::string configString = toml::format(data, 100);
+
+    const std::string configFilePath = pEnv->GetConfigurationPath().string();
+    std::ofstream configFile;
+    configFile.open(configFilePath, std::ios_base::out);
+    if (!configFile) {
+        pLogger->error("Failed to open config file at specified location {0}", configFilePath);
+        return false;
+    }
+
+    configFile << configString;
+
+    configFile.close();
+    return true;
 }
 
 std::string Configuration::GetUserInterfaceLanguage() const

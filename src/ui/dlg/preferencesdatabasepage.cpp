@@ -83,6 +83,21 @@ void PreferencesDatabasePage::Save()
     }
 }
 
+void PreferencesDatabasePage::Reset()
+{
+    pDatabasePathTextCtrl->ChangeValue(pCfg->GetDatabasePath());
+    pDatabasePathTextCtrl->SetToolTip(pCfg->GetDatabasePath());
+    pBackupDatabaseCheckBoxCtrl->SetValue(pCfg->BackupDatabase());
+    if (pCfg->BackupDatabase()) {
+        pBrowseBackupPathButton->Enable();
+        pBackupsRetentionPeriodSpinCtrl->Enable();
+    }
+
+    pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
+    pBackupPathTextCtrl->SetToolTip(pCfg->GetBackupPath());
+    pBackupsRetentionPeriodSpinCtrl->SetValue(pCfg->GetBackupRetentionPeriod());
+}
+
 void PreferencesDatabasePage::CreateControls()
 {
     /* Base Sizer */

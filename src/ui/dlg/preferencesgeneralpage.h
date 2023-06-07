@@ -53,6 +53,7 @@ public:
 
     bool IsValid();
     void Save();
+    void Reset();
 
 private:
     void CreateControls();

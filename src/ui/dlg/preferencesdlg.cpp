@@ -45,8 +45,8 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     , pSimpleBook(nullptr)
     , pGeneralPage(nullptr)
     , pDatabasePage(nullptr)
+    , pRestoreDefaultsButton(nullptr)
     , pOkButton(nullptr)
-    , pCancelButton(nullptr)
 {
     Initialize();
 
@@ -93,13 +93,13 @@ void PreferencesDialog::CreateControls()
 
     buttonsSizer->AddStretchSpacer();
 
+    pRestoreDefaultsButton = new wxButton(this, IDC_RESTOREDEFAULTBUTTON, "Restore Defaults");
+
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
 
-    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
-
+    buttonsSizer->Add(pRestoreDefaultsButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -111,6 +111,13 @@ void PreferencesDialog::ConfigureEventBindings()
         wxEVT_LISTBOX,
         &PreferencesDialog::OnListBoxSelection,
         this
+    );
+
+    pRestoreDefaultsButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesDialog::OnRestoreDefaults,
+        this,
+        IDC_RESTOREDEFAULTBUTTON
     );
 
     pOkButton->Bind(
@@ -125,6 +132,18 @@ void PreferencesDialog::ConfigureEventBindings()
 void PreferencesDialog::OnListBoxSelection(wxCommandEvent& event)
 {
     pSimpleBook->ChangeSelection(pListBox->GetSelection());
+}
+
+void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
+{
+    bool success = pCfg->RestoreDefaults();
+    if (!success) {
+        wxMessageBox("Failed to restore default configuration", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+        return;
+    }
+
+    pGeneralPage->Reset();
+    pDatabasePage->Reset();
 }
 
 void PreferencesDialog::OnOK(wxCommandEvent& event)
