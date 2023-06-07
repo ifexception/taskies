@@ -88,9 +88,9 @@ void PreferencesDatabasePage::Reset()
     pDatabasePathTextCtrl->ChangeValue(pCfg->GetDatabasePath());
     pDatabasePathTextCtrl->SetToolTip(pCfg->GetDatabasePath());
     pBackupDatabaseCheckBoxCtrl->SetValue(pCfg->BackupDatabase());
-    if (pCfg->BackupDatabase()) {
-        pBrowseBackupPathButton->Enable();
-        pBackupsRetentionPeriodSpinCtrl->Enable();
+    if (!pCfg->BackupDatabase()) {
+        pBrowseBackupPathButton->Disable();
+        pBackupsRetentionPeriodSpinCtrl->Disable();
     }
 
     pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
