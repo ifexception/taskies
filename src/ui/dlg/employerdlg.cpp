@@ -243,7 +243,6 @@ void EmployerDialog::DataToControls()
 void EmployerDialog::OnOK(wxCommandEvent& event)
 {
     pOkButton->Disable();
-    pCancelButton->Disable();
 
     if (TransferDataAndValidate()) {
         Data::EmployerData data(pLogger, mDatabaseFilePath);
