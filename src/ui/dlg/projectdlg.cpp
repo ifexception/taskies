@@ -30,6 +30,8 @@
 
 #include "../../utils/utils.h"
 
+#include "../clientdata.h"
+
 #include "errordlg.h"
 
 namespace tks::UI::dlg
@@ -257,13 +259,13 @@ void ProjectDialog::FillControls()
         errorDialog.ShowModal();
     } else {
         for (auto& employer : employers) {
-            pEmployerChoiceCtrl->Append(employer.Name, Utils::Int64ToVoidPointer(employer.EmployerId));
+            pEmployerChoiceCtrl->Append(employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
         }
     }
 
     pOkButton->Enable();
 
-    pClientChoiceCtrl->AppendString("Please select");
+    pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pClientChoiceCtrl->SetSelection(0);
     pClientChoiceCtrl->Disable();
 }
@@ -383,7 +385,7 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
     pClientChoiceCtrl->Clear();
-    pClientChoiceCtrl->AppendString("Please select");
+    pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pClientChoiceCtrl->SetSelection(0);
 
     if (event.GetSelection() < 1) {
@@ -393,14 +395,16 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         return;
     }
 
-    auto employerChoiceClientData = pEmployerChoiceCtrl->GetClientData(event.GetSelection());
-    if (employerChoiceClientData == nullptr) {
+    int employerIndex = event.GetSelection();
+    ClientData<std::int64_t>* employerIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    if (employerIdData->GetValue() < 1) {
         pClientChoiceCtrl->Disable();
 
         return;
     }
 
-    auto employerId = Utils::VoidPointerToInt64(employerChoiceClientData);
+    auto employerId = employerIdData->GetValue();
     Data::ClientData clientData(pLogger, mDatabaseFilePath);
 
     std::vector<Model::ClientModel> clients;
@@ -421,7 +425,7 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         }
 
         for (auto& client : clients) {
-            pClientChoiceCtrl->Append(client.Name, Utils::Int64ToVoidPointer(client.ClientId));
+            pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
         }
 
         if (!pClientChoiceCtrl->IsEnabled()) {
@@ -521,7 +525,7 @@ bool ProjectDialog::TransferDataAndValidate()
 
     auto displayName = pDisplayNameCtrl->GetValue().ToStdString();
     if (displayName.empty()) {
-        auto valMsg = "Display Name is required";
+        auto valMsg = "Display name is required";
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pNameTextCtrl);
@@ -529,7 +533,7 @@ bool ProjectDialog::TransferDataAndValidate()
     }
 
     if (displayName.length() < MIN_CHARACTER_COUNT || displayName.length() > MAX_CHARACTER_COUNT_NAMES) {
-        auto valMsg = fmt::format("Display Name must be at minimum {0} or maximum {1} characters long",
+        auto valMsg = fmt::format("Display name must be at minimum {0} or maximum {1} characters long",
             MIN_CHARACTER_COUNT,
             MAX_CHARACTER_COUNT_NAMES);
         wxRichToolTip toolTip("Validation", valMsg);
@@ -550,10 +554,11 @@ bool ProjectDialog::TransferDataAndValidate()
         return false;
     }
 
-    auto employerId =
-        Utils::VoidPointerToInt64(pEmployerChoiceCtrl->GetClientData(pEmployerChoiceCtrl->GetSelection()));
-    if (employerId < 1) {
-        auto valMsg = "An Employer selection is required";
+    int employerIndex = pEmployerChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* employerIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    if (employerIdData->GetValue() < 1) {
+        auto valMsg = "An employer selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pEmployerChoiceCtrl);
@@ -561,10 +566,12 @@ bool ProjectDialog::TransferDataAndValidate()
     }
 
     if (pClientChoiceCtrl->IsEnabled()) {
-        auto clientChoiceCtrlData = pClientChoiceCtrl->GetClientData(pClientChoiceCtrl->GetSelection());
-        if (clientChoiceCtrlData != nullptr) {
-            auto clientId =
-                Utils::VoidPointerToInt64(pClientChoiceCtrl->GetClientData(pClientChoiceCtrl->GetSelection()));
+        int clientIndex = pClientChoiceCtrl->GetSelection();
+        ClientData<std::int64_t>* clientIdData =
+            reinterpret_cast<ClientData<std::int64_t>*>(pClientChoiceCtrl->GetClientObject(clientIndex));
+
+        if (clientIdData->GetValue() > 0) {
+            auto clientId = clientIdData->GetValue();
             mProjectModel.ClientId = std::make_optional(clientId);
         } else {
             mProjectModel.ClientId = std::nullopt;
@@ -575,7 +582,7 @@ bool ProjectDialog::TransferDataAndValidate()
     mProjectModel.DisplayName = displayName;
     mProjectModel.IsDefault = pIsDefaultCtrl->GetValue();
     mProjectModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
-    mProjectModel.EmployerId = employerId;
+    mProjectModel.EmployerId = employerIdData->GetValue();
     mProjectModel.ProjectId = mProjectId;
 
     return true;
