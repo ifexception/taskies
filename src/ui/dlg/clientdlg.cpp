@@ -403,7 +403,7 @@ bool ClientDialog::TransferDataAndValidate()
     ClientData<std::int64_t>* employerIdData =
         reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
     if (employerIdData->GetValue() < 1) {
-        auto valMsg = "An Employer selection is required";
+        auto valMsg = "An employer selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pEmployerChoiceCtrl);
