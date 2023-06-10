@@ -27,6 +27,7 @@
 #include "../../common/common.h"
 
 #include "../../data/clientdata.h"
+#include "../clientdata.h"
 
 #include "../../models/employermodel.h"
 
@@ -109,6 +110,7 @@ void ClientDialog::CreateControls()
     allowedCharacters.Add("(");
     allowedCharacters.Add(")");
     allowedCharacters.Add("+");
+    allowedCharacters.Add(",");
     nameValidator.SetIncludes(allowedCharacters);
 
     pNameTextCtrl->SetValidator(nameValidator);
@@ -212,7 +214,7 @@ void ClientDialog::CreateControls()
 
 void ClientDialog::FillControls()
 {
-    pEmployerChoiceCtrl->Append("Please select", Utils::IntToVoidPointer(0));
+    pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);
 
     std::string defaultSearhTerm = "";
@@ -228,7 +230,7 @@ void ClientDialog::FillControls()
         errorDialog.ShowModal();
     } else {
         for (auto& employer : employers) {
-            pEmployerChoiceCtrl->Append(employer.Name, Utils::Int64ToVoidPointer(employer.EmployerId));
+            pEmployerChoiceCtrl->Append(employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
         }
     }
 
@@ -397,9 +399,10 @@ bool ClientDialog::TransferDataAndValidate()
         return false;
     }
 
-    auto employerId =
-        Utils::VoidPointerToInt64(pEmployerChoiceCtrl->GetClientData(pEmployerChoiceCtrl->GetSelection()));
-    if (employerId < 1) {
+    int employerIndex = pEmployerChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* employerIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    if (employerIdData->GetValue() < 1) {
         auto valMsg = "An Employer selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
@@ -409,7 +412,7 @@ bool ClientDialog::TransferDataAndValidate()
 
     mClientModel.Name = name;
     mClientModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
-    mClientModel.EmployerId = employerId;
+    mClientModel.EmployerId = employerIdData->GetValue();
     mClientModel.ClientId = mClientId;
 
     return true;
