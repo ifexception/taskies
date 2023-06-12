@@ -351,23 +351,45 @@ void ProjectDialog::DataToControls()
         isSuccess = true;
     }
 
-    if (project.ClientId.has_value()) {
-        Model::ClientModel client;
-        Data::ClientData clientData(pLogger, mDatabaseFilePath);
+    std::vector<Model::ClientModel> clients;
+    Data::ClientData clientData(pLogger, mDatabaseFilePath);
 
-        rc = clientData.GetById(project.ClientId.value(), client);
-        if (rc == -1) {
-            pLogger->error("Failed to execute action with client. Check further logs for more information...");
-            auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                                "check logs for more information...";
+    std::string defaultSearchTerm = "";
+    rc = clientData.FilterByEmployerId(project.EmployerId, clients);
+    if (rc == -1) {
+        pLogger->error("Failed to execute action with client. Check further logs for more information...");
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check logs for more information...";
 
-            ErrorDialog errorDialog(this, pLogger, errorMessage);
-            errorDialog.ShowModal();
-            isSuccess = false;
-        } else {
-            pClientChoiceCtrl->SetStringSelection(client.Name);
-            isSuccess = true;
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        errorDialog.ShowModal();
+        isSuccess = false;
+    } else {
+        if (!clients.empty()) {
+            for (const auto& client : clients) {
+                pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
+            }
+
+            if (project.ClientId.has_value()) {
+                Model::ClientModel client;
+                rc = clientData.GetById(project.ClientId.value(), client);
+                if (rc == -1) {
+                    pLogger->error("Failed to execute action with client. Check further logs for more information...");
+                    auto errorMessage =
+                        "An unexpected error occured and the specified action could not be completed. Please "
+                        "check logs for more information...";
+
+                    ErrorDialog errorDialog(this, pLogger, errorMessage);
+                    errorDialog.ShowModal();
+                    isSuccess = false;
+                } else {
+                    pClientChoiceCtrl->SetStringSelection(client.Name);
+                }
+            }
+
+            pClientChoiceCtrl->Enable();
         }
+        isSuccess = true;
     }
 
     if (isSuccess) {
@@ -399,6 +421,8 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     ClientData<std::int64_t>* employerIdData =
         reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
     if (employerIdData->GetValue() < 1) {
+        pClientChoiceCtrl->Clear();
+        pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
         pClientChoiceCtrl->Disable();
 
         return;
@@ -418,6 +442,8 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         errorDialog.ShowModal();
     } else {
         if (clients.empty()) {
+            pClientChoiceCtrl->Clear();
+            pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
             pClientChoiceCtrl->Disable();
             pOkButton->Enable();
 
