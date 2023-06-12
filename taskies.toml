@@ -1,7 +1,7 @@
 [general]
 lang="en-US"
 startOnBoot=false
-startPosition=0
+startPosition=1
 showInTray=false
 minimizeToTray=false
 closeToTray=false
