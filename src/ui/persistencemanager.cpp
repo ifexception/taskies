@@ -111,7 +111,10 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
     }
 
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) {
+    if (rc == SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return false;
+    } else if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::ExecStepTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
         sqlite3_finalize(stmt);
@@ -153,7 +156,10 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
     }
 
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) {
+    if (rc == SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return false;
+    } else if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::ExecStepTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
         sqlite3_finalize(stmt);
@@ -195,7 +201,10 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
     }
 
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) {
+    if (rc == SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return false;
+    } else if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::ExecStepTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
         sqlite3_finalize(stmt);
@@ -237,7 +246,10 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
     }
 
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) {
+    if (rc == SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return false;
+    } else if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::ExecStepTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
         sqlite3_finalize(stmt);
@@ -300,8 +312,7 @@ bool PersistenceManager::SaveValue(const std::string& key, const std::string& va
         return false;
     }
 
-    rc = sqlite3_bind_text(
-        stmt, 1, key.c_str(), static_cast<int>(key.size()), SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt, 1, key.c_str(), static_cast<int>(key.size()), SQLITE_TRANSIENT);
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "PersistenceManager", key, 1, rc, err);
