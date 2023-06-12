@@ -75,10 +75,7 @@ bool Application::OnInit()
 
     if (!InitializeTranslations()) {
         pLogger->error("Failed to initialize translations");
-        wxMessageBox("Failed to initialize translations.\n"
-                     "This is most likely due to missing/misconfigured translation files",
-            Common::GetProgramName(),
-            wxICON_ERROR | wxOK_DEFAULT);
+        wxMessageBox("Failed to initialize translations.", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
         return false;
     }
 
