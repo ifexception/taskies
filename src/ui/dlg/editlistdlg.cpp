@@ -180,12 +180,6 @@ void EditListDialog::ConfigureEventBindings()
         IDC_SEARCHBTN
     );
 
-    /*pSearchTextCtrl->Bind(
-        wxEVT_KEY_DOWN,
-        &EditListDialog::OnSearchEnterKeyPressed,
-        this
-    );*/
-
     pResetButton->Bind(
         wxEVT_BUTTON,
         &EditListDialog::OnReset,
@@ -343,15 +337,6 @@ void EditListDialog::OnSearch(wxCommandEvent& event)
         Search();
     }
 }
-
-// void EditListDialog::OnSearchEnterKeyPressed(wxKeyEvent& event)
-//{
-//     if (event.GetKeyCode() == WXK_RETURN) {
-//         SearchEmployers();
-//     }
-//
-//     event.Skip();
-// }
 
 void EditListDialog::OnReset(wxCommandEvent& event)
 {
