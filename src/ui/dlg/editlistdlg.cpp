@@ -19,6 +19,8 @@
 
 #include "editlistdlg.h"
 
+#include <vector>
+
 #include <wx/artprov.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
@@ -35,6 +37,12 @@
 
 namespace tks::UI::dlg
 {
+ListCtrlData::ListCtrlData(std::int64_t entityId, std::string entityName)
+    : EntityId(entityId)
+    , EntityName(entityName)
+{
+}
+
 EditListDialog::EditListDialog(wxWindow* parent,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
@@ -188,8 +196,8 @@ void EditListDialog::ConfigureEventBindings()
     );
 
     pListCtrl->Bind(
-        wxEVT_LIST_ITEM_SELECTED,
-        &EditListDialog::OnItemSelected,
+        wxEVT_LIST_ITEM_ACTIVATED,
+        &EditListDialog::OnItemDoubleClick,
         this,
         IDC_LIST
     );
@@ -235,6 +243,7 @@ void EditListDialog::DataToControls()
 void EditListDialog::EmployerDataToControls()
 {
     std::vector<Model::EmployerModel> employers;
+    std::vector<ListCtrlData> entries;
     Data::EmployerData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, employers);
@@ -245,20 +254,21 @@ void EditListDialog::EmployerDataToControls()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        int listIndex = 0;
-        int columnIndex = 0;
         for (auto& employer : employers) {
-            listIndex = pListCtrl->InsertItem(columnIndex++, employer.Name);
-            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(employer.EmployerId));
-            columnIndex = 0;
+            ListCtrlData data(employer.EmployerId, employer.Name);
+            entries.push_back(data);
         }
+
+        SetDataToControls(entries);
     }
 }
 
 void EditListDialog::ClientDataToControls()
 {
     std::vector<Model::ClientModel> clients;
+    std::vector<ListCtrlData> entries;
     Data::ClientData data(pLogger, mDatabaseFilePath);
+
     int rc = data.Filter(mSearchTerm, clients);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
@@ -267,19 +277,19 @@ void EditListDialog::ClientDataToControls()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        int listIndex = 0;
-        int columnIndex = 0;
         for (auto& client : clients) {
-            listIndex = pListCtrl->InsertItem(columnIndex++, client.Name);
-            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(client.ClientId));
-            columnIndex++;
+            ListCtrlData data(client.ClientId, client.Name);
+            entries.push_back(data);
         }
+
+        SetDataToControls(entries);
     }
 }
 
 void EditListDialog::ProjectDataToControls()
 {
     std::vector<Model::ProjectModel> projects;
+    std::vector<ListCtrlData> entries;
     Data::ProjectData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, projects);
@@ -290,19 +300,19 @@ void EditListDialog::ProjectDataToControls()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        int listIndex = 0;
-        int columnIndex = 0;
-        for (auto& project : projects) {
-            listIndex = pListCtrl->InsertItem(columnIndex++, project.Name);
-            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(project.ProjectId));
-            columnIndex++;
+        for (const auto& project : projects) {
+            ListCtrlData data(project.ProjectId, project.Name);
+            entries.push_back(data);
         }
+
+        SetDataToControls(entries);
     }
 }
 
 void EditListDialog::CategoryDataToControls()
 {
     std::vector<Model::CategoryModel> categories;
+    std::vector<ListCtrlData> entries;
     Data::CategoryData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, categories);
@@ -313,13 +323,23 @@ void EditListDialog::CategoryDataToControls()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        int listIndex = 0;
-        int columnIndex = 0;
-        for (auto& category : categories) {
-            listIndex = pListCtrl->InsertItem(columnIndex++, category.Name);
-            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(category.CategoryId));
-            columnIndex++;
+        for (const auto& category : categories) {
+            ListCtrlData data(category.CategoryId, category.Name);
+            entries.push_back(data);
         }
+
+        SetDataToControls(entries);
+    }
+}
+
+void EditListDialog::SetDataToControls(const std::vector<ListCtrlData>& entries)
+{
+    int listIndex = 0;
+    int columnIndex = 0;
+    for (auto& entry : entries) {
+        listIndex = pListCtrl->InsertItem(columnIndex++, entry.EntityName);
+        pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(entry.EntityId));
+        columnIndex++;
     }
 }
 
@@ -345,7 +365,7 @@ void EditListDialog::OnReset(wxCommandEvent& event)
     Search();
 }
 
-void EditListDialog::OnItemSelected(wxListEvent& event)
+void EditListDialog::OnItemDoubleClick(wxListEvent& event)
 {
     mEntityId = static_cast<std::int64_t>(event.GetData());
     switch (mType) {

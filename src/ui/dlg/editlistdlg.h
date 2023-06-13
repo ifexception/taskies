@@ -42,6 +42,13 @@ namespace tks
 {
 namespace UI::dlg
 {
+struct ListCtrlData {
+    std::int64_t EntityId;
+    std::string EntityName;
+
+    ListCtrlData(std::int64_t entityId, std::string entityName);
+};
+
 class EditListDialog final : public wxDialog
 {
 public:
@@ -68,11 +75,12 @@ private:
     void ClientDataToControls();
     void ProjectDataToControls();
     void CategoryDataToControls();
+    void SetDataToControls(const std::vector<ListCtrlData>& entries);
 
     void OnSearchTextChange(wxCommandEvent& event);
     void OnSearch(wxCommandEvent& event);
     void OnReset(wxCommandEvent& event);
-    void OnItemSelected(wxListEvent& event);
+    void OnItemDoubleClick(wxListEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
