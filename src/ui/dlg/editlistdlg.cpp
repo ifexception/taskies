@@ -436,6 +436,7 @@ void EditListDialog::SearchEmployers()
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::EmployerModel> employers;
+    std::vector<ListCtrlData> entries;
     Data::EmployerData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, employers);
@@ -446,13 +447,12 @@ void EditListDialog::SearchEmployers()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        int listIndex = 0;
-        int columnIndex = 0;
         for (auto& employer : employers) {
-            listIndex = pListCtrl->InsertItem(columnIndex++, employer.Name);
-            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(employer.EmployerId));
-            columnIndex = 0;
+            ListCtrlData data(employer.EmployerId, employer.Name);
+            entries.push_back(data);
         }
+
+        SetDataToControls(entries);
     }
 
     pOkButton->Enable();
@@ -464,6 +464,7 @@ void EditListDialog::SearchClients()
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::ClientModel> clients;
+    std::vector<ListCtrlData> entries;
     Data::ClientData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, clients);
@@ -474,13 +475,12 @@ void EditListDialog::SearchClients()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        int listIndex = 0;
-        int columnIndex = 0;
         for (auto& client : clients) {
-            listIndex = pListCtrl->InsertItem(columnIndex++, client.Name);
-            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(client.ClientId));
-            columnIndex++;
+            ListCtrlData data(client.ClientId, client.Name);
+            entries.push_back(data);
         }
+
+        SetDataToControls(entries);
     }
 
     pOkButton->Enable();
@@ -492,6 +492,7 @@ void EditListDialog::SearchProjects()
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::ProjectModel> projects;
+    std::vector<ListCtrlData> entries;
     Data::ProjectData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, projects);
@@ -502,13 +503,12 @@ void EditListDialog::SearchProjects()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        int listIndex = 0;
-        int columnIndex = 0;
-        for (auto& project : projects) {
-            listIndex = pListCtrl->InsertItem(columnIndex++, project.Name);
-            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(project.ProjectId));
-            columnIndex++;
+        for (const auto& project : projects) {
+            ListCtrlData data(project.ProjectId, project.Name);
+            entries.push_back(data);
         }
+
+        SetDataToControls(entries);
     }
 
     pOkButton->Enable();
@@ -520,6 +520,7 @@ void EditListDialog::SearchCategories()
     pListCtrl->DeleteAllItems();
 
     std::vector<Model::CategoryModel> categories;
+    std::vector<ListCtrlData> entries;
     Data::CategoryData data(pLogger, mDatabaseFilePath);
 
     int rc = data.Filter(mSearchTerm, categories);
@@ -530,13 +531,12 @@ void EditListDialog::SearchCategories()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
-        int listIndex = 0;
-        int columnIndex = 0;
-        for (auto& category : categories) {
-            listIndex = pListCtrl->InsertItem(columnIndex++, category.Name);
-            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(category.CategoryId));
-            columnIndex++;
+        for (const auto& category : categories) {
+            ListCtrlData data(category.CategoryId, category.Name);
+            entries.push_back(data);
         }
+
+        SetDataToControls(entries);
     }
 
     pOkButton->Enable();
