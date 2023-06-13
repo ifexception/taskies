@@ -91,7 +91,7 @@ void CategoryDialog::CreateControls()
 
     pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
     pNameTextCtrl->SetHint("Category name");
-    pNameTextCtrl->SetToolTip("Enter a name for a Category");
+    pNameTextCtrl->SetToolTip("Enter a name for a category");
 
     wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
     wxArrayString allowedCharacters;
@@ -174,7 +174,7 @@ void CategoryDialog::CreateControls()
     metadataFlexGridSizer->Add(0, 0);
 
     pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
-    pIsActiveCtrl->SetToolTip("Indicates if this category entry is being used");
+    pIsActiveCtrl->SetToolTip("Indicates if this category is being used");
     metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     /* Horizontal Line */

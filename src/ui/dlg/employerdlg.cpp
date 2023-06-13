@@ -95,7 +95,7 @@ void EmployerDialog::CreateControls()
 
     pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
     pNameTextCtrl->SetHint("Employer name");
-    pNameTextCtrl->SetToolTip("Enter a name for an Employer");
+    pNameTextCtrl->SetToolTip("Enter a name for an employer");
 
     wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
     wxArrayString allowedCharacters;
@@ -128,7 +128,7 @@ void EmployerDialog::CreateControls()
     pDescriptionTextCtrl = new wxTextCtrl(
         descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
-    pDescriptionTextCtrl->SetToolTip("Enter an optional description for an Employer");
+    pDescriptionTextCtrl->SetToolTip("Enter an optional description for an employer");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     if (bIsEdit) {
@@ -164,7 +164,7 @@ void EmployerDialog::CreateControls()
         metadataFlexGridSizer->Add(0, 0);
 
         pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
-        pIsActiveCtrl->SetToolTip("Indicates if this employer entry is being used");
+        pIsActiveCtrl->SetToolTip("Indicates if this employer is being used");
         metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
     }
 
@@ -225,8 +225,10 @@ void EmployerDialog::DataToControls()
 
     int rc = data.GetById(mEmployerId, employer);
     if (rc == -1) {
-        ErrorDialog errorDialog(
-            this, pLogger, fmt::format("Error occured when fetching employer with ID: \"{}\"", mEmployerId));
+        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
+                            "check the logs for more information...";
+
+        ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
         pNameTextCtrl->SetValue(employer.Name);

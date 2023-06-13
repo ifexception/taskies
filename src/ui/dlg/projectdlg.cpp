@@ -98,7 +98,7 @@ void ProjectDialog::CreateControls()
 
     pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
     pNameTextCtrl->SetHint("Project name");
-    pNameTextCtrl->SetToolTip("Enter a name for a Project");
+    pNameTextCtrl->SetToolTip("Enter a name for a project");
 
     wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
     wxArrayString allowedCharacters;
@@ -124,7 +124,7 @@ void ProjectDialog::CreateControls()
 
     /* Is Default Checkbox Ctrl */
     pIsDefaultCtrl = new wxCheckBox(detailsBox, IDC_ISDEFAULT, "Is Default");
-    pIsDefaultCtrl->SetToolTip("Enabling this option for a project will auto-select this project on task item entry");
+    pIsDefaultCtrl->SetToolTip("Enabling this option for a project will auto-select it on task item entry");
 
     /* Details Grid Sizer */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
@@ -149,7 +149,7 @@ void ProjectDialog::CreateControls()
     pDescriptionTextCtrl = new wxTextCtrl(
         descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
-    pDescriptionTextCtrl->SetToolTip("Enter an optional description for a Project");
+    pDescriptionTextCtrl->SetToolTip("Enter an optional description for a project");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* Files */
@@ -163,13 +163,13 @@ void ProjectDialog::CreateControls()
     auto employerLabel = new wxStaticText(choiceBox, wxID_ANY, "Employer");
 
     pEmployerChoiceCtrl = new wxChoice(choiceBox, IDC_EMPLOYERCHOICE);
-    pEmployerChoiceCtrl->SetToolTip("Select an Employer to associate this Project with");
+    pEmployerChoiceCtrl->SetToolTip("Select an employer to associate this project with");
 
     /* Client choice control */
     auto clientLabel = new wxStaticText(choiceBox, wxID_ANY, "Client");
 
     pClientChoiceCtrl = new wxChoice(choiceBox, IDC_CLIENTCHOICE);
-    pClientChoiceCtrl->SetToolTip("Select an (optional) Client to associate this Project with");
+    pClientChoiceCtrl->SetToolTip("Select an (optional) client to associate this project with");
 
     auto choiceGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     choiceGridSizer->AddGrowableCol(1, 1);
@@ -215,7 +215,7 @@ void ProjectDialog::CreateControls()
         metadataFlexGridSizer->Add(0, 0);
 
         pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
-        pIsActiveCtrl->SetToolTip("Indicates if this employer entry is being used");
+        pIsActiveCtrl->SetToolTip("Indicates if this project is being used");
         metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
     }
 

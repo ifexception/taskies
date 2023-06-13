@@ -97,7 +97,7 @@ void ClientDialog::CreateControls()
 
     pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
     pNameTextCtrl->SetHint("Client name");
-    pNameTextCtrl->SetToolTip("Enter a name for a Client");
+    pNameTextCtrl->SetToolTip("Enter a name for a client");
 
     wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
     wxArrayString allowedCharacters;
@@ -131,7 +131,7 @@ void ClientDialog::CreateControls()
     pDescriptionTextCtrl = new wxTextCtrl(
         descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
-    pDescriptionTextCtrl->SetToolTip("Enter an optional description for a Client");
+    pDescriptionTextCtrl->SetToolTip("Enter an optional description for a client");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* Employer selection */
@@ -143,7 +143,7 @@ void ClientDialog::CreateControls()
     auto employerLabel = new wxStaticText(employerChoiceBox, wxID_ANY, "Employer");
 
     pEmployerChoiceCtrl = new wxChoice(employerChoiceBox, IDC_CHOICE);
-    pEmployerChoiceCtrl->SetToolTip("Select an Employer to associate this Client with");
+    pEmployerChoiceCtrl->SetToolTip("Select an employer to associate this client with");
 
     auto employerChoiceGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     employerChoiceGridSizer->AddGrowableCol(1, 1);
@@ -186,7 +186,7 @@ void ClientDialog::CreateControls()
         metadataFlexGridSizer->Add(0, 0);
 
         pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
-        pIsActiveCtrl->SetToolTip("Indicates if this employer entry is being used");
+        pIsActiveCtrl->SetToolTip("Indicates if this client is being used");
         metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
     }
 
