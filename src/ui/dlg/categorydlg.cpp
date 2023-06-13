@@ -113,7 +113,7 @@ void CategoryDialog::CreateControls()
     pColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
 
     pBillableCtrl = new wxCheckBox(detailsBox, IDC_BILLABLE, "Billable");
-    pBillableCtrl->SetToolTip("Indicates if a task captured with associated category is billable");
+    pBillableCtrl->SetToolTip("Indicates if a task captured with this category is billable");
 
     /* Details Grid Sizer */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
