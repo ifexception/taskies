@@ -74,7 +74,6 @@ private:
     // void OnSearchEnterKeyPressed(wxKeyEvent& event);
     void OnReset(wxCommandEvent& event);
     void OnItemSelected(wxListEvent& event);
-    void OnItemDoubleClick(wxListEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 

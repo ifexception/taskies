@@ -157,7 +157,6 @@ void EditListDialog::CreateControls()
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
     pOkButton->Disable();
-    pCancelButton->Disable();
 
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
@@ -201,13 +200,6 @@ void EditListDialog::ConfigureEventBindings()
         IDC_LIST
     );
 
-    pListCtrl->Bind(
-        wxEVT_LIST_ITEM_ACTIVATED,
-        &EditListDialog::OnItemDoubleClick,
-        this,
-        IDC_LIST
-    );
-
     pOkButton->Bind(
         wxEVT_BUTTON,
         &EditListDialog::OnOK,
@@ -244,7 +236,6 @@ void EditListDialog::DataToControls()
     }
 
     pOkButton->Enable();
-    pCancelButton->Enable();
 }
 
 void EditListDialog::EmployerDataToControls()
@@ -370,12 +361,6 @@ void EditListDialog::OnReset(wxCommandEvent& event)
 }
 
 void EditListDialog::OnItemSelected(wxListEvent& event)
-{
-    wxRichToolTip tooltip("", "Please double click an item to edit it");
-    tooltip.ShowFor(pListCtrl);
-}
-
-void EditListDialog::OnItemDoubleClick(wxListEvent& event)
 {
     mEntityId = static_cast<std::int64_t>(event.GetData());
     switch (mType) {
