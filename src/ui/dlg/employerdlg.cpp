@@ -186,8 +186,7 @@ void EmployerDialog::CreateControls()
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
-    SetSizer(sizer);
-    Fit();
+    SetSizerAndFit(sizer);
 }
 
 // clang-format off
@@ -237,6 +236,7 @@ void EmployerDialog::DataToControls()
         pIsActiveCtrl->SetValue(employer.IsActive);
 
         pOkButton->Enable();
+        pOkButton->SetFocus();
     }
 }
 

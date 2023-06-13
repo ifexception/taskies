@@ -307,6 +307,7 @@ void ClientDialog::DataToControls()
 
     if (isSuccess) {
         pOkButton->Enable();
+        pOkButton->SetFocus();
     }
 }
 

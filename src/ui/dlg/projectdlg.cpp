@@ -346,6 +346,7 @@ void ProjectDialog::DataToControls()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
         isSuccess = false;
+        return;
     } else {
         pEmployerChoiceCtrl->SetStringSelection(employer.Name);
         isSuccess = true;
@@ -364,6 +365,7 @@ void ProjectDialog::DataToControls()
         ErrorDialog errorDialog(this, pLogger, errorMessage);
         errorDialog.ShowModal();
         isSuccess = false;
+        return;
     } else {
         if (!clients.empty()) {
             for (const auto& client : clients) {
@@ -394,6 +396,7 @@ void ProjectDialog::DataToControls()
 
     if (isSuccess) {
         pOkButton->Enable();
+        pOkButton->SetFocus();
     }
 }
 
