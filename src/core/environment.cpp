@@ -101,6 +101,11 @@ std::filesystem::path Environment::ApplicationDatabasePath()
     return GetApplicationDatabasePath();
 }
 
+std::filesystem::path Environment::ApplicationLogPath()
+{
+    return GetApplicationLogPath();
+}
+
 void Environment::SetInstallFolder()
 {
     const std::string ProgramFilesSubstring = "Program Files";

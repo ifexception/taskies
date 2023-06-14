@@ -50,6 +50,7 @@ public:
     std::string GetCurrentLocale();
 
     std::filesystem::path ApplicationDatabasePath();
+    std::filesystem::path ApplicationLogPath();
 
     void SetInstallFolder();
     bool IsSetup();
