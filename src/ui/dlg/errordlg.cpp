@@ -205,10 +205,21 @@ void ErrorDialog::DataToControls()
             return std::filesystem::last_write_time(f1.path()) < std::filesystem::last_write_time(f2.path());
         });
 
+    if (latestLogFileIterator == entries.end()) {
+        pLogger->warn("ErrorDialog - No log files found at {0}", logsPath);
+        return;
+    }
+
     auto latestLogFile = latestLogFileIterator->path().string();
 
     std::vector<std::string> logFileContents;
     std::ifstream ifLogFileStream(latestLogFile);
+
+    if (!ifLogFileStream) {
+        pLogger->error("ErrorDialg - Failed to open file stream to log file at {0}", latestLogFile);
+        return;
+    }
+
     if (ifLogFileStream.is_open()) {
         for (std::string line; std::getline(ifLogFileStream, line);) {
             logFileContents.push_back(line);
