@@ -34,12 +34,17 @@
 
 namespace tks
 {
+namespace Core
+{
+class Environment;
+} // namespace Core
 namespace UI::dlg
 {
 class EmployerDialog final : public wxDialog
 {
 public:
     EmployerDialog(wxWindow* parent,
+        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isEdit = false,
@@ -60,6 +65,7 @@ private:
 
     bool TransferDataAndValidate();
 
+    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 

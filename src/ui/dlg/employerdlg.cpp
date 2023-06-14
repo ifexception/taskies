@@ -28,7 +28,6 @@
 #include "../../common/constants.h"
 
 #include "../../core/environment.h"
-#include "../../core/configuration.h"
 
 #include "../../data/employerdata.h"
 
@@ -37,6 +36,7 @@
 namespace tks::UI::dlg
 {
 EmployerDialog::EmployerDialog(wxWindow* parent,
+    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool isEdit,
@@ -50,6 +50,7 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
+    , pEnv(env)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
@@ -71,7 +72,6 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
 
 void EmployerDialog::Create()
 {
-    SetMinSize(FromDIP(wxSize(280, 380)));
     CreateControls();
     ConfigureEventBindings();
 
@@ -225,10 +225,10 @@ void EmployerDialog::DataToControls()
 
     int rc = data.GetById(mEmployerId, employer);
     if (rc == -1) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+        auto errorMessage = "Failed to get requested employer and the operation could not be completed.\n Please check "
+                            "the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
         pNameTextCtrl->SetValue(employer.Name);
@@ -261,11 +261,10 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         }
 
         if (ret == -1) {
-            pLogger->error("Failed to execute action with employer. Check further logs for more information");
-            auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                                "check logs for more information...";
+            auto errorMessage = "Failed to execute requested action on the employer and the operation could not be "
+                                "completed.\n Please check the logs for more information...";
 
-            ErrorDialog errorDialog(this, pLogger, errorMessage);
+            ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
             errorDialog.ShowModal();
 
             pOkButton->Enable();
