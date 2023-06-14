@@ -19,18 +19,35 @@
 
 #include "errordlg.h"
 
+#include <filesystem>
+#include <fstream>
+#include <vector>
+
 #include <wx/artprov.h>
+#include <wx/collpane.h>
 #include <wx/clipbrd.h>
 #include <wx/statline.h>
+
+#include "../../common/common.h"
+
+#include "../../core/environment.h"
 
 namespace tks::UI::dlg
 {
 ErrorDialog::ErrorDialog(wxWindow* parent,
+    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& message,
     const wxString& name)
-    : wxDialog(parent, wxID_ANY, "Error", wxDefaultPosition, wxDefaultSize, wxCAPTION | wxCLOSE_BOX, name)
+    : wxDialog(parent,
+          wxID_ANY,
+          "Taskies Error",
+          wxDefaultPosition,
+          wxDefaultSize,
+          wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
+          name)
     , pParent(parent)
+    , pEnv(env)
     , pLogger(logger)
     , mMessage(message)
     , pErrorIconBitmap(nullptr)
@@ -40,54 +57,73 @@ ErrorDialog::ErrorDialog(wxWindow* parent,
     , pOpenIssueLink(nullptr)
     , pOkButton(nullptr)
 {
-    Create();
+    SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
-    wxIconBundle iconBundle("TASKIES_ICO", 0);
+    Initialize();
+
+    wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 }
 
-void ErrorDialog::Create()
+void ErrorDialog::Initialize()
 {
     CreateControls();
     ConfigureEventBindings();
     DataToControls();
-
-    SetSize(FromDIP(wxSize(340, 280)));
-    Centre();
 }
 
 void ErrorDialog::CreateControls()
 {
-    /* Main Sizer */
+    /* Base Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     /* Title and Icon */
     auto titleIconSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(titleIconSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Align(wxEXPAND).Proportion(1));
+    sizer->Add(titleIconSizer, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     pErrorIconBitmap = new wxStaticBitmap(this, IDC_ERRORICON, wxArtProvider::GetBitmap(wxART_ERROR));
-    titleIconSizer->Add(pErrorIconBitmap, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    pErrorLabel = new wxStaticText(this, IDC_ERRORLABEL, "Taskies encountered an error");
 
-    pErrorLabel =
-        new wxStaticText(this, IDC_ERRORLABEL, "An unexpected error occured during the operation of the program");
-    titleIconSizer->Add(pErrorLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    titleIconSizer->Add(pErrorIconBitmap, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    titleIconSizer->Add(pErrorLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
 
     /* Error message text control */
     auto errMsgSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(errMsgSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    sizer->Add(errMsgSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     pErrorMessageTextCtrl = new wxTextCtrl(
-        this, IDC_ERRORMESSAGE, wxEmptyString, wxDefaultPosition, wxSize(-1, 56), wxTE_MULTILINE | wxTE_READONLY);
+        this, IDC_ERRORMESSAGE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
     pErrorMessageTextCtrl->SetHint("Error message");
-    pErrorMessageTextCtrl->SetToolTip("Description of the error that occured");
+    pErrorMessageTextCtrl->SetToolTip("User friendly description of the error that occured");
     pErrorMessageTextCtrl->Disable();
     pErrorMessageTextCtrl->SetFont(wxFont(8, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
     errMsgSizer->Add(pErrorMessageTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
+    /* Logs */
+    /* Logs collaspible pane */
+    auto logsCollPane = new wxCollapsiblePane(this, wxID_ANY, "Logs");
+    auto* logsCollPaneWindow = logsCollPane->GetPane();
+
+    /* Logs collaspible pane sizer */
+    auto logsCollPaneSizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Logs Text Ctrl */
+    pLogsTextCtrl = new wxTextCtrl(logsCollPaneWindow,
+        IDC_LOGSTEXTCTRL,
+        wxEmptyString,
+        wxDefaultPosition,
+        FromDIP(wxSize(-1, 156)),
+        wxTE_MULTILINE | wxTE_READONLY);
+    logsCollPaneSizer->Add(pLogsTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+
+    logsCollPaneWindow->SetSizer(logsCollPaneSizer);
+    logsCollPaneSizer->SetSizeHints(logsCollPaneWindow);
+    sizer->Add(logsCollPane, wxSizerFlags().Expand());
+
     /* Action Details box*/
     auto actionsStaticBox = new wxStaticBox(this, wxID_ANY, "Actions");
     auto actionsStaticBoxSizer = new wxStaticBoxSizer(actionsStaticBox, wxHORIZONTAL);
-    sizer->Add(actionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Align(wxEXPAND).Proportion(1));
+    sizer->Add(actionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
     pCopyButton = new wxButton(actionsStaticBox, wxID_COPY, "Copy");
     pCopyButton->SetToolTip("Copy the error message to the clipboard");
@@ -148,6 +184,36 @@ void ErrorDialog::DataToControls()
 {
     if (!mMessage.empty()) {
         pErrorMessageTextCtrl->ChangeValue(mMessage);
+    }
+
+    std::vector<std::filesystem::directory_entry> entries;
+    auto logsPath = pEnv->ApplicationLogPath();
+
+    for (const auto& entry : std::filesystem::directory_iterator(logsPath)) {
+        entries.push_back(entry);
+    }
+
+    auto latestLogFileIterator = std::max_element(entries.begin(),
+        entries.end(),
+        [](const std::filesystem::directory_entry& f1, const std::filesystem::directory_entry& f2) {
+            return std::filesystem::last_write_time(f1.path()) < std::filesystem::last_write_time(f2.path());
+        });
+
+    auto latestLogFile = latestLogFileIterator->path().string();
+
+    std::vector<std::string> logFileContents;
+    std::ifstream ifLogFileStream(latestLogFile);
+    if (ifLogFileStream.is_open()) {
+        for (std::string line; std::getline(ifLogFileStream, line);) {
+            logFileContents.push_back(line);
+        }
+    }
+
+    ifLogFileStream.close();
+
+    for (const auto& line : logFileContents) {
+        pLogsTextCtrl->AppendText(line);
+        pLogsTextCtrl->AppendText('\n');
     }
 }
 

@@ -30,19 +30,30 @@
 
 #include <spdlog/spdlog.h>
 
-namespace tks::UI::dlg
+namespace tks
+{
+namespace Core
+{
+class Environment;
+} // namespace Core
+namespace UI::dlg
 {
 class ErrorDialog final : public wxDialog
 {
 public:
+    ErrorDialog() = delete;
+    ErrorDialog(const ErrorDialog&) = delete;
     ErrorDialog(wxWindow* parent,
+        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& message,
         const wxString& name = "errordlg");
     virtual ~ErrorDialog() = default;
 
+    ErrorDialog& operator=(const ErrorDialog&) = delete;
+
 private:
-    void Create();
+    void Initialize();
 
     void CreateControls();
     void ConfigureEventBindings();
@@ -52,6 +63,7 @@ private:
     void OnCopy(wxCommandEvent& event);
     void OnOpenIssueLinkClick(wxHyperlinkEvent& event);
 
+    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mMessage;
 
@@ -59,10 +71,18 @@ private:
     wxStaticBitmap* pErrorIconBitmap;
     wxStaticText* pErrorLabel;
     wxTextCtrl* pErrorMessageTextCtrl;
+    wxTextCtrl* pLogsTextCtrl;
     wxButton* pCopyButton;
     wxHyperlinkCtrl* pOpenIssueLink;
     wxButton* pOkButton;
 
-    enum ControlIds { IDC_ERRORICON = wxID_HIGHEST + 10, IDC_ERRORLABEL, IDC_ERRORMESSAGE, IDC_OPENISSUELINK };
+    enum ControlIds {
+        IDC_ERRORICON = wxID_HIGHEST + 1000,
+        IDC_ERRORLABEL,
+        IDC_ERRORMESSAGE,
+        IDC_LOGSTEXTCTRL,
+        IDC_OPENISSUELINK
+    };
 };
-} // namespace tks::UI
+} // namespace UI::dlg
+} // namespace tks
