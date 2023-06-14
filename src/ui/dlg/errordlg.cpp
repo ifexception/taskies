@@ -127,14 +127,14 @@ void ErrorDialog::CreateControls()
 
     pCopyButton = new wxButton(actionsStaticBox, wxID_COPY, "Copy");
     pCopyButton->SetToolTip("Copy the error message to the clipboard");
-    actionsStaticBoxSizer->Add(pCopyButton, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+
+    std::string link = "https://taskies.org/open-issue";
+    pOpenIssueLink = new wxHyperlinkCtrl(actionsStaticBox, IDC_OPENISSUELINK, "Open Issue", link);
+    pOpenIssueLink->SetToolTip("Open an issue for the developer to fix");
 
     actionsStaticBoxSizer->AddStretchSpacer();
-
-    std::string link = "https://github.com/ifexception"; /// new?title=BUG%3A&template=ISSUE_TEMPLATE.md";
-    pOpenIssueLink = new wxHyperlinkCtrl(actionsStaticBox, IDC_OPENISSUELINK, "Open Issue", link);
-    pOpenIssueLink->SetToolTip("Open an issue on GitHub to help the developer fix the issue");
     actionsStaticBoxSizer->Add(pOpenIssueLink, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+    actionsStaticBoxSizer->Add(pCopyButton, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
 
     /* Horizontal Line*/
     auto separationLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
