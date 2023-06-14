@@ -109,7 +109,7 @@ void ErrorDialog::CreateControls()
 
     /* Logs Text Ctrl */
     pLogsTextCtrl = new wxTextCtrl(logsCollPaneWindow,
-        IDC_LOGSTEXTCTRL,
+        IDC_LOGSTEXT,
         wxEmptyString,
         wxDefaultPosition,
         FromDIP(wxSize(-1, 156)),
@@ -119,6 +119,12 @@ void ErrorDialog::CreateControls()
     logsCollPaneWindow->SetSizer(logsCollPaneSizer);
     logsCollPaneSizer->SetSizeHints(logsCollPaneWindow);
     sizer->Add(logsCollPane, wxSizerFlags().Expand());
+
+    /* Include logs checkbox ctrl */
+    pIncludeLogsCheckBoxCtrl = new wxCheckBox(this, IDC_INCLUDELOGSCHECK, "Include Logs");
+    pIncludeLogsCheckBoxCtrl->SetToolTip(
+        "By default, taskies will submit an issue without logs. Select this to submit your issue without logs");
+    sizer->Add(pIncludeLogsCheckBoxCtrl, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Right());
 
     /* Action Details box*/
     auto actionsStaticBox = new wxStaticBox(this, wxID_ANY, "Actions");

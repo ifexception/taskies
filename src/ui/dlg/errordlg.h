@@ -72,6 +72,7 @@ private:
     wxStaticText* pErrorLabel;
     wxTextCtrl* pErrorMessageTextCtrl;
     wxTextCtrl* pLogsTextCtrl;
+    wxCheckBox* pIncludeLogsCheckBoxCtrl;
     wxButton* pCopyButton;
     wxHyperlinkCtrl* pOpenIssueLink;
     wxButton* pOkButton;
@@ -80,7 +81,8 @@ private:
         IDC_ERRORICON = wxID_HIGHEST + 1000,
         IDC_ERRORLABEL,
         IDC_ERRORMESSAGE,
-        IDC_LOGSTEXTCTRL,
+        IDC_LOGSTEXT,
+        IDC_INCLUDELOGSCHECK,
         IDC_OPENISSUELINK
     };
 };
