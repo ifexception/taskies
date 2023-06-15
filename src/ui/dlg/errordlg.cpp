@@ -206,7 +206,7 @@ void ErrorDialog::DataToControls()
         });
 
     if (latestLogFileIterator == entries.end()) {
-        pLogger->warn("ErrorDialog - No log files found at {0}", logsPath);
+        pLogger->warn("ErrorDialog - No log files found at {0}", logsPath.string());
         return;
     }
 
@@ -216,7 +216,7 @@ void ErrorDialog::DataToControls()
     std::ifstream ifLogFileStream(latestLogFile);
 
     if (!ifLogFileStream) {
-        pLogger->error("ErrorDialg - Failed to open file stream to log file at {0}", latestLogFile);
+        pLogger->error("ErrorDialog - Failed to open file stream to log file at {0}", latestLogFile);
         return;
     }
 
