@@ -28,7 +28,7 @@ std::string GetProgramName()
 
 std::string GetProgramIconBundleName()
 {
-    return "TASKIES_ICO";
+    return "aTASKIES_ICO";
 }
 
 std::string GetExitIconBundleName()

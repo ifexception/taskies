@@ -5,7 +5,7 @@
 // Note the icon is an embedded icon
 // i.e. Windows will be able to pick an appropriate icon size from:
 // 256,128,96,64,48,32,24,16
-TASKIES_ICO ICON "..\\res\\taskies.ico"
+aTASKIES_ICO ICON "..\\res\\taskies.ico"
 EXIT_ICO ICON "..\\res\\exit.ico"
 
 // Migrations
