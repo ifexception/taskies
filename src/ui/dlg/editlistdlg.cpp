@@ -26,6 +26,7 @@
 #include <wx/statline.h>
 
 #include "../../common/common.h"
+#include "../../core/environment.h"
 
 #include "../../utils/utils.h"
 
@@ -44,6 +45,7 @@ ListCtrlData::ListCtrlData(std::int64_t entityId, std::string entityName)
 }
 
 EditListDialog::EditListDialog(wxWindow* parent,
+    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     EditListEntityType editListEntityType,
@@ -56,6 +58,7 @@ EditListDialog::EditListDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
+    , pEnv(env)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , mType(editListEntityType)
@@ -175,46 +178,17 @@ void EditListDialog::CreateControls()
 //clang-format off
 void EditListDialog::ConfigureEventBindings()
 {
-    pSearchTextCtrl->Bind(
-        wxEVT_TEXT,
-        &EditListDialog::OnSearchTextChange,
-        this
-    );
+    pSearchTextCtrl->Bind(wxEVT_TEXT, &EditListDialog::OnSearchTextChange, this);
 
-    pSearchButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnSearch,
-        this,
-        IDC_SEARCHBTN
-    );
+    pSearchButton->Bind(wxEVT_BUTTON, &EditListDialog::OnSearch, this, IDC_SEARCHBTN);
 
-    pResetButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnReset,
-        this,
-        IDC_RESETBTN
-    );
+    pResetButton->Bind(wxEVT_BUTTON, &EditListDialog::OnReset, this, IDC_RESETBTN);
 
-    pListCtrl->Bind(
-        wxEVT_LIST_ITEM_ACTIVATED,
-        &EditListDialog::OnItemDoubleClick,
-        this,
-        IDC_LIST
-    );
+    pListCtrl->Bind(wxEVT_LIST_ITEM_ACTIVATED, &EditListDialog::OnItemDoubleClick, this, IDC_LIST);
 
-    pOkButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnOK,
-        this,
-        wxID_OK
-    );
+    pOkButton->Bind(wxEVT_BUTTON, &EditListDialog::OnOK, this, wxID_OK);
 
-    pCancelButton->Bind(
-        wxEVT_BUTTON,
-        &EditListDialog::OnCancel,
-        this,
-        wxID_CANCEL
-    );
+    pCancelButton->Bind(wxEVT_BUTTON, &EditListDialog::OnCancel, this, wxID_CANCEL);
 }
 //clang-format on
 
@@ -251,8 +225,8 @@ void EditListDialog::EmployerDataToControls()
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // ErrorDialog errorDialog(this, pLogger, errorMessage);
+        // errorDialog.ShowModal();
     } else {
         for (auto& employer : employers) {
             ListCtrlData data(employer.EmployerId, employer.Name);
@@ -274,8 +248,8 @@ void EditListDialog::ClientDataToControls()
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // ErrorDialog errorDialog(this, pLogger, errorMessage);
+        // errorDialog.ShowModal();
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);
@@ -297,8 +271,8 @@ void EditListDialog::ProjectDataToControls()
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // ErrorDialog errorDialog(this, pLogger, errorMessage);
+        // errorDialog.ShowModal();
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);
@@ -320,8 +294,8 @@ void EditListDialog::CategoryDataToControls()
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // ErrorDialog errorDialog(this, pLogger, errorMessage);
+        // errorDialog.ShowModal();
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);
@@ -370,12 +344,12 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
     mEntityId = static_cast<std::int64_t>(event.GetData());
     switch (mType) {
     case EditListEntityType::Employer: {
-        EmployerDialog employerDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
+        EmployerDialog employerDlg(this, pEnv, pLogger, mDatabaseFilePath, true, mEntityId);
         employerDlg.ShowModal();
         break;
     }
     case EditListEntityType::Client: {
-        ClientDialog clientDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
+        ClientDialog clientDlg(this, pEnv, pLogger, mDatabaseFilePath, true, mEntityId);
         clientDlg.ShowModal();
         break;
     }
@@ -444,8 +418,8 @@ void EditListDialog::SearchEmployers()
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // ErrorDialog errorDialog(this, pLogger, errorMessage);
+        // errorDialog.ShowModal();
     } else {
         for (auto& employer : employers) {
             ListCtrlData data(employer.EmployerId, employer.Name);
@@ -472,8 +446,8 @@ void EditListDialog::SearchClients()
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // ErrorDialog errorDialog(this, pLogger, errorMessage);
+        // errorDialog.ShowModal();
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);
@@ -500,8 +474,8 @@ void EditListDialog::SearchProjects()
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // ErrorDialog errorDialog(this, pLogger, errorMessage);
+        // errorDialog.ShowModal();
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);
@@ -528,8 +502,8 @@ void EditListDialog::SearchCategories()
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // ErrorDialog errorDialog(this, pLogger, errorMessage);
+        // errorDialog.ShowModal();
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);

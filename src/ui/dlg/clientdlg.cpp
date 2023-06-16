@@ -26,18 +26,21 @@
 #include "../../common/constants.h"
 #include "../../common/common.h"
 
+#include "../../core/environment.h"
 #include "../../data/clientdata.h"
-#include "../clientdata.h"
 
 #include "../../models/employermodel.h"
 
 #include "../../utils/utils.h"
+
+#include "../clientdata.h"
 
 #include "errordlg.h"
 
 namespace tks::UI::dlg
 {
 ClientDialog::ClientDialog(wxWindow* parent,
+    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool isEdit,
@@ -51,6 +54,7 @@ ClientDialog::ClientDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
+    , pEnv(env)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
@@ -223,10 +227,10 @@ void ClientDialog::FillControls()
 
     int rc = data.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+        auto errorMessage = "Failed to get requested employer and the operation could not be completed.\n Please check "
+                            "the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
         errorDialog.ShowModal();
     } else {
         for (auto& employer : employers) {
@@ -272,16 +276,17 @@ void ClientDialog::DataToControls()
     int rc = data.GetById(mClientId, client);
     bool isSuccess = false;
     if (rc == -1) {
-        pLogger->error("Failed to execute action with client. Check further logs for more information...");
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check logs for more information...";
+        auto errorMessage = "Failed to get requested client and the operation could not be completed.\n Please check "
+                            "the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
         errorDialog.ShowModal();
 
     } else {
         pNameTextCtrl->SetValue(client.Name);
-        pDescriptionTextCtrl->SetValue(client.Description.has_value() ? client.Description.value() : "");
+        if (client.Description.has_value()) {
+            pDescriptionTextCtrl->SetValue(client.Description.value());
+        }
         pDateCreatedTextCtrl->SetValue(client.GetDateCreatedString());
         pDateModifiedTextCtrl->SetValue(client.GetDateModifiedString());
         pIsActiveCtrl->SetValue(client.IsActive);
@@ -293,11 +298,10 @@ void ClientDialog::DataToControls()
 
     rc = employerData.GetById(client.EmployerId, employer);
     if (rc == -1) {
-        pLogger->error("Failed to execute action with employer. Check further logs for more information...");
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check logs for more information...";
+        auto errorMessage = "Failed to execute requested action on the employer and the operation could not be "
+                            "completed.\n Please check the logs for more information...";
 
-        ErrorDialog errorDialog(this, pLogger, errorMessage);
+        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
         errorDialog.ShowModal();
         isSuccess = false;
     } else {
@@ -333,11 +337,10 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         }
 
         if (ret == -1) {
-            pLogger->error("Failed to execute action with client. Check further logs for more information...");
-            auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                                "check logs for more information...";
+            auto errorMessage = "Failed to execute requested action on the client and the operation could not be "
+                                "completed.\n Please check the logs for more information...";
 
-            ErrorDialog errorDialog(this, pLogger, errorMessage);
+            ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
             errorDialog.ShowModal();
 
             pOkButton->Enable();
