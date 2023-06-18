@@ -281,7 +281,6 @@ void ClientDialog::DataToControls()
 
         ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
         errorDialog.ShowModal();
-
     } else {
         pNameTextCtrl->SetValue(client.Name);
         if (client.Description.has_value()) {
@@ -298,8 +297,8 @@ void ClientDialog::DataToControls()
 
     rc = employerData.GetById(client.EmployerId, employer);
     if (rc == -1) {
-        auto errorMessage = "Failed to execute requested action on the employer and the operation could not be "
-                            "completed.\n Please check the logs for more information...";
+        auto errorMessage = "Failed to get requested employer and the operation could not be completed.\n Please check "
+                            "the logs for more information...";
 
         ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
         errorDialog.ShowModal();
