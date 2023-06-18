@@ -354,12 +354,12 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
         break;
     }
     case EditListEntityType::Project: {
-        ProjectDialog projectDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
+        ProjectDialog projectDlg(this, pEnv, pLogger, mDatabaseFilePath, true, mEntityId);
         projectDlg.ShowModal();
         break;
     }
     case EditListEntityType::Category: {
-        CategoryDialog categoryDlg(this, pLogger, mDatabaseFilePath, mEntityId);
+        CategoryDialog categoryDlg(this, pEnv, pLogger, mDatabaseFilePath, mEntityId);
         categoryDlg.ShowModal();
         break;
     }

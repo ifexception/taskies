@@ -201,25 +201,25 @@ void MainFrame::OnIconize(wxIconizeEvent& event)
 
 void MainFrame::OnNewEmployer(wxCommandEvent& event)
 {
-    UI::dlg::EmployerDialog newEmployerDialog(this, pLogger, mDatabaseFilePath);
+    UI::dlg::EmployerDialog newEmployerDialog(this, pEnv, pLogger, mDatabaseFilePath);
     newEmployerDialog.ShowModal();
 }
 
 void MainFrame::OnNewClient(wxCommandEvent& event)
 {
-    UI::dlg::ClientDialog newClientDialog(this, pLogger, mDatabaseFilePath);
+    UI::dlg::ClientDialog newClientDialog(this, pEnv, pLogger, mDatabaseFilePath);
     newClientDialog.ShowModal();
 }
 
 void MainFrame::OnNewProject(wxCommandEvent& event)
 {
-    UI::dlg::ProjectDialog newProjectDialog(this, pLogger, mDatabaseFilePath);
+    UI::dlg::ProjectDialog newProjectDialog(this, pEnv, pLogger, mDatabaseFilePath);
     newProjectDialog.ShowModal();
 }
 
 void MainFrame::OnNewCategory(wxCommandEvent& event)
 {
-    UI::dlg::CategoriesDialog addCategories(this, pLogger, mDatabaseFilePath);
+    UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger, mDatabaseFilePath);
     addCategories.ShowModal();
 }
 
@@ -245,25 +245,25 @@ void MainFrame::OnExit(wxCommandEvent& event)
 
 void MainFrame::OnEditEmployer(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editEmployer(this, pLogger, mDatabaseFilePath, EditListEntityType::Employer);
+    UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Employer);
     editEmployer.ShowModal();
 }
 
 void MainFrame::OnEditClient(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editClient(this, pLogger, mDatabaseFilePath, EditListEntityType::Client);
+    UI::dlg::EditListDialog editClient(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Client);
     editClient.ShowModal();
 }
 
 void MainFrame::OnEditProject(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editProject(this, pLogger, mDatabaseFilePath, EditListEntityType::Project);
+    UI::dlg::EditListDialog editProject(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Project);
     editProject.ShowModal();
 }
 
 void MainFrame::OnEditCategory(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editCategory(this, pLogger, mDatabaseFilePath, EditListEntityType::Category);
+    UI::dlg::EditListDialog editCategory(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Category);
     editCategory.ShowModal();
 }
 
@@ -290,7 +290,7 @@ void MainFrame::OnAbout(wxCommandEvent& event)
 
 void MainFrame::OnError(wxCommandEvent& event)
 {
-    UI::dlg::ErrorDialog errDialog(this, pLogger, event.GetString().ToStdString());
+    UI::dlg::ErrorDialog errDialog(this, pEnv, pLogger, event.GetString().ToStdString());
     errDialog.ShowModal();
 }
 } // namespace tks::UI
