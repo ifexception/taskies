@@ -35,6 +35,10 @@
 
 namespace tks
 {
+namespace Core
+{
+class Environment;
+} // namespace Core
 namespace UI::dlg
 {
 class CategoryDialog final : public wxDialog
@@ -43,6 +47,7 @@ public:
     CategoryDialog() = delete;
     CategoryDialog(const CategoryDialog&) = delete;
     CategoryDialog(wxWindow* parent,
+        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         std::int64_t categoryId,
@@ -66,6 +71,7 @@ private:
 
     bool TransferDataAndValidate();
 
+    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
