@@ -390,7 +390,7 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
     }
 
     if (ret == -1) {
-        auto errorMessage = "Failed to execute requested action on the category and the operation could not be "
+        auto errorMessage = "Failed to execute requested action on the categories and the operation could not be "
                             "completed.\n Please check the logs for more information...";
 
         ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);

@@ -361,7 +361,7 @@ void ProjectDialog::DataToControls()
     std::string defaultSearchTerm = "";
     rc = clientData.FilterByEmployerId(project.EmployerId, clients);
     if (rc == -1) {
-        auto errorMessage = "Failed to get requested client and the operation could not be completed.\n Please check "
+        auto errorMessage = "Failed to get clients and the operation could not be completed.\n Please check "
                             "the logs for more information...";
 
         ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
@@ -439,7 +439,7 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     int rc = clientData.FilterByEmployerId(employerId, clients);
 
     if (rc != 0) {
-        auto errorMessage = "Failed to get requested client and the operation could not be completed.\n Please check "
+        auto errorMessage = "Failed to get clients and the operation could not be completed.\n Please check "
                             "the logs for more information...";
 
         ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
