@@ -1,3 +1,4 @@
+#define wxUSE_NO_MANIFEST 1
 #include "wx/msw/wx.rc"
 #include "common/version.h"
 
@@ -5,6 +6,10 @@
 // Note the icon is an embedded icon
 // i.e. Windows will be able to pick an appropriate icon size from:
 // 256,128,96,64,48,32,24,16
+// note that the icon used by the Explorer (i.e. the programs icon) is the
+// first icon in the executable and the icons are sorted both by their order
+// and alphabetically (!), so put this icon first and give it a name
+// starting with "a"
 aTASKIES_ICO ICON "..\\res\\taskies.ico"
 EXIT_ICO ICON "..\\res\\exit.ico"
 
