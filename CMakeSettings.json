@@ -16,11 +16,9 @@
         }
       ],
       "inheritEnvironments": [ "msvc_x64" ],
-      "clangTidyChecks": "-*,cppcoreguidelines-*",
       "enableMicrosoftCodeAnalysis": true,
       "intelliSenseMode": "windows-msvc-x64",
-      "addressSanitizerEnabled": true,
-      "enableClangTidyCodeAnalysis": true
+      "addressSanitizerEnabled": false
     }
   ]
 }
