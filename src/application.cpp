@@ -129,11 +129,12 @@ void Application::InitializeLogger()
 
     auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_st>();
 
-    auto msvcLogger = std::make_shared<spdlog::logger>("msvc", msvcSink);
-    msvcLogger->set_level(spdlog::level::trace);
-
     auto dialySink = std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 23, 59);
-    dialySink->set_level(spdlog::level::err);
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+        dialySink->set_level(spdlog::level::info);
+    } else {
+        dialySink->set_level(spdlog::level::warn);
+    }
 
     std::shared_ptr<spdlog::sinks::dist_sink_st> combinedLoggers = std::make_shared<spdlog::sinks::dist_sink_st>();
 
@@ -142,7 +143,6 @@ void Application::InitializeLogger()
 
     auto logger = std::make_shared<spdlog::logger>("taskies-logger", combinedLoggers);
     logger->flush_on(spdlog::level::err);
-    logger->enable_backtrace(32);
 
     pLogger = logger;
 }
