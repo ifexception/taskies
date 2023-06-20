@@ -38,8 +38,11 @@ bool Configuration::Load()
 {
     auto configPath = pEnv->GetConfigurationPath();
     bool exists = std::filesystem::exists(configPath);
+
+    pLogger->trace("Configuration - Probing for configuration file at path {0}", configPath.string());
+
     if (!exists) {
-        pLogger->error("Could not locate configuration file at {0}", configPath.string());
+        pLogger->error("Configuration - Failed to find configuration file at {0}", configPath.string());
         return false;
     }
 
@@ -49,7 +52,8 @@ bool Configuration::Load()
         GetGeneralConfig(data);
         GetDatabaseConfig(data);
     } catch (const toml::syntax_error& error) {
-        pLogger->error("Error occured when parsing toml configuration {0}", error.what());
+        pLogger->error(
+            "Configuration - A TOML syntax/parse error occurred when parsing configuration file {0}", error.what());
         return false;
     }
 
@@ -86,10 +90,13 @@ bool Configuration::Save()
     const std::string configString = toml::format(data, 100);
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
+
+    pLogger->trace("Configuration - Probing for configuration file for writing at path {0}", configFilePath);
+
     std::ofstream configFile;
     configFile.open(configFilePath, std::ios_base::out);
     if (!configFile) {
-        pLogger->error("Failed to open config file at specified location {0}", configFilePath);
+        pLogger->error("Configuration - Failed to open configuration file at path {0}", configFilePath);
         return false;
     }
 
@@ -141,10 +148,13 @@ bool Configuration::RestoreDefaults()
     const std::string configString = toml::format(data, 100);
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
+
+    pLogger->trace("Configuration - Probing for configuration file for writing at path {0}", configFilePath);
+
     std::ofstream configFile;
     configFile.open(configFilePath, std::ios_base::out);
     if (!configFile) {
-        pLogger->error("Failed to open config file at specified location {0}", configFilePath);
+        pLogger->error("Configuration - Failed to open configuration file at path {0}", configFilePath);
         return false;
     }
 

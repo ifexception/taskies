@@ -68,7 +68,6 @@ bool Application::OnInit()
     wxPersistenceManager::Set(*pPersistenceManager);
 
     if (!RunMigrations()) {
-        pLogger->error("Failed to run migrations");
         wxMessageBox("Failed to run migrations", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
         return false;
     }
