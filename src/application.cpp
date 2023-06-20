@@ -128,6 +128,7 @@ void Application::InitializeLogger()
     auto logDirectory = pEnv->GetLogFilePath().string();
 
     auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_st>();
+    msvcSink->set_level(spdlog::level::info);
 
     auto dialySink = std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 23, 59);
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
