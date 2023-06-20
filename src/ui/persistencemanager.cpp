@@ -33,7 +33,7 @@ PersistenceManager::PersistenceManager(std::shared_ptr<spdlog::logger> logger, c
     : pLogger(logger)
     , pDb(nullptr)
 {
-    pLogger->trace("PersistenceManager - Open database connection at path {0}", databaseFile);
+    pLogger->info("PersistenceManager - Open database connection at path {0}", databaseFile);
 
     int rc = sqlite3_open(databaseFile.c_str(), &pDb);
     if (rc != SQLITE_OK) {
@@ -83,14 +83,14 @@ PersistenceManager::PersistenceManager(std::shared_ptr<spdlog::logger> logger, c
 PersistenceManager::~PersistenceManager()
 {
     sqlite3_close(pDb);
-    pLogger->trace("PersistenceManager - Close database connection");
+    pLogger->info("PersistenceManager - Close database connection");
 }
 
 bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxString& name, bool* value)
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->trace("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
+    pLogger->info("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, PersistenceSelectQuery.c_str(), -1, &stmt, nullptr);
@@ -123,7 +123,7 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
 
     *value = (sqlite3_column_int(stmt, 0) > 0);
 
-    pLogger->trace("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", *value, key);
+    pLogger->info("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", *value, key);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -141,7 +141,7 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->trace("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
+    pLogger->info("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, PersistenceSelectQuery.c_str(), -1, &stmt, nullptr);
@@ -174,7 +174,7 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
 
     *value = sqlite3_column_int(stmt, 0);
 
-    pLogger->trace("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", *value, key);
+    pLogger->info("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", *value, key);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -192,7 +192,7 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->trace("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
+    pLogger->info("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, PersistenceSelectQuery.c_str(), -1, &stmt, nullptr);
@@ -225,7 +225,7 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
 
     *value = static_cast<long>(sqlite3_column_int(stmt, 0));
 
-    pLogger->trace("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", *value, key);
+    pLogger->info("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", *value, key);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -243,7 +243,7 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->trace("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
+    pLogger->info("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, PersistenceSelectQuery.c_str(), -1, &stmt, nullptr);
@@ -277,7 +277,7 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
     const unsigned char* res = sqlite3_column_text(stmt, 0);
     *value = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, 0));
 
-    pLogger->trace("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", value->ToStdString(), key);
+    pLogger->info("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", value->ToStdString(), key);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -295,7 +295,7 @@ bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->trace("PersistenceManager - Attempting to save value with key \"{0}\"", key);
+    pLogger->info("PersistenceManager - Attempting to save value with key \"{0}\"", key);
 
     bool ret = SaveValue(key, std::to_string(value));
     return ret;
@@ -305,7 +305,7 @@ bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->trace("PersistenceManager - Attempting to save value with key \"{0}\"", key);
+    pLogger->info("PersistenceManager - Attempting to save value with key \"{0}\"", key);
 
     bool ret = SaveValue(key, std::to_string(value));
     return ret;
@@ -315,7 +315,7 @@ bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->trace("PersistenceManager - Attempting to save value with key \"{0}\"", key);
+    pLogger->info("PersistenceManager - Attempting to save value with key \"{0}\"", key);
 
     bool ret = SaveValue(key, std::to_string(value));
     return ret;
@@ -325,7 +325,7 @@ bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->trace("PersistenceManager - Attempting to save value with key \"{0}\"", key);
+    pLogger->info("PersistenceManager - Attempting to save value with key \"{0}\"", key);
 
     bool ret = SaveValue(key, value.ToStdString());
     return ret;
@@ -372,7 +372,7 @@ bool PersistenceManager::SaveValue(const std::string& key, const std::string& va
         return false;
     }
 
-    pLogger->trace("PersistenceManager - Saved value \"{0}\" for key \"{1}\"", value, key);
+    pLogger->info("PersistenceManager - Saved value \"{0}\" for key \"{1}\"", value, key);
     sqlite3_finalize(stmt);
     return true;
 }
