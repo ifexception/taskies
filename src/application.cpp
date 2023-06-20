@@ -64,7 +64,8 @@ bool Application::OnInit()
         return false;
     }
 
-    pPersistenceManager = std::make_unique<UI::PersistenceManager>(pEnv, pLogger);
+    pPersistenceManager = std::make_unique<UI::PersistenceManager>(
+        pLogger, pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath());
     wxPersistenceManager::Set(*pPersistenceManager);
 
     if (!RunMigrations()) {

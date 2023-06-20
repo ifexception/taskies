@@ -29,19 +29,16 @@ const std::string PersistenceManager::PersistenceSelectQuery = "SELECT value FRO
 const std::string PersistenceManager::PersistenceInsertQuery =
     "INSERT OR REPLACE INTO persistent_objects(key, value) VALUES(?, ?);";
 
-PersistenceManager::PersistenceManager(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger)
-    : pEnv(env)
-    , pLogger(logger)
+PersistenceManager::PersistenceManager(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFile)
+    : pLogger(logger)
     , pDb(nullptr)
 {
-    auto databaseFile = pEnv->GetDatabasePath().string();
     int rc = sqlite3_open(databaseFile.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::OpenDatabaseTemplate,
             "PersistenceManager",
-            pEnv->GetDatabaseName(),
-            pEnv->GetDatabasePath().string(),
+            databaseFile,
             rc,
             std::string(err));
     }

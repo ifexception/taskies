@@ -20,6 +20,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -41,7 +42,7 @@ namespace UI
 class PersistenceManager : public wxPersistenceManager
 {
 public:
-    PersistenceManager(std::shared_ptr<Core::Environment> env, std::shared_ptr<spdlog::logger> logger);
+    PersistenceManager(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFile);
     virtual ~PersistenceManager();
 
     bool RestoreValue(const wxPersistentObject& who, const wxString& name, bool* value) override;
