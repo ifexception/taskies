@@ -211,6 +211,8 @@ bool DatabaseMigration::Migrate()
             const char* err = sqlite3_errmsg(pDb);
             pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "DatabaseMigration", rc, err);
         }
+
+        sqlite3_finalize(migrationHistoryStmt);
     }
 
     rc = sqlite3_exec(pDb, CommitTransactionQuery.c_str(), nullptr, nullptr, nullptr);
