@@ -39,12 +39,14 @@ bool Configuration::Load()
     auto configPath = pEnv->GetConfigurationPath();
     bool exists = std::filesystem::exists(configPath);
 
-    pLogger->trace("Configuration - Probing for configuration file at path {0}", configPath.string());
+    pLogger->info("Configuration - Probing for configuration file at path {0}", configPath.string());
 
     if (!exists) {
         pLogger->error("Configuration - Failed to find configuration file at {0}", configPath.string());
         return false;
     }
+
+    pLogger->info("Configuration - Successfully located configuration file at path {0}", configPath.string());
 
     try {
         auto data = toml::parse(configPath.string());
@@ -91,7 +93,7 @@ bool Configuration::Save()
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
-    pLogger->trace("Configuration - Probing for configuration file for writing at path {0}", configFilePath);
+    pLogger->info("Configuration - Probing for configuration file for writing at path {0}", configFilePath);
 
     std::ofstream configFile;
     configFile.open(configFilePath, std::ios_base::out);
@@ -149,7 +151,7 @@ bool Configuration::RestoreDefaults()
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
-    pLogger->trace("Configuration - Probing for configuration file for writing at path {0}", configFilePath);
+    pLogger->info("Configuration - Probing for configuration file for writing at path {0}", configFilePath);
 
     std::ofstream configFile;
     configFile.open(configFilePath, std::ios_base::out);
