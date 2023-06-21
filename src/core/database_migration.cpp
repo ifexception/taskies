@@ -133,7 +133,7 @@ bool DatabaseMigration::Migrate()
     );
     // clang-format on
 
-    pLogger->info("DatabaseMigration - Count of migrations to run {0}", migrations.size());
+    pLogger->info("DatabaseMigration - Count of migrations to run: {0}", migrations.size());
     pLogger->info("DatabaseMigration - Begin migration transaction");
 
     int rc = sqlite3_exec(pDb, BeginTransactionQuery.c_str(), nullptr, nullptr, nullptr);
@@ -168,17 +168,18 @@ bool DatabaseMigration::Migrate()
                 const char* err = sqlite3_errmsg(pDb);
                 pLogger->error(LogMessage::ExecStepTemplate, "DatabaseMigration", migration.name.c_str(), rc, err);
                 sqlite3_finalize(migrationStmt);
-                return false;
+                break;
             }
 
             sqlite3_finalize(migrationStmt);
 
-            pLogger->info("DatabaseMigration - Completed migration \"{0}\"", migration.name);
-        } while (sql && sql[0] != '\0');
+        } while (sql && sql[0] != '\0' && sql[0] != '\n');
+
+        pLogger->info("DatabaseMigration - Completed migration \"{0}\"", migration.name);
 
         sqlite3_stmt* migrationHistoryStmt = nullptr;
 
-        pLogger->info("DatabaseMigration - Insert migration \"{0}\" into MigrationHistory table");
+        pLogger->info("DatabaseMigration - Insert migration \"{0}\" into MigrationHistory table", migration.name);
 
         int mhrc = sqlite3_prepare_v2(pDb, InsertMigrationHistoryQuery.c_str(), -1, &migrationHistoryStmt, nullptr);
         if (mhrc != SQLITE_OK) {
@@ -209,16 +210,10 @@ bool DatabaseMigration::Migrate()
             return false;
         }
 
-        mhrc = sqlite3_step(migrationHistoryStmt);
-        if (mhrc != SQLITE_DONE) {
-            const char* err = sqlite3_errmsg(pDb);
-            pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "DatabaseMigration", rc, err);
-        }
-
         sqlite3_finalize(migrationHistoryStmt);
 
         pLogger->info(
-            "DatabaseMigration - Completed inserting migration \"{0}\" into MigrationHistory table", migration.name);
+            "DatabaseMigration - Completed insert of migration \"{0}\" into MigrationHistory table", migration.name);
     }
 
     rc = sqlite3_exec(pDb, CommitTransactionQuery.c_str(), nullptr, nullptr, nullptr);
