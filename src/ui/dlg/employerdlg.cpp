@@ -29,7 +29,7 @@
 
 #include "../../core/environment.h"
 
-#include "../../data/employerdata.h"
+#include "../../dao/employerdao.h"
 
 #include "errordlg.h"
 
@@ -221,9 +221,9 @@ void EmployerDialog::DataToControls()
     pOkButton->Disable();
 
     Model::EmployerModel employer;
-    Data::EmployerData data(pLogger, mDatabaseFilePath);
+    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.GetById(mEmployerId, employer);
+    int rc = employerDao.GetById(mEmployerId, employer);
     if (rc == -1) {
         auto errorMessage = "Failed to get requested employer and the operation could not be completed.\n Please check "
                             "the logs for more information...";
@@ -247,17 +247,18 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     if (TransferDataAndValidate()) {
-        Data::EmployerData data(pLogger, mDatabaseFilePath);
+        DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+
         int ret = 0;
         if (!bIsEdit) {
-            std::int64_t employerId = data.Create(mEmployer);
+            std::int64_t employerId = employerDao.Create(mEmployer);
             ret = employerId > 0 ? 1 : -1;
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = data.Update(mEmployer);
+            ret = employerDao.Update(mEmployer);
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = data.Delete(mEmployerId);
+            ret = employerDao.Delete(mEmployerId);
         }
 
         if (ret == -1) {

@@ -30,6 +30,10 @@
 
 #include "../../core/environment.h"
 
+#include "../../dao/employerdao.h"
+
+#include "../../models/employermodel.h"
+
 #include "../../utils/utils.h"
 
 #include "../clientdata.h"
@@ -252,9 +256,9 @@ void ProjectDialog::FillControls()
 
     std::vector<Model::EmployerModel> employers;
     std::string defaultSearhTerm = "";
-    Data::EmployerData employerData(pLogger, mDatabaseFilePath);
+    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
 
-    int rc = employerData.Filter(defaultSearhTerm, employers);
+    int rc = employerDao.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
         auto errorMessage = "Failed to get requested employer and the operation could not be completed.\n Please check "
                             "the logs for more information...";
@@ -339,9 +343,9 @@ void ProjectDialog::DataToControls()
     }
 
     Model::EmployerModel employer;
-    Data::EmployerData employerData(pLogger, mDatabaseFilePath);
+    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
 
-    rc = employerData.GetById(project.EmployerId, employer);
+    rc = employerDao.GetById(project.EmployerId, employer);
     if (rc == -1) {
         auto errorMessage = "Failed to get requested employer and the operation could not be completed.\n Please check "
                             "the logs for more information...";

@@ -26,7 +26,10 @@
 #include <wx/statline.h>
 
 #include "../../common/common.h"
+
 #include "../../core/environment.h"
+
+#include "../../dao/employerdao.h"
 
 #include "../../utils/utils.h"
 
@@ -247,9 +250,9 @@ void EditListDialog::EmployerDataToControls()
 {
     std::vector<Model::EmployerModel> employers;
     std::vector<ListCtrlData> entries;
-    Data::EmployerData data(pLogger, mDatabaseFilePath);
+    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.Filter(mSearchTerm, employers);
+    int rc = employerDao.Filter(mSearchTerm, employers);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
@@ -440,9 +443,9 @@ void EditListDialog::SearchEmployers()
 
     std::vector<Model::EmployerModel> employers;
     std::vector<ListCtrlData> entries;
-    Data::EmployerData data(pLogger, mDatabaseFilePath);
+    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.Filter(mSearchTerm, employers);
+    int rc = employerDao.Filter(mSearchTerm, employers);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";

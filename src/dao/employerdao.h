@@ -32,13 +32,13 @@
 
 namespace tks
 {
-namespace Data
+namespace DAO
 {
-class EmployerData final
+class EmployerDao final
 {
 public:
-    EmployerData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~EmployerData();
+    EmployerDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~EmployerDao();
 
     std::int64_t Create(const Model::EmployerModel& employer);
     int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
@@ -58,5 +58,5 @@ private:
     static const std::string update;
     static const std::string isActive;
 };
-} // namespace Data
+} // namespace DAO
 } // namespace tks

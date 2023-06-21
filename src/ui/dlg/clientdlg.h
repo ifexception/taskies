@@ -29,8 +29,6 @@
 
 #include <spdlog/spdlog.h>
 
-#include "../../data/employerdata.h"
-
 #include "../../models/clientmodel.h"
 
 namespace tks

@@ -28,8 +28,11 @@ set (SRC_MODELS
     "models/categorymodel.cpp"
 )
 
+set(SRC_DAO
+    "dao/employerdao.cpp"
+)
+
 set (SRC_DATA
-    "data/employerdata.cpp"
     "data/clientdata.cpp"
     "data/projectdata.cpp"
     "data/categorydata.cpp"
@@ -68,6 +71,7 @@ set (SRC
     "common/enums.cpp"
     "common/constants.cpp"
     ${SRC_MODELS}
+    ${SRC_DAO}
     ${SRC_DATA}
     ${SRC_DIALOGS}
 )
