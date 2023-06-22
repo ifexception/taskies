@@ -31,17 +31,17 @@
 
 namespace tks
 {
-namespace Data
+namespace DAO
 {
-class ProjectData final
+class ProjectDao final
 {
 public:
-    ProjectData() = delete;
-    ProjectData(const ProjectData&) = delete;
-    ProjectData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~ProjectData();
+    ProjectDao() = delete;
+    ProjectDao(const ProjectDao&) = delete;
+    ProjectDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~ProjectDao();
 
-    ProjectData& operator=(const ProjectData&) = delete;
+    ProjectDao& operator=(const ProjectDao&) = delete;
 
     std::int64_t Create(Model::ProjectModel& client);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ProjectModel>& clients);

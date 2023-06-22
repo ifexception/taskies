@@ -31,6 +31,12 @@
 
 #include "../../dao/employerdao.h"
 #include "../../dao/clientdao.h"
+#include "../../dao/projectdao.h"
+
+#include "../../models/employermodel.h"
+#include "../../models/clientmodel.h"
+#include "../../models/projectmodel.h"
+#include "../../models/categorymodel.h"
 
 #include "../../utils/utils.h"
 
@@ -297,9 +303,9 @@ void EditListDialog::ProjectDataToControls()
 {
     std::vector<Model::ProjectModel> projects;
     std::vector<ListCtrlData> entries;
-    Data::ProjectData data(pLogger, mDatabaseFilePath);
+    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.Filter(mSearchTerm, projects);
+    int rc = projectDao.Filter(mSearchTerm, projects);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
@@ -500,9 +506,9 @@ void EditListDialog::SearchProjects()
 
     std::vector<Model::ProjectModel> projects;
     std::vector<ListCtrlData> entries;
-    Data::ProjectData data(pLogger, mDatabaseFilePath);
+    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.Filter(mSearchTerm, projects);
+    int rc = projectDao.Filter(mSearchTerm, projects);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";

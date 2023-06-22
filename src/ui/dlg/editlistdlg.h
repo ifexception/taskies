@@ -33,7 +33,6 @@
 
 #include "../../common/enums.h"
 
-#include "../../data/projectdata.h"
 #include "../../data/categorydata.h"
 
 namespace tks
@@ -95,7 +94,7 @@ private:
 
     std::string GetSearchHintText();
 
-    std::shared_ptr<Core::Environment> pEnv; 
+    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 
     std::string mDatabaseFilePath;

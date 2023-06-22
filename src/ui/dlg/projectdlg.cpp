@@ -32,6 +32,7 @@
 
 #include "../../dao/employerdao.h"
 #include "../../dao/clientdao.h"
+#include "../../dao/projectdao.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -322,10 +323,10 @@ void ProjectDialog::ConfigureEventBindings()
 void ProjectDialog::DataToControls()
 {
     Model::ProjectModel project;
-    Data::ProjectData data(pLogger, mDatabaseFilePath);
+    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
-    int rc = data.GetById(mProjectId, project);
+    int rc = projectDao.GetById(mProjectId, project);
     if (rc != 0) {
         auto errorMessage = "Failed to get requested project and the operation could not be completed.\n Please check "
                             "the logs for more information...";
@@ -477,22 +478,22 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     if (TransferDataAndValidate()) {
-        Data::ProjectData projectData(pLogger, mDatabaseFilePath);
+        DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
         int ret = 0;
 
         if (pIsDefaultCtrl->IsChecked()) {
-            ret = projectData.UnmarkDefault();
+            ret = projectDao.UnmarkDefault();
         }
 
         if (!bIsEdit) {
-            std::int64_t projectId = projectData.Create(mProjectModel);
+            std::int64_t projectId = projectDao.Create(mProjectModel);
             ret = projectId > 0 ? 0 : -1;
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = projectData.Update(mProjectModel);
+            ret = projectDao.Update(mProjectModel);
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = projectData.Delete(mProjectId);
+            ret = projectDao.Delete(mProjectId);
         }
 
         if (ret == -1) {

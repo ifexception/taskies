@@ -30,8 +30,6 @@
 
 #include <spdlog/logger.h>
 
-#include "../../data/projectdata.h"
-
 #include "../../models/projectmodel.h"
 
 namespace tks
