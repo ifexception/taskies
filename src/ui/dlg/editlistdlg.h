@@ -33,7 +33,6 @@
 
 #include "../../common/enums.h"
 
-#include "../../data/clientdata.h"
 #include "../../data/projectdata.h"
 #include "../../data/categorydata.h"
 

@@ -30,7 +30,6 @@
 
 #include <spdlog/logger.h>
 
-#include "../../data/clientdata.h"
 #include "../../data/projectdata.h"
 
 #include "../../models/projectmodel.h"

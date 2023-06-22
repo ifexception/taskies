@@ -30,10 +30,10 @@ set (SRC_MODELS
 
 set(SRC_DAO
     "dao/employerdao.cpp"
+    "dao/clientdao.cpp"
 )
 
 set (SRC_DATA
-    "data/clientdata.cpp"
     "data/projectdata.cpp"
     "data/categorydata.cpp"
 )

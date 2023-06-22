@@ -29,9 +29,10 @@
 #include "../../core/environment.h"
 
 #include "../../dao/employerdao.h"
-#include "../../data/clientdata.h"
+#include "../../dao/clientdao.h"
 
 #include "../../models/employermodel.h"
+#include "../../models/clientmodel.h"
 
 #include "../../utils/utils.h"
 
@@ -273,9 +274,9 @@ void ClientDialog::ConfigureEventBindings()
 void ClientDialog::DataToControls()
 {
     Model::ClientModel client;
-    Data::ClientData data(pLogger, mDatabaseFilePath);
+    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.GetById(mClientId, client);
+    int rc = clientDao.GetById(mClientId, client);
     bool isSuccess = false;
     if (rc == -1) {
         auto errorMessage = "Failed to get requested client and the operation could not be completed.\n Please check "
@@ -322,19 +323,19 @@ void ClientDialog::OnOK(wxCommandEvent& event)
     pCancelButton->Disable();
 
     if (TransferDataAndValidate()) {
-        Data::ClientData data(pLogger, mDatabaseFilePath);
+        DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
 
         int ret = 0;
         if (!bIsEdit) {
-            std::int64_t clientId = data.Create(mClientModel);
+            std::int64_t clientId = clientDao.Create(mClientModel);
             ret = clientId > 0 ? 1 : -1;
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = data.Update(mClientModel);
+            ret = clientDao.Update(mClientModel);
         }
 
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = data.Delete(mClientId);
+            ret = clientDao.Delete(mClientId);
         }
 
         if (ret == -1) {

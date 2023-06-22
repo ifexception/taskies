@@ -30,17 +30,17 @@
 
 namespace tks
 {
-namespace Data
+namespace DAO
 {
-class ClientData final
+class ClientDao final
 {
 public:
-    ClientData() = delete;
-    ClientData(const ClientData&) = delete;
-    ClientData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~ClientData();
+    ClientDao() = delete;
+    ClientDao(const ClientDao&) = delete;
+    ClientDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~ClientDao();
 
-    ClientData& operator=(const ClientData&) = delete;
+    ClientDao& operator=(const ClientDao&) = delete;
 
     std::int64_t Create(Model::ClientModel& client);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ClientModel>& clients);

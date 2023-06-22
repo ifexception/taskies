@@ -17,7 +17,7 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "clientdata.h"
+#include "clientdao.h"
 
 #include "../common/constants.h"
 
@@ -25,68 +25,68 @@
 
 #include "../utils/utils.h"
 
-namespace tks::Data
+namespace tks::DAO
 {
-ClientData::ClientData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
+ClientDao::ClientDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
     : pLogger(logger)
     , pDb(nullptr)
 {
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate, "ClientData", databaseFilePath, rc, std::string(err));
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "ClientDao", databaseFilePath, rc, std::string(err));
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientDao", Utils::sqlite::pragmas::ForeignKeys, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::JournalMode, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientDao", Utils::sqlite::pragmas::JournalMode, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::Synchronous, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientDao", Utils::sqlite::pragmas::Synchronous, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::TempStore, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientDao", Utils::sqlite::pragmas::TempStore, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ClientData", Utils::sqlite::pragmas::MmapSize, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ClientDao", Utils::sqlite::pragmas::MmapSize, rc, err);
         return;
     }
 }
 
-ClientData::~ClientData()
+ClientDao::~ClientDao()
 {
     sqlite3_close(pDb);
 }
 
-std::int64_t ClientData::Create(Model::ClientModel& model)
+std::int64_t ClientDao::Create(Model::ClientModel& model)
 {
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::create.c_str(), static_cast<int>(ClientData::create.size()), &stmt, nullptr);
+        pDb, ClientDao::create.c_str(), static_cast<int>(ClientDao::create.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::create, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientDao", ClientDao::create, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -96,7 +96,7 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
         sqlite3_bind_text(stmt, bindIndex++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "name", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "name", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -113,7 +113,7 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "description", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "description", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -122,7 +122,7 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
     rc = sqlite3_bind_int64(stmt, bindIndex++, model.EmployerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_id", 3, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "employer_id", 3, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -130,7 +130,7 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::create, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientDao", ClientDao::create, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -141,16 +141,16 @@ std::int64_t ClientData::Create(Model::ClientModel& model)
     return rowId;
 }
 
-int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientModel>& clients)
+int ClientDao::Filter(const std::string& searchTerm, std::vector<Model::ClientModel>& clients)
 {
     sqlite3_stmt* stmt = nullptr;
     auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
 
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::filter.c_str(), static_cast<int>(ClientData::filter.size()), &stmt, nullptr);
+        pDb, ClientDao::filter.c_str(), static_cast<int>(ClientDao::filter.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::filter, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientDao", ClientDao::filter, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -161,7 +161,7 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
         stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "name", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "name", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -171,7 +171,7 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
         stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "description", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "description", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -181,7 +181,7 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
         stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_name", 3, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "employer_name", 3, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -223,7 +223,7 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
 
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::filter, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientDao", ClientDao::filter, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -233,15 +233,15 @@ int ClientData::Filter(const std::string& searchTerm, std::vector<Model::ClientM
     return 0;
 }
 
-int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
+int ClientDao::GetById(const std::int64_t clientId, Model::ClientModel& model)
 {
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::getById.c_str(), static_cast<int>(ClientData::getById.size()), &stmt, nullptr);
+        pDb, ClientDao::getById.c_str(), static_cast<int>(ClientDao::getById.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::getById, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientDao", ClientDao::getById, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -249,7 +249,7 @@ int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
     rc = sqlite3_bind_int64(stmt, 1, clientId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "client_id", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "client_id", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -257,7 +257,7 @@ int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::getById, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientDao", ClientDao::getById, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -281,7 +281,7 @@ int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "ClientData", rc, err);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "ClientDao", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -291,15 +291,15 @@ int ClientData::GetById(const std::int64_t clientId, Model::ClientModel& model)
     return 0;
 }
 
-int ClientData::Update(Model::ClientModel& model)
+int ClientDao::Update(Model::ClientModel& model)
 {
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::update.c_str(), static_cast<int>(ClientData::update.size()), &stmt, nullptr);
+        pDb, ClientDao::update.c_str(), static_cast<int>(ClientDao::update.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::update, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientDao", ClientDao::update, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -309,7 +309,7 @@ int ClientData::Update(Model::ClientModel& model)
         sqlite3_bind_text(stmt, bindIndex++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "name", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "name", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -326,7 +326,7 @@ int ClientData::Update(Model::ClientModel& model)
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "description", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "description", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -335,7 +335,7 @@ int ClientData::Update(Model::ClientModel& model)
     rc = sqlite3_bind_int64(stmt, bindIndex++, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "date_modified", 3, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "date_modified", 3, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -343,7 +343,7 @@ int ClientData::Update(Model::ClientModel& model)
     rc = sqlite3_bind_int64(stmt, bindIndex++, model.EmployerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_id", 4, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "employer_id", 4, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -351,7 +351,7 @@ int ClientData::Update(Model::ClientModel& model)
     rc = sqlite3_bind_int64(stmt, bindIndex++, model.ClientId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "client_id", 5, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "client_id", 5, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -359,7 +359,7 @@ int ClientData::Update(Model::ClientModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::update, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientDao", ClientDao::update, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -369,14 +369,14 @@ int ClientData::Update(Model::ClientModel& model)
     return 0;
 }
 
-int ClientData::Delete(const std::int64_t clientId)
+int ClientDao::Delete(const std::int64_t clientId)
 {
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
-        pDb, ClientData::isActive.c_str(), static_cast<int>(ClientData::isActive.size()), &stmt, nullptr);
+        pDb, ClientDao::isActive.c_str(), static_cast<int>(ClientDao::isActive.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::isActive, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientDao", ClientDao::isActive, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -386,7 +386,7 @@ int ClientData::Delete(const std::int64_t clientId)
     rc = sqlite3_bind_int64(stmt, bindIdx++, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "date_modified", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "date_modified", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -394,7 +394,7 @@ int ClientData::Delete(const std::int64_t clientId)
     rc = sqlite3_bind_int64(stmt, bindIdx++, clientId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "client_id", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "client_id", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -402,7 +402,7 @@ int ClientData::Delete(const std::int64_t clientId)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::isActive, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientDao", ClientDao::isActive, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -412,18 +412,18 @@ int ClientData::Delete(const std::int64_t clientId)
     return 0;
 }
 
-int ClientData::FilterByEmployerId(const std::int64_t employerId, std::vector<Model::ClientModel>& clients)
+int ClientDao::FilterByEmployerId(const std::int64_t employerId, std::vector<Model::ClientModel>& clients)
 {
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
-        ClientData::filterByEmployerId.c_str(),
-        static_cast<int>(ClientData::filterByEmployerId.size()),
+        ClientDao::filterByEmployerId.c_str(),
+        static_cast<int>(ClientDao::filterByEmployerId.size()),
         &stmt,
         nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientData", ClientData::filterByEmployerId, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ClientDao", ClientDao::filterByEmployerId, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -433,7 +433,7 @@ int ClientData::FilterByEmployerId(const std::int64_t employerId, std::vector<Mo
     rc = sqlite3_bind_int64(stmt, bindIdx++, employerId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ClientData", "employer_id", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "ClientDao", "employer_id", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -476,7 +476,7 @@ int ClientData::FilterByEmployerId(const std::int64_t employerId, std::vector<Mo
 
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "ClientData", ClientData::filterByEmployerId, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ClientDao", ClientDao::filterByEmployerId, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -486,12 +486,12 @@ int ClientData::FilterByEmployerId(const std::int64_t employerId, std::vector<Mo
     return 0;
 }
 
-std::int64_t ClientData::GetLastInsertId() const
+std::int64_t ClientDao::GetLastInsertId() const
 {
     return sqlite3_last_insert_rowid(pDb);
 }
 
-const std::string ClientData::create = "INSERT INTO "
+const std::string ClientDao::create = "INSERT INTO "
                                        "clients "
                                        "("
                                        "name, "
@@ -500,7 +500,7 @@ const std::string ClientData::create = "INSERT INTO "
                                        ") "
                                        "VALUES (?, ?, ?)";
 
-const std::string ClientData::filter = "SELECT "
+const std::string ClientDao::filter = "SELECT "
                                        "clients.client_id, "
                                        "clients.name AS client_name, "
                                        "clients.description AS client_description, "
@@ -517,7 +517,7 @@ const std::string ClientData::filter = "SELECT "
                                        "OR client_description LIKE ? "
                                        "OR employer_name LIKE ?); ";
 
-const std::string ClientData::getById = "SELECT "
+const std::string ClientDao::getById = "SELECT "
                                         "clients.client_id, "
                                         "clients.name, "
                                         "clients.description, "
@@ -528,7 +528,7 @@ const std::string ClientData::getById = "SELECT "
                                         "FROM clients "
                                         "WHERE clients.client_id = ?";
 
-const std::string ClientData::update = "UPDATE clients "
+const std::string ClientDao::update = "UPDATE clients "
                                        "SET "
                                        "name = ?, "
                                        "description = ?, "
@@ -536,13 +536,13 @@ const std::string ClientData::update = "UPDATE clients "
                                        "employer_id = ? "
                                        "WHERE client_id = ?";
 
-const std::string ClientData::isActive = "UPDATE clients "
+const std::string ClientDao::isActive = "UPDATE clients "
                                          "SET "
                                          "is_active = 0, "
                                          "date_modified = ? "
                                          "WHERE client_id = ?";
 
-const std::string ClientData::filterByEmployerId = "SELECT "
+const std::string ClientDao::filterByEmployerId = "SELECT "
                                                    "clients.client_id, "
                                                    "clients.name, "
                                                    "clients.description, "

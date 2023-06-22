@@ -30,6 +30,7 @@
 #include "../../core/environment.h"
 
 #include "../../dao/employerdao.h"
+#include "../../dao/clientdao.h"
 
 #include "../../utils/utils.h"
 
@@ -273,9 +274,9 @@ void EditListDialog::ClientDataToControls()
 {
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Data::ClientData data(pLogger, mDatabaseFilePath);
+    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.Filter(mSearchTerm, clients);
+    int rc = clientDao.Filter(mSearchTerm, clients);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
@@ -471,9 +472,9 @@ void EditListDialog::SearchClients()
 
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Data::ClientData data(pLogger, mDatabaseFilePath);
+    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.Filter(mSearchTerm, clients);
+    int rc = clientDao.Filter(mSearchTerm, clients);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";

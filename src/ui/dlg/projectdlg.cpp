@@ -31,8 +31,10 @@
 #include "../../core/environment.h"
 
 #include "../../dao/employerdao.h"
+#include "../../dao/clientdao.h"
 
 #include "../../models/employermodel.h"
+#include "../../models/clientmodel.h"
 
 #include "../../utils/utils.h"
 
@@ -360,10 +362,10 @@ void ProjectDialog::DataToControls()
     }
 
     std::vector<Model::ClientModel> clients;
-    Data::ClientData clientData(pLogger, mDatabaseFilePath);
-
+    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
     std::string defaultSearchTerm = "";
-    rc = clientData.FilterByEmployerId(project.EmployerId, clients);
+
+    rc = clientDao.FilterByEmployerId(project.EmployerId, clients);
     if (rc == -1) {
         auto errorMessage = "Failed to get clients and the operation could not be completed.\n Please check "
                             "the logs for more information...";
@@ -380,7 +382,7 @@ void ProjectDialog::DataToControls()
 
             if (project.ClientId.has_value()) {
                 Model::ClientModel client;
-                rc = clientData.GetById(project.ClientId.value(), client);
+                rc = clientDao.GetById(project.ClientId.value(), client);
                 if (rc == -1) {
                     auto errorMessage =
                         "Failed to get requested client and the operation could not be completed.\n Please check "
@@ -437,10 +439,10 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     }
 
     auto employerId = employerIdData->GetValue();
-    Data::ClientData clientData(pLogger, mDatabaseFilePath);
-
     std::vector<Model::ClientModel> clients;
-    int rc = clientData.FilterByEmployerId(employerId, clients);
+    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+
+    int rc = clientDao.FilterByEmployerId(employerId, clients);
 
     if (rc != 0) {
         auto errorMessage = "Failed to get clients and the operation could not be completed.\n Please check "
