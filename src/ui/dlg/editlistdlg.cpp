@@ -32,6 +32,7 @@
 #include "../../dao/employerdao.h"
 #include "../../dao/clientdao.h"
 #include "../../dao/projectdao.h"
+#include "../../dao/categorydao.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -326,9 +327,9 @@ void EditListDialog::CategoryDataToControls()
 {
     std::vector<Model::CategoryModel> categories;
     std::vector<ListCtrlData> entries;
-    Data::CategoryData data(pLogger, mDatabaseFilePath);
+    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.Filter(mSearchTerm, categories);
+    int rc = categoryDao.Filter(mSearchTerm, categories);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";
@@ -534,9 +535,9 @@ void EditListDialog::SearchCategories()
 
     std::vector<Model::CategoryModel> categories;
     std::vector<ListCtrlData> entries;
-    Data::CategoryData data(pLogger, mDatabaseFilePath);
+    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
-    int rc = data.Filter(mSearchTerm, categories);
+    int rc = categoryDao.Filter(mSearchTerm, categories);
     if (rc != 0) {
         auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
                             "check the logs for more information...";

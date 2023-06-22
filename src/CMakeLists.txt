@@ -32,10 +32,7 @@ set(SRC_DAO
     "dao/employerdao.cpp"
     "dao/clientdao.cpp"
     "dao/projectdao.cpp"
-)
-
-set (SRC_DATA
-    "data/categorydata.cpp"
+    "dao/categorydao.cpp"
 )
 
 set (SRC_DIALOGS
@@ -72,7 +69,6 @@ set (SRC
     "common/constants.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
-    ${SRC_DATA}
     ${SRC_DIALOGS}
 )
 

@@ -33,8 +33,6 @@
 
 #include "../../common/enums.h"
 
-#include "../../data/categorydata.h"
-
 namespace tks
 {
 namespace Core

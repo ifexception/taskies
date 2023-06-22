@@ -17,74 +17,74 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "categorydata.h"
+#include "categorydao.h"
 
 #include "../common/constants.h"
 
 #include "../utils/utils.h"
 
-namespace tks::Data
+namespace tks::DAO
 {
-CategoryData::CategoryData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
+CategoryDao::CategoryDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
     : pLogger(logger)
     , pDb(nullptr)
 {
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate, "CategoryData", databaseFilePath, rc, std::string(err));
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "CategoryDao", databaseFilePath, rc, std::string(err));
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryDao", Utils::sqlite::pragmas::ForeignKeys, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::JournalMode, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryDao", Utils::sqlite::pragmas::JournalMode, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::Synchronous, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryDao", Utils::sqlite::pragmas::Synchronous, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::TempStore, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryDao", Utils::sqlite::pragmas::TempStore, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryData", Utils::sqlite::pragmas::MmapSize, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "CategoryDao", Utils::sqlite::pragmas::MmapSize, rc, err);
         return;
     }
 }
 
-CategoryData::~CategoryData()
+CategoryDao::~CategoryDao()
 {
     sqlite3_close(pDb);
 }
 
-std::int64_t CategoryData::Create(Model::CategoryModel& category)
+std::int64_t CategoryDao::Create(Model::CategoryModel& category)
 {
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, CategoryData::create.c_str(), static_cast<int>(CategoryData::create.size()), &stmt, nullptr);
+        pDb, CategoryDao::create.c_str(), static_cast<int>(CategoryDao::create.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryData", CategoryData::create, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryDao", CategoryDao::create, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -94,7 +94,7 @@ std::int64_t CategoryData::Create(Model::CategoryModel& category)
         stmt, bindIndex++, category.Name.c_str(), static_cast<int>(category.Name.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "name", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "name", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -102,7 +102,7 @@ std::int64_t CategoryData::Create(Model::CategoryModel& category)
     rc = sqlite3_bind_int(stmt, bindIndex++, static_cast<int>(category.Color));
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "color", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "color", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -110,7 +110,7 @@ std::int64_t CategoryData::Create(Model::CategoryModel& category)
     rc = sqlite3_bind_int(stmt, bindIndex++, category.Billable);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "billable", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "billable", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -127,7 +127,7 @@ std::int64_t CategoryData::Create(Model::CategoryModel& category)
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "description", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "description", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -135,7 +135,7 @@ std::int64_t CategoryData::Create(Model::CategoryModel& category)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "CategoryData", CategoryData::create, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "CategoryDao", CategoryDao::create, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -146,16 +146,16 @@ std::int64_t CategoryData::Create(Model::CategoryModel& category)
     return rowId;
 }
 
-int CategoryData::Filter(const std::string& searchTerm, std::vector<Model::CategoryModel>& categories)
+int CategoryDao::Filter(const std::string& searchTerm, std::vector<Model::CategoryModel>& categories)
 {
     sqlite3_stmt* stmt = nullptr;
     auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
 
     int rc = sqlite3_prepare_v2(
-        pDb, CategoryData::filter.c_str(), static_cast<int>(CategoryData::filter.size()), &stmt, nullptr);
+        pDb, CategoryDao::filter.c_str(), static_cast<int>(CategoryDao::filter.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryData", CategoryData::filter, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryDao", CategoryDao::filter, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -166,7 +166,7 @@ int CategoryData::Filter(const std::string& searchTerm, std::vector<Model::Categ
         stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "name", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "name", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -176,7 +176,7 @@ int CategoryData::Filter(const std::string& searchTerm, std::vector<Model::Categ
         stmt, bindIdx++, formattedSearchTerm.c_str(), static_cast<int>(formattedSearchTerm.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "description", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "description", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -219,7 +219,7 @@ int CategoryData::Filter(const std::string& searchTerm, std::vector<Model::Categ
     }
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "CategoryData", CategoryData::filter, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "CategoryDao", CategoryDao::filter, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -229,15 +229,15 @@ int CategoryData::Filter(const std::string& searchTerm, std::vector<Model::Categ
     return 0;
 }
 
-int CategoryData::GetById(const std::int64_t categoryId, Model::CategoryModel& model)
+int CategoryDao::GetById(const std::int64_t categoryId, Model::CategoryModel& model)
 {
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, CategoryData::getById.c_str(), static_cast<int>(CategoryData::getById.size()), &stmt, nullptr);
+        pDb, CategoryDao::getById.c_str(), static_cast<int>(CategoryDao::getById.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryData", CategoryData::getById, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryDao", CategoryDao::getById, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -245,7 +245,7 @@ int CategoryData::GetById(const std::int64_t categoryId, Model::CategoryModel& m
     rc = sqlite3_bind_int64(stmt, 1, categoryId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "category_id", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "category_id", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -253,7 +253,7 @@ int CategoryData::GetById(const std::int64_t categoryId, Model::CategoryModel& m
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "CategoryData", CategoryData::getById, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "CategoryDao", CategoryDao::getById, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -279,7 +279,7 @@ int CategoryData::GetById(const std::int64_t categoryId, Model::CategoryModel& m
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "CategoryData", rc, err);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "CategoryDao", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -289,15 +289,15 @@ int CategoryData::GetById(const std::int64_t categoryId, Model::CategoryModel& m
     return 0;
 }
 
-int CategoryData::Update(Model::CategoryModel& model)
+int CategoryDao::Update(Model::CategoryModel& model)
 {
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, CategoryData::update.c_str(), static_cast<int>(CategoryData::update.size()), &stmt, nullptr);
+        pDb, CategoryDao::update.c_str(), static_cast<int>(CategoryDao::update.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryData", CategoryData::update, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryDao", CategoryDao::update, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -308,7 +308,7 @@ int CategoryData::Update(Model::CategoryModel& model)
         sqlite3_bind_text(stmt, bindIndex++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "name", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "name", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -317,7 +317,7 @@ int CategoryData::Update(Model::CategoryModel& model)
     rc = sqlite3_bind_int(stmt, bindIndex++, model.Color);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "color", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "color", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -326,7 +326,7 @@ int CategoryData::Update(Model::CategoryModel& model)
     rc = sqlite3_bind_int(stmt, bindIndex++, model.Billable);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "billable", 3, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "billable", 3, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -344,7 +344,7 @@ int CategoryData::Update(Model::CategoryModel& model)
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "description", 4, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "description", 4, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -354,7 +354,7 @@ int CategoryData::Update(Model::CategoryModel& model)
     rc = sqlite3_bind_int64(stmt, bindIndex++, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "date_modified", 5, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "date_modified", 5, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -363,7 +363,7 @@ int CategoryData::Update(Model::CategoryModel& model)
     rc = sqlite3_bind_int64(stmt, bindIndex++, model.CategoryId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "category_id", 6, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "category_id", 6, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -371,7 +371,7 @@ int CategoryData::Update(Model::CategoryModel& model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "CategoryData", CategoryData::update, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "CategoryDao", CategoryDao::update, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -381,14 +381,14 @@ int CategoryData::Update(Model::CategoryModel& model)
     return 0;
 }
 
-int CategoryData::Delete(const std::int64_t categoryId)
+int CategoryDao::Delete(const std::int64_t categoryId)
 {
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
-        pDb, CategoryData::isActive.c_str(), static_cast<int>(CategoryData::isActive.size()), &stmt, nullptr);
+        pDb, CategoryDao::isActive.c_str(), static_cast<int>(CategoryDao::isActive.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryData", CategoryData::isActive, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "CategoryDao", CategoryDao::isActive, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -398,7 +398,7 @@ int CategoryData::Delete(const std::int64_t categoryId)
     rc = sqlite3_bind_int64(stmt, bindIdx++, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "date_modified", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "date_modified", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -406,7 +406,7 @@ int CategoryData::Delete(const std::int64_t categoryId)
     rc = sqlite3_bind_int64(stmt, bindIdx++, categoryId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryData", "category_id", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "category_id", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -414,7 +414,7 @@ int CategoryData::Delete(const std::int64_t categoryId)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "CategoryData", CategoryData::isActive, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "CategoryDao", CategoryDao::isActive, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -424,58 +424,58 @@ int CategoryData::Delete(const std::int64_t categoryId)
     return 0;
 }
 
-std::int64_t CategoryData::GetLastInsertId() const
+std::int64_t CategoryDao::GetLastInsertId() const
 {
     return sqlite3_last_insert_rowid(pDb);
 }
 
-const std::string CategoryData::create = "INSERT INTO "
-                                         "categories "
-                                         "("
-                                         "name, "
-                                         "color, "
-                                         "billable, "
-                                         "description "
-                                         ") "
-                                         "VALUES (?, ?, ?, ?)";
+const std::string CategoryDao::create = "INSERT INTO "
+                                        "categories "
+                                        "("
+                                        "name, "
+                                        "color, "
+                                        "billable, "
+                                        "description "
+                                        ") "
+                                        "VALUES (?, ?, ?, ?)";
 
-const std::string CategoryData::filter = "SELECT "
+const std::string CategoryDao::filter = "SELECT "
+                                        "category_id, "
+                                        "name, "
+                                        "color, "
+                                        "description, "
+                                        "date_created, "
+                                        "date_modified, "
+                                        "is_active "
+                                        "FROM categories "
+                                        "WHERE is_active = 1 "
+                                        "AND (name LIKE ? "
+                                        "OR description LIKE ?);";
+
+const std::string CategoryDao::getById = "SELECT "
                                          "category_id, "
                                          "name, "
                                          "color, "
+                                         "billable, "
                                          "description, "
                                          "date_created, "
                                          "date_modified, "
                                          "is_active "
                                          "FROM categories "
-                                         "WHERE is_active = 1 "
-                                         "AND (name LIKE ? "
-                                         "OR description LIKE ?);";
-
-const std::string CategoryData::getById = "SELECT "
-                                          "category_id, "
-                                          "name, "
-                                          "color, "
-                                          "billable, "
-                                          "description, "
-                                          "date_created, "
-                                          "date_modified, "
-                                          "is_active "
-                                          "FROM categories "
-                                          "WHERE category_id = ?;";
-
-const std::string CategoryData::update = "UPDATE categories "
-                                         "SET "
-                                         "name = ?, "
-                                         "color = ?, "
-                                         "billable = ?, "
-                                         "description = ?, "
-                                         "date_modified = ? "
                                          "WHERE category_id = ?;";
 
-const std::string CategoryData::isActive = "UPDATE categories "
-                                           "SET "
-                                           "is_active = 0, "
-                                           "date_modified = ? "
-                                           "WHERE category_id = ?;";
-} // namespace tks::Data
+const std::string CategoryDao::update = "UPDATE categories "
+                                        "SET "
+                                        "name = ?, "
+                                        "color = ?, "
+                                        "billable = ?, "
+                                        "description = ?, "
+                                        "date_modified = ? "
+                                        "WHERE category_id = ?;";
+
+const std::string CategoryDao::isActive = "UPDATE categories "
+                                          "SET "
+                                          "is_active = 0, "
+                                          "date_modified = ? "
+                                          "WHERE category_id = ?;";
+} // namespace tks::DAO

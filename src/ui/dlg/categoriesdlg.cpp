@@ -30,7 +30,7 @@
 
 #include "../../core/environment.h"
 
-#include "../../data/categorydata.h"
+#include "../../dao/categorydao.h"
 
 #include "../../utils/utils.h"
 
@@ -379,10 +379,10 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     int ret = 0;
-    Data::CategoryData categoryData(pLogger, mDatabaseFilePath);
+    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
     for (auto& category : mCategoriesToAdd) {
-        std::int64_t categoryId = categoryData.Create(category);
+        std::int64_t categoryId = categoryDao.Create(category);
         ret = categoryId > 0 ? 1 : -1;
         if (ret == -1) {
             break;

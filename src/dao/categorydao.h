@@ -31,17 +31,17 @@
 
 namespace tks
 {
-namespace Data
+namespace DAO
 {
-class CategoryData final
+class CategoryDao final
 {
 public:
-    CategoryData() = delete;
-    CategoryData(const CategoryData&) = delete;
-    CategoryData(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~CategoryData();
+    CategoryDao() = delete;
+    CategoryDao(const CategoryDao&) = delete;
+    CategoryDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~CategoryDao();
 
-    CategoryData& operator=(const CategoryData&) = delete;
+    CategoryDao& operator=(const CategoryDao&) = delete;
 
     std::int64_t Create(Model::CategoryModel& category);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::CategoryModel>& categories);

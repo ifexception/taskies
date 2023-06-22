@@ -28,7 +28,7 @@
 
 #include "../../core/environment.h"
 
-#include "../../data/categorydata.h"
+#include "../../dao/categorydao.h"
 
 #include "../../utils/utils.h"
 
@@ -231,10 +231,10 @@ void CategoryDialog::ConfigureEventBindings()
 void CategoryDialog::DataToControls()
 {
     Model::CategoryModel model;
-    Data::CategoryData data(pLogger, mDatabaseFilePath);
+    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
     int rc = 0;
 
-    rc = data.GetById(mCategoryId, model);
+    rc = categoryDao.GetById(mCategoryId, model);
     if (rc != 0) {
         auto errorMessage = "Failed to get requested category and the operation could not be completed.\n Please check "
                             "the logs for more information...";
@@ -275,13 +275,13 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
 
     if (TransferDataAndValidate()) {
         int ret = 0;
-        Data::CategoryData data(pLogger, mDatabaseFilePath);
+        DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
         if (pIsActiveCtrl->IsChecked()) {
-            ret = data.Update(mModel);
+            ret = categoryDao.Update(mModel);
         }
         if (!pIsActiveCtrl->IsChecked()) {
-            ret = data.Delete(mCategoryId);
+            ret = categoryDao.Delete(mCategoryId);
         }
 
         if (ret == -1) {
