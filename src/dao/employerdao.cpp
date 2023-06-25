@@ -78,6 +78,7 @@ EmployerDao::~EmployerDao()
 
 std::int64_t EmployerDao::Create(const Model::EmployerModel& employer)
 {
+    pLogger->info("Attempt to create employer with name \"{0}\"", employer.Name);
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
         pDb, EmployerDao::create.c_str(), static_cast<int>(EmployerDao::create.size()), &stmt, nullptr);
@@ -124,11 +125,15 @@ std::int64_t EmployerDao::Create(const Model::EmployerModel& employer)
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
 
+    pLogger->info("Successfully created employer with name \"{0}\" and got row ID \"{1}\"", employer.Name, rowId);
+
     return rowId;
 }
 
 int EmployerDao::GetById(const std::int64_t employerId, Model::EmployerModel& employer)
 {
+    pLogger->info("Attempting to get emplyer by ID \"{0}\"", employerId);
+
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
         pDb, EmployerDao::getById.c_str(), static_cast<int>(EmployerDao::getById.size()), &stmt, nullptr);
@@ -181,12 +186,15 @@ int EmployerDao::GetById(const std::int64_t employerId, Model::EmployerModel& em
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info("Successfully retreived employer with ID \"{0}\"", employerId);
 
     return 0;
 }
 
 int EmployerDao::Filter(const std::string& searchTerm, std::vector<Model::EmployerModel>& employers)
 {
+    pLogger->info("Attempting to filter employers with search term \"{0}\"", searchTerm);
+
     auto formatedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
 
     sqlite3_stmt* stmt = nullptr;
@@ -262,12 +270,15 @@ int EmployerDao::Filter(const std::string& searchTerm, std::vector<Model::Employ
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info("Successfully retrieved \"{0}\" employers with search term \"{1}\"", employers.size(), searchTerm);
     return 0;
 }
 
 int EmployerDao::Update(Model::EmployerModel employer)
 {
+    pLogger->info("Attempting to update employer with name \"{0}\"", employer.Name);
     sqlite3_stmt* stmt = nullptr;
+
     int rc = sqlite3_prepare_v2(
         pDb, EmployerDao::update.c_str(), static_cast<int>(EmployerDao::update.size()), &stmt, nullptr);
 
@@ -327,11 +338,14 @@ int EmployerDao::Update(Model::EmployerModel employer)
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info("Successfully updated \"{0}\" employer", employer.Name);
     return 0;
 }
 
 int EmployerDao::Delete(const std::int64_t employerId)
 {
+    pLogger->info("Attempting to delete employer \"{0}\"", employerId);
+
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -369,6 +383,7 @@ int EmployerDao::Delete(const std::int64_t employerId)
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info("Successfully deleted employer \"{0}\"", employerId);
     return 0;
 }
 
