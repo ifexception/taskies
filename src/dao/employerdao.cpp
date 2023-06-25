@@ -29,6 +29,7 @@ EmployerDao::EmployerDao(std::shared_ptr<spdlog::logger> logger, const std::stri
     : pLogger(logger)
     , pDb(nullptr)
 {
+    pLogger->info("EmployerDao - Open database connection at \"{0}\"", databaseFilePath);
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
@@ -74,11 +75,12 @@ EmployerDao::EmployerDao(std::shared_ptr<spdlog::logger> logger, const std::stri
 EmployerDao::~EmployerDao()
 {
     sqlite3_close(pDb);
+    pLogger->info("EmployerDao - Close database connection");
 }
 
 std::int64_t EmployerDao::Create(const Model::EmployerModel& employer)
 {
-    pLogger->info("Attempt to create employer with name \"{0}\"", employer.Name);
+    pLogger->info("EmplyerDao - Attempt to create employer with name \"{0}\"", employer.Name);
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
         pDb, EmployerDao::create.c_str(), static_cast<int>(EmployerDao::create.size()), &stmt, nullptr);
@@ -125,14 +127,14 @@ std::int64_t EmployerDao::Create(const Model::EmployerModel& employer)
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
 
-    pLogger->info("Successfully created employer with name \"{0}\" and got row ID \"{1}\"", employer.Name, rowId);
+    pLogger->info("EmplyerDao - Successfully created employer with name \"{0}\" and got row ID \"{1}\"", employer.Name, rowId);
 
     return rowId;
 }
 
 int EmployerDao::GetById(const std::int64_t employerId, Model::EmployerModel& employer)
 {
-    pLogger->info("Attempting to get emplyer by ID \"{0}\"", employerId);
+    pLogger->info("EmplyerDao - Attempting to get emplyer by ID \"{0}\"", employerId);
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
@@ -186,14 +188,14 @@ int EmployerDao::GetById(const std::int64_t employerId, Model::EmployerModel& em
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("Successfully retreived employer with ID \"{0}\"", employerId);
+    pLogger->info("EmplyerDao - Successfully retreived employer with ID \"{0}\"", employerId);
 
     return 0;
 }
 
 int EmployerDao::Filter(const std::string& searchTerm, std::vector<Model::EmployerModel>& employers)
 {
-    pLogger->info("Attempting to filter employers with search term \"{0}\"", searchTerm);
+    pLogger->info("EmplyerDao - Attempting to filter employers with search term \"{0}\"", searchTerm);
 
     auto formatedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
 
@@ -270,13 +272,13 @@ int EmployerDao::Filter(const std::string& searchTerm, std::vector<Model::Employ
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("Successfully retrieved \"{0}\" employers with search term \"{1}\"", employers.size(), searchTerm);
+    pLogger->info("EmplyerDao - Successfully retrieved \"{0}\" employers with search term \"{1}\"", employers.size(), searchTerm);
     return 0;
 }
 
 int EmployerDao::Update(Model::EmployerModel employer)
 {
-    pLogger->info("Attempting to update employer with name \"{0}\"", employer.Name);
+    pLogger->info("EmplyerDao - Attempting to update employer with name \"{0}\"", employer.Name);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -338,13 +340,13 @@ int EmployerDao::Update(Model::EmployerModel employer)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("Successfully updated \"{0}\" employer", employer.Name);
+    pLogger->info("EmplyerDao - Successfully updated \"{0}\" employer", employer.Name);
     return 0;
 }
 
 int EmployerDao::Delete(const std::int64_t employerId)
 {
-    pLogger->info("Attempting to delete employer \"{0}\"", employerId);
+    pLogger->info("EmplyerDao - Attempting to delete employer \"{0}\"", employerId);
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -383,7 +385,7 @@ int EmployerDao::Delete(const std::int64_t employerId)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("Successfully deleted employer \"{0}\"", employerId);
+    pLogger->info("EmplyerDao - Successfully deleted employer \"{0}\"", employerId);
     return 0;
 }
 
@@ -393,14 +395,26 @@ std::int64_t EmployerDao::GetLastInsertId() const
 }
 
 const std::string EmployerDao::create = "INSERT INTO "
-                                         "employers "
-                                         "("
-                                         "name, "
-                                         "description"
-                                         ") "
-                                         "VALUES (?, ?);";
+                                        "employers "
+                                        "("
+                                        "name, "
+                                        "description"
+                                        ") "
+                                        "VALUES (?, ?);";
 
 const std::string EmployerDao::filter = "SELECT "
+                                        "employer_id, "
+                                        "name, "
+                                        "description, "
+                                        "date_created, "
+                                        "date_modified, "
+                                        "is_active "
+                                        "FROM employers "
+                                        "WHERE is_active = 1 "
+                                        "AND (name LIKE ? "
+                                        "OR description LIKE ?)";
+
+const std::string EmployerDao::getById = "SELECT "
                                          "employer_id, "
                                          "name, "
                                          "description, "
@@ -408,30 +422,18 @@ const std::string EmployerDao::filter = "SELECT "
                                          "date_modified, "
                                          "is_active "
                                          "FROM employers "
-                                         "WHERE is_active = 1 "
-                                         "AND (name LIKE ? "
-                                         "OR description LIKE ?)";
-
-const std::string EmployerDao::getById = "SELECT "
-                                          "employer_id, "
-                                          "name, "
-                                          "description, "
-                                          "date_created, "
-                                          "date_modified, "
-                                          "is_active "
-                                          "FROM employers "
-                                          "WHERE employer_id = ?";
-
-const std::string EmployerDao::update = "UPDATE employers "
-                                         "SET "
-                                         "name = ?, "
-                                         "description = ?, "
-                                         "date_modified = ? "
                                          "WHERE employer_id = ?";
 
+const std::string EmployerDao::update = "UPDATE employers "
+                                        "SET "
+                                        "name = ?, "
+                                        "description = ?, "
+                                        "date_modified = ? "
+                                        "WHERE employer_id = ?";
+
 const std::string EmployerDao::isActive = "UPDATE employers "
-                                           "SET "
-                                           "is_active = 0, "
-                                           "date_modified = ? "
-                                           "WHERE employer_id = ?";
-} // namespace tks::Data
+                                          "SET "
+                                          "is_active = 0, "
+                                          "date_modified = ? "
+                                          "WHERE employer_id = ?";
+} // namespace tks::DAO
