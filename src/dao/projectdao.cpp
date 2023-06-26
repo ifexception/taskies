@@ -208,6 +208,8 @@ int ProjectDao::Filter(const std::string& searchTerm, std::vector<Model::Project
 
 int ProjectDao::GetById(const std::int64_t projectId, Model::ProjectModel& model)
 {
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "ProjectDao", "project", projectId);
+
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -269,6 +271,7 @@ int ProjectDao::GetById(const std::int64_t projectId, Model::ProjectModel& model
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "ProjectDao", projectId);
 
     return 0;
 }

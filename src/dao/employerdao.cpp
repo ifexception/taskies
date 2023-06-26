@@ -163,7 +163,7 @@ int EmployerDao::Filter(const std::string& searchTerm, std::vector<Model::Employ
 
 int EmployerDao::GetById(const std::int64_t employerId, Model::EmployerModel& employer)
 {
-    pLogger->info("EmplyerDao - Attempting to get emplyer by ID \"{0}\"", employerId);
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "EmployerDao", "employer", employerId);
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
@@ -217,7 +217,7 @@ int EmployerDao::GetById(const std::int64_t employerId, Model::EmployerModel& em
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("EmplyerDao - Successfully retreived employer with ID \"{0}\"", employerId);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "EmplyerDao", employerId);
 
     return 0;
 }

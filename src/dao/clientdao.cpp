@@ -253,7 +253,8 @@ int ClientDao::FilterByEmployerId(const std::int64_t employerId, std::vector<Mod
 
 int ClientDao::GetById(const std::int64_t clientId, Model::ClientModel& model)
 {
-    pLogger->info("ClientDao - Attempting to get emplyer by ID \"{0}\"", clientId);
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "ClientDao", "client", clientId);
+
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -306,7 +307,7 @@ int ClientDao::GetById(const std::int64_t clientId, Model::ClientModel& model)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("ClientDao - Successfully retreived employer with ID \"{0}\"", clientId);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "ClientDao", clientId);
 
     return 0;
 }

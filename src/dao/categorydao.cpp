@@ -166,6 +166,8 @@ int CategoryDao::Filter(const std::string& searchTerm, std::vector<Model::Catego
 
 int CategoryDao::GetById(const std::int64_t categoryId, Model::CategoryModel& model)
 {
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "CategoryDao", "category", categoryId);
+
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -220,6 +222,7 @@ int CategoryDao::GetById(const std::int64_t categoryId, Model::CategoryModel& mo
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "CategoryDao", categoryId);
 
     return 0;
 }

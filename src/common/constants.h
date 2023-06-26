@@ -140,4 +140,26 @@ extern const char* InfoBeginFilterEntities;
 /// </example>
 /// </summary>
 extern const char* InfoEndFilterEntities;
+
+/// <summary>
+/// Use this template to log Information when beginning the "GetById" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Retrieve "{Entity}" with ID "{EntityId}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoBeginGetByIdEntity;
+
+/// <summary>
+/// Use this template to log Information when ending the "GetById" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Retreived entity with ID "{EntityId}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoEndGetByIdEntity;
 } // namespace tks::LogMessage
