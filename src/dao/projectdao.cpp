@@ -31,6 +31,8 @@ ProjectDao::ProjectDao(std::shared_ptr<spdlog::logger> logger, const std::string
     : pLogger(logger)
     , pDb(nullptr)
 {
+    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "ProjectDao", databaseFilePath);
+
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
@@ -76,6 +78,7 @@ ProjectDao::ProjectDao(std::shared_ptr<spdlog::logger> logger, const std::string
 ProjectDao::~ProjectDao()
 {
     sqlite3_close(pDb);
+    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "ProjectDao");
 }
 
 std::int64_t ProjectDao::Create(Model::ProjectModel& model)

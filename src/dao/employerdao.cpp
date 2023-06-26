@@ -29,7 +29,7 @@ EmployerDao::EmployerDao(std::shared_ptr<spdlog::logger> logger, const std::stri
     : pLogger(logger)
     , pDb(nullptr)
 {
-    pLogger->info("EmployerDao - Open database connection at \"{0}\"", databaseFilePath);
+    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "EmployerDao", databaseFilePath);
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
@@ -75,122 +75,7 @@ EmployerDao::EmployerDao(std::shared_ptr<spdlog::logger> logger, const std::stri
 EmployerDao::~EmployerDao()
 {
     sqlite3_close(pDb);
-    pLogger->info("EmployerDao - Close database connection");
-}
-
-std::int64_t EmployerDao::Create(const Model::EmployerModel& employer)
-{
-    pLogger->info("EmplyerDao - Attempt to create employer with name \"{0}\"", employer.Name);
-    sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(
-        pDb, EmployerDao::create.c_str(), static_cast<int>(EmployerDao::create.size()), &stmt, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "EmployerDao", EmployerDao::create, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_text(stmt, 1, employer.Name.c_str(), static_cast<int>(employer.Name.size()), SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "EmployerDao", "name", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    if (employer.Description.has_value()) {
-        rc = sqlite3_bind_text(stmt,
-            2,
-            employer.Description.value().c_str(),
-            static_cast<int>(employer.Description.value().size()),
-            SQLITE_TRANSIENT);
-    } else {
-        rc = sqlite3_bind_null(stmt, 2);
-    }
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "EmployerDao", "description", 2, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "EmployerDao", EmployerDao::create, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    auto rowId = sqlite3_last_insert_rowid(pDb);
-
-    pLogger->info("EmplyerDao - Successfully created employer with name \"{0}\" and got row ID \"{1}\"", employer.Name, rowId);
-
-    return rowId;
-}
-
-int EmployerDao::GetById(const std::int64_t employerId, Model::EmployerModel& employer)
-{
-    pLogger->info("EmplyerDao - Attempting to get emplyer by ID \"{0}\"", employerId);
-
-    sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(
-        pDb, EmployerDao::getById.c_str(), static_cast<int>(EmployerDao::getById.size()), &stmt, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "EmployerDao", EmployerDao::getById, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_int64(stmt, 1, employerId);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "EmployerDao", "employer_id", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "EmployerDao", EmployerDao::getById, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    int columnIndex = 0;
-    employer.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    employer.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        employer.Description = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        employer.Description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-    }
-    columnIndex++;
-    employer.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-    employer.DateModified = sqlite3_column_int(stmt, columnIndex++);
-    employer.IsActive = sqlite3_column_int(stmt, columnIndex++);
-
-    rc = sqlite3_step(stmt);
-
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "EmployerDao", rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    pLogger->info("EmplyerDao - Successfully retreived employer with ID \"{0}\"", employerId);
-
-    return 0;
+    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "EmployerDao");
 }
 
 int EmployerDao::Filter(const std::string& searchTerm, std::vector<Model::EmployerModel>& employers)
@@ -272,8 +157,125 @@ int EmployerDao::Filter(const std::string& searchTerm, std::vector<Model::Employ
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("EmplyerDao - Successfully retrieved \"{0}\" employers with search term \"{1}\"", employers.size(), searchTerm);
+    pLogger->info(
+        "EmplyerDao - Successfully retrieved \"{0}\" employers with search term \"{1}\"", employers.size(), searchTerm);
     return 0;
+}
+
+int EmployerDao::GetById(const std::int64_t employerId, Model::EmployerModel& employer)
+{
+    pLogger->info("EmplyerDao - Attempting to get emplyer by ID \"{0}\"", employerId);
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(
+        pDb, EmployerDao::getById.c_str(), static_cast<int>(EmployerDao::getById.size()), &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "EmployerDao", EmployerDao::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, employerId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "EmployerDao", "employer_id", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "EmployerDao", EmployerDao::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+    employer.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    employer.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        employer.Description = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        employer.Description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+    }
+    columnIndex++;
+    employer.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    employer.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    employer.IsActive = sqlite3_column_int(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "EmployerDao", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info("EmplyerDao - Successfully retreived employer with ID \"{0}\"", employerId);
+
+    return 0;
+}
+
+std::int64_t EmployerDao::Create(const Model::EmployerModel& employer)
+{
+    pLogger->info("EmplyerDao - Attempt to create employer with name \"{0}\"", employer.Name);
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(
+        pDb, EmployerDao::create.c_str(), static_cast<int>(EmployerDao::create.size()), &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "EmployerDao", EmployerDao::create, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_text(stmt, 1, employer.Name.c_str(), static_cast<int>(employer.Name.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "EmployerDao", "name", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    if (employer.Description.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            2,
+            employer.Description.value().c_str(),
+            static_cast<int>(employer.Description.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, 2);
+    }
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "EmployerDao", "description", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "EmployerDao", EmployerDao::create, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    auto rowId = sqlite3_last_insert_rowid(pDb);
+
+    pLogger->info(
+        "EmplyerDao - Successfully created employer with name \"{0}\" and got row ID \"{1}\"", employer.Name, rowId);
+
+    return rowId;
 }
 
 int EmployerDao::Update(Model::EmployerModel employer)
@@ -394,14 +396,6 @@ std::int64_t EmployerDao::GetLastInsertId() const
     return sqlite3_last_insert_rowid(pDb);
 }
 
-const std::string EmployerDao::create = "INSERT INTO "
-                                        "employers "
-                                        "("
-                                        "name, "
-                                        "description"
-                                        ") "
-                                        "VALUES (?, ?);";
-
 const std::string EmployerDao::filter = "SELECT "
                                         "employer_id, "
                                         "name, "
@@ -423,6 +417,14 @@ const std::string EmployerDao::getById = "SELECT "
                                          "is_active "
                                          "FROM employers "
                                          "WHERE employer_id = ?";
+
+const std::string EmployerDao::create = "INSERT INTO "
+                                        "employers "
+                                        "("
+                                        "name, "
+                                        "description"
+                                        ") "
+                                        "VALUES (?, ?);";
 
 const std::string EmployerDao::update = "UPDATE employers "
                                         "SET "

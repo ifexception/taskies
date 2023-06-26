@@ -96,4 +96,26 @@ extern const char* ExecStepTemplate;
 /// </example>
 /// </summary>
 extern const char* ExecStepMoreResultsThanExpectedTemplate;
+
+/// <summary>
+/// Use this template when to log Information message when opening connection to database
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Close database connection at "{DatabaseLocation}"
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoOpenDatabaseConnection;
+
+/// <summary>
+/// Use this template when to log Information message when closing connection to database
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Close database connection
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoCloseDatabaseConnection;
 } // namespace tks::LogMessage

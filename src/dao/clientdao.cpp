@@ -31,7 +31,7 @@ ClientDao::ClientDao(std::shared_ptr<spdlog::logger> logger, const std::string& 
     : pLogger(logger)
     , pDb(nullptr)
 {
-    pLogger->info("ClientDao - Open database connection at \"{0}\"", databaseFilePath);
+    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "ClientDao", databaseFilePath);
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
@@ -77,7 +77,7 @@ ClientDao::ClientDao(std::shared_ptr<spdlog::logger> logger, const std::string& 
 ClientDao::~ClientDao()
 {
     sqlite3_close(pDb);
-    pLogger->info("ClientDao - Close database connection");
+    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "ClientDao");
 }
 
 std::int64_t ClientDao::Create(Model::ClientModel& model)

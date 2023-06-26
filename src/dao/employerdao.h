@@ -40,9 +40,9 @@ public:
     EmployerDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~EmployerDao();
 
-    std::int64_t Create(const Model::EmployerModel& employer);
-    int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employers);
+    int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
+    std::int64_t Create(const Model::EmployerModel& employer);
     int Update(/*out*/ Model::EmployerModel employer);
     int Delete(const std::int64_t employerId);
 
@@ -52,9 +52,9 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string create;
     static const std::string filter;
     static const std::string getById;
+    static const std::string create;
     static const std::string update;
     static const std::string isActive;
 };

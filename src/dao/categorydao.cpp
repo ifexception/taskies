@@ -29,6 +29,7 @@ CategoryDao::CategoryDao(std::shared_ptr<spdlog::logger> logger, const std::stri
     : pLogger(logger)
     , pDb(nullptr)
 {
+    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "CategoryDao", databaseFilePath);
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
@@ -74,6 +75,7 @@ CategoryDao::CategoryDao(std::shared_ptr<spdlog::logger> logger, const std::stri
 CategoryDao::~CategoryDao()
 {
     sqlite3_close(pDb);
+    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "CategoryDao");
 }
 
 std::int64_t CategoryDao::Create(Model::CategoryModel& category)

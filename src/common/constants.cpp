@@ -28,4 +28,8 @@ const char* BindParameterTemplate = "{0} - Failed to bind parameter \"{1}\" at \
 const char* ExecStepTemplate = "{0} - Failed to step through statement \"{1}\". Error {2}: \"{3}\"";
 const char* ExecStepMoreResultsThanExpectedTemplate =
     "{0} - Failed step execute, returned more than one (1) result when expected one (1) result. Error {1}: \"{2}\"";
+
+// Info Messages
+const char* InfoOpenDatabaseConnection = "{0} - Open database connection at \"{1}\"";
+const char* InfoCloseDatabaseConnection = "{0} - Close database connection";
 } // namespace tks::LogMessage
