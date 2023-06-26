@@ -31,6 +31,7 @@ ClientDao::ClientDao(std::shared_ptr<spdlog::logger> logger, const std::string& 
     : pLogger(logger)
     , pDb(nullptr)
 {
+    pLogger->info("ClientDao - Open database connection at \"{0}\"", databaseFilePath);
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
@@ -76,14 +77,16 @@ ClientDao::ClientDao(std::shared_ptr<spdlog::logger> logger, const std::string& 
 ClientDao::~ClientDao()
 {
     sqlite3_close(pDb);
+    pLogger->info("ClientDao - Close database connection");
 }
 
 std::int64_t ClientDao::Create(Model::ClientModel& model)
 {
+    pLogger->info("ClientDao - Attempt to create employer with name \"{0}\"", model.Name);
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(
-        pDb, ClientDao::create.c_str(), static_cast<int>(ClientDao::create.size()), &stmt, nullptr);
+    int rc =
+        sqlite3_prepare_v2(pDb, ClientDao::create.c_str(), static_cast<int>(ClientDao::create.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::PrepareStatementTemplate, "ClientDao", ClientDao::create, rc, err);
@@ -137,17 +140,20 @@ std::int64_t ClientDao::Create(Model::ClientModel& model)
 
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
+    pLogger->info(
+        "ClientDao - Successfully created employer with name \"{0}\" and got row ID \"{1}\"", model.Name, rowId);
 
     return rowId;
 }
 
 int ClientDao::Filter(const std::string& searchTerm, std::vector<Model::ClientModel>& clients)
 {
+    pLogger->info("ClientDao - Attempting to filter employers with search term \"{0}\"", searchTerm);
     sqlite3_stmt* stmt = nullptr;
     auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
 
-    int rc = sqlite3_prepare_v2(
-        pDb, ClientDao::filter.c_str(), static_cast<int>(ClientDao::filter.size()), &stmt, nullptr);
+    int rc =
+        sqlite3_prepare_v2(pDb, ClientDao::filter.c_str(), static_cast<int>(ClientDao::filter.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::PrepareStatementTemplate, "ClientDao", ClientDao::filter, rc, err);
@@ -229,12 +235,15 @@ int ClientDao::Filter(const std::string& searchTerm, std::vector<Model::ClientMo
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info(
+        "ClientDao - Successfully retrieved \"{0}\" employers with search term \"{1}\"", clients.size(), searchTerm);
 
     return 0;
 }
 
 int ClientDao::GetById(const std::int64_t clientId, Model::ClientModel& model)
 {
+    pLogger->info("ClientDao - Attempting to get emplyer by ID \"{0}\"", clientId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -287,16 +296,18 @@ int ClientDao::GetById(const std::int64_t clientId, Model::ClientModel& model)
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info("ClientDao - Successfully retreived employer with ID \"{0}\"", clientId);
 
     return 0;
 }
 
 int ClientDao::Update(Model::ClientModel& model)
 {
+    pLogger->info("ClientDao - Attempting to update employer with name \"{0}\"", model.Name);
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(
-        pDb, ClientDao::update.c_str(), static_cast<int>(ClientDao::update.size()), &stmt, nullptr);
+    int rc =
+        sqlite3_prepare_v2(pDb, ClientDao::update.c_str(), static_cast<int>(ClientDao::update.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::PrepareStatementTemplate, "ClientDao", ClientDao::update, rc, err);
@@ -365,12 +376,15 @@ int ClientDao::Update(Model::ClientModel& model)
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info("ClientDao - Successfully updated \"{0}\" employer", model.Name);
 
     return 0;
 }
 
 int ClientDao::Delete(const std::int64_t clientId)
 {
+    pLogger->info("ClientDao - Attempting to delete employer \"{0}\"", clientId);
+
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
         pDb, ClientDao::isActive.c_str(), static_cast<int>(ClientDao::isActive.size()), &stmt, nullptr);
@@ -408,12 +422,14 @@ int ClientDao::Delete(const std::int64_t clientId)
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info("ClientDao - Successfully deleted employer \"{0}\"", clientId);
 
     return 0;
 }
 
 int ClientDao::FilterByEmployerId(const std::int64_t employerId, std::vector<Model::ClientModel>& clients)
 {
+    pLogger->info("ClientDao - Attempting to filter clients by employer ID \"{0}\"", employerId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -482,6 +498,8 @@ int ClientDao::FilterByEmployerId(const std::int64_t employerId, std::vector<Mod
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info(
+        "ClientDao - Successfully retrieved \"{0}\" clients by employer ID \"{1}\"", clients.size(), employerId);
 
     return 0;
 }
@@ -492,64 +510,64 @@ std::int64_t ClientDao::GetLastInsertId() const
 }
 
 const std::string ClientDao::create = "INSERT INTO "
-                                       "clients "
-                                       "("
-                                       "name, "
-                                       "description, "
-                                       "employer_id"
-                                       ") "
-                                       "VALUES (?, ?, ?)";
+                                      "clients "
+                                      "("
+                                      "name, "
+                                      "description, "
+                                      "employer_id"
+                                      ") "
+                                      "VALUES (?, ?, ?)";
 
 const std::string ClientDao::filter = "SELECT "
+                                      "clients.client_id, "
+                                      "clients.name AS client_name, "
+                                      "clients.description AS client_description, "
+                                      "clients.date_created, "
+                                      "clients.date_modified, "
+                                      "clients.is_active, "
+                                      "clients.employer_id, "
+                                      "employers.name AS employer_name "
+                                      "FROM clients "
+                                      "INNER JOIN employers "
+                                      "ON clients.employer_id = employers.employer_id "
+                                      "WHERE clients.is_active = 1 "
+                                      "AND (client_name LIKE ? "
+                                      "OR client_description LIKE ? "
+                                      "OR employer_name LIKE ?); ";
+
+const std::string ClientDao::getById = "SELECT "
                                        "clients.client_id, "
-                                       "clients.name AS client_name, "
-                                       "clients.description AS client_description, "
+                                       "clients.name, "
+                                       "clients.description, "
                                        "clients.date_created, "
                                        "clients.date_modified, "
                                        "clients.is_active, "
-                                       "clients.employer_id, "
-                                       "employers.name AS employer_name "
+                                       "clients.employer_id "
                                        "FROM clients "
-                                       "INNER JOIN employers "
-                                       "ON clients.employer_id = employers.employer_id "
-                                       "WHERE clients.is_active = 1 "
-                                       "AND (client_name LIKE ? "
-                                       "OR client_description LIKE ? "
-                                       "OR employer_name LIKE ?); ";
-
-const std::string ClientDao::getById = "SELECT "
-                                        "clients.client_id, "
-                                        "clients.name, "
-                                        "clients.description, "
-                                        "clients.date_created, "
-                                        "clients.date_modified, "
-                                        "clients.is_active, "
-                                        "clients.employer_id "
-                                        "FROM clients "
-                                        "WHERE clients.client_id = ?";
+                                       "WHERE clients.client_id = ?";
 
 const std::string ClientDao::update = "UPDATE clients "
-                                       "SET "
-                                       "name = ?, "
-                                       "description = ?, "
-                                       "date_modified = ?, "
-                                       "employer_id = ? "
-                                       "WHERE client_id = ?";
+                                      "SET "
+                                      "name = ?, "
+                                      "description = ?, "
+                                      "date_modified = ?, "
+                                      "employer_id = ? "
+                                      "WHERE client_id = ?";
 
 const std::string ClientDao::isActive = "UPDATE clients "
-                                         "SET "
-                                         "is_active = 0, "
-                                         "date_modified = ? "
-                                         "WHERE client_id = ?";
+                                        "SET "
+                                        "is_active = 0, "
+                                        "date_modified = ? "
+                                        "WHERE client_id = ?";
 
 const std::string ClientDao::filterByEmployerId = "SELECT "
-                                                   "clients.client_id, "
-                                                   "clients.name, "
-                                                   "clients.description, "
-                                                   "clients.date_created, "
-                                                   "clients.date_modified, "
-                                                   "clients.is_active, "
-                                                   "clients.employer_id "
-                                                   "FROM clients "
-                                                   "WHERE employer_id = ?";
-} // namespace tks::Data
+                                                  "clients.client_id, "
+                                                  "clients.name, "
+                                                  "clients.description, "
+                                                  "clients.date_created, "
+                                                  "clients.date_modified, "
+                                                  "clients.is_active, "
+                                                  "clients.employer_id "
+                                                  "FROM clients "
+                                                  "WHERE employer_id = ?";
+} // namespace tks::DAO
