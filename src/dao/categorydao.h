@@ -43,9 +43,9 @@ public:
 
     CategoryDao& operator=(const CategoryDao&) = delete;
 
-    std::int64_t Create(Model::CategoryModel& category);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::CategoryModel>& categories);
     int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& model);
+    std::int64_t Create(Model::CategoryModel& category);
     int Update(Model::CategoryModel& model);
     int Delete(const std::int64_t categoryId);
 
@@ -55,9 +55,9 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string create;
     static const std::string filter;
     static const std::string getById;
+    static const std::string create;
     static const std::string update;
     static const std::string isActive;
 };

@@ -80,7 +80,7 @@ EmployerDao::~EmployerDao()
 
 int EmployerDao::Filter(const std::string& searchTerm, std::vector<Model::EmployerModel>& employers)
 {
-    pLogger->info("EmplyerDao - Attempting to filter employers with search term \"{0}\"", searchTerm);
+    pLogger->info(LogMessage::InfoBeginFilterEntities, "EmployerDao", "employers", searchTerm);
 
     auto formatedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
 
@@ -157,8 +157,7 @@ int EmployerDao::Filter(const std::string& searchTerm, std::vector<Model::Employ
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info(
-        "EmplyerDao - Successfully retrieved \"{0}\" employers with search term \"{1}\"", employers.size(), searchTerm);
+    pLogger->info(LogMessage::InfoEndFilterEntities, "EmployerDao", employers.size(), searchTerm);
     return 0;
 }
 

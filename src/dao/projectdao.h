@@ -43,9 +43,9 @@ public:
 
     ProjectDao& operator=(const ProjectDao&) = delete;
 
-    std::int64_t Create(Model::ProjectModel& client);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ProjectModel>& clients);
     int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& model);
+    std::int64_t Create(Model::ProjectModel& client);
     int Update(Model::ProjectModel& project);
     int Delete(const std::int64_t projectId);
     int UnmarkDefault();
@@ -54,9 +54,9 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string create;
     static const std::string filter;
     static const std::string getById;
+    static const std::string create;
     static const std::string update;
     static const std::string isActive;
     static const std::string unmarkDefault;

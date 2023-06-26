@@ -32,4 +32,6 @@ const char* ExecStepMoreResultsThanExpectedTemplate =
 // Info Messages
 const char* InfoOpenDatabaseConnection = "{0} - Open database connection at \"{1}\"";
 const char* InfoCloseDatabaseConnection = "{0} - Close database connection";
+const char* InfoBeginFilterEntities = "{0} - Filter \"{1}\" with search term \"{2}\"";
+const char* InfoEndFilterEntities = "{0} - Filtered \"{1}\" entities with search term \"{2}\"";
 } // namespace tks::LogMessage

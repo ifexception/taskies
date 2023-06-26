@@ -42,12 +42,12 @@ public:
 
     ClientDao& operator=(const ClientDao&) = delete;
 
-    std::int64_t Create(Model::ClientModel& client);
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ClientModel>& clients);
+    int FilterByEmployerId(const std::int64_t employerId, /*out*/ std::vector<Model::ClientModel>& clients);
     int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& model);
+    std::int64_t Create(Model::ClientModel& client);
     int Update(/*out*/ Model::ClientModel& client);
     int Delete(const std::int64_t clientId);
-    int FilterByEmployerId(const std::int64_t employerId, /*out*/ std::vector<Model::ClientModel>& clients);
 
     std::int64_t GetLastInsertId() const;
 
@@ -55,9 +55,9 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string create;
     static const std::string filter;
     static const std::string getById;
+    static const std::string create;
     static const std::string update;
     static const std::string isActive;
     static const std::string filterByEmployerId;

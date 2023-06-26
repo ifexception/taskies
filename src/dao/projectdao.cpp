@@ -81,108 +81,10 @@ ProjectDao::~ProjectDao()
     pLogger->info(LogMessage::InfoCloseDatabaseConnection, "ProjectDao");
 }
 
-std::int64_t ProjectDao::Create(Model::ProjectModel& model)
-{
-    sqlite3_stmt* stmt = nullptr;
-
-    int rc = sqlite3_prepare_v2(
-        pDb, ProjectDao::create.c_str(), static_cast<int>(ProjectDao::create.size()), &stmt, nullptr);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "ProjectDao", ProjectDao::create, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    int bindIndex = 1;
-    // name
-    rc =
-        sqlite3_bind_text(stmt, bindIndex++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "name", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    // display name
-    rc = sqlite3_bind_text(
-        stmt, bindIndex++, model.DisplayName.c_str(), static_cast<int>(model.DisplayName.size()), SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "display_name", 2, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    // is default
-    rc = sqlite3_bind_int(stmt, bindIndex++, model.IsDefault);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "is_default", 3, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    // description
-    if (model.Description.has_value()) {
-        rc = sqlite3_bind_text(stmt,
-            bindIndex,
-            model.Description.value().c_str(),
-            static_cast<int>(model.Description.value().size()),
-            SQLITE_TRANSIENT);
-    } else {
-        rc = sqlite3_bind_null(stmt, bindIndex);
-    }
-
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "description", 4, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    bindIndex++;
-
-    // employer id
-    rc = sqlite3_bind_int64(stmt, bindIndex++, model.EmployerId);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "employer_id", 5, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    // client id
-    if (model.ClientId.has_value()) {
-        rc = sqlite3_bind_int64(stmt, bindIndex, model.ClientId.value());
-    } else {
-        rc = sqlite3_bind_null(stmt, bindIndex);
-    }
-
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "client_id", 6, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "ProjectDao", ProjectDao::create, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    auto rowId = sqlite3_last_insert_rowid(pDb);
-
-    return rowId;
-}
-
 int ProjectDao::Filter(const std::string& searchTerm, std::vector<Model::ProjectModel>& projects)
 {
+    pLogger->info(LogMessage::InfoBeginFilterEntities, "ProjectDao", "projects", searchTerm);
+
     sqlite3_stmt* stmt = nullptr;
     auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
 
@@ -299,6 +201,7 @@ int ProjectDao::Filter(const std::string& searchTerm, std::vector<Model::Project
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndFilterEntities, "ProjectDao", projects.size(), searchTerm);
 
     return 0;
 }
@@ -368,6 +271,106 @@ int ProjectDao::GetById(const std::int64_t projectId, Model::ProjectModel& model
     sqlite3_finalize(stmt);
 
     return 0;
+}
+
+std::int64_t ProjectDao::Create(Model::ProjectModel& model)
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, ProjectDao::create.c_str(), static_cast<int>(ProjectDao::create.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ProjectDao", ProjectDao::create, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+    // name
+    rc =
+        sqlite3_bind_text(stmt, bindIndex++, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "name", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // display name
+    rc = sqlite3_bind_text(
+        stmt, bindIndex++, model.DisplayName.c_str(), static_cast<int>(model.DisplayName.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "display_name", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // is default
+    rc = sqlite3_bind_int(stmt, bindIndex++, model.IsDefault);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "is_default", 3, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // description
+    if (model.Description.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            model.Description.value().c_str(),
+            static_cast<int>(model.Description.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "description", 4, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // employer id
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.EmployerId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "employer_id", 5, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // client id
+    if (model.ClientId.has_value()) {
+        rc = sqlite3_bind_int64(stmt, bindIndex, model.ClientId.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "client_id", 6, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "ProjectDao", ProjectDao::create, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    auto rowId = sqlite3_last_insert_rowid(pDb);
+
+    return rowId;
 }
 
 int ProjectDao::Update(Model::ProjectModel& project)
@@ -564,18 +567,6 @@ int ProjectDao::UnmarkDefault()
     return 0;
 }
 
-const std::string ProjectDao::create = "INSERT INTO "
-                                       "projects"
-                                       "("
-                                       "name, "
-                                       "display_name, "
-                                       "is_default, "
-                                       "description, "
-                                       "employer_id, "
-                                       "client_id"
-                                       ") "
-                                       "VALUES(?, ?, ?, ?, ?, ?)";
-
 const std::string ProjectDao::filter = "SELECT "
                                        "projects.project_id, "
                                        "projects.name AS project_name, "
@@ -614,6 +605,18 @@ const std::string ProjectDao::getById = "SELECT "
                                         "INNER JOIN employers ON projects.employer_id = employers.employer_id "
                                         "LEFT JOIN clients ON projects.client_id = clients.client_id "
                                         "WHERE projects.project_id = ?;";
+
+const std::string ProjectDao::create = "INSERT INTO "
+                                       "projects"
+                                       "("
+                                       "name, "
+                                       "display_name, "
+                                       "is_default, "
+                                       "description, "
+                                       "employer_id, "
+                                       "client_id"
+                                       ") "
+                                       "VALUES(?, ?, ?, ?, ?, ?)";
 
 const std::string ProjectDao::update = "UPDATE projects "
                                        "SET "

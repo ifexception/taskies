@@ -102,7 +102,7 @@ extern const char* ExecStepMoreResultsThanExpectedTemplate;
 /// <example>
 /// <para>Usage:</para>
 /// <code>
-/// "{ClassName} - Close database connection at "{DatabaseLocation}"
+/// "{ClassName} - Close database connection at "{DatabaseLocation}""
 /// </code>
 /// </example>
 /// </summary>
@@ -113,9 +113,31 @@ extern const char* InfoOpenDatabaseConnection;
 /// <example>
 /// <para>Usage:</para>
 /// <code>
-/// "{ClassName} - Close database connection
+/// "{ClassName} - Close database connection"
 /// </code>
 /// </example>
 /// </summary>
 extern const char* InfoCloseDatabaseConnection;
+
+/// <summary>
+/// Use this template to log Information when starting the "Filter" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Filter "{Entity}" with search term "{SearchTerm}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoBeginFilterEntities;
+
+/// <summary>
+/// Use this template to log Information when ending the "Filter" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Filtered "{Count}" entities with search term "{SearchTerm}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoEndFilterEntities;
 } // namespace tks::LogMessage
