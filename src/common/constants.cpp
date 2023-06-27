@@ -34,6 +34,12 @@ const char* InfoOpenDatabaseConnection = "{0} - Open database connection at \"{1
 const char* InfoCloseDatabaseConnection = "{0} - Close database connection";
 const char* InfoBeginFilterEntities = "{0} - Filter \"{1}\" with search term \"{2}\"";
 const char* InfoEndFilterEntities = "{0} - Filtered \"{1}\" entities with search term \"{2}\"";
-const char* InfoBeginGetByIdEntity = "{ClassName} - Retrieve \"{0}\" with ID \"{1}\"";
-const char* InfoEndGetByIdEntity = "{ClassName} - Retreived entity with ID \"{0}\"";
+const char* InfoBeginGetByIdEntity = "{0} - Retrieve \"{1}\" with ID \"{2}\"";
+const char* InfoEndGetByIdEntity = "{0} - Retreived entity with ID \"{1}\"";
+const char* InfoBeginCreateEntity = "{0} - Create \"{1}\" with name \"{2}\"";
+const char* InfoEndCreateEntity = "{0} - Created \"{1}\" with ID \"{2}\"";
+const char* InfoBeginUpdateEntity = "{0} - Update \"{1}\" with ID \"{2}\"";
+const char* InfoEndUpdateEntity = "{0} - Updated with ID \"{1}\"";
+const char* InfoBeginDeleteEntity = "{0} - Delete \"{1}\" with ID \"{2}\"";
+const char* InfoEndDeleteEntity = "{0} - Deleted ID \"{1}\"";
 } // namespace tks::LogMessage

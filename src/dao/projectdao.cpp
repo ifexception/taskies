@@ -278,6 +278,7 @@ int ProjectDao::GetById(const std::int64_t projectId, Model::ProjectModel& model
 
 std::int64_t ProjectDao::Create(Model::ProjectModel& model)
 {
+    pLogger->info(LogMessage::InfoBeginCreateEntity, "ProjectDao", "project", model.Name);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -372,12 +373,14 @@ std::int64_t ProjectDao::Create(Model::ProjectModel& model)
 
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
+    pLogger->info(LogMessage::InfoEndCreateEntity, "ProjectDao", rowId);
 
     return rowId;
 }
 
 int ProjectDao::Update(Model::ProjectModel& project)
 {
+    pLogger->info(LogMessage::InfoBeginUpdateEntity, "ProjectDao", "project", project.ProjectId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -489,13 +492,16 @@ int ProjectDao::Update(Model::ProjectModel& project)
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndUpdateEntity, "ProjectDao", project.ProjectId);
 
     return 0;
 }
 
 int ProjectDao::Delete(const std::int64_t projectId)
 {
+    pLogger->info(LogMessage::InfoBeginDeleteEntity, "ProjectDao", "project", projectId);
     sqlite3_stmt* stmt = nullptr;
+
     int rc = sqlite3_prepare_v2(
         pDb, ProjectDao::isActive.c_str(), static_cast<int>(ProjectDao::isActive.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -532,12 +538,14 @@ int ProjectDao::Delete(const std::int64_t projectId)
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndDeleteEntity, "ProjectDao", projectId);
 
     return 0;
 }
 
 int ProjectDao::UnmarkDefault()
 {
+    pLogger->info("ProjectDao - Unmark default projects (if any)");
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -566,6 +574,7 @@ int ProjectDao::UnmarkDefault()
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info("ProjectDao - Completed unmarking defaults (if any)");
 
     return 0;
 }

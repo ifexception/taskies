@@ -224,7 +224,8 @@ int EmployerDao::GetById(const std::int64_t employerId, Model::EmployerModel& em
 
 std::int64_t EmployerDao::Create(const Model::EmployerModel& employer)
 {
-    pLogger->info("EmplyerDao - Attempt to create employer with name \"{0}\"", employer.Name);
+    pLogger->info(LogMessage::InfoBeginCreateEntity, "EmplyerDao", "employer", employer.Name);
+
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
         pDb, EmployerDao::create.c_str(), static_cast<int>(EmployerDao::create.size()), &stmt, nullptr);
@@ -270,16 +271,14 @@ std::int64_t EmployerDao::Create(const Model::EmployerModel& employer)
 
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
-
-    pLogger->info(
-        "EmplyerDao - Successfully created employer with name \"{0}\" and got row ID \"{1}\"", employer.Name, rowId);
+    pLogger->info(LogMessage::InfoEndCreateEntity, "EmplyerDao", rowId);
 
     return rowId;
 }
 
 int EmployerDao::Update(Model::EmployerModel employer)
 {
-    pLogger->info("EmplyerDao - Attempting to update employer with name \"{0}\"", employer.Name);
+    pLogger->info(LogMessage::InfoBeginUpdateEntity, "EmplyerDao", "employer", employer.EmployerId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -341,14 +340,14 @@ int EmployerDao::Update(Model::EmployerModel employer)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("EmplyerDao - Successfully updated \"{0}\" employer", employer.Name);
+    pLogger->info(LogMessage::InfoEndUpdateEntity, "EmplyerDao", employer.EmployerId);
+
     return 0;
 }
 
 int EmployerDao::Delete(const std::int64_t employerId)
 {
-    pLogger->info("EmplyerDao - Attempting to delete employer \"{0}\"", employerId);
-
+    pLogger->info(LogMessage::InfoBeginDeleteEntity, "EmplyerDao", "employer", employerId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -386,7 +385,8 @@ int EmployerDao::Delete(const std::int64_t employerId)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("EmplyerDao - Successfully deleted employer \"{0}\"", employerId);
+    pLogger->info(LogMessage::InfoEndDeleteEntity, "EmployerDao", employerId);
+
     return 0;
 }
 

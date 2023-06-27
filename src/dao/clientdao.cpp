@@ -314,7 +314,7 @@ int ClientDao::GetById(const std::int64_t clientId, Model::ClientModel& model)
 
 std::int64_t ClientDao::Create(Model::ClientModel& model)
 {
-    pLogger->info("ClientDao - Attempt to create employer with name \"{0}\"", model.Name);
+    pLogger->info(LogMessage::InfoBeginCreateEntity, "ClientDao", "client", model.Name);
     sqlite3_stmt* stmt = nullptr;
 
     int rc =
@@ -372,15 +372,14 @@ std::int64_t ClientDao::Create(Model::ClientModel& model)
 
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
-    pLogger->info(
-        "ClientDao - Successfully created employer with name \"{0}\" and got row ID \"{1}\"", model.Name, rowId);
+    pLogger->info(LogMessage::InfoEndCreateEntity, "ClientDao", rowId);
 
     return rowId;
 }
 
 int ClientDao::Update(Model::ClientModel& model)
 {
-    pLogger->info("ClientDao - Attempting to update employer with name \"{0}\"", model.Name);
+    pLogger->info(LogMessage::InfoBeginUpdateEntity, "ClientDao", "client", model.ClientId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc =
@@ -453,16 +452,16 @@ int ClientDao::Update(Model::ClientModel& model)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("ClientDao - Successfully updated \"{0}\" employer", model.Name);
+    pLogger->info(LogMessage::InfoEndUpdateEntity, "ClientDao", model.ClientId);
 
     return 0;
 }
 
 int ClientDao::Delete(const std::int64_t clientId)
 {
-    pLogger->info("ClientDao - Attempting to delete employer \"{0}\"", clientId);
-
+    pLogger->info(LogMessage::InfoBeginDeleteEntity, "ClientDao", "client", clientId);
     sqlite3_stmt* stmt = nullptr;
+
     int rc = sqlite3_prepare_v2(
         pDb, ClientDao::isActive.c_str(), static_cast<int>(ClientDao::isActive.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -499,7 +498,7 @@ int ClientDao::Delete(const std::int64_t clientId)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info("ClientDao - Successfully deleted employer \"{0}\"", clientId);
+    pLogger->info(LogMessage::InfoEndDeleteEntity, "ClientDao", clientId);
 
     return 0;
 }

@@ -229,6 +229,7 @@ int CategoryDao::GetById(const std::int64_t categoryId, Model::CategoryModel& mo
 
 std::int64_t CategoryDao::Create(Model::CategoryModel& category)
 {
+    pLogger->info(LogMessage::InfoBeginCreateEntity, "CategoryDao", "category", category.Name);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -293,12 +294,14 @@ std::int64_t CategoryDao::Create(Model::CategoryModel& category)
 
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
+    pLogger->info(LogMessage::InfoEndCreateEntity, "CategoryDao", rowId);
 
     return rowId;
 }
 
 int CategoryDao::Update(Model::CategoryModel& model)
 {
+    pLogger->info(LogMessage::InfoBeginUpdateEntity, "CategoryDao", "category", model.CategoryId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -385,13 +388,16 @@ int CategoryDao::Update(Model::CategoryModel& model)
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoBeginUpdateEntity, "Category", model.CategoryId);
 
     return 0;
 }
 
 int CategoryDao::Delete(const std::int64_t categoryId)
 {
+    pLogger->info(LogMessage::InfoBeginDeleteEntity, "CategoryDao", "category", categoryId);
     sqlite3_stmt* stmt = nullptr;
+
     int rc = sqlite3_prepare_v2(
         pDb, CategoryDao::isActive.c_str(), static_cast<int>(CategoryDao::isActive.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -428,6 +434,7 @@ int CategoryDao::Delete(const std::int64_t categoryId)
     }
 
     sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndDeleteEntity, "CategoryDao", categoryId);
 
     return 0;
 }

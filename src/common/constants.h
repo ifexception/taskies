@@ -162,4 +162,70 @@ extern const char* InfoBeginGetByIdEntity;
 /// </example>
 /// </summary>
 extern const char* InfoEndGetByIdEntity;
+
+/// <summary>
+/// Use this template to log Information when beginning the "Create" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Create "{Entity}" with name "{Name}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoBeginCreateEntity;
+
+/// <summary>
+/// Use this template to log Information when ending the "Create" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Created "{Entity}" with ID "{ID}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoEndCreateEntity;
+
+/// <summary>
+/// Use this template to log Information when beginning the "Update" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Update "{Entity}" with ID "{ID}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoBeginUpdateEntity;
+
+/// <summary>
+/// Use this template to log Information when ending the "Update" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Updated with ID "{ID}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoEndUpdateEntity;
+
+/// <summary>
+/// Use this template to log Information when beginning the "Delete" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Delete "{Entity}" with ID "{ID}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoBeginDeleteEntity;
+
+/// <summary>
+/// Use this template to log Information when ending the "Delete" method
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "{ClassName} - Deleted ID "{ID}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* InfoEndDeleteEntity;
 } // namespace tks::LogMessage
