@@ -34,4 +34,20 @@ std::string BuildConfigurationToString(BuildConfiguration buildConfiguration)
         return "";
     }
 }
+
+std::string WindowStateToString(WindowState windowState)
+{
+    switch (windowState) {
+    case tks::WindowState::Normal:
+        return "Normal";
+    case tks::WindowState::Minimized:
+        return "Minimized";
+    case tks::WindowState::Hidden:
+        return "Hidden";
+    case tks::WindowState::Maximized:
+        return "Maximized";
+    default:
+        return "";
+    }
+}
 }

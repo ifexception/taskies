@@ -30,4 +30,5 @@ enum class WindowState : int { Normal = 1, Minimized = 2, Hidden = 3, Maximized 
 enum class BuildConfiguration { Undefined, Debug, Release };
 
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
+std::string WindowStateToString(WindowState windowState);
 } // namespace tks

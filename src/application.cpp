@@ -57,6 +57,9 @@ bool Application::OnInit()
 
     InitializeLogger();
 
+    auto env = pEnv->GetBuildConfiguration();
+    pLogger->info("Application - Running in \"{0}\" environment", BuildConfigurationToString(env));
+
     pCfg = std::make_shared<Core::Configuration>(pEnv, pLogger);
     if (!InitializeConfiguration()) {
         wxMessageBox(
@@ -80,11 +83,14 @@ bool Application::OnInit()
     }
 
     if (!pEnv->IsSetup()) {
+        pLogger->info("Application - Program not yet set up");
         if (!FirstStartupProcedure()) {
             return false;
         }
     }
 
+    pLogger->info(
+        "Application - Initialize MainFrame with WindowState \"{0}\"", WindowStateToString(pCfg->GetWindowState()));
     auto frame = new UI::MainFrame(pEnv, pCfg, pLogger);
     SetTopWindow(frame);
 
