@@ -71,6 +71,7 @@ DatabaseMigration::DatabaseMigration(std::shared_ptr<spdlog::logger> logger, con
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::OpenDatabaseTemplate, "DatabaseMigration", databaseFilePath, rc, std::string(err));
+        return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);

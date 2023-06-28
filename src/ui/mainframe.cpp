@@ -81,6 +81,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 // clang-format on
 {
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
+        pLogger->info(
+            "MainFrame - First time set up, no wx persistent object found.\nSetting default size {0}x{1}", 800, 600);
         SetSize(FromDIP(wxSize(800, 600)));
     }
 
@@ -89,9 +91,11 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
     mDatabaseFilePath =
         pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
+    pLogger->info("MainFrame - Database location \"{0}\"", mDatabaseFilePath);
 
     pTaskBarIcon = new TaskBarIcon(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
     if (pCfg->ShowInTray()) {
+        pLogger->info("MainFrame - TaskBarIcon \"ShowInTray\" is \"{0}\"", pCfg->ShowInTray());
         pTaskBarIcon->SetTaskBarIcon();
     }
 
@@ -101,6 +105,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 MainFrame::~MainFrame()
 {
     if (pTaskBarIcon) {
+        pLogger->info("MainFrame - \"pTaskBarIcon\" not null. Removing icon");
         pTaskBarIcon->RemoveIcon();
         delete pTaskBarIcon;
     }
@@ -183,7 +188,9 @@ void MainFrame::DataToControls()
 
 void MainFrame::OnClose(wxCloseEvent& event)
 {
+    pLogger->info("MainFrame - Closing program");
     if (pCfg->CloseToTray() && pCfg->ShowInTray() && event.CanVeto()) {
+        pLogger->info("MainFrame - Closing program to tray area");
         Hide();
         MSWGetTaskBarButton()->Hide();
     } else {
@@ -194,7 +201,9 @@ void MainFrame::OnClose(wxCloseEvent& event)
 
 void MainFrame::OnIconize(wxIconizeEvent& event)
 {
+    pLogger->info("MainFrame - Iconize program");
     if (event.IsIconized() && pCfg->ShowInTray() && pCfg->MinimizeToTray()) {
+        pLogger->info("MainFrame - Iconize program to tray area");
         MSWGetTaskBarButton()->Hide();
     }
 }
@@ -225,11 +234,15 @@ void MainFrame::OnNewCategory(wxCommandEvent& event)
 
 void MainFrame::OnExit(wxCommandEvent& event)
 {
+    pLogger->info("MainFrame - Optimize database on program exit");
+    pLogger->info("MainFrame - Open database connection at \"{0}\"", mDatabaseFilePath);
+
     sqlite3* db = nullptr;
     int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::OpenDatabaseTemplate, "MainFrame", mDatabaseFilePath, rc, std::string(err));
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "MainFrame", mDatabaseFilePath, rc, err);
+        goto cleanup;
     }
 
     rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
@@ -238,8 +251,8 @@ void MainFrame::OnExit(wxCommandEvent& event)
         pLogger->error(LogMessage::ExecQueryTemplate, "MainFrame", Utils::sqlite::pragmas::Optimize, rc, err);
     }
 
+cleanup:
     sqlite3_close(db);
-
     Close();
 }
 
