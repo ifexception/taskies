@@ -33,12 +33,13 @@ PersistenceManager::PersistenceManager(std::shared_ptr<spdlog::logger> logger, c
     : pLogger(logger)
     , pDb(nullptr)
 {
-    pLogger->info("PersistenceManager - Open database connection at path {0}", databaseFile);
+    pLogger->info("PersistenceManager - Open database connection at \"{0}\"", databaseFile);
 
     int rc = sqlite3_open(databaseFile.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::OpenDatabaseTemplate, "PersistenceManager", databaseFile, rc, std::string(err));
+        return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
