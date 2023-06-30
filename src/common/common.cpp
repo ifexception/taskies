@@ -54,4 +54,11 @@ std::string GetLicense()
            "You should have received a copy of the GNU General Public License\n"
            "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
 }
+namespace Resources
+{
+std::string GetBell()
+{
+    return "bell16x16.png";
+}
+} // namespace Resources
 } // namespace tks::Common

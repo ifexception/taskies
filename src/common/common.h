@@ -30,4 +30,9 @@ std::string GetProgramIconBundleName();
 std::string GetExitIconBundleName();
 
 std::string GetLicense();
+
+namespace Resources
+{
+std::string GetBell();
+}
 }
