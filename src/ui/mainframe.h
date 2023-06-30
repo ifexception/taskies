@@ -120,6 +120,11 @@ private:
 
     wxInfoBar* pInfoBar;
     TaskBarIcon* pTaskBarIcon;
+    wxBitmapButton* pNotificationButton;
+
+    enum {
+        tksIDC_NOTIFICATIONBUTTON
+    };
 };
 } // namespace UI
 } // namespace tks

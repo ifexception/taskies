@@ -72,6 +72,11 @@ std::filesystem::path Environment::GetDatabasePath()
     return GetApplicationDatabasePath() / GetDatabaseName();
 }
 
+std::filesystem::path Environment::GetResourcesPath()
+{
+    return GetApplicationResourcesPath();
+}
+
 std::string Environment::GetDatabaseName()
 {
     return "taskies.db";
@@ -215,6 +220,22 @@ std::filesystem::path Environment::GetApplicationConfigurationPath()
     }
 
     return appConfigPath;
+}
+
+std::filesystem::path Environment::GetApplicationResourcesPath()
+{
+    std::filesystem::path appResPath;
+    switch (mBuildConfig) {
+    case tks::BuildConfiguration::Debug:
+        appResPath = GetApplicationPath() / "res";
+        break;
+    case tks::BuildConfiguration::Release:
+        appResPath = GetApplicationPath() / "res";
+        break;
+    default:
+        break;
+    }
+    return appResPath;
 }
 
 std::string Environment::GetLogName()

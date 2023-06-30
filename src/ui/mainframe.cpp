@@ -19,6 +19,7 @@
 
 #include "mainframe.h"
 
+#include <wx/artprov.h>
 #include <wx/persist/toplevel.h>
 #include <wx/taskbarbutton.h>
 
@@ -81,10 +82,14 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 // clang-format on
 {
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
-        pLogger->info(
-            "MainFrame - First time set up, no wx persistent object found.\nSetting default size {0}x{1}", 800, 600);
+        pLogger->info("MainFrame - First time set up, no persistent object found. Setting default size \"{0}\"x\"{1}\"",
+            800,
+            600);
         SetSize(FromDIP(wxSize(800, 600)));
     }
+
+    wxPNGHandler* pngHandler = new wxPNGHandler();
+    wxImage::AddHandler(pngHandler);
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
@@ -105,7 +110,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 MainFrame::~MainFrame()
 {
     if (pTaskBarIcon) {
-        pLogger->info("MainFrame - \"pTaskBarIcon\" not null. Removing icon");
+        pLogger->info("MainFrame - Removing task bar icon");
         pTaskBarIcon->RemoveIcon();
         delete pTaskBarIcon;
     }
@@ -161,15 +166,28 @@ void MainFrame::CreateControls()
     SetMenuBar(menuBar);
 
     /* Main Controls */
-    auto mainSizer = new wxBoxSizer(wxVERTICAL);
-    auto mainPanel = new wxPanel(this);
-    mainPanel->SetSizer(mainSizer);
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto panel = new wxPanel(this);
+    panel->SetSizer(sizer);
 
     /* InfoBar */
-    pInfoBar = new wxInfoBar(mainPanel, wxID_ANY);
-    mainSizer->Add(pInfoBar, wxSizerFlags().Expand());
+    pInfoBar = new wxInfoBar(panel, wxID_ANY);
+    sizer->Add(pInfoBar, wxSizerFlags().Expand());
 
-    mainSizer->Add(new wxStaticText(mainPanel, wxID_ANY, "Taskies"), wxSizerFlags().Center());
+    auto topSizer = new wxBoxSizer(wxHORIZONTAL);
+    topSizer->AddStretchSpacer();
+
+    auto bellImagePath = pEnv->GetResourcesPath() / Common::Resources::GetBell();
+
+    wxBitmap bellBitmap;
+    bellBitmap.LoadFile(bellImagePath.string(), wxBITMAP_TYPE_PNG);
+    pNotificationButton = new wxBitmapButton(panel, tksIDC_NOTIFICATIONBUTTON, bellBitmap);
+    topSizer->Add(pNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    sizer->Add(topSizer, wxSizerFlags().Expand());
+
+    // SetSizer(sizer);
 }
 
 void MainFrame::DataToControls()
@@ -178,7 +196,7 @@ void MainFrame::DataToControls()
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
         auto infoBarMessage = fmt::format("Running {0} {1} - v{2}.{3}.{4}",
             Common::GetProgramName(),
-            tks::BuildConfigurationToString(pEnv->GetBuildConfiguration()),
+            BuildConfigurationToString(pEnv->GetBuildConfiguration()),
             TASKIES_MAJOR,
             TASKIES_MINOR,
             TASKIES_PATCH);
