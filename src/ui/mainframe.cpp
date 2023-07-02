@@ -53,6 +53,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 /* General Event Handlers */
 EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
+EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 /* Menu Handlers */
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
@@ -79,6 +80,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pLogger(logger)
     , mDatabaseFilePath()
     , pInfoBar(nullptr)
+    , pNotificationPopupWindow(nullptr)
 // clang-format on
 {
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
@@ -224,6 +226,21 @@ void MainFrame::OnIconize(wxIconizeEvent& event)
         pLogger->info("MainFrame - Iconize program to tray area");
         MSWGetTaskBarButton()->Hide();
     }
+}
+
+void MainFrame::OnNotificationClick(wxCommandEvent& event)
+{
+    if (pNotificationPopupWindow) {
+        delete pNotificationPopupWindow;
+    }
+
+    pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
+
+    wxWindow* btn = (wxWindow*) event.GetEventObject();
+    wxPoint pos = btn->ClientToScreen(wxPoint(0, 0));
+    wxSize size = btn->GetSize();
+    pNotificationPopupWindow->Position(pos, size);
+    pNotificationPopupWindow->Popup();
 }
 
 void MainFrame::OnNewEmployer(wxCommandEvent& event)

@@ -30,6 +30,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include "notificationpopupwindow.h"
 #include "taskbaricon.h"
 
 namespace tks
@@ -98,6 +99,7 @@ private:
     /* General Event Handlers */
     void OnClose(wxCloseEvent& event);
     void OnIconize(wxIconizeEvent& event);
+    void OnNotificationClick(wxCommandEvent& event);
     /* Menu Handlers */
     void OnNewEmployer(wxCommandEvent& event);
     void OnNewClient(wxCommandEvent& event);
@@ -121,6 +123,7 @@ private:
     wxInfoBar* pInfoBar;
     TaskBarIcon* pTaskBarIcon;
     wxBitmapButton* pNotificationButton;
+    NotificationPopupWindow* pNotificationPopupWindow;
 
     enum {
         tksIDC_NOTIFICATIONBUTTON
