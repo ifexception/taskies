@@ -19,25 +19,95 @@
 
 #include "notificationpopupwindow.h"
 
+#include <wx/artprov.h>
+
 namespace tks::UI
 {
-NotificationPopupWindow::NotificationPopupWindow(wxWindow* parent) {}
+NotificationPopupWindow::NotificationPopupWindow(wxWindow* parent, std::shared_ptr<spdlog::logger> logger)
+    : wxPopupTransientWindow(parent, wxBORDER_SIMPLE)
+    , pLogger(logger)
+    , mNotificationMessages()
+    , pCloseButton(nullptr)
+    , pClearAllNotificationsButton(nullptr)
+    , mIndex(0)
+{
+    CreateControls();
+    ConfigureEventBindings();
+}
 
-void NotificationPopupWindow::Popup(wxWindow* focus) {}
+void NotificationPopupWindow::Popup(wxWindow* WXUNUSED(focus))
+{
+    wxPopupTransientWindow::Popup();
+}
 
 bool NotificationPopupWindow::Show(bool show)
 {
-    return false;
+    return wxPopupTransientWindow::Show(show);
 }
 
-void NotificationPopupWindow::OnDismiss() {}
+void NotificationPopupWindow::OnDismiss()
+{
+    wxPopupTransientWindow::OnDismiss();
+}
 
-void NotificationPopupWindow::CreateControls() {}
+void NotificationPopupWindow::AddNotificationMessage(const Model::NotificationMessageModel& notificationMessage)
+{
+    mNotificationMessages.push(notificationMessage);
+}
+
+void NotificationPopupWindow::CreateControls()
+{
+    /* Sizer */
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Close window and title sizer */
+    auto titleButtonSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(titleButtonSizer, wxSizerFlags().Expand());
+
+    /* Notifications title static text */
+    auto notifcationsLabel = new wxStaticText(this, wxID_ANY, "Notifications");
+    notifcationsLabel->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
+
+    /* Close button */
+    auto providedCloseBitmap =
+        wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    pCloseButton = new wxBitmapButton(this, tksIDC_CLOSEBTN, providedCloseBitmap);
+
+    titleButtonSizer->Add(notifcationsLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    titleButtonSizer->AddStretchSpacer();
+    titleButtonSizer->Add(pCloseButton, wxSizerFlags().Border(wxALL, FromDIP(2)));
+
+    /* Clear All notifications button */
+    auto clearAllSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(clearAllSizer, wxSizerFlags().Expand());
+
+    clearAllSizer->AddStretchSpacer();
+    pClearAllNotificationsButton = new wxButton(this, tksIDC_CLEARALLNOTIF, "Clear All");
+    clearAllSizer->Add(pClearAllNotificationsButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* Noifications */
+
+    SetSizerAndFit(sizer);
+}
 
 // clang-format off
 void NotificationPopupWindow::ConfigureEventBindings()
 {
-
+    pCloseButton->Bind(
+        wxEVT_BUTTON,
+        &NotificationPopupWindow::OnClose,
+        this,
+        tksIDC_CLOSEBTN
+    );
 }
 // clang-format on
+
+void NotificationPopupWindow::OnClose(wxCommandEvent& event)
+{
+    wxPopupTransientWindow::Dismiss();
+}
+
+void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& event) {}
+
+void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event) {}
 } // namespace tks::UI

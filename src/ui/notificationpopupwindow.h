@@ -19,11 +19,18 @@
 
 #pragma once
 
+#include <stack>
+#include <vector>
+
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
 #include <wx/popupwin.h>
+
+#include <spdlog/logger.h>
+
+#include "../models/notificationmessagemodel.h"
 
 namespace tks::UI
 {
@@ -32,26 +39,33 @@ class NotificationPopupWindow final : public wxPopupTransientWindow
 public:
     NotificationPopupWindow() = delete;
     NotificationPopupWindow(const NotificationPopupWindow&) = delete;
-    NotificationPopupWindow(wxWindow* parent);
+    NotificationPopupWindow(wxWindow* parent, std::shared_ptr<spdlog::logger> logger);
     virtual ~NotificationPopupWindow() = default;
 
     NotificationPopupWindow& operator=(const NotificationPopupWindow&) = delete;
 
-    void Popup(wxWindow* focus) override;
+    void Popup(wxWindow* focus = nullptr) override;
     bool Show(bool show = true) override;
 
     void OnDismiss() override;
+
+    void AddNotificationMessage(const Model::NotificationMessageModel& notificationMessage);
 
 private:
     void CreateControls();
     void ConfigureEventBindings();
 
-    wxButton* pClearAllNotificationsButton;
-    std::vector<wxButton*> pMarkAsReadButtons;
+    void OnClose(wxCommandEvent& event);
+    void OnMarkAllAsRead(wxCommandEvent& event);
+    void OnMarkAsRead(wxCommandEvent& event);
 
-    enum {
-        tksIDC_CLEARALLNOTIF = wxID_HIGHEST + 100
-        tksIDC_MARKASREADBASE
-    };
+    std::shared_ptr<spdlog::logger> pLogger;
+
+    wxBitmapButton* pCloseButton;
+    wxButton* pClearAllNotificationsButton;
+    std::stack<Model::NotificationMessageModel> mNotificationMessages;
+    int mIndex;
+
+    enum { tksIDC_CLOSEBTN = wxID_HIGHEST + 100, tksIDC_CLEARALLNOTIF, tksIDC_MARKASREADBASE };
 };
-}
+} // namespace tks::UI
