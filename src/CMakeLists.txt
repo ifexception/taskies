@@ -26,6 +26,7 @@ set (SRC_MODELS
     "models/clientmodel.cpp"
     "models/projectmodel.cpp"
     "models/categorymodel.cpp"
+    "models/notificationmessagemodel.cpp"
 )
 
 set(SRC_DAO
