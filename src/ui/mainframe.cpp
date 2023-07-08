@@ -106,6 +106,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     }
 
     Create();
+
+    pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
 }
 
 MainFrame::~MainFrame()
@@ -113,7 +115,13 @@ MainFrame::~MainFrame()
     if (pTaskBarIcon) {
         pLogger->info("MainFrame - Removing task bar icon");
         pTaskBarIcon->RemoveIcon();
+        pLogger->info("MainFrame - Delete task bar icon pointer");
         delete pTaskBarIcon;
+    }
+
+    if (pNotificationPopupWindow) {
+        pLogger->info("MainFrame - Delete notification popup window pointer");
+        delete pNotificationPopupWindow;
     }
 
     pLogger->info("MainFrame - Destructor");
@@ -231,11 +239,11 @@ void MainFrame::OnIconize(wxIconizeEvent& event)
 
 void MainFrame::OnNotificationClick(wxCommandEvent& event)
 {
-    if (pNotificationPopupWindow) {
-        delete pNotificationPopupWindow;
-    }
-
-    pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
+    // if (pNotificationPopupWindow) {
+    //     delete pNotificationPopupWindow;
+    // }
+    //
+    // pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
 
     wxWindow* btn = (wxWindow*) event.GetEventObject();
     wxPoint pos = btn->ClientToScreen(wxPoint(-230, 0));
