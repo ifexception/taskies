@@ -75,6 +75,6 @@ private:
     std::vector<Notification> mNotifications;
     int mNotificationCounter;
 
-    enum { tksIDC_MARKASREADBASE = wxID_HIGHEST + 100, tksIDC_CLOSEBTN, tksIDC_CLEARALLNOTIF };
+    enum { tksIDC_MARKASREADBASE = wxID_HIGHEST + 101, tksIDC_CLOSEBTN, tksIDC_CLEARALLNOTIF };
 };
 } // namespace tks::UI
