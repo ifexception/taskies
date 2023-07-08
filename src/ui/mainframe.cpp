@@ -85,9 +85,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 {
     SetMinSize(wxSize(FromDIP(320), FromDIP(240)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
-        pLogger->info("MainFrame - First time set up, no persistent object found. Setting default size \"{0}\"x\"{1}\"",
-            800,
-            600);
+        pLogger->info("MainFrame - No persistent objects found. Set default size \"{0}\"x\"{1}\"", 800, 600);
         SetSize(FromDIP(wxSize(800, 600)));
     }
 
@@ -117,6 +115,8 @@ MainFrame::~MainFrame()
         pTaskBarIcon->RemoveIcon();
         delete pTaskBarIcon;
     }
+
+    pLogger->info("MainFrame - Destructor");
 }
 
 void MainFrame::Create()
