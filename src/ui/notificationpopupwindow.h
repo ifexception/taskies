@@ -20,6 +20,7 @@
 #pragma once
 
 #include <stack>
+#include <string>
 #include <vector>
 
 #include <wx/wxprec.h>
@@ -55,12 +56,23 @@ private:
     void OnMarkAllAsRead(wxCommandEvent& event);
     void OnMarkAsRead(wxCommandEvent& event);
 
+    void AddNotificationMessageWithControls();
+
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxSizer* pSizer;
+    wxPanel* pNoNotificationsPanel;
     wxBitmapButton* pCloseButton;
     wxButton* pClearAllNotificationsButton;
-    int mIndex;
+
+    struct Notification {
+        wxPanel* Panel;
+        std::string Message;
+        int Order;
+        int CloseButtonIndex;
+    };
+
+    std::vector<Notification> mNotifications;
 
     enum { tksIDC_CLOSEBTN = wxID_HIGHEST + 100, tksIDC_CLEARALLNOTIF, tksIDC_MARKASREADBASE };
 };
