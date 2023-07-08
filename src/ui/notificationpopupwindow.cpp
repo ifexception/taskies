@@ -97,6 +97,7 @@ void NotificationPopupWindow::CreateControls()
     auto providedCloseBitmap =
         wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pCloseButton = new wxBitmapButton(this, tksIDC_CLOSEBTN, providedCloseBitmap);
+    pCloseButton->SetToolTip("Close notifications window");
 
     titleButtonSizer->Add(notifcationsLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     titleButtonSizer->AddStretchSpacer();
@@ -107,7 +108,7 @@ void NotificationPopupWindow::CreateControls()
     pSizer->Add(clearAllSizer, wxSizerFlags().Expand());
 
     clearAllSizer->AddStretchSpacer();
-    pClearAllNotificationsButton = new wxButton(this, tksIDC_CLEARALLNOTIF, "Clear All");
+    pClearAllNotificationsButton = new wxButton(this, tksIDC_CLEARALLNOTIFICATIONS, "Clear All");
     pClearAllNotificationsButton->SetToolTip("Mark all as read");
 
     clearAllSizer->Add(pClearAllNotificationsButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -147,7 +148,7 @@ void NotificationPopupWindow::ConfigureEventBindings()
         wxEVT_BUTTON,
         &NotificationPopupWindow::OnMarkAllAsRead,
         this,
-        tksIDC_CLEARALLNOTIF
+        tksIDC_CLEARALLNOTIFICATIONS
     );
 }
 // clang-format on
@@ -158,7 +159,6 @@ void NotificationPopupWindow::OnClose(wxCommandEvent& WXUNUSED(event))
     wxPopupTransientWindow::Dismiss();
 }
 
-// Ticket #2
 void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
 {
     pLogger->info("NotificationPopupWindow - Removing all notifications. Count: \"{0}\"", mNotifications.size());
@@ -187,10 +187,9 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
     mNotificationCounter = 0;
 }
 
-// Ticket #3
 void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
 {
-    pLogger->info("NotificationPopupWindow - Clicked mark as read button with ID: \"{0}\"", event.GetId());
+    pLogger->info("NotificationPopupWindow - Clicked mark as read notification with ID: \"{0}\"", event.GetId());
     auto buttonId = event.GetId();
     auto it = std::find_if(mNotifications.begin(), mNotifications.end(), [&](const Notification& notification) {
         return notification.CloseButtonIndex == buttonId;
