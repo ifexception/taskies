@@ -31,6 +31,8 @@ NotificationPopupWindow::NotificationPopupWindow(wxWindow* parent, std::shared_p
     , pCloseButton(nullptr)
     , pClearAllNotificationsButton(nullptr)
     , mNotifications()
+    , mNotificationCounter(0)
+    , bNoNotificationsPanelRemoved(false)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -51,6 +53,25 @@ void NotificationPopupWindow::OnDismiss()
     wxPopupTransientWindow::OnDismiss();
 }
 
+void NotificationPopupWindow::AddNotification(const std::string& message)
+{
+    Notification n;
+    n.Message = message;
+    n.Order = ++mNotificationCounter;
+    n.CloseButtonIndex = tksIDC_MARKASREADBASE + mNotificationCounter;
+    n.Panel = nullptr;
+
+    if (pNoNotificationsPanel->IsEnabled()) {
+        pNoNotificationsPanel->Hide();
+        pNoNotificationsPanel->Disable();
+
+        pSizer->Layout();
+        //Update();
+    }
+
+    AddNotificationMessageWithControls(n);
+}
+
 void NotificationPopupWindow::CreateControls()
 {
     /* Sizer */
@@ -69,7 +90,7 @@ void NotificationPopupWindow::CreateControls()
         wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pCloseButton = new wxBitmapButton(this, tksIDC_CLOSEBTN, providedCloseBitmap);
 
-    titleButtonSizer->Add(notifcationsLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    titleButtonSizer->Add(notifcationsLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     titleButtonSizer->AddStretchSpacer();
     titleButtonSizer->Add(pCloseButton, wxSizerFlags().Border(wxALL, FromDIP(2)));
 
@@ -125,7 +146,7 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& event) {}
 // Ticket #3
 void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event) {}
 
-void NotificationPopupWindow::AddNotificationMessageWithControls()
+void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& notification)
 {
     /* Panel Sizer */
     auto panelSizer = new wxBoxSizer(wxVERTICAL);
@@ -144,12 +165,12 @@ void NotificationPopupWindow::AddNotificationMessageWithControls()
     /* Close button */
     auto providedCloseBitmap =
         wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    auto closeNotificationButton = new wxBitmapButton(panel, tksIDC_CLOSEBTN, providedCloseBitmap);
+    auto closeNotificationButton = new wxBitmapButton(notificationBox, tksIDC_CLOSEBTN, providedCloseBitmap);
 
     headerSizer->AddStretchSpacer();
     headerSizer->Add(closeNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    panelSizer->Add(headerSizer, wxSizerFlags().Expand());
+    notificationBoxSizer->Add(headerSizer, wxSizerFlags().Expand());
 
     /* Panel Body */
     auto bodySizer = new wxBoxSizer(wxHORIZONTAL);
@@ -157,15 +178,20 @@ void NotificationPopupWindow::AddNotificationMessageWithControls()
     /* Status Bitmap */
     auto providedInfoBitmap =
         wxArtProvider::GetBitmapBundle(wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    auto statusBitmap = new wxStaticBitmap(panel, wxID_ANY, providedInfoBitmap);
+    auto statusBitmap = new wxStaticBitmap(notificationBox, wxID_ANY, providedInfoBitmap);
 
-    /* Status Text */
-    auto statusText = new wxStaticText(panel, wxID_ANY, "Successfully added employer");
+    /* Message Text */
+    auto statusText = new wxStaticText(notificationBox, wxID_ANY, notification.Message);
     statusText->Wrap(190);
 
     bodySizer->Add(statusBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)));
     bodySizer->Add(statusText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    panelSizer->Add(bodySizer, wxSizerFlags().Expand());
+    notificationBoxSizer->Add(bodySizer, wxSizerFlags().Expand());
+
+    pSizer->Add(panel, wxSizerFlags().Expand());
+
+    notification.Panel = panel;
+    mNotifications.push_back(notification);
 }
 } // namespace tks::UI

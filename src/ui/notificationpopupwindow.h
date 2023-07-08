@@ -48,7 +48,11 @@ public:
 
     void OnDismiss() override;
 
+    void AddNotification(const std::string& message);
+
 private:
+    struct Notification;
+
     void CreateControls();
     void ConfigureEventBindings();
 
@@ -56,7 +60,7 @@ private:
     void OnMarkAllAsRead(wxCommandEvent& event);
     void OnMarkAsRead(wxCommandEvent& event);
 
-    void AddNotificationMessageWithControls();
+    void AddNotificationMessageWithControls(Notification& notification);
 
     std::shared_ptr<spdlog::logger> pLogger;
 
@@ -64,10 +68,12 @@ private:
     wxPanel* pNoNotificationsPanel;
     wxBitmapButton* pCloseButton;
     wxButton* pClearAllNotificationsButton;
+    int mNotificationCounter;
+    bool bNoNotificationsPanelRemoved;
 
     struct Notification {
-        wxPanel* Panel;
         std::string Message;
+        wxPanel* Panel;
         int Order;
         int CloseButtonIndex;
     };
