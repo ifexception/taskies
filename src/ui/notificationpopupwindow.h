@@ -30,8 +30,6 @@
 
 #include <spdlog/logger.h>
 
-#include "../models/notificationmessagemodel.h"
-
 namespace tks::UI
 {
 class NotificationPopupWindow final : public wxPopupTransientWindow
@@ -49,8 +47,6 @@ public:
 
     void OnDismiss() override;
 
-    void AddNotificationMessage(const Model::NotificationMessageModel& notificationMessage);
-
 private:
     void CreateControls();
     void ConfigureEventBindings();
@@ -61,9 +57,9 @@ private:
 
     std::shared_ptr<spdlog::logger> pLogger;
 
+    wxSizer* pSizer;
     wxBitmapButton* pCloseButton;
     wxButton* pClearAllNotificationsButton;
-    std::stack<Model::NotificationMessageModel> mNotificationMessages;
     int mIndex;
 
     enum { tksIDC_CLOSEBTN = wxID_HIGHEST + 100, tksIDC_CLEARALLNOTIF, tksIDC_MARKASREADBASE };

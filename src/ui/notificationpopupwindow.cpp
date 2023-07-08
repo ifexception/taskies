@@ -26,7 +26,7 @@ namespace tks::UI
 NotificationPopupWindow::NotificationPopupWindow(wxWindow* parent, std::shared_ptr<spdlog::logger> logger)
     : wxPopupTransientWindow(parent, wxBORDER_SIMPLE)
     , pLogger(logger)
-    , mNotificationMessages()
+    , pSizer(nullptr)
     , pCloseButton(nullptr)
     , pClearAllNotificationsButton(nullptr)
     , mIndex(0)
@@ -50,19 +50,14 @@ void NotificationPopupWindow::OnDismiss()
     wxPopupTransientWindow::OnDismiss();
 }
 
-void NotificationPopupWindow::AddNotificationMessage(const Model::NotificationMessageModel& notificationMessage)
-{
-    mNotificationMessages.push(notificationMessage);
-}
-
 void NotificationPopupWindow::CreateControls()
 {
     /* Sizer */
-    auto sizer = new wxBoxSizer(wxVERTICAL);
+    pSizer = new wxBoxSizer(wxVERTICAL);
 
     /* Close window and title sizer */
     auto titleButtonSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(titleButtonSizer, wxSizerFlags().Expand());
+    pSizer->Add(titleButtonSizer, wxSizerFlags().Expand());
 
     /* Notifications title static text */
     auto notifcationsLabel = new wxStaticText(this, wxID_ANY, "Notifications");
@@ -79,7 +74,7 @@ void NotificationPopupWindow::CreateControls()
 
     /* Clear All notifications button */
     auto clearAllSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(clearAllSizer, wxSizerFlags().Expand());
+    pSizer->Add(clearAllSizer, wxSizerFlags().Expand());
 
     clearAllSizer->AddStretchSpacer();
     pClearAllNotificationsButton = new wxButton(this, tksIDC_CLEARALLNOTIF, "Clear All");
@@ -87,7 +82,7 @@ void NotificationPopupWindow::CreateControls()
 
     /* Noifications */
 
-    SetSizerAndFit(sizer);
+    SetSizerAndFit(pSizer);
 }
 
 // clang-format off
