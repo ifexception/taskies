@@ -165,7 +165,7 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
 {
     pLogger->info("NotificationPopupWindow - Removing all notifications. Count: \"{0}\"", mNotifications.size());
     for (auto& notification : mNotifications) {
-        bool ret = notification.Panel->Hide();
+        bool ret = notification.Panel->HideWithEffect(wxShowEffect::wxSHOW_EFFECT_SLIDE_TO_BOTTOM);
         if (!ret) {
             pLogger->error("NotificationPopupWindow - Failed to hide panel");
             return;
@@ -187,7 +187,7 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
     pSizer->Layout();
     mNotifications.clear();
 
-    pNoNotificationsPanel->ShowWithEffect(wxShowEffect::wxSHOW_EFFECT_ROLL_TO_BOTTOM);
+    pNoNotificationsPanel->ShowWithEffect(wxShowEffect::wxSHOW_EFFECT_SLIDE_TO_BOTTOM);
     pNoNotificationsPanel->Enable();
     pSizer->Layout();
 }
@@ -202,7 +202,7 @@ void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
 
     if (it != std::end(mNotifications)) {
         auto& notification = *it;
-        bool ret = notification.Panel->Hide();
+        bool ret = notification.Panel->HideWithEffect(wxShowEffect::wxSHOW_EFFECT_SLIDE_TO_BOTTOM);
         if (!ret) {
             pLogger->error("NotificationPopupWindow - Failed to hide panel");
             return;
@@ -224,7 +224,7 @@ void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
     }
 
     if (mNotifications.empty()) {
-        pNoNotificationsPanel->ShowWithEffect(wxShowEffect::wxSHOW_EFFECT_ROLL_TO_BOTTOM);
+        pNoNotificationsPanel->ShowWithEffect(wxShowEffect::wxSHOW_EFFECT_SLIDE_TO_BOTTOM);
         pNoNotificationsPanel->Enable();
         pSizer->Layout();
     }
