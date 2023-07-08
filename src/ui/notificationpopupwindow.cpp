@@ -66,7 +66,6 @@ void NotificationPopupWindow::AddNotification(const std::string& message)
         pNoNotificationsPanel->Disable();
 
         pSizer->Layout();
-        //Update();
     }
 
     AddNotificationMessageWithControls(n);
@@ -159,7 +158,7 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
 
     auto notificationBox = new wxStaticBox(panel, wxID_ANY, wxEmptyString);
     auto notificationBoxSizer = new wxStaticBoxSizer(notificationBox, wxVERTICAL);
-    panelSizer->Add(notificationBoxSizer, wxSizerFlags().Expand());
+    panelSizer->Add(notificationBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Panel Header */
     auto headerSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -171,7 +170,7 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     closeNotificationButton->SetToolTip("Mark as read");
 
     headerSizer->AddStretchSpacer();
-    headerSizer->Add(closeNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    headerSizer->Add(closeNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(2)));
 
     notificationBoxSizer->Add(headerSizer, wxSizerFlags().Expand());
 
@@ -187,8 +186,8 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     auto statusText = new wxStaticText(notificationBox, wxID_ANY, notification.Message);
     statusText->Wrap(190);
 
-    bodySizer->Add(statusBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    bodySizer->Add(statusText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    bodySizer->Add(statusBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    bodySizer->Add(statusText, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
 
     notificationBoxSizer->Add(bodySizer, wxSizerFlags().Expand());
 
