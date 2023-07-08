@@ -56,7 +56,7 @@ std::string GetLicense()
 }
 namespace Resources
 {
-std::string GetBell()
+std::string Bell()
 {
     return "bell16x16.png";
 }

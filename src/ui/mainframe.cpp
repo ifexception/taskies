@@ -180,7 +180,7 @@ void MainFrame::CreateControls()
     auto topSizer = new wxBoxSizer(wxHORIZONTAL);
     topSizer->AddStretchSpacer();
 
-    auto bellImagePath = pEnv->GetResourcesPath() / Common::Resources::GetBell();
+    auto bellImagePath = pEnv->GetResourcesPath() / Common::Resources::Bell();
 
     wxBitmap bellBitmap;
     bellBitmap.LoadFile(bellImagePath.string(), wxBITMAP_TYPE_PNG);

@@ -33,6 +33,6 @@ std::string GetLicense();
 
 namespace Resources
 {
-std::string GetBell();
+std::string Bell();
 }
 }
