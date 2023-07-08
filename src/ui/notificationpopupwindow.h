@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <stack>
 #include <string>
 #include <vector>
 
@@ -51,7 +50,12 @@ public:
     void AddNotification(const std::string& message);
 
 private:
-    struct Notification;
+    struct Notification {
+        std::string Message;
+        wxPanel* Panel;
+        int Order;
+        int CloseButtonIndex;
+    };
 
     void CreateControls();
     void ConfigureEventBindings();
@@ -68,16 +72,8 @@ private:
     wxPanel* pNoNotificationsPanel;
     wxBitmapButton* pCloseButton;
     wxButton* pClearAllNotificationsButton;
-    int mNotificationCounter;
-
-    struct Notification {
-        std::string Message;
-        wxPanel* Panel;
-        int Order;
-        int CloseButtonIndex;
-    };
-
     std::vector<Notification> mNotifications;
+    int mNotificationCounter;
 
     enum { tksIDC_MARKASREADBASE = wxID_HIGHEST + 100, tksIDC_CLOSEBTN, tksIDC_CLEARALLNOTIF };
 };
