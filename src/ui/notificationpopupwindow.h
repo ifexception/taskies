@@ -69,7 +69,6 @@ private:
     wxBitmapButton* pCloseButton;
     wxButton* pClearAllNotificationsButton;
     int mNotificationCounter;
-    bool bNoNotificationsPanelRemoved;
 
     struct Notification {
         std::string Message;
@@ -80,6 +79,6 @@ private:
 
     std::vector<Notification> mNotifications;
 
-    enum { tksIDC_CLOSEBTN = wxID_HIGHEST + 100, tksIDC_CLEARALLNOTIF, tksIDC_MARKASREADBASE };
+    enum { tksIDC_MARKASREADBASE = wxID_HIGHEST + 100, tksIDC_CLOSEBTN, tksIDC_CLEARALLNOTIF };
 };
 } // namespace tks::UI

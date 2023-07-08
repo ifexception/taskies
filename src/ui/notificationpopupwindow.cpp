@@ -32,7 +32,6 @@ NotificationPopupWindow::NotificationPopupWindow(wxWindow* parent, std::shared_p
     , pClearAllNotificationsButton(nullptr)
     , mNotifications()
     , mNotificationCounter(0)
-    , bNoNotificationsPanelRemoved(false)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -40,21 +39,25 @@ NotificationPopupWindow::NotificationPopupWindow(wxWindow* parent, std::shared_p
 
 void NotificationPopupWindow::Popup(wxWindow* WXUNUSED(focus))
 {
+    pLogger->info("NotificationPopupWindow - Popup notification window");
     wxPopupTransientWindow::Popup();
 }
 
 bool NotificationPopupWindow::Show(bool show)
 {
+    pLogger->info("NotificationPopupWindow - Show notification window");
     return wxPopupTransientWindow::Show(show);
 }
 
 void NotificationPopupWindow::OnDismiss()
 {
+    pLogger->info("NotificationPopupWindow - Dismiss notification window");
     wxPopupTransientWindow::OnDismiss();
 }
 
 void NotificationPopupWindow::AddNotification(const std::string& message)
 {
+    pLogger->info("NotificationPopupWindow - Add notification with message: \"{0}\"", message);
     Notification n;
     n.Message = message;
     n.Order = ++mNotificationCounter;
@@ -68,6 +71,10 @@ void NotificationPopupWindow::AddNotification(const std::string& message)
         pSizer->Layout();
     }
 
+    pLogger->info(
+        "NotificationPopupWindow - Create notification with attributes: \nOrder: \"{0}\"\nCloseButtonIndex: \"{1}\"",
+        n.Order,
+        n.CloseButtonIndex);
     AddNotificationMessageWithControls(n);
 }
 
@@ -133,16 +140,50 @@ void NotificationPopupWindow::ConfigureEventBindings()
         this,
         tksIDC_CLOSEBTN
     );
+
+    pClearAllNotificationsButton->Bind(
+        wxEVT_BUTTON,
+        &NotificationPopupWindow::OnMarkAllAsRead,
+        this,
+        tksIDC_CLEARALLNOTIF
+    );
 }
 // clang-format on
 
 void NotificationPopupWindow::OnClose(wxCommandEvent& event)
 {
+    pLogger->info("NotificationPopupWindow - Dismiss notification window");
     wxPopupTransientWindow::Dismiss();
 }
 
 // Ticket #2
-void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& event) {}
+void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& event)
+{
+    pLogger->info("NotificationPopupWindow - Begin to remove all notifications");
+    for (auto& notification : mNotifications) {
+        bool ret = notification.Panel->Hide();
+        if (!ret) {
+            pLogger->error("NotificationPopupWindow - Failed to hide panel");
+            return;
+        }
+        ret = pSizer->Detach(notification.Panel);
+        if (!ret) {
+            pLogger->error("NotificationPopupWindow - Failed to detach panel from main sizer");
+            return;
+        }
+        ret = notification.Panel->Destroy();
+        if (!ret) {
+            pLogger->error("NotificationPopupWindow - Failed to destroy panel");
+            return;
+        }
+    }
+
+    pLogger->info("NotificationPopupWindow - Finish remove all notifications");
+
+    pSizer->Layout();
+    mNotifications.clear();
+    mNotificationCounter = 0;
+}
 
 // Ticket #3
 void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event) {}
@@ -166,7 +207,8 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     /* Close button */
     auto providedCloseBitmap =
         wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    auto closeNotificationButton = new wxBitmapButton(notificationBox, tksIDC_CLOSEBTN, providedCloseBitmap);
+    auto closeNotificationButton =
+        new wxBitmapButton(notificationBox, notification.CloseButtonIndex, providedCloseBitmap);
     closeNotificationButton->SetToolTip("Mark as read");
 
     headerSizer->AddStretchSpacer();
