@@ -20,6 +20,7 @@
 #include "notificationpopupwindow.h"
 
 #include <wx/artprov.h>
+#include <wx/statline.h>
 
 namespace tks::UI
 {
@@ -80,21 +81,25 @@ void NotificationPopupWindow::CreateControls()
     pClearAllNotificationsButton = new wxButton(this, tksIDC_CLEARALLNOTIF, "Clear All");
     clearAllSizer->Add(pClearAllNotificationsButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
+    /* Static Line */
+    auto line = new wxStaticLine(this, wxID_ANY);
+    pSizer->Add(line, wxSizerFlags().Expand());
+
     /* No Noifications Panel */
     pNoNotificationsPanel = new wxPanel(this, wxID_ANY);
 
-    auto noNotificationsPanelSizer = new wxBoxSizer(wxHORIZONTAL);
+    auto noNotificationsPanelSizer = new wxBoxSizer(wxVERTICAL);
     pNoNotificationsPanel->SetSizer(noNotificationsPanelSizer);
 
     auto noNotificationsText = new wxStaticText(pNoNotificationsPanel, wxID_ANY, "No Notifications");
     noNotificationsText->SetFont(wxFont(9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
 
-    noNotificationsPanelSizer->Add(
-        noNotificationsText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().CenterHorizontal());
+    noNotificationsPanelSizer->Add(noNotificationsText, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
 
     pSizer->Add(pNoNotificationsPanel, wxSizerFlags().Expand());
 
-    SetSizerAndFit(pSizer);
+    SetSizer(pSizer);
+    SetSize(wxSize(FromDIP(230), FromDIP(380)));
 }
 
 // clang-format off

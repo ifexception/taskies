@@ -83,6 +83,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pNotificationPopupWindow(nullptr)
 // clang-format on
 {
+    SetMinSize(wxSize(FromDIP(320), FromDIP(240)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
         pLogger->info("MainFrame - First time set up, no persistent object found. Setting default size \"{0}\"x\"{1}\"",
             800,
@@ -237,7 +238,7 @@ void MainFrame::OnNotificationClick(wxCommandEvent& event)
     pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
 
     wxWindow* btn = (wxWindow*) event.GetEventObject();
-    wxPoint pos = btn->ClientToScreen(wxPoint(0, 0));
+    wxPoint pos = btn->ClientToScreen(wxPoint(-230, 0));
     wxSize size = btn->GetSize();
     pNotificationPopupWindow->Position(pos, size);
     pNotificationPopupWindow->Popup();
