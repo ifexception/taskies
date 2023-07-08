@@ -189,7 +189,7 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
 
 void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
 {
-    pLogger->info("NotificationPopupWindow - Clicked mark as read notification with ID: \"{0}\"", event.GetId());
+    pLogger->info("NotificationPopupWindow - Mark as read on notification with ID: \"{0}\"", event.GetId());
     auto buttonId = event.GetId();
     auto it = std::find_if(mNotifications.begin(), mNotifications.end(), [&](const Notification& notification) {
         return notification.CloseButtonIndex == buttonId;
