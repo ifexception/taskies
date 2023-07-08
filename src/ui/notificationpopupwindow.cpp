@@ -184,7 +184,6 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
 
     pSizer->Layout();
     mNotifications.clear();
-    mNotificationCounter = 0;
 }
 
 void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
@@ -196,7 +195,7 @@ void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
     });
 
     if (it != std::end(mNotifications)) {
-        auto notification = *it;
+        auto& notification = *it;
         bool ret = notification.Panel->Hide();
         if (!ret) {
             pLogger->error("NotificationPopupWindow - Failed to hide panel");
