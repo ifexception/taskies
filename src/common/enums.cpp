@@ -50,4 +50,15 @@ std::string WindowStateToString(WindowState windowState)
         return "";
     }
 }
+std::string NotificationTypeToString(NotificationType notificationType)
+{
+    switch (notificationType) {
+    case tks::NotificationType::Information:
+        return "Information";
+    case tks::NotificationType::Error:
+        return "Error";
+    default:
+        return "";
+    }
+}
 }

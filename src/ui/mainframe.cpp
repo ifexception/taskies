@@ -356,6 +356,6 @@ void MainFrame::OnError(wxCommandEvent& event)
 
 void MainFrame::OnNotificationTest(wxCommandEvent& event)
 {
-    pNotificationPopupWindow->AddNotification("Successful notification test");
+    pNotificationPopupWindow->AddNotification("Successful notification test", NotificationType::Information);
 }
 } // namespace tks::UI

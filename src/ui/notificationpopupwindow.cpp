@@ -57,9 +57,11 @@ void NotificationPopupWindow::OnDismiss()
     wxPopupTransientWindow::OnDismiss();
 }
 
-void NotificationPopupWindow::AddNotification(const std::string& message)
+void NotificationPopupWindow::AddNotification(const std::string& message, NotificationType type)
 {
-    pLogger->info("NotificationPopupWindow - Add notification with message: \"{0}\"", message);
+    pLogger->info("NotificationPopupWindow - Add notification with message: \"{0}\" and type: \"{1}\"",
+        message,
+        NotificationTypeToString(type));
     Notification n;
     n.Message = message;
     n.Order = ++mNotificationCounter;
@@ -67,17 +69,17 @@ void NotificationPopupWindow::AddNotification(const std::string& message)
     n.Panel = nullptr;
 
     if (pNoNotificationsPanel->IsEnabled()) {
-        pNoNotificationsPanel->Hide();
+        pNoNotificationsPanel->HideWithEffect(wxShowEffect::wxSHOW_EFFECT_ROLL_TO_BOTTOM);
         pNoNotificationsPanel->Disable();
 
         pSizer->Layout();
     }
 
     pLogger->info(
-        "NotificationPopupWindow - Create notification with attributes: \nOrder: \"{0}\"\nCloseButtonIndex: \"{1}\"",
+        "NotificationPopupWindow - Create notification with attributes - Order: \"{0}\" | CloseButtonIndex: \"{1}\"",
         n.Order,
         n.CloseButtonIndex);
-    AddNotificationMessageWithControls(n);
+    AddNotificationMessageWithControls(n, type);
 }
 
 void NotificationPopupWindow::CreateControls()
@@ -184,6 +186,10 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
 
     pSizer->Layout();
     mNotifications.clear();
+
+    pNoNotificationsPanel->ShowWithEffect(wxShowEffect::wxSHOW_EFFECT_ROLL_TO_BOTTOM);
+    pNoNotificationsPanel->Enable();
+    pSizer->Layout();
 }
 
 void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
@@ -216,9 +222,15 @@ void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
         mNotifications.erase(it);
         pLogger->info("NotificationPopupWindow - Removed notification with ID \"{0}\"", buttonId);
     }
+
+    if (mNotifications.empty()) {
+        pNoNotificationsPanel->ShowWithEffect(wxShowEffect::wxSHOW_EFFECT_ROLL_TO_BOTTOM);
+        pNoNotificationsPanel->Enable();
+        pSizer->Layout();
+    }
 }
 
-void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& notification)
+void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& notification, NotificationType type)
 {
     /* Panel Sizer */
     auto panelSizer = new wxBoxSizer(wxVERTICAL);
@@ -249,20 +261,31 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
 
     notificationBoxSizer->Add(headerSizer, wxSizerFlags().Expand());
 
+    /* Static line */
+    auto line = new wxStaticLine(notificationBox, wxID_ANY);
+    notificationBoxSizer->Add(line, wxSizerFlags().Expand());
+
     /* Panel Body */
     auto bodySizer = new wxBoxSizer(wxHORIZONTAL);
 
-    /* Status Bitmap */
-    auto providedInfoBitmap =
-        wxArtProvider::GetBitmapBundle(wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    auto statusBitmap = new wxStaticBitmap(notificationBox, wxID_ANY, providedInfoBitmap);
+    /* type Bitmap */
+    wxBitmapBundle providedBitmap;
+    switch (type) {
+    case NotificationType::Information:
+        providedBitmap = wxArtProvider::GetBitmapBundle(wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+        break;
+    case NotificationType::Error:
+        providedBitmap = wxArtProvider::GetBitmapBundle(wxART_ERROR, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+        break;
+    }
+    auto typeBitmap = new wxStaticBitmap(notificationBox, wxID_ANY, providedBitmap);
 
     /* Message Text */
-    auto statusText = new wxStaticText(notificationBox, wxID_ANY, notification.Message);
-    statusText->Wrap(190);
+    auto typeText = new wxStaticText(notificationBox, wxID_ANY, notification.Message);
+    typeText->Wrap(190);
 
-    bodySizer->Add(statusBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    bodySizer->Add(statusText, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
+    bodySizer->Add(typeBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    bodySizer->Add(typeText, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
 
     notificationBoxSizer->Add(bodySizer, wxSizerFlags().Expand());
 

@@ -30,6 +30,8 @@
 
 #include <spdlog/logger.h>
 
+#include "../common/enums.h"
+
 namespace tks::UI
 {
 class NotificationPopupWindow final : public wxPopupTransientWindow
@@ -47,7 +49,7 @@ public:
 
     void OnDismiss() override;
 
-    void AddNotification(const std::string& message);
+    void AddNotification(const std::string& message, NotificationType status);
 
 private:
     struct Notification {
@@ -64,7 +66,7 @@ private:
     void OnMarkAllAsRead(wxCommandEvent& event);
     void OnMarkAsRead(wxCommandEvent& event);
 
-    void AddNotificationMessageWithControls(Notification& notification);
+    void AddNotificationMessageWithControls(Notification& notification, NotificationType status);
 
     std::shared_ptr<spdlog::logger> pLogger;
 
