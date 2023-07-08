@@ -114,6 +114,7 @@ private:
     void OnAbout(wxCommandEvent& event);
     /* Error Event Handler */
     void OnError(wxCommandEvent& event);
+    void OnNotificationTest(wxCommandEvent& event);
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
@@ -125,9 +126,7 @@ private:
     wxBitmapButton* pNotificationButton;
     NotificationPopupWindow* pNotificationPopupWindow;
 
-    enum {
-        tksIDC_NOTIFICATIONBUTTON
-    };
+    enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_NOTIFTEST };
 };
 } // namespace UI
 } // namespace tks

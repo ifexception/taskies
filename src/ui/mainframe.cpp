@@ -68,6 +68,7 @@ EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Error Event Handler */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
+EVT_BUTTON(tksIDC_NOTIFTEST, MainFrame::OnNotificationTest)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -197,6 +198,8 @@ void MainFrame::CreateControls()
     topSizer->Add(pNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
+
+    sizer->Add(new wxButton(panel, tksIDC_NOTIFTEST, "Notification Test"));
 
     // SetSizer(sizer);
 }
@@ -349,5 +352,10 @@ void MainFrame::OnError(wxCommandEvent& event)
 {
     UI::dlg::ErrorDialog errDialog(this, pEnv, pLogger, event.GetString().ToStdString());
     errDialog.ShowModal();
+}
+
+void MainFrame::OnNotificationTest(wxCommandEvent& event)
+{
+    pNotificationPopupWindow->AddNotification("Successful notification test");
 }
 } // namespace tks::UI
