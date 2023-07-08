@@ -100,6 +100,8 @@ void NotificationPopupWindow::CreateControls()
 
     clearAllSizer->AddStretchSpacer();
     pClearAllNotificationsButton = new wxButton(this, tksIDC_CLEARALLNOTIF, "Clear All");
+    pClearAllNotificationsButton->SetToolTip("Mark all as read");
+
     clearAllSizer->Add(pClearAllNotificationsButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Static Line */
@@ -166,6 +168,7 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     auto providedCloseBitmap =
         wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     auto closeNotificationButton = new wxBitmapButton(notificationBox, tksIDC_CLOSEBTN, providedCloseBitmap);
+    closeNotificationButton->SetToolTip("Mark as read");
 
     headerSizer->AddStretchSpacer();
     headerSizer->Add(closeNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -190,6 +193,7 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     notificationBoxSizer->Add(bodySizer, wxSizerFlags().Expand());
 
     pSizer->Add(panel, wxSizerFlags().Expand());
+    pSizer->Layout();
 
     notification.Panel = panel;
     mNotifications.push_back(notification);
