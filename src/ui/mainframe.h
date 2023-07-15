@@ -99,6 +99,7 @@ private:
     /* General Event Handlers */
     void OnClose(wxCloseEvent& event);
     void OnIconize(wxIconizeEvent& event);
+    void OnResize(wxSizeEvent& event);
     void OnNotificationClick(wxCommandEvent& event);
     /* Menu Handlers */
     void OnNewEmployer(wxCommandEvent& event);

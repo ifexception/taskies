@@ -48,6 +48,7 @@ public:
     bool Show(bool show = true) override;
 
     void OnDismiss() override;
+    void OnResize();
 
     void AddNotification(const std::string& message, NotificationType status);
 
@@ -70,6 +71,7 @@ private:
 
     std::shared_ptr<spdlog::logger> pLogger;
 
+    wxWindow* pParent;
     wxSizer* pSizer;
     wxPanel* pNoNotificationsPanel;
     wxScrolledWindow* pNotificationsScrolledWindow;

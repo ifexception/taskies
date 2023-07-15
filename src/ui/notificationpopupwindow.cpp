@@ -28,6 +28,7 @@ namespace tks::UI
 {
 NotificationPopupWindow::NotificationPopupWindow(wxWindow* parent, std::shared_ptr<spdlog::logger> logger)
     : wxPopupTransientWindow(parent, wxBORDER_SIMPLE)
+    , pParent(parent)
     , pLogger(logger)
     , pSizer(nullptr)
     , pNoNotificationsPanel(nullptr)
@@ -58,6 +59,28 @@ void NotificationPopupWindow::OnDismiss()
 {
     pLogger->info("NotificationPopupWindow - Dismiss notification window");
     wxPopupTransientWindow::OnDismiss();
+}
+
+void NotificationPopupWindow::OnResize()
+{
+    pLogger->info("NotificationPopupWindow - Resize event received from parent window");
+    wxSize notificationWindowSize;
+    if (pParent->GetClientSize().GetWidth() < 800) {
+        pLogger->info("NotificationPopupWindow - Parent window has gone below 800 pixels in width");
+        notificationWindowSize.SetWidth(FromDIP(200));
+    } else {
+        auto result = static_cast<int>(pParent->GetClientSize().GetWidth() * 0.25);
+        notificationWindowSize.SetWidth(FromDIP(result));
+    }
+    notificationWindowSize.SetHeight(FromDIP(pParent->GetClientSize().GetY() - 96));
+    SetSize(notificationWindowSize);
+
+    pNotificationsScrolledWindowSizer->Layout();
+    pSizer->Layout();
+
+    pLogger->info("NotificationPopupWindow - Resized to new dimensions: [ \"x\": \"{0}\", \"y\": \"{1}\"",
+        notificationWindowSize.GetX(),
+        notificationWindowSize.GetY());
 }
 
 void NotificationPopupWindow::AddNotification(const std::string& message, NotificationType type)
@@ -148,7 +171,16 @@ void NotificationPopupWindow::CreateControls()
     pNotificationsScrolledWindow->Hide();
 
     SetSizer(pSizer);
-    SetSize(wxSize(FromDIP(230), FromDIP(380)));
+
+    wxSize notificationWindowSize;
+    if (pParent->GetClientSize().GetWidth() < 100) {
+        notificationWindowSize.SetWidth(FromDIP(100));
+    } else {
+        auto result = static_cast<int>(pParent->GetClientSize().GetWidth() * 0.25);
+        notificationWindowSize.SetWidth(FromDIP(result));
+    }
+    notificationWindowSize.SetHeight(FromDIP(pParent->GetClientSize().GetY() - 140));
+    SetSize(notificationWindowSize);
 }
 
 // clang-format off
@@ -311,7 +343,8 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
 
     /* Message Text */
     auto typeText = new wxStaticText(notificationBox, wxID_ANY, notification.Message);
-    typeText->Wrap(190);
+    auto wrapThreshold = GetClientSize().GetWidth() - 40;
+    typeText->Wrap(wrapThreshold);
 
     bodySizer->Add(typeBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     bodySizer->Add(typeText, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());

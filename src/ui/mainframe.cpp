@@ -53,6 +53,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 /* General Event Handlers */
 EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
+EVT_SIZE(MainFrame::OnResize)
 EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 /* Menu Handlers */
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
@@ -84,7 +85,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pNotificationPopupWindow(nullptr)
 // clang-format on
 {
-    SetMinSize(wxSize(FromDIP(320), FromDIP(240)));
+    SetMinSize(wxSize(FromDIP(320), FromDIP(320)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
         pLogger->info("MainFrame - No persistent objects found. Set default size \"{0}\"x\"{1}\"", 800, 600);
         SetSize(FromDIP(wxSize(800, 600)));
@@ -200,8 +201,6 @@ void MainFrame::CreateControls()
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
     sizer->Add(new wxButton(panel, tksIDC_NOTIFTEST, "Notification Test"));
-
-    // SetSizer(sizer);
 }
 
 void MainFrame::DataToControls()
@@ -240,16 +239,26 @@ void MainFrame::OnIconize(wxIconizeEvent& event)
     }
 }
 
+void MainFrame::OnResize(wxSizeEvent& event)
+{
+    if (pNotificationPopupWindow) {
+        pNotificationPopupWindow->OnResize();
+    }
+
+    event.Skip();
+}
+
 void MainFrame::OnNotificationClick(wxCommandEvent& event)
 {
-    // if (pNotificationPopupWindow) {
-    //     delete pNotificationPopupWindow;
-    // }
-    //
-    // pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
-
     wxWindow* btn = (wxWindow*) event.GetEventObject();
-    wxPoint pos = btn->ClientToScreen(wxPoint(-230, 0));
+
+    auto y = GetClientSize().GetWidth();
+    auto xPositionOffset = (GetClientSize().GetWidth() + 4) * 0.25;
+    if (GetClientSize().GetWidth() < 800) {
+        xPositionOffset = 200; // cap notification window width at 200
+    }
+
+    wxPoint pos = btn->ClientToScreen(wxPoint(xPositionOffset * -1, 0));
     wxSize size = btn->GetSize();
     pNotificationPopupWindow->Position(pos, size);
     pNotificationPopupWindow->Popup();
