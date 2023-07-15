@@ -72,6 +72,8 @@ private:
 
     wxSizer* pSizer;
     wxPanel* pNoNotificationsPanel;
+    wxScrolledWindow* pNotificationsScrolledWindow;
+    wxSizer* pNotificationsScrolledWindowSizer;
     wxBitmapButton* pCloseButton;
     wxButton* pClearAllNotificationsButton;
     std::vector<Notification> mNotifications;

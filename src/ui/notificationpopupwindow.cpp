@@ -30,6 +30,9 @@ NotificationPopupWindow::NotificationPopupWindow(wxWindow* parent, std::shared_p
     : wxPopupTransientWindow(parent, wxBORDER_SIMPLE)
     , pLogger(logger)
     , pSizer(nullptr)
+    , pNoNotificationsPanel(nullptr)
+    , pNotificationsScrolledWindow(nullptr)
+    , pNotificationsScrolledWindowSizer(nullptr)
     , pCloseButton(nullptr)
     , pClearAllNotificationsButton(nullptr)
     , mNotifications()
@@ -132,6 +135,18 @@ void NotificationPopupWindow::CreateControls()
 
     pSizer->Add(pNoNotificationsPanel, wxSizerFlags().Expand());
 
+    /* Scrolled notifications panel */
+    pNotificationsScrolledWindow = new wxScrolledWindow(this, wxID_ANY);
+    pNotificationsScrolledWindowSizer = new wxBoxSizer(wxVERTICAL);
+    pNotificationsScrolledWindow->SetSizer(pNotificationsScrolledWindowSizer);
+    pNotificationsScrolledWindow->SetScrollRate(0, 20);
+    pNotificationsScrolledWindowSizer->FitInside(pNotificationsScrolledWindow);
+
+    pSizer->Add(pNotificationsScrolledWindow, wxSizerFlags().Expand().Proportion(1));
+
+    pNotificationsScrolledWindow->Disable();
+    pNotificationsScrolledWindow->Hide();
+
     SetSizer(pSizer);
     SetSize(wxSize(FromDIP(230), FromDIP(380)));
 }
@@ -170,7 +185,7 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
             pLogger->error("NotificationPopupWindow - Failed to hide panel");
             return;
         }
-        ret = pSizer->Detach(notification.Panel);
+        ret = pNotificationsScrolledWindowSizer->Detach(notification.Panel);
         if (!ret) {
             pLogger->error("NotificationPopupWindow - Failed to detach panel from main sizer");
             return;
@@ -187,6 +202,9 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
     pSizer->Layout();
     mNotifications.clear();
 
+    pNotificationsScrolledWindow->Disable();
+    pNotificationsScrolledWindow->Hide();
+
     pNoNotificationsPanel->ShowWithEffect(wxShowEffect::wxSHOW_EFFECT_SLIDE_TO_BOTTOM);
     pNoNotificationsPanel->Enable();
     pSizer->Layout();
@@ -195,6 +213,7 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
 void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
 {
     pLogger->info("NotificationPopupWindow - Mark as read on notification with ID: \"{0}\"", event.GetId());
+
     auto buttonId = event.GetId();
     auto it = std::find_if(mNotifications.begin(), mNotifications.end(), [&](const Notification& notification) {
         return notification.CloseButtonIndex == buttonId;
@@ -207,7 +226,7 @@ void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
             pLogger->error("NotificationPopupWindow - Failed to hide panel");
             return;
         }
-        ret = pSizer->Detach(notification.Panel);
+        ret = pNotificationsScrolledWindowSizer->Detach(notification.Panel);
         if (!ret) {
             pLogger->error("NotificationPopupWindow - Failed to detach panel from main sizer");
             return;
@@ -218,12 +237,16 @@ void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
             return;
         }
 
+        pNotificationsScrolledWindowSizer->Layout();
         pSizer->Layout();
         mNotifications.erase(it);
         pLogger->info("NotificationPopupWindow - Removed notification with ID \"{0}\"", buttonId);
     }
 
     if (mNotifications.empty()) {
+        pNotificationsScrolledWindow->Disable();
+        pNotificationsScrolledWindow->Hide();
+
         pNoNotificationsPanel->ShowWithEffect(wxShowEffect::wxSHOW_EFFECT_SLIDE_TO_BOTTOM);
         pNoNotificationsPanel->Enable();
         pSizer->Layout();
@@ -232,11 +255,16 @@ void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
 
 void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& notification, NotificationType type)
 {
+    if (!pNotificationsScrolledWindow->IsEnabled()) {
+        pNotificationsScrolledWindow->Enable();
+        pNotificationsScrolledWindow->Show();
+    }
+
     /* Panel Sizer */
     auto panelSizer = new wxBoxSizer(wxVERTICAL);
 
     /* Panel */
-    auto panel = new wxPanel(this, wxID_ANY);
+    auto panel = new wxPanel(pNotificationsScrolledWindow, wxID_ANY);
     panel->SetSizer(panelSizer);
 
     auto notificationBox = new wxStaticBox(panel, wxID_ANY, wxEmptyString);
@@ -272,7 +300,8 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     wxBitmapBundle providedBitmap;
     switch (type) {
     case NotificationType::Information:
-        providedBitmap = wxArtProvider::GetBitmapBundle(wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+        providedBitmap =
+            wxArtProvider::GetBitmapBundle(wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
         break;
     case NotificationType::Error:
         providedBitmap = wxArtProvider::GetBitmapBundle(wxART_ERROR, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
@@ -289,7 +318,9 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
 
     notificationBoxSizer->Add(bodySizer, wxSizerFlags().Expand());
 
-    pSizer->Add(panel, wxSizerFlags().Expand());
+    pNotificationsScrolledWindowSizer->Add(panel, wxSizerFlags().Expand());
+
+    pNotificationsScrolledWindowSizer->Layout();
     pSizer->Layout();
 
     notification.Panel = panel;
