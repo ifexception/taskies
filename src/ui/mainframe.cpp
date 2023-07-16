@@ -218,7 +218,7 @@ void MainFrame::DataToControls()
 {
     // Set InfoBar
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        auto infoBarMessage = fmt::format("Running {0} {1} - v{2}.{3}.{4}",
+        auto infoBarMessage = fmt::format("{0} {1} - v{2}.{3}.{4}",
             Common::GetProgramName(),
             BuildConfigurationToString(pEnv->GetBuildConfiguration()),
             TASKIES_MAJOR,
