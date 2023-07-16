@@ -126,6 +126,8 @@ private:
     TaskBarIcon* pTaskBarIcon;
     wxBitmapButton* pNotificationButton;
     NotificationPopupWindow* pNotificationPopupWindow;
+    wxBitmap mBellBitmap;
+    wxBitmap mBellNotificationBitmap;
 
     enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_NOTIFTEST };
 };

@@ -83,32 +83,47 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mDatabaseFilePath()
     , pInfoBar(nullptr)
     , pNotificationPopupWindow(nullptr)
+    , mBellBitmap(wxNullBitmap)
+    , mBellNotificationBitmap(wxNullBitmap)
 // clang-format on
 {
+    // Initialization setup
     SetMinSize(wxSize(FromDIP(320), FromDIP(320)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
         pLogger->info("MainFrame - No persistent objects found. Set default size \"{0}\"x\"{1}\"", 800, 600);
         SetSize(FromDIP(wxSize(800, 600)));
     }
 
+    // Initialize image handlers and images
     wxPNGHandler* pngHandler = new wxPNGHandler();
     wxImage::AddHandler(pngHandler);
 
+    auto bellImagePath = pEnv->GetResourcesPath() / Common::Resources::Bell();
+    auto bellNotificationImagePath = pEnv->GetResourcesPath() / Common::Resources::BellNotification();
+
+    mBellBitmap.LoadFile(bellImagePath.string(), wxBITMAP_TYPE_PNG);
+    mBellNotificationBitmap.LoadFile(bellNotificationImagePath.string(), wxBITMAP_TYPE_PNG);
+
+    // Set main icon in titlebar
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 
+    // Load database path
     mDatabaseFilePath =
         pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
     pLogger->info("MainFrame - Database location \"{0}\"", mDatabaseFilePath);
 
+    // Setup TaskBarIcon
     pTaskBarIcon = new TaskBarIcon(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
     if (pCfg->ShowInTray()) {
         pLogger->info("MainFrame - TaskBarIcon \"ShowInTray\" is \"{0}\"", pCfg->ShowInTray());
         pTaskBarIcon->SetTaskBarIcon();
     }
 
+    // Create controls
     Create();
 
+    // Create the notification popup window
     pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
 }
 
@@ -191,11 +206,7 @@ void MainFrame::CreateControls()
     auto topSizer = new wxBoxSizer(wxHORIZONTAL);
     topSizer->AddStretchSpacer();
 
-    auto bellImagePath = pEnv->GetResourcesPath() / Common::Resources::Bell();
-
-    wxBitmap bellBitmap;
-    bellBitmap.LoadFile(bellImagePath.string(), wxBITMAP_TYPE_PNG);
-    pNotificationButton = new wxBitmapButton(panel, tksIDC_NOTIFICATIONBUTTON, bellBitmap);
+    pNotificationButton = new wxBitmapButton(panel, tksIDC_NOTIFICATIONBUTTON, mBellBitmap);
     topSizer->Add(pNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
@@ -250,6 +261,8 @@ void MainFrame::OnResize(wxSizeEvent& event)
 
 void MainFrame::OnNotificationClick(wxCommandEvent& event)
 {
+    pNotificationButton->SetBitmap(mBellBitmap);
+
     wxWindow* btn = (wxWindow*) event.GetEventObject();
 
     auto y = GetClientSize().GetWidth();
@@ -365,6 +378,8 @@ void MainFrame::OnError(wxCommandEvent& event)
 
 void MainFrame::OnNotificationTest(wxCommandEvent& event)
 {
+    pNotificationButton->SetBitmap(mBellNotificationBitmap);
+
     pNotificationPopupWindow->AddNotification(
         "Successful notification test with long message", NotificationType::Information);
 }
