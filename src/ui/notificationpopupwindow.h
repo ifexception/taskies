@@ -34,6 +34,10 @@
 
 namespace tks::UI
 {
+#define NOTIFICATION_WINDOW_X_SCALE_FACTOR 0.25
+#define NOTIFICATION_WINDOW_Y_SCALE_OFFSET 86
+#define NOTIFICATION_MESSAGE_WRAP_WIDTH_OFFSET 40
+
 class NotificationPopupWindow final : public wxPopupTransientWindow
 {
 public:
@@ -55,6 +59,7 @@ public:
 private:
     struct Notification {
         std::string Message;
+        wxStaticText* ControlMessage;
         wxPanel* Panel;
         int Order;
         int CloseButtonIndex;

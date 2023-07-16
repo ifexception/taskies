@@ -69,16 +69,24 @@ void NotificationPopupWindow::OnResize()
         pLogger->info("NotificationPopupWindow - Parent window has gone below 800 pixels in width");
         notificationWindowSize.SetWidth(FromDIP(200));
     } else {
-        auto result = static_cast<int>(pParent->GetClientSize().GetWidth() * 0.25);
+        auto result = static_cast<int>(pParent->GetClientSize().GetWidth() * NOTIFICATION_WINDOW_X_SCALE_FACTOR);
         notificationWindowSize.SetWidth(FromDIP(result));
     }
-    notificationWindowSize.SetHeight(FromDIP(pParent->GetClientSize().GetY() - 96));
+    notificationWindowSize.SetHeight(FromDIP(pParent->GetClientSize().GetY() - NOTIFICATION_WINDOW_Y_SCALE_OFFSET));
     SetSize(notificationWindowSize);
+
+    for (auto& notification : mNotifications) {
+        notification.ControlMessage->SetLabel("");
+        notification.ControlMessage->SetLabel(notification.Message);
+
+        auto wrapThreshold = GetClientSize().GetWidth() - NOTIFICATION_MESSAGE_WRAP_WIDTH_OFFSET;
+        notification.ControlMessage->Wrap(wrapThreshold);
+    }
 
     pNotificationsScrolledWindowSizer->Layout();
     pSizer->Layout();
 
-    pLogger->info("NotificationPopupWindow - Resized to new dimensions: [ \"x\": \"{0}\", \"y\": \"{1}\"",
+    pLogger->info("NotificationPopupWindow - Resized to new dimensions: [ \"x\": \"{0}\", \"y\": \"{1}\" ]",
         notificationWindowSize.GetX(),
         notificationWindowSize.GetY());
 }
@@ -176,10 +184,10 @@ void NotificationPopupWindow::CreateControls()
     if (pParent->GetClientSize().GetWidth() < 100) {
         notificationWindowSize.SetWidth(FromDIP(100));
     } else {
-        auto result = static_cast<int>(pParent->GetClientSize().GetWidth() * 0.25);
+        auto result = static_cast<int>(pParent->GetClientSize().GetWidth() * NOTIFICATION_WINDOW_X_SCALE_FACTOR);
         notificationWindowSize.SetWidth(FromDIP(result));
     }
-    notificationWindowSize.SetHeight(FromDIP(pParent->GetClientSize().GetY() - 140));
+    notificationWindowSize.SetHeight(FromDIP(pParent->GetClientSize().GetY() - NOTIFICATION_WINDOW_Y_SCALE_OFFSET));
     SetSize(notificationWindowSize);
 }
 
@@ -328,7 +336,7 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     /* Panel Body */
     auto bodySizer = new wxBoxSizer(wxHORIZONTAL);
 
-    /* type Bitmap */
+    /* Notification Type Bitmap */
     wxBitmapBundle providedBitmap;
     switch (type) {
     case NotificationType::Information:
@@ -342,12 +350,12 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     auto typeBitmap = new wxStaticBitmap(notificationBox, wxID_ANY, providedBitmap);
 
     /* Message Text */
-    auto typeText = new wxStaticText(notificationBox, wxID_ANY, notification.Message);
-    auto wrapThreshold = GetClientSize().GetWidth() - 40;
-    typeText->Wrap(wrapThreshold);
+    auto typeMessageText = new wxStaticText(notificationBox, wxID_ANY, notification.Message);
+    auto wrapThreshold = GetClientSize().GetWidth() - NOTIFICATION_MESSAGE_WRAP_WIDTH_OFFSET;
+    typeMessageText->Wrap(wrapThreshold);
 
     bodySizer->Add(typeBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    bodySizer->Add(typeText, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
+    bodySizer->Add(typeMessageText, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical().Proportion(1));
 
     notificationBoxSizer->Add(bodySizer, wxSizerFlags().Expand());
 
@@ -356,6 +364,7 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     pNotificationsScrolledWindowSizer->Layout();
     pSizer->Layout();
 
+    notification.ControlMessage = typeMessageText;
     notification.Panel = panel;
     mNotifications.push_back(notification);
 }
