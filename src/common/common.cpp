@@ -60,5 +60,10 @@ std::string Bell()
 {
     return "bell16x16.png";
 }
+
+std::string BellNotification()
+{
+    return "bellnotification16x16.png";
+}
 } // namespace Resources
 } // namespace tks::Common

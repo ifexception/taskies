@@ -34,5 +34,6 @@ std::string GetLicense();
 namespace Resources
 {
 std::string Bell();
+std::string BellNotification();
 }
 }
