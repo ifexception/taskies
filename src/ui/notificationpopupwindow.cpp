@@ -255,6 +255,7 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
             pLogger->error("NotificationPopupWindow - Failed to hide panel");
             return;
         }
+        // https://forums.wxwidgets.org/viewtopic.php?p=20649#p20649
         ret = pNotificationsScrolledWindowSizer->Detach(notification.Panel);
         if (!ret) {
             pLogger->error("NotificationPopupWindow - Failed to detach panel from main sizer");
@@ -298,6 +299,7 @@ void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
             pLogger->error("NotificationPopupWindow - Failed to hide panel");
             return;
         }
+        // https://forums.wxwidgets.org/viewtopic.php?p=20649#p20649
         ret = pNotificationsScrolledWindowSizer->Detach(notification.Panel);
         if (!ret) {
             pLogger->error("NotificationPopupWindow - Failed to detach panel from main sizer");
