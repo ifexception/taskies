@@ -65,20 +65,39 @@ void NotificationPopupWindow::OnResize()
 {
     pLogger->info("NotificationPopupWindow - Resize event received from parent window");
     wxSize notificationWindowSize;
+    // We do not want the notification window to get too small as the controls do not fit beyond a certain threshold
+    // Thus, notification window is usually 25% of whatever pParent->GetClientSize().GetWidth() returns
+    // The moment pParent goes below 800, we can hardcode a capped width of 200
     if (pParent->GetClientSize().GetWidth() < 800) {
         pLogger->info("NotificationPopupWindow - Parent window has gone below 800 pixels in width");
         notificationWindowSize.SetWidth(FromDIP(200));
     } else {
+        // Otherwise, we calculate the width of the notification window at 25% of the parents
         auto result = static_cast<int>(pParent->GetClientSize().GetWidth() * NOTIFICATION_WINDOW_X_SCALE_FACTOR);
         notificationWindowSize.SetWidth(FromDIP(result));
     }
+
+    // pParent->GetClientSize().GetY() returns the _full_ height of itself, i.e. from the top of the window
+    // Since the notification button on pParent sits about a 1/8 down on the screen, we need to offset the value of
+    // GetY(). NOTIFICATION_WINDOW_Y_SCALE_OFFSET holds the value of this offset
+    // see 'notificationpopupwindow.h' for the value of NOTIFICATION_WINDOW_Y_SCALE_OFFSET
     notificationWindowSize.SetHeight(FromDIP(pParent->GetClientSize().GetY() - NOTIFICATION_WINDOW_Y_SCALE_OFFSET));
     SetSize(notificationWindowSize);
 
     for (auto& notification : mNotifications) {
+        // Fucking Wrap() does not work correctly when resizing the window
+        // Instead, since we still have the original message in the notification struct
+        // We clear the old message and add back the _same_ message
+        // This forces the sizer to calculate the Wrap() of the text correctly
+        // This definitely a HACK though
         notification.ControlMessage->SetLabel("");
         notification.ControlMessage->SetLabel(notification.Message);
 
+        // NOTIFICATION_MESSAGE_WRAP_WIDTH_OFFSET caters for the offset of the borders of the parent controls
+        // GetClietSize().GetWidth() can return 300, for example, but that is the full width of the window
+        // We need to deduct a magic number here so that the value Wrap() receives will wrap within the bounds
+        // its sizer, otherwise it will overflow
+        // see 'notificationpopupwindow.h' for the value of the magic number
         auto wrapThreshold = GetClientSize().GetWidth() - NOTIFICATION_MESSAGE_WRAP_WIDTH_OFFSET;
         notification.ControlMessage->Wrap(wrapThreshold);
     }
@@ -101,6 +120,7 @@ void NotificationPopupWindow::AddNotification(const std::string& message, Notifi
     n.Order = ++mNotificationCounter;
     n.CloseButtonIndex = tksIDC_MARKASREADBASE + mNotificationCounter;
     n.Panel = nullptr;
+    n.ControlMessage = nullptr;
 
     if (pNoNotificationsPanel->IsEnabled()) {
         pNoNotificationsPanel->HideWithEffect(wxShowEffect::wxSHOW_EFFECT_ROLL_TO_BOTTOM);
@@ -175,18 +195,28 @@ void NotificationPopupWindow::CreateControls()
 
     pSizer->Add(pNotificationsScrolledWindow, wxSizerFlags().Expand().Proportion(1));
 
+    // There are no notifications when the window gets constructed, so we hide the panel
     pNotificationsScrolledWindow->Disable();
     pNotificationsScrolledWindow->Hide();
 
     SetSizer(pSizer);
 
     wxSize notificationWindowSize;
-    if (pParent->GetClientSize().GetWidth() < 100) {
-        notificationWindowSize.SetWidth(FromDIP(100));
+    // We do not want the notification window to get too small as the controls do not fit beyond a certain threshold
+    // Thus, notification window is usually 25% of whatever pParent->GetClientSize().GetWidth() returns
+    // The moment pParent goes below 800, we can hardcode a capped width of 200
+    if (pParent->GetClientSize().GetWidth() < 800) {
+        notificationWindowSize.SetWidth(FromDIP(200));
     } else {
+        // Otherwise, we calculate the width of the notification window at 25% of the parents
         auto result = static_cast<int>(pParent->GetClientSize().GetWidth() * NOTIFICATION_WINDOW_X_SCALE_FACTOR);
         notificationWindowSize.SetWidth(FromDIP(result));
     }
+
+    // pParent->GetClientSize().GetY() returns the _full_ height of itself, i.e. from the top of the window
+    // Since the notification button on pParent sits about a 1/8 down on the screen, we need to offset the value of
+    // GetY(). NOTIFICATION_WINDOW_Y_SCALE_OFFSET holds the value of this offset
+    // see 'notificationpopupwindow.h' for the value NOTIFICATION_WINDOW_Y_SCALE_OFFSET holds
     notificationWindowSize.SetHeight(FromDIP(pParent->GetClientSize().GetY() - NOTIFICATION_WINDOW_Y_SCALE_OFFSET));
     SetSize(notificationWindowSize);
 }
@@ -230,6 +260,8 @@ void NotificationPopupWindow::OnMarkAllAsRead(wxCommandEvent& WXUNUSED(event))
             pLogger->error("NotificationPopupWindow - Failed to detach panel from main sizer");
             return;
         }
+        // Destroy() on a panel recursively calls Destroy() on all the panels children too
+        // https://forums.wxwidgets.org/viewtopic.php?p=30016#p30016
         ret = notification.Panel->Destroy();
         if (!ret) {
             pLogger->error("NotificationPopupWindow - Failed to destroy panel");
@@ -271,6 +303,8 @@ void NotificationPopupWindow::OnMarkAsRead(wxCommandEvent& event)
             pLogger->error("NotificationPopupWindow - Failed to detach panel from main sizer");
             return;
         }
+        // Destroy() on a panel recursively calls Destroy() on all the panels children too
+        // https://forums.wxwidgets.org/viewtopic.php?p=30016#p30016
         ret = notification.Panel->Destroy();
         if (!ret) {
             pLogger->error("NotificationPopupWindow - Failed to destroy panel");
@@ -320,6 +354,7 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
     auto closeNotificationButton =
         new wxBitmapButton(notificationBox, notification.CloseButtonIndex, providedCloseBitmap);
     closeNotificationButton->SetToolTip("Mark as read");
+    // https://forums.wxwidgets.org/viewtopic.php?t=29476
     Connect(notification.CloseButtonIndex,
         wxEVT_COMMAND_BUTTON_CLICKED,
         wxCommandEventHandler(NotificationPopupWindow::OnMarkAsRead));
@@ -351,6 +386,11 @@ void NotificationPopupWindow::AddNotificationMessageWithControls(Notification& n
 
     /* Message Text */
     auto typeMessageText = new wxStaticText(notificationBox, wxID_ANY, notification.Message);
+    // NOTIFICATION_MESSAGE_WRAP_WIDTH_OFFSET caters for the offset of the borders of the parent controls
+    // GetClietSize().GetWidth() can return 300, for example, but that is the full width of the window
+    // We need to deduct a magic number here so that the value Wrap() receives will wrap within the bounds
+    // its sizer, otherwise it will overflow
+    // see 'notificationpopupwindow.h' for the value of the magic number
     auto wrapThreshold = GetClientSize().GetWidth() - NOTIFICATION_MESSAGE_WRAP_WIDTH_OFFSET;
     typeMessageText->Wrap(wrapThreshold);
 
