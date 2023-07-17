@@ -93,7 +93,7 @@ void EmployerDialog::CreateControls()
     /* Employer Name Control */
     auto employerNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Name");
 
-    pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
+    pNameTextCtrl = new wxTextCtrl(detailsBox, tksIDC_NAME);
     pNameTextCtrl->SetHint("Employer name");
     pNameTextCtrl->SetToolTip("Enter a name for an employer");
 
@@ -126,7 +126,7 @@ void EmployerDialog::CreateControls()
     sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     pDescriptionTextCtrl = new wxTextCtrl(
-        descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
+        descriptionBox, tksIDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for an employer");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
@@ -163,7 +163,7 @@ void EmployerDialog::CreateControls()
         /* Is Active checkbox control */
         metadataFlexGridSizer->Add(0, 0);
 
-        pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
+        pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
         pIsActiveCtrl->SetToolTip("Indicates if this employer is being used");
         metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
     }

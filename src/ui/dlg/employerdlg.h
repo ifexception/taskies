@@ -83,9 +83,9 @@ private:
     Model::EmployerModel mEmployer;
 
     enum {
-        IDC_NAME = wxID_HIGHEST + 1,
-        IDC_DESCRIPTION,
-        IDC_ISACTIVE,
+        tksIDC_NAME = wxID_HIGHEST + 1,
+        tksIDC_DESCRIPTION,
+        tksIDC_ISACTIVE,
     };
 };
 } // namespace UI::dlg
