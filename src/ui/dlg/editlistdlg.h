@@ -109,7 +109,7 @@ private:
     std::string mSearchTerm;
     std::int64_t mEntityId;
 
-    enum { IDC_LIST = wxID_HIGHEST + 100, IDC_SEARCHTEXT, IDC_SEARCHBTN, IDC_RESETBTN };
+    enum { tksIDC_LISTRESULTS = wxID_HIGHEST + 100, tksIDC_SEARCHTEXT, tksIDC_SEARCHBTN, tksIDC_RESETBTN };
 };
 } // namespace UI::dlg
 } // namespace tks

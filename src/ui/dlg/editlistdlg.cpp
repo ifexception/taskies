@@ -126,7 +126,7 @@ void EditListDialog::CreateControls()
 
     /* Search Text Control */
     pSearchTextCtrl = new wxTextCtrl(searchBox,
-        IDC_SEARCHTEXT,
+        tksIDC_SEARCHTEXT,
         wxEmptyString,
         wxDefaultPosition,
         wxDefaultSize,
@@ -138,14 +138,14 @@ void EditListDialog::CreateControls()
     /* Search Button */
     auto providedFindBitmap =
         wxArtProvider::GetBitmapBundle(wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    pSearchButton = new wxBitmapButton(searchBox, IDC_SEARCHBTN, providedFindBitmap);
+    pSearchButton = new wxBitmapButton(searchBox, tksIDC_SEARCHBTN, providedFindBitmap);
     pSearchButton->SetToolTip("Search for an entity based on the search term");
     searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     /* Reset Button */
     auto providedCloseBitmap =
         wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    pResetButton = new wxBitmapButton(searchBox, IDC_RESETBTN, providedCloseBitmap);
+    pResetButton = new wxBitmapButton(searchBox, tksIDC_RESETBTN, providedCloseBitmap);
     pResetButton->SetToolTip("Reset search term");
     searchBoxSizer->Add(pResetButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
@@ -154,8 +154,8 @@ void EditListDialog::CreateControls()
     sizer->Add(line, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(2)).Expand());
 
     /* List Control */
-    pListCtrl =
-        new wxListCtrl(this, IDC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
+    pListCtrl = new wxListCtrl(
+        this, tksIDC_LISTRESULTS, wxDefaultPosition, wxDefaultSize, wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
     sizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     wxListItem nameColumn;
@@ -199,21 +199,21 @@ void EditListDialog::ConfigureEventBindings()
         wxEVT_BUTTON,
         &EditListDialog::OnSearch,
         this,
-        IDC_SEARCHBTN
+        tksIDC_SEARCHBTN
     );
 
     pResetButton->Bind(
         wxEVT_BUTTON,
         &EditListDialog::OnReset,
         this,
-        IDC_RESETBTN
+        tksIDC_RESETBTN
     );
 
     pListCtrl->Bind(
         wxEVT_LIST_ITEM_ACTIVATED,
         &EditListDialog::OnItemDoubleClick,
         this,
-        IDC_LIST
+        tksIDC_LISTRESULTS
     );
 
     pOkButton->Bind(
