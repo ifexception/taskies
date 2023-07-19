@@ -60,7 +60,6 @@ private:
     void Initialize();
 
     void CreateControls();
-    // void FillControls();
     void ConfigureEventBindings();
     void DataToControls();
 
@@ -89,7 +88,7 @@ private:
     std::int64_t mCategoryId;
     Model::CategoryModel mModel;
 
-    enum { IDC_NAME = wxID_HIGHEST + 1, IDC_COLORPICKER, IDC_BILLABLE, IDC_DESCRIPTION, IDC_ISACTIVE };
+    enum { tksIDC_NAME = wxID_HIGHEST + 1, tksIDC_COLORPICKER, tksIDC_BILLABLE, tksIDC_DESCRIPTION, tksIDC_ISACTIVE };
 };
 } // namespace UI::dlg
 } // namespace tks

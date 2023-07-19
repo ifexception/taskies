@@ -25,6 +25,7 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/validator.h"
 
 #include "../../core/environment.h"
 
@@ -93,30 +94,17 @@ void CategoryDialog::CreateControls()
     /* Name Ctrl */
     auto categoryNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Name");
 
-    pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
+    pNameTextCtrl = new wxTextCtrl(detailsBox, tksIDC_NAME);
     pNameTextCtrl->SetHint("Category name");
     pNameTextCtrl->SetToolTip("Enter a name for a category");
 
-    wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
-    wxArrayString allowedCharacters;
-    allowedCharacters.Add(" ");
-    allowedCharacters.Add("-");
-    allowedCharacters.Add(":");
-    allowedCharacters.Add(";");
-    allowedCharacters.Add(".");
-    allowedCharacters.Add("|");
-    allowedCharacters.Add("(");
-    allowedCharacters.Add(")");
-    allowedCharacters.Add("+");
-    nameValidator.SetIncludes(allowedCharacters);
-
-    pNameTextCtrl->SetValidator(nameValidator);
+    pNameTextCtrl->SetValidator(NameValidator());
 
     /* Color Picker Ctrl */
-    pColorPickerCtrl = new wxColourPickerCtrl(detailsBox, IDC_COLORPICKER);
+    pColorPickerCtrl = new wxColourPickerCtrl(detailsBox, tksIDC_COLORPICKER);
     pColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
 
-    pBillableCtrl = new wxCheckBox(detailsBox, IDC_BILLABLE, "Billable");
+    pBillableCtrl = new wxCheckBox(detailsBox, tksIDC_BILLABLE, "Billable");
     pBillableCtrl->SetToolTip("Indicates if a task captured with this category is billable");
 
     /* Details Grid Sizer */
@@ -140,8 +128,12 @@ void CategoryDialog::CreateControls()
     sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Description Text Ctrl */
-    pDescriptionTextCtrl = new wxTextCtrl(
-        descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
+    pDescriptionTextCtrl = new wxTextCtrl(descriptionBox,
+        tksIDC_DESCRIPTION,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for a category");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
@@ -177,7 +169,7 @@ void CategoryDialog::CreateControls()
     /* Is Active checkbox control */
     metadataFlexGridSizer->Add(0, 0);
 
-    pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
+    pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
     pIsActiveCtrl->SetToolTip("Indicates if this category is being used");
     metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
