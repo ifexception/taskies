@@ -58,7 +58,7 @@ void TaskBarIcon::ConfigureEventBindings()
         wxEVT_MENU,
         &TaskBarIcon::OnPreferences,
         this,
-        IDC_PREFERENCES
+        tksIDC_PREFERENCES
     );
 
     Bind(
@@ -79,7 +79,7 @@ void TaskBarIcon::ConfigureEventBindings()
 wxMenu* TaskBarIcon::CreatePopupMenu()
 {
     auto menu = new wxMenu();
-    auto preferencesMenuItem = menu->Append(IDC_PREFERENCES, wxT("Preferences"));
+    auto preferencesMenuItem = menu->Append(tksIDC_PREFERENCES, wxT("Preferences"));
     // preferencesMenuItem->SetBitmap(rc::GetSettingsIcon());
 
     menu->AppendSeparator();

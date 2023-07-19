@@ -70,7 +70,7 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 
-    enum { IDC_PREFERENCES = wxID_HIGHEST + 1000 };
+    enum { tksIDC_PREFERENCES = wxID_HIGHEST + 1000 };
 };
 } // namespace UI
 } // namespace tks
