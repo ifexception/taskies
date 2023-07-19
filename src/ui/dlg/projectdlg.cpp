@@ -27,6 +27,7 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/validator.h"
 
 #include "../../core/environment.h"
 
@@ -107,34 +108,21 @@ void ProjectDialog::CreateControls()
     /* Project Name Ctrl */
     auto projectNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Name");
 
-    pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
+    pNameTextCtrl = new wxTextCtrl(detailsBox, tksIDC_NAME);
     pNameTextCtrl->SetHint("Project name");
     pNameTextCtrl->SetToolTip("Enter a name for a project");
-
-    wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
-    wxArrayString allowedCharacters;
-    allowedCharacters.Add(" ");
-    allowedCharacters.Add("-");
-    allowedCharacters.Add(":");
-    allowedCharacters.Add(";");
-    allowedCharacters.Add(".");
-    allowedCharacters.Add("|");
-    allowedCharacters.Add("(");
-    allowedCharacters.Add(")");
-    allowedCharacters.Add("+");
-    nameValidator.SetIncludes(allowedCharacters);
-
-    pNameTextCtrl->SetValidator(nameValidator);
+    pNameTextCtrl->SetValidator(NameValidator());
 
     /* Display Name Ctrl */
     auto displayNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Display Name");
 
-    pDisplayNameCtrl = new wxTextCtrl(detailsBox, IDC_DISPLAYNAME);
+    pDisplayNameCtrl = new wxTextCtrl(detailsBox, tksIDC_DISPLAYNAME);
     pDisplayNameCtrl->SetHint("Display name");
     pDisplayNameCtrl->SetToolTip("Enter a nickname, abbreviation or common name for a project");
+    pDisplayNameCtrl->SetValidator(NameValidator());
 
     /* Is Default Checkbox Ctrl */
-    pIsDefaultCtrl = new wxCheckBox(detailsBox, IDC_ISDEFAULT, "Is Default");
+    pIsDefaultCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULT, "Is Default");
     pIsDefaultCtrl->SetToolTip("Enabling this option for a project will auto-select it on task item entry");
 
     /* Details Grid Sizer */
@@ -157,8 +145,12 @@ void ProjectDialog::CreateControls()
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
     sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    pDescriptionTextCtrl = new wxTextCtrl(
-        descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
+    pDescriptionTextCtrl = new wxTextCtrl(descriptionBox,
+        tksIDC_DESCRIPTION,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for a project");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
@@ -173,13 +165,13 @@ void ProjectDialog::CreateControls()
     /* Employer choice control */
     auto employerLabel = new wxStaticText(choiceBox, wxID_ANY, "Employer");
 
-    pEmployerChoiceCtrl = new wxChoice(choiceBox, IDC_EMPLOYERCHOICE);
+    pEmployerChoiceCtrl = new wxChoice(choiceBox, tksIDC_EMPLOYERCHOICE);
     pEmployerChoiceCtrl->SetToolTip("Select an employer to associate this project with");
 
     /* Client choice control */
     auto clientLabel = new wxStaticText(choiceBox, wxID_ANY, "Client");
 
-    pClientChoiceCtrl = new wxChoice(choiceBox, IDC_CLIENTCHOICE);
+    pClientChoiceCtrl = new wxChoice(choiceBox, tksIDC_CLIENTCHOICE);
     pClientChoiceCtrl->SetToolTip("Select an (optional) client to associate this project with");
 
     auto choiceGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
@@ -225,7 +217,7 @@ void ProjectDialog::CreateControls()
         /* Is Active checkbox control */
         metadataFlexGridSizer->Add(0, 0);
 
-        pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
+        pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
         pIsActiveCtrl->SetToolTip("Indicates if this project is being used");
         metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
     }

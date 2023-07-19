@@ -95,13 +95,13 @@ private:
     bool bIsEdit;
 
     enum {
-        IDC_NAME = wxID_HIGHEST + 1,
-        IDC_DISPLAYNAME,
-        IDC_DESCRIPTION,
-        IDC_ISDEFAULT,
-        IDC_EMPLOYERCHOICE,
-        IDC_CLIENTCHOICE,
-        IDC_ISACTIVE
+        tksIDC_NAME = wxID_HIGHEST + 1,
+        tksIDC_DISPLAYNAME,
+        tksIDC_DESCRIPTION,
+        tksIDC_ISDEFAULT,
+        tksIDC_EMPLOYERCHOICE,
+        tksIDC_CLIENTCHOICE,
+        tksIDC_ISACTIVE
     };
 };
 } // namespace UI::dlg
