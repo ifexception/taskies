@@ -74,12 +74,12 @@ private:
     wxCheckBox* pCloseToTrayCtrl;
 
     enum {
-        IDC_LANG = wxID_HIGHEST + 1,
-        IDC_START_WITH_WINDOWS,
-        IDC_START_POSITION,
-        IDC_SHOW_IN_TRAY,
-        IDC_MINIMIZE_TO_TRAY,
-        IDC_CLOSE_TO_TRAY,
+        tksIDC_LANG = wxID_HIGHEST + 1,
+        tksIDC_START_WITH_WINDOWS,
+        tksIDC_START_POSITION,
+        tksIDC_SHOW_IN_TRAY,
+        tksIDC_MINIMIZE_TO_TRAY,
+        tksIDC_CLOSE_TO_TRAY,
     };
 };
 } // namespace dlg

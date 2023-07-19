@@ -112,8 +112,8 @@ void PreferencesDatabasePage::CreateControls()
     auto dbPathSizer = new wxBoxSizer(wxHORIZONTAL);
     auto databasePathLabel = new wxStaticText(databaseBox, wxID_ANY, "Path");
     pDatabasePathTextCtrl = new wxTextCtrl(
-        databaseBox, IDC_DATABASE_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
-    pBrowseDatabasePathButton = new wxButton(databaseBox, IDC_DATABASE_PATH_BUTTON, "Browse...");
+        databaseBox, tksIDC_DATABASE_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
+    pBrowseDatabasePathButton = new wxButton(databaseBox, tksIDC_DATABASE_PATH_BUTTON, "Browse...");
     pBrowseDatabasePathButton->SetToolTip("Browse and select a directory to store the database");
     dbPathSizer->Add(databasePathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
     dbPathSizer->Add(pDatabasePathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
@@ -126,7 +126,7 @@ void PreferencesDatabasePage::CreateControls()
     sizer->Add(backupBoxSizer, wxSizerFlags().Expand());
 
     /* Enable backups check */
-    pBackupDatabaseCheckBoxCtrl = new wxCheckBox(backupBox, IDC_BACKUP_DATABASE_CHECK, "Enable database backups");
+    pBackupDatabaseCheckBoxCtrl = new wxCheckBox(backupBox, tksIDC_BACKUP_DATABASE_CHECK, "Enable database backups");
     pBackupDatabaseCheckBoxCtrl->SetToolTip("Toggles whether database backups occur");
     backupBoxSizer->Add(pBackupDatabaseCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
@@ -134,8 +134,8 @@ void PreferencesDatabasePage::CreateControls()
     auto backupPathSizer = new wxBoxSizer(wxHORIZONTAL);
     auto backupPathLabel = new wxStaticText(backupBox, wxID_ANY, "Path");
     pBackupPathTextCtrl = new wxTextCtrl(
-        backupBox, IDC_BACKUP_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
-    pBrowseBackupPathButton = new wxButton(backupBox, IDC_BACKUP_PATH_BUTTON, "Browse...");
+        backupBox, tksIDC_BACKUP_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
+    pBrowseBackupPathButton = new wxButton(backupBox, tksIDC_BACKUP_PATH_BUTTON, "Browse...");
     pBrowseBackupPathButton->SetToolTip("Browse and select a directory to store the database backups");
     backupPathSizer->Add(backupPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
     backupPathSizer->Add(
@@ -147,7 +147,7 @@ void PreferencesDatabasePage::CreateControls()
     auto retentionPeriodSizer = new wxBoxSizer(wxHORIZONTAL);
     auto retentionPeriodLabel = new wxStaticText(backupBox, wxID_ANY, "Retention Period (days)");
     pBackupsRetentionPeriodSpinCtrl = new wxSpinCtrl(backupBox,
-        IDC_BACKUPS_RETENTION_PERIOD,
+        tksIDC_BACKUPS_RETENTION_PERIOD,
         wxEmptyString,
         wxDefaultPosition,
         wxDefaultSize,
@@ -177,14 +177,14 @@ void PreferencesDatabasePage::ConfigureEventBindings()
         wxEVT_BUTTON,
         &PreferencesDatabasePage::OnOpenDirectoryForDatabaseLocation,
         this,
-        IDC_DATABASE_PATH_BUTTON
+        tksIDC_DATABASE_PATH_BUTTON
     );
 
     pBrowseBackupPathButton->Bind(
         wxEVT_BUTTON,
         &PreferencesDatabasePage::OnOpenDirectoryForBackupLocation,
         this,
-        IDC_BACKUP_PATH_BUTTON
+        tksIDC_BACKUP_PATH_BUTTON
     );
 }
 // clang-format on
@@ -251,8 +251,11 @@ void PreferencesDatabasePage::OnOpenDirectoryForBackupLocation(wxCommandEvent& e
         pathDirectoryToOpenOn = pCfg->GetBackupPath();
     }
 
-    auto openDirDialog = new wxDirDialog(
-        this, wxT("Select a backup directory for the database"), pathDirectoryToOpenOn, wxDD_DEFAULT_STYLE, wxDefaultPosition);
+    auto openDirDialog = new wxDirDialog(this,
+        wxT("Select a backup directory for the database"),
+        pathDirectoryToOpenOn,
+        wxDD_DEFAULT_STYLE,
+        wxDefaultPosition);
     int res = openDirDialog->ShowModal();
 
     if (res == wxID_OK) {

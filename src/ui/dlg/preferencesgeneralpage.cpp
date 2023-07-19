@@ -175,7 +175,7 @@ void PreferencesGeneralPage::CreateControls()
     /* Language label*/
     auto languageLabel = new wxStaticText(uiBox, wxID_ANY, "Language");
 
-    pUserInterfaceLanguageCtrl = new wxChoice(uiBox, IDC_LANG);
+    pUserInterfaceLanguageCtrl = new wxChoice(uiBox, tksIDC_LANG);
     pUserInterfaceLanguageCtrl->SetToolTip("Set the language for the program to use");
 
     uiGridSizer->Add(languageLabel, wxSizerFlags().CenterVertical());
@@ -199,7 +199,7 @@ void PreferencesGeneralPage::CreateControls()
     /* Start Position */
     auto startPositionLabel = new wxStaticText(miscBox, wxID_ANY, "Start Position");
 
-    pWindowStartPositionCtrl = new wxChoice(miscBox, IDC_START_POSITION);
+    pWindowStartPositionCtrl = new wxChoice(miscBox, tksIDC_START_POSITION);
     pWindowStartPositionCtrl->SetToolTip("Select the state of the program when launched");
     miscGridSizer->Add(startPositionLabel, wxSizerFlags().CenterVertical());
     miscGridSizer->Add(pWindowStartPositionCtrl, wxSizerFlags().Right().CenterVertical().Proportion(1));
@@ -212,9 +212,9 @@ void PreferencesGeneralPage::CreateControls()
     auto systemTrayFlexSizer = new wxFlexGridSizer(1, FromDIP(10), FromDIP(10));
     systemTrayFlexSizer->AddGrowableCol(0, 1);
 
-    pShowInTrayCtrl = new wxCheckBox(systemTrayBox, IDC_SHOW_IN_TRAY, "Show Taskies in the system tray area");
-    pMinimizeToTrayCtrl = new wxCheckBox(systemTrayBox, IDC_MINIMIZE_TO_TRAY, "Minimize to the system tray area");
-    pCloseToTrayCtrl = new wxCheckBox(systemTrayBox, IDC_CLOSE_TO_TRAY, "Close to the system tray area");
+    pShowInTrayCtrl = new wxCheckBox(systemTrayBox, tksIDC_SHOW_IN_TRAY, "Show Taskies in the system tray area");
+    pMinimizeToTrayCtrl = new wxCheckBox(systemTrayBox, tksIDC_MINIMIZE_TO_TRAY, "Minimize to the system tray area");
+    pCloseToTrayCtrl = new wxCheckBox(systemTrayBox, tksIDC_CLOSE_TO_TRAY, "Close to the system tray area");
 
     systemTrayFlexSizer->Add(pShowInTrayCtrl);
     systemTrayFlexSizer->Add(pMinimizeToTrayCtrl, wxSizerFlags().Border(wxLEFT, FromDIP(15)));

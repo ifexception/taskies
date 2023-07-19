@@ -84,7 +84,7 @@ private:
     wxButton* pOkButton;
     wxButton* pRestoreDefaultsButton;
 
-    enum { IDC_RESTOREDEFAULTBUTTON = wxID_HIGHEST + 1000 };
+    enum { tksIDC_RESTOREDEFAULTBUTTON = wxID_HIGHEST + 1000 };
 };
 } // namespace dlg
 } // namespace UI

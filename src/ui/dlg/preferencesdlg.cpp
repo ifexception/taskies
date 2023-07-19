@@ -93,7 +93,7 @@ void PreferencesDialog::CreateControls()
 
     buttonsSizer->AddStretchSpacer();
 
-    pRestoreDefaultsButton = new wxButton(this, IDC_RESTOREDEFAULTBUTTON, "Restore Defaults");
+    pRestoreDefaultsButton = new wxButton(this, tksIDC_RESTOREDEFAULTBUTTON, "Restore Defaults");
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();

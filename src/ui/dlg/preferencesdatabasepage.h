@@ -74,13 +74,13 @@ private:
     wxSpinCtrl* pBackupsRetentionPeriodSpinCtrl;
 
     enum {
-        IDC_DATABASE_PATH = wxID_HIGHEST + 1,
-        IDC_DATABASE_PATH_BUTTON,
-        IDC_BACKUP_DATABASE_CHECK,
-        IDC_BACKUP_DATABASE,
-        IDC_BACKUP_PATH,
-        IDC_BACKUP_PATH_BUTTON,
-        IDC_BACKUPS_RETENTION_PERIOD
+        tksIDC_DATABASE_PATH = wxID_HIGHEST + 1,
+        tksIDC_DATABASE_PATH_BUTTON,
+        tksIDC_BACKUP_DATABASE_CHECK,
+        tksIDC_BACKUP_DATABASE,
+        tksIDC_BACKUP_PATH,
+        tksIDC_BACKUP_PATH_BUTTON,
+        tksIDC_BACKUPS_RETENTION_PERIOD
     };
 };
 } // namespace UI::dlg
