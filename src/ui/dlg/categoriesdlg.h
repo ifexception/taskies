@@ -108,7 +108,7 @@ private:
     Model::CategoryModel mCategoryToAdd;
     std::vector<Model::CategoryModel> mCategoriesToAdd;
 
-    enum { IDC_NAME = wxID_HIGHEST + 1, IDC_DESCRIPTION, IDC_COLORPICKER, IDC_BILLABLE, IDC_LIST };
+    enum { tksIDC_NAME = wxID_HIGHEST + 1, tksIDC_DESCRIPTION, tksIDC_COLORPICKER, tksIDC_BILLABLE, tksIDC_LIST };
 };
 } // namespace UI::dlg
 } // namespace tks

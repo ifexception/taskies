@@ -27,6 +27,7 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/validator.h"
 
 #include "../../core/environment.h"
 
@@ -107,30 +108,17 @@ void CategoriesDialog::CreateControls()
     /* Name Ctrl */
     auto categoryNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Name");
 
-    pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
+    pNameTextCtrl = new wxTextCtrl(detailsBox, tksIDC_NAME);
     pNameTextCtrl->SetHint("Category name");
     pNameTextCtrl->SetToolTip("Enter a name for a Category");
 
-    wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
-    wxArrayString allowedCharacters;
-    allowedCharacters.Add(" ");
-    allowedCharacters.Add("-");
-    allowedCharacters.Add(":");
-    allowedCharacters.Add(";");
-    allowedCharacters.Add(".");
-    allowedCharacters.Add("|");
-    allowedCharacters.Add("(");
-    allowedCharacters.Add(")");
-    allowedCharacters.Add("+");
-    nameValidator.SetIncludes(allowedCharacters);
-
-    pNameTextCtrl->SetValidator(nameValidator);
+    pNameTextCtrl->SetValidator(NameValidator());
 
     /* Color Picker Ctrl */
-    pColorPickerCtrl = new wxColourPickerCtrl(detailsBox, IDC_COLORPICKER);
+    pColorPickerCtrl = new wxColourPickerCtrl(detailsBox, tksIDC_COLORPICKER);
     pColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
 
-    pBillableCtrl = new wxCheckBox(detailsBox, IDC_BILLABLE, "Billable");
+    pBillableCtrl = new wxCheckBox(detailsBox, tksIDC_BILLABLE, "Billable");
     pBillableCtrl->SetToolTip("Indicates if a task captured with this category is billable");
 
     /* Details Grid Sizer */
@@ -154,8 +142,12 @@ void CategoriesDialog::CreateControls()
     leftSizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Description Text Ctrl */
-    pDescriptionTextCtrl = new wxTextCtrl(
-        descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
+    pDescriptionTextCtrl = new wxTextCtrl(descriptionBox,
+        tksIDC_DESCRIPTION,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for a category");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
@@ -183,7 +175,7 @@ void CategoriesDialog::CreateControls()
     rightSizer->Add(listStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* List Ctrl */
-    pListCtrl = new wxListCtrl(listStaticBox, IDC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_HRULES);
+    pListCtrl = new wxListCtrl(listStaticBox, tksIDC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT | wxLC_HRULES);
     pListCtrl->EnableCheckBoxes();
 
     wxListItem nameColumn;
@@ -335,8 +327,11 @@ void CategoriesDialog::OnEdit(wxCommandEvent& event)
 {
     bEditFromListCtrl = true;
     auto name = ExtractNameFromListIndex(mListItemIndex);
-    auto iterator = std::find_if(mCategoriesToAdd.begin(), mCategoriesToAdd.end(), [&](Model::CategoryModel& category) {
-        return category.Name == name;
+    auto iterator = std::find_if(
+        mCategoriesToAdd.begin(),
+        mCategoriesToAdd.end(),
+        [&](Model::CategoryModel& category) {
+            return category.Name == name;
     });
 
     int index = std::distance(mCategoriesToAdd.begin(), iterator);
@@ -351,9 +346,15 @@ void CategoriesDialog::OnRemove(wxCommandEvent& event)
     for (long index : mListItemIndexes) {
         auto nameAtIndex = ExtractNameFromListIndex(index);
 
-        mCategoriesToAdd.erase(std::remove_if(mCategoriesToAdd.begin(),
-            mCategoriesToAdd.end(),
-            [&](Model::CategoryModel& category) { return category.Name == nameAtIndex; }));
+        mCategoriesToAdd.erase(
+            std::remove_if(
+                mCategoriesToAdd.begin(),
+                mCategoriesToAdd.end(),
+                [&](Model::CategoryModel& category) {
+                    return category.Name == nameAtIndex;
+                }
+            )
+        );
 
         pListCtrl->DeleteItem(index);
     }
