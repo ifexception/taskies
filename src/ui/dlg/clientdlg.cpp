@@ -25,6 +25,7 @@
 
 #include "../../common/constants.h"
 #include "../../common/common.h"
+#include "../../common/validator.h"
 
 #include "../../core/environment.h"
 
@@ -102,25 +103,11 @@ void ClientDialog::CreateControls()
     /* Client Name control */
     auto clientNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Name");
 
-    pNameTextCtrl = new wxTextCtrl(detailsBox, IDC_NAME);
+    pNameTextCtrl = new wxTextCtrl(detailsBox, tksIDC_NAME);
     pNameTextCtrl->SetHint("Client name");
     pNameTextCtrl->SetToolTip("Enter a name for a client");
 
-    wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
-    wxArrayString allowedCharacters;
-    allowedCharacters.Add(" ");
-    allowedCharacters.Add("-");
-    allowedCharacters.Add(":");
-    allowedCharacters.Add(";");
-    allowedCharacters.Add(".");
-    allowedCharacters.Add("|");
-    allowedCharacters.Add("(");
-    allowedCharacters.Add(")");
-    allowedCharacters.Add("+");
-    allowedCharacters.Add(",");
-    nameValidator.SetIncludes(allowedCharacters);
-
-    pNameTextCtrl->SetValidator(nameValidator);
+    pNameTextCtrl->SetValidator(NameValidator());
 
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     detailsGridSizer->AddGrowableCol(1, 1);
@@ -135,8 +122,12 @@ void ClientDialog::CreateControls()
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
     sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    pDescriptionTextCtrl = new wxTextCtrl(
-        descriptionBox, IDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
+    pDescriptionTextCtrl = new wxTextCtrl(descriptionBox,
+        tksIDC_DESCRIPTION,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for a client");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
@@ -149,7 +140,7 @@ void ClientDialog::CreateControls()
     /* Employer choice control */
     auto employerLabel = new wxStaticText(employerChoiceBox, wxID_ANY, "Employer");
 
-    pEmployerChoiceCtrl = new wxChoice(employerChoiceBox, IDC_CHOICE);
+    pEmployerChoiceCtrl = new wxChoice(employerChoiceBox, tksIDC_CHOICE);
     pEmployerChoiceCtrl->SetToolTip("Select an employer to associate this client with");
 
     auto employerChoiceGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
@@ -192,7 +183,7 @@ void ClientDialog::CreateControls()
         /* Is Active checkbox control */
         metadataFlexGridSizer->Add(0, 0);
 
-        pIsActiveCtrl = new wxCheckBox(metadataBox, IDC_ISACTIVE, "Is Active");
+        pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
         pIsActiveCtrl->SetToolTip("Indicates if this client is being used");
         metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
     }

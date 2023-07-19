@@ -89,10 +89,10 @@ private:
     Model::ClientModel mClientModel;
 
     enum {
-        IDC_NAME = wxID_HIGHEST + 1,
-        IDC_DESCRIPTION,
-        IDC_CHOICE,
-        IDC_ISACTIVE,
+        tksIDC_NAME = wxID_HIGHEST + 1,
+        tksIDC_DESCRIPTION,
+        tksIDC_CHOICE,
+        tksIDC_ISACTIVE,
     };
 };
 } // namespace UI::dlg
