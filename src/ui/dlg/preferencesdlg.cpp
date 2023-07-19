@@ -117,7 +117,7 @@ void PreferencesDialog::ConfigureEventBindings()
         wxEVT_BUTTON,
         &PreferencesDialog::OnRestoreDefaults,
         this,
-        IDC_RESTOREDEFAULTBUTTON
+        tksIDC_RESTOREDEFAULTBUTTON
     );
 
     pOkButton->Bind(
