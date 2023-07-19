@@ -26,6 +26,7 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/validator.h"
 
 #include "../../core/environment.h"
 
@@ -97,20 +98,7 @@ void EmployerDialog::CreateControls()
     pNameTextCtrl->SetHint("Employer name");
     pNameTextCtrl->SetToolTip("Enter a name for an employer");
 
-    wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
-    wxArrayString allowedCharacters;
-    allowedCharacters.Add(" ");
-    allowedCharacters.Add("-");
-    allowedCharacters.Add(":");
-    allowedCharacters.Add(";");
-    allowedCharacters.Add(".");
-    allowedCharacters.Add("|");
-    allowedCharacters.Add("(");
-    allowedCharacters.Add(")");
-    allowedCharacters.Add("+");
-    nameValidator.SetIncludes(allowedCharacters);
-
-    pNameTextCtrl->SetValidator(nameValidator);
+    pNameTextCtrl->SetValidator(NameValidator());
 
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     detailsGridSizer->AddGrowableCol(1, 1);
@@ -125,8 +113,12 @@ void EmployerDialog::CreateControls()
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
     sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    pDescriptionTextCtrl = new wxTextCtrl(
-        descriptionBox, tksIDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxTE_MULTILINE);
+    pDescriptionTextCtrl = new wxTextCtrl(descriptionBox,
+        tksIDC_DESCRIPTION,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for an employer");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));

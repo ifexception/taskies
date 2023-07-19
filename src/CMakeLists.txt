@@ -68,6 +68,7 @@ set (SRC
     "common/common.cpp"
     "common/enums.cpp"
     "common/constants.cpp"
+    "common/validator.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
     ${SRC_DIALOGS}
