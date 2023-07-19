@@ -81,8 +81,8 @@ void ErrorDialog::CreateControls()
     auto titleIconSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(titleIconSizer, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
-    pErrorIconBitmap = new wxStaticBitmap(this, IDC_ERRORICON, wxArtProvider::GetBitmap(wxART_ERROR));
-    pErrorLabel = new wxStaticText(this, IDC_ERRORLABEL, "Taskies encountered an error");
+    pErrorIconBitmap = new wxStaticBitmap(this, tksIDC_ERRORICON, wxArtProvider::GetBitmap(wxART_ERROR));
+    pErrorLabel = new wxStaticText(this, tksIDC_ERRORLABEL, "Taskies encountered an error");
 
     titleIconSizer->Add(pErrorIconBitmap, wxSizerFlags().Border(wxALL, FromDIP(5)));
     titleIconSizer->Add(pErrorLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
@@ -92,7 +92,7 @@ void ErrorDialog::CreateControls()
     sizer->Add(errMsgSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     pErrorMessageTextCtrl = new wxTextCtrl(
-        this, IDC_ERRORMESSAGE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
+        this, tksIDC_ERRORMESSAGE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
     pErrorMessageTextCtrl->SetHint("Error message");
     pErrorMessageTextCtrl->SetToolTip("User friendly description of the error that occured");
     pErrorMessageTextCtrl->Disable();
@@ -109,7 +109,7 @@ void ErrorDialog::CreateControls()
 
     /* Logs Text Ctrl */
     pLogsTextCtrl = new wxTextCtrl(logsCollPaneWindow,
-        IDC_LOGSTEXT,
+        tksIDC_LOGSTEXT,
         wxEmptyString,
         wxDefaultPosition,
         FromDIP(wxSize(-1, 156)),
@@ -121,7 +121,7 @@ void ErrorDialog::CreateControls()
     sizer->Add(logsCollPane, wxSizerFlags().Expand());
 
     /* Include logs checkbox ctrl */
-    pIncludeLogsCheckBoxCtrl = new wxCheckBox(this, IDC_INCLUDELOGSCHECK, "Include Logs");
+    pIncludeLogsCheckBoxCtrl = new wxCheckBox(this, tksIDC_INCLUDELOGSCHECK, "Include Logs");
     pIncludeLogsCheckBoxCtrl->SetToolTip(
         "By default, taskies will submit an issue without logs. Select this to submit your issue without logs");
     sizer->Add(pIncludeLogsCheckBoxCtrl, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Right());
@@ -135,7 +135,7 @@ void ErrorDialog::CreateControls()
     pCopyButton->SetToolTip("Copy the error message to the clipboard");
 
     std::string link = "https://taskies.org/open-issue";
-    pOpenIssueLink = new wxHyperlinkCtrl(actionsStaticBox, IDC_OPENISSUELINK, "Open Issue", link);
+    pOpenIssueLink = new wxHyperlinkCtrl(actionsStaticBox, tksIDC_OPENISSUELINK, "Open Issue", link);
     pOpenIssueLink->SetToolTip("Open an issue for the developer to fix");
 
     actionsStaticBoxSizer->AddStretchSpacer();
@@ -174,7 +174,7 @@ void ErrorDialog::ConfigureEventBindings()
         wxEVT_HYPERLINK,
         &ErrorDialog::OnOpenIssueLinkClick,
         this,
-        IDC_OPENISSUELINK
+        tksIDC_OPENISSUELINK
     );
 
     pOkButton->Bind(

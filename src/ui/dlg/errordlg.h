@@ -78,12 +78,12 @@ private:
     wxButton* pOkButton;
 
     enum ControlIds {
-        IDC_ERRORICON = wxID_HIGHEST + 1000,
-        IDC_ERRORLABEL,
-        IDC_ERRORMESSAGE,
-        IDC_LOGSTEXT,
-        IDC_INCLUDELOGSCHECK,
-        IDC_OPENISSUELINK
+        tksIDC_ERRORICON = wxID_HIGHEST + 1000,
+        tksIDC_ERRORLABEL,
+        tksIDC_ERRORMESSAGE,
+        tksIDC_LOGSTEXT,
+        tksIDC_INCLUDELOGSCHECK,
+        tksIDC_OPENISSUELINK
     };
 };
 } // namespace UI::dlg

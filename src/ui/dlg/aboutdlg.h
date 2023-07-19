@@ -51,7 +51,5 @@ private:
 
     wxListView* pAttributionsListView;
     std::string mAttrAuthorLink;
-
-    enum { IDC_ATTRLISTVIEW };
 };
 } // namespace tks::UI::dlg
