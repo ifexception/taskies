@@ -499,7 +499,7 @@ bool CategoriesDialog::TransferDataAndValidate()
         return false;
     }
 
-    mCategoryToAdd.Name = name;
+    mCategoryToAdd.Name = Utils::TrimWhitespace(name);
     mCategoryToAdd.Color = pColorPickerCtrl->GetColour().GetRGB();
     mCategoryToAdd.Billable = pBillableCtrl->IsChecked();
     mCategoryToAdd.Description = description.empty() ? std::nullopt : std::make_optional(description);

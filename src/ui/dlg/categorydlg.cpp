@@ -329,7 +329,7 @@ bool CategoryDialog::TransferDataAndValidate()
     }
 
     mModel.CategoryId = mCategoryId;
-    mModel.Name = name;
+    mModel.Name = Utils::TrimWhitespace(name);
     mModel.Color = pColorPickerCtrl->GetColour().GetRGB();
     mModel.Billable = pBillableCtrl->IsChecked();
     mModel.Description = description.empty() ? std::nullopt : std::make_optional(description);

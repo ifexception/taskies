@@ -606,7 +606,7 @@ bool ProjectDialog::TransferDataAndValidate()
         }
     }
 
-    mProjectModel.Name = name;
+    mProjectModel.Name = Utils::TrimWhitespace(name);
     mProjectModel.DisplayName = displayName;
     mProjectModel.IsDefault = pIsDefaultCtrl->GetValue();
     mProjectModel.Description = description.empty() ? std::nullopt : std::make_optional(description);

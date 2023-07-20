@@ -359,7 +359,8 @@ void EditListDialog::SetDataToControls(const std::vector<ListCtrlData>& entries)
 
 void EditListDialog::OnSearchTextChange(wxCommandEvent& event)
 {
-    mSearchTerm = pSearchTextCtrl->GetValue().Trim().ToStdString();
+    std::string value = pSearchTextCtrl->GetValue().ToStdString();
+    mSearchTerm = Utils::TrimWhitespace(value);
 }
 
 void EditListDialog::OnSearch(wxCommandEvent& event)
@@ -375,7 +376,7 @@ void EditListDialog::OnSearch(wxCommandEvent& event)
 void EditListDialog::OnReset(wxCommandEvent& event)
 {
     mSearchTerm = "";
-    pSearchTextCtrl->SetValue(wxEmptyString);
+    pSearchTextCtrl->ChangeValue(wxEmptyString);
     Search();
 }
 
@@ -409,7 +410,7 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
 
     mEntityId = -1;
     mSearchTerm = "";
-    pSearchTextCtrl->SetValue(wxEmptyString);
+    pSearchTextCtrl->ChangeValue(wxEmptyString);
     pListCtrl->DeleteAllItems();
     Search();
 }

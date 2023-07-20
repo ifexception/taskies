@@ -32,6 +32,8 @@
 
 #include "../../dao/employerdao.h"
 
+#include "../../utils/utils.h"
+
 #include "errordlg.h"
 
 namespace tks::UI::dlg
@@ -317,7 +319,7 @@ bool EmployerDialog::TransferDataAndValidate()
     }
 
     mEmployer.EmployerId = mEmployerId;
-    mEmployer.Name = name;
+    mEmployer.Name = Utils::TrimWhitespace(name);
     mEmployer.Description = description.empty() ? std::nullopt : std::make_optional(description);
 
     return true;

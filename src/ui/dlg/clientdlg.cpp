@@ -407,7 +407,7 @@ bool ClientDialog::TransferDataAndValidate()
         return false;
     }
 
-    mClientModel.Name = name;
+    mClientModel.Name = Utils::TrimWhitespace(name);
     mClientModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
     mClientModel.EmployerId = employerIdData->GetValue();
     mClientModel.ClientId = mClientId;
