@@ -79,6 +79,22 @@ void* Int64ToVoidPointer(std::int64_t value)
     return reinterpret_cast<void*>(p);
 }
 
+std::string TrimWhitespace(const std::string& value)
+{
+    const std::string whitespace = " \n\r\t\f\v";
+
+    std::string trimmedText = value;
+    const size_t start = trimmedText.find_first_not_of(whitespace);
+    if (start == std::wstring::npos) {
+        return "";
+    }
+
+    const size_t end = trimmedText.find_last_not_of(whitespace);
+    trimmedText = trimmedText.substr(start, end + 1 - start);
+
+    return trimmedText;
+}
+
 namespace sqlite
 {
 std::string FormatSearchTerm(const std::string& source)
@@ -95,6 +111,6 @@ const char* TempStore = "PRAGMA temp_store = memory;";
 const char* MmapSize = "PRAGMA mmap_size = 30000000000;";
 
 const char* Optimize = "PRAGMA optimize;";
-}
+} // namespace pragmas
 } // namespace sqlite
 } // namespace tks::Utils
