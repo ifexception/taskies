@@ -20,3 +20,4 @@
 #include "events.h"
 
 wxDEFINE_EVENT(tksEVT_ERROR, wxCommandEvent);
+wxDEFINE_EVENT(tksEVT_ADDNOTIFICATION, wxCommandEvent);

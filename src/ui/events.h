@@ -25,3 +25,4 @@
 #endif
 
 wxDECLARE_EVENT(tksEVT_ERROR, wxCommandEvent);
+wxDECLARE_EVENT(tksEVT_ADDNOTIFICATION, wxCommandEvent);
