@@ -33,7 +33,8 @@
 
 #include "../../utils/utils.h"
 
-#include "errordlg.h"
+#include "../events.h"
+#include "../notificationclientdata.h"
 
 namespace tks::UI::dlg
 {
@@ -228,11 +229,13 @@ void CategoryDialog::DataToControls()
 
     rc = categoryDao.GetById(mCategoryId, model);
     if (rc != 0) {
-        auto errorMessage = "Failed to get requested category and the operation could not be completed.\n Please check "
-                            "the logs for more information...";
+        std::string message = "Failed to get category";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(pParent->GetParent(), addNotificationEvent);
     } else {
         pNameTextCtrl->ChangeValue(model.Name);
         pColorPickerCtrl->SetColour(model.Color);
@@ -266,25 +269,41 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     if (TransferDataAndValidate()) {
-        int ret = 0;
         DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
+        int ret = 0;
+        std::string message = "";
         if (pIsActiveCtrl->IsChecked()) {
             ret = categoryDao.Update(mModel);
+
+            ret == -1
+                ? message = "Failed to update category"
+                : message = "Successfully updated category";
         }
         if (!pIsActiveCtrl->IsChecked()) {
             ret = categoryDao.Delete(mCategoryId);
+
+            ret == -1
+                ? message = "Failed to delete category"
+                : message = "Successfully deleted category";
         }
 
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         if (ret == -1) {
-            auto errorMessage = "Failed to execute requested action on the category and the operation could not be "
-                                "completed.\n Please check the logs for more information...";
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
 
-            ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
-            errorDialog.ShowModal();
+            // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+            wxQueueEvent(pParent->GetParent(), addNotificationEvent);
 
             pOkButton->Enable();
         } else {
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+            wxQueueEvent(pParent->GetParent(), addNotificationEvent);
+
             EndModal(wxID_OK);
         }
     }

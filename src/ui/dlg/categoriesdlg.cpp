@@ -35,7 +35,8 @@
 
 #include "../../utils/utils.h"
 
-#include "errordlg.h"
+#include "../events.h"
+#include "../notificationclientdata.h"
 
 namespace tks::UI::dlg
 {
@@ -327,11 +328,8 @@ void CategoriesDialog::OnEdit(wxCommandEvent& event)
 {
     bEditFromListCtrl = true;
     auto name = ExtractNameFromListIndex(mListItemIndex);
-    auto iterator = std::find_if(
-        mCategoriesToAdd.begin(),
-        mCategoriesToAdd.end(),
-        [&](Model::CategoryModel& category) {
-            return category.Name == name;
+    auto iterator = std::find_if(mCategoriesToAdd.begin(), mCategoriesToAdd.end(), [&](Model::CategoryModel& category) {
+        return category.Name == name;
     });
 
     int index = std::distance(mCategoriesToAdd.begin(), iterator);
@@ -346,15 +344,9 @@ void CategoriesDialog::OnRemove(wxCommandEvent& event)
     for (long index : mListItemIndexes) {
         auto nameAtIndex = ExtractNameFromListIndex(index);
 
-        mCategoriesToAdd.erase(
-            std::remove_if(
-                mCategoriesToAdd.begin(),
-                mCategoriesToAdd.end(),
-                [&](Model::CategoryModel& category) {
-                    return category.Name == nameAtIndex;
-                }
-            )
-        );
+        mCategoriesToAdd.erase(std::remove_if(mCategoriesToAdd.begin(),
+            mCategoriesToAdd.end(),
+            [&](Model::CategoryModel& category) { return category.Name == nameAtIndex; }));
 
         pListCtrl->DeleteItem(index);
     }
@@ -379,9 +371,10 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
-    int ret = 0;
     DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
+    int ret = 0;
+    std::string message = "";
     for (auto& category : mCategoriesToAdd) {
         std::int64_t categoryId = categoryDao.Create(category);
         ret = categoryId > 0 ? 1 : -1;
@@ -390,15 +383,22 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
         }
     }
 
-    if (ret == -1) {
-        auto errorMessage = "Failed to execute requested action on the categories and the operation could not be "
-                            "completed.\n Please check the logs for more information...";
+    ret == -1 ? message = "Failed to create employer" : message = "Successfully created employer";
 
-        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
-        errorDialog.ShowModal();
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    if (ret == -1) {
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
 
         pOkButton->Enable();
     } else {
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+
         EndModal(wxID_OK);
     }
 }
