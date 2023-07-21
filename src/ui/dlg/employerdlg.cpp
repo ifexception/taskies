@@ -36,8 +36,6 @@
 #include "../events.h"
 #include "../notificationclientdata.h"
 
-#include "errordlg.h"
-
 namespace tks::UI::dlg
 {
 EmployerDialog::EmployerDialog(wxWindow* parent,
