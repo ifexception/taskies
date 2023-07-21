@@ -45,6 +45,7 @@
 #include "../ui/dlg/preferencesdlg.h"
 
 #include "events.h"
+#include "notificationclientdata.h"
 
 namespace tks::UI
 {
@@ -67,9 +68,11 @@ EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
 EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
-/* Error Event Handler */
+/* Error Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 EVT_BUTTON(tksIDC_NOTIFTEST, MainFrame::OnNotificationTest)
+/* Custom Event Handlers */
+EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -382,5 +385,22 @@ void MainFrame::OnNotificationTest(wxCommandEvent& event)
 
     pNotificationPopupWindow->AddNotification(
         "Successful notification test with long message", NotificationType::Information);
+}
+
+void MainFrame::OnAddNotification(wxCommandEvent& event)
+{
+    pLogger->info("MainFrame - Received notification event");
+
+    pNotificationButton->SetBitmap(mBellNotificationBitmap);
+
+    NotificationClientData* notificationClientData = reinterpret_cast<NotificationClientData*>(event.GetClientObject());
+    auto notificationType = notificationClientData->Type;
+    auto& msg = notificationClientData->Message;
+
+    pNotificationPopupWindow->AddNotification(msg, notificationType);
+
+    if (notificationClientData) {
+        delete notificationClientData;
+    }
 }
 } // namespace tks::UI

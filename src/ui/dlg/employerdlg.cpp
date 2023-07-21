@@ -33,6 +33,8 @@
 #include "../../dao/employerdao.h"
 
 #include "../../utils/utils.h"
+#include "../events.h"
+#include "../notificationclientdata.h"
 
 #include "errordlg.h"
 
@@ -219,11 +221,7 @@ void EmployerDialog::DataToControls()
 
     int rc = employerDao.GetById(mEmployerId, employer);
     if (rc == -1) {
-        auto errorMessage = "Failed to get requested employer and the operation could not be completed.\n Please check "
-                            "the logs for more information...";
-
-        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // TODO
     } else {
         pNameTextCtrl->SetValue(employer.Name);
         pDescriptionTextCtrl->SetValue(employer.Description.has_value() ? employer.Description.value() : "");
@@ -244,26 +242,44 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
 
         int ret = 0;
+        std::string message = "";
         if (!bIsEdit) {
             std::int64_t employerId = employerDao.Create(mEmployer);
             ret = employerId > 0 ? 1 : -1;
+
+            ret == -1
+                ? message = "Failed to create employer"
+                : message = "Successfully created employer";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = employerDao.Update(mEmployer);
+
+            ret == -1
+                ? message = "Failed to updated employer"
+                : message = "Successfully updated employer";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
             ret = employerDao.Delete(mEmployerId);
+
+            ret == -1
+                ? message = "Failed to delete employer"
+                : message = "Successfully delete employer";
         }
 
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         if (ret == -1) {
-            auto errorMessage = "Failed to execute requested action on the employer and the operation could not be "
-                                "completed.\n Please check the logs for more information...";
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
 
-            ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
-            errorDialog.ShowModal();
+            wxQueueEvent(pParent, addNotificationEvent);
 
             pOkButton->Enable();
         } else {
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+
             EndModal(wxID_OK);
         }
     }

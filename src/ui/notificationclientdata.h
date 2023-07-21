@@ -26,14 +26,16 @@
 #include <wx/wx.h>
 #endif
 
+#include "../common/enums.h"
+
 namespace tks::UI
 {
 struct NotificationClientData final : public wxClientData {
     NotificationClientData() = delete;
-    NotificationClientData(int notificationType, std::string message);
+    NotificationClientData(NotificationType notificationType, std::string message);
     ~NotificationClientData() = default;
 
-    int NotificationType;
+    NotificationType Type;
     std::string Message;
 };
 }

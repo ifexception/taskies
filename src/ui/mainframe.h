@@ -32,6 +32,7 @@
 
 #include "notificationpopupwindow.h"
 #include "taskbaricon.h"
+#include "../common/enums.h"
 
 namespace tks
 {
@@ -113,9 +114,11 @@ private:
     void OnEditCategory(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
-    /* Error Event Handler */
+    /* Error Event Handlers */
     void OnError(wxCommandEvent& event);
     void OnNotificationTest(wxCommandEvent& event);
+    /* Custom Event Handlers */
+    void OnAddNotification(wxCommandEvent& event);
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
