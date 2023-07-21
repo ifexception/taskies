@@ -61,6 +61,7 @@ set (SRC
     "ui/mainframe.cpp"
     "ui/events.cpp"
     "ui/clientdata.cpp"
+    "ui/notificationclientdata.cpp"
     "ui/taskbaricon.cpp"
     "ui/notificationpopupwindow.cpp"
     "resources.rc"
