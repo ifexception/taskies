@@ -70,7 +70,6 @@ EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Error Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
-EVT_BUTTON(tksIDC_NOTIFTEST, MainFrame::OnNotificationTest)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
 wxEND_EVENT_TABLE()
@@ -377,14 +376,6 @@ void MainFrame::OnError(wxCommandEvent& event)
 {
     UI::dlg::ErrorDialog errDialog(this, pEnv, pLogger, event.GetString().ToStdString());
     errDialog.ShowModal();
-}
-
-void MainFrame::OnNotificationTest(wxCommandEvent& event)
-{
-    pNotificationButton->SetBitmap(mBellNotificationBitmap);
-
-    pNotificationPopupWindow->AddNotification(
-        "Successful notification test with long message", NotificationType::Information);
 }
 
 void MainFrame::OnAddNotification(wxCommandEvent& event)

@@ -116,7 +116,6 @@ private:
     void OnAbout(wxCommandEvent& event);
     /* Error Event Handlers */
     void OnError(wxCommandEvent& event);
-    void OnNotificationTest(wxCommandEvent& event);
     /* Custom Event Handlers */
     void OnAddNotification(wxCommandEvent& event);
 

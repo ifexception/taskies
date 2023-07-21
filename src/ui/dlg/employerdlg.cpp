@@ -271,6 +271,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
             addNotificationEvent->SetClientObject(clientData);
 
+            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
             wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
             pOkButton->Enable();
@@ -278,6 +279,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
             addNotificationEvent->SetClientObject(clientData);
 
+            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
             wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
             EndModal(wxID_OK);
