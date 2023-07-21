@@ -212,8 +212,6 @@ void MainFrame::CreateControls()
     topSizer->Add(pNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
-
-    sizer->Add(new wxButton(panel, tksIDC_NOTIFTEST, "Notification Test"));
 }
 
 void MainFrame::DataToControls()

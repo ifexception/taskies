@@ -221,7 +221,13 @@ void EmployerDialog::DataToControls()
 
     int rc = employerDao.GetById(mEmployerId, employer);
     if (rc == -1) {
-        // TODO
+        std::string message = "Failed to get employer";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         pNameTextCtrl->SetValue(employer.Name);
         pDescriptionTextCtrl->SetValue(employer.Description.has_value() ? employer.Description.value() : "");
