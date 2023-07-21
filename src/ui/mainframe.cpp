@@ -394,10 +394,8 @@ void MainFrame::OnAddNotification(wxCommandEvent& event)
     pNotificationButton->SetBitmap(mBellNotificationBitmap);
 
     NotificationClientData* notificationClientData = reinterpret_cast<NotificationClientData*>(event.GetClientObject());
-    auto notificationType = notificationClientData->Type;
-    auto& msg = notificationClientData->Message;
 
-    pNotificationPopupWindow->AddNotification(msg, notificationType);
+    pNotificationPopupWindow->AddNotification(notificationClientData->Message, notificationClientData->Type);
 
     if (notificationClientData) {
         delete notificationClientData;

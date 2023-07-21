@@ -255,7 +255,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             ret = employerDao.Update(mEmployer);
 
             ret == -1
-                ? message = "Failed to updated employer"
+                ? message = "Failed to update employer"
                 : message = "Successfully updated employer";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
@@ -263,7 +263,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 
             ret == -1
                 ? message = "Failed to delete employer"
-                : message = "Successfully delete employer";
+                : message = "Successfully deleted employer";
         }
 
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -271,14 +271,14 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
             addNotificationEvent->SetClientObject(clientData);
 
-            wxQueueEvent(pParent, addNotificationEvent);
+            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
             pOkButton->Enable();
         } else {
             NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
             addNotificationEvent->SetClientObject(clientData);
 
-            wxQueueEvent(pParent, addNotificationEvent);
+            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
             EndModal(wxID_OK);
         }
