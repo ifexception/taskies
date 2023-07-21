@@ -38,8 +38,8 @@
 #include "../../utils/utils.h"
 
 #include "../clientdata.h"
-
-#include "errordlg.h"
+#include "../events.h"
+#include "../notificationclientdata.h"
 
 namespace tks::UI::dlg
 {
@@ -220,12 +220,14 @@ void ClientDialog::FillControls()
     DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
 
     int rc = employerDao.Filter(defaultSearhTerm, employers);
-    if (rc != 0) {
-        auto errorMessage = "Failed to get requested employer and the operation could not be completed.\n Please check "
-                            "the logs for more information...";
+    if (rc == -1) {
+        std::string message = "Failed to get employers";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         for (auto& employer : employers) {
             pEmployerChoiceCtrl->Append(employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
@@ -270,11 +272,13 @@ void ClientDialog::DataToControls()
     int rc = clientDao.GetById(mClientId, client);
     bool isSuccess = false;
     if (rc == -1) {
-        auto errorMessage = "Failed to get requested client and the operation could not be completed.\n Please check "
-                            "the logs for more information...";
+        std::string message = "Failed to get client";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         pNameTextCtrl->SetValue(client.Name);
         if (client.Description.has_value()) {
@@ -291,11 +295,13 @@ void ClientDialog::DataToControls()
 
     rc = employerDao.GetById(client.EmployerId, employer);
     if (rc == -1) {
-        auto errorMessage = "Failed to get requested employer and the operation could not be completed.\n Please check "
-                            "the logs for more information...";
+        std::string message = "Failed to get client linked employer";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
-        errorDialog.ShowModal();
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
         isSuccess = false;
     } else {
         pEmployerChoiceCtrl->SetStringSelection(employer.Name);
@@ -317,27 +323,47 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
 
         int ret = 0;
+        std::string message = "";
         if (!bIsEdit) {
             std::int64_t clientId = clientDao.Create(mClientModel);
             ret = clientId > 0 ? 1 : -1;
+
+            ret == -1
+                ? message = "Failed to create client"
+                : message = "Successfully created client";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = clientDao.Update(mClientModel);
+
+            ret == -1
+                ? message = "Failed to update client"
+                : message = "Successfully updated client";
         }
 
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
             ret = clientDao.Delete(mClientId);
+
+            ret == -1
+                ? message = "Failed to delete client"
+                : message = "Successfully deleted client";
         }
 
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         if (ret == -1) {
-            auto errorMessage = "Failed to execute requested action on the client and the operation could not be "
-                                "completed.\n Please check the logs for more information...";
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
 
-            ErrorDialog errorDialog(this, pEnv, pLogger, errorMessage);
-            errorDialog.ShowModal();
+            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
             pOkButton->Enable();
         } else {
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+
             EndModal(wxID_OK);
         }
     } else {
