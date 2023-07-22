@@ -19,7 +19,21 @@
 
 #include "workdaymodel.h"
 
+#include <date/date.h>
+
 namespace tks::Model
 {
-
+WorkdayModel::WorkdayModel()
+    : WorkdayId(-1)
+    , Date("")
+    , DateCreated()
+{
 }
+
+const std::string WorkdayModel::GetDateCreatedString() const
+{
+    date::sys_seconds dateTime{ std::chrono::seconds{ DateCreated } };
+    std::string dateString = date::format("%Y-%m-%d %I:%M:%S %p", dateTime);
+    return dateString;
+}
+} // namespace tks::Model

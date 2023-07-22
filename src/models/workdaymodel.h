@@ -20,8 +20,17 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace tks::Model
 {
+struct WorkdayModel {
+    WorkdayModel();
 
-}
+    std::int64_t WorkdayId;
+    std::string Date;
+    std::int32_t DateCreated;
+
+    const std::string GetDateCreatedString() const;
+};
+} // namespace tks::Model
