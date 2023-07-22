@@ -49,6 +49,7 @@ set (SRC_DIALOGS
     "ui/dlg/preferencesdlg.cpp"
     "ui/dlg/preferencesgeneralpage.cpp"
     "ui/dlg/preferencesdatabasepage.cpp"
+    "ui/dlg/taskdialog.cpp"
 )
 
 set (SRC
