@@ -41,6 +41,9 @@
 
 #include "../../utils/utils.h"
 
+#include "../events.h"
+#include "../notificationclientdata.h"
+
 #include "errordlg.h"
 #include "employerdlg.h"
 #include "clientdlg.h"
@@ -261,12 +264,13 @@ void EditListDialog::EmployerDataToControls()
     DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
 
     int rc = employerDao.Filter(mSearchTerm, employers);
-    if (rc != 0) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+    if (rc == -1) {
+        std::string message = "Failed to filter employers";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        // ErrorDialog errorDialog(this, pLogger, errorMessage);
-        // errorDialog.ShowModal();
+        wxQueueEvent(pParent, addNotificationEvent);
     } else {
         for (auto& employer : employers) {
             ListCtrlData data(employer.EmployerId, employer.Name);
@@ -284,12 +288,13 @@ void EditListDialog::ClientDataToControls()
     DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
 
     int rc = clientDao.Filter(mSearchTerm, clients);
-    if (rc != 0) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+    if (rc == -1) {
+        std::string message = "Failed to filter clients";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        // ErrorDialog errorDialog(this, pLogger, errorMessage);
-        // errorDialog.ShowModal();
+        wxQueueEvent(pParent, addNotificationEvent);
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);
@@ -307,12 +312,13 @@ void EditListDialog::ProjectDataToControls()
     DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
 
     int rc = projectDao.Filter(mSearchTerm, projects);
-    if (rc != 0) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+    if (rc == -1) {
+        std::string message = "Failed to filter projects";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        // ErrorDialog errorDialog(this, pLogger, errorMessage);
-        // errorDialog.ShowModal();
+        wxQueueEvent(pParent, addNotificationEvent);
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);
@@ -330,12 +336,13 @@ void EditListDialog::CategoryDataToControls()
     DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
     int rc = categoryDao.Filter(mSearchTerm, categories);
-    if (rc != 0) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+    if (rc == -1) {
+        std::string message = "Failed to filter categories";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        // ErrorDialog errorDialog(this, pLogger, errorMessage);
-        // errorDialog.ShowModal();
+        wxQueueEvent(pParent, addNotificationEvent);
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);
@@ -455,12 +462,13 @@ void EditListDialog::SearchEmployers()
     DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
 
     int rc = employerDao.Filter(mSearchTerm, employers);
-    if (rc != 0) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+    if (rc == -1) {
+        std::string message = "Failed to filter employers";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        // ErrorDialog errorDialog(this, pLogger, errorMessage);
-        // errorDialog.ShowModal();
+        wxQueueEvent(pParent, addNotificationEvent);
     } else {
         for (auto& employer : employers) {
             ListCtrlData data(employer.EmployerId, employer.Name);
@@ -483,12 +491,13 @@ void EditListDialog::SearchClients()
     DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
 
     int rc = clientDao.Filter(mSearchTerm, clients);
-    if (rc != 0) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+    if (rc == -1) {
+        std::string message = "Failed to filter clients";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        // ErrorDialog errorDialog(this, pLogger, errorMessage);
-        // errorDialog.ShowModal();
+        wxQueueEvent(pParent, addNotificationEvent);
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);
@@ -511,12 +520,13 @@ void EditListDialog::SearchProjects()
     DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
 
     int rc = projectDao.Filter(mSearchTerm, projects);
-    if (rc != 0) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+    if (rc == -1) {
+        std::string message = "Failed to filter projects";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        // ErrorDialog errorDialog(this, pLogger, errorMessage);
-        // errorDialog.ShowModal();
+        wxQueueEvent(pParent, addNotificationEvent);
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);
@@ -539,12 +549,13 @@ void EditListDialog::SearchCategories()
     DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
     int rc = categoryDao.Filter(mSearchTerm, categories);
-    if (rc != 0) {
-        auto errorMessage = "An unexpected error occured and the specified action could not be completed. Please "
-                            "check the logs for more information...";
+    if (rc == -1) {
+        std::string message = "Failed to filter categories";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-        // ErrorDialog errorDialog(this, pLogger, errorMessage);
-        // errorDialog.ShowModal();
+        wxQueueEvent(pParent, addNotificationEvent);
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);
