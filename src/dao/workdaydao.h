@@ -39,7 +39,7 @@ public:
 
     WorkdayDao& operator=(const WorkdayDao&) = delete;
 
-    int GetByDate(const std::string& date, Model::WorkdayModel model);
+    int FilterByDate(const std::string& date, Model::WorkdayModel model);
     int GetById(const std::int64_t taskId, Model::WorkdayModel model);
     std::int64_t Create(const std::string& date);
 
@@ -51,7 +51,7 @@ private:
 
     static const std::string getWorkdayId;
     static const std::string filterByDate;
-    static const std::string getWorkdayById;
+    //static const std::string getWorkdayById;
     static const std::string create;
 };
 } // namespace tks::DAO
