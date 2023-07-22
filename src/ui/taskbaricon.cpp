@@ -92,7 +92,7 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 
 void TaskBarIcon::OnPreferences(wxCommandEvent& WXUNUSED(event))
 {
-    dlg::PreferencesDialog preferencesDlg(pParent, pEnv, pCfg, pLogger);
+    dlg::PreferencesDialog preferencesDlg(pParent, pEnv, pCfg, pLogger, false);
     preferencesDlg.ShowModal();
 }
 

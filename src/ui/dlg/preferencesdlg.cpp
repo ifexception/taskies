@@ -21,6 +21,9 @@
 
 #include "../../common/common.h"
 #include "../../core/configuration.h"
+#include "../events.h"
+#include "../notificationclientdata.h"
+
 #include "preferencesgeneralpage.h"
 #include "preferencesdatabasepage.h"
 
@@ -30,6 +33,7 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     std::shared_ptr<Core::Environment> env,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
+    bool isFrameParent,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
@@ -38,6 +42,7 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
           wxDefaultSize,
           wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER,
           name)
+    , pParent(parent)
     , pEnv(env)
     , pCfg(cfg)
     , pLogger(logger)
@@ -47,6 +52,7 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     , pDatabasePage(nullptr)
     , pRestoreDefaultsButton(nullptr)
     , pOkButton(nullptr)
+    , bIsFrameParent(isFrameParent)
 {
     Initialize();
 
@@ -144,6 +150,13 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
 
     pGeneralPage->Reset();
     pDatabasePage->Reset();
+
+    std::string message = "Preferences restored to defaults";
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(bIsFrameParent ? pParent : pParent->GetParent(), addNotificationEvent);
 }
 
 void PreferencesDialog::OnOK(wxCommandEvent& event)
@@ -165,6 +178,14 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
 
     // Save changes to disk
     pCfg->Save();
+
+    // Post success notification event
+    std::string message = "Preferences updated";
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(bIsFrameParent ? pParent : pParent->GetParent(), addNotificationEvent);
 
     event.Skip();
 }
