@@ -70,10 +70,13 @@ private:
     wxChoice* pEmployerChoiceCtrl;
     wxChoice* pClientChoiceCtrl;
     wxChoice* pProjectChoiceCtrl;
-    wxChoice* pCategoryCtrl;
+    wxChoice* pCategoryChoiceCtrl;
     wxStaticText* pTaskContextStaticText;
     wxSpinCtrl* pDurationHoursCtrl;
     wxSpinCtrl* pDurationMinutesCtrl;
+    wxTextCtrl* pTaskDescriptionCtrl;
+    wxTextCtrl* pTaskUniqueIdentiferCtrl;
+    wxCheckBox* pGenerateUniqueIdentifierCtrl;
     wxStaticText* pDateCreatedTextCtrl;
     wxStaticText* pDateModifiedTextCtrl;
     wxCheckBox* pIsActiveCtrl;
