@@ -25,12 +25,33 @@
 
 #include <sqlite3.h>
 
+#include "../models/workdaymodel.h"
+
 namespace tks::DAO
 {
 class WorkdayDao final
 {
 public:
+    WorkdayDao() = delete;
+    WorkdayDao(const WorkdayDao&) = delete;
+    WorkdayDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~WorkdayDao();
+
+    WorkdayDao& operator=(const WorkdayDao&) = delete;
+
+    int GetByDate(const std::string& date, Model::WorkdayModel model);
+    int GetById(const std::int64_t taskId, Model::WorkdayModel model);
+    std::int64_t Create(const std::string& date);
 
 private:
+    std::int64_t GetWorkdayId(const std::string& date);
+
+    std::shared_ptr<spdlog::logger> pLogger;
+    sqlite3* pDb;
+
+    static const std::string getWorkdayId;
+    static const std::string filterByDate;
+    static const std::string getWorkdayById;
+    static const std::string create;
 };
 } // namespace tks::DAO
