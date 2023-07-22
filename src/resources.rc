@@ -19,6 +19,7 @@ EXIT_ICO ICON "..\\res\\exit.ico"
 20230408192035_create_clients_table MIGRATION "..\\res\\migrations\\20230408192035_create_clients_table.sql"
 20230414235012_create_projects_table MIGRATION "..\\res\\migrations\\20230414235012_create_projects_table.sql"
 20230506183926_create_categories_table MIGRATION "..\\res\\migrations\\20230506183926_create_categories_table.sql"
+20230722190512_create_workdays_table MIGRATION "..\\res\\migrations\\20230722190512_create_workdays_table.sql"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION        TASKIES_FILE_VERSION
