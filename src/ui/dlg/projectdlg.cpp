@@ -42,8 +42,6 @@
 
 #include "../clientdata.h"
 
-#include "errordlg.h"
-
 namespace tks::UI::dlg
 {
 ProjectDialog::ProjectDialog(wxWindow* parent,
