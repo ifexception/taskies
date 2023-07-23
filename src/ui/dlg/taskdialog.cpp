@@ -37,6 +37,8 @@
 
 #include "../../utils/utils.h"
 
+#include "../clientdata.h"
+
 namespace tks::UI::dlg
 {
 TaskDialog::TaskDialog(wxWindow* parent,
@@ -102,7 +104,7 @@ void TaskDialog::CreateControls()
     pDateContextCtrl = new wxDatePickerCtrl(dateBox, tksIDC_DATECONTEXT);
 
     dateBoxSizer->Add(dateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateBoxSizer->AddSpacer(8);
+    dateBoxSizer->AddSpacer(FromDIP(16));
     dateBoxSizer->Add(pDateContextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     sizer->Add(dateBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
@@ -134,17 +136,22 @@ void TaskDialog::CreateControls()
     pCategoryChoiceCtrl = new wxChoice(this, tksIDC_CATEGORYCHOICE);
     pCategoryChoiceCtrl->SetToolTip("Task to associate category with");
 
-    leftSizer->Add(employerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    leftSizer->Add(pEmployerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    auto choiceFlexGridSizer = new wxFlexGridSizer(2, FromDIP(6), FromDIP(18));
+    choiceFlexGridSizer->AddGrowableCol(1, 1);
 
-    leftSizer->Add(clientLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    leftSizer->Add(pClientChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    choiceFlexGridSizer->Add(employerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    choiceFlexGridSizer->Add(pEmployerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    leftSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    leftSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    choiceFlexGridSizer->Add(clientLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    choiceFlexGridSizer->Add(pClientChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    leftSizer->Add(categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    leftSizer->Add(pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    choiceFlexGridSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    choiceFlexGridSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    choiceFlexGridSizer->Add(categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    choiceFlexGridSizer->Add(pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    leftSizer->Add(choiceFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
     /* Right Sizer */
     /* Task Details Box */
@@ -160,6 +167,7 @@ void TaskDialog::CreateControls()
     /* Unique Identifier Text Control */
     auto uniqueIdLabel = new wxStaticText(taskDetailsBox, wxID_ANY, "Unique ID");
     pTaskUniqueIdentiferTextCtrl = new wxTextCtrl(taskDetailsBox, tksIDC_UNIQUEIDENTIFIER);
+    pTaskUniqueIdentiferTextCtrl->SetHint("Unique identifier");
     pTaskUniqueIdentiferTextCtrl->SetToolTip(
         "Enter a unique identifier, ticket number, work order or other identifier to associate task with");
 
@@ -241,7 +249,22 @@ void TaskDialog::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-void TaskDialog::FillControls() {}
+void TaskDialog::FillControls()
+{
+    pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pEmployerChoiceCtrl->SetSelection(0);
+
+    pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pClientChoiceCtrl->SetSelection(0);
+    pClientChoiceCtrl->Disable();
+
+    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pProjectChoiceCtrl->SetSelection(0);
+    pProjectChoiceCtrl->Disable();
+
+    pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pCategoryChoiceCtrl->SetSelection(0);
+}
 
 // clang-format off
 void TaskDialog::ConfigureEventBindings()
