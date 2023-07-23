@@ -43,6 +43,7 @@
 #include "../ui/dlg/categoriesdlg.h"
 #include "../ui/dlg/aboutdlg.h"
 #include "../ui/dlg/preferencesdlg.h"
+#include "../ui/dlg/taskdialog.h"
 
 #include "events.h"
 #include "notificationclientdata.h"
@@ -57,6 +58,7 @@ EVT_ICONIZE(MainFrame::OnIconize)
 EVT_SIZE(MainFrame::OnResize)
 EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 /* Menu Handlers */
+EVT_MENU(ID_NEW_TASK, MainFrame::OnNewTask)
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
@@ -158,6 +160,7 @@ void MainFrame::CreateControls()
     /* Menubar */
     /* File */
     auto fileMenu = new wxMenu();
+    fileMenu->Append(ID_NEW_TASK, "New &Task", "Create new task");
     fileMenu->AppendSeparator();
     auto fileNewMenu = new wxMenu();
     fileNewMenu->Append(ID_NEW_EMPLOYER, "New E&mployer", "Create new employer");
@@ -275,6 +278,12 @@ void MainFrame::OnNotificationClick(wxCommandEvent& event)
     wxSize size = btn->GetSize();
     pNotificationPopupWindow->Position(pos, size);
     pNotificationPopupWindow->Popup();
+}
+
+void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
+{
+    UI::dlg::TaskDialog newTaskDialog(this, pEnv, pLogger, mDatabaseFilePath);
+    newTaskDialog.ShowModal();
 }
 
 void MainFrame::OnNewEmployer(wxCommandEvent& event)
