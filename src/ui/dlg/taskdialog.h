@@ -62,6 +62,11 @@ private:
     void FillControls();
     void ConfigureEventBindings();
 
+    void OnEmployerChoiceSelection(wxCommandEvent& event);
+    void OnCategoryChoiceSelection(wxCommandEvent& event);
+    void OnOK(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
+
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 

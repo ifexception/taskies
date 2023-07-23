@@ -30,6 +30,7 @@
 #include "../../dao/employerdao.h"
 #include "../../dao/clientdao.h"
 #include "../../dao/projectdao.h"
+#include "../../dao/categorydao.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -38,6 +39,8 @@
 #include "../../utils/utils.h"
 
 #include "../clientdata.h"
+#include "../events.h"
+#include "../notificationclientdata.h"
 
 namespace tks::UI::dlg
 {
@@ -160,6 +163,7 @@ void TaskDialog::CreateControls()
 
     /* Billable Check Box Control */
     pBillableCheckBoxCtrl = new wxCheckBox(taskDetailsBox, tksIDC_BILLABLE, "Billable");
+    pBillableCheckBoxCtrl->SetToolTip("Task is billable");
 
     /* Unique ID Sizer */
     auto uniqueIdSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -264,12 +268,176 @@ void TaskDialog::FillControls()
 
     pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pCategoryChoiceCtrl->SetSelection(0);
+
+    std::string defaultSearhTerm = "";
+
+    std::vector<Model::EmployerModel> employers;
+    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+
+    int rc = employerDao.Filter(defaultSearhTerm, employers);
+    if (rc != 0) {
+        std::string message = "Failed to get employers";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& employer : employers) {
+            pEmployerChoiceCtrl->Append(employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
+        }
+    }
+
+    std::vector<Model::CategoryModel> categories;
+    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+
+    rc = categoryDao.Filter(defaultSearhTerm, categories);
+    if (rc == -1) {
+        std::string message = "Failed to filter categories";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (const auto& category : categories) {
+            pCategoryChoiceCtrl->Append(category.Name, new ClientData<std::int64_t>(category.CategoryId));
+        }
+    }
+
+    pOkButton->Enable();
 }
 
 // clang-format off
 void TaskDialog::ConfigureEventBindings()
 {
+    pEmployerChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &TaskDialog::OnEmployerChoiceSelection,
+        this
+    );
 
+    pCategoryChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &TaskDialog::OnCategoryChoiceSelection,
+        this
+    );
+
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &TaskDialog::OnOK,
+        this,
+        wxID_OK
+    );
+
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &TaskDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
 }
 // clang-format on
+
+void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
+{
+    pOkButton->Disable();
+    pClientChoiceCtrl->Clear();
+    pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pClientChoiceCtrl->SetSelection(0);
+
+    if (event.GetSelection() < 1) {
+        pClientChoiceCtrl->Disable();
+        pOkButton->Enable();
+
+        return;
+    }
+
+    int employerIndex = event.GetSelection();
+    ClientData<std::int64_t>* employerIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    if (employerIdData->GetValue() < 1) {
+        pClientChoiceCtrl->Clear();
+        pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+        pClientChoiceCtrl->Disable();
+
+        return;
+    }
+
+    auto employerId = employerIdData->GetValue();
+    std::vector<Model::ClientModel> clients;
+    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+
+    int rc = clientDao.FilterByEmployerId(employerId, clients);
+
+    if (rc != 0) {
+        std::string message = "Failed to get clients";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        if (clients.empty()) {
+            pClientChoiceCtrl->Clear();
+            pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+            pClientChoiceCtrl->Disable();
+            pOkButton->Enable();
+
+            return;
+        }
+
+        for (auto& client : clients) {
+            pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
+        }
+
+        if (!pClientChoiceCtrl->IsEnabled()) {
+            pClientChoiceCtrl->Enable();
+        }
+    }
+
+    pOkButton->Enable();
+}
+
+void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
+{
+    pBillableCheckBoxCtrl->SetValue(false);
+    pBillableCheckBoxCtrl->SetToolTip("Task is billable");
+
+    int categoryIndex = event.GetSelection();
+    ClientData<std::int64_t>* categoryIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pCategoryChoiceCtrl->GetClientObject(categoryIndex));
+
+    Model::CategoryModel model;
+    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+    int rc = 0;
+
+    rc = categoryDao.GetById(categoryIdData->GetValue(), model);
+    if (rc == -1) {
+        std::string message = "Failed to get category";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(pParent->GetParent(), addNotificationEvent);
+    } else {
+        if (model.Billable) {
+            pBillableCheckBoxCtrl->SetValue(true);
+            pBillableCheckBoxCtrl->SetToolTip("Category selected is billable, thus task becomes billable too");
+        }
+    }
+}
+
+void TaskDialog::OnOK(wxCommandEvent& event)
+{
+    EndModal(wxID_OK);
+}
+
+void TaskDialog::OnCancel(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
+}
+
 } // namespace tks::UI::dlg
