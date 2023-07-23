@@ -65,8 +65,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pClientChoiceCtrl(nullptr)
     , pProjectChoiceCtrl(nullptr)
     , pCategoryChoiceCtrl(nullptr)
-    , pDurationHoursCtrl(nullptr)
-    , pDurationMinutesCtrl(nullptr)
+    , pTimeHoursCtrl(nullptr)
+    , pTimeMinutesCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
     , pTaskUniqueIdentiferTextCtrl(nullptr)
     , pGenerateUniqueIdentifierCtrl(nullptr)
@@ -181,9 +181,9 @@ void TaskDialog::CreateControls()
     pGenerateUniqueIdentifierCtrl->SetToolTip("Generate a unique identifier to associate task with");
 
     /* Time Controls */
-    auto durationLabel = new wxStaticText(taskDetailsBox, wxID_STATIC, "Duration");
+    auto timeLabel = new wxStaticText(taskDetailsBox, wxID_STATIC, "Time");
 
-    pDurationHoursCtrl = new wxSpinCtrl(taskDetailsBox,
+    pTimeHoursCtrl = new wxSpinCtrl(taskDetailsBox,
         tksIDC_DURATIONHOURS,
         wxEmptyString,
         wxDefaultPosition,
@@ -191,9 +191,9 @@ void TaskDialog::CreateControls()
         wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
         0,
         16);
-    pDurationHoursCtrl->SetToolTip("Number of hours the task took");
+    pTimeHoursCtrl->SetToolTip("Number of hours the task took");
 
-    pDurationMinutesCtrl = new wxSpinCtrl(taskDetailsBox,
+    pTimeMinutesCtrl = new wxSpinCtrl(taskDetailsBox,
         tksIDC_DURATIONMINUTES,
         wxEmptyString,
         wxDefaultPosition,
@@ -201,8 +201,8 @@ void TaskDialog::CreateControls()
         wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
         0,
         59);
-    pDurationMinutesCtrl->SetToolTip("Number of minutes the task took");
-    pDurationMinutesCtrl->SetValue(15);
+    pTimeMinutesCtrl->SetToolTip("Number of minutes the task took");
+    pTimeMinutesCtrl->SetValue(15);
 
     taskDetailsBoxSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     uniqueIdSizer->Add(uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
@@ -210,12 +210,12 @@ void TaskDialog::CreateControls()
     taskDetailsBoxSizer->Add(uniqueIdSizer, wxSizerFlags().Expand());
     taskDetailsBoxSizer->Add(pGenerateUniqueIdentifierCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    auto durationSizer = new wxBoxSizer(wxHORIZONTAL);
-    durationSizer->Add(durationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    durationSizer->AddStretchSpacer(4);
-    durationSizer->Add(pDurationHoursCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    durationSizer->Add(pDurationMinutesCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    taskDetailsBoxSizer->Add(durationSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    auto timeSizer = new wxBoxSizer(wxHORIZONTAL);
+    timeSizer->Add(timeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    timeSizer->AddStretchSpacer(4);
+    timeSizer->Add(pTimeHoursCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    timeSizer->Add(pTimeMinutesCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    taskDetailsBoxSizer->Add(timeSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
     rightSizer->Add(taskDetailsBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 

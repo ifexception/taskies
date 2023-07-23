@@ -79,8 +79,8 @@ private:
     wxCheckBox* pBillableCheckBoxCtrl;
     wxTextCtrl* pTaskUniqueIdentiferTextCtrl;
     wxCheckBox* pGenerateUniqueIdentifierCtrl;
-    wxSpinCtrl* pDurationHoursCtrl;
-    wxSpinCtrl* pDurationMinutesCtrl;
+    wxSpinCtrl* pTimeHoursCtrl;
+    wxSpinCtrl* pTimeMinutesCtrl;
     wxTextCtrl* pTaskDescriptionTextCtrl;
     wxStaticText* pDateCreatedTextCtrl;
     wxStaticText* pDateModifiedTextCtrl;
