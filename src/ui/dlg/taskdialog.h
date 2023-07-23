@@ -71,12 +71,12 @@ private:
     wxChoice* pClientChoiceCtrl;
     wxChoice* pProjectChoiceCtrl;
     wxChoice* pCategoryChoiceCtrl;
-    wxStaticText* pTaskContextStaticText;
-    wxSpinCtrl* pDurationHoursCtrl;
-    wxSpinCtrl* pDurationMinutesCtrl;
-    wxTextCtrl* pTaskDescriptionCtrl;
+    wxCheckBox* pBillableCheckBoxCtrl;
     wxTextCtrl* pTaskUniqueIdentiferCtrl;
     wxCheckBox* pGenerateUniqueIdentifierCtrl;
+    wxSpinCtrl* pDurationHoursCtrl;
+    wxSpinCtrl* pDurationMinutesCtrl;
+    wxTextCtrl* pTaskDescriptionTextCtrl;
     wxStaticText* pDateCreatedTextCtrl;
     wxStaticText* pDateModifiedTextCtrl;
     wxCheckBox* pIsActiveCtrl;
@@ -84,6 +84,21 @@ private:
     wxButton* pCancelButton;
 
     std::string mDatabaseFilePath;
+
+    enum {
+        tksIDC_DATECONTEXT = wxID_HIGHEST +100,
+        tksIDC_EMPLOYERCHOICE,
+        tksIDC_CLIENTCHOICE,
+        tksIDC_PROJECTCHOICE,
+        tksIDC_CATEGORYCHOICE,
+        tksIDC_BILLABLE,
+        tksIDC_UNIQUEIDENTIFIER,
+        tksIDC_GENERATEUNIQUEIDENTIFER,
+        tksIDC_DURATIONHOURS,
+        tksIDC_DURATIONMINUTES,
+        tksIDC_DESCRIPTION,
+        tksIDC_ISACTIVE
+    };
 };
 } // namespace UI::dlg
 } // namespace tks

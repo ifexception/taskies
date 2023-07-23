@@ -104,7 +104,7 @@ target_compile_definitions (
     UNICODE
     WXUSINGDLL
     wxUSE_GUI=1
-    wxUSE_TIMEPICKCTRL=1
+    wxUSE_DATEPICKCTRL=1
     wxNO_UNSAFE_WXSTRING_CONV=1
     __WXMSW__
     $<$<CONFIG:Debug>:TKS_DEBUG>

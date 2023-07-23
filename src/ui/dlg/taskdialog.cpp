@@ -60,10 +60,9 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pClientChoiceCtrl(nullptr)
     , pProjectChoiceCtrl(nullptr)
     , pCategoryChoiceCtrl(nullptr)
-    , pTaskContextStaticText(nullptr)
     , pDurationHoursCtrl(nullptr)
     , pDurationMinutesCtrl(nullptr)
-    , pTaskDescriptionCtrl(nullptr)
+    , pTaskDescriptionTextCtrl(nullptr)
     , pTaskUniqueIdentiferCtrl(nullptr)
     , pGenerateUniqueIdentifierCtrl(nullptr)
     , pDateCreatedTextCtrl(nullptr)
@@ -91,6 +90,136 @@ void TaskDialog::CreateControls()
 {
     /* Base Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Date Box */
+    auto dateBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    auto dateBoxSizer = new wxStaticBoxSizer(dateBox, wxHORIZONTAL);
+
+    /* Date Label */
+    auto dateLabel = new wxStaticText(dateBox, wxID_ANY, "Date");
+
+    /* Date Control */
+    pDateContextCtrl = new wxDatePickerCtrl(dateBox, tksIDC_DATECONTEXT);
+
+    dateBoxSizer->Add(dateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateBoxSizer->Add(pDateContextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    sizer->Add(dateBoxSizer, wxSizerFlags().Expand());
+
+    /* Left and Right Sizer for choice and configurations */
+    auto baseLRSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(baseLRSizer, wxSizerFlags().Expand().Proportion(1));
+
+    auto leftSizer = new wxBoxSizer(wxVERTICAL);
+    auto rightSizer = new wxBoxSizer(wxVERTICAL);
+
+    baseLRSizer->Add(leftSizer, wxSizerFlags().Expand().Proportion(1));
+    baseLRSizer->Add(rightSizer, wxSizerFlags().Expand().Proportion(1));
+
+    /* Left Sizer */
+    /* Choice Controls */
+    auto employerLabel = new wxStaticText(this, wxID_ANY, "Employer");
+    pEmployerChoiceCtrl = new wxChoice(this, tksIDC_EMPLOYERCHOICE);
+    pEmployerChoiceCtrl->SetToolTip("Select employer to get list of associated projects");
+
+    auto clientLabel = new wxStaticText(this, wxID_ANY, "Client");
+    pClientChoiceCtrl = new wxChoice(this, tksIDC_CLIENTCHOICE);
+    pClientChoiceCtrl->SetToolTip("Select client to refine list of associated projects");
+
+    auto projectLabel = new wxStaticText(this, wxID_ANY, "Project");
+    pProjectChoiceCtrl = new wxChoice(this, tksIDC_PROJECTCHOICE);
+    pProjectChoiceCtrl->SetToolTip("Task to associate project with");
+
+    auto categoryLabel = new wxStaticText(this, wxID_ANY, "Category");
+    pCategoryChoiceCtrl = new wxChoice(this, tksIDC_CATEGORYCHOICE);
+    pCategoryChoiceCtrl->SetToolTip("Task to associate category with");
+
+    leftSizer->Add(employerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    leftSizer->Add(pEmployerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    leftSizer->Add(clientLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    leftSizer->Add(pClientChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    leftSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    leftSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    leftSizer->Add(categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    leftSizer->Add(pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Right Sizer */
+    /* Task Details Box */
+    auto taskDetailsBox = new wxStaticBox(this, wxID_ANY, "Task Details");
+    auto taskDetailsBoxSizer = new wxStaticBoxSizer(taskDetailsBox, wxVERTICAL);
+
+    /* Billable Check Box Control */
+    pBillableCheckBoxCtrl = new wxCheckBox(taskDetailsBox, tksIDC_BILLABLE, "Billable");
+
+    /* Unique ID Sizer */
+    auto uniqueIdSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    /* Unique Identifier Text Control */
+    auto uniqueIdLabel = new wxStaticText(taskDetailsBox, wxID_ANY, "Unique ID");
+    pTaskUniqueIdentiferCtrl = new wxTextCtrl(taskDetailsBox, tksIDC_UNIQUEIDENTIFIER);
+    pTaskUniqueIdentiferCtrl->SetToolTip(
+        "Enter a unique identifier, ticket number, work order or other identifier to associate task with");
+
+    /* Generate Unique Identifer Check Box Control */
+    pGenerateUniqueIdentifierCtrl =
+        new wxCheckBox(taskDetailsBox, tksIDC_GENERATEUNIQUEIDENTIFER, "Generate Unique ID");
+    pGenerateUniqueIdentifierCtrl->SetToolTip("Generate a unique identifier to associate task with");
+
+    taskDetailsBoxSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    uniqueIdSizer->Add(uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    uniqueIdSizer->Add(pTaskUniqueIdentiferCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    taskDetailsBoxSizer->Add(uniqueIdSizer, wxSizerFlags().Expand());
+    taskDetailsBoxSizer->Add(pGenerateUniqueIdentifierCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    rightSizer->Add(taskDetailsBoxSizer, wxSizerFlags().Expand());
+
+    /* Time Controls */
+    auto durationBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    auto durationBoxSizer = new wxStaticBoxSizer(durationBox, wxHORIZONTAL);
+
+    auto durationLabel = new wxStaticText(durationBox, wxID_STATIC, "Duration");
+
+    pDurationHoursCtrl = new wxSpinCtrl(durationBox,
+        tksIDC_DURATIONHOURS,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
+        0,
+        16);
+    pDurationHoursCtrl->SetToolTip("Number of hours the task took");
+
+    pDurationMinutesCtrl = new wxSpinCtrl(durationBox,
+        tksIDC_DURATIONMINUTES,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
+        0,
+        59);
+    pDurationMinutesCtrl->SetToolTip("Number of minutes the task took");
+    pDurationMinutesCtrl->SetValue(15);
+
+    durationBoxSizer->Add(durationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    durationBoxSizer->AddStretchSpacer(4);
+    durationBoxSizer->Add(pDurationHoursCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    durationBoxSizer->Add(pDurationMinutesCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    rightSizer->Add(taskDetailsBoxSizer);
+
+    /* Task Description Text Control */
+    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Task Description");
+    auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
+
+    pTaskDescriptionTextCtrl = new wxTextCtrl(
+        descriptionBox, tksIDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+    pTaskDescriptionTextCtrl->SetHint("Task description");
+    pTaskDescriptionTextCtrl->SetToolTip("Enter the description of the task");
+
+    descriptionBoxSizer->Add(pTaskDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    sizer->Add(descriptionBoxSizer, wxSizerFlags().Expand().Proportion(1));
+
+    SetSizerAndFit(sizer);
 }
 
 void TaskDialog::FillControls() {}
