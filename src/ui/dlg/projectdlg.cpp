@@ -515,7 +515,7 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
                 : message = "Successfully deleted project";
         }
 
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         if (ret == -1) {
             NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
             addNotificationEvent->SetClientObject(clientData);
