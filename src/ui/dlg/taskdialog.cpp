@@ -163,7 +163,7 @@ void TaskDialog::CreateControls()
 
     /* Billable Check Box Control */
     pBillableCheckBoxCtrl = new wxCheckBox(taskDetailsBox, tksIDC_BILLABLE, "Billable");
-    pBillableCheckBoxCtrl->SetToolTip("Task is billable");
+    pBillableCheckBoxCtrl->SetToolTip("Indicates if a task is billable");
 
     /* Unique ID Sizer */
     auto uniqueIdSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -403,7 +403,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 {
     pBillableCheckBoxCtrl->SetValue(false);
-    pBillableCheckBoxCtrl->SetToolTip("Task is billable");
+    pBillableCheckBoxCtrl->SetToolTip("Indicates if a task is billable");
 
     int categoryIndex = event.GetSelection();
     ClientData<std::int64_t>* categoryIdData =
