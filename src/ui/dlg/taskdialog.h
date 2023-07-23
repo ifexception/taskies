@@ -72,7 +72,7 @@ private:
     wxChoice* pProjectChoiceCtrl;
     wxChoice* pCategoryChoiceCtrl;
     wxCheckBox* pBillableCheckBoxCtrl;
-    wxTextCtrl* pTaskUniqueIdentiferCtrl;
+    wxTextCtrl* pTaskUniqueIdentiferTextCtrl;
     wxCheckBox* pGenerateUniqueIdentifierCtrl;
     wxSpinCtrl* pDurationHoursCtrl;
     wxSpinCtrl* pDurationMinutesCtrl;

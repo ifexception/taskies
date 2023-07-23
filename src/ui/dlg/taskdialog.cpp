@@ -63,7 +63,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pDurationHoursCtrl(nullptr)
     , pDurationMinutesCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
-    , pTaskUniqueIdentiferCtrl(nullptr)
+    , pTaskUniqueIdentiferTextCtrl(nullptr)
     , pGenerateUniqueIdentifierCtrl(nullptr)
     , pDateCreatedTextCtrl(nullptr)
     , pDateModifiedTextCtrl(nullptr)
@@ -101,13 +101,14 @@ void TaskDialog::CreateControls()
     /* Date Control */
     pDateContextCtrl = new wxDatePickerCtrl(dateBox, tksIDC_DATECONTEXT);
 
-    dateBoxSizer->Add(dateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateBoxSizer->Add(dateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    dateBoxSizer->AddSpacer(8);
     dateBoxSizer->Add(pDateContextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    sizer->Add(dateBoxSizer, wxSizerFlags().Expand());
+    sizer->Add(dateBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Left and Right Sizer for choice and configurations */
     auto baseLRSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(baseLRSizer, wxSizerFlags().Expand().Proportion(1));
+    sizer->Add(baseLRSizer, wxSizerFlags().Expand());
 
     auto leftSizer = new wxBoxSizer(wxVERTICAL);
     auto rightSizer = new wxBoxSizer(wxVERTICAL);
@@ -158,8 +159,8 @@ void TaskDialog::CreateControls()
 
     /* Unique Identifier Text Control */
     auto uniqueIdLabel = new wxStaticText(taskDetailsBox, wxID_ANY, "Unique ID");
-    pTaskUniqueIdentiferCtrl = new wxTextCtrl(taskDetailsBox, tksIDC_UNIQUEIDENTIFIER);
-    pTaskUniqueIdentiferCtrl->SetToolTip(
+    pTaskUniqueIdentiferTextCtrl = new wxTextCtrl(taskDetailsBox, tksIDC_UNIQUEIDENTIFIER);
+    pTaskUniqueIdentiferTextCtrl->SetToolTip(
         "Enter a unique identifier, ticket number, work order or other identifier to associate task with");
 
     /* Generate Unique Identifer Check Box Control */
@@ -167,20 +168,10 @@ void TaskDialog::CreateControls()
         new wxCheckBox(taskDetailsBox, tksIDC_GENERATEUNIQUEIDENTIFER, "Generate Unique ID");
     pGenerateUniqueIdentifierCtrl->SetToolTip("Generate a unique identifier to associate task with");
 
-    taskDetailsBoxSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    uniqueIdSizer->Add(uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    uniqueIdSizer->Add(pTaskUniqueIdentiferCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-    taskDetailsBoxSizer->Add(uniqueIdSizer, wxSizerFlags().Expand());
-    taskDetailsBoxSizer->Add(pGenerateUniqueIdentifierCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    rightSizer->Add(taskDetailsBoxSizer, wxSizerFlags().Expand());
-
     /* Time Controls */
-    auto durationBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
-    auto durationBoxSizer = new wxStaticBoxSizer(durationBox, wxHORIZONTAL);
+    auto durationLabel = new wxStaticText(taskDetailsBox, wxID_STATIC, "Duration");
 
-    auto durationLabel = new wxStaticText(durationBox, wxID_STATIC, "Duration");
-
-    pDurationHoursCtrl = new wxSpinCtrl(durationBox,
+    pDurationHoursCtrl = new wxSpinCtrl(taskDetailsBox,
         tksIDC_DURATIONHOURS,
         wxEmptyString,
         wxDefaultPosition,
@@ -190,7 +181,7 @@ void TaskDialog::CreateControls()
         16);
     pDurationHoursCtrl->SetToolTip("Number of hours the task took");
 
-    pDurationMinutesCtrl = new wxSpinCtrl(durationBox,
+    pDurationMinutesCtrl = new wxSpinCtrl(taskDetailsBox,
         tksIDC_DURATIONMINUTES,
         wxEmptyString,
         wxDefaultPosition,
@@ -201,11 +192,20 @@ void TaskDialog::CreateControls()
     pDurationMinutesCtrl->SetToolTip("Number of minutes the task took");
     pDurationMinutesCtrl->SetValue(15);
 
-    durationBoxSizer->Add(durationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    durationBoxSizer->AddStretchSpacer(4);
-    durationBoxSizer->Add(pDurationHoursCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    durationBoxSizer->Add(pDurationMinutesCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    rightSizer->Add(taskDetailsBoxSizer);
+    taskDetailsBoxSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    uniqueIdSizer->Add(uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    uniqueIdSizer->Add(pTaskUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    taskDetailsBoxSizer->Add(uniqueIdSizer, wxSizerFlags().Expand());
+    taskDetailsBoxSizer->Add(pGenerateUniqueIdentifierCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    auto durationSizer = new wxBoxSizer(wxHORIZONTAL);
+    durationSizer->Add(durationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    durationSizer->AddStretchSpacer(4);
+    durationSizer->Add(pDurationHoursCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    durationSizer->Add(pDurationMinutesCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    taskDetailsBoxSizer->Add(durationSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
+    rightSizer->Add(taskDetailsBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Task Description Text Control */
     auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Task Description");
@@ -216,8 +216,27 @@ void TaskDialog::CreateControls()
     pTaskDescriptionTextCtrl->SetHint("Task description");
     pTaskDescriptionTextCtrl->SetToolTip("Enter the description of the task");
 
-    descriptionBoxSizer->Add(pTaskDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-    sizer->Add(descriptionBoxSizer, wxSizerFlags().Expand().Proportion(1));
+    descriptionBoxSizer->Add(pTaskDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    /* Horizontal Line */
+    auto line = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
+    /* OK|Cancel buttons */
+    auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    buttonsSizer->AddStretchSpacer();
+
+    pOkButton = new wxButton(this, wxID_OK, "OK");
+    pOkButton->SetDefault();
+    pOkButton->Disable();
+
+    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
+
+    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
     SetSizerAndFit(sizer);
 }
