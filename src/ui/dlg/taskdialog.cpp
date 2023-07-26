@@ -96,21 +96,6 @@ void TaskDialog::CreateControls()
     /* Base Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    /* Date Box */
-    auto dateBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
-    auto dateBoxSizer = new wxStaticBoxSizer(dateBox, wxHORIZONTAL);
-
-    /* Date Label */
-    auto dateLabel = new wxStaticText(dateBox, wxID_ANY, "Date");
-
-    /* Date Control */
-    pDateContextCtrl = new wxDatePickerCtrl(dateBox, tksIDC_DATECONTEXT);
-
-    dateBoxSizer->Add(dateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateBoxSizer->AddSpacer(FromDIP(16));
-    dateBoxSizer->Add(pDateContextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    sizer->Add(dateBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
     /* Left and Right Sizer for choice and configurations */
     auto baseLRSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(baseLRSizer, wxSizerFlags().Expand());
@@ -161,6 +146,15 @@ void TaskDialog::CreateControls()
     auto taskDetailsBox = new wxStaticBox(this, wxID_ANY, "Task Details");
     auto taskDetailsBoxSizer = new wxStaticBoxSizer(taskDetailsBox, wxVERTICAL);
 
+    /* Date Sizer */
+    auto dateSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    /* Date Label */
+    auto dateLabel = new wxStaticText(taskDetailsBox, wxID_ANY, "Date");
+
+    /* Date Control */
+    pDateContextCtrl = new wxDatePickerCtrl(taskDetailsBox, tksIDC_DATECONTEXT);
+
     /* Billable Check Box Control */
     pBillableCheckBoxCtrl = new wxCheckBox(taskDetailsBox, tksIDC_BILLABLE, "Billable");
     pBillableCheckBoxCtrl->SetToolTip("Indicates if a task is billable");
@@ -204,6 +198,11 @@ void TaskDialog::CreateControls()
     pTimeMinutesCtrl->SetToolTip("Number of minutes the task took");
     pTimeMinutesCtrl->SetValue(15);
 
+    dateSizer->Add(dateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    dateSizer->AddSpacer(FromDIP(16));
+    dateSizer->Add(pDateContextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    taskDetailsBoxSizer->Add(dateSizer, wxSizerFlags().Expand());
+
     taskDetailsBoxSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     uniqueIdSizer->Add(uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     uniqueIdSizer->Add(pTaskUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
@@ -212,7 +211,7 @@ void TaskDialog::CreateControls()
 
     auto timeSizer = new wxBoxSizer(wxHORIZONTAL);
     timeSizer->Add(timeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    timeSizer->AddStretchSpacer(4);
+    timeSizer->AddStretchSpacer(FromDIP(6));
     timeSizer->Add(pTimeHoursCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     timeSizer->Add(pTimeMinutesCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     taskDetailsBoxSizer->Add(timeSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
@@ -251,6 +250,7 @@ void TaskDialog::CreateControls()
     sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
     SetSizerAndFit(sizer);
+    sizer->SetSizeHints(this);
 }
 
 void TaskDialog::FillControls()
@@ -306,6 +306,11 @@ void TaskDialog::FillControls()
     }
 
     pOkButton->Enable();
+
+    // Recalculate position dialog children controls after loading dropdown values as the wxChoice controls
+    // recalculate their width based on the entries, however the controls on the right are not recalculated
+    // Calling Fit() forces it to update the controls layout
+    Fit();
 }
 
 // clang-format off
