@@ -139,7 +139,8 @@ void TaskDialog::CreateControls()
     choiceFlexGridSizer->Add(categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     choiceFlexGridSizer->Add(pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    leftSizer->Add(choiceFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    leftSizer->AddSpacer(4);
+    leftSizer->Add(choiceFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
     /* Right Sizer */
     /* Task Details Box */
@@ -199,7 +200,7 @@ void TaskDialog::CreateControls()
     pTimeMinutesCtrl->SetValue(15);
 
     dateSizer->Add(dateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateSizer->AddSpacer(FromDIP(16));
+    dateSizer->AddStretchSpacer(1);
     dateSizer->Add(pDateContextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     taskDetailsBoxSizer->Add(dateSizer, wxSizerFlags().Expand());
 
@@ -211,7 +212,7 @@ void TaskDialog::CreateControls()
 
     auto timeSizer = new wxBoxSizer(wxHORIZONTAL);
     timeSizer->Add(timeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    timeSizer->AddStretchSpacer(FromDIP(6));
+    timeSizer->AddStretchSpacer(1);
     timeSizer->Add(pTimeHoursCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     timeSizer->Add(pTimeMinutesCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     taskDetailsBoxSizer->Add(timeSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
