@@ -256,6 +256,10 @@ void TaskDialog::CreateControls()
 
 void TaskDialog::FillControls()
 {
+    auto bottomRangeDate = wxDateTime::GetCurrentYear() - 1;
+    auto& bottomDateContext = wxDateTime::Now().SetYear(bottomRangeDate);
+    pDateContextCtrl->SetRange(bottomDateContext, wxDateTime::Now());
+
     pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);
 
