@@ -78,7 +78,6 @@ private:
     wxChoice* pCategoryChoiceCtrl;
     wxCheckBox* pBillableCheckBoxCtrl;
     wxTextCtrl* pTaskUniqueIdentiferTextCtrl;
-    wxCheckBox* pGenerateUniqueIdentifierCtrl;
     wxSpinCtrl* pTimeHoursCtrl;
     wxSpinCtrl* pTimeMinutesCtrl;
     wxTextCtrl* pTaskDescriptionTextCtrl;
@@ -98,7 +97,6 @@ private:
         tksIDC_CATEGORYCHOICE,
         tksIDC_BILLABLE,
         tksIDC_UNIQUEIDENTIFIER,
-        tksIDC_GENERATEUNIQUEIDENTIFER,
         tksIDC_DURATIONHOURS,
         tksIDC_DURATIONMINUTES,
         tksIDC_DESCRIPTION,

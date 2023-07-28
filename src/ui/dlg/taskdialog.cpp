@@ -69,7 +69,6 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pTimeMinutesCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
     , pTaskUniqueIdentiferTextCtrl(nullptr)
-    , pGenerateUniqueIdentifierCtrl(nullptr)
     , pDateCreatedTextCtrl(nullptr)
     , pDateModifiedTextCtrl(nullptr)
     , pIsActiveCtrl(nullptr)
@@ -170,11 +169,6 @@ void TaskDialog::CreateControls()
     pTaskUniqueIdentiferTextCtrl->SetToolTip(
         "Enter a unique identifier, ticket number, work order or other identifier to associate task with");
 
-    /* Generate Unique Identifer Check Box Control */
-    pGenerateUniqueIdentifierCtrl =
-        new wxCheckBox(taskDetailsBox, tksIDC_GENERATEUNIQUEIDENTIFER, "Generate Unique ID");
-    pGenerateUniqueIdentifierCtrl->SetToolTip("Generate a unique identifier to associate task with");
-
     /* Time Controls */
     auto timeLabel = new wxStaticText(taskDetailsBox, wxID_STATIC, "Time");
 
@@ -208,7 +202,6 @@ void TaskDialog::CreateControls()
     uniqueIdSizer->Add(uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     uniqueIdSizer->Add(pTaskUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
     taskDetailsBoxSizer->Add(uniqueIdSizer, wxSizerFlags().Expand());
-    taskDetailsBoxSizer->Add(pGenerateUniqueIdentifierCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     auto timeSizer = new wxBoxSizer(wxHORIZONTAL);
     timeSizer->Add(timeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
