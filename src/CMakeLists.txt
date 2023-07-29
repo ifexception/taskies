@@ -36,6 +36,7 @@ set(SRC_DAO
     "dao/projectdao.cpp"
     "dao/categorydao.cpp"
     "dao/workdaydao.cpp"
+    "dao/taskdao.cpp"
 )
 
 set (SRC_DIALOGS
