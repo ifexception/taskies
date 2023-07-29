@@ -27,6 +27,7 @@ set (SRC_MODELS
     "models/projectmodel.cpp"
     "models/categorymodel.cpp"
     "models/workdaymodel.cpp"
+    "models/taskmodel.cpp"
 )
 
 set(SRC_DAO
