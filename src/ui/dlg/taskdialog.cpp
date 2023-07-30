@@ -33,6 +33,7 @@
 #include "../../dao/projectdao.h"
 #include "../../dao/categorydao.h"
 #include "../../dao/workdaydao.h"
+#include "../../dao/taskdao.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -469,12 +470,35 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             addNotificationEvent->SetClientObject(clientData);
 
             wxQueueEvent(pParent, addNotificationEvent);
+            return;
         }
 
         mTaskModel.WorkdayId = workdayId;
-    }
 
-    EndModal(wxID_OK);
+        DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+
+        std::int64_t taskId = taskDao.Create(mTaskModel);
+        ret = taskId > 0 ? 0 : -1;
+
+        message = ret == -1 ? message = "Failed to create task" : "Successfully created task";
+
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        if (ret == -1) {
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+
+            pOkButton->Enable();
+        } else {
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+
+            EndModal(wxID_OK);
+        }
+    }
 }
 
 void TaskDialog::OnCancel(wxCommandEvent& event)

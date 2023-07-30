@@ -98,7 +98,7 @@ private:
     std::string mDate;
 
     enum {
-        tksIDC_DATECONTEXT = wxID_HIGHEST +100,
+        tksIDC_DATECONTEXT = wxID_HIGHEST + 100,
         tksIDC_EMPLOYERCHOICE,
         tksIDC_CLIENTCHOICE,
         tksIDC_PROJECTCHOICE,
