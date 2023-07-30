@@ -775,6 +775,6 @@ const std::string ProjectDao::filterByEmployerOrClientId = "SELECT "
                                                            "projects.client_id "
                                                            "FROM projects "
                                                            "WHERE projects.is_active = 1 "
-                                                           "AND (employer_id = ? "
-                                                           "OR client_id = ?);";
+                                                           "AND employer_id = ? "
+                                                           "OR client_id = ?;";
 } // namespace tks::DAO

@@ -480,6 +480,16 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
         reinterpret_cast<ClientData<std::int64_t>*>(pClientChoiceCtrl->GetClientObject(clientIndex));
     auto clientId = clientIdData->GetValue();
 
+    pProjectChoiceCtrl->Clear();
+    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pProjectChoiceCtrl->SetSelection(0);
+
+    if (clientIdData->GetValue() < 1) {
+        pProjectChoiceCtrl->Disable();
+
+        return;
+    }
+
     std::vector<Model::ProjectModel> projects;
     DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
 
