@@ -35,7 +35,7 @@ class TaskDao final
 public:
     TaskDao() = delete;
     TaskDao(const TaskDao&) = delete;
-    TaskDao(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilPath);
+    TaskDao(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~TaskDao();
 
     TaskDao& operator=(const TaskDao&) = delete;
@@ -47,5 +47,9 @@ public:
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
+
+    static const std::string create;
+    static const std::string update;
+    static const std::string isActive;
 };
-}
+} // namespace tks::DAO

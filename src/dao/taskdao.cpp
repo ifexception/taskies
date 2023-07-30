@@ -21,7 +21,185 @@
 
 #include "../common/constants.h"
 
+#include "../utils/utils.h"
+
 namespace tks::DAO
 {
+TaskDao::TaskDao(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
+    : pLogger(logger)
+    , pDb(nullptr)
+{
+    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "TaskDao", databaseFilePath);
 
+    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "TaskDao", databaseFilePath, rc, std::string(err));
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "TaskDao", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "TaskDao", Utils::sqlite::pragmas::JournalMode, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "TaskDao", Utils::sqlite::pragmas::Synchronous, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "TaskDao", Utils::sqlite::pragmas::TempStore, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "TaskDao", Utils::sqlite::pragmas::MmapSize, rc, err);
+        return;
+    }
 }
+
+TaskDao::~TaskDao()
+{
+    sqlite3_close(pDb);
+    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "TaskDao");
+}
+
+std::int64_t TaskDao::Create(Model::TaskModel& model)
+{
+    pLogger->info(LogMessage::InfoBeginCreateEntity, "TaskDao", "task", "task-name");
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, TaskDao::create.c_str(), static_cast<int>(TaskDao::create.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::create, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+    // billable
+    rc = sqlite3_bind_int(stmt, bindIndex++, model.Billable);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "billable", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // unique identifier
+    if (model.UniqueIdentifier.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            model.UniqueIdentifier.value().c_str(),
+            static_cast<int>(model.UniqueIdentifier.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "unique_identifier", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // duration hours
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.DurationHours);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "hours", 3, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // duration minutes
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.DurationMinutes);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "minutes", 4, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // description
+    rc = sqlite3_bind_text(
+        stmt, bindIndex++, model.Description.c_str(), static_cast<int>(model.Description.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "description", 5, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // project id
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.ProjectId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "project_id", 6, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // category id
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.ProjectId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "category_id", 7, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // workday id
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.WorkdayId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "workday_id", 8, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::create, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    auto rowId = sqlite3_last_insert_rowid(pDb);
+    pLogger->info(LogMessage::InfoEndCreateEntity, "TaskDao", rowId);
+
+    return rowId;
+}
+
+int TaskDao::Update(Model::TaskModel& project)
+{
+    return 0;
+}
+
+int TaskDao::Delete(const std::int64_t projectId)
+{
+    return 0;
+}
+} // namespace tks::DAO
