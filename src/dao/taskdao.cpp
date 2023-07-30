@@ -84,8 +84,7 @@ std::int64_t TaskDao::Create(Model::TaskModel& model)
     pLogger->info(LogMessage::InfoBeginCreateEntity, "TaskDao", "task", "task-name");
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(
-        pDb, TaskDao::create.c_str(), static_cast<int>(TaskDao::create.size()), &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(pDb, TaskDao::create.c_str(), static_cast<int>(TaskDao::create.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::create, rc, err);
@@ -202,4 +201,22 @@ int TaskDao::Delete(const std::int64_t projectId)
 {
     return 0;
 }
+
+const std::string TaskDao::create = "INSERT INTO "
+                                    "tasks "
+                                    "("
+                                    "billable, "
+                                    "unique_identifier, "
+                                    "hours, "
+                                    "minutes, "
+                                    "description, "
+                                    "project_id, "
+                                    "category_id, "
+                                    "workday_id "
+                                    ") "
+                                    "VALUES (?,?,?,?,?,?,?,?)";
+
+const std::string TaskDao::update = "";
+
+const std::string TaskDao::isActive = "";
 } // namespace tks::DAO
