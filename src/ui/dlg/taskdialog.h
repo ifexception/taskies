@@ -65,6 +65,7 @@ private:
     void ConfigureEventBindings();
 
     void OnEmployerChoiceSelection(wxCommandEvent& event);
+    void OnClientChoiceSelection(wxCommandEvent& event);
     void OnCategoryChoiceSelection(wxCommandEvent& event);
     void OnDateChange(wxDateEvent& event);
     void OnOK(wxCommandEvent& event);

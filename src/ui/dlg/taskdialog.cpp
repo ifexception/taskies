@@ -292,6 +292,29 @@ void TaskDialog::FillControls()
         }
     }
 
+    std::vector<Model::ProjectModel> projects;
+    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+
+    rc = projectDao.FilterByEmployerIdOrClientId(std::nullopt, std::nullopt, projects);
+    if (rc != 0) {
+        std::string message = "Failed to get projects";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        if (!projects.empty()) {
+            if (!pProjectChoiceCtrl->IsEnabled()) {
+                pProjectChoiceCtrl->Enable();
+            }
+
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+            }
+        }
+    }
+
     std::vector<Model::CategoryModel> categories;
     DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
@@ -323,6 +346,12 @@ void TaskDialog::ConfigureEventBindings()
     pEmployerChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &TaskDialog::OnEmployerChoiceSelection,
+        this
+    );
+
+    pClientChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &TaskDialog::OnClientChoiceSelection,
         this
     );
 
@@ -376,6 +405,10 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
         pClientChoiceCtrl->Disable();
 
+        pProjectChoiceCtrl->Clear();
+        pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+        pProjectChoiceCtrl->Disable();
+
         return;
     }
 
@@ -398,7 +431,6 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
             pClientChoiceCtrl->Clear();
             pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
             pClientChoiceCtrl->Disable();
-            pOkButton->Enable();
 
             return;
         }
@@ -412,7 +444,39 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         }
     }
 
+    std::vector<Model::ProjectModel> projects;
+    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+
+    rc = projectDao.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::nullopt, projects);
+    if (rc != 0) {
+        std::string message = "Failed to get projects";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        if (!projects.empty()) {
+            if (!pProjectChoiceCtrl->IsEnabled()) {
+                pProjectChoiceCtrl->Enable();
+            }
+
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+            }
+        } else {
+            pProjectChoiceCtrl->Clear();
+            pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+            pProjectChoiceCtrl->Disable();
+        }
+    }
+
     pOkButton->Enable();
+}
+
+void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
+{
+
 }
 
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
@@ -440,7 +504,7 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     } else {
         if (model.Billable) {
             pBillableCheckBoxCtrl->SetValue(true);
-            pBillableCheckBoxCtrl->SetToolTip("Category selected is billable, thus task becomes billable too");
+            pBillableCheckBoxCtrl->SetToolTip("Category selected is billable, thus task inherits billable attribute");
         }
     }
 }
