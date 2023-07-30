@@ -43,12 +43,15 @@ public:
 
     ProjectDao& operator=(const ProjectDao&) = delete;
 
-    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ProjectModel>& clients);
+    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ProjectModel>& projects);
     int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& model);
     std::int64_t Create(Model::ProjectModel& client);
     int Update(Model::ProjectModel& project);
     int Delete(const std::int64_t projectId);
     int UnmarkDefault();
+    int FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
+        std::optional<std::int64_t> clientId,
+        /*out*/ std::vector<Model::ProjectModel>& projects);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
@@ -60,6 +63,7 @@ private:
     static const std::string update;
     static const std::string isActive;
     static const std::string unmarkDefault;
+    static const std::string filterByEmployerOrClientId;
 };
-} // namespace Data
+} // namespace DAO
 } // namespace tks

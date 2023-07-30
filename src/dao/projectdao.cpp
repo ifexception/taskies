@@ -579,6 +579,116 @@ int ProjectDao::UnmarkDefault()
     return 0;
 }
 
+int ProjectDao::FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
+    std::optional<std::int64_t> clientId,
+    std::vector<Model::ProjectModel>& projects)
+{
+    pLogger->info(LogMessage::InfoBeginFilterEntities, "ProjectDao", "projects", "");
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        ProjectDao::filterByEmployerOrClientId.c_str(),
+        static_cast<int>(ProjectDao::filterByEmployerOrClientId.size()),
+        &stmt,
+        nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessage::PrepareStatementTemplate, "ProjectDao", ProjectDao::filterByEmployerOrClientId, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+    // employer id
+    if (employerId.has_value()) {
+        rc = sqlite3_bind_int64(stmt, bindIndex, employerId.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "employer_id", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // client id
+    if (clientId.has_value()) {
+        rc = sqlite3_bind_int64(stmt, bindIndex, clientId.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "ProjectDao", "client_id", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            Model::ProjectModel model;
+            int columnIndex = 0;
+
+            model.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            model.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            const unsigned char* res2 = sqlite3_column_text(stmt, columnIndex);
+            model.DisplayName =
+                std::string(reinterpret_cast<const char*>(res2), sqlite3_column_bytes(stmt, columnIndex++));
+            model.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.Description = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                model.Description = std::make_optional(
+                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+            }
+            columnIndex++;
+            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.ClientId = std::nullopt;
+            } else {
+                model.ClientId = std::make_optional(sqlite3_column_int64(stmt, columnIndex));
+            }
+
+            projects.push_back(model);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "ProjectDao", ProjectDao::filter, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndFilterEntities, "ProjectDao", projects.size(), "");
+
+    return 0;
+}
+
 const std::string ProjectDao::filter = "SELECT "
                                        "projects.project_id, "
                                        "projects.name AS project_name, "
@@ -651,4 +761,20 @@ const std::string ProjectDao::unmarkDefault = "UPDATE projects "
                                               "SET "
                                               "is_default = 0, "
                                               "date_modified = ?";
+
+const std::string ProjectDao::filterByEmployerOrClientId = "SELECT "
+                                                           "projects.project_id, "
+                                                           "projects.name, "
+                                                           "projects.display_name, "
+                                                           "projects.is_default, "
+                                                           "projects.description, "
+                                                           "projects.date_created, "
+                                                           "projects.date_modified, "
+                                                           "projects.is_active, "
+                                                           "projects.employer_id, "
+                                                           "projects.client_id "
+                                                           "FROM projects "
+                                                           "WHERE projects.is_active = 1 "
+                                                           "AND (employer_id = ? "
+                                                           "OR client_id = ?);";
 } // namespace tks::DAO
