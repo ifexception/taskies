@@ -390,23 +390,15 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pClientChoiceCtrl->SetSelection(0);
 
-    if (event.GetSelection() < 1) {
-        pClientChoiceCtrl->Disable();
-        pOkButton->Enable();
-
-        return;
-    }
+    pProjectChoiceCtrl->Clear();
+    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pProjectChoiceCtrl->SetSelection(0);
 
     int employerIndex = event.GetSelection();
     ClientData<std::int64_t>* employerIdData =
         reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
     if (employerIdData->GetValue() < 1) {
-        pClientChoiceCtrl->Clear();
-        pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
         pClientChoiceCtrl->Disable();
-
-        pProjectChoiceCtrl->Clear();
-        pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
         pProjectChoiceCtrl->Disable();
 
         return;
@@ -474,10 +466,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     pOkButton->Enable();
 }
 
-void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
-{
-
-}
+void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event) {}
 
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 {
