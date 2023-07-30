@@ -466,7 +466,50 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     pOkButton->Enable();
 }
 
-void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event) {}
+void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
+{
+    pOkButton->Disable();
+
+    int employerIndex = event.GetSelection();
+    ClientData<std::int64_t>* employerIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    auto employerId = employerIdData->GetValue();
+
+    int clientIndex = event.GetSelection();
+    ClientData<std::int64_t>* clientIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pClientChoiceCtrl->GetClientObject(clientIndex));
+    auto clientId = clientIdData->GetValue();
+
+    std::vector<Model::ProjectModel> projects;
+    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+
+    int rc =
+        projectDao.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::make_optional(clientId), projects);
+    if (rc != 0) {
+        std::string message = "Failed to get projects";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        if (!projects.empty()) {
+            if (!pProjectChoiceCtrl->IsEnabled()) {
+                pProjectChoiceCtrl->Enable();
+            }
+
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+            }
+        } else {
+            pProjectChoiceCtrl->Clear();
+            pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+            pProjectChoiceCtrl->Disable();
+        }
+    }
+
+    pOkButton->Enable();
+}
 
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 {
