@@ -33,6 +33,8 @@
 
 #include <spdlog/logger.h>
 
+#include "../../models/taskmodel.h"
+
 namespace tks
 {
 namespace Core
@@ -64,8 +66,11 @@ private:
 
     void OnEmployerChoiceSelection(wxCommandEvent& event);
     void OnCategoryChoiceSelection(wxCommandEvent& event);
+    void OnDateChange(wxDateEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
+
+    bool TransferDataAndValidate();
 
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
@@ -77,7 +82,7 @@ private:
     wxChoice* pProjectChoiceCtrl;
     wxChoice* pCategoryChoiceCtrl;
     wxCheckBox* pBillableCheckBoxCtrl;
-    wxTextCtrl* pTaskUniqueIdentiferTextCtrl;
+    wxTextCtrl* pUniqueIdentiferTextCtrl;
     wxSpinCtrl* pTimeHoursCtrl;
     wxSpinCtrl* pTimeMinutesCtrl;
     wxTextCtrl* pTaskDescriptionTextCtrl;
@@ -88,6 +93,9 @@ private:
     wxButton* pCancelButton;
 
     std::string mDatabaseFilePath;
+    Model::TaskModel mTaskModel;
+    std::int64_t mTaskId;
+    std::string mDate;
 
     enum {
         tksIDC_DATECONTEXT = wxID_HIGHEST +100,

@@ -19,6 +19,7 @@
 
 #include "taskdialog.h"
 
+#include <wx/richtooltip.h>
 #include <wx/statline.h>
 
 #include "../../common/common.h"
@@ -31,6 +32,7 @@
 #include "../../dao/clientdao.h"
 #include "../../dao/projectdao.h"
 #include "../../dao/categorydao.h"
+#include "../../dao/workdaydao.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -68,12 +70,15 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pTimeHoursCtrl(nullptr)
     , pTimeMinutesCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
-    , pTaskUniqueIdentiferTextCtrl(nullptr)
+    , pUniqueIdentiferTextCtrl(nullptr)
     , pDateCreatedTextCtrl(nullptr)
     , pDateModifiedTextCtrl(nullptr)
     , pIsActiveCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mTaskModel()
+    , mTaskId(-1)
+    , mDate("")
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -164,9 +169,9 @@ void TaskDialog::CreateControls()
 
     /* Unique Identifier Text Control */
     auto uniqueIdLabel = new wxStaticText(taskDetailsBox, wxID_ANY, "Unique ID");
-    pTaskUniqueIdentiferTextCtrl = new wxTextCtrl(taskDetailsBox, tksIDC_UNIQUEIDENTIFIER);
-    pTaskUniqueIdentiferTextCtrl->SetHint("Unique identifier");
-    pTaskUniqueIdentiferTextCtrl->SetToolTip(
+    pUniqueIdentiferTextCtrl = new wxTextCtrl(taskDetailsBox, tksIDC_UNIQUEIDENTIFIER);
+    pUniqueIdentiferTextCtrl->SetHint("Unique identifier");
+    pUniqueIdentiferTextCtrl->SetToolTip(
         "Enter a unique identifier, ticket number, work order or other identifier to associate task with");
 
     /* Time Controls */
@@ -200,7 +205,7 @@ void TaskDialog::CreateControls()
 
     taskDetailsBoxSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     uniqueIdSizer->Add(uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    uniqueIdSizer->Add(pTaskUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    uniqueIdSizer->Add(pUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
     taskDetailsBoxSizer->Add(uniqueIdSizer, wxSizerFlags().Expand());
 
     auto timeSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -326,6 +331,12 @@ void TaskDialog::ConfigureEventBindings()
         this
     );
 
+    pDateContextCtrl->Bind(
+        wxEVT_DATE_CHANGED,
+        &TaskDialog::OnDateChange,
+        this
+    );
+
     pOkButton->Bind(
         wxEVT_BUTTON,
         &TaskDialog::OnOK,
@@ -433,8 +444,36 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     }
 }
 
+void TaskDialog::OnDateChange(wxDateEvent& event)
+{
+    auto& date = event.GetDate();
+    mDate = date.FormatISODate().ToStdString();
+}
+
 void TaskDialog::OnOK(wxCommandEvent& event)
 {
+    pOkButton->Disable();
+
+    if (TransferDataAndValidate()) {
+        int ret = 0;
+        std::string message = "";
+
+        DAO::WorkdayDao workdayDao(pLogger, mDatabaseFilePath);
+        std::int64_t workdayId = workdayDao.GetWorkdayIdByDate(mDate);
+        ret = workdayId > 0 ? 0 : -1;
+
+        if (ret == -1) {
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData =
+                new NotificationClientData(NotificationType::Error, "Failed to get workday for task");
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+        }
+
+        mTaskModel.WorkdayId = workdayId;
+    }
+
     EndModal(wxID_OK);
 }
 
@@ -443,4 +482,69 @@ void TaskDialog::OnCancel(wxCommandEvent& event)
     EndModal(wxID_CANCEL);
 }
 
+bool TaskDialog::TransferDataAndValidate()
+{
+    auto uniqueIdentifier = pUniqueIdentiferTextCtrl->GetValue().ToStdString();
+    if (!uniqueIdentifier.empty() &&
+        (uniqueIdentifier.length() < MIN_CHARACTER_COUNT || uniqueIdentifier.length() > MAX_CHARACTER_COUNT_NAMES)) {
+        auto valMsg = fmt::format("Unique identifier must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_DESCRIPTIONS);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pUniqueIdentiferTextCtrl);
+        return false;
+    }
+
+    int projectIndex = pProjectChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* projectIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
+    if (projectIdData->GetValue() < 1) {
+        auto valMsg = "A project selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pProjectChoiceCtrl);
+        return false;
+    }
+
+    int categoryIndex = pCategoryChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* categoryIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pCategoryChoiceCtrl->GetClientObject(projectIndex));
+    if (categoryIdData->GetValue() < 1) {
+        auto valMsg = "A category selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pCategoryChoiceCtrl);
+        return false;
+    }
+
+    auto description = pTaskDescriptionTextCtrl->GetValue().ToStdString();
+    if (description.empty()) {
+        auto valMsg = "Description is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pTaskDescriptionTextCtrl);
+        return false;
+    }
+
+    if (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS) {
+        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pTaskDescriptionTextCtrl);
+        return false;
+    }
+
+    mTaskModel.Billable = pBillableCheckBoxCtrl->GetValue();
+    mTaskModel.UniqueIdentifier = uniqueIdentifier.empty() ? std::nullopt : std::make_optional(uniqueIdentifier);
+    mTaskModel.DurationHours = pTimeHoursCtrl->GetValue();
+    mTaskModel.DurationMinutes = pTimeMinutesCtrl->GetValue();
+    mTaskModel.Description = description;
+    mTaskModel.ProjectId = projectIdData->GetValue();
+    mTaskModel.CategoryId = categoryIdData->GetValue();
+
+    return true;
+}
 } // namespace tks::UI::dlg
