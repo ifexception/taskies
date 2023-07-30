@@ -41,18 +41,16 @@ public:
     WorkdayDao& operator=(const WorkdayDao&) = delete;
 
     int FilterByDate(const std::string& date, Model::WorkdayModel model);
-    int GetById(const std::int64_t taskId, Model::WorkdayModel model);
-    std::int64_t Create(const std::string& date);
+    std::int64_t GetWorkdayIdByDate(const std::string& date);
 
 private:
-    std::int64_t GetWorkdayId(const std::string& date);
+    std::int64_t Create(const std::string& date);
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string getWorkdayId;
+    static const std::string getWorkdayIdByDate;
     static const std::string filterByDate;
-    //static const std::string getWorkdayById;
     static const std::string create;
 };
 } // namespace tks::DAO

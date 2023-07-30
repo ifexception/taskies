@@ -83,7 +83,7 @@ int WorkdayDao::FilterByDate(const std::string& date, Model::WorkdayModel model)
 {
     pLogger->info(LogMessage::InfoBeginGetByIdEntity, "WorkdayDao", "workday", date);
 
-    GetWorkdayId(date);
+    GetWorkdayIdByDate(date);
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -132,15 +132,69 @@ int WorkdayDao::FilterByDate(const std::string& date, Model::WorkdayModel model)
     return 0;
 }
 
-int WorkdayDao::GetById(const std::int64_t taskId, Model::WorkdayModel model)
+std::int64_t WorkdayDao::GetWorkdayIdByDate(const std::string& date)
 {
-    // TODO: Is this method needed?
-    return 0;
+    std::int64_t workdayId = 0;
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, WorkdayDao::getWorkdayIdByDate.c_str(), static_cast<int>(WorkdayDao::getWorkdayIdByDate.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "WorkdayDao", WorkdayDao::getWorkdayIdByDate, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_text(stmt, 1, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "WorkdayDao", "date", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "WorkdayDao", WorkdayDao::getWorkdayIdByDate, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    if (sqlite3_column_type(stmt, 0) == SQLITE_NULL) {
+        std::int64_t res = Create(date);
+
+        if (res <= 0) {
+            return -1;
+        }
+        workdayId = res;
+        sqlite3_finalize(stmt);
+        pLogger->info(LogMessage::InfoEndGetByIdEntity, "WorkdayDao", date);
+
+        return workdayId;
+    } else {
+        workdayId = sqlite3_column_int64(stmt, 0);
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "WorkdayDao", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "WorkdayDao", date);
+
+    return workdayId;
 }
 
 std::int64_t WorkdayDao::Create(const std::string& date)
 {
-    pLogger->info(LogMessage::InfoBeginCreateEntity, "WorkdayDao", "workdaydao", date);
+    pLogger->info(LogMessage::InfoBeginCreateEntity, "WorkdayDao", "workday", date);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -175,61 +229,6 @@ std::int64_t WorkdayDao::Create(const std::string& date)
     return rowId;
 }
 
-std::int64_t WorkdayDao::GetWorkdayId(const std::string& date)
-{
-    std::int64_t workdayId = 0;
-
-    sqlite3_stmt* stmt = nullptr;
-
-    int rc = sqlite3_prepare_v2(
-        pDb, WorkdayDao::getWorkdayId.c_str(), static_cast<int>(WorkdayDao::getWorkdayId.size()), &stmt, nullptr);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "WorkdayDao", WorkdayDao::getWorkdayId, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_text(stmt, 1, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "WorkdayDao", "date", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "WorkdayDao", WorkdayDao::getWorkdayId, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    if (sqlite3_column_type(stmt, 0) == SQLITE_NULL) {
-        std::int64_t res = Create(date);
-
-        if (res <= 0) {
-            return -1;
-        }
-    } else {
-        workdayId = sqlite3_column_int64(stmt, 0);
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "WorkdayDao", rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndGetByIdEntity, "WorkdayDao", date);
-
-    return workdayId;
-}
-
 const std::string WorkdayDao::create = "INSERT INTO "
                                        "workdays (date) "
                                        "VALUES (?)";
@@ -240,7 +239,7 @@ const std::string WorkdayDao::filterByDate = "SELECT workday_id, "
                                             "FROM workdays "
                                             "WHERE date = ?";
 
-const std::string WorkdayDao::getWorkdayId = "SELECT workday_id "
+const std::string WorkdayDao::getWorkdayIdByDate = "SELECT workday_id "
                                              "FROM workdays "
                                              "WHERE date = ?";
 } // namespace tks::DAO
