@@ -629,8 +629,6 @@ int ProjectDao::FilterByEmployerIdOrClientId(std::optional<std::int64_t> employe
         return -1;
     }
 
-    bindIndex++;
-
     bool done = false;
     while (!done) {
         switch (sqlite3_step(stmt)) {
@@ -775,6 +773,6 @@ const std::string ProjectDao::filterByEmployerOrClientId = "SELECT "
                                                            "projects.client_id "
                                                            "FROM projects "
                                                            "WHERE projects.is_active = 1 "
-                                                           "AND employer_id = ? "
-                                                           "OR client_id = ?;";
+                                                           "AND employer_id IS ? "
+                                                           "AND client_id IS ?;";
 } // namespace tks::DAO
