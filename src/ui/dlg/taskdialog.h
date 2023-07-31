@@ -97,6 +97,7 @@ private:
     Model::TaskModel mTaskModel;
     std::int64_t mTaskId;
     std::string mDate;
+    int mEmployerIndex;
 
     enum {
         tksIDC_DATECONTEXT = wxID_HIGHEST + 100,

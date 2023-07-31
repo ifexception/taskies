@@ -80,6 +80,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mTaskModel()
     , mTaskId(-1)
     , mDate("")
+    , mEmployerIndex(-1)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -292,29 +293,6 @@ void TaskDialog::FillControls()
         }
     }
 
-    std::vector<Model::ProjectModel> projects;
-    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
-
-    rc = projectDao.FilterByEmployerIdOrClientId(std::nullopt, std::nullopt, projects);
-    if (rc != 0) {
-        std::string message = "Failed to get projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-    } else {
-        if (!projects.empty()) {
-            if (!pProjectChoiceCtrl->IsEnabled()) {
-                pProjectChoiceCtrl->Enable();
-            }
-
-            for (auto& project : projects) {
-                pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
-            }
-        }
-    }
-
     std::vector<Model::CategoryModel> categories;
     DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
@@ -400,11 +378,13 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     if (employerIdData->GetValue() < 1) {
         pClientChoiceCtrl->Disable();
         pProjectChoiceCtrl->Disable();
+        mEmployerIndex = -1;
 
         return;
     }
 
     auto employerId = employerIdData->GetValue();
+    mEmployerIndex = employerIndex;
     std::vector<Model::ClientModel> clients;
     DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
 
@@ -457,20 +437,23 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
                 pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
             }
         } else {
-            pProjectChoiceCtrl->Clear();
-            pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
             pProjectChoiceCtrl->Disable();
         }
     }
 
     pOkButton->Enable();
+
+    // Recalculate position dialog children controls after loading dropdown values as the wxChoice controls
+    // recalculate their width based on the entries, however the controls on the right are not recalculated
+    // Calling Fit() forces it to update the controls layout
+    Fit();
 }
 
 void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
-    int employerIndex = event.GetSelection();
+    int employerIndex = mEmployerIndex;
     ClientData<std::int64_t>* employerIdData =
         reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
     auto employerId = employerIdData->GetValue();
@@ -519,6 +502,11 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     }
 
     pOkButton->Enable();
+
+    // Recalculate position dialog children controls after loading dropdown values as the wxChoice controls
+    // recalculate their width based on the entries, however the controls on the right are not recalculated
+    // Calling Fit() forces it to update the controls layout
+    Fit();
 }
 
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
