@@ -518,6 +518,10 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     ClientData<std::int64_t>* categoryIdData =
         reinterpret_cast<ClientData<std::int64_t>*>(pCategoryChoiceCtrl->GetClientObject(categoryIndex));
 
+    if (categoryIdData->GetValue() < 1) {
+        return;
+    }
+
     Model::CategoryModel model;
     DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
     int rc = 0;
@@ -529,7 +533,6 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
         NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
 
-        // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
         wxQueueEvent(pParent->GetParent(), addNotificationEvent);
     } else {
         if (model.Billable) {
