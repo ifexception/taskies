@@ -722,8 +722,6 @@ const std::string ProjectDao::getById = "SELECT "
                                         "projects.employer_id, "
                                         "projects.client_id "
                                         "FROM projects "
-                                        "INNER JOIN employers ON projects.employer_id = employers.employer_id "
-                                        "LEFT JOIN clients ON projects.client_id = clients.client_id "
                                         "WHERE projects.project_id = ?;";
 
 const std::string ProjectDao::create = "INSERT INTO "
