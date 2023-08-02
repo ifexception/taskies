@@ -81,7 +81,7 @@ TaskDao::~TaskDao()
 
 std::int64_t TaskDao::Create(Model::TaskModel& model)
 {
-    pLogger->info(LogMessage::InfoBeginCreateEntity, "TaskDao", "task", "task-name");
+    pLogger->info(LogMessage::InfoBeginCreateEntity, "TaskDao", "task", "");
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb, TaskDao::create.c_str(), static_cast<int>(TaskDao::create.size()), &stmt, nullptr);
@@ -122,8 +122,8 @@ std::int64_t TaskDao::Create(Model::TaskModel& model)
 
     bindIndex++;
 
-    // duration hours
-    rc = sqlite3_bind_int64(stmt, bindIndex++, model.DurationHours);
+    // hours
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.Hours);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "hours", 3, rc, err);
@@ -131,8 +131,8 @@ std::int64_t TaskDao::Create(Model::TaskModel& model)
         return -1;
     }
 
-    // duration minutes
-    rc = sqlite3_bind_int64(stmt, bindIndex++, model.DurationMinutes);
+    // minutes
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.Minutes);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "minutes", 4, rc, err);
@@ -160,7 +160,7 @@ std::int64_t TaskDao::Create(Model::TaskModel& model)
     }
 
     // category id
-    rc = sqlite3_bind_int64(stmt, bindIndex++, model.ProjectId);
+    rc = sqlite3_bind_int64(stmt, bindIndex++, model.CategoryId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "category_id", 7, rc, err);
