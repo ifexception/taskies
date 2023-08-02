@@ -79,6 +79,74 @@ TaskDao::~TaskDao()
     pLogger->info(LogMessage::InfoCloseDatabaseConnection, "TaskDao");
 }
 
+int TaskDao::GetById(const std::int64_t taskId, Model::TaskModel& model)
+{
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", taskId);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc =
+        sqlite3_prepare_v2(pDb, TaskDao::getById.c_str(), static_cast<int>(TaskDao::getById.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, taskId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "task_id", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+    model.TaskId = sqlite3_column_int64(stmt, columnIndex++);
+    model.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        model.UniqueIdentifier = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        model.UniqueIdentifier = std::make_optional(
+            std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+    }
+    columnIndex++;
+
+    model.Hours = sqlite3_column_int(stmt, columnIndex++);
+    model.Minutes = sqlite3_column_int(stmt, columnIndex++);
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    model.Description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+    model.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
+    model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+    model.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "TaskDao", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskDao", taskId);
+
+    return 0;
+}
+
 std::int64_t TaskDao::Create(Model::TaskModel& model)
 {
     pLogger->info(LogMessage::InfoBeginCreateEntity, "TaskDao", "task", "");
@@ -192,15 +260,31 @@ std::int64_t TaskDao::Create(Model::TaskModel& model)
     return rowId;
 }
 
-int TaskDao::Update(Model::TaskModel& project)
+int TaskDao::Update(Model::TaskModel& task)
 {
     return 0;
 }
 
-int TaskDao::Delete(const std::int64_t projectId)
+int TaskDao::Delete(const std::int64_t taskId)
 {
     return 0;
 }
+
+const std::string TaskDao::getById = "SELECT "
+                                     "task_id, "
+                                     "billable, "
+                                     "unique_identifier, "
+                                     "hours, "
+                                     "minutes, "
+                                     "description, "
+                                     "date_created, "
+                                     "date_modified, "
+                                     "is_active, "
+                                     "project_id, "
+                                     "category_id, "
+                                     "workday_id "
+                                     "FROM tasks "
+                                     "WHERE task_id = ?;";
 
 const std::string TaskDao::create = "INSERT INTO "
                                     "tasks "

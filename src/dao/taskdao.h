@@ -40,14 +40,16 @@ public:
 
     TaskDao& operator=(const TaskDao&) = delete;
 
+    int GetById(const std::int64_t taskId, /*out*/ Model::TaskModel& model);
     std::int64_t Create(Model::TaskModel& model);
-    int Update(Model::TaskModel& project);
-    int Delete(const std::int64_t projectId);
+    int Update(Model::TaskModel& task);
+    int Delete(const std::int64_t taskId);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
+    static const std::string getById;
     static const std::string create;
     static const std::string update;
     static const std::string isActive;
