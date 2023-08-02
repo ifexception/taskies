@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS tasks
 (
     task_id INTEGER PRIMARY KEY NOT NULL,
-    billable INTEGER NOT NULL DEFAULT(0),
+    billable INTEGER NOT NULL,
     unique_identifier TEXT NULL,
     hours INTEGER NOT NULL,
     minutes INTEGER NOT NULL,
