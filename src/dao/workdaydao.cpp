@@ -156,7 +156,7 @@ std::int64_t WorkdayDao::GetWorkdayIdByDate(const std::string& date)
     }
 
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) {
+    if (rc != SQLITE_ROW && rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::ExecStepTemplate, "WorkdayDao", WorkdayDao::getWorkdayIdByDate, rc, err);
         sqlite3_finalize(stmt);
