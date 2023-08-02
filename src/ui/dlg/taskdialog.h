@@ -52,6 +52,8 @@ public:
         std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
+        bool isEdit = false,
+        std::int64_t taskId = -1,
         const wxString& name = "taskdlg");
     virtual ~TaskDialog() = default;
 
@@ -63,6 +65,7 @@ private:
     void CreateControls();
     void FillControls();
     void ConfigureEventBindings();
+    void DataToControls();
 
     void OnEmployerChoiceSelection(wxCommandEvent& event);
     void OnClientChoiceSelection(wxCommandEvent& event);
@@ -94,6 +97,7 @@ private:
     wxButton* pCancelButton;
 
     std::string mDatabaseFilePath;
+    bool bIsEdit;
     Model::TaskModel mTaskModel;
     std::int64_t mTaskId;
     std::string mDate;

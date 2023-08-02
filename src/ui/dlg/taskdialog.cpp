@@ -51,10 +51,12 @@ TaskDialog::TaskDialog(wxWindow* parent,
     std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
+    bool isEdit,
+    const std::int64_t taskId,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          "Add Task",
+          isEdit ? "Edit Task" : "Add Task",
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
@@ -77,6 +79,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pIsActiveCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , bIsEdit(isEdit)
     , mTaskModel()
     , mTaskId(-1)
     , mDate("")
@@ -95,6 +98,10 @@ void TaskDialog::Create()
     CreateControls();
     ConfigureEventBindings();
     FillControls();
+
+    if (bIsEdit) {
+        DataToControls();
+    }
 }
 
 void TaskDialog::CreateControls()
@@ -231,6 +238,43 @@ void TaskDialog::CreateControls()
     descriptionBoxSizer->Add(pTaskDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
     sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
+    if (bIsEdit) {
+        auto metadataLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), FromDIP(3)));
+        sizer->Add(metadataLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
+        auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+        auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
+        sizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
+        /* FlexGrid sizer */
+        auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+        metadataBoxSizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
+        metadataFlexGridSizer->AddGrowableCol(1, 1);
+
+        /* Date Created */
+        auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
+        metadataFlexGridSizer->Add(dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+
+        pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
+        pDateCreatedTextCtrl->Disable();
+        metadataFlexGridSizer->Add(pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
+        /* Date Modified */
+        auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
+        metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+
+        pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
+        pDateModifiedTextCtrl->Disable();
+        metadataFlexGridSizer->Add(pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
+        /* Is Active checkbox control */
+        metadataFlexGridSizer->Add(0, 0);
+
+        pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
+        pIsActiveCtrl->SetToolTip("Indicates if this project is being used");
+        metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    }
+
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
     sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
@@ -360,6 +404,11 @@ void TaskDialog::ConfigureEventBindings()
     );
 }
 // clang-format on
+
+void TaskDialog::DataToControls()
+{
+    
+}
 
 void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
