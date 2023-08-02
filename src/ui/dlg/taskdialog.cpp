@@ -596,6 +596,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             EndModal(wxID_OK);
         }
     }
+    pOkButton->Enable();
 }
 
 void TaskDialog::OnCancel(wxCommandEvent& event)
@@ -610,7 +611,7 @@ bool TaskDialog::TransferDataAndValidate()
         (uniqueIdentifier.length() < MIN_CHARACTER_COUNT || uniqueIdentifier.length() > MAX_CHARACTER_COUNT_NAMES)) {
         auto valMsg = fmt::format("Unique identifier must be at minimum {0} or maximum {1} characters long",
             MIN_CHARACTER_COUNT,
-            MAX_CHARACTER_COUNT_DESCRIPTIONS);
+            MAX_CHARACTER_COUNT_NAMES);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pUniqueIdentiferTextCtrl);
