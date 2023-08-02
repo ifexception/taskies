@@ -31,8 +31,8 @@ struct TaskModel {
     std::int64_t TaskId;
     bool Billable;
     std::optional<std::string> UniqueIdentifier;
-    int DurationHours;
-    int DurationMinutes;
+    int Hours;
+    int Minutes;
     std::string Description;
     std::int32_t DateCreated;
     std::int32_t DateModified;
