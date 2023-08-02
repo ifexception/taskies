@@ -481,6 +481,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     if (rc != 0) {
         std::string message = "Failed to get projects";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+
         NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
 
@@ -573,7 +574,6 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         mTaskModel.WorkdayId = workdayId;
 
         DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
-
         std::int64_t taskId = taskDao.Create(mTaskModel);
         ret = taskId > 0 ? 0 : -1;
 
@@ -661,8 +661,8 @@ bool TaskDialog::TransferDataAndValidate()
 
     mTaskModel.Billable = pBillableCheckBoxCtrl->GetValue();
     mTaskModel.UniqueIdentifier = uniqueIdentifier.empty() ? std::nullopt : std::make_optional(uniqueIdentifier);
-    mTaskModel.DurationHours = pTimeHoursCtrl->GetValue();
-    mTaskModel.DurationMinutes = pTimeMinutesCtrl->GetValue();
+    mTaskModel.Hours = pTimeHoursCtrl->GetValue();
+    mTaskModel.Minutes = pTimeMinutesCtrl->GetValue();
     mTaskModel.Description = description;
     mTaskModel.ProjectId = projectIdData->GetValue();
     mTaskModel.CategoryId = categoryIdData->GetValue();
