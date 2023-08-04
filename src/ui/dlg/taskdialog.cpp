@@ -239,12 +239,12 @@ void TaskDialog::CreateControls()
     sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     if (bIsEdit) {
-        auto metadataLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), FromDIP(3)));
+        auto metadataLine = new wxStaticLine(this, wxID_ANY);
         sizer->Add(metadataLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
         auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
         auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
-        sizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+        sizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
         /* FlexGrid sizer */
         auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -253,26 +253,26 @@ void TaskDialog::CreateControls()
 
         /* Date Created */
         auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
-        metadataFlexGridSizer->Add(dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+        metadataFlexGridSizer->Add(dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
         pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
         pDateCreatedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+        metadataFlexGridSizer->Add(pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
         /* Date Modified */
         auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
-        metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+        metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
         pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
         pDateModifiedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+        metadataFlexGridSizer->Add(pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
         /* Is Active checkbox control */
         metadataFlexGridSizer->Add(0, 0);
 
         pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
         pIsActiveCtrl->SetToolTip("Indicates if this project is being used");
-        metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
+        metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     }
 
     /* Horizontal Line */
@@ -290,8 +290,8 @@ void TaskDialog::CreateControls()
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
-    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
-    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
     SetSizerAndFit(sizer);
@@ -448,6 +448,38 @@ void TaskDialog::DataToControls()
         isSuccess = false;
         return;
     } else {
+        // load projects
+        std::vector<Model::ProjectModel> projects;
+
+        rc = projectDao.FilterByEmployerIdOrClientId(std::make_optional(project.EmployerId),
+            project.ClientId.has_value() ? project.ClientId : std::nullopt,
+            projects);
+        if (rc != 0) {
+            std::string message = "Failed to get projects";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+            isSuccess = false;
+            return;
+        } else {
+            if (!projects.empty()) {
+                if (!pProjectChoiceCtrl->IsEnabled()) {
+                    pProjectChoiceCtrl->Enable();
+                }
+
+                for (auto& project : projects) {
+                    pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                }
+            } else {
+                return;
+            }
+        }
+
+        pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+        isSuccess = true;
+
         // load employer
         Model::EmployerModel employer;
         DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
@@ -529,9 +561,6 @@ void TaskDialog::DataToControls()
             pCategoryChoiceCtrl->SetStringSelection(category.Name);
             isSuccess = true;
         }
-
-        pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
-        isSuccess = true;
     }
 
     if (isSuccess) {
