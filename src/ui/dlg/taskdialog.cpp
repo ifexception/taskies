@@ -809,7 +809,7 @@ bool TaskDialog::TransferDataAndValidate()
 
     int categoryIndex = pCategoryChoiceCtrl->GetSelection();
     ClientData<std::int64_t>* categoryIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pCategoryChoiceCtrl->GetClientObject(projectIndex));
+        reinterpret_cast<ClientData<std::int64_t>*>(pCategoryChoiceCtrl->GetClientObject(categoryIndex));
     if (categoryIdData->GetValue() < 1) {
         auto valMsg = "A category selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
