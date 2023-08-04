@@ -90,8 +90,8 @@ private:
     wxSpinCtrl* pTimeHoursCtrl;
     wxSpinCtrl* pTimeMinutesCtrl;
     wxTextCtrl* pTaskDescriptionTextCtrl;
-    wxStaticText* pDateCreatedTextCtrl;
-    wxStaticText* pDateModifiedTextCtrl;
+    wxTextCtrl* pDateCreatedTextCtrl;
+    wxTextCtrl* pDateModifiedTextCtrl;
     wxCheckBox* pIsActiveCtrl;
     wxButton* pOkButton;
     wxButton* pCancelButton;

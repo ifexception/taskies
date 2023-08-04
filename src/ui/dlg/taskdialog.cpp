@@ -81,7 +81,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pCancelButton(nullptr)
     , bIsEdit(isEdit)
     , mTaskModel()
-    , mTaskId(-1)
+    , mTaskId(taskId)
     , mDate("")
     , mEmployerIndex(-1)
 {
@@ -407,7 +407,137 @@ void TaskDialog::ConfigureEventBindings()
 
 void TaskDialog::DataToControls()
 {
-    
+    // load task
+    Model::TaskModel task;
+    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+    bool isSuccess = false;
+
+    int rc = taskDao.GetById(mTaskId, task);
+    if (rc != 0) {
+        std::string message = "Failed to get task";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        pBillableCheckBoxCtrl->SetValue(task.Billable);
+        pUniqueIdentiferTextCtrl->ChangeValue(task.UniqueIdentifier.has_value() ? task.UniqueIdentifier.value() : "");
+        pTimeHoursCtrl->SetValue(task.Hours);
+        pTimeMinutesCtrl->SetValue(task.Minutes);
+        pTaskDescriptionTextCtrl->ChangeValue(task.Description);
+        pIsActiveCtrl->SetValue(task.IsActive);
+        pDateCreatedTextCtrl->SetValue(task.GetDateCreatedString());
+        pDateModifiedTextCtrl->SetValue(task.GetDateModifiedString());
+        isSuccess = true;
+    }
+
+    // load project
+    Model::ProjectModel project;
+    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+    isSuccess = false;
+
+    rc = projectDao.GetById(task.ProjectId, project);
+    if (rc != 0) {
+        std::string message = "Failed to get project";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+        isSuccess = false;
+        return;
+    } else {
+        // load employer
+        Model::EmployerModel employer;
+        DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+
+        rc = employerDao.GetById(project.EmployerId, employer);
+        if (rc == -1) {
+            std::string message = "Failed to get employer";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+
+            isSuccess = false;
+            return;
+        } else {
+            pEmployerChoiceCtrl->SetStringSelection(employer.Name);
+            isSuccess = true;
+        }
+
+        // load clients
+        std::vector<Model::ClientModel> clients;
+        DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+        std::string defaultSearchTerm = "";
+
+        rc = clientDao.FilterByEmployerId(project.EmployerId, clients);
+        if (rc == -1) {
+            std::string message = "Failed to get clients";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+
+            isSuccess = false;
+            return;
+        } else {
+            // load client
+            if (!clients.empty()) {
+                for (const auto& client : clients) {
+                    pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
+                }
+
+                if (project.ClientId.has_value()) {
+                    Model::ClientModel client;
+                    rc = clientDao.GetById(project.ClientId.value(), client);
+                    if (rc == -1) {
+                        std::string message = "Failed to get client";
+                        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+                        NotificationClientData* clientData =
+                            new NotificationClientData(NotificationType::Error, message);
+                        addNotificationEvent->SetClientObject(clientData);
+                        wxQueueEvent(pParent, addNotificationEvent);
+
+                        isSuccess = false;
+                    } else {
+                        pClientChoiceCtrl->SetStringSelection(client.Name);
+                        isSuccess = true;
+                    }
+                }
+
+                pClientChoiceCtrl->Enable();
+            }
+        }
+
+        Model::CategoryModel category;
+        DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+
+        rc = categoryDao.GetById(task.CategoryId, category);
+        if (rc != 0) {
+            std::string message = "Failed to get category";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+            isSuccess = false;
+        } else {
+            pCategoryChoiceCtrl->SetStringSelection(category.Name);
+            isSuccess = true;
+        }
+
+        pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+        isSuccess = true;
+    }
+
+    if (isSuccess) {
+        pOkButton->Enable();
+        pOkButton->SetFocus();
+    }
 }
 
 void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
@@ -445,7 +575,6 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
         wxQueueEvent(pParent, addNotificationEvent);
     } else {
         if (clients.empty()) {
