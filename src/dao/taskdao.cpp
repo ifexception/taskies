@@ -262,11 +262,159 @@ std::int64_t TaskDao::Create(Model::TaskModel& model)
 
 int TaskDao::Update(Model::TaskModel& task)
 {
+    pLogger->info(LogMessage::InfoBeginUpdateEntity, "TaskDao", "task", task.TaskId);
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb, TaskDao::update.c_str(), static_cast<int>(TaskDao::update.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::update, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+    // billable
+    rc = sqlite3_bind_int(stmt, bindIndex++, task.Billable);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "billable", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // unique identifier
+    if (task.UniqueIdentifier.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            task.UniqueIdentifier.value().c_str(),
+            static_cast<int>(task.UniqueIdentifier.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "unique_identifier", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // hours
+    rc = sqlite3_bind_int64(stmt, bindIndex++, task.Hours);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "hours", 3, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // minutes
+    rc = sqlite3_bind_int64(stmt, bindIndex++, task.Minutes);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "minutes", 4, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // description
+    rc = sqlite3_bind_text(
+        stmt, bindIndex++, task.Description.c_str(), static_cast<int>(task.Description.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "description", 5, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // project id
+    rc = sqlite3_bind_int64(stmt, bindIndex++, task.ProjectId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "project_id", 6, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // category id
+    rc = sqlite3_bind_int64(stmt, bindIndex++, task.CategoryId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "category_id", 7, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // workday id
+    rc = sqlite3_bind_int64(stmt, bindIndex++, task.WorkdayId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "workday_id", 8, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::update, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndUpdateEntity, "TaskDao", task.TaskId);
+
     return 0;
 }
 
 int TaskDao::Delete(const std::int64_t taskId)
 {
+    pLogger->info(LogMessage::InfoBeginDeleteEntity, "TaskDao", "project", taskId);
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc =
+        sqlite3_prepare_v2(pDb, TaskDao::isActive.c_str(), static_cast<int>(TaskDao::isActive.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::isActive, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIdx = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIdx++, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "date_modified", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, bindIdx++, taskId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "project_id", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::isActive, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndDeleteEntity, "TaskDao", taskId);
+
     return 0;
 }
 
@@ -300,7 +448,17 @@ const std::string TaskDao::create = "INSERT INTO "
                                     ") "
                                     "VALUES (?,?,?,?,?,?,?,?)";
 
-const std::string TaskDao::update = "";
+const std::string TaskDao::update = "UPDATE tasks"
+                                    "SET "
+                                    "billable = ?, "
+                                    "unique_identifier = ?, "
+                                    "hours = ?, "
+                                    "minutes = ?, "
+                                    "description = ?, "
+                                    "project_id = ?, "
+                                    "category_id = ?, "
+                                    "workday_id = ? "
+                                    "WHERE task_id = ?";
 
 const std::string TaskDao::isActive = "";
 } // namespace tks::DAO

@@ -781,10 +781,28 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         mTaskModel.WorkdayId = workdayId;
 
         DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
-        std::int64_t taskId = taskDao.Create(mTaskModel);
-        ret = taskId > 0 ? 0 : -1;
+        if (!bIsEdit) {
+            std::int64_t taskId = taskDao.Create(mTaskModel);
+            ret = taskId > 0 ? 0 : -1;
 
-        message = ret == -1 ? message = "Failed to create task" : "Successfully created task";
+            message = ret == -1
+                ? message = "Failed to create task"
+                : "Successfully created task";
+        }
+        if (bIsEdit && pIsActiveCtrl->IsChecked()) {
+            ret = taskDao.Update(mTaskModel);
+
+            ret == -1
+                ? message = "Failed to update task"
+                : message = "Successfully updated task";
+        }
+        if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
+            ret = taskDao.Delete(mTaskId);
+
+            ret == -1
+                ? message = "Failed to delete task"
+                : message = "Successfully deleted task";
+        }
 
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         if (ret == -1) {
