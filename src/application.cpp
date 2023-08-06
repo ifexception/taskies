@@ -19,6 +19,7 @@
 
 #include "application.h"
 
+#include <wx/ipc.h>
 #include <wx/taskbarbutton.h>
 
 #include <spdlog/spdlog.h>
@@ -40,7 +41,8 @@
 namespace tks
 {
 Application::Application()
-    : pLogger(nullptr)
+    : pInstanceChecker(std::make_unique<wxSingleInstanceChecker>())
+    , pLogger(nullptr)
     , pEnv(nullptr)
     , pCfg(nullptr)
     , pPersistenceManager(nullptr)
@@ -50,6 +52,11 @@ Application::Application()
 bool Application::OnInit()
 {
     if (!wxApp::OnInit()) {
+        return false;
+    }
+
+    if (pInstanceChecker->IsAnotherRunning()) {
+        ActivateOtherInstance();
         return false;
     }
 
@@ -186,5 +193,16 @@ bool Application::FirstStartupProcedure()
     }
 
     return true;
+}
+
+void Application::ActivateOtherInstance()
+{
+    wxClient client;
+    auto connection = client.MakeConnection("localhost", Common::GetProgramName(), "ApplicationOptions");
+
+    if (connection) {
+        connection->Execute("");
+        connection->Disconnect();
+    }
 }
 } // namespace tks

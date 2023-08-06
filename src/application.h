@@ -25,6 +25,7 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/snglinst.h>
 
 #include <spdlog/spdlog.h>
 
@@ -57,6 +58,10 @@ private:
     bool InitializeTranslations();
 
     bool FirstStartupProcedure();
+
+    void ActivateOtherInstance();
+
+    std::unique_ptr<wxSingleInstanceChecker> pInstanceChecker;
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
