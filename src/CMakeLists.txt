@@ -76,6 +76,7 @@ set (SRC
     "common/constants.cpp"
     "common/validator.cpp"
     "ipc/applicationoptionsconnection.cpp"
+    "ipc/server.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
     ${SRC_DIALOGS}

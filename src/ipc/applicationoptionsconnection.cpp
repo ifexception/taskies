@@ -25,6 +25,8 @@
 
 namespace tks
 {
+namespace IPC
+{
 ApplicationOptionsConnection::ApplicationOptionsConnection(UI::MainFrame* frame)
     : pFrame(frame)
 {
@@ -46,4 +48,5 @@ bool ApplicationOptionsConnection::OnExecute(const wxString& topic, const void* 
 
     return true;
 }
+} // namespace IPC
 } // namespace tks

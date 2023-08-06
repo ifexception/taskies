@@ -34,17 +34,17 @@ class MainFrame;
 } // namespace UI
 namespace IPC
 {
-class ApplicationOptionsConnection : public wxConnection
+class Server : public wxServer
 {
 public:
-    ApplicationOptionsConnection() = delete;
-    ApplicationOptionsConnection(UI::MainFrame* frame);
-    virtual ~ApplicationOptionsConnection() = default;
+    Server() = delete;
+    Server(UI::MainFrame* frame);
+    virtual ~Server() = default;
 
-    virtual bool OnExecute(const wxString& topic, const void* data, size_t size, wxIPCFormat format);
+    wxConnectionBase* OnAcceptConnection(const wxString& topic) override;
 
 private:
     UI::MainFrame* pFrame;
 };
-} // namespace IPC
-} // namespace tks
+}
+}

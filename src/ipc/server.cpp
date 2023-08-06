@@ -17,34 +17,26 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#pragma once
+#include "server.h"
 
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
+#include "../common/common.h"
+#include "../ui/mainframe.h"
+#include "applicationoptionsconnection.h"
 
-#include <wx/ipc.h>
-
-namespace tks
+namespace tks::IPC
 {
-namespace UI
+Server::Server(UI::MainFrame* frame)
+    : pFrame(frame)
 {
-class MainFrame;
-} // namespace UI
-namespace IPC
-{
-class ApplicationOptionsConnection : public wxConnection
-{
-public:
-    ApplicationOptionsConnection() = delete;
-    ApplicationOptionsConnection(UI::MainFrame* frame);
-    virtual ~ApplicationOptionsConnection() = default;
+    Create(Common::GetProgramName());
+}
 
-    virtual bool OnExecute(const wxString& topic, const void* data, size_t size, wxIPCFormat format);
+wxConnectionBase* Server::OnAcceptConnection(const wxString& topic)
+{
+    if (topic == "ApplicationOptions") {
+        return new ApplicationOptionsConnection(pFrame);
+    }
 
-private:
-    UI::MainFrame* pFrame;
-};
-} // namespace IPC
-} // namespace tks
+    return nullptr;
+}
+} // namespace tks::IPC
