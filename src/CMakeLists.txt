@@ -75,6 +75,7 @@ set (SRC
     "common/enums.cpp"
     "common/constants.cpp"
     "common/validator.cpp"
+    "ipc/applicationoptionsconnection.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
     ${SRC_DIALOGS}
