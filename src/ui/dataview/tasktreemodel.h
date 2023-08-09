@@ -60,13 +60,13 @@ public:
     std::string GetCategoryName() const;
     std::string GetDuration() const;
     std::string GetDescription() const;
-    int GetTaskId() const;
+    std::int64_t GetTaskId() const;
 
     void SetProjectName(const std::string& value);
     void SetCategoryName(const std::string& value);
     void SetDuration(const std::string& value);
     void SetDescription(const std::string& value);
-    void SetTaskId(int taskItemId);
+    void SetTaskId(std::int64_t taskId);
 
 private:
     TaskTreeModelNode* pParent;
@@ -76,7 +76,15 @@ private:
     std::string mDuration;
     std::string mCategoryName;
     std::string mDescription;
-    int mTaskItemId;
+    std::int64_t mTaskId;
     bool bContainer;
+};
+
+class TaskTreeModel : public wxDataViewModel
+{
+public:
+    enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
+
+private:
 };
 } // namespace tks::UI
