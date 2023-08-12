@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -85,6 +86,19 @@ class TaskTreeModel : public wxDataViewModel
 public:
     enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
 
+    TaskTreeModel();
+    ~TaskTreeModel();
+
+    unsigned int GetColumnCount() const override;
+    wxString GetColumnType(unsigned int col) const override;
+    void GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const override;
+    bool SetValue(const wxVariant& variant, const wxDataViewItem& item, unsigned int col) override;
+    bool IsEnabled(const wxDataViewItem& item, unsigned int col) const override;
+    wxDataViewItem GetParent(const wxDataViewItem& item) const override;
+    bool IsContainer(const wxDataViewItem& item) const override;
+    unsigned int GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;
+
 private:
+    std::vector<TaskTreeModelNode*> mRootDayNodes;
 };
 } // namespace tks::UI

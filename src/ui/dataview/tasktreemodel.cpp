@@ -19,6 +19,8 @@
 
 #include "tasktreemodel.h"
 
+#include <date/date.h>
+
 namespace tks::UI
 {
 TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
@@ -140,5 +142,58 @@ void TaskTreeModelNode::SetDescription(const std::string& value)
 void TaskTreeModelNode::SetTaskId(std::int64_t taskId)
 {
     mTaskId = taskId;
+}
+
+TaskTreeModel::TaskTreeModel()
+    : mRootDayNodes()
+{
+    auto now = std::chrono::system_clock::now();
+    auto date = date::format("%F %T", date::floor<date::days>(now));
+}
+
+TaskTreeModel::~TaskTreeModel()
+{
+    std::size_t count = mRootDayNodes.size();
+    for (std::size_t i = 0; i < count; i++) {
+        TaskTreeModelNode* root = mRootDayNodes[i];
+        delete root;
+    }
+}
+
+unsigned int TaskTreeModel::GetColumnCount() const
+{
+    return 0;
+}
+
+wxString TaskTreeModel::GetColumnType(unsigned int col) const
+{
+    return wxString();
+}
+
+void TaskTreeModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const {}
+
+bool TaskTreeModel::SetValue(const wxVariant& variant, const wxDataViewItem& item, unsigned int col)
+{
+    return false;
+}
+
+bool TaskTreeModel::IsEnabled(const wxDataViewItem& item, unsigned int col) const
+{
+    return false;
+}
+
+wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
+{
+    return wxDataViewItem();
+}
+
+bool TaskTreeModel::IsContainer(const wxDataViewItem& item) const
+{
+    return false;
+}
+
+unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const
+{
+    return 0;
 }
 } // namespace tks::UI
