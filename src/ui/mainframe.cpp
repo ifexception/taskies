@@ -19,6 +19,8 @@
 
 #include "mainframe.h"
 
+#include <date/date.h>
+
 #include <wx/artprov.h>
 #include <wx/persist/toplevel.h>
 #include <wx/taskbarbutton.h>
@@ -56,7 +58,6 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
 EVT_SIZE(MainFrame::OnResize)
-EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 /* Menu Handlers */
 EVT_MENU(ID_NEW_TASK, MainFrame::OnNewTask)
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
@@ -74,21 +75,37 @@ EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
+/* Control Event Handlers */
+EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
+EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
+EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const wxString& name)
-    : wxFrame(nullptr, wxID_ANY, Common::GetProgramName(), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE, name)
+    : wxFrame(
+        nullptr,
+        wxID_ANY,
+        Common::GetProgramName(),
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxDEFAULT_FRAME_STYLE,
+        name
+    )
     , pEnv(env)
     , pCfg(cfg)
     , pLogger(logger)
     , mDatabaseFilePath()
     , pInfoBar(nullptr)
     , pNotificationPopupWindow(nullptr)
+    , pFromDateCtrl(nullptr)
+    , pToDateCtrl(nullptr)
     , mBellBitmap(wxNullBitmap)
     , mBellNotificationBitmap(wxNullBitmap)
+    , mFromDate()
+    , mToDate()
 // clang-format on
 {
     // Initialization setup
@@ -129,6 +146,10 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
     // Create the notification popup window
     pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
+
+    /* TEST CODE - REMOVE */
+    auto ymd = date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::now()) };
+    auto x = ymd.day();
 }
 
 MainFrame::~MainFrame()
@@ -151,6 +172,7 @@ MainFrame::~MainFrame()
 void MainFrame::Create()
 {
     CreateControls();
+    FillControls();
     DataToControls();
 }
 
@@ -209,12 +231,29 @@ void MainFrame::CreateControls()
     sizer->Add(pInfoBar, wxSizerFlags().Expand());
 
     auto topSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto fromDateLabel = new wxStaticText(panel, wxID_ANY, "From: ");
+    pFromDateCtrl = new wxDatePickerCtrl(panel, tksIDC_FROMDATE);
+
+    auto toDateLabel = new wxStaticText(panel, wxID_ANY, "To: ");
+    pToDateCtrl = new wxDatePickerCtrl(panel, tksIDC_TODATE);
+
+    topSizer->Add(fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    topSizer->Add(pFromDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    topSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    topSizer->Add(pToDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
     topSizer->AddStretchSpacer();
 
     pNotificationButton = new wxBitmapButton(panel, tksIDC_NOTIFICATIONBUTTON, mBellBitmap);
     topSizer->Add(pNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
+}
+
+void MainFrame::FillControls()
+{
+    CalculateAndSetMondayAndSundayFromCurrentDate();
 }
 
 void MainFrame::DataToControls()
@@ -398,5 +437,89 @@ void MainFrame::OnAddNotification(wxCommandEvent& event)
     if (notificationClientData) {
         delete notificationClientData;
     }
+}
+
+void MainFrame::OnFromDateSelection(wxDateEvent& event)
+{
+    pLogger->info("MainFrame:OnFromDateSelection - Received date event with value \"{0}\"",
+        event.GetDate().FormatISODate().ToStdString());
+}
+
+void MainFrame::OnToDateSelection(wxDateEvent& event) {}
+
+void MainFrame::CalculateAndSetMondayAndSundayFromCurrentDate()
+{
+    wxDateTime currentDate = wxDateTime::Now();
+    int daysToGoBackToMonday = 0;
+    int daysToGoBackToSunday = 0;
+
+    switch (currentDate.GetWeekDay()) {
+    case wxDateTime::Mon:
+        daysToGoBackToMonday = 0;
+        break;
+    case wxDateTime::Tue:
+        daysToGoBackToMonday = 1;
+        break;
+    case wxDateTime::Wed:
+        daysToGoBackToMonday = 2;
+        break;
+    case wxDateTime::Thu:
+        daysToGoBackToMonday = 3;
+        break;
+    case wxDateTime::Fri:
+        daysToGoBackToMonday = 4;
+        break;
+    case wxDateTime::Sat:
+        daysToGoBackToMonday = 5;
+        break;
+    case wxDateTime::Sun:
+        daysToGoBackToMonday = 6;
+        break;
+    case wxDateTime::Inv_WeekDay:
+    default:
+        break;
+    }
+
+    switch (currentDate.GetWeekDay()) {
+    case wxDateTime::Mon:
+        daysToGoBackToSunday = 6;
+        break;
+    case wxDateTime::Tue:
+        daysToGoBackToSunday = 5;
+        break;
+    case wxDateTime::Wed:
+        daysToGoBackToSunday = 4;
+        break;
+    case wxDateTime::Thu:
+        daysToGoBackToSunday = 3;
+        break;
+    case wxDateTime::Fri:
+        daysToGoBackToSunday = 2;
+        break;
+    case wxDateTime::Sat:
+        daysToGoBackToSunday = 1;
+        break;
+    case wxDateTime::Sun:
+        daysToGoBackToSunday = 0;
+        break;
+    case wxDateTime::Inv_WeekDay:
+    default:
+        break;
+    }
+
+    wxDateSpan toGoBackToMonday(0, 0, 0, daysToGoBackToMonday);
+    wxDateTime mondayDate = currentDate.Subtract(toGoBackToMonday);
+
+    wxDateSpan toGoBackToSunday(0, 0, 0, daysToGoBackToSunday);
+    wxDateTime sundayDate = currentDate.Subtract(toGoBackToSunday);
+
+    auto mondayTimeT = mondayDate.GetTicks();
+    auto sundayTimeT = sundayDate.GetTicks();
+
+    mFromDate = date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::from_time_t(mondayTimeT)) };
+    mToDate = date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::from_time_t(sundayTimeT)) };
+
+    pFromDateCtrl->SetValue(mondayDate);
+    pToDateCtrl->SetValue(sundayDate);
 }
 } // namespace tks::UI

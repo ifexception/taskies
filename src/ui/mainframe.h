@@ -22,10 +22,14 @@
 #include <memory>
 #include <string>
 
+#include <date/date.h>
+
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/datectrl.h>
+#include <wx/dateevt.h>
 #include <wx/infobar.h>
 
 #include <spdlog/spdlog.h>
@@ -96,6 +100,7 @@ private:
     void Create();
 
     void CreateControls();
+    void FillControls();
     void DataToControls();
 
     /* Event Table Handlers */
@@ -103,7 +108,6 @@ private:
     void OnClose(wxCloseEvent& event);
     void OnIconize(wxIconizeEvent& event);
     void OnResize(wxSizeEvent& event);
-    void OnNotificationClick(wxCommandEvent& event);
     /* Menu Handlers */
     void OnNewTask(wxCommandEvent& event);
     void OnNewEmployer(wxCommandEvent& event);
@@ -121,6 +125,12 @@ private:
     void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
     void OnAddNotification(wxCommandEvent& event);
+    /* Control Event Handlers */
+    void OnNotificationClick(wxCommandEvent& event);
+    void OnFromDateSelection(wxDateEvent& event);
+    void OnToDateSelection(wxDateEvent& event);
+
+    void CalculateAndSetMondayAndSundayFromCurrentDate();
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
@@ -129,12 +139,17 @@ private:
 
     wxInfoBar* pInfoBar;
     TaskBarIcon* pTaskBarIcon;
-    wxBitmapButton* pNotificationButton;
+
     NotificationPopupWindow* pNotificationPopupWindow;
+    wxDatePickerCtrl* pFromDateCtrl;
+    wxDatePickerCtrl* pToDateCtrl;
+    wxBitmapButton* pNotificationButton;
     wxBitmap mBellBitmap;
     wxBitmap mBellNotificationBitmap;
+    date::year_month_day mFromDate;
+    date::year_month_day mToDate;
 
-    enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_NOTIFTEST };
+    enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_FROMDATE, tksIDC_TODATE };
 };
 } // namespace UI
 } // namespace tks
