@@ -19,8 +19,6 @@
 
 #include "tasktreemodel.h"
 
-#include <date/date.h>
-
 namespace tks::UI
 {
 TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
@@ -144,11 +142,14 @@ void TaskTreeModelNode::SetTaskId(std::int64_t taskId)
     mTaskId = taskId;
 }
 
-TaskTreeModel::TaskTreeModel()
-    : mRootDayNodes()
+TaskTreeModel::TaskTreeModel(date::year_month_day fromDate, date::year_month_day toDate)
+    : mFromDate(fromDate)
+    , mToDate(toDate)
+    , mRootDayNodes()
 {
-    auto now = std::chrono::system_clock::now();
-    auto date = date::format("%F %T", date::floor<date::days>(now));
+    date::days dayRange = mToDate.day() - mFromDate.day();
+    if (dayRange.count() > 0) {
+    }
 }
 
 TaskTreeModel::~TaskTreeModel()

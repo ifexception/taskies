@@ -29,6 +29,8 @@
 #endif
 #include <wx/dataview.h>
 
+#include <date/date.h>
+
 namespace tks::UI
 {
 class TaskTreeModelNode;
@@ -86,7 +88,7 @@ class TaskTreeModel : public wxDataViewModel
 public:
     enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
 
-    TaskTreeModel();
+    TaskTreeModel(date::year_month_day fromDate, date::year_month_day toDate);
     ~TaskTreeModel();
 
     unsigned int GetColumnCount() const override;
@@ -99,6 +101,8 @@ public:
     unsigned int GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;
 
 private:
+    date::year_month_day mFromDate;
+    date::year_month_day mToDate;
     std::vector<TaskTreeModelNode*> mRootDayNodes;
 };
 } // namespace tks::UI

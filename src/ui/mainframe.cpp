@@ -254,6 +254,16 @@ void MainFrame::CreateControls()
 void MainFrame::FillControls()
 {
     CalculateAndSetMondayAndSundayFromCurrentDate();
+
+    date::days dayRange = mToDate.day() - mFromDate.day();
+    if (dayRange > date::days{0}) {
+        pLogger->info("{0}", date::format("%F", mFromDate));
+        int x = 1;
+        for (date::day i = mFromDate.day(); i < mToDate.day(); i++) {
+            auto d = mFromDate.year() / mFromDate.month() / (mFromDate.day() + date::days{ x++ });
+            pLogger->info("{0}", date::format("%F", d));
+        }
+    }
 }
 
 void MainFrame::DataToControls()
@@ -451,7 +461,7 @@ void MainFrame::CalculateAndSetMondayAndSundayFromCurrentDate()
 {
     wxDateTime currentDate = wxDateTime::Now();
     int daysToGoBackToMonday = 0;
-    int daysToGoBackToSunday = 0;
+    int daysToGoToSunday = 0;
 
     switch (currentDate.GetWeekDay()) {
     case wxDateTime::Mon:
@@ -482,25 +492,25 @@ void MainFrame::CalculateAndSetMondayAndSundayFromCurrentDate()
 
     switch (currentDate.GetWeekDay()) {
     case wxDateTime::Mon:
-        daysToGoBackToSunday = 6;
+        daysToGoToSunday = 6;
         break;
     case wxDateTime::Tue:
-        daysToGoBackToSunday = 5;
+        daysToGoToSunday = 5;
         break;
     case wxDateTime::Wed:
-        daysToGoBackToSunday = 4;
+        daysToGoToSunday = 4;
         break;
     case wxDateTime::Thu:
-        daysToGoBackToSunday = 3;
+        daysToGoToSunday = 3;
         break;
     case wxDateTime::Fri:
-        daysToGoBackToSunday = 2;
+        daysToGoToSunday = 2;
         break;
     case wxDateTime::Sat:
-        daysToGoBackToSunday = 1;
+        daysToGoToSunday = 1;
         break;
     case wxDateTime::Sun:
-        daysToGoBackToSunday = 0;
+        daysToGoToSunday = 0;
         break;
     case wxDateTime::Inv_WeekDay:
     default:
@@ -510,8 +520,8 @@ void MainFrame::CalculateAndSetMondayAndSundayFromCurrentDate()
     wxDateSpan toGoBackToMonday(0, 0, 0, daysToGoBackToMonday);
     wxDateTime mondayDate = currentDate.Subtract(toGoBackToMonday);
 
-    wxDateSpan toGoBackToSunday(0, 0, 0, daysToGoBackToSunday);
-    wxDateTime sundayDate = currentDate.Subtract(toGoBackToSunday);
+    wxDateSpan toGoToSunday(0, 0, 0, daysToGoToSunday);
+    wxDateTime sundayDate = currentDate.Add(toGoToSunday);
 
     auto mondayTimeT = mondayDate.GetTicks();
     auto sundayTimeT = sundayDate.GetTicks();
