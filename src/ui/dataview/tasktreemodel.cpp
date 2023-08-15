@@ -148,7 +148,20 @@ TaskTreeModel::TaskTreeModel(date::year_month_day fromDate, date::year_month_day
     , mRootDayNodes()
 {
     date::days dayRange = mToDate.day() - mFromDate.day();
-    if (dayRange.count() > 0) {
+    if (dayRange > date::days{ 0 }) {
+        int x = 1;
+
+        auto fromDateFormatted = date::format("%F", mFromDate);
+        TaskTreeModelNode* firstNode = new TaskTreeModelNode(nullptr, fromDateFormatted);
+        mRootDayNodes.push_back(firstNode);
+
+        for (date::day i = mFromDate.day(); i < mToDate.day(); i++) {
+            auto nextDay = mFromDate.year() / mFromDate.month() / (mFromDate.day() + date::days{ x++ });
+            auto nextDayFormatted = date::format("%F", nextDay);
+
+            TaskTreeModelNode* node = new TaskTreeModelNode(nullptr, nextDayFormatted);
+            mRootDayNodes.push_back(node);
+        }
     }
 }
 
@@ -163,38 +176,125 @@ TaskTreeModel::~TaskTreeModel()
 
 unsigned int TaskTreeModel::GetColumnCount() const
 {
-    return 0;
+    return Col_Max;
 }
 
 wxString TaskTreeModel::GetColumnType(unsigned int col) const
 {
-    return wxString();
+    if (col == Col_Id) {
+        return "long";
+    } else {
+        return "string";
+    }
 }
 
-void TaskTreeModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const {}
+void TaskTreeModel::GetValue(wxVariant& variant, const wxDataViewItem& item, unsigned int col) const
+{
+    wxASSERT(item.IsOk());
+
+    TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
+    switch (col) {
+    case Col_Project:
+        variant = node->GetProjectName();
+        break;
+    case Col_Category:
+        variant = node->GetCategoryName();
+        break;
+    case Col_Duration:
+        variant = node->GetDuration();
+        break;
+    case Col_Description:
+        variant = node->GetDescription();
+        break;
+    case Col_Id:
+        variant = (long) node->GetTaskId();
+        break;
+    case Col_Max:
+    default:
+        // log error
+        break;
+    }
+}
 
 bool TaskTreeModel::SetValue(const wxVariant& variant, const wxDataViewItem& item, unsigned int col)
 {
+    wxASSERT(item.IsOk());
+
+    TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
+    switch (col) {
+    case Col_Project:
+        node->SetProjectName(variant.GetString().ToStdString());
+        break;
+    case Col_Duration:
+        node->SetDuration(variant.GetString().ToStdString());
+        break;
+    case Col_Category:
+        node->SetCategoryName(variant.GetString().ToStdString());
+        break;
+    case Col_Description:
+        node->SetDescription(variant.GetString().ToStdString());
+        break;
+    case Col_Id:
+        node->SetTaskId(static_cast<std::int64_t>(variant.GetInteger()));
+        break;
+    case Col_Max:
+    default:
+        // pLogger
+        break;
+    }
+
     return false;
 }
 
 bool TaskTreeModel::IsEnabled(const wxDataViewItem& item, unsigned int col) const
 {
-    return false;
+    return true;
 }
 
 wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
 {
-    return wxDataViewItem();
+    if (!item.IsOk()) {
+        return wxDataViewItem(0);
+    }
+
+    TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
+
+    for (TaskTreeModelNode* rootNode : mRootDayNodes) {
+        if (node == rootNode) {
+            return wxDataViewItem(0);
+        }
+    }
+
+    return wxDataViewItem((void*) node->GetParent());
 }
 
 bool TaskTreeModel::IsContainer(const wxDataViewItem& item) const
 {
-    return false;
+    if (!item.IsOk()) {
+        return true;
+    }
+
+    TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
+    return node->IsContainer();
 }
 
 unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const
 {
-    return 0;
+    for (TaskTreeModelNode* rootNode : mRootDayNodes) {
+        array.Add(wxDataViewItem((void*) rootNode));
+
+        /*if (rootNode->GetChildCount() == 0) {
+            return;
+        }
+
+        unsigned int count = rootNode->GetChildren().GetCount();
+        for (unsigned int pos = 0; pos < count; pos++) {
+            TaskTreeModelNode* child = rootNode->GetChildren().Item(pos);
+            array.Add(wxDataViewItem((void*) child));
+        }
+
+        return count;*/
+    }
+    return mRootDayNodes.size();
 }
 } // namespace tks::UI
