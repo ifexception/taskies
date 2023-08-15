@@ -31,12 +31,14 @@
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
 #include <wx/infobar.h>
+#include <wx/dataview.h>
 
 #include <spdlog/spdlog.h>
 
 #include "notificationpopupwindow.h"
 #include "taskbaricon.h"
 #include "../common/enums.h"
+#include "../ui/dataview/tasktreemodel.h"
 
 namespace tks
 {
@@ -148,8 +150,10 @@ private:
     wxBitmap mBellNotificationBitmap;
     date::year_month_day mFromDate;
     date::year_month_day mToDate;
+    wxDataViewCtrl* pTaskDataViewCtrl;
+    wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
 
-    enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_FROMDATE, tksIDC_TODATE };
+    enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_FROMDATE, tksIDC_TODATE, tksIDC_TASKDATAVIEW };
 };
 } // namespace UI
 } // namespace tks

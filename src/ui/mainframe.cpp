@@ -106,6 +106,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mBellNotificationBitmap(wxNullBitmap)
     , mFromDate()
     , mToDate()
+    , pTaskDataViewCtrl(nullptr)
+    , pTaskTreeModel(nullptr)
 // clang-format on
 {
     // Initialization setup
@@ -146,10 +148,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
     // Create the notification popup window
     pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
-
-    /* TEST CODE - REMOVE */
-    auto ymd = date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::now()) };
-    auto x = ymd.day();
 }
 
 MainFrame::~MainFrame()
@@ -249,21 +247,74 @@ void MainFrame::CreateControls()
     topSizer->Add(pNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
+
+    /* Data View Ctrl */
+    pTaskDataViewCtrl = new wxDataViewCtrl(panel,
+        tksIDC_TASKDATAVIEW,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
+
+    /* Data View Model */
+    pTaskTreeModel = new TaskTreeModel(mFromDate, mToDate);
+    pTaskDataViewCtrl->AssociateModel(pTaskTreeModel.get());
+
+    /* Data View Columns */
+    auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    auto durationTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    auto descriptionTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
+
+    auto idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
+
+    /* Project Column */
+    auto projectColumn = new wxDataViewColumn("Project",
+        projectNameTextRenderer,
+        TaskTreeModel::Col_Project,
+        80,
+        wxALIGN_LEFT,
+        wxDATAVIEW_COL_RESIZABLE);
+    projectColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    pTaskDataViewCtrl->AppendColumn(projectColumn);
+
+    /* Category Column */
+    auto categoryColumn = new wxDataViewColumn("Category",
+        categoryNameTextRenderer,
+        TaskTreeModel::Col_Category,
+        80,
+        wxALIGN_LEFT,
+        wxDATAVIEW_COL_RESIZABLE);
+    categoryColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    pTaskDataViewCtrl->AppendColumn(categoryColumn);
+
+    /* Duration Column */
+    auto durationColumn =
+        new wxDataViewColumn("Duration", durationTextRenderer, TaskTreeModel::Col_Duration, 80, wxALIGN_LEFT);
+    durationColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    durationColumn->SetResizeable(false);
+    pTaskDataViewCtrl->AppendColumn(durationColumn);
+
+    /* Description Column */
+    auto descriptionColumn = new wxDataViewColumn("Description",
+        descriptionTextRenderer,
+        TaskTreeModel::Col_Description,
+        80,
+        wxALIGN_LEFT,
+        wxDATAVIEW_COL_RESIZABLE);
+    pTaskDataViewCtrl->AppendColumn(descriptionColumn);
+
+    /* ID Column */
+    auto idColumn = new wxDataViewColumn(
+        "ID", idRenderer, TaskTreeModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+    pTaskDataViewCtrl->AppendColumn(idColumn);
+
+    sizer->Add(pTaskDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 }
 
 void MainFrame::FillControls()
 {
     CalculateAndSetMondayAndSundayFromCurrentDate();
-
-    date::days dayRange = mToDate.day() - mFromDate.day();
-    if (dayRange > date::days{0}) {
-        pLogger->info("{0}", date::format("%F", mFromDate));
-        int x = 1;
-        for (date::day i = mFromDate.day(); i < mToDate.day(); i++) {
-            auto d = mFromDate.year() / mFromDate.month() / (mFromDate.day() + date::days{ x++ });
-            pLogger->info("{0}", date::format("%F", d));
-        }
-    }
 }
 
 void MainFrame::DataToControls()
