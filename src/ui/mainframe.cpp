@@ -256,7 +256,7 @@ void MainFrame::CreateControls()
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
 
     /* Data View Model */
-    pTaskTreeModel = new TaskTreeModel(mFromDate, mToDate);
+    pTaskTreeModel = new TaskTreeModel();
     pTaskDataViewCtrl->AssociateModel(pTaskTreeModel.get());
 
     /* Data View Columns */
@@ -309,7 +309,7 @@ void MainFrame::CreateControls()
         "ID", idRenderer, TaskTreeModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
     pTaskDataViewCtrl->AppendColumn(idColumn);
 
-    sizer->Add(pTaskDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    sizer->Add(pTaskDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 }
 
 void MainFrame::FillControls()
