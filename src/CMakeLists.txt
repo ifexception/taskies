@@ -70,6 +70,7 @@ set (SRC
     "ui/taskbaricon.cpp"
     "ui/notificationpopupwindow.cpp"
     "ui/dataview/tasktreemodel.cpp"
+    "ui/dataview/tasktreemodelnode.cpp"
     "resources.rc"
     "application.manifest"
     "common/common.cpp"

@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -31,64 +30,16 @@
 
 #include <date/date.h>
 
+#include "tasktreemodelnode.h"
+
 namespace tks::UI
 {
-class TaskTreeModelNode;
-WX_DEFINE_ARRAY_PTR(TaskTreeModelNode*, TaskTreeModelNodePtrArray);
-
-class TaskTreeModelNode final
-{
-public:
-    TaskTreeModelNode() = delete;
-    TaskTreeModelNode(const TaskTreeModelNode&) = delete;
-    TaskTreeModelNode(TaskTreeModelNode* parent,
-        const std::string& projectName,
-        const std::string& categoryName,
-        const std::string& duration,
-        const std::string& description,
-        std::int64_t taskId);
-    TaskTreeModelNode(TaskTreeModelNode* parent, const std::string& branch);
-    ~TaskTreeModelNode();
-
-    bool IsContainer() const;
-    TaskTreeModelNode* GetParent();
-    TaskTreeModelNodePtrArray& GetChildren();
-    TaskTreeModelNode* GetNthChild(unsigned int n);
-
-    void Insert(TaskTreeModelNode* child, unsigned int n);
-    void Append(TaskTreeModelNode* child);
-    const unsigned int GetChildCount() const;
-
-    std::string GetProjectName() const;
-    std::string GetCategoryName() const;
-    std::string GetDuration() const;
-    std::string GetDescription() const;
-    std::int64_t GetTaskId() const;
-
-    void SetProjectName(const std::string& value);
-    void SetCategoryName(const std::string& value);
-    void SetDuration(const std::string& value);
-    void SetDescription(const std::string& value);
-    void SetTaskId(std::int64_t taskId);
-
-private:
-    TaskTreeModelNode* pParent;
-    TaskTreeModelNodePtrArray mChildren;
-
-    std::string mProjectName;
-    std::string mDuration;
-    std::string mCategoryName;
-    std::string mDescription;
-    std::int64_t mTaskId;
-    bool bContainer;
-};
-
 class TaskTreeModel : public wxDataViewModel
 {
 public:
     enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
 
-    TaskTreeModel(date::year_month_day fromDate, date::year_month_day toDate);
+    TaskTreeModel();
     ~TaskTreeModel();
 
     unsigned int GetColumnCount() const override;
@@ -101,8 +52,8 @@ public:
     unsigned int GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;
 
 private:
-    date::year_month_day mFromDate;
-    date::year_month_day mToDate;
-    std::vector<TaskTreeModelNode*> mRootDayNodes;
+    TaskTreeModelNodePtrArray pTopLevel;
+    TaskTreeModelNode* pNode1;
+    TaskTreeModelNode* pNode2;
 };
 } // namespace tks::UI

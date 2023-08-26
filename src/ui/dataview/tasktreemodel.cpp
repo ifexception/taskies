@@ -19,157 +19,33 @@
 
 #include "tasktreemodel.h"
 
+#include <cstdint>
+
+#include "../../utils/utils.h"
+
 namespace tks::UI
 {
-TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
-    const std::string& projectName,
-    const std::string& categoryName,
-    const std::string& duration,
-    const std::string& description,
-    std::int64_t taskId)
-    : pParent(parent)
-    , mProjectName(projectName)
-    , mCategoryName(categoryName)
-    , mDuration(duration)
-    , mDescription(description)
-    , mTaskId(taskId)
-    , bContainer(false)
+TaskTreeModel::TaskTreeModel()
+    : pTopLevel()
+    , pNode1(nullptr)
+    , pNode2(nullptr)
 {
-}
+    pNode1 = new TaskTreeModelNode(nullptr, Utils::ToISODateTime(Utils::UnixTimestamp()));
+    pNode1->Append(new TaskTreeModelNode(pNode1, "ControlFirst", "Meetings", "00:15", "Stand up", 1));
+    pNode1->Append(new TaskTreeModelNode(pNode1, "ControlFirst", "Coding", "00:15", "Hierarchy improvements", 2));
 
-TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent, const std::string& branch)
-    : pParent(parent)
-    , mProjectName(branch)
-    , bContainer(true)
-    , mCategoryName("")
-    , mDuration("")
-    , mDescription("")
-    , mTaskId(0)
-{
-}
+    pNode2 = new TaskTreeModelNode(nullptr, Utils::ToISODateTime(Utils::UnixTimestamp()));
+    pNode2->Append(new TaskTreeModelNode(pNode2, "SLA", "Coding", "00:15", "Fix permissions", 3));
 
-TaskTreeModelNode::~TaskTreeModelNode()
-{
-    std::size_t count = mChildren.GetCount();
-    for (std::size_t i = 0; i < count; i++) {
-        TaskTreeModelNode* child = mChildren[i];
-        delete child;
-    }
-}
-
-bool TaskTreeModelNode::IsContainer() const
-{
-    return bContainer;
-}
-
-TaskTreeModelNode* TaskTreeModelNode::GetParent()
-{
-    return pParent;
-}
-
-TaskTreeModelNodePtrArray& TaskTreeModelNode::GetChildren()
-{
-    return mChildren;
-}
-
-TaskTreeModelNode* TaskTreeModelNode::GetNthChild(unsigned int n)
-{
-    return mChildren.Item(n);
-}
-
-void TaskTreeModelNode::Insert(TaskTreeModelNode* child, unsigned int n)
-{
-    mChildren.Insert(child, n);
-}
-
-void TaskTreeModelNode::Append(TaskTreeModelNode* child)
-{
-    mChildren.Add(child);
-}
-
-const unsigned int TaskTreeModelNode::GetChildCount() const
-{
-    return mChildren.Count();
-}
-
-std::string TaskTreeModelNode::GetProjectName() const
-{
-    return mProjectName;
-}
-
-std::string TaskTreeModelNode::GetCategoryName() const
-{
-    return mCategoryName;
-}
-
-std::string TaskTreeModelNode::GetDuration() const
-{
-    return mDuration;
-}
-
-std::string TaskTreeModelNode::GetDescription() const
-{
-    return mDescription;
-}
-
-std::int64_t TaskTreeModelNode::GetTaskId() const
-{
-    return mTaskId;
-}
-
-void TaskTreeModelNode::SetProjectName(const std::string& value)
-{
-    mProjectName = value;
-}
-
-void TaskTreeModelNode::SetCategoryName(const std::string& value)
-{
-    mCategoryName = value;
-}
-
-void TaskTreeModelNode::SetDuration(const std::string& value)
-{
-    mDuration = value;
-}
-
-void TaskTreeModelNode::SetDescription(const std::string& value)
-{
-    mDescription = value;
-}
-
-void TaskTreeModelNode::SetTaskId(std::int64_t taskId)
-{
-    mTaskId = taskId;
-}
-
-TaskTreeModel::TaskTreeModel(date::year_month_day fromDate, date::year_month_day toDate)
-    : mFromDate(fromDate)
-    , mToDate(toDate)
-    , mRootDayNodes()
-{
-    date::days dayRange = mToDate.day() - mFromDate.day();
-    if (dayRange > date::days{ 0 }) {
-        int x = 1;
-
-        auto fromDateFormatted = date::format("%F", mFromDate);
-        TaskTreeModelNode* firstNode = new TaskTreeModelNode(nullptr, fromDateFormatted);
-        mRootDayNodes.push_back(firstNode);
-
-        for (date::day i = mFromDate.day(); i < mToDate.day(); i++) {
-            auto nextDay = mFromDate.year() / mFromDate.month() / (mFromDate.day() + date::days{ x++ });
-            auto nextDayFormatted = date::format("%F", nextDay);
-
-            TaskTreeModelNode* node = new TaskTreeModelNode(nullptr, nextDayFormatted);
-            mRootDayNodes.push_back(node);
-        }
-    }
+    pTopLevel.Add(pNode1);
+    pTopLevel.Add(pNode2);
 }
 
 TaskTreeModel::~TaskTreeModel()
 {
-    std::size_t count = mRootDayNodes.size();
+    std::size_t count = pTopLevel.size();
     for (std::size_t i = 0; i < count; i++) {
-        TaskTreeModelNode* root = mRootDayNodes[i];
+        TaskTreeModelNode* root = pTopLevel[i];
         delete root;
     }
 }
@@ -259,8 +135,9 @@ wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
 
     TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
 
-    for (TaskTreeModelNode* rootNode : mRootDayNodes) {
-        if (node == rootNode) {
+    size_t count = pTopLevel.GetCount();
+    for (size_t i = 0; i < count; i++) {
+        if (node == pTopLevel[i]) {
             return wxDataViewItem(0);
         }
     }
@@ -280,21 +157,14 @@ bool TaskTreeModel::IsContainer(const wxDataViewItem& item) const
 
 unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const
 {
-    for (TaskTreeModelNode* rootNode : mRootDayNodes) {
-        array.Add(wxDataViewItem((void*) rootNode));
-
-        /*if (rootNode->GetChildCount() == 0) {
-            return;
-        }
-
-        unsigned int count = rootNode->GetChildren().GetCount();
-        for (unsigned int pos = 0; pos < count; pos++) {
-            TaskTreeModelNode* child = rootNode->GetChildren().Item(pos);
+    TaskTreeModelNode* node = (TaskTreeModelNode*) parent.GetID();
+    if (!node) {
+        size_t count = pTopLevel.GetCount();
+        for (size_t i = 0; i < count; i++) {
+            TaskTreeModelNode* child = pTopLevel[i];
             array.Add(wxDataViewItem((void*) child));
         }
-
-        return count;*/
     }
-    return mRootDayNodes.size();
+    return pTopLevel.size();
 }
 } // namespace tks::UI
