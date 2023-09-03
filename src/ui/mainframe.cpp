@@ -315,6 +315,8 @@ void MainFrame::CreateControls()
 void MainFrame::FillControls()
 {
     CalculateAndSetMondayAndSundayFromCurrentDate();
+
+    pTaskTreeModel->SetDayNodeDateLabels(mFromDate, mToDate);
 }
 
 void MainFrame::DataToControls()
@@ -568,11 +570,14 @@ void MainFrame::CalculateAndSetMondayAndSundayFromCurrentDate()
         break;
     }
 
-    wxDateSpan toGoBackToMonday(0, 0, 0, daysToGoBackToMonday);
+    wxDateSpan toGoBackToMonday = wxDateSpan::Days(daysToGoBackToMonday);
     wxDateTime mondayDate = currentDate.Subtract(toGoBackToMonday);
+    pLogger->info("MainFrame - Calculated Mondays date {0}", mondayDate.FormatISODate().ToStdString());
 
-    wxDateSpan toGoToSunday(0, 0, 0, daysToGoToSunday);
+    currentDate = wxDateTime::Now();
+    wxDateSpan toGoToSunday = wxDateSpan::Days(daysToGoToSunday);
     wxDateTime sundayDate = currentDate.Add(toGoToSunday);
+    pLogger->info("MainFrame - Calculated Sundays date {0}", sundayDate.FormatISODate().ToStdString());
 
     auto mondayTimeT = mondayDate.GetTicks();
     auto sundayTimeT = sundayDate.GetTicks();
