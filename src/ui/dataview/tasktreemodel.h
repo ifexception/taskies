@@ -50,10 +50,11 @@ public:
     wxDataViewItem GetParent(const wxDataViewItem& item) const override;
     bool IsContainer(const wxDataViewItem& item) const override;
     unsigned int GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;
+    void Delete(const wxDataViewItem& item);
+    void ClearAll();
 
 private:
-    TaskTreeModelNodePtrArray pTopLevel;
-    TaskTreeModelNode* pNode1;
-    TaskTreeModelNode* pNode2;
+    TaskTreeModelNode* pRoot;
+    std::vector<TaskTreeModelNode*> pDayNodes;
 };
 } // namespace tks::UI

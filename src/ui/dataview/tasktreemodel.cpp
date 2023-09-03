@@ -26,28 +26,27 @@
 namespace tks::UI
 {
 TaskTreeModel::TaskTreeModel()
-    : pTopLevel()
-    , pNode1(nullptr)
-    , pNode2(nullptr)
+    : pRoot(nullptr)
+    , pDayNodes()
 {
-    pNode1 = new TaskTreeModelNode(nullptr, Utils::ToISODateTime(Utils::UnixTimestamp()));
-    pNode1->Append(new TaskTreeModelNode(pNode1, "ControlFirst", "Meetings", "00:15", "Stand up", 1));
-    pNode1->Append(new TaskTreeModelNode(pNode1, "ControlFirst", "Coding", "00:15", "Hierarchy improvements", 2));
+    pRoot = new TaskTreeModelNode(nullptr, "root-node");
 
-    pNode2 = new TaskTreeModelNode(nullptr, Utils::ToISODateTime(Utils::UnixTimestamp()));
-    pNode2->Append(new TaskTreeModelNode(pNode2, "SLA", "Coding", "00:15", "Fix permissions", 3));
+    for (std::size_t i = 0; i < 3; i++) {
+        pDayNodes.push_back(new TaskTreeModelNode(pRoot, "Node Index " + i));
 
-    pTopLevel.Add(pNode1);
-    pTopLevel.Add(pNode2);
+        auto node1 = new TaskTreeModelNode(pDayNodes[i], "Project " + i, "Cat#1", "00:00", "task description here", i);
+        auto node2 = new TaskTreeModelNode(pDayNodes[i], "Project " + i, "Cat#2", "00:15", "task description here", i);
+
+        pDayNodes[i]->Append(node1);
+        pDayNodes[i]->Append(node2);
+
+        pRoot->Append(pDayNodes[i]);
+    }
 }
 
 TaskTreeModel::~TaskTreeModel()
 {
-    std::size_t count = pTopLevel.size();
-    for (std::size_t i = 0; i < count; i++) {
-        TaskTreeModelNode* root = pTopLevel[i];
-        delete root;
-    }
+    delete pRoot;
 }
 
 unsigned int TaskTreeModel::GetColumnCount() const
@@ -135,11 +134,8 @@ wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
 
     TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
 
-    size_t count = pTopLevel.GetCount();
-    for (size_t i = 0; i < count; i++) {
-        if (node == pTopLevel[i]) {
-            return wxDataViewItem(0);
-        }
+    if (node == pRoot) {
+        return wxDataViewItem(0);
     }
 
     return wxDataViewItem((void*) node->GetParent());
@@ -159,12 +155,71 @@ unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataView
 {
     TaskTreeModelNode* node = (TaskTreeModelNode*) parent.GetID();
     if (!node) {
-        size_t count = pTopLevel.GetCount();
-        for (size_t i = 0; i < count; i++) {
-            TaskTreeModelNode* child = pTopLevel[i];
-            array.Add(wxDataViewItem((void*) child));
+        array.Add(wxDataViewItem((void*) pRoot));
+        return 1;
+    }
+
+    if (node->GetChildCount() == 0) {
+        return 0;
+    }
+
+    unsigned int count = node->GetChildren().GetCount();
+    for (unsigned int pos = 0; pos < count; pos++) {
+        TaskTreeModelNode* child = node->GetChildren().Item(pos);
+        array.Add(wxDataViewItem((void*) child));
+    }
+
+    return count;
+}
+
+void TaskTreeModel::Delete(const wxDataViewItem& item)
+{
+    TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
+    if (!node) { // happens if item.IsOk()==false
+        return;
+    }
+
+    wxDataViewItem parent(node->GetParent());
+    if (!parent.IsOk()) { // this means that the root node was clicked and has no parent
+        return;
+    }
+
+    // do not delete the special nodes
+    for (std::size_t i = 0; i < 3; i++) {
+        if (node == pDayNodes[i]) {
+            return;
         }
     }
-    return pTopLevel.size();
+
+    node->GetParent()->GetChildren().Remove(node);
+    delete node;
+
+    ItemDeleted(parent, item);
+}
+
+void TaskTreeModel::ClearAll()
+{
+    for (std::size_t i = 0; i < 3; i++) {
+        auto node = pDayNodes[i];
+        wxDataViewItemArray itemsRemoved;
+        unsigned int count = node->GetChildCount();
+
+        for (unsigned int pos = 0; pos < count; pos++) {
+            TaskTreeModelNode* child = node->GetChildren().Item(pos);
+            itemsRemoved.Add(wxDataViewItem((void*) child));
+        }
+
+        for (auto child : node->GetChildren()) {
+            delete child;
+            child = nullptr;
+        }
+
+        node->GetChildren().clear();
+
+        count = node->GetChildCount();
+
+        wxDataViewItem parent((void*) node);
+        ItemsDeleted(parent, itemsRemoved);
+    }
 }
 } // namespace tks::UI
