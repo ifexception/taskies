@@ -31,7 +31,7 @@ TaskTreeModel::TaskTreeModel()
 {
     pRoot = new TaskTreeModelNode(nullptr, "root-node");
 
-    for (std::size_t i = 0; i < 3; i++) {
+    /*for (std::size_t i = 0; i < 3; i++) {
         pDayNodes.push_back(new TaskTreeModelNode(pRoot, "Node Index " + i));
 
         auto node1 = new TaskTreeModelNode(pDayNodes[i], "Project " + i, "Cat#1", "00:00", "task description here", i);
@@ -41,7 +41,7 @@ TaskTreeModel::TaskTreeModel()
         pDayNodes[i]->Append(node2);
 
         pRoot->Append(pDayNodes[i]);
-    }
+    }*/
 }
 
 TaskTreeModel::~TaskTreeModel()
@@ -221,5 +221,26 @@ void TaskTreeModel::ClearAll()
         wxDataViewItem parent((void*) node);
         ItemsDeleted(parent, itemsRemoved);
     }
+}
+
+void TaskTreeModel::SetDayNodeDateLabels(date::year_month_day& fromDate, date::year_month_day& toDate)
+{
+    date::days dayRange = toDate.day() - fromDate.day();
+    //if (dayRange > date::days{ 0 }) {
+        int dayIncrement = 1;
+        int loopIdx = 0;
+        auto a = fromDate.day();
+        auto b = toDate.day();
+        for (date::day i = fromDate.day(); i < toDate.day(); i++) {
+            auto newDate = fromDate.year() / fromDate.month() / (fromDate.day() + date::days{ dayIncrement++ });
+            auto formattedDate = date::format("%F", newDate);
+
+            pDayNodes.push_back(new TaskTreeModelNode(pRoot, formattedDate));
+
+            pDayNodes[loopIdx]->Append(new TaskTreeModelNode(
+                pDayNodes[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
+            loopIdx++;
+        }
+    //}
 }
 } // namespace tks::UI

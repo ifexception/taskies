@@ -53,6 +53,8 @@ public:
     void Delete(const wxDataViewItem& item);
     void ClearAll();
 
+    void SetDayNodeDateLabels(date::year_month_day& fromDate, date::year_month_day& toDate);
+
 private:
     TaskTreeModelNode* pRoot;
     std::vector<TaskTreeModelNode*> pDayNodes;
