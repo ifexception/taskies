@@ -508,84 +508,29 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         event.GetDate().FormatISODate().ToStdString());
 }
 
-void MainFrame::OnToDateSelection(wxDateEvent& event) {}
+void MainFrame::OnToDateSelection(wxDateEvent& event)
+{
+    pLogger->info("MainFrame:OnToDateSelection - Received date event with value \"{0}\"",
+        event.GetDate().FormatISODate().ToStdString());
+}
 
 void MainFrame::CalculateAndSetMondayAndSundayFromCurrentDate()
 {
-    wxDateTime currentDate = wxDateTime::Now();
-    int daysToGoBackToMonday = 0;
-    int daysToGoToSunday = 0;
+    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    pLogger->info("MainFrame - Todays date: {0}", date::format("%F", todaysDate));
 
-    switch (currentDate.GetWeekDay()) {
-    case wxDateTime::Mon:
-        daysToGoBackToMonday = 0;
-        break;
-    case wxDateTime::Tue:
-        daysToGoBackToMonday = 1;
-        break;
-    case wxDateTime::Wed:
-        daysToGoBackToMonday = 2;
-        break;
-    case wxDateTime::Thu:
-        daysToGoBackToMonday = 3;
-        break;
-    case wxDateTime::Fri:
-        daysToGoBackToMonday = 4;
-        break;
-    case wxDateTime::Sat:
-        daysToGoBackToMonday = 5;
-        break;
-    case wxDateTime::Sun:
-        daysToGoBackToMonday = 6;
-        break;
-    case wxDateTime::Inv_WeekDay:
-    default:
-        break;
-    }
+    // get mondays date
+    auto mondaysDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
+    pLogger->info("MainFrame - Monday date: {0}", date::format("%F", mondaysDate));
 
-    switch (currentDate.GetWeekDay()) {
-    case wxDateTime::Mon:
-        daysToGoToSunday = 6;
-        break;
-    case wxDateTime::Tue:
-        daysToGoToSunday = 5;
-        break;
-    case wxDateTime::Wed:
-        daysToGoToSunday = 4;
-        break;
-    case wxDateTime::Thu:
-        daysToGoToSunday = 3;
-        break;
-    case wxDateTime::Fri:
-        daysToGoToSunday = 2;
-        break;
-    case wxDateTime::Sat:
-        daysToGoToSunday = 1;
-        break;
-    case wxDateTime::Sun:
-        daysToGoToSunday = 0;
-        break;
-    case wxDateTime::Inv_WeekDay:
-    default:
-        break;
-    }
+    // get sundays date
+    auto sundaysDate = mondaysDate + (date::Sunday - date::Monday);
+    pLogger->info("MainFrame - Sunday date: {0}", date::format("%F", sundaysDate));
 
-    wxDateSpan toGoBackToMonday = wxDateSpan::Days(daysToGoBackToMonday);
-    wxDateTime mondayDate = currentDate.Subtract(toGoBackToMonday);
-    pLogger->info("MainFrame - Calculated Mondays date {0}", mondayDate.FormatISODate().ToStdString());
+    mFromDate = date::year_month_day{ mondaysDate };
+    mToDate = date::year_month_day{ sundaysDate };
 
-    currentDate = wxDateTime::Now();
-    wxDateSpan toGoToSunday = wxDateSpan::Days(daysToGoToSunday);
-    wxDateTime sundayDate = currentDate.Add(toGoToSunday);
-    pLogger->info("MainFrame - Calculated Sundays date {0}", sundayDate.FormatISODate().ToStdString());
-
-    auto mondayTimeT = mondayDate.GetTicks();
-    auto sundayTimeT = sundayDate.GetTicks();
-
-    mFromDate = date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::from_time_t(mondayTimeT)) };
-    mToDate = date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::from_time_t(sundayTimeT)) };
-
-    pFromDateCtrl->SetValue(mondayDate);
-    pToDateCtrl->SetValue(sundayDate);
+    /*pFromDateCtrl->SetValue(Utils::UnixTimestampFromTimePoint(mondaysDate));
+    pToDateCtrl->SetValue(Utils::UnixTimestampFromTimePoint(sundaysDate));*/
 }
 } // namespace tks::UI
