@@ -269,22 +269,14 @@ void MainFrame::CreateControls()
     auto idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
 
     /* Project Column */
-    auto projectColumn = new wxDataViewColumn("Project",
-        projectNameTextRenderer,
-        TaskTreeModel::Col_Project,
-        80,
-        wxALIGN_LEFT,
-        wxDATAVIEW_COL_RESIZABLE);
+    auto projectColumn = new wxDataViewColumn(
+        "Project", projectNameTextRenderer, TaskTreeModel::Col_Project, 80, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
     projectColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     pTaskDataViewCtrl->AppendColumn(projectColumn);
 
     /* Category Column */
-    auto categoryColumn = new wxDataViewColumn("Category",
-        categoryNameTextRenderer,
-        TaskTreeModel::Col_Category,
-        80,
-        wxALIGN_LEFT,
-        wxDATAVIEW_COL_RESIZABLE);
+    auto categoryColumn = new wxDataViewColumn(
+        "Category", categoryNameTextRenderer, TaskTreeModel::Col_Category, 80, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
     categoryColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     pTaskDataViewCtrl->AppendColumn(categoryColumn);
 
@@ -305,8 +297,8 @@ void MainFrame::CreateControls()
     pTaskDataViewCtrl->AppendColumn(descriptionColumn);
 
     /* ID Column */
-    auto idColumn = new wxDataViewColumn(
-        "ID", idRenderer, TaskTreeModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+    auto idColumn =
+        new wxDataViewColumn("ID", idRenderer, TaskTreeModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
     pTaskDataViewCtrl->AppendColumn(idColumn);
 
     sizer->Add(pTaskDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
@@ -530,7 +522,12 @@ void MainFrame::CalculateAndSetMondayAndSundayFromCurrentDate()
     mFromDate = date::year_month_day{ mondaysDate };
     mToDate = date::year_month_day{ sundaysDate };
 
-    /*pFromDateCtrl->SetValue(Utils::UnixTimestampFromTimePoint(mondaysDate));
-    pToDateCtrl->SetValue(Utils::UnixTimestampFromTimePoint(sundaysDate));*/
+    auto mondayTimestamp = mondaysDate.time_since_epoch();
+    auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
+    pFromDateCtrl->SetValue(mondayTimestampSeconds);
+
+    auto sundayTimestamp = sundaysDate.time_since_epoch();
+    auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
+    pToDateCtrl->SetValue(sundayTimestampSeconds);
 }
 } // namespace tks::UI
