@@ -223,24 +223,27 @@ void TaskTreeModel::ClearAll()
     }
 }
 
-void TaskTreeModel::SetDayNodeDateLabels(date::year_month_day& fromDate, date::year_month_day& toDate)
+void TaskTreeModel::SetDayNodeDateLabels(std::chrono::time_point<std::chrono::system_clock, date::days>& fromDate,
+    std::chrono::time_point<std::chrono::system_clock, date::days>& toDate)
 {
-    date::days dayRange = toDate.day() - fromDate.day();
-    //if (dayRange > date::days{ 0 }) {
-        int dayIncrement = 1;
-        int loopIdx = 0;
-        auto a = fromDate.day();
-        auto b = toDate.day();
-        for (date::day i = fromDate.day(); i < toDate.day(); i++) {
-            auto newDate = fromDate.year() / fromDate.month() / (fromDate.day() + date::days{ dayIncrement++ });
-            auto formattedDate = date::format("%F", newDate);
+    auto& dateIterator = fromDate;
+    int loopIdx = 0;
+    do {
+        // - DEBUG
+        auto x = date::format("%F", dateIterator);
+        pDayNodes.push_back(new TaskTreeModelNode(pRoot, date::format("%F", dateIterator)));
+        pDayNodes[loopIdx]->Append(
+            new TaskTreeModelNode(pDayNodes[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
+        pRoot->Append(pDayNodes[loopIdx]);
 
-            pDayNodes.push_back(new TaskTreeModelNode(pRoot, formattedDate));
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != toDate);
 
-            pDayNodes[loopIdx]->Append(new TaskTreeModelNode(
-                pDayNodes[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
-            loopIdx++;
-        }
-    //}
+    auto x = date::format("%F", dateIterator);
+    pDayNodes.push_back(new TaskTreeModelNode(pRoot, date::format("%F", dateIterator)));
+    pDayNodes[loopIdx]->Append(
+        new TaskTreeModelNode(pDayNodes[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
+    pRoot->Append(pDayNodes[loopIdx]);
 }
 } // namespace tks::UI

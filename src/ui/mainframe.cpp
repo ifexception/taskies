@@ -519,8 +519,8 @@ void MainFrame::CalculateAndSetMondayAndSundayFromCurrentDate()
     auto sundaysDate = mondaysDate + (date::Sunday - date::Monday);
     pLogger->info("MainFrame - Sunday date: {0}", date::format("%F", sundaysDate));
 
-    mFromDate = date::year_month_day{ mondaysDate };
-    mToDate = date::year_month_day{ sundaysDate };
+    mFromDate = mondaysDate;
+    mToDate = sundaysDate;
 
     auto mondayTimestamp = mondaysDate.time_since_epoch();
     auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();

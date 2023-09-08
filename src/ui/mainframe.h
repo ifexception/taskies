@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -148,8 +149,8 @@ private:
     wxBitmapButton* pNotificationButton;
     wxBitmap mBellBitmap;
     wxBitmap mBellNotificationBitmap;
-    date::year_month_day mFromDate;
-    date::year_month_day mToDate;
+    std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
+    std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
     wxDataViewCtrl* pTaskDataViewCtrl;
     wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
 
