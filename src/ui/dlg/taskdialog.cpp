@@ -607,8 +607,6 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         wxQueueEvent(pParent, addNotificationEvent);
     } else {
         if (clients.empty()) {
-            pClientChoiceCtrl->Clear();
-            pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
             pClientChoiceCtrl->Disable();
 
             return;
