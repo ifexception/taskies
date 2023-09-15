@@ -39,6 +39,11 @@ set(SRC_DAO
     "dao/taskdao.cpp"
 )
 
+set(SRC_REPOS
+    "repository/taskrepository.cpp"
+    "repository/taskrepositorymodel.cpp"
+)
+
 set (SRC_DIALOGS
     "ui/dlg/employerdlg.cpp"
     "ui/dlg/errordlg.cpp"
@@ -81,6 +86,7 @@ set (SRC
     "ipc/server.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
+    ${SRC_REPOS}
     ${SRC_DIALOGS}
 )
 
