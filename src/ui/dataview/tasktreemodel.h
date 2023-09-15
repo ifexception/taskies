@@ -39,7 +39,8 @@ class TaskTreeModel : public wxDataViewModel
 public:
     enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
 
-    TaskTreeModel();
+    TaskTreeModel(std::chrono::time_point<std::chrono::system_clock, date::days> monday,
+        std::chrono::time_point<std::chrono::system_clock, date::days> sunday);
     ~TaskTreeModel();
 
     unsigned int GetColumnCount() const override;
@@ -51,13 +52,10 @@ public:
     bool IsContainer(const wxDataViewItem& item) const override;
     unsigned int GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;
     void Delete(const wxDataViewItem& item);
-    void ClearAll();
-
-    void SetDayNodeDateLabels(std::chrono::time_point<std::chrono::system_clock, date::days>& fromDate,
-        std::chrono::time_point<std::chrono::system_clock, date::days>& toDate);
+    void Clear();
+    //void ClearAll();
 
 private:
-    TaskTreeModelNode* pRoot;
-    std::vector<TaskTreeModelNode*> pDayNodes;
+    TaskTreeModelNodePtrArray pRoots;
 };
 } // namespace tks::UI

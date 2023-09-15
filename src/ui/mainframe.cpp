@@ -143,6 +143,21 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
         pTaskBarIcon->SetTaskBarIcon();
     }
 
+    // Calculate Monday and Sunday dates
+    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    pLogger->info("MainFrame - Todays date: {0}", date::format("%F", todaysDate));
+
+    // get mondays date
+    auto mondaysDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
+    pLogger->info("MainFrame - Monday date: {0}", date::format("%F", mondaysDate));
+
+    // get sundays date
+    auto sundaysDate = mondaysDate + (date::Sunday - date::Monday);
+    pLogger->info("MainFrame - Sunday date: {0}", date::format("%F", sundaysDate));
+
+    mFromDate = mondaysDate;
+    mToDate = sundaysDate;
+
     // Create controls
     Create();
 
@@ -256,7 +271,7 @@ void MainFrame::CreateControls()
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
 
     /* Data View Model */
-    pTaskTreeModel = new TaskTreeModel();
+    pTaskTreeModel = new TaskTreeModel(mFromDate, mToDate);
     pTaskDataViewCtrl->AssociateModel(pTaskTreeModel.get());
 
     /* Data View Columns */
@@ -306,9 +321,13 @@ void MainFrame::CreateControls()
 
 void MainFrame::FillControls()
 {
-    CalculateAndSetMondayAndSundayFromCurrentDate();
+    auto mondayTimestamp = mFromDate.time_since_epoch();
+    auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
+    pFromDateCtrl->SetValue(mondayTimestampSeconds);
 
-    pTaskTreeModel->SetDayNodeDateLabels(mFromDate, mToDate);
+    auto sundayTimestamp = mToDate.time_since_epoch();
+    auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
+    pToDateCtrl->SetValue(sundayTimestampSeconds);
 }
 
 void MainFrame::DataToControls()
@@ -504,30 +523,5 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
 {
     pLogger->info("MainFrame:OnToDateSelection - Received date event with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
-}
-
-void MainFrame::CalculateAndSetMondayAndSundayFromCurrentDate()
-{
-    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
-    pLogger->info("MainFrame - Todays date: {0}", date::format("%F", todaysDate));
-
-    // get mondays date
-    auto mondaysDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
-    pLogger->info("MainFrame - Monday date: {0}", date::format("%F", mondaysDate));
-
-    // get sundays date
-    auto sundaysDate = mondaysDate + (date::Sunday - date::Monday);
-    pLogger->info("MainFrame - Sunday date: {0}", date::format("%F", sundaysDate));
-
-    mFromDate = mondaysDate;
-    mToDate = sundaysDate;
-
-    auto mondayTimestamp = mondaysDate.time_since_epoch();
-    auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
-    pFromDateCtrl->SetValue(mondayTimestampSeconds);
-
-    auto sundayTimestamp = sundaysDate.time_since_epoch();
-    auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
-    pToDateCtrl->SetValue(sundayTimestampSeconds);
 }
 } // namespace tks::UI

@@ -25,28 +25,29 @@
 
 namespace tks::UI
 {
-TaskTreeModel::TaskTreeModel()
-    : pRoot(nullptr)
-    , pDayNodes()
+TaskTreeModel::TaskTreeModel(std::chrono::time_point<std::chrono::system_clock, date::days> monday,
+    std::chrono::time_point<std::chrono::system_clock, date::days> sunday)
+    : pRoots()
 {
-    pRoot = new TaskTreeModelNode(nullptr, "root-node");
+    auto& dateIterator = monday;
+    int loopIdx = 0;
+    do {
+        auto rootDateNode = new TaskTreeModelNode(nullptr, date::format("%F", dateIterator));
+        pRoots.push_back(rootDateNode);
 
-    /*for (std::size_t i = 0; i < 3; i++) {
-        pDayNodes.push_back(new TaskTreeModelNode(pRoot, "Node Index " + i));
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != sunday);
 
-        auto node1 = new TaskTreeModelNode(pDayNodes[i], "Project " + i, "Cat#1", "00:00", "task description here", i);
-        auto node2 = new TaskTreeModelNode(pDayNodes[i], "Project " + i, "Cat#2", "00:15", "task description here", i);
-
-        pDayNodes[i]->Append(node1);
-        pDayNodes[i]->Append(node2);
-
-        pRoot->Append(pDayNodes[i]);
-    }*/
+    pRoots.push_back(new TaskTreeModelNode(nullptr, date::format("%F", dateIterator)));
 }
 
 TaskTreeModel::~TaskTreeModel()
 {
-    delete pRoot;
+    for (std::size_t i = 0; i < pRoots.size(); i++) {
+        TaskTreeModelNode* child = pRoots[i];
+        delete child;
+    }
 }
 
 unsigned int TaskTreeModel::GetColumnCount() const
@@ -134,8 +135,10 @@ wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
 
     TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
 
-    if (node == pRoot) {
-        return wxDataViewItem(0);
+    for (std::size_t i = 0; i < pRoots.size(); i++) {
+        if (node == pRoots[i]) {
+            return wxDataViewItem(0);
+        }
     }
 
     return wxDataViewItem((void*) node->GetParent());
@@ -155,21 +158,22 @@ unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataView
 {
     TaskTreeModelNode* node = (TaskTreeModelNode*) parent.GetID();
     if (!node) {
-        array.Add(wxDataViewItem((void*) pRoot));
-        return 1;
+        for (std::size_t i = 0; i < pRoots.size(); i++) {
+            TaskTreeModelNode* child = pRoots[i];
+            array.Add(wxDataViewItem((void*) child));
+        }
+
+        return pRoots.size();
     }
 
     if (node->GetChildCount() == 0) {
         return 0;
     }
 
-    unsigned int count = node->GetChildren().GetCount();
-    for (unsigned int pos = 0; pos < count; pos++) {
-        TaskTreeModelNode* child = node->GetChildren().Item(pos);
-        array.Add(wxDataViewItem((void*) child));
+    for (TaskTreeModelNode* child : node->GetChildren()) {
+        array.Add(wxDataViewItem(child));
     }
-
-    return count;
+    return array.size();
 }
 
 void TaskTreeModel::Delete(const wxDataViewItem& item)
@@ -184,22 +188,28 @@ void TaskTreeModel::Delete(const wxDataViewItem& item)
         return;
     }
 
-    // do not delete the special nodes
-    for (std::size_t i = 0; i < 3; i++) {
-        if (node == pDayNodes[i]) {
-            return;
-        }
-    }
-
     node->GetParent()->GetChildren().Remove(node);
     delete node;
 
     ItemDeleted(parent, item);
 }
 
-void TaskTreeModel::ClearAll()
+void TaskTreeModel::Clear()
 {
-    for (std::size_t i = 0; i < 3; i++) {
+    for (std::size_t i = 0; i < pRoots.size(); i++) {
+        TaskTreeModelNode* node = pRoots[i];
+        while (!node->GetChildren().IsEmpty()) {
+            TaskTreeModelNode* child = node->GetNthChild(0);
+            node->GetChildren().Remove(child);
+            delete child;
+        }
+
+        delete node;
+    }
+
+    Cleared();
+
+    /*for (std::size_t i = 0; i < 3; i++) {
         auto node = pDayNodes[i];
         wxDataViewItemArray itemsRemoved;
         unsigned int count = node->GetChildCount();
@@ -220,30 +230,26 @@ void TaskTreeModel::ClearAll()
 
         wxDataViewItem parent((void*) node);
         ItemsDeleted(parent, itemsRemoved);
-    }
+    }*/
 }
 
-void TaskTreeModel::SetDayNodeDateLabels(std::chrono::time_point<std::chrono::system_clock, date::days>& fromDate,
-    std::chrono::time_point<std::chrono::system_clock, date::days>& toDate)
-{
-    auto& dateIterator = fromDate;
-    int loopIdx = 0;
-    do {
-        // - DEBUG
-        auto x = date::format("%F", dateIterator);
-        pDayNodes.push_back(new TaskTreeModelNode(pRoot, date::format("%F", dateIterator)));
-        pDayNodes[loopIdx]->Append(
-            new TaskTreeModelNode(pDayNodes[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
-        pRoot->Append(pDayNodes[loopIdx]);
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != toDate);
-
-    auto x = date::format("%F", dateIterator);
-    pDayNodes.push_back(new TaskTreeModelNode(pRoot, date::format("%F", dateIterator)));
-    pDayNodes[loopIdx]->Append(
-        new TaskTreeModelNode(pDayNodes[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
-    pRoot->Append(pDayNodes[loopIdx]);
-}
+// void TaskTreeModel::SetDayNodeDateLabels(std::chrono::time_point<std::chrono::system_clock, date::days>& fromDate,
+//     std::chrono::time_point<std::chrono::system_clock, date::days>& toDate)
+//{
+//     auto& dateIterator = fromDate;
+//     int loopIdx = 0;
+//     do {
+//         auto rootDateNode = new TaskTreeModelNode(nullptr, date::format("%F", dateIterator));
+//         pRoots.push_back(rootDateNode);
+//         // pRoots[loopIdx]->Append(new TaskTreeModelNode(
+//         //     pRoots[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
+//
+//         dateIterator += date::days{ 1 };
+//         loopIdx++;
+//     } while (dateIterator != toDate);
+//
+//     pRoots.push_back(new TaskTreeModelNode(nullptr, date::format("%F", dateIterator)));
+//     // pRoots[loopIdx]->Append(
+//     //     new TaskTreeModelNode(pRoots[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
+// }
 } // namespace tks::UI
