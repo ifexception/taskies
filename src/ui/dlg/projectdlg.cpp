@@ -437,9 +437,8 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     ClientData<std::int64_t>* employerIdData =
         reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
     if (employerIdData->GetValue() < 1) {
-        pClientChoiceCtrl->Clear();
-        pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
         pClientChoiceCtrl->Disable();
+        pOkButton->Enable();
 
         return;
     }
@@ -460,8 +459,6 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         if (clients.empty()) {
-            pClientChoiceCtrl->Clear();
-            pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
             pClientChoiceCtrl->Disable();
             pOkButton->Enable();
 
