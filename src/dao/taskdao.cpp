@@ -418,6 +418,11 @@ int TaskDao::Delete(const std::int64_t taskId)
     return 0;
 }
 
+int TaskDao::GetByDateRange(std::vector<std::string> dates, std::vector<Model::TaskModel> models)
+{
+    return 0;
+}
+
 const std::string TaskDao::getById = "SELECT "
                                      "task_id, "
                                      "billable, "
@@ -461,4 +466,22 @@ const std::string TaskDao::update = "UPDATE tasks"
                                     "WHERE task_id = ?";
 
 const std::string TaskDao::isActive = "";
+
+const std::string TaskDao::getByDateRange = "SELECT "
+                                            "tasks.task_id, "
+                                            "tasks.billable, "
+                                            "tasks.unique_identifier, "
+                                            "tasks.hours, "
+                                            "tasks.minutes, "
+                                            "tasks.description, "
+                                            "tasks.date_created, "
+                                            "tasks.date_modified, "
+                                            "tasks.is_active, "
+                                            "tasks.project_id, "
+                                            "tasks.category_id, "
+                                            "tasks.workday_id "
+                                            "FROM tasks "
+                                            "INNER JOIN workdays"
+                                            "ON tasks.workday_id = workdays.workday_id"
+                                            "WHERE workdays.date = ?;";
 } // namespace tks::DAO
