@@ -124,7 +124,7 @@ private:
     void OnEditCategory(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
-    /* Error Event Handlers */
+    /* Error Event Handlers */ /*TODO(SW): Is this still relevant?*/
     void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
     void OnAddNotification(wxCommandEvent& event);
@@ -151,6 +151,8 @@ private:
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
     wxDataViewCtrl* pTaskDataViewCtrl;
     wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
+    wxDateTime mFromCtrlDate;
+    wxDateTime mToCtrlDate;
 
     enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_FROMDATE, tksIDC_TODATE, tksIDC_TASKDATAVIEW };
 };

@@ -23,6 +23,7 @@
 
 #include <wx/artprov.h>
 #include <wx/persist/toplevel.h>
+#include <wx/richtooltip.h>
 #include <wx/taskbarbutton.h>
 
 #include <sqlite3.h>
@@ -108,6 +109,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mToDate()
     , pTaskDataViewCtrl(nullptr)
     , pTaskTreeModel(nullptr)
+    , mFromCtrlDate()
+    , mToCtrlDate()
 // clang-format on
 {
     // Initialization setup
@@ -328,6 +331,9 @@ void MainFrame::FillControls()
     auto sundayTimestamp = mToDate.time_since_epoch();
     auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
     pToDateCtrl->SetValue(sundayTimestampSeconds);
+
+    mFromCtrlDate = mondayTimestampSeconds;
+    mToCtrlDate = sundayTimestampSeconds;
 }
 
 void MainFrame::DataToControls()
@@ -517,11 +523,33 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
 {
     pLogger->info("MainFrame:OnFromDateSelection - Received date event with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
+
+    if (event.GetDate() > mToCtrlDate) {
+        auto toDateTimestamp = mToDate.time_since_epoch();
+        auto toDateTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(toDateTimestamp).count();
+        pFromDateCtrl->SetValue(toDateTimestampSeconds);
+
+        wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pFromDateCtrl);
+        return;
+    }
 }
 
 void MainFrame::OnToDateSelection(wxDateEvent& event)
 {
     pLogger->info("MainFrame:OnToDateSelection - Received date event with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
+
+    if (event.GetDate() < mFromCtrlDate) {
+        auto fromDateTimestamp = mFromDate.time_since_epoch();
+        auto fromDateTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(fromDateTimestamp).count();
+        pToDateCtrl->SetValue(fromDateTimestampSeconds);
+
+        wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past from date");
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pToDateCtrl);
+        return;
+    }
 }
 } // namespace tks::UI
