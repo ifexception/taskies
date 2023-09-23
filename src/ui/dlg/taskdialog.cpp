@@ -608,15 +608,13 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     } else {
         if (clients.empty()) {
             pClientChoiceCtrl->Disable();
-
-            return;
         }
 
         for (auto& client : clients) {
             pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
         }
 
-        if (!pClientChoiceCtrl->IsEnabled()) {
+        if (!pClientChoiceCtrl->IsEnabled() && !clients.empty()) {
             pClientChoiceCtrl->Enable();
         }
     }
