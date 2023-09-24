@@ -572,6 +572,7 @@ void TaskDialog::DataToControls()
 void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
+
     pClientChoiceCtrl->Clear();
     pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pClientChoiceCtrl->SetSelection(0);

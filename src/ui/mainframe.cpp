@@ -19,6 +19,8 @@
 
 #include "mainframe.h"
 
+#include <vector>
+
 #include <date/date.h>
 
 #include <wx/artprov.h>
@@ -35,6 +37,9 @@
 
 #include "../core/environment.h"
 #include "../core/configuration.h"
+
+#include "../repository/taskrepository.h"
+#include "../repository/taskrepositorymodel.h"
 
 #include "../utils/utils.h"
 
@@ -347,6 +352,37 @@ void MainFrame::DataToControls()
             TASKIES_MINOR,
             TASKIES_PATCH);
         pInfoBar->ShowMessage(infoBarMessage, wxICON_INFORMATION);
+    }
+
+    // Calculate list of dates between from and to date
+    std::vector<std::string> dates;
+    auto& dateIterator = mFromDate;
+    int loopIdx = 0;
+    do {
+        dates.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != mToDate);
+
+    dates.push_back(date::format("%F", dateIterator));
+
+    // Fetch tasks between mFromDate and mToDate
+    std::vector<repos::TaskRepositoryModel> tasks;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.GetByDateRange(dates, tasks);
+    if (rc != 0) {
+        std::string message = "Failed to fetch tasks";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(this, addNotificationEvent);
+    } else {
+        for (auto& task : tasks) {
+            pLogger->info("{0}: {1}", task.TaskId, task.Description);
+        }
     }
 }
 
