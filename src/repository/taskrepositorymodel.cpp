@@ -20,6 +20,7 @@
 #include "taskrepositorymodel.h"
 
 #include <date/date.h>
+#include <fmt/format.h>
 
 namespace tks::repos
 {
@@ -39,6 +40,11 @@ TaskRepositoryModel::TaskRepositoryModel()
     , ProjectName()
     , CategoryName()
 {
+}
+
+const std::string TaskRepositoryModel::GetDuration()
+{
+    return fmt::format("{0:02}:{1:02}", Hours, Minutes);
 }
 
 const std::string TaskRepositoryModel::GetDateCreatedString() const
