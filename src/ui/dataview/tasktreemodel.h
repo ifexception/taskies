@@ -20,6 +20,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <wx/wxprec.h>
@@ -31,6 +32,8 @@
 #include <date/date.h>
 
 #include "tasktreemodelnode.h"
+
+#include "../../repository/taskrepositorymodel.h"
 
 namespace tks::UI
 {
@@ -55,7 +58,10 @@ public:
     void Clear();
     //void ClearAll();
 
+    void Insert(std::vector<repos::TaskRepositoryModel> models);
+
 private:
     TaskTreeModelNodePtrArray pRoots;
+    //std::unordered_map<std::string, TaskTreeModelNode*> pRootDateNodes;
 };
 } // namespace tks::UI

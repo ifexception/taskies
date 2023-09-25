@@ -233,6 +233,17 @@ void TaskTreeModel::Clear()
     }*/
 }
 
+void TaskTreeModel::Insert(std::vector<repos::TaskRepositoryModel> models)
+{
+    auto mondayNode = pRoots[0];
+
+    for (auto& model : models) {
+        auto node = new TaskTreeModelNode(
+            mondayNode, model.ProjectName, model.CategoryName, model.GetDuration(), model.Description, model.TaskId);
+        mondayNode->Append(node);
+    }
+}
+
 // void TaskTreeModel::SetDayNodeDateLabels(std::chrono::time_point<std::chrono::system_clock, date::days>& fromDate,
 //     std::chrono::time_point<std::chrono::system_clock, date::days>& toDate)
 //{
