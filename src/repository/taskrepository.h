@@ -42,12 +42,12 @@ public:
 
     TaskRepository& operator=(const TaskRepository&) = delete;
 
-    int GetByDateRange(std::vector<std::string> dates, /*out*/ std::vector<TaskRepositoryModel> models);
+    int FilterByDateRange(std::vector<std::string> dates, /*out*/ std::vector<TaskRepositoryModel>& models);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string getByDateRange;
+    static const std::string filterByDateRange;
 };
 } // namespace tks::repos
