@@ -371,7 +371,7 @@ void MainFrame::DataToControls()
     std::vector<repos::TaskRepositoryModel> tasks;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.GetByDateRange(dates, tasks);
+    int rc = taskRepo.FilterByDateRange(dates, tasks);
     if (rc != 0) {
         std::string message = "Failed to fetch tasks";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
