@@ -305,7 +305,7 @@ void MainFrame::CreateControls()
 
     /* Duration Column */
     auto durationColumn =
-        new wxDataViewColumn("Duration", durationTextRenderer, TaskTreeModel::Col_Duration, 80, wxALIGN_LEFT);
+        new wxDataViewColumn("Duration", durationTextRenderer, TaskTreeModel::Col_Duration, 80, wxALIGN_CENTER);
     durationColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     durationColumn->SetResizeable(false);
     pTaskDataViewCtrl->AppendColumn(durationColumn);
@@ -383,6 +383,7 @@ void MainFrame::DataToControls()
         for (auto& task : tasks) {
             pLogger->info("{0}: {1}", task.TaskId, task.Description);
         }
+        pTaskTreeModel->Insert(tasks);
     }
 }
 
