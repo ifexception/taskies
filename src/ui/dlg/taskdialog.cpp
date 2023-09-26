@@ -19,6 +19,8 @@
 
 #include "taskdialog.h"
 
+#include <date/date.h>
+
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -91,6 +93,9 @@ TaskDialog::TaskDialog(wxWindow* parent,
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
+
+    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    mDate = date::format("%F", todaysDate);
 }
 
 void TaskDialog::Create()
@@ -749,8 +754,11 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 
 void TaskDialog::OnDateChange(wxDateEvent& event)
 {
-    auto& date = event.GetDate();
-    mDate = date.FormatISODate().ToStdString();
+    auto& eventDate = event.GetDate();
+    auto dateTicks = eventDate.GetTicks();
+
+    auto date = date::floor<date::days>(std::chrono::system_clock::from_time_t(dateTicks));
+    mDate = date::format("%F", date);
 }
 
 void TaskDialog::OnOK(wxCommandEvent& event)
