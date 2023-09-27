@@ -443,7 +443,11 @@ void MainFrame::OnNotificationClick(wxCommandEvent& event)
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::TaskDialog newTaskDialog(this, pEnv, pLogger, mDatabaseFilePath);
-    newTaskDialog.ShowModal();
+    int ret = newTaskDialog.ShowModal();
+
+    if (ret == wxID_OK) {
+        RefetchTasksForDate();
+    }
 }
 
 void MainFrame::OnNewEmployer(wxCommandEvent& event)
@@ -591,6 +595,30 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDateCtrl);
         return;
+    }
+}
+
+void MainFrame::RefetchTasksForDate()
+{
+    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    auto todaysDateFormatted = date::format("%F", todaysDate);
+
+    std::vector<repos::TaskRepositoryModel> tasks;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.FilterByDate(todaysDateFormatted, tasks);
+    if (rc != 0) {
+        std::string message = "Failed to fetch tasks";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(this, addNotificationEvent);
+    } else {
+        pTaskTreeModel->ClearNodeEntriesByDateKey(todaysDateFormatted);
+        pTaskTreeModel->Insert(todaysDateFormatted, tasks);
+
+        //pTaskDataViewCtrl->Refresh();
     }
 }
 } // namespace tks::UI
