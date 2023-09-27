@@ -270,8 +270,12 @@ void TaskTreeModel::Insert(const std::string& date, std::vector<repos::TaskRepos
     if (iterator != pRoots.end()) {
         auto dateNode = *iterator;
         for (auto& model : models) {
-            auto node = new TaskTreeModelNode(
-                dateNode, model.ProjectName, model.CategoryName, model.GetDuration(), model.Description, model.TaskId);
+            auto node = new TaskTreeModelNode(dateNode,
+                model.ProjectName,
+                model.CategoryName,
+                model.GetDuration(),
+                model.GetTrimmedDescription(),
+                model.TaskId);
             dateNode->Append(node);
         }
     }

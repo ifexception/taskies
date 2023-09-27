@@ -22,6 +22,8 @@
 #include <date/date.h>
 #include <fmt/format.h>
 
+#include "../utils/utils.h"
+
 namespace tks::repos
 {
 TaskRepositoryModel::TaskRepositoryModel()
@@ -45,6 +47,11 @@ TaskRepositoryModel::TaskRepositoryModel()
 const std::string TaskRepositoryModel::GetDuration()
 {
     return fmt::format("{0:02}:{1:02}", Hours, Minutes);
+}
+
+const std::string TaskRepositoryModel::GetTrimmedDescription()
+{
+    return Utils::ReplaceNewlineWithEllipses(Description);
 }
 
 const std::string TaskRepositoryModel::GetDateCreatedString() const
