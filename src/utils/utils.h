@@ -42,6 +42,8 @@ void* Int64ToVoidPointer(std::int64_t value);
 
 std::string TrimWhitespace(const std::string& value);
 
+std::string ReplaceNewlineWithEllipses(const std::string& value);
+
 namespace sqlite
 {
 // SQLite interprets single quotes as string and performs no parameterization.

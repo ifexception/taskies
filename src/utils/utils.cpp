@@ -95,6 +95,27 @@ std::string TrimWhitespace(const std::string& value)
     return trimmedText;
 }
 
+std::string ReplaceNewlineWithEllipses(const std::string& value)
+{
+    std::string replacedString("");
+    const std::string newline("\n");
+    const std::string ellipses("...");
+
+    std::string::size_type index = value.find(newline);
+    if (index != std::string::npos) {
+        replacedString = value.substr(0, value.find(newline));
+    } else {
+        replacedString = value;
+    }
+    size_t startPosition = 0;
+    while ((startPosition = replacedString.find(newline, startPosition) != std::string::npos)) {
+        replacedString.replace(startPosition, newline.length(), ellipses);
+        startPosition += ellipses.length();
+    }
+
+    return replacedString;
+}
+
 namespace sqlite
 {
 std::string FormatSearchTerm(const std::string& source)
