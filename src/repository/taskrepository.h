@@ -45,11 +45,12 @@ public:
 
     int FilterByDateRange(std::vector<std::string> dates,
         /*out*/ std::unordered_map<std::string, std::vector<TaskRepositoryModel>>& models);
+    int FilterByDate(const std::string& date, /*out*/ std::vector<TaskRepositoryModel>& tasks);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filterByDateRange;
+    static const std::string filterByDate;
 };
 } // namespace tks::repos

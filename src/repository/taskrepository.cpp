@@ -89,14 +89,14 @@ int TaskRepository::FilterByDateRange(std::vector<std::string> dates,
         sqlite3_stmt* stmt = nullptr;
 
         int rc = sqlite3_prepare_v2(pDb,
-            TaskRepository::filterByDateRange.c_str(),
-            static_cast<int>(TaskRepository::filterByDateRange.size()),
+            TaskRepository::filterByDate.c_str(),
+            static_cast<int>(TaskRepository::filterByDate.size()),
             &stmt,
             nullptr);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(pDb);
             pLogger->error(
-                LogMessage::PrepareStatementTemplate, "TaskRepository", TaskRepository::filterByDateRange, rc, err);
+                LogMessage::PrepareStatementTemplate, "TaskRepository", TaskRepository::filterByDate, rc, err);
             sqlite3_finalize(stmt);
             return -1;
         }
@@ -160,7 +160,7 @@ int TaskRepository::FilterByDateRange(std::vector<std::string> dates,
 
         if (rc != SQLITE_DONE) {
             const char* err = sqlite3_errmsg(pDb);
-            pLogger->error(LogMessage::ExecStepTemplate, "TaskRepository", TaskRepository::filterByDateRange, rc, err);
+            pLogger->error(LogMessage::ExecStepTemplate, "TaskRepository", TaskRepository::filterByDate, rc, err);
             sqlite3_finalize(stmt);
             return -1;
         }
@@ -173,27 +173,113 @@ int TaskRepository::FilterByDateRange(std::vector<std::string> dates,
     return 0;
 }
 
-const std::string TaskRepository::filterByDateRange = "SELECT "
-                                                      "tasks.task_id, "
-                                                      "tasks.billable, "
-                                                      "tasks.unique_identifier, "
-                                                      "tasks.hours, "
-                                                      "tasks.minutes, "
-                                                      "tasks.description, "
-                                                      "tasks.date_created, "
-                                                      "tasks.date_modified, "
-                                                      "tasks.is_active, "
-                                                      "tasks.project_id, "
-                                                      "tasks.category_id, "
-                                                      "tasks.workday_id, "
-                                                      "projects.display_name,"
-                                                      "categories.name "
-                                                      "FROM tasks "
-                                                      "INNER JOIN workdays "
-                                                      "ON tasks.workday_id = workdays.workday_id "
-                                                      "INNER JOIN projects "
-                                                      "ON tasks.project_id = projects.project_id "
-                                                      "INNER JOIN categories "
-                                                      "ON tasks.category_id = categories.category_id "
-                                                      "WHERE workdays.date = ?;";
+int TaskRepository::FilterByDate(const std::string& date, std::vector<TaskRepositoryModel>& tasks)
+{
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskRepository", "task", date);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        TaskRepository::filterByDate.c_str(),
+        static_cast<int>(TaskRepository::filterByDate.size()),
+        &stmt,
+        nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskRepository", TaskRepository::filterByDate, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_text(stmt, 1, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskRepository", "date", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            TaskRepositoryModel model;
+            rc = SQLITE_ROW;
+            int columnIndex = 0;
+
+            model.TaskId = sqlite3_column_int64(stmt, columnIndex++);
+            model.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.UniqueIdentifier = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                model.UniqueIdentifier = std::make_optional(
+                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+            }
+            columnIndex++;
+
+            model.Hours = sqlite3_column_int(stmt, columnIndex++);
+            model.Minutes = sqlite3_column_int(stmt, columnIndex++);
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            model.Description =
+                std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            model.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
+            model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+            model.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
+            res = sqlite3_column_text(stmt, columnIndex);
+            model.ProjectName =
+                std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            res = sqlite3_column_text(stmt, columnIndex);
+            model.CategoryName =
+                std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            tasks.push_back(model);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskRepository", TaskRepository::filterByDate, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    return 0;
+}
+
+const std::string TaskRepository::filterByDate = "SELECT "
+                                                 "tasks.task_id, "
+                                                 "tasks.billable, "
+                                                 "tasks.unique_identifier, "
+                                                 "tasks.hours, "
+                                                 "tasks.minutes, "
+                                                 "tasks.description, "
+                                                 "tasks.date_created, "
+                                                 "tasks.date_modified, "
+                                                 "tasks.is_active, "
+                                                 "tasks.project_id, "
+                                                 "tasks.category_id, "
+                                                 "tasks.workday_id, "
+                                                 "projects.display_name,"
+                                                 "categories.name "
+                                                 "FROM tasks "
+                                                 "INNER JOIN workdays "
+                                                 "ON tasks.workday_id = workdays.workday_id "
+                                                 "INNER JOIN projects "
+                                                 "ON tasks.project_id = projects.project_id "
+                                                 "INNER JOIN categories "
+                                                 "ON tasks.category_id = categories.category_id "
+                                                 "WHERE workdays.date = ?;";
 } // namespace tks::repos
