@@ -276,24 +276,4 @@ void TaskTreeModel::Insert(const std::string& date, std::vector<repos::TaskRepos
         }
     }
 }
-
-// void TaskTreeModel::SetDayNodeDateLabels(std::chrono::time_point<std::chrono::system_clock, date::days>& fromDate,
-//     std::chrono::time_point<std::chrono::system_clock, date::days>& toDate)
-//{
-//     auto& dateIterator = fromDate;
-//     int loopIdx = 0;
-//     do {
-//         auto rootDateNode = new TaskTreeModelNode(nullptr, date::format("%F", dateIterator));
-//         pRoots.push_back(rootDateNode);
-//         // pRoots[loopIdx]->Append(new TaskTreeModelNode(
-//         //     pRoots[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
-//
-//         dateIterator += date::days{ 1 };
-//         loopIdx++;
-//     } while (dateIterator != toDate);
-//
-//     pRoots.push_back(new TaskTreeModelNode(nullptr, date::format("%F", dateIterator)));
-//     // pRoots[loopIdx]->Append(
-//     //     new TaskTreeModelNode(pRoots[loopIdx], "Project 1", "Cat#1", "00:00", "task description here", loopIdx));
-// }
 } // namespace tks::UI
