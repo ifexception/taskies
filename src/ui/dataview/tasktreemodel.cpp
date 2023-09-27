@@ -248,9 +248,7 @@ void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
         for (unsigned int pos = 0; pos < count; pos++) {
             TaskTreeModelNode* child = node->GetChildren().Item(pos);
             itemsRemoved.Add(wxDataViewItem((void*) child));
-        }
 
-        for (auto child : node->GetChildren()) {
             delete child;
             child = nullptr;
         }
