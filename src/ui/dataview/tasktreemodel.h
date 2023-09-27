@@ -58,10 +58,10 @@ public:
     void Clear();
     //void ClearAll();
 
-    void Insert(std::vector<repos::TaskRepositoryModel> models);
+    void Insert(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
 
 private:
     TaskTreeModelNodePtrArray pRoots;
-    //std::unordered_map<std::string, TaskTreeModelNode*> pRootDateNodes;
+    std::unordered_map<std::string, TaskTreeModelNodePtrArray> pRootDateNodes;
 };
 } // namespace tks::UI

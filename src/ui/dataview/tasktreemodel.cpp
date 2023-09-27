@@ -19,6 +19,7 @@
 
 #include "tasktreemodel.h"
 
+#include <algorithm>
 #include <cstdint>
 
 #include "../../utils/utils.h"
@@ -28,6 +29,7 @@ namespace tks::UI
 TaskTreeModel::TaskTreeModel(std::chrono::time_point<std::chrono::system_clock, date::days> monday,
     std::chrono::time_point<std::chrono::system_clock, date::days> sunday)
     : pRoots()
+    , pRootDateNodes()
 {
     auto& dateIterator = monday;
     int loopIdx = 0;
@@ -233,14 +235,18 @@ void TaskTreeModel::Clear()
     }*/
 }
 
-void TaskTreeModel::Insert(std::vector<repos::TaskRepositoryModel> models)
+void TaskTreeModel::Insert(const std::string& date, std::vector<repos::TaskRepositoryModel> models)
 {
-    auto mondayNode = pRoots[0];
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
-    for (auto& model : models) {
-        auto node = new TaskTreeModelNode(
-            mondayNode, model.ProjectName, model.CategoryName, model.GetDuration(), model.Description, model.TaskId);
-        mondayNode->Append(node);
+    if (iterator != pRoots.end()) {
+        auto dateNode = *iterator;
+        for (auto& model : models) {
+            auto node = new TaskTreeModelNode(
+                dateNode, model.ProjectName, model.CategoryName, model.GetDuration(), model.Description, model.TaskId);
+            dateNode->Append(node);
+        }
     }
 }
 
