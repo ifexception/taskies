@@ -79,13 +79,13 @@ TaskRepository::~TaskRepository()
     pLogger->info(LogMessage::InfoCloseDatabaseConnection, "TaskRepository");
 }
 
-int TaskRepository::FilterByDateRange(std::vector<std::string> dates, std::vector<TaskRepositoryModel>& models)
+int TaskRepository::FilterByDateRange(std::vector<std::string> dates,
+    std::unordered_map<std::string, std::vector<TaskRepositoryModel>>& models)
 {
-    // TODO(SW): each date can have *multiple* tasks associated to a workday
-    // Need to most likely do a double loop
     for (const auto& date : dates) {
         pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskRepository", "task", date);
 
+        std::vector<TaskRepositoryModel> tasks;
         sqlite3_stmt* stmt = nullptr;
 
         int rc = sqlite3_prepare_v2(pDb,
@@ -146,7 +146,7 @@ int TaskRepository::FilterByDateRange(std::vector<std::string> dates, std::vecto
                 model.CategoryName =
                     std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-                models.push_back(model);
+                tasks.push_back(model);
                 break;
             }
             case SQLITE_DONE:
@@ -164,6 +164,8 @@ int TaskRepository::FilterByDateRange(std::vector<std::string> dates, std::vecto
             sqlite3_finalize(stmt);
             return -1;
         }
+
+        models[date] = tasks;
         sqlite3_finalize(stmt);
         pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskRepository", date);
     }

@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <spdlog/logger.h>
@@ -42,7 +43,8 @@ public:
 
     TaskRepository& operator=(const TaskRepository&) = delete;
 
-    int FilterByDateRange(std::vector<std::string> dates, /*out*/ std::vector<TaskRepositoryModel>& models);
+    int FilterByDateRange(std::vector<std::string> dates,
+        /*out*/ std::unordered_map<std::string, std::vector<TaskRepositoryModel>>& models);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;

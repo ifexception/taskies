@@ -19,6 +19,7 @@
 
 #include "mainframe.h"
 
+#include <unordered_map>
 #include <vector>
 
 #include <date/date.h>
@@ -368,10 +369,10 @@ void MainFrame::DataToControls()
     dates.push_back(date::format("%F", dateIterator));
 
     // Fetch tasks between mFromDate and mToDate
-    std::vector<repos::TaskRepositoryModel> tasks;
+    std::unordered_map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDateRange(dates, tasks);
+    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
     if (rc != 0) {
         std::string message = "Failed to fetch tasks";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -380,10 +381,13 @@ void MainFrame::DataToControls()
 
         wxQueueEvent(this, addNotificationEvent);
     } else {
-        for (auto& task : tasks) {
-            pLogger->info("{0}: {1}", task.TaskId, task.Description);
+        for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
+            pLogger->info("{0}", workdayDate);
+            for (auto& task : tasks) {
+                pLogger->info("{0}: {1}", task.TaskId, task.Description);
+            }
+            pTaskTreeModel->Insert(workdayDate, tasks);
         }
-        pTaskTreeModel->Insert(tasks);
     }
 }
 
