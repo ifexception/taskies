@@ -235,6 +235,33 @@ void TaskTreeModel::Clear()
     }*/
 }
 
+void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
+{
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
+
+    if (iterator != pRoots.end()) {
+        auto node = *iterator;
+
+        wxDataViewItemArray itemsRemoved;
+        auto count = node->GetChildCount();
+        for (unsigned int pos = 0; pos < count; pos++) {
+            TaskTreeModelNode* child = node->GetChildren().Item(pos);
+            itemsRemoved.Add(wxDataViewItem((void*) child));
+        }
+
+        for (auto child : node->GetChildren()) {
+            delete child;
+            child = nullptr;
+        }
+
+        node->GetChildren().clear();
+
+        wxDataViewItem parent((void*) node);
+        ItemsDeleted(parent, itemsRemoved);
+    }
+}
+
 void TaskTreeModel::Insert(const std::string& date, std::vector<repos::TaskRepositoryModel> models)
 {
     auto iterator = std::find_if(

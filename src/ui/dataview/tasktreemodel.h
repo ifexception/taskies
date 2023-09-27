@@ -58,6 +58,7 @@ public:
     void Clear();
     //void ClearAll();
 
+    void ClearNodeEntriesByDateKey(const std::string& date);
     void Insert(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
 
 private:
