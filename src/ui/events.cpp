@@ -21,3 +21,4 @@
 
 wxDEFINE_EVENT(tksEVT_ERROR, wxCommandEvent);
 wxDEFINE_EVENT(tksEVT_ADDNOTIFICATION, wxCommandEvent);
+wxDEFINE_EVENT(tksEVT_TASKDATEADDED, wxCommandEvent);
