@@ -757,7 +757,7 @@ void TaskDialog::OnDateChange(wxDateEvent& event)
     auto& eventDate = event.GetDate();
     auto dateTicks = eventDate.GetTicks();
 
-    auto date = date::floor<date::days>(std::chrono::system_clock::from_time_t(dateTicks));
+    auto date = date::ceil<date::days>(std::chrono::system_clock::from_time_t(dateTicks));
     mDate = date::format("%F", date);
 }
 
