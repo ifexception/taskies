@@ -19,6 +19,7 @@
 
 #include "mainframe.h"
 
+#include <algorithm>
 #include <unordered_map>
 #include <vector>
 
@@ -82,6 +83,7 @@ EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
+EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskDateAdded)
 /* Control Event Handlers */
 EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
@@ -357,7 +359,8 @@ void MainFrame::DataToControls()
 
     // Calculate list of dates between from and to date
     std::vector<std::string> dates;
-    auto& dateIterator = mFromDate;
+    auto dateIterator = mFromDate;
+    pLogger->info("MainFrame::DataToControls - [before loop] From date: {0}", date::format("%F", mFromDate));
     int loopIdx = 0;
     do {
         dates.push_back(date::format("%F", dateIterator));
@@ -367,6 +370,8 @@ void MainFrame::DataToControls()
     } while (dateIterator != mToDate);
 
     dates.push_back(date::format("%F", dateIterator));
+
+    pLogger->info("MainFrame::DataToControls - [after loop] From date: {0}", date::format("%F", mFromDate));
 
     // Fetch tasks between mFromDate and mToDate
     std::unordered_map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
@@ -443,11 +448,7 @@ void MainFrame::OnNotificationClick(wxCommandEvent& event)
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::TaskDialog newTaskDialog(this, pEnv, pLogger, mDatabaseFilePath);
-    int ret = newTaskDialog.ShowModal();
-
-    if (ret == wxID_OK) {
-        RefetchTasksForDate();
-    }
+    newTaskDialog.ShowModal();
 }
 
 void MainFrame::OnNewEmployer(wxCommandEvent& event)
@@ -564,6 +565,36 @@ void MainFrame::OnAddNotification(wxCommandEvent& event)
     }
 }
 
+void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
+{
+    // Convert date from wx to date::date
+    auto eventTaskDateAdded = event.GetString().ToStdString();
+
+    // Calculate list of dates between from and to date
+    std::vector<std::string> dates;
+    auto dateIterator = mFromDate;
+    pLogger->info("MainFrame::OnTaskDateAdded - From date: {0}", date::format("%F", mFromDate));
+    int loopIdx = 0;
+    do {
+        dates.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != mToDate);
+
+    dates.push_back(date::format("%F", dateIterator));
+    pLogger->info("MainFrame - To date: {0}", date::format("%F", dateIterator));
+
+    // Check if date that the task was inserted for is in the selected range of our wxDateTimeCtrl's
+    auto iterator =
+        std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateAdded; });
+
+    // If we are in range, refetch the data for our particular date
+    if (iterator != dates.end()) {
+        RefetchTasksForDate(*iterator);
+    }
+}
+
 void MainFrame::OnFromDateSelection(wxDateEvent& event)
 {
     pLogger->info("MainFrame:OnFromDateSelection - Received date event with value \"{0}\"",
@@ -598,15 +629,12 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     }
 }
 
-void MainFrame::RefetchTasksForDate()
+void MainFrame::RefetchTasksForDate(const std::string& date)
 {
-    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
-    auto todaysDateFormatted = date::format("%F", todaysDate);
-
     std::vector<repos::TaskRepositoryModel> tasks;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDate(todaysDateFormatted, tasks);
+    int rc = taskRepo.FilterByDate(date, tasks);
     if (rc != 0) {
         std::string message = "Failed to fetch tasks";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -615,10 +643,8 @@ void MainFrame::RefetchTasksForDate()
 
         wxQueueEvent(this, addNotificationEvent);
     } else {
-        pTaskTreeModel->ClearNodeEntriesByDateKey(todaysDateFormatted);
-        pTaskTreeModel->Insert(todaysDateFormatted, tasks);
-
-        //pTaskDataViewCtrl->Refresh();
+        pTaskTreeModel->ClearNodeEntriesByDateKey(date);
+        pTaskTreeModel->Insert(date, tasks);
     }
 }
 } // namespace tks::UI

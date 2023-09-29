@@ -128,12 +128,13 @@ private:
     void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
     void OnAddNotification(wxCommandEvent& event);
+    void OnTaskDateAdded(wxCommandEvent& event);
     /* Control Event Handlers */
     void OnNotificationClick(wxCommandEvent& event);
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
 
-    void RefetchTasksForDate();
+    void RefetchTasksForDate(const std::string& date);
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
