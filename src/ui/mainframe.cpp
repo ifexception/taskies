@@ -569,6 +569,7 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
 {
     // Convert date from wx to date::date
     auto eventTaskDateAdded = event.GetString().ToStdString();
+    pLogger->info("MainFrame::OnTaskDateAdded - Received task added event with date \"{0}\"", eventTaskDateAdded);
 
     // Calculate list of dates between from and to date
     std::vector<std::string> dates;
