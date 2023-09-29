@@ -282,7 +282,7 @@ void MainFrame::CreateControls()
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
 
     /* Data View Model */
-    pTaskTreeModel = new TaskTreeModel(mFromDate, mToDate);
+    pTaskTreeModel = new TaskTreeModel(mFromDate, mToDate, pLogger);
     pTaskDataViewCtrl->AssociateModel(pTaskTreeModel.get());
 
     /* Data View Columns */
@@ -360,8 +360,8 @@ void MainFrame::DataToControls()
     // Calculate list of dates between from and to date
     std::vector<std::string> dates;
     auto dateIterator = mFromDate;
-    pLogger->info("MainFrame::DataToControls - [before loop] From date: {0}", date::format("%F", mFromDate));
     int loopIdx = 0;
+
     do {
         dates.push_back(date::format("%F", dateIterator));
 
@@ -573,8 +573,8 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
     // Calculate list of dates between from and to date
     std::vector<std::string> dates;
     auto dateIterator = mFromDate;
-    pLogger->info("MainFrame::OnTaskDateAdded - From date: {0}", date::format("%F", mFromDate));
     int loopIdx = 0;
+
     do {
         dates.push_back(date::format("%F", dateIterator));
 
@@ -597,7 +597,7 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
 
 void MainFrame::OnFromDateSelection(wxDateEvent& event)
 {
-    pLogger->info("MainFrame:OnFromDateSelection - Received date event with value \"{0}\"",
+    pLogger->info("MainFrame::OnFromDateSelection - Received date event with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
 
     if (event.GetDate() > mToCtrlDate) {

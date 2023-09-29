@@ -19,8 +19,8 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include <wx/wxprec.h>
@@ -30,6 +30,8 @@
 #include <wx/dataview.h>
 
 #include <date/date.h>
+
+#include <spdlog/logger.h>
 
 #include "tasktreemodelnode.h"
 
@@ -43,7 +45,8 @@ public:
     enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
 
     TaskTreeModel(std::chrono::time_point<std::chrono::system_clock, date::days> monday,
-        std::chrono::time_point<std::chrono::system_clock, date::days> sunday);
+        std::chrono::time_point<std::chrono::system_clock, date::days> sunday,
+        std::shared_ptr<spdlog::logger> logger);
     ~TaskTreeModel();
 
     unsigned int GetColumnCount() const override;
@@ -56,13 +59,13 @@ public:
     unsigned int GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;
     void Delete(const wxDataViewItem& item);
     void Clear();
-    //void ClearAll();
+    // void ClearAll();
 
     void ClearNodeEntriesByDateKey(const std::string& date);
     void Insert(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
 
 private:
+    std::shared_ptr<spdlog::logger> pLogger;
     TaskTreeModelNodePtrArray pRoots;
-    std::unordered_map<std::string, TaskTreeModelNodePtrArray> pRootDateNodes;
 };
 } // namespace tks::UI

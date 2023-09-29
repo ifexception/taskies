@@ -27,10 +27,12 @@
 namespace tks::UI
 {
 TaskTreeModel::TaskTreeModel(std::chrono::time_point<std::chrono::system_clock, date::days> monday,
-    std::chrono::time_point<std::chrono::system_clock, date::days> sunday)
-    : pRoots()
-    , pRootDateNodes()
+    std::chrono::time_point<std::chrono::system_clock, date::days> sunday,
+    std::shared_ptr<spdlog::logger> logger)
+    : pLogger(logger)
+    , pRoots()
 {
+    pLogger->info("TaskTreeModel - Initialize root nodes starting from {0}", date::format("%F", monday));
     auto& dateIterator = monday;
     int loopIdx = 0;
     do {
@@ -46,6 +48,7 @@ TaskTreeModel::TaskTreeModel(std::chrono::time_point<std::chrono::system_clock, 
 
 TaskTreeModel::~TaskTreeModel()
 {
+    pLogger->info("TaskTreeModel - Delete root nodes");
     for (std::size_t i = 0; i < pRoots.size(); i++) {
         TaskTreeModelNode* child = pRoots[i];
         delete child;
@@ -89,7 +92,7 @@ void TaskTreeModel::GetValue(wxVariant& variant, const wxDataViewItem& item, uns
         break;
     case Col_Max:
     default:
-        // log error
+        pLogger->info("TaskTreeModel::GetValue - Invalid column selected");
         break;
     }
 }
@@ -117,7 +120,7 @@ bool TaskTreeModel::SetValue(const wxVariant& variant, const wxDataViewItem& ite
         break;
     case Col_Max:
     default:
-        // pLogger
+        pLogger->info("TaskTreeModel::SetValue - Invalid column selected");
         break;
     }
 
@@ -131,7 +134,9 @@ bool TaskTreeModel::IsEnabled(const wxDataViewItem& item, unsigned int col) cons
 
 wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
 {
+    pLogger->info("TaskTreeModel::GetParent - Begin to get parent");
     if (!item.IsOk()) {
+        pLogger->info("TaskTreeModel::GetParent - Selected \"wxDataViewItem\" is not OK");
         return wxDataViewItem(0);
     }
 
@@ -139,15 +144,19 @@ wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
 
     for (std::size_t i = 0; i < pRoots.size(); i++) {
         if (node == pRoots[i]) {
+            pLogger->info(
+                "TaskTreeModel::GetParent - Node matched with one of the root nodes \"{0}\"", node->GetProjectName());
             return wxDataViewItem(0);
         }
     }
 
+    pLogger->info("TaskTreeModel::GetParent - Node is child, call up the node structure");
     return wxDataViewItem((void*) node->GetParent());
 }
 
 bool TaskTreeModel::IsContainer(const wxDataViewItem& item) const
 {
+    pLogger->info("TaskTreeModel::IsContainer - Begin to check if node is container");
     if (!item.IsOk()) {
         return true;
     }
@@ -158,8 +167,10 @@ bool TaskTreeModel::IsContainer(const wxDataViewItem& item) const
 
 unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const
 {
+    pLogger->info("TaskTreeModel::GetChildren - Begin to get children of parent");
     TaskTreeModelNode* node = (TaskTreeModelNode*) parent.GetID();
     if (!node) {
+        pLogger->info("TaskTreeModel::GetChildren - Selected node is a parent node");
         for (std::size_t i = 0; i < pRoots.size(); i++) {
             TaskTreeModelNode* child = pRoots[i];
             array.Add(wxDataViewItem((void*) child));
@@ -172,6 +183,7 @@ unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataView
         return 0;
     }
 
+    pLogger->info("TaskTreeModel::GetChildren - Get children node");
     for (TaskTreeModelNode* child : node->GetChildren()) {
         array.Add(wxDataViewItem(child));
     }
@@ -180,16 +192,19 @@ unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataView
 
 void TaskTreeModel::Delete(const wxDataViewItem& item)
 {
+    pLogger->info("TaskTreeModel::Delete - Begin to delete node");
     TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
-    if (!node) { // happens if item.IsOk()==false
+    if (!node) {
         return;
     }
 
     wxDataViewItem parent(node->GetParent());
     if (!parent.IsOk()) { // this means that the root node was clicked and has no parent
+        pLogger->info("TaskTreeModel::Delete - Root node selected and skipping deletion of root node");
         return;
     }
 
+    pLogger->info("TaskTreeModel::Delete - Delete node from parent");
     node->GetParent()->GetChildren().Remove(node);
     delete node;
 
@@ -237,11 +252,14 @@ void TaskTreeModel::Clear()
 
 void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
 {
+    pLogger->info("TaskTreeModel::ClearNodeEntriesByDateKey - Begin");
     auto iterator = std::find_if(
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
     if (iterator != pRoots.end()) {
         auto node = *iterator;
+        pLogger->info("TaskTreeModel::ClearNodeEntriesByDateKey - Located root node associated with date key \"{0}\"",
+            node->GetProjectName());
 
         wxDataViewItemArray itemsRemoved;
         auto count = node->GetChildCount();
@@ -253,6 +271,7 @@ void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
             child = nullptr;
         }
 
+        pLogger->info("TaskTreeModel::ClearNodeEntriesByDateKey - Removed children {0}", count);
         node->GetChildren().clear();
 
         wxDataViewItem parent((void*) node);
@@ -262,11 +281,16 @@ void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
 
 void TaskTreeModel::Insert(const std::string& date, std::vector<repos::TaskRepositoryModel> models)
 {
+    pLogger->info("TaskTreeModel::Insert - Begin insertion of tasks for \"{0}\"", date);
     auto iterator = std::find_if(
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
     if (iterator != pRoots.end()) {
         auto dateNode = *iterator;
+
+        pLogger->info(
+            "TaskTreeModel::Insert - Located root node associated with date key \"{0}\"", dateNode->GetProjectName());
+
         for (auto& model : models) {
             auto node = new TaskTreeModelNode(dateNode,
                 model.ProjectName,
@@ -276,6 +300,8 @@ void TaskTreeModel::Insert(const std::string& date, std::vector<repos::TaskRepos
                 model.TaskId);
             dateNode->Append(node);
         }
+
+        pLogger->info("TaskTreeModel::Insert - Number of inserted tasks \"{0}\"", models.size());
     }
 }
 } // namespace tks::UI
