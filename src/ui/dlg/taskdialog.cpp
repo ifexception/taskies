@@ -790,9 +790,9 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             std::int64_t taskId = taskDao.Create(mTaskModel);
             ret = taskId > 0 ? 0 : -1;
 
-            message = ret == -1
+            ret == -1
                 ? message = "Failed to create task"
-                : "Successfully created task";
+                : message = "Successfully created task";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = taskDao.Update(mTaskModel);
@@ -822,6 +822,11 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             addNotificationEvent->SetClientObject(clientData);
 
             wxQueueEvent(pParent, addNotificationEvent);
+
+            wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
+            taskAddedEvent->SetString(mDate);
+
+            wxQueueEvent(pParent, taskAddedEvent);
 
             EndModal(wxID_OK);
         }
