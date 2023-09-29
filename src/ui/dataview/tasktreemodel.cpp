@@ -156,7 +156,6 @@ wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
 
 bool TaskTreeModel::IsContainer(const wxDataViewItem& item) const
 {
-    pLogger->info("TaskTreeModel::IsContainer - Begin to check if node is container");
     if (!item.IsOk()) {
         return true;
     }
