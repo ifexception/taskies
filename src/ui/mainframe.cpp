@@ -387,10 +387,6 @@ void MainFrame::DataToControls()
         wxQueueEvent(this, addNotificationEvent);
     } else {
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
-            pLogger->info("{0}", workdayDate);
-            for (auto& task : tasks) {
-                pLogger->info("{0}: {1}", task.TaskId, task.Description);
-            }
             pTaskTreeModel->Insert(workdayDate, tasks);
         }
     }
@@ -610,6 +606,66 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pFromDateCtrl);
         return;
+    }
+
+    auto eventDate = wxDateTime(event.GetDate());
+    auto currentDate = wxDateTime::Now();
+    auto sixMonthsPast = currentDate.Subtract(wxDateSpan::Months(6));
+
+    bool isYearMoreThanSixMonths = eventDate.GetYear() < sixMonthsPast.GetYear();
+    bool isMonthMoreThanSixMonths = eventDate.GetMonth() < sixMonthsPast.GetMonth();
+
+    if (isYearMoreThanSixMonths || isMonthMoreThanSixMonths) {
+        int ret = wxMessageBox(
+            "Are you sure you want to load tasks that are older than six (6) months?", "Confirmation", wxYES_NO, this);
+        if (ret == wxNO) {
+            auto toDateTimestamp = mToDate.time_since_epoch();
+            auto toDateTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(toDateTimestamp).count();
+            pFromDateCtrl->SetValue(toDateTimestampSeconds);
+            return;
+        }
+    }
+
+    auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+    auto eventDateUtcTicks = eventDateUtc.GetTicks();
+
+    auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+    mFromDate = newFromDate;
+
+    pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
+        date::format("%F", mFromDate),
+        date::format("%F", mToDate));
+    // Calculate list of dates between from and to date
+    std::vector<std::string> dates;
+    auto dateIterator = mFromDate;
+    int loopIdx = 0;
+
+    do {
+        dates.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != mToDate);
+
+    dates.push_back(date::format("%F", dateIterator));
+
+    // Fetch all the tasks for said date range
+    std::unordered_map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
+    if (rc != 0) {
+        std::string message = "Failed to fetch tasks";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(this, addNotificationEvent);
+    } else {
+        pTaskTreeModel->ClearAll();
+        for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
+            pTaskTreeModel->Insert(workdayDate, tasks);
+        }
     }
 }
 
