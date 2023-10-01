@@ -224,29 +224,30 @@ void TaskTreeModel::Clear()
     }
 
     Cleared();
+}
 
-    /*for (std::size_t i = 0; i < 3; i++) {
-        auto node = pDayNodes[i];
+void TaskTreeModel::ClearAll()
+{
+    for (size_t i = 0; i < pRoots.size(); i++) {
+        auto node = pRoots[i];
         wxDataViewItemArray itemsRemoved;
         unsigned int count = node->GetChildCount();
 
         for (unsigned int pos = 0; pos < count; pos++) {
             TaskTreeModelNode* child = node->GetChildren().Item(pos);
             itemsRemoved.Add(wxDataViewItem((void*) child));
-        }
 
-        for (auto child : node->GetChildren()) {
             delete child;
             child = nullptr;
         }
 
         node->GetChildren().clear();
 
-        count = node->GetChildCount();
-
         wxDataViewItem parent((void*) node);
         ItemsDeleted(parent, itemsRemoved);
-    }*/
+
+        delete node;
+    }
 }
 
 void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)

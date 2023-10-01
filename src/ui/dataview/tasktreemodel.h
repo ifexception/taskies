@@ -59,7 +59,7 @@ public:
     unsigned int GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;
     void Delete(const wxDataViewItem& item);
     void Clear();
-    // void ClearAll();
+    void ClearAll();
 
     void ClearNodeEntriesByDateKey(const std::string& date);
     void Insert(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
