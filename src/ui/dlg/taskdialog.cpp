@@ -754,11 +754,15 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 
 void TaskDialog::OnDateChange(wxDateEvent& event)
 {
-    auto& eventDate = event.GetDate();
-    auto dateTicks = eventDate.GetTicks();
+    pLogger->info(
+        "TaskDialog::OnDateChange - Received date from event \"{0}\"", event.GetDate().FormatISODate().ToStdString());
+    wxDateTime eventDate = wxDateTime(event.GetDate());
+    auto& eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+    auto dateTicks = eventDateUtc.GetTicks();
 
-    auto date = date::ceil<date::days>(std::chrono::system_clock::from_time_t(dateTicks));
+    auto date = date::floor<date::days>(std::chrono::system_clock::from_time_t(dateTicks));
     mDate = date::format("%F", date);
+    pLogger->info("TaskDialog::OnDateChange - mDate is \"{0}\"", mDate);
 }
 
 void TaskDialog::OnOK(wxCommandEvent& event)
