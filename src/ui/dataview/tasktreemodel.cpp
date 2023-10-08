@@ -245,9 +245,18 @@ void TaskTreeModel::ClearAll()
 
         wxDataViewItem parent((void*) node);
         ItemsDeleted(parent, itemsRemoved);
-
-        delete node;
     }
+    for (std::size_t i = 0; i < pRoots.size(); i++) {
+        wxDataViewItemArray itemsRemoved;
+        TaskTreeModelNode* child = pRoots[i];
+        itemsRemoved.Add(wxDataViewItem((void*) child));
+
+        wxDataViewItem parent((void*) child->GetParent());
+        ItemsDeleted(parent, itemsRemoved);
+
+        delete child;
+    }
+    pRoots.clear();
 }
 
 void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
