@@ -332,6 +332,15 @@ void MainFrame::CreateControls()
 
 void MainFrame::FillControls()
 {
+    // This date was selected arbitrarily
+    // wxDatePickerCtrl needs a from and to date for the range
+    // So we pick 2000-01-01 as that date
+    // Conceivably, a user shouldn't go that far back
+    wxDateTime maxFromDate = wxDateTime::Now();
+    maxFromDate.SetYear(2000);
+    maxFromDate.SetMonth(wxDateTime::Jan);
+    maxFromDate.SetDay(1);
+
     auto mondayTimestamp = mFromDate.time_since_epoch();
     auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
     pFromDateCtrl->SetValue(mondayTimestampSeconds);
@@ -342,6 +351,9 @@ void MainFrame::FillControls()
 
     mFromCtrlDate = mondayTimestampSeconds;
     mToCtrlDate = sundayTimestampSeconds;
+
+    pFromDateCtrl->SetRange(maxFromDate, wxDateTime(sundayTimestampSeconds));
+    pToDateCtrl->SetRange(maxFromDate, wxDateTime(sundayTimestampSeconds));
 }
 
 void MainFrame::DataToControls()
@@ -635,6 +647,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
         date::format("%F", mFromDate),
         date::format("%F", mToDate));
+
     // Calculate list of dates between from and to date
     std::vector<std::string> dates;
     auto dateIterator = mFromDate;
@@ -664,7 +677,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
-            pTaskTreeModel->Insert(workdayDate, tasks);
+            //pTaskTreeModel->Insert(workdayDate, tasks);
         }
     }
 }
