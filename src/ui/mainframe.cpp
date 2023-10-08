@@ -334,10 +334,10 @@ void MainFrame::FillControls()
 {
     // This date was selected arbitrarily
     // wxDatePickerCtrl needs a from and to date for the range
-    // So we pick 2000-01-01 as that date
+    // So we pick 2015-01-01 as that date
     // Conceivably, a user shouldn't go that far back
     wxDateTime maxFromDate = wxDateTime::Now();
-    maxFromDate.SetYear(2000);
+    maxFromDate.SetYear(2015);
     maxFromDate.SetMonth(wxDateTime::Jan);
     maxFromDate.SetDay(1);
 
