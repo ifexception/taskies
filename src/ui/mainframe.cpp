@@ -399,7 +399,7 @@ void MainFrame::DataToControls()
         wxQueueEvent(this, addNotificationEvent);
     } else {
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
-            pTaskTreeModel->Insert(workdayDate, tasks);
+            pTaskTreeModel->InsertChildNodes(workdayDate, tasks);
         }
     }
 }
@@ -677,7 +677,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
-            //pTaskTreeModel->Insert(workdayDate, tasks);
+            pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
         }
     }
 }
@@ -714,7 +714,7 @@ void MainFrame::RefetchTasksForDate(const std::string& date)
         wxQueueEvent(this, addNotificationEvent);
     } else {
         pTaskTreeModel->ClearNodeEntriesByDateKey(date);
-        pTaskTreeModel->Insert(date, tasks);
+        pTaskTreeModel->InsertChildNodes(date, tasks);
     }
 }
 } // namespace tks::UI

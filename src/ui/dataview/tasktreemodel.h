@@ -62,7 +62,8 @@ public:
     void ClearAll();
 
     void ClearNodeEntriesByDateKey(const std::string& date);
-    void Insert(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
+    void InsertChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
+    void InsertRootAndChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;

@@ -288,17 +288,17 @@ void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
     }
 }
 
-void TaskTreeModel::Insert(const std::string& date, std::vector<repos::TaskRepositoryModel> models)
+void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models)
 {
-    pLogger->info("TaskTreeModel::Insert - Begin insertion of tasks for \"{0}\"", date);
+    pLogger->info("TaskTreeModel::InsertChildNodes - Begin insertion of tasks for \"{0}\"", date);
     auto iterator = std::find_if(
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
     if (iterator != pRoots.end()) {
         auto dateNode = *iterator;
 
-        pLogger->info(
-            "TaskTreeModel::Insert - Located root node associated with date key \"{0}\"", dateNode->GetProjectName());
+        pLogger->info("TaskTreeModel::InsertChildNodes - Located root node associated with date key \"{0}\"",
+            dateNode->GetProjectName());
 
         for (auto& model : models) {
             auto node = new TaskTreeModelNode(dateNode,
@@ -310,7 +310,32 @@ void TaskTreeModel::Insert(const std::string& date, std::vector<repos::TaskRepos
             dateNode->Append(node);
         }
 
-        pLogger->info("TaskTreeModel::Insert - Number of inserted tasks \"{0}\"", models.size());
+        pLogger->info("TaskTreeModel::InsertChildNodes - Number of inserted children \"{0}\"", models.size());
     }
+}
+
+void TaskTreeModel::InsertRootAndChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models)
+{
+    pLogger->info("TaskTreeModel::InsertRootAndChildNodes - Begin insertion of tasks for \"{0}\"", date);
+
+    auto rootDateNode = new TaskTreeModelNode(nullptr, date);
+    pRoots.push_back(rootDateNode);
+
+    /* for (auto& model : models) {
+         auto node = new TaskTreeModelNode(rootDateNode,
+             model.ProjectName,
+             model.CategoryName,
+             model.GetDuration(),
+             model.GetTrimmedDescription(),
+             model.TaskId);
+         rootDateNode->Append(node);
+     }*/
+
+    wxDataViewItem child((void*) rootDateNode);
+    wxDataViewItem parent((void*) nullptr);
+    ItemAdded(parent, child);
+
+    pLogger->info(
+        "TaskTreeModel::InsertRootAndChildNodes - Inserted \"{0}\" children for root node {1}", models.size(), date);
 }
 } // namespace tks::UI
