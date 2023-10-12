@@ -20,7 +20,7 @@
 #include "mainframe.h"
 
 #include <algorithm>
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 #include <date/date.h>
@@ -386,7 +386,7 @@ void MainFrame::DataToControls()
     pLogger->info("MainFrame::DataToControls - [after loop] From date: {0}", date::format("%F", mFromDate));
 
     // Fetch tasks between mFromDate and mToDate
-    std::unordered_map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
+    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
     int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
@@ -663,7 +663,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     dates.push_back(date::format("%F", dateIterator));
 
     // Fetch all the tasks for said date range
-    std::unordered_map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
+    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
     int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);

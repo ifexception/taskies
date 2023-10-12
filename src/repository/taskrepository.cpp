@@ -80,7 +80,7 @@ TaskRepository::~TaskRepository()
 }
 
 int TaskRepository::FilterByDateRange(std::vector<std::string> dates,
-    std::unordered_map<std::string, std::vector<TaskRepositoryModel>>& models)
+    std::map<std::string, std::vector<TaskRepositoryModel>>& models)
 {
     for (const auto& date : dates) {
         pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskRepository", "task", date);
