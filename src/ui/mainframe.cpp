@@ -606,13 +606,17 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
 
 void MainFrame::OnFromDateSelection(wxDateEvent& event)
 {
-    pLogger->info("MainFrame::OnFromDateSelection - Received date event with value \"{0}\"",
+    pLogger->info("MainFrame::OnFromDateSelection - Received date (wxDateTime) with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
 
-    if (event.GetDate() > mToCtrlDate) {
-        auto toDateTimestamp = mToDate.time_since_epoch();
-        auto toDateTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(toDateTimestamp).count();
-        pFromDateCtrl->SetValue(toDateTimestampSeconds);
+    auto eventDate = wxDateTime(event.GetDate());
+
+    auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+    auto eventDateUtcTicks = eventDateUtc.GetTicks();
+
+    if (eventDateUtc >= mToCtrlDate) {
+        ResetFromDate();
+        RefetchTasksForDateRange();
 
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
         toolTip.SetIcon(wxICON_WARNING);
@@ -620,12 +624,11 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         return;
     }
 
-    auto eventDate = wxDateTime(event.GetDate());
     auto currentDate = wxDateTime::Now();
     auto sixMonthsPast = currentDate.Subtract(wxDateSpan::Months(6));
 
-    bool isYearMoreThanSixMonths = eventDate.GetYear() < sixMonthsPast.GetYear();
-    bool isMonthMoreThanSixMonths = eventDate.GetMonth() < sixMonthsPast.GetMonth();
+    bool isYearMoreThanSixMonths = eventDateUtc.GetYear() < sixMonthsPast.GetYear();
+    bool isMonthMoreThanSixMonths = eventDateUtc.GetMonth() < sixMonthsPast.GetMonth();
 
     if (isYearMoreThanSixMonths || isMonthMoreThanSixMonths) {
         int ret = wxMessageBox(
@@ -638,10 +641,8 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         }
     }
 
-    auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
-    auto eventDateUtcTicks = eventDateUtc.GetTicks();
-
     auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+    pLogger->info("MainFrame::OnFromDateSelection - New from date value \"{0}\"", date::format("%F", newFromDate));
     mFromDate = newFromDate;
 
     pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
@@ -684,7 +685,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
 
 void MainFrame::OnToDateSelection(wxDateEvent& event)
 {
-    pLogger->info("MainFrame:OnToDateSelection - Received date event with value \"{0}\"",
+    pLogger->info("MainFrame:OnToDateSelection - Received date (wxDateTime) event with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
 
     if (event.GetDate() < mFromCtrlDate) {
@@ -696,6 +697,60 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDateCtrl);
         return;
+    }
+}
+
+void MainFrame::ResetFromDate()
+{
+    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    pLogger->info("MainFrame::ResetFromDate - Todays date: {0}", date::format("%F", todaysDate));
+
+    auto mondaysDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
+    pLogger->info("MainFrame::ResetFromDate - Monday date: {0}", date::format("%F", mondaysDate));
+
+    mFromDate = mondaysDate;
+
+    auto mondayTimestamp = mFromDate.time_since_epoch();
+    auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
+    pFromDateCtrl->SetValue(mondayTimestampSeconds);
+}
+
+void MainFrame::RefetchTasksForDateRange()
+{
+    pLogger->info("MainFrame::RefetchTasksForDateRange - Dates: \"{0}\" - \"{1}\"",
+        date::format("%F", mFromDate),
+        date::format("%F", mToDate));
+
+    std::vector<std::string> dates;
+    auto dateIterator = mFromDate;
+    int loopIdx = 0;
+
+    do {
+        dates.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != mToDate);
+
+    dates.push_back(date::format("%F", dateIterator));
+
+    // Fetch tasks between mFromDate and mToDate
+    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
+    if (rc != 0) {
+        std::string message = "Failed to fetch tasks";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(this, addNotificationEvent);
+    } else {
+        pTaskTreeModel->ClearAll();
+        for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
+            pTaskTreeModel->InsertChildNodes(workdayDate, tasks);
+        }
     }
 }
 

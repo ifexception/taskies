@@ -134,6 +134,8 @@ private:
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
 
+    void ResetFromDate();
+    void RefetchTasksForDateRange();
     void RefetchTasksForDate(const std::string& date);
 
     std::shared_ptr<spdlog::logger> pLogger;
