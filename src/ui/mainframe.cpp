@@ -270,6 +270,7 @@ void MainFrame::CreateControls()
     topSizer->AddStretchSpacer();
 
     pNotificationButton = new wxBitmapButton(panel, tksIDC_NOTIFICATIONBUTTON, mBellBitmap);
+    pNotificationButton->SetToolTip("View notifications");
     topSizer->Add(pNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
