@@ -134,7 +134,8 @@ private:
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
 
-    void ResetFromDate();
+    void ResetDateRange();
+    void ResetDatePickerValues();
     void RefetchTasksForDateRange();
     void RefetchTasksForDate(const std::string& date);
 

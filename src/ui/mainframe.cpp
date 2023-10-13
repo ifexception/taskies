@@ -615,7 +615,8 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
     if (eventDateUtc >= mToCtrlDate) {
-        ResetFromDate();
+        ResetDateRange();
+        ResetDatePickerValues();
         RefetchTasksForDateRange();
 
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
@@ -700,7 +701,7 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     }
 }
 
-void MainFrame::ResetFromDate()
+void MainFrame::ResetDateRange()
 {
     auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
     pLogger->info("MainFrame::ResetFromDate - Todays date: {0}", date::format("%F", todaysDate));
@@ -708,11 +709,25 @@ void MainFrame::ResetFromDate()
     auto mondaysDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
     pLogger->info("MainFrame::ResetFromDate - Monday date: {0}", date::format("%F", mondaysDate));
 
-    mFromDate = mondaysDate;
+    auto sundaysDate = mondaysDate + (date::Sunday - date::Monday);
+    pLogger->info("MainFrame::ResetFromDate - Sunday date: {0}", date::format("%F", sundaysDate));
 
+    mFromDate = mondaysDate;
+    mToDate = sundaysDate;
+}
+
+void MainFrame::ResetDatePickerValues()
+{
     auto mondayTimestamp = mFromDate.time_since_epoch();
     auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
     pFromDateCtrl->SetValue(mondayTimestampSeconds);
+
+    auto sundayTimestamp = mToDate.time_since_epoch();
+    auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
+    pToDateCtrl->SetValue(sundayTimestampSeconds);
+
+    mFromCtrlDate = mondayTimestampSeconds;
+    mToCtrlDate = sundayTimestampSeconds;
 }
 
 void MainFrame::RefetchTasksForDateRange()
@@ -749,7 +764,7 @@ void MainFrame::RefetchTasksForDateRange()
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
-            pTaskTreeModel->InsertChildNodes(workdayDate, tasks);
+            pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
         }
     }
 }
