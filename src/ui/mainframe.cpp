@@ -614,7 +614,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
-    if (eventDateUtc >= mToCtrlDate) {
+    if (eventDateUtc > mToCtrlDate) {
         ResetDateRange();
         ResetDatePickerValues();
         RefetchTasksForDateRange();
@@ -649,6 +649,27 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
         date::format("%F", mFromDate),
         date::format("%F", mToDate));
+
+    if (mFromDate == mToDate) {
+        auto date = date::format("%F", newFromDate);
+
+        std::vector<repos::TaskRepositoryModel> tasks;
+        repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+        int rc = taskRepo.FilterByDate(date, tasks);
+        if (rc != 0) {
+            std::string message = "Failed to fetch tasks";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(this, addNotificationEvent);
+        } else {
+            pTaskTreeModel->ClearAll();
+            pTaskTreeModel->InsertRootAndChildNodes(date, tasks);
+        }
+        return;
+    }
 
     // Calculate list of dates between from and to date
     std::vector<std::string> dates;
