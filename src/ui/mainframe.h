@@ -54,7 +54,9 @@ enum class MenuIds : int {
     Edit_Project,
     Edit_Category,
     View_Preferences,
-    Help_About
+    Help_About,
+
+    Unp_ResetDatesToCurrentWeek = 128,
 };
 
 /* File */
@@ -75,6 +77,9 @@ static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preference
 
 /* Help */
 static const int ID_HELP_ABOUT = static_cast<int>(MenuIds::Help_About);
+
+/* Not (actual) menu items */
+static const int ID_RESET_DATES_TO_CURRENT_WEEK = static_cast<int>(MenuIds::Unp_ResetDatesToCurrentWeek);
 
 namespace Core
 {
@@ -133,6 +138,8 @@ private:
     void OnNotificationClick(wxCommandEvent& event);
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
+    /* Keyboard Event Handlers */
+    void OnResetDatesToCurrentWeek(wxCommandEvent& event);
 
     void ResetDateRange();
     void ResetDatePickerValues();

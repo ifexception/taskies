@@ -88,6 +88,8 @@ EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskDateAdded)
 EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
 EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
+/* Keyboard Event Handlers */
+EVT_MENU(ID_RESET_DATES_TO_CURRENT_WEEK, MainFrame::OnResetDatesToCurrentWeek)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -329,6 +331,13 @@ void MainFrame::CreateControls()
     pTaskDataViewCtrl->AppendColumn(idColumn);
 
     sizer->Add(pTaskDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    /* Accelerator Table */
+    wxAcceleratorEntry entries[1];
+    entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_RESET_DATES_TO_CURRENT_WEEK);
+
+    wxAcceleratorTable table(ARRAYSIZE(entries), entries);
+    SetAcceleratorTable(table);
 }
 
 void MainFrame::FillControls()
@@ -616,10 +625,6 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
     if (eventDateUtc > mToCtrlDate) {
-        ResetDateRange();
-        ResetDatePickerValues();
-        RefetchTasksForDateRange();
-
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pFromDateCtrl);
@@ -720,6 +725,28 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDateCtrl);
         return;
+    }
+}
+
+void MainFrame::OnResetDatesToCurrentWeek(wxCommandEvent& WXUNUSED(event))
+{
+    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    auto mondaysDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
+    auto sundaysDate = mondaysDate + (date::Sunday - date::Monday);
+    bool shouldReset = false;
+
+    if (mFromDate != mondaysDate) {
+        shouldReset = true;
+    }
+
+    if (mToDate != sundaysDate) {
+        shouldReset = true;
+    }
+
+    if (shouldReset) {
+        ResetDateRange();
+        ResetDatePickerValues();
+        RefetchTasksForDateRange();
     }
 }
 
