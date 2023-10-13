@@ -321,15 +321,15 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date, std::vector
     auto rootDateNode = new TaskTreeModelNode(nullptr, date);
     pRoots.push_back(rootDateNode);
 
-    /* for (auto& model : models) {
-         auto node = new TaskTreeModelNode(rootDateNode,
-             model.ProjectName,
-             model.CategoryName,
-             model.GetDuration(),
-             model.GetTrimmedDescription(),
-             model.TaskId);
-         rootDateNode->Append(node);
-     }*/
+    for (auto& model : models) {
+        auto node = new TaskTreeModelNode(rootDateNode,
+            model.ProjectName,
+            model.CategoryName,
+            model.GetDuration(),
+            model.GetTrimmedDescription(),
+            model.TaskId);
+        rootDateNode->Append(node);
+    }
 
     wxDataViewItem child((void*) rootDateNode);
     wxDataViewItem parent((void*) nullptr);
