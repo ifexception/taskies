@@ -1,3 +1,4 @@
+#include "datestore.h"
 // Productivity tool to help you track the time you spend on tasks
 // Copyright (C) 2023 Szymon Welgus
 //
@@ -17,7 +18,44 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
+#include "datestore.h"
+
 namespace tks
 {
-
+DateStore::DateStore()
+{
+    Initialize();
 }
+
+void DateStore::Reset()
+{
+    Initialize();
+}
+
+void DateStore::Initialize()
+{
+    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+
+    MondayDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
+
+    SundayDate = MondayDate + (date::Sunday - date::Monday);
+
+    auto mondayTimestamp = MondayDate.time_since_epoch();
+    MondayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
+
+    auto sundayTimestamp = SundayDate.time_since_epoch();
+    SundayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
+
+    auto dateIterator = MondayDate;
+    int loopIdx = 0;
+
+    do {
+        MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != SundayDate);
+
+    MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
+}
+} // namespace tks

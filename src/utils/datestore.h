@@ -37,5 +37,10 @@ struct DateStore {
     long long SundayDateSeconds;
 
     std::vector<std::string> MondayToSundayDateRangeList;
+
+    void Reset();
+
+    // -private
+    void Initialize();
 };
 }
