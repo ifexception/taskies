@@ -127,7 +127,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     // Initialization setup
     SetMinSize(wxSize(FromDIP(320), FromDIP(320)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
-        pLogger->info("MainFrame - No persistent objects found. Set default size \"{0}\"x\"{1}\"", 800, 600);
+        pLogger->info("MainFrame::MainFrame - No persistent objects found. Set default size \"{0}\"x\"{1}\"", 800, 600);
         SetSize(FromDIP(wxSize(800, 600)));
     }
 
@@ -148,12 +148,12 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     // Load database path
     mDatabaseFilePath =
         pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
-    pLogger->info("MainFrame - Database location \"{0}\"", mDatabaseFilePath);
+    pLogger->info("MainFrame::MainFrame - Database location \"{0}\"", mDatabaseFilePath);
 
     // Setup TaskBarIcon
     pTaskBarIcon = new TaskBarIcon(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
     if (pCfg->ShowInTray()) {
-        pLogger->info("MainFrame - TaskBarIcon \"ShowInTray\" is \"{0}\"", pCfg->ShowInTray());
+        pLogger->info("MainFrame::MainFrame - TaskBarIcon \"ShowInTray\" is \"{0}\"", pCfg->ShowInTray());
         pTaskBarIcon->SetTaskBarIcon();
     }
 
@@ -379,9 +379,9 @@ void MainFrame::DataToControls()
 
 void MainFrame::OnClose(wxCloseEvent& event)
 {
-    pLogger->info("MainFrame - Closing program");
+    pLogger->info("MainFrame::OnClose - Closing program");
     if (pCfg->CloseToTray() && pCfg->ShowInTray() && event.CanVeto()) {
-        pLogger->info("MainFrame - Closing program to tray area");
+        pLogger->info("MainFrame::OnClose - Closing program to tray area");
         Hide();
         MSWGetTaskBarButton()->Hide();
     } else {
@@ -392,9 +392,9 @@ void MainFrame::OnClose(wxCloseEvent& event)
 
 void MainFrame::OnIconize(wxIconizeEvent& event)
 {
-    pLogger->info("MainFrame - Iconize program");
+    pLogger->info("MainFrame::OnIconize - Iconize program");
     if (event.IsIconized() && pCfg->ShowInTray() && pCfg->MinimizeToTray()) {
-        pLogger->info("MainFrame - Iconize program to tray area");
+        pLogger->info("MainFrame::OnIconize - Iconize program to tray area");
         MSWGetTaskBarButton()->Hide();
     }
 }
@@ -458,8 +458,8 @@ void MainFrame::OnNewCategory(wxCommandEvent& event)
 
 void MainFrame::OnExit(wxCommandEvent& event)
 {
-    pLogger->info("MainFrame - Optimize database on program exit");
-    pLogger->info("MainFrame - Open database connection at \"{0}\"", mDatabaseFilePath);
+    pLogger->info("MainFrame::OnExit - Optimize database on program exit");
+    pLogger->info("MainFrame::OnExit - Open database connection at \"{0}\"", mDatabaseFilePath);
 
     sqlite3* db = nullptr;
     int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
@@ -533,7 +533,7 @@ void MainFrame::OnError(wxCommandEvent& event)
 
 void MainFrame::OnAddNotification(wxCommandEvent& event)
 {
-    pLogger->info("MainFrame - Received notification event");
+    pLogger->info("MainFrame::OnAddNotification - Received notification event");
 
     pNotificationButton->SetBitmap(mBellNotificationBitmap);
 
