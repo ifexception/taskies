@@ -588,6 +588,14 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
+    pLogger->info("eventDateUtc \"{0}\"", eventDateUtc.FormatISODate().ToStdString());
+    pLogger->info("mToCtrlDate \"{0}\"", mToCtrlDate.FormatISODate().ToStdString());
+
+    pLogger->info(
+        "ticks check \"{0}\"", eventDateUtc.GetTicks() > mToCtrlDate.GetTicks() ? "Exceeded Range" : "Within bounds");
+
+    pFromDateCtrl->SetRange(pDateStore->MondayDateSeconds, mToCtrlDate);
+
     if (eventDateUtc > mToCtrlDate) {
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
         toolTip.SetIcon(wxICON_WARNING);
@@ -610,6 +618,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         }
     }
 
+    mFromCtrlDate = eventDateUtc;
     auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
     mFromDate = newFromDate;
 
@@ -673,8 +682,8 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
     pLogger->info("MainFrame::OnToDateSelection - Event Date \"{0}\" | Date Picker Date \"{1}\"",
-                  event.GetDate().FormatISODate().ToStdString(),
-                  pToDateCtrl->GetValue().FormatISODate().ToStdString());
+        event.GetDate().FormatISODate().ToStdString(),
+        pToDateCtrl->GetValue().FormatISODate().ToStdString());
 
     pToDateCtrl->SetRange(mFromCtrlDate, wxDateTime(pDateStore->SundayDateSeconds));
 
@@ -685,6 +694,7 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         return;
     }
 
+    mToCtrlDate = eventDateUtc;
     auto newToDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
     mToDate = newToDate;
 
