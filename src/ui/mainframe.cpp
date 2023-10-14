@@ -342,7 +342,7 @@ void MainFrame::CreateControls()
 
 void MainFrame::FillControls()
 {
-    SetFromDatePicker();
+    SetFromDateAndDatePicker();
     SetToDateAndDatePicker();
 
     auto sundayTimestamp = mToDate.time_since_epoch();
@@ -630,7 +630,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         int ret = wxMessageBox(
             "Are you sure you want to load tasks that are older than six (6) months?", "Confirmation", wxYES_NO, this);
         if (ret == wxNO) {
-            SetFromDatePicker();
+            SetFromDateAndDatePicker();
             return;
         }
     }
@@ -739,7 +739,7 @@ void MainFrame::ResetDateRange()
 
 void MainFrame::ResetDatePickerValues()
 {
-    SetFromDatePicker();
+    SetFromDateAndDatePicker();
 
     SetToDateAndDatePicker();
 }
@@ -802,7 +802,7 @@ void MainFrame::QueueFetchTasksErrorNotificationEvent()
     wxQueueEvent(this, addNotificationEvent);
 }
 
-void MainFrame::SetFromDatePicker()
+void MainFrame::SetFromDateAndDatePicker()
 {
     auto mondayTimestamp = mFromDate.time_since_epoch();
     auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
