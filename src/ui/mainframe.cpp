@@ -346,7 +346,7 @@ void MainFrame::FillControls()
     maxFromDate.SetYear(2015);
     maxFromDate.SetMonth(wxDateTime::Jan);
     maxFromDate.SetDay(1);
-    pFromDateCtrl->SetRange(maxFromDate, wxDateTime(pDateStore->MondayDateSeconds));
+    pFromDateCtrl->SetRange(maxFromDate, wxDateTime(pDateStore->SundayDateSeconds));
     pToDateCtrl->SetRange(maxFromDate, wxDateTime(pDateStore->SundayDateSeconds));
 }
 
@@ -667,11 +667,73 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     pLogger->info("MainFrame:OnToDateSelection - Received date (wxDateTime) event with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
 
-    if (event.GetDate() < mFromCtrlDate) {
+    auto eventDate = wxDateTime(event.GetDate());
+
+    auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+    auto eventDateUtcTicks = eventDateUtc.GetTicks();
+
+    pLogger->info("MainFrame:OnToDateSelection - Event Date \"{0}\" | Date Picker Date \"{1}\"",
+                  event.GetDate().FormatISODate().ToStdString(),
+                  pToDateCtrl->GetValue().FormatISODate().ToStdString());
+
+    pToDateCtrl->SetRange(mFromCtrlDate, wxDateTime(pDateStore->SundayDateSeconds));
+
+    if (eventDateUtc < mFromCtrlDate) {
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past from date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDateCtrl);
         return;
+    }
+
+    auto newToDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+    mToDate = newToDate;
+
+    pLogger->info("MainFrame::OnToDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
+        date::format("%F", mFromDate),
+        date::format("%F", mToDate));
+
+    if (mFromDate == mToDate) {
+        auto date = date::format("%F", mToDate);
+
+        std::vector<repos::TaskRepositoryModel> tasks;
+        repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+        int rc = taskRepo.FilterByDate(date, tasks);
+        if (rc != 0) {
+            QueueFetchTasksErrorNotificationEvent();
+        } else {
+            pTaskTreeModel->ClearAll();
+            pTaskTreeModel->InsertRootAndChildNodes(date, tasks);
+        }
+        return;
+    }
+
+    // Calculate list of dates between from and to date
+    std::vector<std::string> dates;
+    auto dateIterator = mFromDate;
+    int loopIdx = 0;
+
+    do {
+        dates.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != mToDate);
+
+    dates.push_back(date::format("%F", dateIterator));
+
+    // Fetch all the tasks for said date range
+    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        pTaskTreeModel->ClearAll();
+        for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
+            pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
+        }
     }
 }
 
