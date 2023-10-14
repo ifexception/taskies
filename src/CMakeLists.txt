@@ -63,6 +63,7 @@ set (SRC
     "main.cpp"
     "application.cpp"
     "utils/utils.cpp"
+    "utils/datestore.cpp"
     "core/environment.cpp"
     "core/configuration.cpp"
     "core/database_migration.cpp"
