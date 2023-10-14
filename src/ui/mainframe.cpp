@@ -115,6 +115,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pToDateCtrl(nullptr)
     , mBellBitmap(wxNullBitmap)
     , mBellNotificationBitmap(wxNullBitmap)
+    , pDateStore(nullptr)
     , mFromDate()
     , mToDate()
     , pTaskDataViewCtrl(nullptr)
@@ -156,20 +157,11 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
         pTaskBarIcon->SetTaskBarIcon();
     }
 
-    // Calculate Monday and Sunday dates
-    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
-    pLogger->info("MainFrame - Todays date: {0}", date::format("%F", todaysDate));
+    // Setup DateStore
+    pDateStore = std::make_unique<DateStore>(pLogger);
 
-    // get mondays date
-    auto mondaysDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
-    pLogger->info("MainFrame - Monday date: {0}", date::format("%F", mondaysDate));
-
-    // get sundays date
-    auto sundaysDate = mondaysDate + (date::Sunday - date::Monday);
-    pLogger->info("MainFrame - Sunday date: {0}", date::format("%F", sundaysDate));
-
-    mFromDate = mondaysDate;
-    mToDate = sundaysDate;
+    mFromDate = pDateStore->MondayDate;
+    mToDate = pDateStore->SundayDate;
 
     // Create controls
     Create();
@@ -345,9 +337,7 @@ void MainFrame::FillControls()
     SetFromDateAndDatePicker();
     SetToDateAndDatePicker();
 
-    auto sundayTimestamp = mToDate.time_since_epoch();
-    auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
-
+    // TODO: Date range doesn't make sense as you should be able to add a task in the future, so remove this code
     // This date was selected arbitrarily
     // wxDatePickerCtrl needs a from and to date for the range
     // So we pick 2015-01-01 as that date
@@ -356,8 +346,8 @@ void MainFrame::FillControls()
     maxFromDate.SetYear(2015);
     maxFromDate.SetMonth(wxDateTime::Jan);
     maxFromDate.SetDay(1);
-    pFromDateCtrl->SetRange(maxFromDate, wxDateTime(sundayTimestampSeconds));
-    pToDateCtrl->SetRange(maxFromDate, wxDateTime(sundayTimestampSeconds));
+    pFromDateCtrl->SetRange(maxFromDate, wxDateTime(pDateStore->MondayDateSeconds));
+    pToDateCtrl->SetRange(maxFromDate, wxDateTime(pDateStore->SundayDateSeconds));
 }
 
 void MainFrame::DataToControls()
@@ -373,27 +363,11 @@ void MainFrame::DataToControls()
         pInfoBar->ShowMessage(infoBarMessage, wxICON_INFORMATION);
     }
 
-    // Calculate list of dates between from and to date
-    std::vector<std::string> dates;
-    auto dateIterator = mFromDate;
-    int loopIdx = 0;
-
-    do {
-        dates.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != mToDate);
-
-    dates.push_back(date::format("%F", dateIterator));
-
-    pLogger->info("MainFrame::DataToControls - [after loop] From date: {0}", date::format("%F", mFromDate));
-
     // Fetch tasks between mFromDate and mToDate
     std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
+    int rc = taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -574,11 +548,12 @@ void MainFrame::OnAddNotification(wxCommandEvent& event)
 
 void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
 {
-    // Convert date from wx to date::date
+    // A task got inserted for a specific day
     auto eventTaskDateAdded = event.GetString().ToStdString();
     pLogger->info("MainFrame::OnTaskDateAdded - Received task added event with date \"{0}\"", eventTaskDateAdded);
 
-    // Calculate list of dates between from and to date
+    // Check if our current from and to dates encapsulate the date the task was inserted
+    // by calculating _this_ date range
     std::vector<std::string> dates;
     auto dateIterator = mFromDate;
     int loopIdx = 0;
@@ -591,7 +566,6 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
     } while (dateIterator != mToDate);
 
     dates.push_back(date::format("%F", dateIterator));
-    pLogger->info("MainFrame - To date: {0}", date::format("%F", dateIterator));
 
     // Check if date that the task was inserted for is in the selected range of our wxDateTimeCtrl's
     auto iterator =
@@ -599,7 +573,8 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
 
     // If we are in range, refetch the data for our particular date
     if (iterator != dates.end()) {
-        RefetchTasksForDate(*iterator);
+        auto& foundDate = *iterator;
+        RefetchTasksForDate(foundDate);
     }
 }
 
@@ -702,16 +677,15 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
 
 void MainFrame::OnResetDatesToCurrentWeek(wxCommandEvent& WXUNUSED(event))
 {
-    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
-    auto mondaysDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
-    auto sundaysDate = mondaysDate + (date::Sunday - date::Monday);
+    pDateStore->Reset();
+
     bool shouldReset = false;
 
-    if (mFromDate != mondaysDate) {
+    if (mFromDate != pDateStore->MondayDate) {
         shouldReset = true;
     }
 
-    if (mToDate != sundaysDate) {
+    if (mToDate != pDateStore->SundayDate) {
         shouldReset = true;
     }
 
@@ -724,17 +698,8 @@ void MainFrame::OnResetDatesToCurrentWeek(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::ResetDateRange()
 {
-    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
-    pLogger->info("MainFrame::ResetFromDate - Todays date: {0}", date::format("%F", todaysDate));
-
-    auto mondaysDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
-    pLogger->info("MainFrame::ResetFromDate - Monday date: {0}", date::format("%F", mondaysDate));
-
-    auto sundaysDate = mondaysDate + (date::Sunday - date::Monday);
-    pLogger->info("MainFrame::ResetFromDate - Sunday date: {0}", date::format("%F", sundaysDate));
-
-    mFromDate = mondaysDate;
-    mToDate = sundaysDate;
+    mFromDate = pDateStore->MondayDate;
+    mToDate = pDateStore->SundayDate;
 }
 
 void MainFrame::ResetDatePickerValues()
@@ -750,24 +715,11 @@ void MainFrame::RefetchTasksForDateRange()
         date::format("%F", mFromDate),
         date::format("%F", mToDate));
 
-    std::vector<std::string> dates;
-    auto dateIterator = mFromDate;
-    int loopIdx = 0;
-
-    do {
-        dates.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != mToDate);
-
-    dates.push_back(date::format("%F", dateIterator));
-
     // Fetch tasks between mFromDate and mToDate
     std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
+    int rc = taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -804,19 +756,15 @@ void MainFrame::QueueFetchTasksErrorNotificationEvent()
 
 void MainFrame::SetFromDateAndDatePicker()
 {
-    auto mondayTimestamp = mFromDate.time_since_epoch();
-    auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
-    pFromDateCtrl->SetValue(mondayTimestampSeconds);
+    pFromDateCtrl->SetValue(pDateStore->MondayDateSeconds);
 
-    mFromCtrlDate = mondayTimestampSeconds;
+    mFromCtrlDate = pDateStore->MondayDateSeconds;
 }
 
 void MainFrame::SetToDateAndDatePicker()
 {
-    auto sundayTimestamp = mToDate.time_since_epoch();
-    auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
-    pToDateCtrl->SetValue(sundayTimestampSeconds);
+    pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
 
-    mToCtrlDate = sundayTimestampSeconds;
+    mToCtrlDate = pDateStore->SundayDateSeconds;
 }
 } // namespace tks::UI

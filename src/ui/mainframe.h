@@ -36,10 +36,14 @@
 
 #include <spdlog/spdlog.h>
 
+#include "../common/enums.h"
+
+#include "../ui/dataview/tasktreemodel.h"
+
+#include "../utils/datestore.h"
+
 #include "notificationpopupwindow.h"
 #include "taskbaricon.h"
-#include "../common/enums.h"
-#include "../ui/dataview/tasktreemodel.h"
 
 namespace tks
 {
@@ -165,6 +169,7 @@ private:
     wxBitmapButton* pNotificationButton;
     wxBitmap mBellBitmap;
     wxBitmap mBellNotificationBitmap;
+    std::unique_ptr<DateStore> pDateStore;
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
     wxDataViewCtrl* pTaskDataViewCtrl;
