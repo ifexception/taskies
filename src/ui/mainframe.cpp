@@ -342,15 +342,6 @@ void MainFrame::CreateControls()
 
 void MainFrame::FillControls()
 {
-    // This date was selected arbitrarily
-    // wxDatePickerCtrl needs a from and to date for the range
-    // So we pick 2015-01-01 as that date
-    // Conceivably, a user shouldn't go that far back
-    wxDateTime maxFromDate = wxDateTime::Now();
-    maxFromDate.SetYear(2015);
-    maxFromDate.SetMonth(wxDateTime::Jan);
-    maxFromDate.SetDay(1);
-
     auto mondayTimestamp = mFromDate.time_since_epoch();
     auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
     pFromDateCtrl->SetValue(mondayTimestampSeconds);
@@ -362,6 +353,14 @@ void MainFrame::FillControls()
     mFromCtrlDate = mondayTimestampSeconds;
     mToCtrlDate = sundayTimestampSeconds;
 
+    // This date was selected arbitrarily
+    // wxDatePickerCtrl needs a from and to date for the range
+    // So we pick 2015-01-01 as that date
+    // Conceivably, a user shouldn't go that far back
+    wxDateTime maxFromDate = wxDateTime::Now();
+    maxFromDate.SetYear(2015);
+    maxFromDate.SetMonth(wxDateTime::Jan);
+    maxFromDate.SetDay(1);
     pFromDateCtrl->SetRange(maxFromDate, wxDateTime(sundayTimestampSeconds));
     pToDateCtrl->SetRange(maxFromDate, wxDateTime(sundayTimestampSeconds));
 }
@@ -401,12 +400,7 @@ void MainFrame::DataToControls()
 
     int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
     if (rc != 0) {
-        std::string message = "Failed to fetch tasks";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(this, addNotificationEvent);
+        QueueFetchTasksErrorNotificationEvent();
     } else {
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
             pTaskTreeModel->InsertChildNodes(workdayDate, tasks);
@@ -664,12 +658,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
 
         int rc = taskRepo.FilterByDate(date, tasks);
         if (rc != 0) {
-            std::string message = "Failed to fetch tasks";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
-
-            wxQueueEvent(this, addNotificationEvent);
+            QueueFetchTasksErrorNotificationEvent();
         } else {
             pTaskTreeModel->ClearAll();
             pTaskTreeModel->InsertRootAndChildNodes(date, tasks);
@@ -697,12 +686,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
 
     int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
     if (rc != 0) {
-        std::string message = "Failed to fetch tasks";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(this, addNotificationEvent);
+        QueueFetchTasksErrorNotificationEvent();
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
@@ -804,12 +788,7 @@ void MainFrame::RefetchTasksForDateRange()
 
     int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
     if (rc != 0) {
-        std::string message = "Failed to fetch tasks";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(this, addNotificationEvent);
+        QueueFetchTasksErrorNotificationEvent();
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
@@ -825,15 +804,20 @@ void MainFrame::RefetchTasksForDate(const std::string& date)
 
     int rc = taskRepo.FilterByDate(date, tasks);
     if (rc != 0) {
-        std::string message = "Failed to fetch tasks";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(this, addNotificationEvent);
+        QueueFetchTasksErrorNotificationEvent();
     } else {
         pTaskTreeModel->ClearNodeEntriesByDateKey(date);
         pTaskTreeModel->InsertChildNodes(date, tasks);
     }
+}
+
+void MainFrame::QueueFetchTasksErrorNotificationEvent()
+{
+    std::string message = "Failed to fetch tasks";
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(this, addNotificationEvent);
 }
 } // namespace tks::UI

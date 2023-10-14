@@ -146,6 +146,8 @@ private:
     void RefetchTasksForDateRange();
     void RefetchTasksForDate(const std::string& date);
 
+    void QueueFetchTasksErrorNotificationEvent();
+
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
