@@ -44,7 +44,7 @@ void DateStore::Initialize()
     pLogger->info("DateStore::Initialize - Monday date: {0}", date::format("%F", MondayDate));
 
     SundayDate = MondayDate + (date::Sunday - date::Monday);
-    pLogger->info("DateStore::Initialize - Monday date: {0}", date::format("%F", SundayDate));
+    pLogger->info("DateStore::Initialize - Sunday date: {0}", date::format("%F", SundayDate));
 
     auto mondayTimestamp = MondayDate.time_since_epoch();
     MondayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
@@ -53,13 +53,13 @@ void DateStore::Initialize()
     SundayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
 
     auto dateIterator = MondayDate;
-    int loopIdx = 0;
+    int index = 0;
 
     do {
         MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
 
         dateIterator += date::days{ 1 };
-        loopIdx++;
+        index++;
     } while (dateIterator != SundayDate);
 
     MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
