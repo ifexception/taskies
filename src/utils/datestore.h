@@ -20,15 +20,18 @@
 #pragma once
 
 #include <chrono>
+#include <memory>
 #include <string>
 #include <vector>
 
 #include <date/date.h>
 
+#include <spdlog/logger.h>
+
 namespace tks
 {
 struct DateStore {
-    DateStore();
+    DateStore(std::shared_ptr<spdlog::logger> logger);
     ~DateStore() = default;
 
     std::chrono::time_point<std::chrono::system_clock, date::days> MondayDate;
@@ -42,5 +45,7 @@ struct DateStore {
 
     // -private
     void Initialize();
+
+    std::shared_ptr<spdlog::logger> pLogger;
 };
 }

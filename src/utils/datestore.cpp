@@ -22,23 +22,29 @@
 
 namespace tks
 {
-DateStore::DateStore()
+DateStore::DateStore(std::shared_ptr<spdlog::logger> logger)
+    : pLogger(logger)
 {
+    pLogger->info("DateStore::DateStore - Constructor initialization");
     Initialize();
 }
 
 void DateStore::Reset()
 {
+    pLogger->info("DateStore::Reset - Reset dates");
     Initialize();
 }
 
 void DateStore::Initialize()
 {
     auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    pLogger->info("DateStore::Initialize - Todays date: {0}", date::format("%F", todaysDate));
 
     MondayDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
+    pLogger->info("DateStore::Initialize - Monday date: {0}", date::format("%F", MondayDate));
 
     SundayDate = MondayDate + (date::Sunday - date::Monday);
+    pLogger->info("DateStore::Initialize - Monday date: {0}", date::format("%F", SundayDate));
 
     auto mondayTimestamp = MondayDate.time_since_epoch();
     MondayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
