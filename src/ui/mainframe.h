@@ -149,6 +149,7 @@ private:
     void QueueFetchTasksErrorNotificationEvent();
 
     void SetFromDatePicker();
+    void SetToDateAndDatePicker();
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;

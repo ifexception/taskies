@@ -343,12 +343,10 @@ void MainFrame::CreateControls()
 void MainFrame::FillControls()
 {
     SetFromDatePicker();
+    SetToDateAndDatePicker();
 
     auto sundayTimestamp = mToDate.time_since_epoch();
     auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
-    pToDateCtrl->SetValue(sundayTimestampSeconds);
-
-    mToCtrlDate = sundayTimestampSeconds;
 
     // This date was selected arbitrarily
     // wxDatePickerCtrl needs a from and to date for the range
@@ -695,10 +693,6 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         event.GetDate().FormatISODate().ToStdString());
 
     if (event.GetDate() < mFromCtrlDate) {
-        auto fromDateTimestamp = mFromDate.time_since_epoch();
-        auto fromDateTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(fromDateTimestamp).count();
-        pToDateCtrl->SetValue(fromDateTimestampSeconds);
-
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past from date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDateCtrl);
@@ -747,11 +741,7 @@ void MainFrame::ResetDatePickerValues()
 {
     SetFromDatePicker();
 
-    auto sundayTimestamp = mToDate.time_since_epoch();
-    auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
-    pToDateCtrl->SetValue(sundayTimestampSeconds);
-
-    mToCtrlDate = sundayTimestampSeconds;
+    SetToDateAndDatePicker();
 }
 
 void MainFrame::RefetchTasksForDateRange()
@@ -819,5 +809,14 @@ void MainFrame::SetFromDatePicker()
     pFromDateCtrl->SetValue(mondayTimestampSeconds);
 
     mFromCtrlDate = mondayTimestampSeconds;
+}
+
+void MainFrame::SetToDateAndDatePicker()
+{
+    auto sundayTimestamp = mToDate.time_since_epoch();
+    auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
+    pToDateCtrl->SetValue(sundayTimestampSeconds);
+
+    mToCtrlDate = sundayTimestampSeconds;
 }
 } // namespace tks::UI
