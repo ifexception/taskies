@@ -342,15 +342,12 @@ void MainFrame::CreateControls()
 
 void MainFrame::FillControls()
 {
-    auto mondayTimestamp = mFromDate.time_since_epoch();
-    auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
-    pFromDateCtrl->SetValue(mondayTimestampSeconds);
+    SetFromDatePicker();
 
     auto sundayTimestamp = mToDate.time_since_epoch();
     auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
     pToDateCtrl->SetValue(sundayTimestampSeconds);
 
-    mFromCtrlDate = mondayTimestampSeconds;
     mToCtrlDate = sundayTimestampSeconds;
 
     // This date was selected arbitrarily
@@ -635,15 +632,12 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         int ret = wxMessageBox(
             "Are you sure you want to load tasks that are older than six (6) months?", "Confirmation", wxYES_NO, this);
         if (ret == wxNO) {
-            auto toDateTimestamp = mToDate.time_since_epoch();
-            auto toDateTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(toDateTimestamp).count();
-            pFromDateCtrl->SetValue(toDateTimestampSeconds);
+            SetFromDatePicker();
             return;
         }
     }
 
     auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
-    pLogger->info("MainFrame::OnFromDateSelection - New from date value \"{0}\"", date::format("%F", newFromDate));
     mFromDate = newFromDate;
 
     pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
@@ -651,7 +645,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         date::format("%F", mToDate));
 
     if (mFromDate == mToDate) {
-        auto date = date::format("%F", newFromDate);
+        auto date = date::format("%F", mFromDate);
 
         std::vector<repos::TaskRepositoryModel> tasks;
         repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
@@ -751,15 +745,12 @@ void MainFrame::ResetDateRange()
 
 void MainFrame::ResetDatePickerValues()
 {
-    auto mondayTimestamp = mFromDate.time_since_epoch();
-    auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
-    pFromDateCtrl->SetValue(mondayTimestampSeconds);
+    SetFromDatePicker();
 
     auto sundayTimestamp = mToDate.time_since_epoch();
     auto sundayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
     pToDateCtrl->SetValue(sundayTimestampSeconds);
 
-    mFromCtrlDate = mondayTimestampSeconds;
     mToCtrlDate = sundayTimestampSeconds;
 }
 
@@ -819,5 +810,14 @@ void MainFrame::QueueFetchTasksErrorNotificationEvent()
     addNotificationEvent->SetClientObject(clientData);
 
     wxQueueEvent(this, addNotificationEvent);
+}
+
+void MainFrame::SetFromDatePicker()
+{
+    auto mondayTimestamp = mFromDate.time_since_epoch();
+    auto mondayTimestampSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
+    pFromDateCtrl->SetValue(mondayTimestampSeconds);
+
+    mFromCtrlDate = mondayTimestampSeconds;
 }
 } // namespace tks::UI
