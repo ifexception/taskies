@@ -347,7 +347,7 @@ void MainFrame::FillControls()
     maxFromDate.SetMonth(wxDateTime::Jan);
     maxFromDate.SetDay(1);
     pFromDateCtrl->SetRange(maxFromDate, wxDateTime(pDateStore->SundayDateSeconds));
-    pToDateCtrl->SetRange(maxFromDate, wxDateTime(pDateStore->SundayDateSeconds));
+    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), wxDateTime(pDateStore->SundayDateSeconds));
 }
 
 void MainFrame::DataToControls()
@@ -664,7 +664,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
 
 void MainFrame::OnToDateSelection(wxDateEvent& event)
 {
-    pLogger->info("MainFrame:OnToDateSelection - Received date (wxDateTime) event with value \"{0}\"",
+    pLogger->info("MainFrame::OnToDateSelection - Received date (wxDateTime) event with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
 
     auto eventDate = wxDateTime(event.GetDate());
@@ -672,7 +672,7 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
-    pLogger->info("MainFrame:OnToDateSelection - Event Date \"{0}\" | Date Picker Date \"{1}\"",
+    pLogger->info("MainFrame::OnToDateSelection - Event Date \"{0}\" | Date Picker Date \"{1}\"",
                   event.GetDate().FormatISODate().ToStdString(),
                   pToDateCtrl->GetValue().FormatISODate().ToStdString());
 
