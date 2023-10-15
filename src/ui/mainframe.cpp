@@ -337,7 +337,6 @@ void MainFrame::FillControls()
     SetFromDateAndDatePicker();
     SetToDateAndDatePicker();
 
-    // TODO: Date range doesn't make sense as you should be able to add a task in the future, so remove this code
     // This date was selected arbitrarily
     // wxDatePickerCtrl needs a from and to date for the range
     // So we pick 2015-01-01 as that date
@@ -375,6 +374,8 @@ void MainFrame::DataToControls()
             pTaskTreeModel->InsertChildNodes(workdayDate, tasks);
         }
     }
+
+    pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(date::format("%F", pDateStore->TodayDate)));
 }
 
 void MainFrame::OnClose(wxCloseEvent& event)
@@ -575,6 +576,9 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
     if (iterator != dates.end()) {
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate);
+
+        pTaskDataViewCtrl->Refresh();
+        pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(date::format("%F", pDateStore->TodayDate)));
     }
 }
 
