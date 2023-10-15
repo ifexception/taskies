@@ -338,4 +338,19 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date, std::vector
     pLogger->info(
         "TaskTreeModel::InsertRootAndChildNodes - Inserted \"{0}\" children for root node {1}", models.size(), date);
 }
+
+wxDataViewItem TaskTreeModel::TryExpandTodayDateNode(const std::string& todayDate)
+{
+    pLogger->info("TaskTreeModel::TryExpandTodayDateNode - Locate root node with date: \"{0}\"", todayDate);
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == todayDate; });
+
+    if (iterator != pRoots.end()) {
+        pLogger->info("TaskTreeModel::TryExpandTodayDateNode - Found root node to expand");
+        auto node = *iterator;
+        return wxDataViewItem((void*) node);
+    }
+
+    return wxDataViewItem();
+}
 } // namespace tks::UI

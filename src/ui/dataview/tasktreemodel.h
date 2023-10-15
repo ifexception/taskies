@@ -65,6 +65,8 @@ public:
     void InsertChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
     void InsertRootAndChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
 
+    wxDataViewItem TryExpandTodayDateNode(const std::string& todaysDate);
+
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     TaskTreeModelNodePtrArray pRoots;
