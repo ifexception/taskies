@@ -34,6 +34,7 @@ struct DateStore {
     DateStore(std::shared_ptr<spdlog::logger> logger);
     ~DateStore() = default;
 
+    std::chrono::time_point<std::chrono::system_clock, date::days> TodayDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> MondayDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> SundayDate;
     long long MondayDateSeconds;

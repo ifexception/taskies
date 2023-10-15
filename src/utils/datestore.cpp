@@ -37,10 +37,10 @@ void DateStore::Reset()
 
 void DateStore::Initialize()
 {
-    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
-    pLogger->info("DateStore::Initialize - Todays date: {0}", date::format("%F", todaysDate));
+    TodayDate = date::floor<date::days>(std::chrono::system_clock::now());
+    pLogger->info("DateStore::Initialize - Todays date: {0}", date::format("%F", TodayDate));
 
-    MondayDate = todaysDate - (date::weekday{ todaysDate } - date::Monday);
+    MondayDate = TodayDate - (date::weekday{ TodayDate } - date::Monday);
     pLogger->info("DateStore::Initialize - Monday date: {0}", date::format("%F", MondayDate));
 
     SundayDate = MondayDate + (date::Sunday - date::Monday);
