@@ -295,20 +295,27 @@ void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<repos:
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
     if (iterator != pRoots.end()) {
-        auto dateNode = *iterator;
+        auto parentDateNode = *iterator;
 
         pLogger->info("TaskTreeModel::InsertChildNodes - Located root node associated with date key \"{0}\"",
-            dateNode->GetProjectName());
+            parentDateNode->GetProjectName());
 
+        wxDataViewItemArray itemsAdded;
         for (auto& model : models) {
-            auto node = new TaskTreeModelNode(dateNode,
+            auto childNode = new TaskTreeModelNode(parentDateNode,
                 model.ProjectName,
                 model.CategoryName,
                 model.GetDuration(),
                 model.GetTrimmedDescription(),
                 model.TaskId);
-            dateNode->Append(node);
+            parentDateNode->Append(childNode);
+
+            wxDataViewItem child((void*) childNode);
+            itemsAdded.Add(child);
         }
+
+        wxDataViewItem parent((void*) parentDateNode);
+        ItemsAdded(parent, itemsAdded);
 
         pLogger->info("TaskTreeModel::InsertChildNodes - Number of inserted children \"{0}\"", models.size());
     }

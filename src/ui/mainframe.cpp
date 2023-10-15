@@ -576,9 +576,6 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
     if (iterator != dates.end()) {
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate);
-
-        pTaskDataViewCtrl->Refresh();
-        pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(date::format("%F", pDateStore->TodayDate)));
     }
 }
 
@@ -811,6 +808,7 @@ void MainFrame::RefetchTasksForDate(const std::string& date)
     std::vector<repos::TaskRepositoryModel> tasks;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
+    // optimize this to get a task by id instead of whole range
     int rc = taskRepo.FilterByDate(date, tasks);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
