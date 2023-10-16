@@ -793,6 +793,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         if (!bIsEdit) {
             std::int64_t taskId = taskDao.Create(mTaskModel);
             ret = taskId > 0 ? 0 : -1;
+            mTaskId = taskId;
 
             ret == -1
                 ? message = "Failed to create task"
@@ -829,6 +830,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
             wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
             taskAddedEvent->SetString(mDate);
+            taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
             wxQueueEvent(pParent, taskAddedEvent);
 
