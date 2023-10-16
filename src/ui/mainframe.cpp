@@ -551,7 +551,10 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
 {
     // A task got inserted for a specific day
     auto eventTaskDateAdded = event.GetString().ToStdString();
-    pLogger->info("MainFrame::OnTaskDateAdded - Received task added event with date \"{0}\"", eventTaskDateAdded);
+    auto taskInsertedId = static_cast<std::int64_t>(event.GetExtraLong());
+    pLogger->info("MainFrame::OnTaskDateAdded - Received task added event with date \"{0}\" and ID \"{1}\"",
+        eventTaskDateAdded,
+        taskInsertedId);
 
     // Check if our current from and to dates encapsulate the date the task was inserted
     // by calculating _this_ date range
@@ -573,9 +576,9 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
         std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateAdded; });
 
     // If we are in range, refetch the data for our particular date
-    if (iterator != dates.end()) {
+    if (iterator != dates.end() && taskInsertedId !=0 && eventTaskDateAdded.size() != 0) {
         auto& foundDate = *iterator;
-        RefetchTasksForDate(foundDate);
+        RefetchTasksForDate(foundDate, taskInsertedId);
     }
 }
 
@@ -803,18 +806,18 @@ void MainFrame::RefetchTasksForDateRange()
     }
 }
 
-void MainFrame::RefetchTasksForDate(const std::string& date)
+void MainFrame::RefetchTasksForDate(const std::string& date, const std::int64_t taskId)
 {
-    std::vector<repos::TaskRepositoryModel> tasks;
+    repos::TaskRepositoryModel taskModel;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
     // optimize this to get a task by id instead of whole range
-    int rc = taskRepo.FilterByDate(date, tasks);
+    // clearing of tasks collaspses the node
+    int rc = taskRepo.GetById(taskId, taskModel);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
-        pTaskTreeModel->ClearNodeEntriesByDateKey(date);
-        pTaskTreeModel->InsertChildNodes(date, tasks);
+        pTaskTreeModel->InsertChildNode(date, taskModel);
     }
 }
 

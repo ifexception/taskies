@@ -148,7 +148,7 @@ private:
     void ResetDateRange();
     void ResetDatePickerValues();
     void RefetchTasksForDateRange();
-    void RefetchTasksForDate(const std::string& date);
+    void RefetchTasksForDate(const std::string& date, const std::int64_t taskId);
 
     void QueueFetchTasksErrorNotificationEvent();
 
