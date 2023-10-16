@@ -259,6 +259,78 @@ int TaskRepository::FilterByDate(const std::string& date, std::vector<TaskReposi
     return 0;
 }
 
+int TaskRepository::GetById(const std::int64_t taskId, TaskRepositoryModel& taskModel)
+{
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskRepository", "task", taskId);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, TaskRepository::getById.c_str(), static_cast<int>(TaskRepository::getById.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskRepository", TaskRepository::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, taskId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskRepository", "task_id", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskRepository", TaskRepository::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+    taskModel.TaskId = sqlite3_column_int64(stmt, columnIndex++);
+    taskModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        taskModel.UniqueIdentifier = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        taskModel.UniqueIdentifier = std::make_optional(
+            std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+    }
+    columnIndex++;
+
+    taskModel.Hours = sqlite3_column_int(stmt, columnIndex++);
+    taskModel.Minutes = sqlite3_column_int(stmt, columnIndex++);
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.Description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    taskModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    taskModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    taskModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+    taskModel.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
+    taskModel.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+    taskModel.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
+    res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.ProjectName = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.CategoryName = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "TaskRepository", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskRepository", taskId);
+
+    return 0;
+}
+
 const std::string TaskRepository::filterByDate = "SELECT "
                                                  "tasks.task_id, "
                                                  "tasks.billable, "
@@ -282,4 +354,26 @@ const std::string TaskRepository::filterByDate = "SELECT "
                                                  "INNER JOIN categories "
                                                  "ON tasks.category_id = categories.category_id "
                                                  "WHERE workdays.date = ?;";
+
+const std::string TaskRepository::getById = "SELECT "
+                                            "tasks.task_id, "
+                                            "tasks.billable, "
+                                            "tasks.unique_identifier, "
+                                            "tasks.hours, "
+                                            "tasks.minutes, "
+                                            "tasks.description, "
+                                            "tasks.date_created, "
+                                            "tasks.date_modified, "
+                                            "tasks.is_active, "
+                                            "tasks.project_id, "
+                                            "tasks.category_id, "
+                                            "tasks.workday_id, "
+                                            "projects.display_name,"
+                                            "categories.name "
+                                            "FROM tasks "
+                                            "INNER JOIN projects "
+                                            "ON tasks.project_id = projects.project_id "
+                                            "INNER JOIN categories "
+                                            "ON tasks.category_id = categories.category_id "
+                                            "WHERE tasks.task_id = ?;";
 } // namespace tks::repos
