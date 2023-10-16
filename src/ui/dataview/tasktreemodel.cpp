@@ -288,6 +288,28 @@ void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
     }
 }
 
+void TaskTreeModel::InsertChildNode(const std::string& date, repos::TaskRepositoryModel& taskModel)
+{
+    pLogger->info("TaskTreeModel::InsertChildNodes - Begin append of task for \"{0}\"", date);
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
+
+    if (iterator != pRoots.end()) {
+        auto parentDateNode = *iterator;
+        auto childNode = new TaskTreeModelNode(parentDateNode,
+            taskModel.ProjectName,
+            taskModel.CategoryName,
+            taskModel.GetDuration(),
+            taskModel.GetTrimmedDescription(),
+            taskModel.TaskId);
+        parentDateNode->Append(childNode);
+
+        wxDataViewItem child((void*) childNode);
+        wxDataViewItem parent((void*) parentDateNode);
+        ItemAdded(parent, child);
+    }
+}
+
 void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models)
 {
     pLogger->info("TaskTreeModel::InsertChildNodes - Begin insertion of tasks for \"{0}\"", date);

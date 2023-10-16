@@ -62,6 +62,7 @@ public:
     void ClearAll();
 
     void ClearNodeEntriesByDateKey(const std::string& date);
+    void InsertChildNode(const std::string& date, repos::TaskRepositoryModel& taskModel);
     void InsertChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
     void InsertRootAndChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
 
