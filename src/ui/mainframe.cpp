@@ -576,7 +576,7 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
         std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateAdded; });
 
     // If we are in range, refetch the data for our particular date
-    if (iterator != dates.end() && taskInsertedId !=0 && eventTaskDateAdded.size() != 0) {
+    if (iterator != dates.end() && taskInsertedId != 0 && eventTaskDateAdded.size() != 0) {
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskInsertedId);
     }
@@ -591,14 +591,6 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
 
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
-
-    pLogger->info("eventDateUtc \"{0}\"", eventDateUtc.FormatISODate().ToStdString());
-    pLogger->info("mToCtrlDate \"{0}\"", mToCtrlDate.FormatISODate().ToStdString());
-
-    pLogger->info(
-        "ticks check \"{0}\"", eventDateUtc.GetTicks() > mToCtrlDate.GetTicks() ? "Exceeded Range" : "Within bounds");
-
-    pFromDateCtrl->SetRange(pDateStore->MondayDateSeconds, mToCtrlDate);
 
     if (eventDateUtc > mToCtrlDate) {
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
@@ -685,10 +677,6 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
-    pLogger->info("MainFrame::OnToDateSelection - Event Date \"{0}\" | Date Picker Date \"{1}\"",
-        event.GetDate().FormatISODate().ToStdString(),
-        pToDateCtrl->GetValue().FormatISODate().ToStdString());
-
     pToDateCtrl->SetRange(mFromCtrlDate, wxDateTime(pDateStore->SundayDateSeconds));
 
     if (eventDateUtc < mFromCtrlDate) {
@@ -769,6 +757,8 @@ void MainFrame::OnResetDatesToCurrentWeek(wxCommandEvent& WXUNUSED(event))
         ResetDateRange();
         ResetDatePickerValues();
         RefetchTasksForDateRange();
+
+        pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(date::format("%F", pDateStore->TodayDate)));
     }
 }
 
