@@ -433,31 +433,31 @@ void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
     newTaskDialog.ShowModal();
 }
 
-void MainFrame::OnNewEmployer(wxCommandEvent& event)
+void MainFrame::OnNewEmployer(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EmployerDialog newEmployerDialog(this, pEnv, pLogger, mDatabaseFilePath);
     newEmployerDialog.ShowModal();
 }
 
-void MainFrame::OnNewClient(wxCommandEvent& event)
+void MainFrame::OnNewClient(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::ClientDialog newClientDialog(this, pEnv, pLogger, mDatabaseFilePath);
     newClientDialog.ShowModal();
 }
 
-void MainFrame::OnNewProject(wxCommandEvent& event)
+void MainFrame::OnNewProject(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::ProjectDialog newProjectDialog(this, pEnv, pLogger, mDatabaseFilePath);
     newProjectDialog.ShowModal();
 }
 
-void MainFrame::OnNewCategory(wxCommandEvent& event)
+void MainFrame::OnNewCategory(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger, mDatabaseFilePath);
     addCategories.ShowModal();
 }
 
-void MainFrame::OnExit(wxCommandEvent& event)
+void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 {
     pLogger->info("MainFrame::OnExit - Optimize database on program exit");
     pLogger->info("MainFrame::OnExit - Open database connection at \"{0}\"", mDatabaseFilePath);
@@ -481,31 +481,31 @@ cleanup:
     Close();
 }
 
-void MainFrame::OnEditEmployer(wxCommandEvent& event)
+void MainFrame::OnEditEmployer(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Employer);
     editEmployer.ShowModal();
 }
 
-void MainFrame::OnEditClient(wxCommandEvent& event)
+void MainFrame::OnEditClient(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editClient(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Client);
     editClient.ShowModal();
 }
 
-void MainFrame::OnEditProject(wxCommandEvent& event)
+void MainFrame::OnEditProject(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editProject(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Project);
     editProject.ShowModal();
 }
 
-void MainFrame::OnEditCategory(wxCommandEvent& event)
+void MainFrame::OnEditCategory(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editCategory(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Category);
     editCategory.ShowModal();
 }
 
-void MainFrame::OnViewPreferences(wxCommandEvent& event)
+void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::PreferencesDialog preferencesDlg(this, pEnv, pCfg, pLogger);
     int ret = preferencesDlg.ShowModal();
@@ -520,7 +520,7 @@ void MainFrame::OnViewPreferences(wxCommandEvent& event)
     }
 }
 
-void MainFrame::OnAbout(wxCommandEvent& event)
+void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::AboutDialog aboutDlg(this);
     aboutDlg.ShowModal();
