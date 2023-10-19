@@ -89,6 +89,8 @@ EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskDateAdded)
 EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
 EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
+/* DataViewCtrl Event Handlers */
+EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEW, MainFrame::OnContextMenu)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -749,6 +751,17 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
             pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
         }
+    }
+}
+
+void MainFrame::OnContextMenu(wxDataViewEvent& event)
+{
+    wxDataViewItem item = event.GetItem();
+
+    if (item.IsOk()) {
+        pLogger->info(" MainFrame::OnContextMenu - Clicked on valid wxDateViewItem");
+        auto model = (TaskTreeModelNode*) item.GetID();
+        pLogger->info(" MainFrame::OnContextMenu - ID of selected task {0}", model->GetTaskId());
     }
 }
 

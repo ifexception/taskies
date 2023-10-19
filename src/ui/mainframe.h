@@ -140,6 +140,8 @@ private:
     void OnNotificationClick(wxCommandEvent& event);
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
+    /* DataViewCtrl Event Handlers */
+    void OnContextMenu(wxDataViewEvent& event);
 
     void DoResetToCurrentWeek();
     void ResetDateRange();
