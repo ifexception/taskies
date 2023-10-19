@@ -174,6 +174,11 @@ void AboutDialog::CreateControls()
     pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/logout");
     columnIndex = 0;
 
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Freepik");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Bell");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/bell");
+    columnIndex = 0;
+
     attributionsCollPaneWindowSizer->Add(pAttributionsListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
 
     attributionsCollPaneWindow->SetSizer(attributionsCollPaneWindowSizer);
