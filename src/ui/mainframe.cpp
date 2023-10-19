@@ -201,7 +201,11 @@ void MainFrame::CreateControls()
     /* Menubar */
     /* File */
     auto fileMenu = new wxMenu();
-    fileMenu->Append(ID_NEW_TASK, "New &Task", "Create new task");
+    auto newTaskMenuItem = fileMenu->Append(ID_NEW_TASK, "New &Task", "Create new task");
+
+    wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
+    newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
+
     fileMenu->AppendSeparator();
     auto fileNewMenu = new wxMenu();
     fileNewMenu->Append(ID_NEW_EMPLOYER, "New E&mployer", "Create new employer");

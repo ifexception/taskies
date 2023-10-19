@@ -36,6 +36,11 @@ std::string GetExitIconBundleName()
     return "EXIT_ICO";
 }
 
+std::string GetAddTaskIconBundleName()
+{
+    return "ADD_TASK_ICO";
+}
+
 std::string GetLicense()
 {
     return "Taskies is a time tracking productivity tool.\n"
