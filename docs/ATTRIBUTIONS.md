@@ -7,3 +7,5 @@
 [Bell icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/bell)
 
 [Time and date icons created by Andrean Prabowo - Flaticon](https://www.flaticon.com/free-icons/time-and-date)
+
+[Enquiry icons created by logisstudio - Flaticon](https://www.flaticon.com/free-icons/enquiry)

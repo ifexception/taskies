@@ -233,7 +233,10 @@ void MainFrame::CreateControls()
 
     /* Help */
     auto helpMenu = new wxMenu();
-    helpMenu->Append(ID_HELP_ABOUT, "&About", "Information about Taskies");
+    auto aboutMenuItem = helpMenu->Append(ID_HELP_ABOUT, "&About", "Information about Taskies");
+
+    wxIconBundle aboutIconBundle(Common::GetAboutIconBundleName(), 0);
+    aboutMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(aboutIconBundle));
 
     /* Menu bar */
     auto menuBar = new wxMenuBar();
