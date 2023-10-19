@@ -10,7 +10,7 @@
 // first icon in the executable and the icons are sorted both by their order
 // and alphabetically (!), so put this icon first and give it a name
 // starting with "a"
-aTASKIES_ICO ICON "..\\res\\taskies.ico"
+aaTASKIES_ICO ICON "..\\res\\taskies.ico"
 EXIT_ICO ICON "..\\res\\exit.ico"
 ADD_TASK_ICO ICON "..\\res\\add_task.ico"
 ABOUT_ICO ICON "..\\res\\about.ico"
