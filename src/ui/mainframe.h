@@ -57,10 +57,11 @@ enum class MenuIds : int {
     Edit_Client,
     Edit_Project,
     Edit_Category,
+    View_Reset,
     View_Preferences,
     Help_About,
 
-    Unp_ResetDatesToCurrentWeek = 128,
+    Unp_ResetDatesToCurrentWeek = 512,
 };
 
 /* File */
@@ -77,6 +78,7 @@ static const int ID_EDIT_PROJECT = static_cast<int>(MenuIds::Edit_Project);
 static const int ID_EDIT_CATEGORY = static_cast<int>(MenuIds::Edit_Category);
 
 /* View */
+static const int ID_VIEW_RESET = static_cast<int>(MenuIds::View_Reset);
 static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preferences);
 
 /* Help */
@@ -131,6 +133,7 @@ private:
     void OnEditClient(wxCommandEvent& event);
     void OnEditProject(wxCommandEvent& event);
     void OnEditCategory(wxCommandEvent& event);
+    void OnViewReset(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     /* Error Event Handlers */ /*TODO(SW): Is this still relevant?*/
@@ -143,8 +146,9 @@ private:
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
     /* Keyboard Event Handlers */
-    void OnResetDatesToCurrentWeek(wxCommandEvent& event);
+    void OnResetToCurrentWeek(wxCommandEvent& event);
 
+    void DoResetToCurrentWeek();
     void ResetDateRange();
     void ResetDatePickerValues();
     void RefetchTasksForDateRange();

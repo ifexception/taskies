@@ -77,6 +77,7 @@ EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
 EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
+EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Error Event Handlers */
@@ -89,7 +90,7 @@ EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
 EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* Keyboard Event Handlers */
-EVT_MENU(ID_RESET_DATES_TO_CURRENT_WEEK, MainFrame::OnResetDatesToCurrentWeek)
+EVT_MENU(ID_RESET_DATES_TO_CURRENT_WEEK, MainFrame::OnResetToCurrentWeek)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -223,6 +224,7 @@ void MainFrame::CreateControls()
 
     /* View */
     auto viewMenu = new wxMenu();
+    viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current");
     viewMenu->Append(ID_VIEW_PREFERENCES, "Pre&ferences", "View and adjust program options");
 
     /* Help */
@@ -505,6 +507,11 @@ void MainFrame::OnEditCategory(wxCommandEvent& WXUNUSED(event))
     editCategory.ShowModal();
 }
 
+void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
+{
+    DoResetToCurrentWeek();
+}
+
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::PreferencesDialog preferencesDlg(this, pEnv, pCfg, pLogger);
@@ -739,7 +746,12 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     }
 }
 
-void MainFrame::OnResetDatesToCurrentWeek(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnResetToCurrentWeek(wxCommandEvent& WXUNUSED(event))
+{
+    DoResetToCurrentWeek();
+}
+
+void MainFrame::DoResetToCurrentWeek()
 {
     pDateStore->Reset();
 
