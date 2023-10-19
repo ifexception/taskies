@@ -89,8 +89,6 @@ EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskDateAdded)
 EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
 EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
-/* Keyboard Event Handlers */
-EVT_MENU(ID_RESET_DATES_TO_CURRENT_WEEK, MainFrame::OnResetToCurrentWeek)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -201,7 +199,7 @@ void MainFrame::CreateControls()
     /* Menubar */
     /* File */
     auto fileMenu = new wxMenu();
-    auto newTaskMenuItem = fileMenu->Append(ID_NEW_TASK, "New &Task", "Create new task");
+    auto newTaskMenuItem = fileMenu->Append(ID_NEW_TASK, "&New Task\tCtrl-N", "Create new task");
 
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
@@ -210,9 +208,9 @@ void MainFrame::CreateControls()
     auto fileNewMenu = new wxMenu();
     fileNewMenu->Append(ID_NEW_EMPLOYER, "New E&mployer", "Create new employer");
     fileNewMenu->Append(ID_NEW_CLIENT, "New C&lient", "Create new client");
-    fileNewMenu->Append(ID_NEW_PROJECT, "New &Project", "Create new project");
+    fileNewMenu->Append(ID_NEW_PROJECT, "New Pro&ject", "Create new project");
     fileNewMenu->Append(ID_NEW_CATEGORY, "New Cate&gory", "Create new category");
-    fileMenu->AppendSubMenu(fileNewMenu, "&New");
+    fileMenu->AppendSubMenu(fileNewMenu, "Ne&w");
     fileMenu->AppendSeparator();
     auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit", "Exit the program");
 
@@ -221,15 +219,15 @@ void MainFrame::CreateControls()
 
     /* Edit */
     auto editMenu = new wxMenu();
-    editMenu->Append(ID_EDIT_EMPLOYER, "Edit E&mployer", "Edit an employer");
-    editMenu->Append(ID_EDIT_CLIENT, "Edit C&lient", "Edit a client");
-    editMenu->Append(ID_EDIT_PROJECT, "Edit &Project", "Edit a project");
-    editMenu->Append(ID_EDIT_CATEGORY, "Edit Cate&gory", "Edit a category");
+    editMenu->Append(ID_EDIT_EMPLOYER, "Edit Emp&loyer", "Edit an employer");
+    editMenu->Append(ID_EDIT_CLIENT, "Edit Cl&ient", "Edit a client");
+    editMenu->Append(ID_EDIT_PROJECT, "Edit P&roject", "Edit a project");
+    editMenu->Append(ID_EDIT_CATEGORY, "Edit Categ&ory", "Edit a category");
 
     /* View */
     auto viewMenu = new wxMenu();
     viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current");
-    viewMenu->Append(ID_VIEW_PREFERENCES, "Pre&ferences", "View and adjust program options");
+    viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
 
     /* Help */
     auto helpMenu = new wxMenu();
@@ -334,8 +332,9 @@ void MainFrame::CreateControls()
     sizer->Add(pTaskDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Accelerator Table */
-    wxAcceleratorEntry entries[1];
-    entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_RESET_DATES_TO_CURRENT_WEEK);
+    wxAcceleratorEntry entries[2];
+    entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
+    entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
     SetAcceleratorTable(table);
@@ -751,11 +750,6 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
             pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
         }
     }
-}
-
-void MainFrame::OnResetToCurrentWeek(wxCommandEvent& WXUNUSED(event))
-{
-    DoResetToCurrentWeek();
 }
 
 void MainFrame::DoResetToCurrentWeek()
