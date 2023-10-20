@@ -45,6 +45,7 @@ public:
     std::int64_t Create(Model::TaskModel& model);
     int Update(Model::TaskModel& task);
     int Delete(const std::int64_t taskId);
+    int GetDescriptionById(const std::int64_t taskId, const std::string& description);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
@@ -54,5 +55,6 @@ private:
     static const std::string create;
     static const std::string update;
     static const std::string isActive;
+    static const std::string getDescriptionById;
 };
 } // namespace tks::DAO

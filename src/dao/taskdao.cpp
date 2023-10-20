@@ -418,6 +418,55 @@ int TaskDao::Delete(const std::int64_t taskId)
     return 0;
 }
 
+int TaskDao::GetDescriptionById(const std::int64_t taskId, const std::string& description)
+{
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", taskId);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, TaskDao::getDescriptionById.c_str(), static_cast<int>(TaskDao::getDescriptionById.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::getDescriptionById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, taskId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "task_id", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::getDescriptionById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "TaskDao", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskDao", taskId);
+
+    return 0;
+}
+
 const std::string TaskDao::getById = "SELECT "
                                      "task_id, "
                                      "billable, "
@@ -461,4 +510,9 @@ const std::string TaskDao::update = "UPDATE tasks"
                                     "WHERE task_id = ?";
 
 const std::string TaskDao::isActive = "";
+
+const std::string TaskDao::getDescriptionById = "SELECT "
+                                                "description "
+                                                "FROM tasks "
+                                                "WHERE task_id = ?;";
 } // namespace tks::DAO
