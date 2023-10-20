@@ -418,7 +418,7 @@ int TaskDao::Delete(const std::int64_t taskId)
     return 0;
 }
 
-int TaskDao::GetDescriptionById(const std::int64_t taskId, const std::string& description)
+int TaskDao::GetDescriptionById(const std::int64_t taskId, std::string& description)
 {
     pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", taskId);
 
