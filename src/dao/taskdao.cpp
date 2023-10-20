@@ -497,7 +497,7 @@ const std::string TaskDao::create = "INSERT INTO "
                                     ") "
                                     "VALUES (?,?,?,?,?,?,?,?)";
 
-const std::string TaskDao::update = "UPDATE tasks"
+const std::string TaskDao::update = "UPDATE tasks "
                                     "SET "
                                     "billable = ?, "
                                     "unique_identifier = ?, "
@@ -507,7 +507,7 @@ const std::string TaskDao::update = "UPDATE tasks"
                                     "project_id = ?, "
                                     "category_id = ?, "
                                     "workday_id = ? "
-                                    "WHERE task_id = ?";
+                                    "WHERE task_id = ?;";
 
 const std::string TaskDao::isActive = "";
 
