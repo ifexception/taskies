@@ -40,6 +40,8 @@
 #include "../core/environment.h"
 #include "../core/configuration.h"
 
+#include "../dao/taskdao.h"
+
 #include "../repository/taskrepository.h"
 #include "../repository/taskrepositorymodel.h"
 
@@ -123,6 +125,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pTaskTreeModel(nullptr)
     , mFromCtrlDate()
     , mToCtrlDate()
+    , mTaskIdToModify(-1)
 // clang-format on
 {
     // Initialization setup
@@ -541,6 +544,14 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
     aboutDlg.ShowModal();
 }
 
+void MainFrame::OnContainerCopyToClipboard(wxCommandEvent& event) {}
+
+void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event) {}
+
+void MainFrame::OnEditTask(wxCommandEvent& event) {}
+
+void MainFrame::OnDeleteTask(wxCommandEvent& event) {}
+
 void MainFrame::OnError(wxCommandEvent& event)
 {
     UI::dlg::ErrorDialog errDialog(this, pEnv, pLogger, event.GetString().ToStdString());
@@ -762,6 +773,22 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         pLogger->info(" MainFrame::OnContextMenu - Clicked on valid wxDateViewItem");
         auto model = (TaskTreeModelNode*) item.GetID();
         pLogger->info(" MainFrame::OnContextMenu - ID of selected task {0}", model->GetTaskId());
+
+        if (model->IsContainer()) {
+            // ENHANCEMENT: if is container, copy ALL task entries for container to clipboard
+            wxMenu menu;
+            menu.Append(wxID_COPY, wxT("&Copy to Clipboard"));
+            PopupMenu(&menu);
+        } else {
+            mTaskIdToModify = model->GetTaskId();
+
+            wxMenu menu;
+            menu.Append(wxID_COPY, wxT("&Copy to Clipboard"));
+            menu.Append(wxID_EDIT, wxT("&Edit"));
+            menu.Append(wxID_DELETE, wxT("&Delete"));
+
+            PopupMenu(&menu);
+        }
     }
 }
 

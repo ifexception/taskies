@@ -59,7 +59,10 @@ enum class MenuIds : int {
     Edit_Category,
     View_Reset,
     View_Preferences,
-    Help_About
+    Help_About,
+
+    /* Popup Menu Ids */
+    Pop_ContainerCopyTasks
 };
 
 /* File */
@@ -81,6 +84,9 @@ static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preference
 
 /* Help */
 static const int ID_HELP_ABOUT = static_cast<int>(MenuIds::Help_About);
+
+/* Popup Menu Ids */
+static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_ContainerCopyTasks);
 
 namespace Core
 {
@@ -117,7 +123,7 @@ private:
     void OnClose(wxCloseEvent& event);
     void OnIconize(wxIconizeEvent& event);
     void OnResize(wxSizeEvent& event);
-    /* Menu Handlers */
+    /* Menu Event Handlers */
     void OnNewTask(wxCommandEvent& event);
     void OnNewEmployer(wxCommandEvent& event);
     void OnNewClient(wxCommandEvent& event);
@@ -131,6 +137,11 @@ private:
     void OnViewReset(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
+    /* Popup Menu Event Handlers */
+    void OnContainerCopyToClipboard(wxCommandEvent& event);
+    void OnCopyTaskToClipboard(wxCommandEvent& event);
+    void OnEditTask(wxCommandEvent& event);
+    void OnDeleteTask(wxCommandEvent& event);
     /* Error Event Handlers */ /*TODO(SW): Is this still relevant?*/
     void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
@@ -175,6 +186,7 @@ private:
     wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
+    std::int64_t mTaskIdToModify;
 
     enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_FROMDATE, tksIDC_TODATE, tksIDC_TASKDATAVIEW };
 };
