@@ -26,6 +26,7 @@
 #include <date/date.h>
 
 #include <wx/artprov.h>
+#include <wx/clipbrd.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/taskbarbutton.h>
@@ -68,7 +69,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
 EVT_SIZE(MainFrame::OnResize)
-/* Menu Handlers */
+/* Menu Event Handlers */
 EVT_MENU(ID_NEW_TASK, MainFrame::OnNewTask)
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
@@ -82,6 +83,8 @@ EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
 EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
+/* Popup Menu Event Handlers */
+EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 /* Error Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
@@ -546,7 +549,25 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnContainerCopyToClipboard(wxCommandEvent& event) {}
 
-void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event) {}
+void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event)
+{
+    std::string description;
+    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+
+    int rc = taskDao.GetDescriptionById(mTaskIdToModify, description);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        auto canOpen = wxTheClipboard->Open();
+        if (canOpen) {
+            auto textData = new wxTextDataObject(description);
+            wxTheClipboard->SetData(textData);
+            wxTheClipboard->Close();
+        }
+    }
+
+    mTaskIdToModify = -1;
+}
 
 void MainFrame::OnEditTask(wxCommandEvent& event) {}
 
@@ -777,13 +798,13 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         if (model->IsContainer()) {
             // ENHANCEMENT: if is container, copy ALL task entries for container to clipboard
             wxMenu menu;
-            menu.Append(wxID_COPY, wxT("&Copy to Clipboard"));
+            menu.Append(ID_POP_CONTAINER_COPY_TASKS, wxT("&Copy"));
             PopupMenu(&menu);
         } else {
             mTaskIdToModify = model->GetTaskId();
 
             wxMenu menu;
-            menu.Append(wxID_COPY, wxT("&Copy to Clipboard"));
+            menu.Append(wxID_COPY, wxT("&Copy"));
             menu.Append(wxID_EDIT, wxT("&Edit"));
             menu.Append(wxID_DELETE, wxT("&Delete"));
 
