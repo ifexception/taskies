@@ -414,6 +414,7 @@ void TaskDialog::DataToControls()
 {
     // load task
     Model::TaskModel task;
+    // FIXME: look into using task repo class to fetch all data in one go
     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 

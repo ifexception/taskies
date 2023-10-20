@@ -85,6 +85,7 @@ EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Popup Menu Event Handlers */
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
+EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 /* Error Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
@@ -569,7 +570,13 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event)
     mTaskIdToModify = -1;
 }
 
-void MainFrame::OnEditTask(wxCommandEvent& event) {}
+void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
+{
+    UI::dlg::TaskDialog newTaskDialog(this, pEnv, pLogger, mDatabaseFilePath, true, mTaskIdToModify);
+    newTaskDialog.ShowModal();
+
+    mTaskIdToModify = -1;
+}
 
 void MainFrame::OnDeleteTask(wxCommandEvent& event) {}
 
