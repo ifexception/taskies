@@ -187,6 +187,7 @@ private:
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
     std::int64_t mTaskIdToModify;
+    std::string mTaskDate;
 
     enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_FROMDATE, tksIDC_TODATE, tksIDC_TASKDATAVIEW };
 };

@@ -86,6 +86,7 @@ EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Popup Menu Event Handlers */
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
+EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
 /* Error Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
@@ -130,6 +131,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mFromCtrlDate()
     , mToCtrlDate()
     , mTaskIdToModify(-1)
+    , mTaskDate()
 // clang-format on
 {
     // Initialization setup
@@ -568,17 +570,36 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event)
     }
 
     mTaskIdToModify = -1;
+    mTaskDate = "";
 }
 
 void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::TaskDialog newTaskDialog(this, pEnv, pLogger, mDatabaseFilePath, true, mTaskIdToModify);
-    newTaskDialog.ShowModal();
+    int ret = newTaskDialog.ShowModal();
+
+    if (ret == wxID_OK) {
+        // refetch task to update it
+    }
 
     mTaskIdToModify = -1;
+    mTaskDate = "";
 }
 
-void MainFrame::OnDeleteTask(wxCommandEvent& event) {}
+void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
+{
+    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+
+    int rc = taskDao.Delete(mTaskIdToModify);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
+    }
+
+    mTaskIdToModify = -1;
+    mTaskDate = "";
+}
 
 void MainFrame::OnError(wxCommandEvent& event)
 {
@@ -809,6 +830,7 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             PopupMenu(&menu);
         } else {
             mTaskIdToModify = model->GetTaskId();
+            mTaskDate = model->GetParent()->GetProjectName();
 
             wxMenu menu;
             menu.Append(wxID_COPY, wxT("&Copy"));
