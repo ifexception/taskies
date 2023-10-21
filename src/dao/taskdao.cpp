@@ -374,7 +374,7 @@ int TaskDao::Update(Model::TaskModel& task)
 
 int TaskDao::Delete(const std::int64_t taskId)
 {
-    pLogger->info(LogMessage::InfoBeginDeleteEntity, "TaskDao", "project", taskId);
+    pLogger->info(LogMessage::InfoBeginDeleteEntity, "TaskDao", "task", taskId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc =
@@ -399,7 +399,7 @@ int TaskDao::Delete(const std::int64_t taskId)
     rc = sqlite3_bind_int64(stmt, bindIdx++, taskId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "project_id", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "task_id", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -509,7 +509,11 @@ const std::string TaskDao::update = "UPDATE tasks "
                                     "workday_id = ? "
                                     "WHERE task_id = ?;";
 
-const std::string TaskDao::isActive = "";
+const std::string TaskDao::isActive = "UPDATE tasks "
+                                      "SET "
+                                      "is_active = 0, "
+                                      "date_modified = ? "
+                                      "WHERE task_id = ?;";
 
 const std::string TaskDao::getDescriptionById = "SELECT "
                                                 "description "
