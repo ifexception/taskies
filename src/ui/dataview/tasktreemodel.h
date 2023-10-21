@@ -57,11 +57,14 @@ public:
     wxDataViewItem GetParent(const wxDataViewItem& item) const override;
     bool IsContainer(const wxDataViewItem& item) const override;
     unsigned int GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;
+
     void Delete(const wxDataViewItem& item);
+    void DeleteChild(const std::string& date, const std::int64_t taskId);
+
     void Clear();
     void ClearAll();
-
     void ClearNodeEntriesByDateKey(const std::string& date);
+
     void InsertChildNode(const std::string& date, repos::TaskRepositoryModel& taskModel);
     void InsertChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
     void InsertRootAndChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
