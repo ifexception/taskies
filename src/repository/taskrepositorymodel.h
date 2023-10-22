@@ -43,7 +43,7 @@ struct TaskRepositoryModel {
     std::string ProjectName;
     std::string CategoryName;
 
-    const std::string GetDuration();
+    const std::string GetDuration() const;
     const std::string GetTrimmedDescription();
 
     const std::string GetDateCreatedString() const;

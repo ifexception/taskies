@@ -44,7 +44,7 @@ TaskRepositoryModel::TaskRepositoryModel()
 {
 }
 
-const std::string TaskRepositoryModel::GetDuration()
+const std::string TaskRepositoryModel::GetDuration() const
 {
     return fmt::format("{0:02}:{1:02}", Hours, Minutes);
 }
