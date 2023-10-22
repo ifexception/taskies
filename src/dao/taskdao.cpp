@@ -23,6 +23,8 @@
 
 #include "../utils/utils.h"
 
+// TODO: use a static_assert to check bindIndex with number of expected parameters
+
 namespace tks::DAO
 {
 TaskDao::TaskDao(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
@@ -304,7 +306,7 @@ int TaskDao::Update(Model::TaskModel& task)
     bindIndex++;
 
     // hours
-    rc = sqlite3_bind_int64(stmt, bindIndex++, task.Hours);
+    rc = sqlite3_bind_int(stmt, bindIndex++, task.Hours);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "hours", 3, rc, err);
@@ -313,7 +315,7 @@ int TaskDao::Update(Model::TaskModel& task)
     }
 
     // minutes
-    rc = sqlite3_bind_int64(stmt, bindIndex++, task.Minutes);
+    rc = sqlite3_bind_int(stmt, bindIndex++, task.Minutes);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "minutes", 4, rc, err);
@@ -354,6 +356,24 @@ int TaskDao::Update(Model::TaskModel& task)
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "workday_id", 8, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // date modified
+    rc = sqlite3_bind_int64(stmt, bindIndex++, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "date_modified", 9, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    // task id
+    rc = sqlite3_bind_int64(stmt, bindIndex++, task.TaskId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "task_id", 10, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -506,7 +526,8 @@ const std::string TaskDao::update = "UPDATE tasks "
                                     "description = ?, "
                                     "project_id = ?, "
                                     "category_id = ?, "
-                                    "workday_id = ? "
+                                    "workday_id = ?, "
+                                    "date_modified = ? "
                                     "WHERE task_id = ?;";
 
 const std::string TaskDao::isActive = "UPDATE tasks "
