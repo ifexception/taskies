@@ -582,10 +582,14 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& event)
             auto textData = new wxTextDataObject(clipboardData);
             wxTheClipboard->SetData(textData);
             wxTheClipboard->Close();
+
+            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" tasks for date {1}",
+                taskModels.size(),
+                mTaskDate);
         }
     }
 
-    mTaskDate = "";
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event)
@@ -605,8 +609,7 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event)
         }
     }
 
-    mTaskIdToModify = -1;
-    mTaskDate = "";
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
@@ -626,8 +629,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
         }
     }
 
-    mTaskIdToModify = -1;
-    mTaskDate = "";
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
@@ -641,8 +643,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
     }
 
-    mTaskIdToModify = -1;
-    mTaskDate = "";
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnError(wxCommandEvent& event)
@@ -983,5 +984,11 @@ void MainFrame::SetToDateAndDatePicker()
     pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
 
     mToCtrlDate = pDateStore->SundayDateSeconds;
+}
+
+void MainFrame::ResetTaskContextMenuVariables()
+{
+    mTaskIdToModify = -1;
+    mTaskDate = "";
 }
 } // namespace tks::UI
