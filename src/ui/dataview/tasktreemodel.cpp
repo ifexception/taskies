@@ -227,8 +227,35 @@ void TaskTreeModel::DeleteChild(const std::string& date, const std::int64_t task
                 delete child;
                 child = nullptr;
 
-                wxDataViewItem child((void*) child);
-                ItemDeleted(parent, child);
+                wxDataViewItem childItem((void*) child);
+                ItemDeleted(parent, childItem);
+
+                break;
+            }
+        }
+    }
+}
+
+void TaskTreeModel::ChangeChild(const std::string& date, repos::TaskRepositoryModel& taskModel)
+{
+    pLogger->info("TaskTreeModel::DeleteChild - Begin");
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
+
+    if (iterator != pRoots.end()) {
+        auto node = *iterator;
+        wxDataViewItem parent((void*) node);
+        auto count = node->GetChildCount();
+        for (unsigned int pos = 0; pos < count; pos++) {
+            TaskTreeModelNode* child = node->GetChildren().Item(pos);
+            if (child->GetTaskId() == taskModel.TaskId) {
+                child->SetProjectName(taskModel.ProjectName);
+                child->SetCategoryName(taskModel.CategoryName);
+                child->SetDuration(taskModel.GetDuration());
+                child->SetDescription(taskModel.GetTrimmedDescription());
+
+                wxDataViewItem item((void*) child);
+                ItemChanged(item);
 
                 break;
             }

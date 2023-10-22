@@ -61,6 +61,8 @@ public:
     void Delete(const wxDataViewItem& item);
     void DeleteChild(const std::string& date, const std::int64_t taskId);
 
+    void ChangeChild(const std::string& date, repos::TaskRepositoryModel& taskModel);
+
     void Clear();
     void ClearAll();
     void ClearNodeEntriesByDateKey(const std::string& date);
