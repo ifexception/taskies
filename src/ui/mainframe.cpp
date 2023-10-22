@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <map>
+#include <sstream>
 #include <vector>
 
 #include <date/date.h>
@@ -84,6 +85,7 @@ EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Popup Menu Event Handlers */
+EVT_MENU(ID_POP_CONTAINER_COPY_TASKS, MainFrame::OnContainerCopyTasksToClipboard)
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
@@ -550,7 +552,41 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
     aboutDlg.ShowModal();
 }
 
-void MainFrame::OnContainerCopyToClipboard(wxCommandEvent& event) {}
+void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& event)
+{
+    pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
+
+    std::vector<repos::TaskRepositoryModel> taskModels;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.FilterByDate(mTaskDate, taskModels);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        std::stringstream formattedClipboardData;
+        for (const auto& taskModel : taskModels) {
+            if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+                formattedClipboardData << taskModel.TaskId << "\t";
+            }
+
+            formattedClipboardData << taskModel.ProjectName << "\t";
+            formattedClipboardData << taskModel.CategoryName << "\t";
+            formattedClipboardData << taskModel.GetDuration() << "\t";
+            formattedClipboardData << taskModel.Description << "\t";
+            formattedClipboardData << "\n";
+        }
+
+        std::string clipboardData = formattedClipboardData.str();
+        auto canOpen = wxTheClipboard->Open();
+        if (canOpen) {
+            auto textData = new wxTextDataObject(clipboardData);
+            wxTheClipboard->SetData(textData);
+            wxTheClipboard->Close();
+        }
+    }
+
+    mTaskDate = "";
+}
 
 void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event)
 {
@@ -827,16 +863,19 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
     wxDataViewItem item = event.GetItem();
 
     if (item.IsOk()) {
-        pLogger->info(" MainFrame::OnContextMenu - Clicked on valid wxDateViewItem");
+        pLogger->info("MainFrame::OnContextMenu - Clicked on valid wxDateViewItem");
         auto model = (TaskTreeModelNode*) item.GetID();
-        pLogger->info(" MainFrame::OnContextMenu - ID of selected task {0}", model->GetTaskId());
 
         if (model->IsContainer()) {
-            // ENHANCEMENT: if is container, copy ALL task entries for container to clipboard
+            pLogger->info(
+                "MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"", model->GetProjectName());
+            mTaskDate = model->GetProjectName();
+
             wxMenu menu;
             menu.Append(ID_POP_CONTAINER_COPY_TASKS, wxT("&Copy"));
             PopupMenu(&menu);
         } else {
+            pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"", model->GetTaskId());
             mTaskIdToModify = model->GetTaskId();
             mTaskDate = model->GetParent()->GetProjectName();
 

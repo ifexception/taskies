@@ -138,7 +138,7 @@ private:
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     /* Popup Menu Event Handlers */
-    void OnContainerCopyToClipboard(wxCommandEvent& event);
+    void OnContainerCopyTasksToClipboard(wxCommandEvent& event);
     void OnCopyTaskToClipboard(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
