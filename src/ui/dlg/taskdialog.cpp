@@ -829,11 +829,13 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
             wxQueueEvent(pParent, addNotificationEvent);
 
-            wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
-            taskAddedEvent->SetString(mDate);
-            taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
+            if (!bIsEdit) {
+                wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
+                taskAddedEvent->SetString(mDate);
+                taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
-            wxQueueEvent(pParent, taskAddedEvent);
+                wxQueueEvent(pParent, taskAddedEvent);
+            }
 
             EndModal(wxID_OK);
         }
@@ -901,6 +903,7 @@ bool TaskDialog::TransferDataAndValidate()
         return false;
     }
 
+    mTaskModel.TaskId = mTaskId;
     mTaskModel.Billable = pBillableCheckBoxCtrl->GetValue();
     mTaskModel.UniqueIdentifier = uniqueIdentifier.empty() ? std::nullopt : std::make_optional(uniqueIdentifier);
     mTaskModel.Hours = pTimeHoursCtrl->GetValue();
