@@ -575,11 +575,19 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event)
 
 void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::TaskDialog newTaskDialog(this, pEnv, pLogger, mDatabaseFilePath, true, mTaskIdToModify);
-    int ret = newTaskDialog.ShowModal();
+    UI::dlg::TaskDialog editTaskDialog(this, pEnv, pLogger, mDatabaseFilePath, true, mTaskIdToModify);
+    int ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {
-        // refetch task to update it
+        repos::TaskRepositoryModel taskModel;
+        repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+        int rc = taskRepo.GetById(mTaskIdToModify, taskModel);
+        if (rc != 0) {
+            QueueFetchTasksErrorNotificationEvent();
+        } else {
+            pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
+        }
     }
 
     mTaskIdToModify = -1;
