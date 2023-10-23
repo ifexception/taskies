@@ -73,6 +73,7 @@ private:
     void OnListBoxSelection(wxCommandEvent& event);
     void OnRestoreDefaults(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
+    void OnClose(wxCloseEvent& event);
 
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;

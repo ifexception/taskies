@@ -132,6 +132,12 @@ void PreferencesDialog::ConfigureEventBindings()
         this,
         wxID_OK
     );
+
+    Bind(
+        wxEVT_CLOSE_WINDOW,
+        &PreferencesDialog::OnClose,
+        this
+    );
 }
 // clang-format on
 
@@ -188,5 +194,10 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
     wxQueueEvent(bIsFrameParent ? pParent : pParent->GetParent(), addNotificationEvent);
 
     event.Skip();
+}
+
+void PreferencesDialog::OnClose(wxCloseEvent& event)
+{
+    EndDialog(wxID_CANCEL);
 }
 } // namespace tks::UI::dlg
