@@ -240,7 +240,11 @@ void MainFrame::CreateControls()
     /* View */
     auto viewMenu = new wxMenu();
     viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current");
-    viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
+    viewMenu->AppendSeparator();
+    auto preferencesMenuItem = viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
+
+    wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
+    preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
 
     /* Help */
     auto helpMenu = new wxMenu();
@@ -348,6 +352,10 @@ void MainFrame::CreateControls()
     wxAcceleratorEntry entries[2];
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
+
+    // ENHANCEMENT: Ctrl-G shortcut to go to particular date and view tasks
+    // will open a simple dialog to ask for the date and then refresh view after date entry
+    // (can only be done once "day task" feature is done)
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
     SetAcceleratorTable(table);

@@ -33,6 +33,8 @@ std::string GetAddTaskIconBundleName();
 
 std::string GetAboutIconBundleName();
 
+std::string GetPreferencesIconBundleName();
+
 std::string GetLicense();
 
 namespace Resources
