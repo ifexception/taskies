@@ -231,12 +231,6 @@ std::string Configuration::GetDatabasePath() const
     return mSettings.DatabasePath;
 }
 
-std::string Configuration::GetFullDatabasePath() const
-{
-    std::filesystem::path fullPath = std::filesystem::path(mSettings.DatabasePath) / pEnv->GetDatabaseName();
-    return fullPath.string();
-}
-
 void Configuration::SetDatabasePath(const std::string& value)
 {
     mSettings.DatabasePath = value;

@@ -61,7 +61,6 @@ public:
     void CloseToTray(const bool value);
 
     std::string GetDatabasePath() const;
-    std::string GetFullDatabasePath() const;
     void SetDatabasePath(const std::string& value);
 
     bool BackupDatabase() const;

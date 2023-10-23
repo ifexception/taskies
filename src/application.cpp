@@ -74,8 +74,11 @@ bool Application::OnInit()
         return false;
     }
 
-    pPersistenceManager = std::make_unique<UI::PersistenceManager>(
-        pLogger, pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath());
+    if (pCfg->GetDatabasePath().empty()) {
+        pCfg->SetDatabasePath(pEnv->GetDatabasePath().string());
+    }
+
+    pPersistenceManager = std::make_unique<UI::PersistenceManager>(pLogger, pCfg->GetDatabasePath());
     wxPersistenceManager::Set(*pPersistenceManager);
 
     if (!RunMigrations()) {
@@ -168,9 +171,7 @@ bool Application::InitializeConfiguration()
 
 bool Application::RunMigrations()
 {
-    const std::string& databaseFilePath =
-        pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
-    Core::DatabaseMigration migrations(pLogger, databaseFilePath);
+    Core::DatabaseMigration migrations(pLogger, pCfg->GetDatabasePath());
 
     return migrations.Migrate();
 }

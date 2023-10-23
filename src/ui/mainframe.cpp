@@ -158,8 +158,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     SetIcons(iconBundle);
 
     // Load database path
-    mDatabaseFilePath =
-        pCfg->GetDatabasePath().empty() ? pEnv->GetDatabasePath().string() : pCfg->GetFullDatabasePath();
+    mDatabaseFilePath = pCfg->GetDatabasePath();
     pLogger->info("MainFrame::MainFrame - Database location \"{0}\"", mDatabaseFilePath);
 
     // Setup TaskBarIcon
