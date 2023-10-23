@@ -219,23 +219,23 @@ void MainFrame::CreateControls()
 
     fileMenu->AppendSeparator();
     auto fileNewMenu = new wxMenu();
-    fileNewMenu->Append(ID_NEW_EMPLOYER, "New E&mployer", "Create new employer");
-    fileNewMenu->Append(ID_NEW_CLIENT, "New C&lient", "Create new client");
-    fileNewMenu->Append(ID_NEW_PROJECT, "New Pro&ject", "Create new project");
-    fileNewMenu->Append(ID_NEW_CATEGORY, "New Cate&gory", "Create new category");
-    fileMenu->AppendSubMenu(fileNewMenu, "Ne&w");
+    fileNewMenu->Append(ID_NEW_EMPLOYER, "New Employer", "Create new employer");
+    fileNewMenu->Append(ID_NEW_CLIENT, "New Client", "Create new client");
+    fileNewMenu->Append(ID_NEW_PROJECT, "New Project", "Create new project");
+    fileNewMenu->Append(ID_NEW_CATEGORY, "New Category", "Create new category");
+    fileMenu->AppendSubMenu(fileNewMenu, "New");
     fileMenu->AppendSeparator();
-    auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit\tAlt-F4", "Exit the program");
+    auto exitMenuItem = fileMenu->Append(wxID_EXIT, "Exit\tAlt-F4", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
 
     /* Edit */
     auto editMenu = new wxMenu();
-    editMenu->Append(ID_EDIT_EMPLOYER, "Edit Emp&loyer", "Edit an employer");
-    editMenu->Append(ID_EDIT_CLIENT, "Edit Cl&ient", "Edit a client");
-    editMenu->Append(ID_EDIT_PROJECT, "Edit P&roject", "Edit a project");
-    editMenu->Append(ID_EDIT_CATEGORY, "Edit Categ&ory", "Edit a category");
+    editMenu->Append(ID_EDIT_EMPLOYER, "Edit Employer", "Edit an employer");
+    editMenu->Append(ID_EDIT_CLIENT, "Edit Client", "Edit a client");
+    editMenu->Append(ID_EDIT_PROJECT, "Edit Project", "Edit a project");
+    editMenu->Append(ID_EDIT_CATEGORY, "Edit Category", "Edit a category");
 
     /* View */
     auto viewMenu = new wxMenu();
