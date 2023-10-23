@@ -225,7 +225,7 @@ void MainFrame::CreateControls()
     fileNewMenu->Append(ID_NEW_CATEGORY, "New Cate&gory", "Create new category");
     fileMenu->AppendSubMenu(fileNewMenu, "Ne&w");
     fileMenu->AppendSeparator();
-    auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit", "Exit the program");
+    auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit\tAlt-F4", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
@@ -248,7 +248,7 @@ void MainFrame::CreateControls()
 
     /* Help */
     auto helpMenu = new wxMenu();
-    auto aboutMenuItem = helpMenu->Append(ID_HELP_ABOUT, "&About", "Information about Taskies");
+    auto aboutMenuItem = helpMenu->Append(ID_HELP_ABOUT, "&About\tF1", "Information about Taskies");
 
     wxIconBundle aboutIconBundle(Common::GetAboutIconBundleName(), 0);
     aboutMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(aboutIconBundle));
