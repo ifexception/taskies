@@ -223,13 +223,13 @@ void TaskTreeModel::DeleteChild(const std::string& date, const std::int64_t task
         for (unsigned int pos = 0; pos < count; pos++) {
             TaskTreeModelNode* child = node->GetChildren().Item(pos);
             if (child->GetTaskId() == taskId) {
+                wxDataViewItem childItem((void*) child);
+
                 node->GetChildren().Remove(child);
                 delete child;
                 child = nullptr;
 
-                wxDataViewItem childItem((void*) child);
                 ItemDeleted(parent, childItem);
-
                 break;
             }
         }

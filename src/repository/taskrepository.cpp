@@ -353,7 +353,8 @@ const std::string TaskRepository::filterByDate = "SELECT "
                                                  "ON tasks.project_id = projects.project_id "
                                                  "INNER JOIN categories "
                                                  "ON tasks.category_id = categories.category_id "
-                                                 "WHERE workdays.date = ?;";
+                                                 "WHERE workdays.date = ? "
+                                                 "AND tasks.is_active = 1;";
 
 const std::string TaskRepository::getById = "SELECT "
                                             "tasks.task_id, "
@@ -375,5 +376,6 @@ const std::string TaskRepository::getById = "SELECT "
                                             "ON tasks.project_id = projects.project_id "
                                             "INNER JOIN categories "
                                             "ON tasks.category_id = categories.category_id "
-                                            "WHERE tasks.task_id = ?;";
+                                            "WHERE tasks.task_id = ? "
+                                            "AND tasks.is_active = 1;";
 } // namespace tks::repos
