@@ -94,6 +94,7 @@ EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskDateAdded)
+EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
 /* Control Event Handlers */
 EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
@@ -713,6 +714,43 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
     if (iterator != dates.end() && taskInsertedId != 0 && eventTaskDateAdded.size() != 0) {
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskInsertedId);
+    }
+}
+
+void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
+{
+    // A task got deleted on a specific day
+    auto eventTaskDateDeleted = event.GetString().ToStdString();
+    auto taskDeletedId = static_cast<std::int64_t>(event.GetExtraLong());
+
+    pLogger->info("MainFrame::OnTaskDeletedOnDate - Received task added event with date \"{0}\" and ID \"{1}\"",
+        eventTaskDateDeleted,
+        taskDeletedId);
+
+    // Check if our current from and to dates encapsulate the date the task was inserted
+    // by calculating _this_ date range
+    std::vector<std::string> dates;
+    auto dateIterator = mFromDate;
+    int loopIdx = 0;
+
+    do {
+        dates.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != mToDate);
+
+    dates.push_back(date::format("%F", dateIterator));
+
+    // Check if date that the task was inserted for is in the selected range of our wxDateTimeCtrl's
+    auto iterator =
+        std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateDeleted; });
+
+    // If we are in range, refetch the data for our particular date
+    if (iterator != dates.end() && taskDeletedId != 0 && eventTaskDateDeleted.size() != 0) {
+        pLogger->info("MainFrame::OnTaskDeletedOnDate - Task deleted on a date within bounds!");
+
+        pTaskTreeModel->DeleteChild(*iterator, taskDeletedId);
     }
 }
 

@@ -836,6 +836,13 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
                 wxQueueEvent(pParent, taskAddedEvent);
             }
+            if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
+                wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
+                taskDeletedEvent->SetString(mDate);
+                taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+                wxQueueEvent(pParent, taskDeletedEvent);
+            }
 
             EndModal(wxID_OK);
         }
