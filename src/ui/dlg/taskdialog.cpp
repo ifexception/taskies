@@ -276,7 +276,7 @@ void TaskDialog::CreateControls()
         metadataFlexGridSizer->Add(0, 0);
 
         pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
-        pIsActiveCtrl->SetToolTip("Indicates if this project is being used");
+        pIsActiveCtrl->SetToolTip("Indicates if this task is being used/still applicable");
         metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     }
 
