@@ -648,6 +648,13 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         QueueFetchTasksErrorNotificationEvent();
     } else {
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
+
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        auto message = "Successfully deleted task";
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(this, addNotificationEvent);
     }
 
     ResetTaskContextMenuVariables();
