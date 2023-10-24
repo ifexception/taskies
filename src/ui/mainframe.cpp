@@ -560,7 +560,7 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
     aboutDlg.ShowModal();
 }
 
-void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& event)
+void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
 
@@ -600,7 +600,7 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& event)
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& event)
+void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     std::string description;
     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
