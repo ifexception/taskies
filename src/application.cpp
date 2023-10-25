@@ -76,6 +76,7 @@ bool Application::OnInit()
 
     if (pCfg->GetDatabasePath().empty()) {
         pCfg->SetDatabasePath(pEnv->GetDatabasePath().string());
+        pCfg->Save();
     }
 
     pPersistenceManager = std::make_unique<UI::PersistenceManager>(pLogger, pCfg->GetDatabasePath());
