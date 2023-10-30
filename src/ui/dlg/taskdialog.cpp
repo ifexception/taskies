@@ -19,6 +19,8 @@
 
 #include "taskdialog.h"
 
+#include <algorithm>
+
 #include <date/date.h>
 
 #include <wx/richtooltip.h>
@@ -650,6 +652,14 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
             }
+
+            auto hasProjectDefaultIterator = std::find_if(projects.begin(),
+                projects.end(),
+                [](Model::ProjectModel project) { return project.IsDefault == true; });
+            if (hasProjectDefaultIterator != projects.end()) {
+                auto& defaultProject = *hasProjectDefaultIterator;
+                pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
+            }
         } else {
             pProjectChoiceCtrl->Disable();
         }
@@ -800,23 +810,17 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             ret = taskId > 0 ? 0 : -1;
             mTaskId = taskId;
 
-            ret == -1
-                ? message = "Failed to create task"
-                : message = "Successfully created task";
+            ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = taskDao.Update(mTaskModel);
 
-            ret == -1
-                ? message = "Failed to update task"
-                : message = "Successfully updated task";
+            ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
             ret = taskDao.Delete(mTaskId);
 
-            ret == -1
-                ? message = "Failed to delete task"
-                : message = "Successfully deleted task";
+            ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
         }
 
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
