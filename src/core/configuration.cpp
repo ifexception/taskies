@@ -27,6 +27,7 @@ namespace tks::Core
 {
 const std::string Configuration::Sections::GeneralSection = "general";
 const std::string Configuration::Sections::DatabaseSection = "database";
+const std::string Configuration::Sections::TaskSection = "tasks";
 
 Configuration::Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger)
     : pEnv(env)
@@ -53,6 +54,7 @@ bool Configuration::Load()
 
         GetGeneralConfig(data);
         GetDatabaseConfig(data);
+        GetTasksConfig(data);
     } catch (const toml::syntax_error& error) {
         pLogger->error(
             "Configuration - A TOML syntax/parse error occurred when parsing configuration file {0}", error.what());
@@ -84,6 +86,12 @@ bool Configuration::Save()
                 { "backupDatabase", mSettings.BackupDatabase },
                 { "backupPath", mSettings.BackupPath },
                 { "backupRetentionPeriod", mSettings.BackupRetentionPeriod }
+            }
+        },
+        {
+            Sections::TaskSection,
+            {
+                { "minutesIncrement", mSettings.TaskMinutesIncrement }
             }
         }
     };
@@ -142,6 +150,12 @@ bool Configuration::RestoreDefaults()
                 { "backupDatabase", false },
                 { "backupPath", "" },
                 { "backupRetentionPeriod", 0 }
+            }
+        },
+        {
+            Sections::TaskSection,
+            {
+                { "minutesIncrement", 0 }
             }
         }
     };
@@ -266,6 +280,16 @@ void Configuration::SetBackupRetentionPeriod(const int value)
     mSettings.BackupRetentionPeriod = value;
 }
 
+int Configuration::GetMinutesIncrement() const
+{
+    return mSettings.TaskMinutesIncrement;
+}
+
+void Configuration::SetMinutesIncrement(const int value)
+{
+    mSettings.TaskMinutesIncrement = value;
+}
+
 void Configuration::GetGeneralConfig(const toml::value& config)
 {
     const auto& generalSection = toml::find(config, Sections::GeneralSection);
@@ -289,4 +313,10 @@ void Configuration::GetDatabaseConfig(const toml::value& config)
     mSettings.BackupRetentionPeriod = toml::find<int>(databaseSection, "backupRetentionPeriod");
 }
 
+void Configuration::GetTasksConfig(const toml::value& config)
+{
+    const auto& taskSection = toml::find(config, Sections::TaskSection);
+
+    mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
+}
 } // namespace tks::Core

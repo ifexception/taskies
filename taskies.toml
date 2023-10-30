@@ -11,3 +11,6 @@ databasePath=""
 backupDatabase=false
 backupPath=""
 backupRetentionPeriod=-1
+
+[tasks]
+minutesIncrement=15

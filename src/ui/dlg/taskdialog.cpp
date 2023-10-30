@@ -29,6 +29,7 @@
 #include "../../common/validator.h"
 
 #include "../../core/environment.h"
+#include "../../core/configuration.h"
 
 #include "../../dao/employerdao.h"
 #include "../../dao/clientdao.h"
@@ -51,6 +52,7 @@ namespace tks::UI::dlg
 {
 TaskDialog::TaskDialog(wxWindow* parent,
     std::shared_ptr<Core::Environment> env,
+    std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool isEdit,
@@ -65,6 +67,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pEnv(env)
+    , pCfg(cfg)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , pDateContextCtrl(nullptr)
@@ -210,7 +213,8 @@ void TaskDialog::CreateControls()
         0,
         59);
     pTimeMinutesCtrl->SetToolTip("Number of minutes the task took");
-    pTimeMinutesCtrl->SetValue(15);
+    pTimeMinutesCtrl->SetValue(pCfg->GetMinutesIncrement());
+    pTimeMinutesCtrl->SetIncrement(pCfg->GetMinutesIncrement());
 
     dateSizer->Add(dateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateSizer->AddStretchSpacer(1);

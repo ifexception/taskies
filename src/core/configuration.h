@@ -72,13 +72,18 @@ public:
     int GetBackupRetentionPeriod() const;
     void SetBackupRetentionPeriod(const int value);
 
+    int GetMinutesIncrement() const;
+    void SetMinutesIncrement(const int value);
+
 private:
     void GetGeneralConfig(const toml::value& config);
     void GetDatabaseConfig(const toml::value& config);
+    void GetTasksConfig(const toml::value& config);
 
     struct Sections {
         static const std::string GeneralSection;
         static const std::string DatabaseSection;
+        static const std::string TaskSection;
     };
 
     struct Settings {
@@ -93,6 +98,8 @@ private:
         bool BackupDatabase;
         std::string BackupPath;
         int BackupRetentionPeriod;
+
+        int TaskMinutesIncrement;
     };
 
     Settings mSettings;

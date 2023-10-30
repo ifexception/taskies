@@ -40,6 +40,7 @@ namespace tks
 namespace Core
 {
 class Environment;
+class Configuration;
 } // namespace Core
 namespace UI::dlg
 {
@@ -50,6 +51,7 @@ public:
     TaskDialog(const TaskDialog&) = delete;
     TaskDialog(wxWindow* parent,
         std::shared_ptr<Core::Environment> env,
+        std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isEdit = false,
@@ -77,6 +79,7 @@ private:
     bool TransferDataAndValidate();
 
     std::shared_ptr<Core::Environment> pEnv;
+    std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;

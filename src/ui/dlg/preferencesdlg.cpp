@@ -26,6 +26,7 @@
 
 #include "preferencesgeneralpage.h"
 #include "preferencesdatabasepage.h"
+#include "preferencestaskspage.h"
 
 namespace tks::UI::dlg
 {
@@ -76,18 +77,20 @@ void PreferencesDialog::CreateControls()
 
     /* List box */
     pListBox = new wxListBox(this, wxID_ANY);
-    // move to fill controls method
     pListBox->Append("General");
     pListBox->Append("Database");
+    pListBox->Append("Tasks");
     pListBox->SetSelection(0);
 
     /* Simple Book*/
     pSimpleBook = new wxSimplebook(this, wxID_ANY);
     pGeneralPage = new PreferencesGeneralPage(pSimpleBook, pCfg, pLogger);
     pDatabasePage = new PreferencesDatabasePage(pSimpleBook, pEnv, pCfg);
+    pTasksPage = new PreferencesTasksPage(pSimpleBook, pCfg, pLogger);
 
     pSimpleBook->AddPage(pGeneralPage, wxEmptyString, true);
     pSimpleBook->AddPage(pDatabasePage, wxEmptyString, false);
+    pSimpleBook->AddPage(pTasksPage, wxEmptyString, false);
 
     mainSizer->Add(pListBox, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Expand());
     mainSizer->Add(pSimpleBook, wxSizerFlags().Expand().Proportion(1));
@@ -176,11 +179,19 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
     if (!pDatabasePage->IsValid()) {
         pListBox->SetSelection(1);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
+        return;
+    }
+
+    if (!pTasksPage->IsValid()) {
+        pListBox->SetSelection(2);
+        pSimpleBook->ChangeSelection(pListBox->GetSelection());
+        return;
     }
 
     // Save changes to cfg pointer in memory
     pGeneralPage->Save();
     pDatabasePage->Save();
+    pTasksPage->Save();
 
     // Save changes to disk
     pCfg->Save();

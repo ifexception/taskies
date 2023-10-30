@@ -458,7 +458,7 @@ void MainFrame::OnNotificationClick(wxCommandEvent& event)
 
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::TaskDialog newTaskDialog(this, pEnv, pLogger, mDatabaseFilePath);
+    UI::dlg::TaskDialog newTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
 }
 
@@ -622,7 +622,7 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::TaskDialog editTaskDialog(this, pEnv, pLogger, mDatabaseFilePath, true, mTaskIdToModify);
+    UI::dlg::TaskDialog editTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify);
     int ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {
