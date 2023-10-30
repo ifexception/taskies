@@ -155,7 +155,7 @@ bool Configuration::RestoreDefaults()
         {
             Sections::TaskSection,
             {
-                { "minutesIncrement", 0 }
+                { "minutesIncrement", 15 }
             }
         }
     };

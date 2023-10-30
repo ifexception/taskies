@@ -45,7 +45,7 @@ bool PreferencesTasksPage::IsValid()
 {
     int choiceIndex = pMinutesIncrementChoiceCtrl->GetSelection();
     if (choiceIndex == 0) {
-        auto valMsg = "A increment selection is required";
+        auto valMsg = "An increment selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pMinutesIncrementChoiceCtrl);
