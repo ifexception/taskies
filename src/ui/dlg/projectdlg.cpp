@@ -246,7 +246,7 @@ void ProjectDialog::CreateControls()
 
 void ProjectDialog::FillControls()
 {
-    pEmployerChoiceCtrl->AppendString("Please select");
+    pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(0));
     pEmployerChoiceCtrl->SetSelection(0);
 
     std::vector<Model::EmployerModel> employers;
@@ -494,22 +494,22 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
             ret = projectId > 0 ? 0 : -1;
 
             ret == -1
-                ? message = "Failed to create project"
-                : message = "Successfully created project";
+			    ? message = "Failed to create project" 
+			    : message = "Successfully created project";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = projectDao.Update(mProjectModel);
 
             ret == -1
-                ? message = "Failed to update project"
-                : message = "Successfully updated project";
+			    ? message = "Failed to update project" 
+			    : message = "Successfully updated project";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
             ret = projectDao.Delete(mProjectId);
 
             ret == -1
-                ? message = "Failed to delete project"
-                : message = "Successfully deleted project";
+			    ? message = "Failed to delete project" 
+			    : message = "Successfully deleted project";
         }
 
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
