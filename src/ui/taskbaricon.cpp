@@ -28,6 +28,7 @@
 #include "../core/configuration.h"
 #include "../utils/utils.h"
 #include "dlg/preferencesdlg.h"
+#include "dlg/taskdialog.h"
 
 namespace tks::UI
 {
@@ -56,6 +57,13 @@ void TaskBarIcon::ConfigureEventBindings()
 {
     Bind(
         wxEVT_MENU,
+        &TaskBarIcon::OnNewTask,
+        this,
+        tksIDC_NEWTASK
+    );
+
+    Bind(
+        wxEVT_MENU,
         &TaskBarIcon::OnPreferences,
         this,
         tksIDC_PREFERENCES
@@ -79,20 +87,37 @@ void TaskBarIcon::ConfigureEventBindings()
 wxMenu* TaskBarIcon::CreatePopupMenu()
 {
     auto menu = new wxMenu();
-    auto preferencesMenuItem = menu->Append(tksIDC_PREFERENCES, wxT("Preferences"));
-    // preferencesMenuItem->SetBitmap(rc::GetSettingsIcon());
+
+    auto newTaskMenuItem = menu->Append(tksIDC_NEWTASK, "New Task");
+
+    wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
+    newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
 
     menu->AppendSeparator();
-    auto exitMenuItem = menu->Append(wxID_EXIT, wxT("Exit"));
+
+    auto preferencesMenuItem = menu->Append(tksIDC_PREFERENCES, "Preferences");
+
+    wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
+    preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
+
+    menu->AppendSeparator();
+    auto exitMenuItem = menu->Append(wxID_EXIT, "Exit");
+
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
 
     return menu;
 }
 
+void TaskBarIcon::OnNewTask(wxCommandEvent & event)
+{
+    UI::dlg::TaskDialog newTaskDialog(pParent, pEnv, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.ShowModal();
+}
+
 void TaskBarIcon::OnPreferences(wxCommandEvent& WXUNUSED(event))
 {
-    dlg::PreferencesDialog preferencesDlg(pParent, pEnv, pCfg, pLogger, false);
+    dlg::PreferencesDialog preferencesDlg(pParent, pEnv, pCfg, pLogger);
     preferencesDlg.ShowModal();
 }
 

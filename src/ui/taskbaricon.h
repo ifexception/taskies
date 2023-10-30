@@ -59,6 +59,7 @@ private:
 
     wxMenu* CreatePopupMenu() wxOVERRIDE;
 
+    void OnNewTask(wxCommandEvent& event);
     void OnPreferences(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnLeftButtonDown(wxTaskBarIconEvent& event);
@@ -70,7 +71,7 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 
-    enum { tksIDC_PREFERENCES = wxID_HIGHEST + 1000 };
+    enum { tksIDC_NEWTASK = wxID_HIGHEST + 1000, tksIDC_PREFERENCES };
 };
 } // namespace UI
 } // namespace tks
