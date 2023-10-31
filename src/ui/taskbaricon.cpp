@@ -129,19 +129,22 @@ void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
         pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "TaskBarIcon",
+            "TaskBarIcon::OnExit",
             pEnv->GetDatabaseName(),
             pEnv->GetDatabasePath().string(),
             rc,
             std::string(err));
+
+        goto close;
     }
 
     rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::ExecQueryTemplate, "TaskBarIcon", Utils::sqlite::pragmas::Optimize, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "TaskBarIcon::OnExit", Utils::sqlite::pragmas::Optimize, rc, err);
     }
 
+close:
     sqlite3_close(db);
 
     pParent->Close();
@@ -150,10 +153,10 @@ void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
 void TaskBarIcon::OnLeftButtonDown(wxTaskBarIconEvent& WXUNUSED(event))
 {
     pParent->MSWGetTaskBarButton()->Show();
-    if (pParent->IsIconized())
-    {
+    if (pParent->IsIconized()) {
         pParent->Restore();
     }
+
     pParent->Raise();
     pParent->Show();
     pParent->SendSizeEvent();
