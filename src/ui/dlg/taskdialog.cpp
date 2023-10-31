@@ -926,6 +926,16 @@ bool TaskDialog::TransferDataAndValidate()
         return false;
     }
 
+    auto hoursValue = pTimeHoursCtrl->GetValue();
+    auto minutesValue = pTimeMinutesCtrl->GetValue();
+    if (hoursValue == 0 && minutesValue < 5) {
+        auto valMsg = fmt::format("Task duration must have elasped more than \"00:05\"");
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pTimeMinutesCtrl);
+        return false;
+    }
+
     mTaskModel.TaskId = mTaskId;
     mTaskModel.Billable = pBillableCheckBoxCtrl->GetValue();
     mTaskModel.UniqueIdentifier = uniqueIdentifier.empty() ? std::nullopt : std::make_optional(uniqueIdentifier);
