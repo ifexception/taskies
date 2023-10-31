@@ -571,6 +571,9 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 {
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
     pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
 
     std::vector<repos::TaskRepositoryModel> taskModels;
@@ -600,7 +603,7 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
             wxTheClipboard->SetData(textData);
             wxTheClipboard->Close();
 
-            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" tasks for date {1}",
+            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" tasks for date \"{1}\"",
                 taskModels.size(),
                 mTaskDate);
         }
@@ -611,6 +614,9 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
 {
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
     std::string description;
     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
 
@@ -631,6 +637,9 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 {
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
     UI::dlg::TaskDialog editTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify);
     int ret = editTaskDialog.ShowModal();
 
@@ -651,6 +660,9 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 {
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
 
     int rc = taskDao.Delete(mTaskIdToModify);
@@ -939,6 +951,9 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         } else {
             pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"", model->GetTaskId());
             mTaskIdToModify = model->GetTaskId();
+
+            // This is confusing, but by calling `GetParent()` we are getting the container node pointer here
+            // `GetProjectName()` then returns the date of the container node value
             mTaskDate = model->GetParent()->GetProjectName();
 
             wxMenu menu;
@@ -1013,8 +1028,6 @@ void MainFrame::RefetchTasksForDate(const std::string& date, const std::int64_t 
     repos::TaskRepositoryModel taskModel;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
-    // optimize this to get a task by id instead of whole range
-    // clearing of tasks collaspses the node
     int rc = taskRepo.GetById(taskId, taskModel);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
