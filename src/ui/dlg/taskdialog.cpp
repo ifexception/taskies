@@ -818,17 +818,23 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             ret = taskId > 0 ? 0 : -1;
             mTaskId = taskId;
 
-            ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
+            ret == -1
+                ? message = "Failed to create task"
+                : message = "Successfully created task";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = taskDao.Update(mTaskModel);
 
-            ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
+            ret == -1
+                ? message = "Failed to update task"
+                : message = "Successfully updated task";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
             ret = taskDao.Delete(mTaskId);
 
-            ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
+            ret == -1
+                ? message = "Failed to delete task"
+                : message = "Successfully deleted task";
         }
 
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
