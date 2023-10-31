@@ -415,7 +415,10 @@ void MainFrame::OnClose(wxCloseEvent& event)
         Hide();
         MSWGetTaskBarButton()->Hide();
     } else {
+        // Call Hide() incase closing of program takes longer than expected and causes
+        // a bad experience for the user
         Hide();
+
         pLogger->info("MainFrame::OnClose - Optimize database on program exit");
         pLogger->info("MainFrame::OnClose - Open database connection at \"{0}\"", mDatabaseFilePath);
 
