@@ -370,7 +370,7 @@ void TaskDialog::FillControls()
     // Recalculate position dialog children controls after loading dropdown values as the wxChoice controls
     // recalculate their width based on the entries, however the controls on the right are not recalculated
     // Calling Fit() forces it to update the controls layout
-    Fit();
+    // Fit();
 }
 
 // clang-format off
@@ -670,7 +670,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     // Recalculate position dialog children controls after loading dropdown values as the wxChoice controls
     // recalculate their width based on the entries, however the controls on the right are not recalculated
     // Calling Fit() forces it to update the controls layout
-    Fit();
+    // Fit();
 }
 
 void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
@@ -719,6 +719,14 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
             }
+
+            auto hasProjectDefaultIterator = std::find_if(projects.begin(),
+                projects.end(),
+                [](Model::ProjectModel project) { return project.IsDefault == true; });
+            if (hasProjectDefaultIterator != projects.end()) {
+                auto& defaultProject = *hasProjectDefaultIterator;
+                pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
+            }
         } else {
             pProjectChoiceCtrl->Clear();
             pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -731,7 +739,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     // Recalculate position dialog children controls after loading dropdown values as the wxChoice controls
     // recalculate their width based on the entries, however the controls on the right are not recalculated
     // Calling Fit() forces it to update the controls layout
-    Fit();
+    // Fit();
 }
 
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
