@@ -416,6 +416,29 @@ void MainFrame::OnClose(wxCloseEvent& event)
         MSWGetTaskBarButton()->Hide();
     } else {
         Hide();
+        pLogger->info("MainFrame::OnClose - Optimize database on program exit");
+        pLogger->info("MainFrame::OnClose - Open database connection at \"{0}\"", mDatabaseFilePath);
+
+        sqlite3* db = nullptr;
+        int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
+        if (rc != SQLITE_OK) {
+            const char* err = sqlite3_errmsg(db);
+            pLogger->error(LogMessage::OpenDatabaseTemplate, "MainFrame::OnClose", mDatabaseFilePath, rc, err);
+            goto cleanup;
+        }
+
+        rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
+        if (rc != SQLITE_OK) {
+            const char* err = sqlite3_errmsg(db);
+            pLogger->error(
+                LogMessage::ExecQueryTemplate, "MainFrame::OnClose", Utils::sqlite::pragmas::Optimize, rc, err);
+            goto cleanup;
+        }
+
+        pLogger->info("MainFrame::OnClose - Optimizimation command successfully executed on database");
+
+    cleanup:
+        sqlite3_close(db);
         event.Skip();
     }
 }
@@ -488,25 +511,8 @@ void MainFrame::OnNewCategory(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 {
-    pLogger->info("MainFrame::OnExit - Optimize database on program exit");
-    pLogger->info("MainFrame::OnExit - Open database connection at \"{0}\"", mDatabaseFilePath);
+    pLogger->info("MainFrame::OnExit - Menu/shortcut clicked to exit program");
 
-    sqlite3* db = nullptr;
-    int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::OpenDatabaseTemplate, "MainFrame", mDatabaseFilePath, rc, err);
-        goto cleanup;
-    }
-
-    rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::ExecQueryTemplate, "MainFrame", Utils::sqlite::pragmas::Optimize, rc, err);
-    }
-
-cleanup:
-    sqlite3_close(db);
     Close();
 }
 
