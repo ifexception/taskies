@@ -59,7 +59,6 @@ public:
         std::shared_ptr<Core::Environment> env,
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
-        bool isFrameParent = true,
         const wxString& name = "preferencesdlg");
     virtual ~PreferencesDialog() = default;
 
@@ -88,8 +87,6 @@ private:
     PreferencesTasksPage* pTasksPage;
     wxButton* pOkButton;
     wxButton* pRestoreDefaultsButton;
-
-    bool bIsFrameParent;
 
     enum { tksIDC_RESTOREDEFAULTBUTTON = wxID_HIGHEST + 1000 };
 };

@@ -34,7 +34,6 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     std::shared_ptr<Core::Environment> env,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
-    bool isFrameParent,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
@@ -53,7 +52,6 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     , pDatabasePage(nullptr)
     , pRestoreDefaultsButton(nullptr)
     , pOkButton(nullptr)
-    , bIsFrameParent(isFrameParent)
 {
     Initialize();
 
@@ -165,7 +163,7 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
     NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);
 
-    wxQueueEvent(bIsFrameParent ? pParent : pParent->GetParent(), addNotificationEvent);
+    wxQueueEvent(pParent, addNotificationEvent);
 }
 
 void PreferencesDialog::OnOK(wxCommandEvent& event)
@@ -202,7 +200,7 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
     NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);
 
-    wxQueueEvent(bIsFrameParent ? pParent : pParent->GetParent(), addNotificationEvent);
+    wxQueueEvent(pParent, addNotificationEvent);
 
     event.Skip();
 }
