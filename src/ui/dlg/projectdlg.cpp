@@ -118,12 +118,12 @@ void ProjectDialog::CreateControls()
 
     pDisplayNameCtrl = new wxTextCtrl(detailsBox, tksIDC_DISPLAYNAME);
     pDisplayNameCtrl->SetHint("Display name");
-    pDisplayNameCtrl->SetToolTip("Enter a nickname, abbreviation or common name for a project");
+    pDisplayNameCtrl->SetToolTip("Enter a nickname, abbreviation or common name for a project (if applicable)");
     pDisplayNameCtrl->SetValidator(NameValidator());
 
     /* Is Default Checkbox Ctrl */
     pIsDefaultCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULT, "Is Default");
-    pIsDefaultCtrl->SetToolTip("Enabling this option for a project will auto-select it on task item entry");
+    pIsDefaultCtrl->SetToolTip("Enabling this option for a project will auto-select it on a task entry");
 
     /* Details Grid Sizer */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
@@ -494,22 +494,22 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
             ret = projectId > 0 ? 0 : -1;
 
             ret == -1
-			    ? message = "Failed to create project" 
-			    : message = "Successfully created project";
+                ? message = "Failed to create project"
+                : message = "Successfully created project";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = projectDao.Update(mProjectModel);
 
             ret == -1
-			    ? message = "Failed to update project" 
-			    : message = "Successfully updated project";
+                ? message = "Failed to update project"
+                : message = "Successfully updated project";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
             ret = projectDao.Delete(mProjectId);
 
             ret == -1
-			    ? message = "Failed to delete project" 
-			    : message = "Successfully deleted project";
+                ? message = "Failed to delete project"
+                : message = "Successfully deleted project";
         }
 
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
