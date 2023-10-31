@@ -152,10 +152,6 @@ void EditListDialog::CreateControls()
     pResetButton->SetToolTip("Reset search term");
     searchBoxSizer->Add(pResetButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
-    /* Separation Line */
-    auto line = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(2)).Expand());
-
     /* List Control */
     pListCtrl = new wxListCtrl(
         this, tksIDC_LISTRESULTS, wxDefaultPosition, wxDefaultSize, wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
