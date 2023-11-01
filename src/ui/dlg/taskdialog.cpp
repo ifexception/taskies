@@ -874,6 +874,17 @@ void TaskDialog::OnCancel(wxCommandEvent& event)
 
 bool TaskDialog::TransferDataAndValidate()
 {
+    int employerIndex = pEmployerChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* employerIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    if (employerIdData->GetValue() < 1) {
+        auto valMsg = "An employer selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pEmployerChoiceCtrl);
+        return false;
+    }
+
     auto uniqueIdentifier = pUniqueIdentiferTextCtrl->GetValue().ToStdString();
     if (!uniqueIdentifier.empty() &&
         (uniqueIdentifier.length() < MIN_CHARACTER_COUNT || uniqueIdentifier.length() > MAX_CHARACTER_COUNT_NAMES)) {
