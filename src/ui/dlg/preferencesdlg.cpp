@@ -19,7 +19,6 @@
 
 #include "preferencesdlg.h"
 
-#include <wx/persist.h>
 #include <wx/persist/toplevel.h>
 
 #include "../../common/common.h"

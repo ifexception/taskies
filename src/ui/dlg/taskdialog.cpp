@@ -23,6 +23,7 @@
 
 #include <date/date.h>
 
+#include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -95,6 +96,14 @@ TaskDialog::TaskDialog(wxWindow* parent,
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
     Create();
+
+    if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
+        if (bIsEdit) {
+            SetSize(FromDIP(wxSize(420, 440)));
+        } else {
+            SetSize(FromDIP(wxSize(420, 320)));
+        }
+    }
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
@@ -366,11 +375,6 @@ void TaskDialog::FillControls()
     }
 
     pOkButton->Enable();
-
-    // Recalculate position dialog children controls after loading dropdown values as the wxChoice controls
-    // recalculate their width based on the entries, however the controls on the right are not recalculated
-    // Calling Fit() forces it to update the controls layout
-    // Fit();
 }
 
 // clang-format off
@@ -578,6 +582,7 @@ void TaskDialog::DataToControls()
     if (isSuccess) {
         pOkButton->Enable();
         pOkButton->SetFocus();
+        pOkButton->SetDefault();
     }
 }
 
@@ -666,11 +671,6 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     }
 
     pOkButton->Enable();
-
-    // Recalculate position dialog children controls after loading dropdown values as the wxChoice controls
-    // recalculate their width based on the entries, however the controls on the right are not recalculated
-    // Calling Fit() forces it to update the controls layout
-    // Fit();
 }
 
 void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
@@ -735,11 +735,6 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     }
 
     pOkButton->Enable();
-
-    // Recalculate position dialog children controls after loading dropdown values as the wxChoice controls
-    // recalculate their width based on the entries, however the controls on the right are not recalculated
-    // Calling Fit() forces it to update the controls layout
-    // Fit();
 }
 
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
