@@ -19,6 +19,9 @@
 
 #include "preferencesdlg.h"
 
+#include <wx/persist.h>
+#include <wx/persist/toplevel.h>
+
 #include "../../common/common.h"
 #include "../../core/configuration.h"
 #include "../events.h"
@@ -54,6 +57,10 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     , pOkButton(nullptr)
 {
     Initialize();
+
+    if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
+        SetSize(FromDIP(wxSize(480, 300)));
+    }
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
