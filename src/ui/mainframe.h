@@ -62,7 +62,8 @@ enum class MenuIds : int {
     Help_About,
 
     /* Popup Menu Ids */
-    Pop_ContainerCopyTasks
+    Pop_ContainerCopyTasks,
+    Pop_ContainerCopyTasksWithHeaders
 };
 
 /* File */
@@ -87,6 +88,8 @@ static const int ID_HELP_ABOUT = static_cast<int>(MenuIds::Help_About);
 
 /* Popup Menu Ids */
 static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_ContainerCopyTasks);
+static const int ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS =
+    static_cast<int>(MenuIds::Pop_ContainerCopyTasksWithHeaders);
 
 namespace Core
 {
@@ -139,6 +142,7 @@ private:
     void OnAbout(wxCommandEvent& event);
     /* Popup Menu Event Handlers */
     void OnContainerCopyTasksToClipboard(wxCommandEvent& event);
+    void OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& event);
     void OnCopyTaskToClipboard(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
