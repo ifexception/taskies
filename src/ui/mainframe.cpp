@@ -572,7 +572,7 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
-    assert(mTaskIdToModify != -1);
+    //assert(mTaskIdToModify != -1);
 
     pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
 
