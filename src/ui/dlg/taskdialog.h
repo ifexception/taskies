@@ -104,6 +104,7 @@ private:
     Model::TaskModel mTaskModel;
     std::int64_t mTaskId;
     std::string mDate;
+    std::string mOldDate;
     int mEmployerIndex;
 
     enum {

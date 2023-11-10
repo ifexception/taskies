@@ -152,6 +152,8 @@ private:
     void OnAddNotification(wxCommandEvent& event);
     void OnTaskDateAdded(wxCommandEvent& event);
     void OnTaskDeletedOnDate(wxCommandEvent& event);
+    void OnTaskDateChangedFrom(wxCommandEvent& event);
+    void OnTaskDateChangedTo(wxCommandEvent& event);
     /* Control Event Handlers */
     void OnNotificationClick(wxCommandEvent& event);
     void OnFromDateSelection(wxDateEvent& event);

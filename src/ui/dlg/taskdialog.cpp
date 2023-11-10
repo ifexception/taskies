@@ -91,6 +91,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mTaskModel()
     , mTaskId(taskId)
     , mDate("")
+    , mOldDate("")
     , mEmployerIndex(-1)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
@@ -774,6 +775,11 @@ void TaskDialog::OnDateChange(wxDateEvent& event)
 {
     pLogger->info(
         "TaskDialog::OnDateChange - Received date from event \"{0}\"", event.GetDate().FormatISODate().ToStdString());
+
+    // save old date in case further down the line we are editing a task and changing its date
+    mOldDate = mDate;
+
+    // get the newly selected date
     wxDateTime eventDate = wxDateTime(event.GetDate());
     auto& eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     auto dateTicks = eventDateUtc.GetTicks();
@@ -852,6 +858,23 @@ void TaskDialog::OnOK(wxCommandEvent& event)
                 taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
                 wxQueueEvent(pParent, taskAddedEvent);
+            }
+            if (bIsEdit && pIsActiveCtrl->IsChecked()) {
+                // notify frame control of task date changed TO
+                wxCommandEvent* taskDateChangedToEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
+
+                taskDateChangedToEvent->SetString(mDate);
+                taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+                wxQueueEvent(pParent, taskDateChangedToEvent);
+
+                // notify frame control of task date changed FROM
+                wxCommandEvent* taskDateChangedFromEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
+
+                taskDateChangedFromEvent->SetString(mOldDate);
+                taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+                wxQueueEvent(pParent, taskDateChangedFromEvent);
             }
             if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
                 wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);

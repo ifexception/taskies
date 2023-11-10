@@ -96,6 +96,8 @@ EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskDateAdded)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
+EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDFROM, MainFrame::OnTaskDateChangedFrom)
+EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDTO, MainFrame::OnTaskDateChangedTo)
 /* Control Event Handlers */
 EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
@@ -765,6 +767,7 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
 
     // Check if our current from and to dates encapsulate the date the task was inserted
     // by calculating _this_ date range
+    // FIXME: These date range calculations are repeated often, consider moving to DateStore
     std::vector<std::string> dates;
     auto dateIterator = mFromDate;
     int loopIdx = 0;
@@ -814,15 +817,89 @@ void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
 
     dates.push_back(date::format("%F", dateIterator));
 
-    // Check if date that the task was inserted for is in the selected range of our wxDateTimeCtrl's
+    // Check if date that the task was deleted is in the selected range of our wxDateTimeCtrl's
     auto iterator =
         std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateDeleted; });
 
-    // If we are in range, refetch the data for our particular date
+    // If we are in range, remove the task data for our particular date
     if (iterator != dates.end() && taskDeletedId != 0 && eventTaskDateDeleted.size() != 0) {
         pLogger->info("MainFrame::OnTaskDeletedOnDate - Task deleted on a date within bounds!");
 
         pTaskTreeModel->DeleteChild(*iterator, taskDeletedId);
+    }
+}
+
+void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
+{
+    // A task got moved from one day to another day
+    auto eventTaskDateChanged = event.GetString().ToStdString();
+    auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
+
+    pLogger->info("MainFrame::OnTaskDateChangedFrom - Received task date changed event with date \"{0}\" and ID \"{1}\"",
+        eventTaskDateChanged,
+        taskChangedId);
+
+    // Check if our current from and to dates encapsulate the date the task was inserted
+    // by calculating _this_ date range
+    std::vector<std::string> dates;
+    auto dateIterator = mFromDate;
+    int loopIdx = 0;
+
+    do {
+        dates.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != mToDate);
+
+    dates.push_back(date::format("%F", dateIterator));
+
+    // Check if date that the task was changed to is in the selected range of our wxDateTimeCtrl's
+    auto iterator =
+        std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateChanged; });
+
+    // If we are in range, remove the item data for our particular date
+    if (iterator != dates.end() && taskChangedId != 0 && eventTaskDateChanged.size() != 0) {
+        pLogger->info("MainFrame::OnTaskDateChangedFrom - Task changed from a date within bounds!");
+
+        pTaskTreeModel->DeleteChild(*iterator, taskChangedId);
+    }
+}
+
+void MainFrame::OnTaskDateChangedTo(wxCommandEvent& event)
+{
+    // A task got moved from one day to another day
+    auto eventTaskDateChanged = event.GetString().ToStdString();
+    auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
+
+    pLogger->info("MainFrame::OnTaskDateChangedTo - Received task date changed event with date \"{0}\" and ID \"{1}\"",
+        eventTaskDateChanged,
+        taskChangedId);
+
+    // Check if our current from and to dates encapsulate the date the task was inserted
+    // by calculating _this_ date range
+    std::vector<std::string> dates;
+    auto dateIterator = mFromDate;
+    int loopIdx = 0;
+
+    do {
+        dates.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        loopIdx++;
+    } while (dateIterator != mToDate);
+
+    dates.push_back(date::format("%F", dateIterator));
+
+    // Check if date that the task was changed to is in the selected range of our wxDateTimeCtrl's
+    auto iterator =
+        std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateChanged; });
+
+    // If we are in range, add the task for our particular date
+    if (iterator != dates.end() && taskChangedId != 0 && eventTaskDateChanged.size() != 0) {
+        pLogger->info("MainFrame::OnTaskDateChangedTo - Task date changed to date within bounds!");
+        auto& foundDate = *iterator;
+        RefetchTasksForDate(foundDate, taskChangedId);
     }
 }
 
