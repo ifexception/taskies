@@ -238,7 +238,7 @@ void TaskTreeModel::DeleteChild(const std::string& date, const std::int64_t task
 
 void TaskTreeModel::ChangeChild(const std::string& date, repos::TaskRepositoryModel& taskModel)
 {
-    pLogger->info("TaskTreeModel::DeleteChild - Begin");
+    pLogger->info("TaskTreeModel::ChangeChild - Begin");
     auto iterator = std::find_if(
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
