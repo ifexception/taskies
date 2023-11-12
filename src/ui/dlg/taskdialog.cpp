@@ -60,6 +60,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     const std::string& databaseFilePath,
     bool isEdit,
     const std::int64_t taskId,
+    const std::string& selectedDate,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
@@ -96,6 +97,13 @@ TaskDialog::TaskDialog(wxWindow* parent,
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
+    if (!selectedDate.empty()) {
+        mDate = selectedDate;
+    } else {
+        auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+        mDate = date::format("%F", todaysDate);
+    }
+
     Create();
 
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
@@ -108,9 +116,6 @@ TaskDialog::TaskDialog(wxWindow* parent,
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
-
-    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
-    mDate = date::format("%F", todaysDate);
 }
 
 void TaskDialog::Create()
@@ -324,6 +329,15 @@ void TaskDialog::FillControls()
     auto bottomRangeDate = wxDateTime::GetCurrentYear() - 1;
     auto& bottomDateContext = wxDateTime::Now().SetYear(bottomRangeDate);
     pDateContextCtrl->SetRange(bottomDateContext, wxDateTime::Now());
+
+    wxDateTime dateTaskContext = wxDefaultDateTime;
+    bool success = dateTaskContext.ParseDate(mDate);
+    if (success) {
+        pDateContextCtrl->SetValue(dateTaskContext);
+    } else {
+        pLogger->error("TaskDialog::FillControls - wxDateTime failed to parse date \"{0}\". Revert to default date",
+            mDate);
+    }
 
     pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);

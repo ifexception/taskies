@@ -693,7 +693,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
 
-    UI::dlg::TaskDialog editTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify);
+    UI::dlg::TaskDialog editTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
     int ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {

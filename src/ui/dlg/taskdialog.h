@@ -56,6 +56,7 @@ public:
         const std::string& databaseFilePath,
         bool isEdit = false,
         std::int64_t taskId = -1,
+        const std::string& selectedDate = "",
         const wxString& name = "taskdlg");
     virtual ~TaskDialog() = default;
 
