@@ -104,6 +104,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
         mDate = date::format("%F", todaysDate);
     }
 
+    mOldDate = mDate;
+
     Create();
 
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
@@ -874,21 +876,24 @@ void TaskDialog::OnOK(wxCommandEvent& event)
                 wxQueueEvent(pParent, taskAddedEvent);
             }
             if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-                // notify frame control of task date changed TO
-                wxCommandEvent* taskDateChangedToEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
+                // FIXME: this is could be bug prone as mOldDate and mDate are std::string
+                if (mOldDate != mDate) {
+                    // notify frame control of task date changed TO
+                    wxCommandEvent* taskDateChangedToEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
 
-                taskDateChangedToEvent->SetString(mDate);
-                taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
+                    taskDateChangedToEvent->SetString(mDate);
+                    taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
 
-                wxQueueEvent(pParent, taskDateChangedToEvent);
+                    wxQueueEvent(pParent, taskDateChangedToEvent);
 
-                // notify frame control of task date changed FROM
-                wxCommandEvent* taskDateChangedFromEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
+                    // notify frame control of task date changed FROM
+                    wxCommandEvent* taskDateChangedFromEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
 
-                taskDateChangedFromEvent->SetString(mOldDate);
-                taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
+                    taskDateChangedFromEvent->SetString(mOldDate);
+                    taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
 
-                wxQueueEvent(pParent, taskDateChangedFromEvent);
+                    wxQueueEvent(pParent, taskDateChangedFromEvent);
+                }
             }
             if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
                 wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
