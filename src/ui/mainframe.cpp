@@ -85,6 +85,7 @@ EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Popup Menu Event Handlers */
+EVT_MENU(ID_POP_NEW_TASK, MainFrame::OnPopupNewTask)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS, MainFrame::OnContainerCopyTasksToClipboard)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTasksWithHeadersToClipboard)
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
@@ -570,6 +571,16 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::AboutDialog aboutDlg(this);
     aboutDlg.ShowModal();
+}
+
+void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
+{
+    assert(!mTaskDate.empty());
+
+    UI::dlg::TaskDialog popupNewTask(this, pEnv, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
+    popupNewTask.ShowModal();
+
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
@@ -1088,7 +1099,16 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
                 "MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"", model->GetProjectName());
             mTaskDate = model->GetProjectName();
 
+            std::istringstream ssTaskDate{mTaskDate};
+            std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskDate;
+            ssTaskDate >> date::parse("%F", dateTaskDate);
+
             wxMenu menu;
+            auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "New Task");
+            if (dateTaskDate > pDateStore->TodayDate) {
+                newTaskMenuItem->Enable(false);
+            }
+            menu.AppendSeparator();
             menu.Append(ID_POP_CONTAINER_COPY_TASKS, wxT("&Copy"));
             menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, wxT("Copy with Headers"));
             PopupMenu(&menu);
