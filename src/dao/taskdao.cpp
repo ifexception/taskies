@@ -487,6 +487,54 @@ int TaskDao::GetDescriptionById(const std::int64_t taskId, std::string& descript
     return 0;
 }
 
+int TaskDao::IsDeleted(const std::int64_t taskId, bool value)
+{
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", taskId);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, TaskDao::isDeleted.c_str(), static_cast<int>(TaskDao::isDeleted.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::isDeleted, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, taskId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "task_id", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::isDeleted, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+    value = !!sqlite3_column_int(stmt, columnIndex);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "TaskDao", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskDao", taskId);
+
+    return 0;
+}
+
 const std::string TaskDao::getById = "SELECT "
                                      "task_id, "
                                      "billable, "
@@ -540,4 +588,9 @@ const std::string TaskDao::getDescriptionById = "SELECT "
                                                 "description "
                                                 "FROM tasks "
                                                 "WHERE task_id = ?;";
+
+const std::string TaskDao::isDeleted = "SELECT "
+                                       "is_active "
+                                       "FROM tasks "
+                                       "WHERE task_id = ?;";
 } // namespace tks::DAO
