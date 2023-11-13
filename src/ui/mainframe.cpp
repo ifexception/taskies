@@ -629,12 +629,17 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& event
     } else {
         std::stringstream formattedClipboardData;
         if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-            formattedClipboardData << "Task Id" << "\t";
+            formattedClipboardData << "Task Id"
+                                   << "\t";
         }
-        formattedClipboardData << "Project" << "\t";
-        formattedClipboardData << "Category" << "\t";
-        formattedClipboardData << "Duration" << "\t";
-        formattedClipboardData << "Description" << "\t";
+        formattedClipboardData << "Project"
+                               << "\t";
+        formattedClipboardData << "Category"
+                               << "\t";
+        formattedClipboardData << "Duration"
+                               << "\t";
+        formattedClipboardData << "Description"
+                               << "\t";
         formattedClipboardData << "\n";
 
         for (const auto& taskModel : taskModels) {
@@ -697,14 +702,23 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
     int ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {
-        repos::TaskRepositoryModel taskModel;
-        repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
-
-        int rc = taskRepo.GetById(mTaskIdToModify, taskModel);
+        bool isActive = false;
+        DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+        int rc = taskDao.IsDeleted(mTaskIdToModify, isActive);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
-        } else {
-            pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
+        }
+
+        if (isActive) {
+            repos::TaskRepositoryModel taskModel;
+            repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+            int rc = taskRepo.GetById(mTaskIdToModify, taskModel);
+            if (rc != 0) {
+                QueueFetchTasksErrorNotificationEvent();
+            } else {
+                pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
+            }
         }
     }
 
@@ -835,7 +849,8 @@ void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
     auto eventTaskDateChanged = event.GetString().ToStdString();
     auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
 
-    pLogger->info("MainFrame::OnTaskDateChangedFrom - Received task date changed event with date \"{0}\" and ID \"{1}\"",
+    pLogger->info(
+        "MainFrame::OnTaskDateChangedFrom - Received task date changed event with date \"{0}\" and ID \"{1}\"",
         eventTaskDateChanged,
         taskChangedId);
 
