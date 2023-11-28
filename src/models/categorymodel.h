@@ -36,6 +36,7 @@ struct CategoryModel {
     std::int32_t DateCreated;
     std::int32_t DateModified;
     bool IsActive;
+    std::optional<std::int64_t> ProjectId;
 
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;

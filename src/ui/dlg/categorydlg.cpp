@@ -30,6 +30,11 @@
 #include "../../core/environment.h"
 
 #include "../../dao/categorydao.h"
+#include "../../dao/projectdao.h"
+
+#include "../../models/projectmodel.h"
+
+#include "../../ui/clientdata.h"
 
 #include "../../utils/utils.h"
 
@@ -58,6 +63,7 @@ CategoryDialog::CategoryDialog(wxWindow* parent,
     , pNameTextCtrl(nullptr)
     , pColorPickerCtrl(nullptr)
     , pBillableCtrl(nullptr)
+    , pProjectChoiceCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pDateCreatedTextCtrl(nullptr)
     , pDateModifiedTextCtrl(nullptr)
@@ -78,6 +84,7 @@ CategoryDialog::CategoryDialog(wxWindow* parent,
 void CategoryDialog::Initialize()
 {
     CreateControls();
+    FillControls();
     ConfigureEventBindings();
     DataToControls();
 }
@@ -139,6 +146,25 @@ void CategoryDialog::CreateControls()
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for a category");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
+    /* Project Choice Box */
+    auto selectionBox = new wxStaticBox(this, wxID_ANY, "Selection");
+    auto selectionBoxSizer = new wxStaticBoxSizer(selectionBox, wxVERTICAL);
+    sizer->Add(selectionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Project choice control */
+    auto projectLabel = new wxStaticText(selectionBox, wxID_ANY, "Project");
+
+    pProjectChoiceCtrl = new wxChoice(selectionBox, tksIDC_PROJECTCHOICE);
+    pProjectChoiceCtrl->SetToolTip("Select an (optional) project to associate this category with");
+
+    auto projectChoiceGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    projectChoiceGridSizer->AddGrowableCol(1, 1);
+
+    projectChoiceGridSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    projectChoiceGridSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    selectionBoxSizer->Add(projectChoiceGridSizer, wxSizerFlags().Expand().Proportion(1));
+
     auto metadataLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), FromDIP(3)));
     sizer->Add(metadataLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
@@ -196,6 +222,39 @@ void CategoryDialog::CreateControls()
     SetSizerAndFit(sizer);
 }
 
+void CategoryDialog::FillControls()
+{
+    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pProjectChoiceCtrl->SetSelection(0);
+    pProjectChoiceCtrl->Disable();
+
+    std::string defaultSearchTerm = "";
+    std::vector<Model::ProjectModel> projects;
+    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+
+    int rc = projectDao.Filter(defaultSearchTerm, projects);
+    if (rc != 0) {
+        std::string message = "Failed to get projects";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        if (!projects.empty()) {
+            if (!pProjectChoiceCtrl->IsEnabled()) {
+                pProjectChoiceCtrl->Enable();
+            }
+
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+            }
+        } else {
+            pProjectChoiceCtrl->Disable();
+        }
+    }
+}
+
 // clang-format off
 void CategoryDialog::ConfigureEventBindings()
 {
@@ -244,6 +303,23 @@ void CategoryDialog::DataToControls()
         pDateCreatedTextCtrl->SetValue(model.GetDateCreatedString());
         pDateModifiedTextCtrl->SetValue(model.GetDateModifiedString());
         pIsActiveCtrl->SetValue(model.IsActive);
+
+        if (model.ProjectId.has_value()) {
+            Model::ProjectModel project;
+            DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+
+            int rc = projectDao.GetById(model.ProjectId.value(), project);
+            if (rc != 0) {
+                std::string message = "Failed to get project";
+                wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+                NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+                addNotificationEvent->SetClientObject(clientData);
+
+                wxQueueEvent(pParent, addNotificationEvent);
+            }
+
+            pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+        }
     }
 
     pOkButton->Enable();
@@ -256,11 +332,15 @@ void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)
         pColorPickerCtrl->Enable();
         pBillableCtrl->Enable();
         pDescriptionTextCtrl->Enable();
+        pProjectChoiceCtrl->Enable();
+
     } else {
         pNameTextCtrl->Disable();
         pColorPickerCtrl->Disable();
         pBillableCtrl->Disable();
         pDescriptionTextCtrl->Disable();
+        pProjectChoiceCtrl->SetSelection(0);
+        pProjectChoiceCtrl->Disable();
     }
 }
 
@@ -276,16 +356,12 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
         if (pIsActiveCtrl->IsChecked()) {
             ret = categoryDao.Update(mModel);
 
-            ret == -1
-                ? message = "Failed to update category"
-                : message = "Successfully updated category";
+            ret == -1 ? message = "Failed to update category" : message = "Successfully updated category";
         }
         if (!pIsActiveCtrl->IsChecked()) {
             ret = categoryDao.Delete(mCategoryId);
 
-            ret == -1
-                ? message = "Failed to delete category"
-                : message = "Successfully deleted category";
+            ret == -1 ? message = "Failed to delete category" : message = "Successfully deleted category";
         }
 
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -345,6 +421,19 @@ bool CategoryDialog::TransferDataAndValidate()
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pDescriptionTextCtrl);
         return false;
+    }
+
+    if (pProjectChoiceCtrl->IsEnabled()) {
+        int projectIndex = pProjectChoiceCtrl->GetSelection();
+        ClientData<std::int64_t>* projectIdData =
+            reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
+
+        if (projectIdData->GetValue() > 0) {
+            auto projectId = projectIdData->GetValue();
+            mModel.ProjectId = std::make_optional(projectId);
+        } else {
+            mModel.ProjectId = std::nullopt;
+        }
     }
 
     mModel.CategoryId = mCategoryId;

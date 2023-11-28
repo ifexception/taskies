@@ -91,6 +91,7 @@ private:
     wxTextCtrl* pNameTextCtrl;
     wxColourPickerCtrl* pColorPickerCtrl;
     wxCheckBox* pBillableCtrl;
+    wxChoice* pProjectChoiceCtrl;
     wxTextCtrl* pDescriptionTextCtrl;
     wxListCtrl* pListCtrl;
     wxButton* pAddButton;
@@ -101,14 +102,21 @@ private:
 
     std::string mDatabaseFilePath;
 
-    bool bEditFromListCtrl;
     long mListItemIndex;
     int mCategoryIndexEdit;
+    bool bEditFromListCtrl;
     std::vector<long> mListItemIndexes;
     Model::CategoryModel mCategoryToAdd;
     std::vector<Model::CategoryModel> mCategoriesToAdd;
 
-    enum { tksIDC_NAME = wxID_HIGHEST + 1, tksIDC_DESCRIPTION, tksIDC_COLORPICKER, tksIDC_BILLABLE, tksIDC_LIST };
+    enum {
+        tksIDC_NAME = wxID_HIGHEST + 100,
+        tksIDC_COLORPICKER,
+        tksIDC_BILLABLE,
+        tksIDC_PROJECTCHOICE,
+        tksIDC_DESCRIPTION,
+        tksIDC_LIST
+    };
 };
 } // namespace UI::dlg
 } // namespace tks

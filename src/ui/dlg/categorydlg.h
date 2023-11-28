@@ -60,6 +60,7 @@ private:
     void Initialize();
 
     void CreateControls();
+    void FillControls();
     void ConfigureEventBindings();
     void DataToControls();
 
@@ -77,6 +78,7 @@ private:
     wxTextCtrl* pNameTextCtrl;
     wxColourPickerCtrl* pColorPickerCtrl;
     wxCheckBox* pBillableCtrl;
+    wxChoice* pProjectChoiceCtrl;
     wxTextCtrl* pDescriptionTextCtrl;
     wxTextCtrl* pDateCreatedTextCtrl;
     wxTextCtrl* pDateModifiedTextCtrl;
@@ -88,7 +90,14 @@ private:
     std::int64_t mCategoryId;
     Model::CategoryModel mModel;
 
-    enum { tksIDC_NAME = wxID_HIGHEST + 1, tksIDC_COLORPICKER, tksIDC_BILLABLE, tksIDC_DESCRIPTION, tksIDC_ISACTIVE };
+    enum {
+        tksIDC_NAME = wxID_HIGHEST + 100,
+        tksIDC_COLORPICKER,
+        tksIDC_BILLABLE,
+        tksIDC_PROJECTCHOICE,
+        tksIDC_DESCRIPTION,
+        tksIDC_ISACTIVE
+    };
 };
 } // namespace UI::dlg
 } // namespace tks

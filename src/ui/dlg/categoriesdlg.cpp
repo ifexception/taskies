@@ -20,6 +20,8 @@
 #include "categoriesdlg.h"
 
 #include <algorithm>
+#include <cstdint>
+#include <optional>
 
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
@@ -31,7 +33,12 @@
 
 #include "../../core/environment.h"
 
+#include "../../dao/projectdao.h"
 #include "../../dao/categorydao.h"
+
+#include "../../models/projectmodel.h"
+
+#include "../../ui/clientdata.h"
 
 #include "../../utils/utils.h"
 
@@ -60,6 +67,7 @@ CategoriesDialog::CategoriesDialog(wxWindow* parent,
     , pDescriptionTextCtrl(nullptr)
     , pColorPickerCtrl(nullptr)
     , pBillableCtrl(nullptr)
+    , pProjectChoiceCtrl(nullptr)
     , pListCtrl(nullptr)
     , pAddButton(nullptr)
     , pRemoveButton(nullptr)
@@ -153,6 +161,25 @@ void CategoriesDialog::CreateControls()
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for a category");
     descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
+    /* Project Choice Box */
+    auto selectionBox = new wxStaticBox(this, wxID_ANY, "Selection");
+    auto selectionBoxSizer = new wxStaticBoxSizer(selectionBox, wxVERTICAL);
+    leftSizer->Add(selectionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Project choice control */
+    auto projectLabel = new wxStaticText(selectionBox, wxID_ANY, "Project");
+
+    pProjectChoiceCtrl = new wxChoice(selectionBox, tksIDC_PROJECTCHOICE);
+    pProjectChoiceCtrl->SetToolTip("Select an (optional) project to associate this category with");
+
+    auto projectChoiceGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    projectChoiceGridSizer->AddGrowableCol(1, 1);
+
+    projectChoiceGridSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    projectChoiceGridSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    selectionBoxSizer->Add(projectChoiceGridSizer, wxSizerFlags().Expand().Proportion(1));
+
     /* Center Sizer */
     auto centerSizer = new wxBoxSizer(wxVERTICAL);
     layoutSizer->Add(centerSizer, 0);
@@ -210,6 +237,36 @@ void CategoriesDialog::CreateControls()
 
 void CategoriesDialog::FillControls()
 {
+    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pProjectChoiceCtrl->SetSelection(0);
+    pProjectChoiceCtrl->Disable();
+
+    std::string defaultSearchTerm = "";
+    std::vector<Model::ProjectModel> projects;
+    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+
+    int rc = projectDao.Filter(defaultSearchTerm, projects);
+    if (rc != 0) {
+        std::string message = "Failed to get projects";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        if (!projects.empty()) {
+            if (!pProjectChoiceCtrl->IsEnabled()) {
+                pProjectChoiceCtrl->Enable();
+            }
+
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+            }
+        } else {
+            pProjectChoiceCtrl->Disable();
+        }
+    }
+
     pRemoveButton->Disable();
     pRemoveAllButton->Disable();
 }
@@ -285,6 +342,26 @@ void CategoriesDialog::FillControls(const Model::CategoryModel& category)
     pColorPickerCtrl->SetColour(category.Color);
     pBillableCtrl->SetValue(category.Billable);
     pDescriptionTextCtrl->SetValue(category.Description.has_value() ? category.Description.value() : "");
+    if (!category.Description.has_value()) {
+        pDescriptionTextCtrl->SetHint("Description (optional)");
+    }
+
+    if (category.ProjectId.has_value()) {
+        Model::ProjectModel project;
+        DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+
+        int rc = projectDao.GetById(category.ProjectId.value(), project);
+        if (rc != 0) {
+            std::string message = "Failed to get project";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+        }
+
+        pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+    }
 }
 
 void CategoriesDialog::Append(Model::CategoryModel category)
@@ -383,7 +460,7 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
         }
     }
 
-    ret == -1 ? message = "Failed to create employer" : message = "Successfully created employer";
+    ret == -1 ? message = "Failed to create categories" : message = "Successfully created categories";
 
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     if (ret == -1) {
@@ -447,6 +524,9 @@ void CategoriesDialog::ResetControlValues()
     pColorPickerCtrl->SetColour(*wxBLACK);
     pBillableCtrl->SetValue(false);
     pDescriptionTextCtrl->ChangeValue(wxEmptyString);
+    pDescriptionTextCtrl->SetHint("Description (optional)");
+
+    pProjectChoiceCtrl->SetSelection(0);
 }
 
 std::string CategoriesDialog::ExtractNameFromListIndex(long itemIndex)
@@ -497,6 +577,19 @@ bool CategoriesDialog::TransferDataAndValidate()
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pDescriptionTextCtrl);
         return false;
+    }
+
+    if (pProjectChoiceCtrl->IsEnabled()) {
+        int projectIndex = pProjectChoiceCtrl->GetSelection();
+        ClientData<std::int64_t>* projectIdData =
+            reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
+
+        if (projectIdData->GetValue() > 0) {
+            auto projectId = projectIdData->GetValue();
+            mCategoryToAdd.ProjectId = std::make_optional(projectId);
+        } else {
+            mCategoryToAdd.ProjectId = std::nullopt;
+        }
     }
 
     mCategoryToAdd.Name = Utils::TrimWhitespace(name);

@@ -46,7 +46,7 @@ public:
     int Update(Model::TaskModel& task);
     int Delete(const std::int64_t taskId);
     int GetDescriptionById(const std::int64_t taskId, std::string& description);
-    int IsDeleted(const std::int64_t taskId, bool value);
+    int IsDeleted(const std::int64_t taskId, bool& value);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;

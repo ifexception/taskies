@@ -7,5 +7,9 @@ CREATE TABLE IF NOT EXISTS categories
     description TEXT NULL,
     date_created INTEGER NOT NULL DEFAULT (strftime('%s','now', 'localtime')),
     date_modified INTEGER NOT NULL DEFAULT (strftime('%s','now', 'localtime')),
-    is_active INTEGER NOT NULL DEFAULT (1)
+    is_active INTEGER NOT NULL DEFAULT (1),
+
+    project_id INTEGER NULL,
+
+    FOREIGN KEY (project_id) REFERENCES projects(project_id)
 );

@@ -32,6 +32,7 @@ CategoryModel::CategoryModel() noexcept
     , DateCreated(0)
     , DateModified(0)
     , IsActive(false)
+    , ProjectId()
 {
 }
 

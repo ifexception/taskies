@@ -139,6 +139,12 @@ int CategoryDao::Filter(const std::string& searchTerm, std::vector<Model::Catego
             model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             model.DateModified = sqlite3_column_int(stmt, columnIndex++);
             model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.ProjectId = std::nullopt;
+            } else {
+                model.ProjectId = std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
+            }
+            columnIndex++;
 
             categories.push_back(model);
             break;
@@ -212,6 +218,12 @@ int CategoryDao::GetById(const std::int64_t categoryId, Model::CategoryModel& mo
     model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     model.DateModified = sqlite3_column_int(stmt, columnIndex++);
     model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        model.ProjectId = std::nullopt;
+    } else {
+        model.ProjectId = std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
+    }
+    columnIndex++;
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
@@ -254,7 +266,7 @@ std::int64_t CategoryDao::Create(Model::CategoryModel& category)
     rc = sqlite3_bind_int(stmt, bindIndex++, static_cast<int>(category.Color));
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "color", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "color", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -262,7 +274,7 @@ std::int64_t CategoryDao::Create(Model::CategoryModel& category)
     rc = sqlite3_bind_int(stmt, bindIndex++, category.Billable);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "billable", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "billable", 3, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -276,10 +288,25 @@ std::int64_t CategoryDao::Create(Model::CategoryModel& category)
     } else {
         rc = sqlite3_bind_null(stmt, bindIndex);
     }
+    bindIndex++;
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "description", 2, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "description", 4, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    if (category.ProjectId.has_value()) {
+        rc = sqlite3_bind_int64(stmt, bindIndex, category.ProjectId.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+    bindIndex++;
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "project_id", 5, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -352,6 +379,7 @@ int CategoryDao::Update(Model::CategoryModel& model)
     } else {
         rc = sqlite3_bind_null(stmt, bindIndex);
     }
+    bindIndex++;
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
@@ -360,7 +388,6 @@ int CategoryDao::Update(Model::CategoryModel& model)
         return -1;
     }
 
-    bindIndex++;
     // date_modified
     rc = sqlite3_bind_int64(stmt, bindIndex++, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
@@ -370,11 +397,26 @@ int CategoryDao::Update(Model::CategoryModel& model)
         return -1;
     }
 
+    // project_id
+    if (model.ProjectId.has_value()) {
+        rc = sqlite3_bind_int64(stmt, bindIndex, model.ProjectId.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+    bindIndex++;
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "project_id", 6, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
     // category_id
     rc = sqlite3_bind_int64(stmt, bindIndex++, model.CategoryId);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "category_id", 6, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryDao", "category_id", 7, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -451,7 +493,8 @@ const std::string CategoryDao::filter = "SELECT "
                                         "description, "
                                         "date_created, "
                                         "date_modified, "
-                                        "is_active "
+                                        "is_active, "
+                                        "project_id "
                                         "FROM categories "
                                         "WHERE is_active = 1 "
                                         "AND (name LIKE ? "
@@ -465,9 +508,11 @@ const std::string CategoryDao::getById = "SELECT "
                                          "description, "
                                          "date_created, "
                                          "date_modified, "
-                                         "is_active "
+                                         "is_active, "
+                                         "project_id "
                                          "FROM categories "
-                                         "WHERE category_id = ?;";
+                                         "WHERE category_id = ? "
+                                         "AND is_active = 1;";
 
 const std::string CategoryDao::create = "INSERT INTO "
                                         "categories "
@@ -475,9 +520,10 @@ const std::string CategoryDao::create = "INSERT INTO "
                                         "name, "
                                         "color, "
                                         "billable, "
-                                        "description "
+                                        "description, "
+                                        "project_id "
                                         ") "
-                                        "VALUES (?, ?, ?, ?)";
+                                        "VALUES (?, ?, ?, ?, ?)";
 
 const std::string CategoryDao::update = "UPDATE categories "
                                         "SET "
@@ -485,7 +531,8 @@ const std::string CategoryDao::update = "UPDATE categories "
                                         "color = ?, "
                                         "billable = ?, "
                                         "description = ?, "
-                                        "date_modified = ? "
+                                        "date_modified = ?, "
+                                        "project_id = ? "
                                         "WHERE category_id = ?;";
 
 const std::string CategoryDao::isActive = "UPDATE categories "
