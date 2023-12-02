@@ -78,6 +78,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pEmployerChoiceCtrl(nullptr)
     , pClientChoiceCtrl(nullptr)
     , pProjectChoiceCtrl(nullptr)
+    , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
     , pCategoryChoiceCtrl(nullptr)
     , pTimeHoursCtrl(nullptr)
     , pTimeMinutesCtrl(nullptr)
@@ -160,6 +161,9 @@ void TaskDialog::CreateControls()
     pProjectChoiceCtrl = new wxChoice(this, tksIDC_PROJECTCHOICE);
     pProjectChoiceCtrl->SetToolTip("Task to associate project with");
 
+    pShowProjectAssociatedCategoriesCheckBoxCtrl = new wxCheckBox(this, tksIDC_SHOWASSOCIATEDCATEGORIES, "Only show associated categories");
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetToolTip("Only show categories associated to selected project");
+
     auto categoryLabel = new wxStaticText(this, wxID_ANY, "Category");
     pCategoryChoiceCtrl = new wxChoice(this, tksIDC_CATEGORYCHOICE);
     pCategoryChoiceCtrl->SetToolTip("Task to associate category with");
@@ -176,10 +180,13 @@ void TaskDialog::CreateControls()
     choiceFlexGridSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     choiceFlexGridSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+    choiceFlexGridSizer->Add(0, 0);
+    choiceFlexGridSizer->Add(pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
     choiceFlexGridSizer->Add(categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     choiceFlexGridSizer->Add(pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    leftSizer->AddSpacer(4);
+    leftSizer->AddSpacer(FromDIP(4));
     leftSizer->Add(choiceFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
     /* Right Sizer */
@@ -337,8 +344,8 @@ void TaskDialog::FillControls()
     if (success) {
         pDateContextCtrl->SetValue(dateTaskContext);
     } else {
-        pLogger->error("TaskDialog::FillControls - wxDateTime failed to parse date \"{0}\". Revert to default date",
-            mDate);
+        pLogger->error(
+            "TaskDialog::FillControls - wxDateTime failed to parse date \"{0}\". Revert to default date", mDate);
     }
 
     pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -351,6 +358,8 @@ void TaskDialog::FillControls()
     pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pProjectChoiceCtrl->SetSelection(0);
     pProjectChoiceCtrl->Disable();
+
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->GetShowProjectAssociatedCategories());
 
     pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pCategoryChoiceCtrl->SetSelection(0);
@@ -406,6 +415,18 @@ void TaskDialog::ConfigureEventBindings()
     pClientChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &TaskDialog::OnClientChoiceSelection,
+        this
+    );
+
+    pProjectChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &TaskDialog::OnProjectChoiceSelection,
+        this
+    );
+
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &TaskDialog::OnShowProjectAssociatedCategoriesCheck,
         this
     );
 
@@ -754,6 +775,10 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     pOkButton->Enable();
 }
 
+void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event) {}
+
+void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event) {}
+
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 {
     pBillableCheckBoxCtrl->SetValue(false);
@@ -835,23 +860,17 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             ret = taskId > 0 ? 0 : -1;
             mTaskId = taskId;
 
-            ret == -1
-                ? message = "Failed to create task"
-                : message = "Successfully created task";
+            ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
             ret = taskDao.Update(mTaskModel);
 
-            ret == -1
-                ? message = "Failed to update task"
-                : message = "Successfully updated task";
+            ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
             ret = taskDao.Delete(mTaskId);
 
-            ret == -1
-                ? message = "Failed to delete task"
-                : message = "Successfully deleted task";
+            ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
         }
 
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);

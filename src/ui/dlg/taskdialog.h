@@ -72,6 +72,8 @@ private:
 
     void OnEmployerChoiceSelection(wxCommandEvent& event);
     void OnClientChoiceSelection(wxCommandEvent& event);
+    void OnProjectChoiceSelection(wxCommandEvent& event);
+    void OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event);
     void OnCategoryChoiceSelection(wxCommandEvent& event);
     void OnDateChange(wxDateEvent& event);
     void OnOK(wxCommandEvent& event);
@@ -88,6 +90,7 @@ private:
     wxChoice* pEmployerChoiceCtrl;
     wxChoice* pClientChoiceCtrl;
     wxChoice* pProjectChoiceCtrl;
+    wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
     wxChoice* pCategoryChoiceCtrl;
     wxCheckBox* pBillableCheckBoxCtrl;
     wxTextCtrl* pUniqueIdentiferTextCtrl;
@@ -113,6 +116,7 @@ private:
         tksIDC_EMPLOYERCHOICE,
         tksIDC_CLIENTCHOICE,
         tksIDC_PROJECTCHOICE,
+        tksIDC_SHOWASSOCIATEDCATEGORIES,
         tksIDC_CATEGORYCHOICE,
         tksIDC_BILLABLE,
         tksIDC_UNIQUEIDENTIFIER,
