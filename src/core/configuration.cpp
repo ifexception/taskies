@@ -92,7 +92,7 @@ bool Configuration::Save()
             Sections::TaskSection,
             {
                 { "minutesIncrement", mSettings.TaskMinutesIncrement },
-                { "filterCategoriesByProject", mSettings.FilterCategoriesByProject }
+                { "showProjectAssociatedCategories", mSettings.ShowProjectAssociatedCategories }
             }
         }
     };
@@ -132,7 +132,7 @@ bool Configuration::RestoreDefaults()
     SetBackupRetentionPeriod(0);
 
     SetMinutesIncrement(15);
-    SetFilterCategoriesByProject(false);
+    SetShowProjectAssociatedCategories(false);
 
     // clang-format off
     const toml::value data{
@@ -160,7 +160,7 @@ bool Configuration::RestoreDefaults()
             Sections::TaskSection,
             {
                 { "minutesIncrement", 15 },
-                { "filterCategoriesByProject", false }
+                { "showProjectAssociatedCategories", false }
             }
         }
     };
@@ -295,14 +295,14 @@ void Configuration::SetMinutesIncrement(const int value)
     mSettings.TaskMinutesIncrement = value;
 }
 
-bool Configuration::GetFilterCategoriesByProject() const
+bool Configuration::GetShowProjectAssociatedCategories() const
 {
-    return mSettings.FilterCategoriesByProject;
+    return mSettings.ShowProjectAssociatedCategories;
 }
 
-void Configuration::SetFilterCategoriesByProject(const bool value)
+void Configuration::SetShowProjectAssociatedCategories(const bool value)
 {
-    mSettings.FilterCategoriesByProject = value;
+    mSettings.ShowProjectAssociatedCategories = value;
 }
 
 void Configuration::GetGeneralConfig(const toml::value& config)
@@ -333,6 +333,6 @@ void Configuration::GetTasksConfig(const toml::value& config)
     const auto& taskSection = toml::find(config, Sections::TaskSection);
 
     mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
-    mSettings.FilterCategoriesByProject = toml::find<bool>(taskSection, "filterCategoriesByProject");
+    mSettings.ShowProjectAssociatedCategories = toml::find<bool>(taskSection, "showProjectAssociatedCategories");
 }
 } // namespace tks::Core

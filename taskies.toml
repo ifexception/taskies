@@ -14,4 +14,4 @@ backupRetentionPeriod=-1
 
 [tasks]
 minutesIncrement=15
-filterCategoriesByProject=false
+showProjectAssociatedCategories=false
