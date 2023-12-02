@@ -42,6 +42,7 @@ set(SRC_DAO
 set(SRC_REPOS
     "repository/taskrepository.cpp"
     "repository/taskrepositorymodel.cpp"
+    "repository/categoryrepositorymodel.cpp"
 )
 
 set (SRC_DIALOGS
