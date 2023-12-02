@@ -34,6 +34,7 @@ PreferencesTasksPage::PreferencesTasksPage(wxWindow* parent,
     , pCfg(cfg)
     , pLogger(logger)
     , pMinutesIncrementChoiceCtrl(nullptr)
+    , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -62,6 +63,7 @@ void PreferencesTasksPage::Save()
         reinterpret_cast<ClientData<int>*>(pMinutesIncrementChoiceCtrl->GetClientObject(choiceIndex));
 
     pCfg->SetMinutesIncrement(incrementData->GetValue());
+    pCfg->SetShowProjectAssociatedCategories(pShowProjectAssociatedCategoriesCheckBoxCtrl->GetValue());
 }
 
 void PreferencesTasksPage::Reset()
@@ -91,6 +93,11 @@ void PreferencesTasksPage::CreateControls()
 
     sizer->Add(timeIncrementBoxSizer, wxSizerFlags().Expand());
 
+    /* Show project associated categories control */
+    pShowProjectAssociatedCategoriesCheckBoxCtrl =
+        new wxCheckBox(this, tksIDC_ASSOCIATEDCATEGORIES, "Show project associated categories");
+    sizer->Add(pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
     SetSizerAndFit(sizer);
 }
 
@@ -110,7 +117,7 @@ void PreferencesTasksPage::FillControls()
 
 void PreferencesTasksPage::DataToControls()
 {
-    int x = pCfg->GetMinutesIncrement();
     pMinutesIncrementChoiceCtrl->SetStringSelection(std::to_string(pCfg->GetMinutesIncrement()));
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->GetShowProjectAssociatedCategories());
 }
 } // namespace tks::UI::dlg

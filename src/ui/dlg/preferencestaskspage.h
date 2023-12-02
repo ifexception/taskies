@@ -65,9 +65,11 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxChoice* pMinutesIncrementChoiceCtrl;
+    wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
 
     enum {
-        tksIDC_MINUTES_INCREMENT = wxID_HIGHEST + 100
+        tksIDC_MINUTES_INCREMENT = wxID_HIGHEST + 100,
+        tksIDC_ASSOCIATEDCATEGORIES
     };
 };
 } // namespace dlg
