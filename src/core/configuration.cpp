@@ -91,7 +91,8 @@ bool Configuration::Save()
         {
             Sections::TaskSection,
             {
-                { "minutesIncrement", mSettings.TaskMinutesIncrement }
+                { "minutesIncrement", mSettings.TaskMinutesIncrement },
+                { "filterCategoriesByProject", mSettings.FilterCategoriesByProject }
             }
         }
     };
@@ -130,6 +131,9 @@ bool Configuration::RestoreDefaults()
     SetBackupPath("");
     SetBackupRetentionPeriod(0);
 
+    SetMinutesIncrement(15);
+    SetFilterCategoriesByProject(false);
+
     // clang-format off
     const toml::value data{
         {
@@ -155,7 +159,8 @@ bool Configuration::RestoreDefaults()
         {
             Sections::TaskSection,
             {
-                { "minutesIncrement", 15 }
+                { "minutesIncrement", 15 },
+                { "filterCategoriesByProject", false }
             }
         }
     };
@@ -290,6 +295,16 @@ void Configuration::SetMinutesIncrement(const int value)
     mSettings.TaskMinutesIncrement = value;
 }
 
+bool Configuration::GetFilterCategoriesByProject() const
+{
+    return mSettings.FilterCategoriesByProject;
+}
+
+void Configuration::SetFilterCategoriesByProject(const bool value)
+{
+    mSettings.FilterCategoriesByProject = value;
+}
+
 void Configuration::GetGeneralConfig(const toml::value& config)
 {
     const auto& generalSection = toml::find(config, Sections::GeneralSection);
@@ -318,5 +333,6 @@ void Configuration::GetTasksConfig(const toml::value& config)
     const auto& taskSection = toml::find(config, Sections::TaskSection);
 
     mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
+    mSettings.FilterCategoriesByProject = toml::find<bool>(taskSection, "filterCategoriesByProject");
 }
 } // namespace tks::Core

@@ -75,6 +75,9 @@ public:
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
 
+    bool GetFilterCategoriesByProject() const;
+    void SetFilterCategoriesByProject(const bool value);
+
 private:
     void GetGeneralConfig(const toml::value& config);
     void GetDatabaseConfig(const toml::value& config);
@@ -100,6 +103,7 @@ private:
         int BackupRetentionPeriod;
 
         int TaskMinutesIncrement;
+        bool FilterCategoriesByProject;
     };
 
     Settings mSettings;
