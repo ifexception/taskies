@@ -45,6 +45,9 @@
 #include "../../models/clientmodel.h"
 #include "../../models/projectmodel.h"
 
+#include "../../repository/categoryrepositorymodel.h"
+#include "../../repository/categoryrepository.h"
+
 #include "../../utils/utils.h"
 
 #include "../clientdata.h"
@@ -161,7 +164,8 @@ void TaskDialog::CreateControls()
     pProjectChoiceCtrl = new wxChoice(this, tksIDC_PROJECTCHOICE);
     pProjectChoiceCtrl->SetToolTip("Task to associate project with");
 
-    pShowProjectAssociatedCategoriesCheckBoxCtrl = new wxCheckBox(this, tksIDC_SHOWASSOCIATEDCATEGORIES, "Only show associated categories");
+    pShowProjectAssociatedCategoriesCheckBoxCtrl =
+        new wxCheckBox(this, tksIDC_SHOWASSOCIATEDCATEGORIES, "Only show associated categories");
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetToolTip("Only show categories associated to selected project");
 
     auto categoryLabel = new wxStaticText(this, wxID_ANY, "Category");
@@ -383,21 +387,25 @@ void TaskDialog::FillControls()
         }
     }
 
-    std::vector<Model::CategoryModel> categories;
-    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+    if (!pCfg->GetShowProjectAssociatedCategories()) {
+        std::vector<Model::CategoryModel> categories;
+        DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
 
-    rc = categoryDao.Filter(defaultSearhTerm, categories);
-    if (rc == -1) {
-        std::string message = "Failed to filter categories";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        rc = categoryDao.Filter(defaultSearhTerm, categories);
+        if (rc == -1) {
+            std::string message = "Failed to get categories";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+            addNotificationEvent->SetClientObject(clientData);
 
-        wxQueueEvent(pParent, addNotificationEvent);
-    } else {
-        for (const auto& category : categories) {
-            pCategoryChoiceCtrl->Append(category.Name, new ClientData<std::int64_t>(category.CategoryId));
+            wxQueueEvent(pParent, addNotificationEvent);
+        } else {
+            for (const auto& category : categories) {
+                pCategoryChoiceCtrl->Append(category.Name, new ClientData<std::int64_t>(category.CategoryId));
+            }
         }
+    } else {
+        pCategoryChoiceCtrl->Disable();
     }
 
     pOkButton->Enable();
@@ -768,6 +776,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
         } else {
             pProjectChoiceCtrl->Clear();
             pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+            pProjectChoiceCtrl->SetSelection(0);
             pProjectChoiceCtrl->Disable();
         }
     }
@@ -775,7 +784,57 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     pOkButton->Enable();
 }
 
-void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event) {}
+void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
+{
+    if (!pCfg->GetShowProjectAssociatedCategories()) {
+        return;
+    }
+
+    pCategoryChoiceCtrl->Clear();
+    pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pCategoryChoiceCtrl->SetSelection(0);
+
+    int projectIndex = event.GetSelection();
+    ClientData<std::int64_t>* projectIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
+    if (projectIdData->GetValue() < 1) {
+        pCategoryChoiceCtrl->Disable();
+        mEmployerIndex = -1;
+
+        return;
+    }
+
+    auto projectId = projectIdData->GetValue();
+
+    std::vector<repos::CategoryRepositoryModel> categories;
+    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+
+    int rc = categoryRepo.FilterByProjectId(projectId, categories);
+    if (rc == -1) {
+        std::string message = "Failed to get categories";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        if (!categories.empty()) {
+            if (!pCategoryChoiceCtrl->IsEnabled()) {
+                pCategoryChoiceCtrl->Enable();
+            }
+
+            for (auto& category : categories) {
+                pCategoryChoiceCtrl->Append(
+                    category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+            }
+        } else {
+            pCategoryChoiceCtrl->Clear();
+            pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+            pCategoryChoiceCtrl->SetSelection(0);
+            pCategoryChoiceCtrl->Disable();
+        }
+    }
+}
 
 void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event) {}
 
