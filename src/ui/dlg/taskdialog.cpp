@@ -388,10 +388,10 @@ void TaskDialog::FillControls()
     }
 
     if (!pCfg->GetShowProjectAssociatedCategories()) {
-        std::vector<Model::CategoryModel> categories;
-        DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+        std::vector<repos::CategoryRepositoryModel> categories;
+        repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
 
-        rc = categoryDao.Filter(defaultSearhTerm, categories);
+        rc = categoryRepo.Filter(categories);
         if (rc == -1) {
             std::string message = "Failed to get categories";
             wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -400,8 +400,9 @@ void TaskDialog::FillControls()
 
             wxQueueEvent(pParent, addNotificationEvent);
         } else {
-            for (const auto& category : categories) {
-                pCategoryChoiceCtrl->Append(category.Name, new ClientData<std::int64_t>(category.CategoryId));
+            for (auto& category : categories) {
+                pCategoryChoiceCtrl->Append(
+                    category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
             }
         }
     } else {
