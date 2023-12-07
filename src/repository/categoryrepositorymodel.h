@@ -38,11 +38,11 @@ struct CategoryRepositoryModel {
     bool IsActive;
     std::optional<std::int64_t> ProjectId;
 
-    std::string ProjectDisplayName;
+    std::optional<std::string> ProjectDisplayName;
 
     std::string GetFormattedName();
 
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;
 };
-}
+} // namespace tks::repos

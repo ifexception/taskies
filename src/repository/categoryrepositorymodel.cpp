@@ -42,7 +42,8 @@ CategoryRepositoryModel::CategoryRepositoryModel()
 
 std::string CategoryRepositoryModel::GetFormattedName()
 {
-    return fmt::format("({0}) - {1}", ProjectDisplayName, Name);
+    auto displayName = ProjectDisplayName.has_value() ? ProjectDisplayName.value() : "none";
+    return fmt::format("({0}) - {1}", displayName, Name);
 }
 
 const std::string CategoryRepositoryModel::GetDateCreatedString() const
