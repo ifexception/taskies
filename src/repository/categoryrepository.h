@@ -22,7 +22,6 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <map>
 #include <vector>
 
 #include <spdlog/logger.h>
@@ -43,12 +42,14 @@ public:
 
     CategoryRepository& operator=(const CategoryRepository&) = delete;
 
+    int Filter(/*out*/ std::vector<CategoryRepositoryModel>& categories);
     int FilterByProjectId(const std::int64_t projectId, std::vector<CategoryRepositoryModel>& categories);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
+    static const std::string filter;
     static const std::string filterByProjectId;
 };
 }
