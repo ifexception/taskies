@@ -252,7 +252,7 @@ void MainFrame::CreateControls()
 
     /* View */
     auto viewMenu = new wxMenu();
-    viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current");
+    viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current week");
     viewMenu->AppendSeparator();
     auto preferencesMenuItem = viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
 
@@ -421,6 +421,28 @@ void MainFrame::DataToControls()
     }
 
     pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(date::format("%F", pDateStore->TodayDate)));
+
+    // Fetch tasks to calculate hours for today
+    std::vector<Model::TaskDurationModel> durationsForToday;
+    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+
+    rc = taskDao.GetHoursForToday(pDateStore->TodaysDateString, durationsForToday);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        int minutes = 0;
+        int hours = 0;
+        for (auto& duration : durationsForToday) {
+            hours += duration.Hours;
+            minutes += duration.Minutes;
+        }
+
+        hours += (minutes / 60);
+        minutes = minutes % 60;
+
+        auto time = fmt::format("{0:02}:{1:02}", hours, minutes);
+        pStatusBar->UpdateCurrentDayHours(time);
+    }
 }
 
 void MainFrame::OnClose(wxCloseEvent& event)
