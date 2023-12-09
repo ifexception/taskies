@@ -29,6 +29,8 @@ StatusBar::StatusBar(wxWindow* parent)
     int widths[] = { -1, -1, -1 };
     SetFieldsCount(Fields::Count);
     SetStatusWidths(Fields::Count, widths);
+
+    SetStatusText("Ready", Fields::Default);
 }
 
 void StatusBar::UpdateCurrentDayHours(const std::string& currentDayHours)
