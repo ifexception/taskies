@@ -535,6 +535,65 @@ int TaskDao::IsDeleted(const std::int64_t taskId, bool& value)
     return 0;
 }
 
+int TaskDao::GetHoursForToday(const std::string& todaysDate, std::vector<Model::TaskDurationModel> models)
+{
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", todaysDate);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, TaskDao::getHoursForToday.c_str(), static_cast<int>(TaskDao::getHoursForToday.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::getHoursForToday, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_text(stmt, 1, todaysDate.c_str(), static_cast<int>(todaysDate.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "date", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            Model::TaskDurationModel model;
+            rc = SQLITE_ROW;
+            int columnIndex = 0;
+
+            model.Hours = sqlite3_column_int(stmt, columnIndex++);
+            model.Minutes = sqlite3_column_int(stmt, columnIndex++);
+
+            models.push_back(model);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::getHoursForToday, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskDao", todaysDate);
+
+    return 0;
+}
+
 const std::string TaskDao::getById = "SELECT "
                                      "task_id, "
                                      "billable, "
@@ -593,4 +652,13 @@ const std::string TaskDao::isDeleted = "SELECT "
                                        "is_active "
                                        "FROM tasks "
                                        "WHERE task_id = ?;";
+
+const std::string TaskDao::getHoursForToday = "SELECT "
+                                              "hours, "
+                                              "minutes "
+                                              "FROM tasks "
+                                              "INNER JOIN workdays "
+                                              "ON tasks.workday_id = workdays.workday_id "
+                                              "WHERE workdays.date = ? "
+                                              "AND tasks.is_active = 1";
 } // namespace tks::DAO
