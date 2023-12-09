@@ -651,6 +651,12 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     if (employerIdData->GetValue() < 1) {
         pClientChoiceCtrl->Disable();
         pProjectChoiceCtrl->Disable();
+        if (pCfg->ShowProjectAssociatedCategories()) {
+            pCategoryChoiceCtrl->Clear();
+            pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+            pCategoryChoiceCtrl->SetSelection(0);
+            pCategoryChoiceCtrl->Disable();
+        }
         mEmployerIndex = -1;
 
         return;
