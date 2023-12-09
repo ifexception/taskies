@@ -711,6 +711,38 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
             if (hasProjectDefaultIterator != projects.end()) {
                 auto& defaultProject = *hasProjectDefaultIterator;
                 pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
+
+                if (pCfg->ShowProjectAssociatedCategories()) {
+                    std::vector<repos::CategoryRepositoryModel> categories;
+                    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+
+                    int rc = categoryRepo.FilterByProjectId(defaultProject.ProjectId, categories);
+                    if (rc != 0) {
+                        std::string message = "Failed to get categories";
+                        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+                        NotificationClientData* clientData =
+                            new NotificationClientData(NotificationType::Error, message);
+                        addNotificationEvent->SetClientObject(clientData);
+
+                        wxQueueEvent(pParent, addNotificationEvent);
+                    } else {
+                        if (!categories.empty()) {
+                            if (!pCategoryChoiceCtrl->IsEnabled()) {
+                                pCategoryChoiceCtrl->Enable();
+                            }
+
+                            for (auto& category : categories) {
+                                pCategoryChoiceCtrl->Append(
+                                    category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+                            }
+                        } else {
+                            pCategoryChoiceCtrl->Clear();
+                            pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+                            pCategoryChoiceCtrl->SetSelection(0);
+                            pCategoryChoiceCtrl->Disable();
+                        }
+                    }
+                }
             }
         } else {
             pProjectChoiceCtrl->Disable();
@@ -800,7 +832,6 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
         reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
     if (projectIdData->GetValue() < 1) {
         pCategoryChoiceCtrl->Disable();
-        mEmployerIndex = -1;
 
         return;
     }
