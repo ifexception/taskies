@@ -41,6 +41,7 @@ struct DateStore {
     long long SundayDateSeconds;
 
     std::vector<std::string> MondayToSundayDateRangeList;
+    std::string TodaysDateString;
 
     void Reset();
 
