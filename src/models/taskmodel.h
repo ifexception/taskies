@@ -44,4 +44,9 @@ struct TaskModel {
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;
 };
+
+struct TaskDurationModel {
+    int Hours;
+    int Minutes;
+};
 }
