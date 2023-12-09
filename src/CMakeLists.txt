@@ -80,6 +80,7 @@ set (SRC
     "ui/notificationpopupwindow.cpp"
     "ui/dataview/tasktreemodel.cpp"
     "ui/dataview/tasktreemodelnode.cpp"
+    "ui/statusbar.cpp"
     "resources.rc"
     "application.manifest"
     "common/common.cpp"
