@@ -535,7 +535,7 @@ int TaskDao::IsDeleted(const std::int64_t taskId, bool& value)
     return 0;
 }
 
-int TaskDao::GetHoursForToday(const std::string& todaysDate, std::vector<Model::TaskDurationModel> models)
+int TaskDao::GetHoursForToday(const std::string& todaysDate, std::vector<Model::TaskDurationModel>& models)
 {
     pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", todaysDate);
 

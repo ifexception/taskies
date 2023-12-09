@@ -47,7 +47,7 @@ public:
     int Delete(const std::int64_t taskId);
     int GetDescriptionById(const std::int64_t taskId, std::string& description);
     int IsDeleted(const std::int64_t taskId, bool& value);
-    int GetHoursForToday(const std::string& todaysDate, std::vector<Model::TaskDurationModel> model);
+    int GetHoursForToday(const std::string& todaysDate, std::vector<Model::TaskDurationModel>& model);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
