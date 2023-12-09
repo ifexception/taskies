@@ -44,6 +44,7 @@
 
 #include "notificationpopupwindow.h"
 #include "taskbaricon.h"
+#include "statusbar.h"
 
 namespace tks
 {
@@ -184,6 +185,7 @@ private:
 
     wxInfoBar* pInfoBar;
     TaskBarIcon* pTaskBarIcon;
+    StatusBar* pStatusBar;
 
     NotificationPopupWindow* pNotificationPopupWindow;
     wxDatePickerCtrl* pFromDateCtrl;

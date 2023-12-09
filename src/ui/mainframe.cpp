@@ -139,6 +139,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mToCtrlDate()
     , mTaskIdToModify(-1)
     , mTaskDate()
+    , pStatusBar(nullptr)
 // clang-format on
 {
     // Initialization setup
@@ -173,6 +174,9 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
         pTaskBarIcon->SetTaskBarIcon();
     }
 
+    // Setup StatusBar
+    pStatusBar = new StatusBar(this);
+
     // Setup DateStore
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -198,6 +202,11 @@ MainFrame::~MainFrame()
     if (pNotificationPopupWindow) {
         pLogger->info("MainFrame - Delete notification popup window pointer");
         delete pNotificationPopupWindow;
+    }
+
+    if (pStatusBar) {
+        pLogger->info("MainFrame - Delete status bar pointer");
+        delete pStatusBar;
     }
 
     pLogger->info("MainFrame - Destructor");
@@ -363,6 +372,9 @@ void MainFrame::CreateControls()
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
     SetAcceleratorTable(table);
+
+    /* Status Bar */
+    SetStatusBar(pStatusBar);
 }
 
 void MainFrame::FillControls()
