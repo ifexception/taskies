@@ -63,7 +63,7 @@ void PreferencesTasksPage::Save()
         reinterpret_cast<ClientData<int>*>(pMinutesIncrementChoiceCtrl->GetClientObject(choiceIndex));
 
     pCfg->SetMinutesIncrement(incrementData->GetValue());
-    pCfg->SetShowProjectAssociatedCategories(pShowProjectAssociatedCategoriesCheckBoxCtrl->GetValue());
+    pCfg->ShowProjectAssociatedCategories(pShowProjectAssociatedCategoriesCheckBoxCtrl->GetValue());
 }
 
 void PreferencesTasksPage::Reset()
@@ -118,6 +118,6 @@ void PreferencesTasksPage::FillControls()
 void PreferencesTasksPage::DataToControls()
 {
     pMinutesIncrementChoiceCtrl->SetStringSelection(std::to_string(pCfg->GetMinutesIncrement()));
-    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->GetShowProjectAssociatedCategories());
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
 }
 } // namespace tks::UI::dlg

@@ -363,7 +363,7 @@ void TaskDialog::FillControls()
     pProjectChoiceCtrl->SetSelection(0);
     pProjectChoiceCtrl->Disable();
 
-    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->GetShowProjectAssociatedCategories());
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
 
     pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pCategoryChoiceCtrl->SetSelection(0);
@@ -387,7 +387,7 @@ void TaskDialog::FillControls()
         }
     }
 
-    if (!pCfg->GetShowProjectAssociatedCategories()) {
+    if (!pCfg->ShowProjectAssociatedCategories()) {
         std::vector<repos::CategoryRepositoryModel> categories;
         repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
 
@@ -787,7 +787,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
 
 void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
 {
-    if (!pCfg->GetShowProjectAssociatedCategories()) {
+    if (!pCfg->ShowProjectAssociatedCategories()) {
         return;
     }
 
@@ -837,7 +837,62 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
     }
 }
 
-void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event) {}
+void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
+{
+    int rc = -1;
+    std::vector<repos::CategoryRepositoryModel> categories;
+    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+
+    pCategoryChoiceCtrl->Clear();
+    pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pCategoryChoiceCtrl->SetSelection(0);
+
+    if (event.IsChecked()) {
+        int projectIndex = event.GetSelection();
+        ClientData<std::int64_t>* projectIdData =
+            reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
+        if (projectIdData->GetValue() < 1) {
+            pCategoryChoiceCtrl->Disable();
+            mEmployerIndex = -1;
+
+            return;
+        }
+
+        auto projectId = projectIdData->GetValue();
+
+        rc = categoryRepo.FilterByProjectId(projectId, categories);
+    } else {
+        rc = categoryRepo.Filter(categories);
+    }
+
+    if (rc == -1) {
+        std::string message = "Failed to get categories";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        if (!categories.empty()) {
+            if (!pCategoryChoiceCtrl->IsEnabled()) {
+                pCategoryChoiceCtrl->Enable();
+            }
+
+            for (auto& category : categories) {
+                pCategoryChoiceCtrl->Append(
+                    category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+            }
+        } else {
+            pCategoryChoiceCtrl->Clear();
+            pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+            pCategoryChoiceCtrl->SetSelection(0);
+            pCategoryChoiceCtrl->Disable();
+        }
+    }
+
+    pCfg->ShowProjectAssociatedCategories(event.IsChecked());
+    pCfg->Save();
+}
 
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 {
