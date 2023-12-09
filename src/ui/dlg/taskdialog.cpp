@@ -677,16 +677,16 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 
         wxQueueEvent(pParent, addNotificationEvent);
     } else {
-        if (clients.empty()) {
+        if (!clients.empty()) {
+            if (!pClientChoiceCtrl->IsEnabled()) {
+                pClientChoiceCtrl->Enable();
+            }
+
+            for (auto& client : clients) {
+                pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
+            }
+        } else {
             pClientChoiceCtrl->Disable();
-        }
-
-        for (auto& client : clients) {
-            pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
-        }
-
-        if (!pClientChoiceCtrl->IsEnabled() && !clients.empty()) {
-            pClientChoiceCtrl->Enable();
         }
     }
 
