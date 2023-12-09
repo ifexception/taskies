@@ -75,8 +75,8 @@ public:
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
 
-    bool GetShowProjectAssociatedCategories() const;
-    void SetShowProjectAssociatedCategories(const bool value);
+    bool ShowProjectAssociatedCategories() const;
+    void ShowProjectAssociatedCategories(const bool value);
 
 private:
     void GetGeneralConfig(const toml::value& config);

@@ -132,7 +132,7 @@ bool Configuration::RestoreDefaults()
     SetBackupRetentionPeriod(0);
 
     SetMinutesIncrement(15);
-    SetShowProjectAssociatedCategories(false);
+    ShowProjectAssociatedCategories(false);
 
     // clang-format off
     const toml::value data{
@@ -295,12 +295,12 @@ void Configuration::SetMinutesIncrement(const int value)
     mSettings.TaskMinutesIncrement = value;
 }
 
-bool Configuration::GetShowProjectAssociatedCategories() const
+bool Configuration::ShowProjectAssociatedCategories() const
 {
     return mSettings.ShowProjectAssociatedCategories;
 }
 
-void Configuration::SetShowProjectAssociatedCategories(const bool value)
+void Configuration::ShowProjectAssociatedCategories(const bool value)
 {
     mSettings.ShowProjectAssociatedCategories = value;
 }
