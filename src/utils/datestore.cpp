@@ -63,7 +63,5 @@ void DateStore::Initialize()
     } while (dateIterator != SundayDate);
 
     MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
-
-    TodaysDateString = date::format("%F", TodayDate);
 }
 } // namespace tks
