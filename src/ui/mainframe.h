@@ -171,6 +171,8 @@ private:
     void RefetchTasksForDateRange();
     void RefetchTasksForDate(const std::string& date, const std::int64_t taskId);
 
+    void CalculateDayAndWeekTaskDurations();
+
     void QueueFetchTasksErrorNotificationEvent();
 
     void SetFromDateAndDatePicker();
