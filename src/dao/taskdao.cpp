@@ -535,7 +535,7 @@ int TaskDao::IsDeleted(const std::int64_t taskId, bool& value)
     return 0;
 }
 
-int TaskDao::GetHoursForToday(const std::string& todaysDate, std::vector<Model::TaskDurationModel>& models)
+int TaskDao::GetHoursForDay(const std::string& todaysDate, std::vector<Model::TaskDurationModel>& models)
 {
     pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", todaysDate);
 
@@ -591,6 +591,22 @@ int TaskDao::GetHoursForToday(const std::string& todaysDate, std::vector<Model::
     sqlite3_finalize(stmt);
     pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskDao", todaysDate);
 
+    return 0;
+}
+
+int TaskDao::GetHoursForWeek(const std::vector<std::string> weekDates,
+    std::vector<Model::TaskDurationModel>& models)
+{
+    for (const auto& date : weekDates) {
+        std::vector<Model::TaskDurationModel> tasksDuration;
+        int rc = GetHoursForDay(date, tasksDuration);
+        if (rc != 0) {
+            pLogger->error("TaskDao - Failed to fatch task durations for day: \"{0}\"", date);
+            return rc;
+        }
+
+        models.insert(std::end(models), std::begin(tasksDuration), std::end(tasksDuration));
+    }
     return 0;
 }
 
