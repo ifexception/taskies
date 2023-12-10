@@ -732,6 +732,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
         int rc = taskDao.IsDeleted(mTaskIdToModify, isActive);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
+            return;
         }
 
         if (isActive) {
