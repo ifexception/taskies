@@ -426,7 +426,7 @@ void MainFrame::DataToControls()
     std::vector<Model::TaskDurationModel> durationsForToday;
     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
 
-    rc = taskDao.GetHoursForToday(pDateStore->TodaysDateString, durationsForToday);
+    rc = taskDao.GetHoursForDay(date::format("%F", pDateStore->TodayDate), durationsForToday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -442,6 +442,26 @@ void MainFrame::DataToControls()
 
         auto time = fmt::format("{0:02}:{1:02}", hours, minutes);
         pStatusBar->UpdateCurrentDayHours(time);
+    }
+
+    // Fetch tasks for current week to calculate hours
+    std::vector<Model::TaskDurationModel> taskDurationsForTheWeek;
+    rc = taskDao.GetHoursForWeek(pDateStore->MondayToSundayDateRangeList, taskDurationsForTheWeek);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        int minutes = 0;
+        int hours = 0;
+        for (auto& duration : taskDurationsForTheWeek) {
+            hours += duration.Hours;
+            minutes += duration.Minutes;
+        }
+
+        hours += (minutes / 60);
+        minutes = minutes % 60;
+
+        auto time = fmt::format("{0:02}:{1:02}", hours, minutes);
+        pStatusBar->UpdateCurrentWeekHours(time);
     }
 }
 
@@ -1133,7 +1153,7 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
                 "MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"", model->GetProjectName());
             mTaskDate = model->GetProjectName();
 
-            std::istringstream ssTaskDate{mTaskDate};
+            std::istringstream ssTaskDate{ mTaskDate };
             std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskDate;
             ssTaskDate >> date::parse("%F", dateTaskDate);
 
