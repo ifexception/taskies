@@ -357,9 +357,7 @@ void TaskDialog::FillControls()
 
     ConfigureClientChoiceData(true);
 
-    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-    pProjectChoiceCtrl->SetSelection(0);
-    pProjectChoiceCtrl->Disable();
+    ConfigureProjectChoiceData(true);
 
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
 
@@ -1101,6 +1099,16 @@ void TaskDialog::ConfigureClientChoiceData(bool disable)
     pClientChoiceCtrl->SetSelection(0);
     if (disable) {
         pClientChoiceCtrl->Disable();
+    }
+}
+
+void TaskDialog::ConfigureProjectChoiceData(bool disable)
+{
+    pProjectChoiceCtrl->Clear();
+    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pProjectChoiceCtrl->SetSelection(0);
+    if (disable) {
+        pProjectChoiceCtrl->Disable();
     }
 }
 
