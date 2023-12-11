@@ -81,6 +81,8 @@ private:
 
     bool TransferDataAndValidate();
 
+    void QueueErrorNotificationEventToParent(const std::string& message);
+
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
