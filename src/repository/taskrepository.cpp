@@ -82,93 +82,17 @@ TaskRepository::~TaskRepository()
 int TaskRepository::FilterByDateRange(std::vector<std::string> dates,
     std::map<std::string, std::vector<TaskRepositoryModel>>& models)
 {
+    pLogger->info(LogMessage::InfoBeginFilterEntities, "TaskRepository", "task", "[]");
     for (const auto& date : dates) {
-        pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskRepository", "task", date);
-
         std::vector<TaskRepositoryModel> tasks;
-        sqlite3_stmt* stmt = nullptr;
-
-        int rc = sqlite3_prepare_v2(pDb,
-            TaskRepository::filterByDate.c_str(),
-            static_cast<int>(TaskRepository::filterByDate.size()),
-            &stmt,
-            nullptr);
-        if (rc != SQLITE_OK) {
-            const char* err = sqlite3_errmsg(pDb);
-            pLogger->error(
-                LogMessage::PrepareStatementTemplate, "TaskRepository", TaskRepository::filterByDate, rc, err);
-            sqlite3_finalize(stmt);
-            return -1;
-        }
-
-        rc = sqlite3_bind_text(stmt, 1, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
-        if (rc != SQLITE_OK) {
-            const char* err = sqlite3_errmsg(pDb);
-            pLogger->error(LogMessage::BindParameterTemplate, "TaskRepository", "date", 1, rc, err);
-            sqlite3_finalize(stmt);
-            return -1;
-        }
-
-        bool done = false;
-        while (!done) {
-            switch (sqlite3_step(stmt)) {
-            case SQLITE_ROW: {
-                TaskRepositoryModel model;
-                rc = SQLITE_ROW;
-                int columnIndex = 0;
-
-                model.TaskId = sqlite3_column_int64(stmt, columnIndex++);
-                model.Billable = !!sqlite3_column_int(stmt, columnIndex++);
-                if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                    model.UniqueIdentifier = std::nullopt;
-                } else {
-                    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                    model.UniqueIdentifier = std::make_optional(
-                        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-                }
-                columnIndex++;
-
-                model.Hours = sqlite3_column_int(stmt, columnIndex++);
-                model.Minutes = sqlite3_column_int(stmt, columnIndex++);
-                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                model.Description =
-                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
-                model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-                model.DateModified = sqlite3_column_int(stmt, columnIndex++);
-                model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
-                model.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
-                model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
-                model.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
-                res = sqlite3_column_text(stmt, columnIndex);
-                model.ProjectName =
-                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
-                res = sqlite3_column_text(stmt, columnIndex);
-                model.CategoryName =
-                    std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
-
-                tasks.push_back(model);
-                break;
-            }
-            case SQLITE_DONE:
-                rc = SQLITE_DONE;
-                done = true;
-                break;
-            default:
-                break;
-            }
-        }
-
-        if (rc != SQLITE_DONE) {
-            const char* err = sqlite3_errmsg(pDb);
-            pLogger->error(LogMessage::ExecStepTemplate, "TaskRepository", TaskRepository::filterByDate, rc, err);
-            sqlite3_finalize(stmt);
-            return -1;
+        int rc = FilterByDate(date, tasks);
+        if (rc != 0) {
+            break;
         }
 
         models[date] = tasks;
-        sqlite3_finalize(stmt);
-        pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskRepository", date);
     }
+    pLogger->info(LogMessage::InfoEndFilterEntities, "TaskRepository", "task", "[]");
 
     return 0;
 }
