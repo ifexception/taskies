@@ -87,7 +87,7 @@ int TaskRepository::FilterByDateRange(std::vector<std::string> dates,
         std::vector<TaskRepositoryModel> tasks;
         int rc = FilterByDate(date, tasks);
         if (rc != 0) {
-            break;
+            return rc;
         }
 
         models[date] = tasks;
