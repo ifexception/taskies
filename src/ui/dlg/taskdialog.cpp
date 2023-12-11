@@ -355,9 +355,7 @@ void TaskDialog::FillControls()
     pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);
 
-    pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-    pClientChoiceCtrl->SetSelection(0);
-    pClientChoiceCtrl->Disable();
+    ConfigureClientChoiceData(true);
 
     pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pProjectChoiceCtrl->SetSelection(0);
@@ -594,9 +592,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
-    pClientChoiceCtrl->Clear();
-    pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-    pClientChoiceCtrl->SetSelection(0);
+    ConfigureClientChoiceData();
 
     pProjectChoiceCtrl->Clear();
     pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -608,12 +604,14 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     if (employerIdData->GetValue() < 1) {
         pClientChoiceCtrl->Disable();
         pProjectChoiceCtrl->Disable();
+
         if (pCfg->ShowProjectAssociatedCategories()) {
             pCategoryChoiceCtrl->Clear();
             pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
             pCategoryChoiceCtrl->SetSelection(0);
             pCategoryChoiceCtrl->Disable();
         }
+
         mEmployerIndex = -1;
 
         return;
@@ -1094,6 +1092,16 @@ bool TaskDialog::TransferDataAndValidate()
     mTaskModel.CategoryId = categoryIdData->GetValue();
 
     return true;
+}
+
+void TaskDialog::ConfigureClientChoiceData(bool disable)
+{
+    pClientChoiceCtrl->Clear();
+    pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pClientChoiceCtrl->SetSelection(0);
+    if (disable) {
+        pClientChoiceCtrl->Disable();
+    }
 }
 
 void TaskDialog::QueueErrorNotificationEventToParent(const std::string& message)

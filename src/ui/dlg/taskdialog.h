@@ -81,6 +81,7 @@ private:
 
     bool TransferDataAndValidate();
 
+    void ConfigureClientChoiceData(bool disable = false);
     void QueueErrorNotificationEventToParent(const std::string& message);
 
     std::shared_ptr<Core::Environment> pEnv;
