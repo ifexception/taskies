@@ -592,9 +592,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 
     ConfigureClientChoiceData();
 
-    pProjectChoiceCtrl->Clear();
-    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-    pProjectChoiceCtrl->SetSelection(0);
+    ConfigureProjectChoiceData();
 
     int employerIndex = event.GetSelection();
     ClientData<std::int64_t>* employerIdData =
@@ -712,9 +710,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
         reinterpret_cast<ClientData<std::int64_t>*>(pClientChoiceCtrl->GetClientObject(clientIndex));
     auto clientId = clientIdData->GetValue();
 
-    pProjectChoiceCtrl->Clear();
-    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-    pProjectChoiceCtrl->SetSelection(0);
+    ConfigureProjectChoiceData();
 
     if (clientIdData->GetValue() < 1) {
         pProjectChoiceCtrl->Disable();
