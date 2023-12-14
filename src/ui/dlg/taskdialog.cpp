@@ -361,8 +361,7 @@ void TaskDialog::FillControls()
 
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
 
-    pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-    pCategoryChoiceCtrl->SetSelection(0);
+    ConfigureCategoryChoiceData();
 
     std::string defaultSearhTerm = "";
 
@@ -602,10 +601,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         pProjectChoiceCtrl->Disable();
 
         if (pCfg->ShowProjectAssociatedCategories()) {
-            pCategoryChoiceCtrl->Clear();
-            pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-            pCategoryChoiceCtrl->SetSelection(0);
-            pCategoryChoiceCtrl->Disable();
+            ConfigureCategoryChoiceData(true);
         }
 
         mEmployerIndex = -1;
@@ -680,10 +676,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
                                     category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
                             }
                         } else {
-                            pCategoryChoiceCtrl->Clear();
-                            pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-                            pCategoryChoiceCtrl->SetSelection(0);
-                            pCategoryChoiceCtrl->Disable();
+                            ConfigureCategoryChoiceData(true);
                         }
                     }
                 }
@@ -744,10 +737,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
                 pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
             }
         } else {
-            pProjectChoiceCtrl->Clear();
-            pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-            pProjectChoiceCtrl->SetSelection(0);
-            pProjectChoiceCtrl->Disable();
+            ConfigureProjectChoiceData(true);
         }
     }
 
@@ -760,9 +750,7 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
         return;
     }
 
-    pCategoryChoiceCtrl->Clear();
-    pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-    pCategoryChoiceCtrl->SetSelection(0);
+    ConfigureCategoryChoiceData();
 
     int projectIndex = event.GetSelection();
     ClientData<std::int64_t>* projectIdData =
@@ -793,10 +781,7 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
                     category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
             }
         } else {
-            pCategoryChoiceCtrl->Clear();
-            pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-            pCategoryChoiceCtrl->SetSelection(0);
-            pCategoryChoiceCtrl->Disable();
+            ConfigureCategoryChoiceData(true);
         }
     }
 }
@@ -843,10 +828,7 @@ void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
                     category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
             }
         } else {
-            pCategoryChoiceCtrl->Clear();
-            pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-            pCategoryChoiceCtrl->SetSelection(0);
-            pCategoryChoiceCtrl->Disable();
+            ConfigureCategoryChoiceData(true);
         }
     }
 
@@ -1105,6 +1087,16 @@ void TaskDialog::ConfigureProjectChoiceData(bool disable)
     pProjectChoiceCtrl->SetSelection(0);
     if (disable) {
         pProjectChoiceCtrl->Disable();
+    }
+}
+
+void TaskDialog::ConfigureCategoryChoiceData(bool disable)
+{
+    pCategoryChoiceCtrl->Clear();
+    pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pCategoryChoiceCtrl->SetSelection(0);
+    if (disable) {
+        pCategoryChoiceCtrl->Disable();
     }
 }
 
