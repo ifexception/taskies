@@ -38,7 +38,8 @@ void DateStore::Reset()
 void DateStore::Initialize()
 {
     TodayDate = date::floor<date::days>(std::chrono::system_clock::now());
-    pLogger->info("DateStore::Initialize - Todays date: {0}", date::format("%F", TodayDate));
+    PrintTodayDate = date::format("%F", TodayDate);
+    pLogger->info("DateStore::Initialize - Todays date: {0}", PrintTodayDate);
 
     MondayDate = TodayDate - (date::weekday{ TodayDate } - date::Monday);
     pLogger->info("DateStore::Initialize - Monday date: {0}", date::format("%F", MondayDate));

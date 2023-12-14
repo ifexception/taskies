@@ -420,7 +420,7 @@ void MainFrame::DataToControls()
         }
     }
 
-    pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(date::format("%F", pDateStore->TodayDate)));
+    pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
 
     CalculateDayAndWeekTaskDurations();
 }
@@ -1179,7 +1179,7 @@ void MainFrame::DoResetToCurrentWeek()
         ResetDatePickerValues();
         RefetchTasksForDateRange();
 
-        pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(date::format("%F", pDateStore->TodayDate)));
+        pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
     }
 }
 
@@ -1236,7 +1236,7 @@ void MainFrame::CalculateDayAndWeekTaskDurations()
     std::vector<Model::TaskDurationModel> durationsForToday;
     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
 
-    int rc = taskDao.GetHoursForDay(date::format("%F", pDateStore->TodayDate), durationsForToday);
+    int rc = taskDao.GetHoursForDay(pDateStore->PrintTodayDate, durationsForToday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {

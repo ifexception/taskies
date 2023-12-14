@@ -39,6 +39,7 @@ struct DateStore {
     std::chrono::time_point<std::chrono::system_clock, date::days> SundayDate;
     long long MondayDateSeconds;
     long long SundayDateSeconds;
+    std::string PrintTodayDate;
 
     std::vector<std::string> MondayToSundayDateRangeList;
 
