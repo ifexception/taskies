@@ -387,9 +387,17 @@ void TaskDialog::FillControls()
             std::string message = "Failed to get categories";
             QueueErrorNotificationEventToParent(message);
         } else {
-            for (auto& category : categories) {
-                pCategoryChoiceCtrl->Append(
-                    category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+            if (!categories.empty()) {
+                if (!pCategoryChoiceCtrl->IsEnabled()) {
+                    pCategoryChoiceCtrl->Enable();
+                }
+
+                for (auto& category : categories) {
+                    pCategoryChoiceCtrl->Append(
+                        category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+                }
+            } else {
+                ConfigureCategoryChoiceData(true);
             }
         }
     } else {
@@ -944,7 +952,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
                 wxQueueEvent(pParent, taskAddedEvent);
             }
             if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-                // FIXME: this is could be bug prone as mOldDate and mDate are std::string
+                // FIXME: this is bug prone as mOldDate and mDate are std::string
                 if (mOldDate != mDate) {
                     // notify frame control of task date changed TO
                     wxCommandEvent* taskDateChangedToEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
