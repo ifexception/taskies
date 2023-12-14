@@ -44,10 +44,13 @@ struct DateStore {
     std::vector<std::string> MondayToSundayDateRangeList;
 
     void Reset();
+    std::vector<std::string> CalculateDatesInRange(
+        std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate,
+        std::chrono::time_point<std::chrono::system_clock, date::days> mToDate);
 
     // -private
     void Initialize();
 
     std::shared_ptr<spdlog::logger> pLogger;
 };
-}
+} // namespace tks

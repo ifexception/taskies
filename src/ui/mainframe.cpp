@@ -768,8 +768,8 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 
         CalculateDayAndWeekTaskDurations();
 
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         auto message = "Successfully deleted task";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
@@ -811,19 +811,7 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
 
     // Check if our current from and to dates encapsulate the date the task was inserted
     // by calculating _this_ date range
-    // FIXME: These date range calculations are repeated often, consider moving to DateStore
-    std::vector<std::string> dates;
-    auto dateIterator = mFromDate;
-    int loopIdx = 0;
-
-    do {
-        dates.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != mToDate);
-
-    dates.push_back(date::format("%F", dateIterator));
+    std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Check if date that the task was inserted for is in the selected range of our wxDateTimeCtrl's
     auto iterator =
@@ -850,18 +838,7 @@ void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
 
     // Check if our current from and to dates encapsulate the date the task was inserted
     // by calculating _this_ date range
-    std::vector<std::string> dates;
-    auto dateIterator = mFromDate;
-    int loopIdx = 0;
-
-    do {
-        dates.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != mToDate);
-
-    dates.push_back(date::format("%F", dateIterator));
+    std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Check if date that the task was deleted is in the selected range of our wxDateTimeCtrl's
     auto iterator =
@@ -891,18 +868,7 @@ void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
 
     // Check if our current from and to dates encapsulate the date the task was inserted
     // by calculating _this_ date range
-    std::vector<std::string> dates;
-    auto dateIterator = mFromDate;
-    int loopIdx = 0;
-
-    do {
-        dates.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != mToDate);
-
-    dates.push_back(date::format("%F", dateIterator));
+    std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Check if date that the task was changed to is in the selected range of our wxDateTimeCtrl's
     auto iterator =
@@ -931,18 +897,7 @@ void MainFrame::OnTaskDateChangedTo(wxCommandEvent& event)
 
     // Check if our current from and to dates encapsulate the date the task was inserted
     // by calculating _this_ date range
-    std::vector<std::string> dates;
-    auto dateIterator = mFromDate;
-    int loopIdx = 0;
-
-    do {
-        dates.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != mToDate);
-
-    dates.push_back(date::format("%F", dateIterator));
+    std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Check if date that the task was changed to is in the selected range of our wxDateTimeCtrl's
     auto iterator =
@@ -977,7 +932,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     }
 
     auto currentDate = wxDateTime::Now();
-    auto sixMonthsPast = currentDate.Subtract(wxDateSpan::Months(6));
+    auto& sixMonthsPast = currentDate.Subtract(wxDateSpan::Months(6));
 
     bool isYearMoreThanSixMonths = eventDateUtc.GetYear() < sixMonthsPast.GetYear();
     bool isMonthMoreThanSixMonths = eventDateUtc.GetMonth() < sixMonthsPast.GetMonth();
@@ -1016,18 +971,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     }
 
     // Calculate list of dates between from and to date
-    std::vector<std::string> dates;
-    auto dateIterator = mFromDate;
-    int loopIdx = 0;
-
-    do {
-        dates.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != mToDate);
-
-    dates.push_back(date::format("%F", dateIterator));
+    std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Fetch all the tasks for said date range
     std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
@@ -1088,18 +1032,7 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     }
 
     // Calculate list of dates between from and to date
-    std::vector<std::string> dates;
-    auto dateIterator = mFromDate;
-    int loopIdx = 0;
-
-    do {
-        dates.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != mToDate);
-
-    dates.push_back(date::format("%F", dateIterator));
+    std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Fetch all the tasks for said date range
     std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
@@ -1162,8 +1095,6 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
 
 void MainFrame::DoResetToCurrentWeek()
 {
-    pDateStore->Reset();
-
     bool shouldReset = false;
 
     if (mFromDate != pDateStore->MondayDate) {
@@ -1178,6 +1109,8 @@ void MainFrame::DoResetToCurrentWeek()
         ResetDateRange();
         ResetDatePickerValues();
         RefetchTasksForDateRange();
+
+        pDateStore->Reset();
 
         pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
     }

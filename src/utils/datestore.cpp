@@ -35,6 +35,24 @@ void DateStore::Reset()
     Initialize();
 }
 
+std::vector<std::string> DateStore::CalculateDatesInRange(
+    std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate,
+    std::chrono::time_point<std::chrono::system_clock, date::days> mToDate)
+{
+    std::vector<std::string> dates;
+    auto dateIterator = mFromDate;
+
+    do {
+        dates.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+    } while (dateIterator != mToDate);
+
+    dates.push_back(date::format("%F", dateIterator));
+
+    return dates;
+}
+
 void DateStore::Initialize()
 {
     TodayDate = date::floor<date::days>(std::chrono::system_clock::now());
