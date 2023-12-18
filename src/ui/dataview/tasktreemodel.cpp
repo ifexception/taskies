@@ -50,8 +50,8 @@ TaskTreeModel::~TaskTreeModel()
 {
     pLogger->info("TaskTreeModel - Delete root nodes");
     for (std::size_t i = 0; i < pRoots.size(); i++) {
-        TaskTreeModelNode* child = pRoots[i];
-        delete child;
+        TaskTreeModelNode* root = pRoots[i];
+        delete root;
     }
 }
 
@@ -142,8 +142,8 @@ wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
 
     TaskTreeModelNode* node = (TaskTreeModelNode*) item.GetID();
 
-    for (std::size_t i = 0; i < pRoots.size(); i++) {
-        if (node == pRoots[i]) {
+    for (auto parentNode : pRoots) {
+        if (node == parentNode) {
             pLogger->info(
                 "TaskTreeModel::GetParent - Node matched with one of the root nodes \"{0}\"", node->GetProjectName());
             return wxDataViewItem(0);
@@ -170,9 +170,8 @@ unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataView
     TaskTreeModelNode* node = (TaskTreeModelNode*) parent.GetID();
     if (!node) {
         pLogger->info("TaskTreeModel::GetChildren - Selected node is a parent node");
-        for (std::size_t i = 0; i < pRoots.size(); i++) {
-            TaskTreeModelNode* child = pRoots[i];
-            array.Add(wxDataViewItem((void*) child));
+        for (auto parentNode : pRoots) {
+            array.Add(wxDataViewItem((void*) parentNode));
         }
 
         return pRoots.size();
@@ -183,8 +182,8 @@ unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataView
     }
 
     pLogger->info("TaskTreeModel::GetChildren - Get children node");
-    for (TaskTreeModelNode* child : node->GetChildren()) {
-        array.Add(wxDataViewItem(child));
+    for (const auto& child : node->GetChildren()) {
+        array.Add(wxDataViewItem(child.get()));
     }
     return array.size();
 }
@@ -204,8 +203,14 @@ void TaskTreeModel::Delete(const wxDataViewItem& item)
     }
 
     pLogger->info("TaskTreeModel::Delete - Delete node from parent");
-    node->GetParent()->GetChildren().Remove(node);
-    delete node;
+
+    auto& children = node->GetChildren();
+    for (auto it = children.begin(); it != children.end(); ++it) {
+        if (it->get() == node) {
+            children.erase(it);
+            break;
+        }
+    }
 
     ItemDeleted(parent, item);
 }
@@ -217,17 +222,15 @@ void TaskTreeModel::DeleteChild(const std::string& date, const std::int64_t task
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
     if (iterator != pRoots.end()) {
-        auto node = *iterator;
-        wxDataViewItem parent((void*) node);
-        auto count = node->GetChildCount();
-        for (unsigned int pos = 0; pos < count; pos++) {
-            TaskTreeModelNode* child = node->GetChildren().Item(pos);
-            if (child->GetTaskId() == taskId) {
-                wxDataViewItem childItem((void*) child);
+        auto parentNode = *iterator;
+        wxDataViewItem parent((void*) parentNode);
 
-                node->GetChildren().Remove(child);
-                delete child;
-                child = nullptr;
+        auto& children = parentNode->GetChildren();
+        for (auto it = children.begin(); it != children.end(); ++it) {
+            if (it->get()->GetTaskId() == taskId) {
+                auto child = it->get();
+                wxDataViewItem childItem((void*) child);
+                children.erase(it);
 
                 ItemDeleted(parent, childItem);
                 break;
@@ -243,12 +246,13 @@ void TaskTreeModel::ChangeChild(const std::string& date, repos::TaskRepositoryMo
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
     if (iterator != pRoots.end()) {
-        auto node = *iterator;
-        wxDataViewItem parent((void*) node);
-        auto count = node->GetChildCount();
-        for (unsigned int pos = 0; pos < count; pos++) {
-            TaskTreeModelNode* child = node->GetChildren().Item(pos);
-            if (child->GetTaskId() == taskModel.TaskId) {
+        auto parentNode = *iterator;
+        wxDataViewItem parent((void*) parentNode);
+
+        auto& children = parentNode->GetChildren();
+        for (auto it = children.begin(); it != children.end(); ++it) {
+            if (it->get()->GetTaskId() == taskModel.TaskId) {
+                auto child = it->get();
                 child->SetProjectName(taskModel.ProjectName);
                 child->SetCategoryName(taskModel.CategoryName);
                 child->SetDuration(taskModel.GetDuration());
@@ -265,50 +269,41 @@ void TaskTreeModel::ChangeChild(const std::string& date, repos::TaskRepositoryMo
 
 void TaskTreeModel::Clear()
 {
-    for (std::size_t i = 0; i < pRoots.size(); i++) {
-        TaskTreeModelNode* node = pRoots[i];
-        while (!node->GetChildren().IsEmpty()) {
-            TaskTreeModelNode* child = node->GetNthChild(0);
-            node->GetChildren().Remove(child);
-            delete child;
-        }
-
-        delete node;
+    for (auto node : pRoots) {
+        node->GetChildren().clear();
     }
+    pRoots.clear();
 
     Cleared();
 }
 
 void TaskTreeModel::ClearAll()
 {
-    for (size_t i = 0; i < pRoots.size(); i++) {
-        auto node = pRoots[i];
+    for (auto parentNode : pRoots) {
         wxDataViewItemArray itemsRemoved;
-        unsigned int count = node->GetChildCount();
 
-        for (unsigned int pos = 0; pos < count; pos++) {
-            TaskTreeModelNode* child = node->GetChildren().Item(pos);
+        auto& children = parentNode->GetChildren();
+        for (auto it = children.begin(); it != children.end(); ++it) {
+            auto child = it->get();
             itemsRemoved.Add(wxDataViewItem((void*) child));
 
-            delete child;
-            child = nullptr;
+            children.erase(it);
         }
 
-        node->GetChildren().clear();
+        parentNode->GetChildren().clear();
 
-        wxDataViewItem parent((void*) node);
+        wxDataViewItem parent((void*) parentNode);
         ItemsDeleted(parent, itemsRemoved);
     }
-    for (std::size_t i = 0; i < pRoots.size(); i++) {
+
+    for (auto parentNode : pRoots) {
         wxDataViewItemArray itemsRemoved;
-        TaskTreeModelNode* child = pRoots[i];
-        itemsRemoved.Add(wxDataViewItem((void*) child));
+        itemsRemoved.Add(wxDataViewItem((void*) parentNode));
 
-        wxDataViewItem parent((void*) child->GetParent());
+        wxDataViewItem parent((void*) parentNode->GetParent());
         ItemsDeleted(parent, itemsRemoved);
-
-        delete child;
     }
+
     pRoots.clear();
 }
 
@@ -319,24 +314,22 @@ void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
     if (iterator != pRoots.end()) {
-        auto node = *iterator;
+        auto parentNode = *iterator;
         pLogger->info("TaskTreeModel::ClearNodeEntriesByDateKey - Located root node associated with date key \"{0}\"",
-            node->GetProjectName());
+            parentNode->GetProjectName());
 
         wxDataViewItemArray itemsRemoved;
-        auto count = node->GetChildCount();
-        for (unsigned int pos = 0; pos < count; pos++) {
-            TaskTreeModelNode* child = node->GetChildren().Item(pos);
-            itemsRemoved.Add(wxDataViewItem((void*) child));
-
-            delete child;
-            child = nullptr;
+        auto& children = parentNode->GetChildren();
+        auto count = children.size();
+        for (auto it = children.begin(); it != children.end(); ++it) {
+            auto child = it->get();
+            itemsRemoved.Add(wxDataViewItem((void*) it->get()));
         }
 
         pLogger->info("TaskTreeModel::ClearNodeEntriesByDateKey - Removed children {0}", count);
-        node->GetChildren().clear();
+        parentNode->GetChildren().clear();
 
-        wxDataViewItem parent((void*) node);
+        wxDataViewItem parent((void*) parentNode);
         ItemsDeleted(parent, itemsRemoved);
     }
 }
@@ -348,17 +341,17 @@ void TaskTreeModel::InsertChildNode(const std::string& date, repos::TaskReposito
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
     if (iterator != pRoots.end()) {
-        auto parentDateNode = *iterator;
-        auto childNode = new TaskTreeModelNode(parentDateNode,
+        auto parentNode = *iterator;
+        auto childNode = new TaskTreeModelNode(parentNode,
             taskModel.ProjectName,
             taskModel.CategoryName,
             taskModel.GetDuration(),
             taskModel.GetTrimmedDescription(),
             taskModel.TaskId);
-        parentDateNode->Append(childNode);
+        parentNode->Append(childNode);
 
         wxDataViewItem child((void*) childNode);
-        wxDataViewItem parent((void*) parentDateNode);
+        wxDataViewItem parent((void*) parentNode);
         ItemAdded(parent, child);
     }
 }
@@ -370,26 +363,26 @@ void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<repos:
         pRoots.begin(), pRoots.end(), [&](TaskTreeModelNode* ptr) { return ptr->GetProjectName() == date; });
 
     if (iterator != pRoots.end()) {
-        auto parentDateNode = *iterator;
+        auto parentNode = *iterator;
 
         pLogger->info("TaskTreeModel::InsertChildNodes - Located root node associated with date key \"{0}\"",
-            parentDateNode->GetProjectName());
+            parentNode->GetProjectName());
 
         wxDataViewItemArray itemsAdded;
         for (auto& model : models) {
-            auto childNode = new TaskTreeModelNode(parentDateNode,
+            auto childNode = new TaskTreeModelNode(parentNode,
                 model.ProjectName,
                 model.CategoryName,
                 model.GetDuration(),
                 model.GetTrimmedDescription(),
                 model.TaskId);
-            parentDateNode->Append(childNode);
+            parentNode->Append(childNode);
 
             wxDataViewItem child((void*) childNode);
             itemsAdded.Add(child);
         }
 
-        wxDataViewItem parent((void*) parentDateNode);
+        wxDataViewItem parent((void*) parentNode);
         ItemsAdded(parent, itemsAdded);
 
         pLogger->info("TaskTreeModel::InsertChildNodes - Number of inserted children \"{0}\"", models.size());

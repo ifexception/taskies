@@ -75,6 +75,6 @@ public:
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
-    TaskTreeModelNodePtrArray pRoots;
+    std::vector<TaskTreeModelNode*> pRoots;
 };
 } // namespace tks::UI
