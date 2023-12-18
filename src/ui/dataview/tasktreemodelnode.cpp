@@ -48,15 +48,6 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent, const std::strin
 {
 }
 
-TaskTreeModelNode::~TaskTreeModelNode()
-{
-    std::size_t count = mChildren.GetCount();
-    for (std::size_t i = 0; i < count; i++) {
-        TaskTreeModelNode* child = mChildren[i];
-        delete child;
-    }
-}
-
 bool TaskTreeModelNode::IsContainer() const
 {
     return bContainer;
@@ -67,29 +58,29 @@ TaskTreeModelNode* TaskTreeModelNode::GetParent()
     return pParent;
 }
 
-TaskTreeModelNodePtrArray& TaskTreeModelNode::GetChildren()
+std::vector<std::unique_ptr<TaskTreeModelNode>>& TaskTreeModelNode::GetChildren()
 {
     return mChildren;
 }
 
 TaskTreeModelNode* TaskTreeModelNode::GetNthChild(unsigned int n)
 {
-    return mChildren.Item(n);
+    return mChildren.at(n).get();
 }
 
 void TaskTreeModelNode::Insert(TaskTreeModelNode* child, unsigned int n)
 {
-    mChildren.Insert(child, n);
+    mChildren.insert(mChildren.begin() + n, std::unique_ptr<TaskTreeModelNode>(child));
 }
 
 void TaskTreeModelNode::Append(TaskTreeModelNode* child)
 {
-    mChildren.Add(child);
+    mChildren.push_back(std::unique_ptr<TaskTreeModelNode>(child));
 }
 
 const unsigned int TaskTreeModelNode::GetChildCount() const
 {
-    return mChildren.Count();
+    return mChildren.size();
 }
 
 std::string TaskTreeModelNode::GetProjectName() const

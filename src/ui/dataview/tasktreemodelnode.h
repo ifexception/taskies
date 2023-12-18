@@ -20,7 +20,9 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -29,9 +31,6 @@
 
 namespace tks::UI
 {
-class TaskTreeModelNode;
-WX_DEFINE_ARRAY_PTR(TaskTreeModelNode*, TaskTreeModelNodePtrArray);
-
 class TaskTreeModelNode final
 {
 public:
@@ -44,11 +43,11 @@ public:
         const std::string& description,
         std::int64_t taskId);
     TaskTreeModelNode(TaskTreeModelNode* parent, const std::string& branch);
-    ~TaskTreeModelNode();
+    ~TaskTreeModelNode() = default;
 
     bool IsContainer() const;
     TaskTreeModelNode* GetParent();
-    TaskTreeModelNodePtrArray& GetChildren();
+    std::vector<std::unique_ptr<TaskTreeModelNode>>& GetChildren();
     TaskTreeModelNode* GetNthChild(unsigned int n);
 
     void Insert(TaskTreeModelNode* child, unsigned int n);
@@ -69,7 +68,7 @@ public:
 
 private:
     TaskTreeModelNode* pParent;
-    TaskTreeModelNodePtrArray mChildren;
+    std::vector<std::unique_ptr<TaskTreeModelNode>> mChildren;
 
     std::string mProjectName;
     std::string mDuration;
