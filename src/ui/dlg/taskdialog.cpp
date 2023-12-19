@@ -572,24 +572,46 @@ void TaskDialog::DataToControls()
             }
         }
 
-        Model::CategoryModel category;
-        DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+        if (pCfg->ShowProjectAssociatedCategories()) {
+            std::vector<repos::CategoryRepositoryModel> categories;
+            repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
 
-        rc = categoryDao.GetById(task.CategoryId, category);
-        if (rc != 0) {
-            std::string message = "Failed to get category";
-            QueueErrorNotificationEventToParent(message);
-            isSuccess = false;
-        } else {
-            pCategoryChoiceCtrl->SetStringSelection(category.Name);
-            isSuccess = true;
+            rc = categoryRepo.FilterByProjectId(task.ProjectId, categories);
+            if (rc == -1) {
+                std::string message = "Failed to get categories";
+                QueueErrorNotificationEventToParent(message);
+            } else {
+                if (!categories.empty()) {
+                    if (!pCategoryChoiceCtrl->IsEnabled()) {
+                        pCategoryChoiceCtrl->Enable();
+                    }
+
+                    for (auto& category : categories) {
+                        pCategoryChoiceCtrl->Append(
+                            category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+                    }
+                } else {
+                    ConfigureCategoryChoiceData(true);
+                }
+            }
+
+            repos::CategoryRepositoryModel category;
+            rc = categoryRepo.GetById(task.CategoryId, category);
+            if (rc != 0) {
+                std::string message = "Failed to get category";
+                QueueErrorNotificationEventToParent(message);
+                isSuccess = false;
+            } else {
+                pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
+                isSuccess = true;
+            }
         }
-    }
 
-    if (isSuccess) {
-        pOkButton->Enable();
-        pOkButton->SetFocus();
-        pOkButton->SetDefault();
+        if (isSuccess) {
+            pOkButton->Enable();
+            pOkButton->SetFocus();
+            pOkButton->SetDefault();
+        }
     }
 }
 
