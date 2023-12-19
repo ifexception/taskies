@@ -43,7 +43,8 @@ public:
     CategoryRepository& operator=(const CategoryRepository&) = delete;
 
     int Filter(/*out*/ std::vector<CategoryRepositoryModel>& categories);
-    int FilterByProjectId(const std::int64_t projectId, std::vector<CategoryRepositoryModel>& categories);
+    int FilterByProjectId(const std::int64_t projectId, /*out*/ std::vector<CategoryRepositoryModel>& categories);
+    int GetById(const std::int64_t categoryId, CategoryRepositoryModel& category);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
@@ -51,5 +52,6 @@ private:
 
     static const std::string filter;
     static const std::string filterByProjectId;
+    static const std::string getById;
 };
 }

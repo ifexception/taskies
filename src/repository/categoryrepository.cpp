@@ -251,6 +251,84 @@ int CategoryRepository::FilterByProjectId(const std::int64_t projectId,
     return 0;
 }
 
+int CategoryRepository::GetById(const std::int64_t categoryId, CategoryRepositoryModel& category)
+{
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "CategoryRepository", "category", categoryId);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pDb, CategoryRepository::getById.c_str(), static_cast<int>(CategoryRepository::getById.size()), &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessage::PrepareStatementTemplate, "CategoryRepository", CategoryRepository::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, categoryId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "CategoryRepository", "category_id", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "CategoryRepository", CategoryRepository::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+
+    category.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    category.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    category.Color = sqlite3_column_int(stmt, columnIndex++);
+    category.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        category.Description = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        category.Description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+    }
+    columnIndex++;
+    category.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    category.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    category.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        category.ProjectId = std::nullopt;
+    } else {
+        category.ProjectId = std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
+    }
+    columnIndex++;
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        category.ProjectDisplayName = std::nullopt;
+    } else {
+        res = sqlite3_column_text(stmt, columnIndex);
+        category.ProjectDisplayName = std::make_optional<std::string>(
+            std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+    }
+    columnIndex++;
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "CategoryRepository", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "CategoryRepository", categoryId);
+
+    return 0;
+}
+
 const std::string CategoryRepository::filter = "SELECT "
                                                "categories.category_id, "
                                                "categories.name, "
@@ -283,4 +361,21 @@ const std::string CategoryRepository::filterByProjectId = "SELECT "
                                                           "ON categories.project_id = projects.project_id "
                                                           "WHERE categories.project_id = ? "
                                                           "AND categories.is_active = 1;";
+
+const std::string CategoryRepository::getById = "SELECT "
+                                                "categories.category_id, "
+                                                "categories.name, "
+                                                "categories.color, "
+                                                "categories.billable, "
+                                                "categories.description, "
+                                                "categories.date_created, "
+                                                "categories.date_modified, "
+                                                "categories.is_active, "
+                                                "categories.project_id, "
+                                                "projects.display_name "
+                                                "FROM categories "
+                                                "INNER JOIN projects "
+                                                "ON categories.project_id = projects.project_id "
+                                                "WHERE categories.category_id = ? "
+                                                "AND categories.is_active = 1;";
 } // namespace tks::repos
