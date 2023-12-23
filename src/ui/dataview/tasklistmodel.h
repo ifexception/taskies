@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include <string>
+#include <vector>
+
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
@@ -29,9 +32,30 @@ constexpr auto INITIAL_NUMBER_OF_ITEMS = 32;
 
 namespace tks::UI
 {
-struct TaskListItemModel final
-{
+struct TaskListItemModel final {
+    TaskListItemModel(const std::string& projectName,
+        const std::string& categoryName,
+        const std::string& duration,
+        const std::string& description,
+        std::int64_t taskId);
 
+    std::string GetProjectName() const;
+    std::string GetCategoryName() const;
+    std::string GetDuration() const;
+    std::string GetDescription() const;
+    std::int64_t GetTaskId() const;
+
+    void SetProjectName(const std::string& value);
+    void SetCategoryName(const std::string& value);
+    void SetDuration(const std::string& value);
+    void SetDescription(const std::string& value);
+    void SetTaskId(std::int64_t taskId);
+
+    std::string mProjectName;
+    std::string mDuration;
+    std::string mCategoryName;
+    std::string mDescription;
+    std::int64_t mTaskId;
 };
 
 class TaskListModel final : public wxDataViewVirtualListModel
@@ -46,5 +70,6 @@ public:
     void DeleteItem();
 
 private:
+    std::vector<TaskListItemModel> mListItemModels;
 };
 } // namespace tks::UI

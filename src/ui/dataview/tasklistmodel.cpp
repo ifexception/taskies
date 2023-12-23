@@ -21,4 +21,79 @@
 
 namespace tks::UI
 {
+TaskListItemModel::TaskListItemModel(const std::string& projectName,
+    const std::string& categoryName,
+    const std::string& duration,
+    const std::string& description,
+    std::int64_t taskId)
+    : mProjectName(projectName)
+    , mCategoryName(categoryName)
+    , mDuration(duration)
+    , mDescription(description)
+    , mTaskId(taskId)
+{
 }
+
+std::string TaskListItemModel::GetProjectName() const
+{
+    return mProjectName;
+}
+
+std::string TaskListItemModel::GetCategoryName() const
+{
+    return mCategoryName;
+}
+
+std::string TaskListItemModel::GetDuration() const
+{
+    return mDuration;
+}
+
+std::string TaskListItemModel::GetDescription() const
+{
+    return mDescription;
+}
+
+std::int64_t TaskListItemModel::GetTaskId() const
+{
+    return mTaskId;
+}
+
+void TaskListItemModel::SetProjectName(const std::string& value)
+{
+    mProjectName = value;
+}
+
+void TaskListItemModel::SetCategoryName(const std::string& value)
+{
+    mCategoryName = value;
+}
+
+void TaskListItemModel::SetDuration(const std::string& value)
+{
+    mDuration = value;
+}
+
+void TaskListItemModel::SetDescription(const std::string& value)
+{
+    mDescription = value;
+}
+
+void TaskListItemModel::SetTaskId(std::int64_t taskId)
+{
+    mTaskId = taskId;
+}
+
+// ###################################################################
+
+TaskListModel::TaskListModel()
+    : mListItemModels()
+{
+}
+
+void TaskListModel::Append() {}
+
+void TaskListModel::ChangeItem() {}
+
+void TaskListModel::DeleteItem() {}
+} // namespace tks::UI
