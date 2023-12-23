@@ -133,7 +133,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pDateStore(nullptr)
     , mFromDate()
     , mToDate()
-    , pTaskDataViewCtrl(nullptr)
+    , pDataViewCtrls()
     , pTaskTreeModel(nullptr)
     , mFromCtrlDate()
     , mToCtrlDate()
@@ -306,16 +306,17 @@ void MainFrame::CreateControls()
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
-    /* Data View Ctrl */
-    pTaskDataViewCtrl = new wxDataViewCtrl(panel,
+    /* Week Data View Ctrl */
+    auto taskDataViewCtrl = new wxDataViewCtrl(panel,
         tksIDC_TASKDATAVIEW,
         wxDefaultPosition,
         wxDefaultSize,
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
 
-    /* Data View Model */
+    /* Week Data View Model */
     pTaskTreeModel = new TaskTreeModel(mFromDate, mToDate, pLogger);
-    pTaskDataViewCtrl->AssociateModel(pTaskTreeModel.get());
+    taskDataViewCtrl->AssociateModel(pTaskTreeModel.get());
+    pDataViewCtrls[Page_WeekView] = taskDataViewCtrl;
 
     /* Data View Columns */
     auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
@@ -330,20 +331,20 @@ void MainFrame::CreateControls()
     auto projectColumn = new wxDataViewColumn(
         "Project", projectNameTextRenderer, TaskTreeModel::Col_Project, 80, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
     projectColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    pTaskDataViewCtrl->AppendColumn(projectColumn);
+    pDataViewCtrls[Page_WeekView]->AppendColumn(projectColumn);
 
     /* Category Column */
     auto categoryColumn = new wxDataViewColumn(
         "Category", categoryNameTextRenderer, TaskTreeModel::Col_Category, 80, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
     categoryColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    pTaskDataViewCtrl->AppendColumn(categoryColumn);
+    pDataViewCtrls[Page_WeekView]->AppendColumn(categoryColumn);
 
     /* Duration Column */
     auto durationColumn =
         new wxDataViewColumn("Duration", durationTextRenderer, TaskTreeModel::Col_Duration, 80, wxALIGN_CENTER);
     durationColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     durationColumn->SetResizeable(false);
-    pTaskDataViewCtrl->AppendColumn(durationColumn);
+    pDataViewCtrls[Page_WeekView]->AppendColumn(durationColumn);
 
     /* Description Column */
     auto descriptionColumn = new wxDataViewColumn("Description",
@@ -352,14 +353,14 @@ void MainFrame::CreateControls()
         80,
         wxALIGN_LEFT,
         wxDATAVIEW_COL_RESIZABLE);
-    pTaskDataViewCtrl->AppendColumn(descriptionColumn);
+    pDataViewCtrls[Page_WeekView]->AppendColumn(descriptionColumn);
 
     /* ID Column */
     auto idColumn =
         new wxDataViewColumn("ID", idRenderer, TaskTreeModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
-    pTaskDataViewCtrl->AppendColumn(idColumn);
+    pDataViewCtrls[Page_WeekView]->AppendColumn(idColumn);
 
-    sizer->Add(pTaskDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    sizer->Add(pDataViewCtrls[Page_WeekView], wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Accelerator Table */
     wxAcceleratorEntry entries[2];
@@ -420,7 +421,7 @@ void MainFrame::DataToControls()
         }
     }
 
-    pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+    pDataViewCtrls[Page_WeekView]->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
 
     CalculateDayAndWeekTaskDurations();
 }
@@ -565,6 +566,8 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
 {
     DoResetToCurrentWeek();
 }
+
+void MainFrame::OnViewDay(wxCommandEvent& event) {}
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
@@ -1112,7 +1115,7 @@ void MainFrame::DoResetToCurrentWeek()
 
         pDateStore->Reset();
 
-        pTaskDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+        pDataViewCtrls[Page_WeekView]->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
     }
 }
 

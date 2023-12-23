@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <array>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -39,6 +40,7 @@
 #include "../common/enums.h"
 
 #include "../ui/dataview/tasktreemodel.h"
+#include "../ui/dataview/tasklistmodel.h"
 
 #include "../utils/datestore.h"
 
@@ -59,6 +61,7 @@ enum class MenuIds : int {
     Edit_Project,
     Edit_Category,
     View_Reset,
+    View_Day,
     View_Preferences,
     Help_About,
 
@@ -83,6 +86,7 @@ static const int ID_EDIT_CATEGORY = static_cast<int>(MenuIds::Edit_Category);
 
 /* View */
 static const int ID_VIEW_RESET = static_cast<int>(MenuIds::View_Reset);
+static const int ID_VIEW_DAY = static_cast<int>(MenuIds::View_Day);
 static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preferences);
 
 /* Help */
@@ -141,6 +145,7 @@ private:
     void OnEditProject(wxCommandEvent& event);
     void OnEditCategory(wxCommandEvent& event);
     void OnViewReset(wxCommandEvent& event);
+    void OnViewDay(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     /* Popup Menu Event Handlers */
@@ -180,6 +185,8 @@ private:
 
     void ResetTaskContextMenuVariables();
 
+    enum Page { Page_WeekView = 0, Page_DayView, Page_Max };
+
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
@@ -198,14 +205,14 @@ private:
     std::unique_ptr<DateStore> pDateStore;
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
-    wxDataViewCtrl* pTaskDataViewCtrl;
+    std::array<wxDataViewCtrl*, Page_Max> pDataViewCtrls;
     wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
     std::int64_t mTaskIdToModify;
     std::string mTaskDate;
 
-    enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 100, tksIDC_FROMDATE, tksIDC_TODATE, tksIDC_TASKDATAVIEW };
+    enum { tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 1000, tksIDC_FROMDATE, tksIDC_TODATE, tksIDC_TASKDATAVIEW };
 };
 } // namespace UI
 } // namespace tks
