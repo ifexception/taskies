@@ -126,7 +126,6 @@ private:
     void Create();
 
     void CreateControls();
-    void CreateDataViewControls();
     void FillControls();
     void DataToControls();
 
@@ -186,6 +185,9 @@ private:
     void SetToDateAndDatePicker();
 
     void ResetTaskContextMenuVariables();
+
+    enum DataViewType { Week, Day };
+    void BuildDataViewControl(DataViewType type);
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
