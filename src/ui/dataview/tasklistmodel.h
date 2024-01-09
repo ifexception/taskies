@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -27,6 +28,8 @@
 #include <wx/wx.h>
 #endif
 #include <wx/dataview.h>
+
+#include <spdlog/logger.h>
 
 constexpr auto INITIAL_NUMBER_OF_ITEMS = 32;
 
@@ -62,14 +65,20 @@ class TaskListModel final : public wxDataViewVirtualListModel
 {
 public:
     enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
-    TaskListModel();
+
+    TaskListModel(std::shared_ptr<spdlog::logger> logger);
     virtual ~TaskListModel() = default;
+
+    virtual void GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const override;
+    virtual bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override;
+    virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override;
 
     void Append();
     void ChangeItem();
     void DeleteItem();
 
 private:
+    std::shared_ptr<spdlog::logger> pLogger;
     std::vector<TaskListItemModel> mListItemModels;
 };
 } // namespace tks::UI

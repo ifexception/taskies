@@ -86,9 +86,67 @@ void TaskListItemModel::SetTaskId(std::int64_t taskId)
 
 // ###################################################################
 
-TaskListModel::TaskListModel()
-    : mListItemModels()
+TaskListModel::TaskListModel(std::shared_ptr<spdlog::logger> logger)
+    : pLogger(logger)
+    , mListItemModels()
 {
+}
+
+void TaskListModel::GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const
+{
+    switch (col) {
+    case Col_Project:
+        variant = mListItemModels[row].GetProjectName();
+        break;
+    case Col_Category:
+        variant = mListItemModels[row].GetCategoryName();
+        break;
+    case Col_Duration:
+        variant = mListItemModels[row].GetDuration();
+        break;
+    case Col_Description:
+        variant = mListItemModels[row].GetDescription();
+        break;
+    case Col_Id:
+        variant = (long) mListItemModels[row].GetTaskId();
+        break;
+    case Col_Max:
+    default:
+        pLogger->info("TaskListModel::GetValueByRow - Invalid column selected");
+        break;
+    }
+}
+
+bool TaskListModel::GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const
+{
+    return false;
+}
+
+bool TaskListModel::SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col)
+{
+    switch (col) {
+    case Col_Project:
+        mListItemModels[row].SetProjectName(variant.GetString().ToStdString());
+        break;
+    case Col_Duration:
+        mListItemModels[row].SetDuration(variant.GetString().ToStdString());
+        break;
+    case Col_Category:
+        mListItemModels[row].SetCategoryName(variant.GetString().ToStdString());
+        break;
+    case Col_Description:
+        mListItemModels[row].SetDescription(variant.GetString().ToStdString());
+        break;
+    case Col_Id:
+        mListItemModels[row].SetTaskId(static_cast<std::int64_t>(variant.GetInteger()));
+        break;
+    case Col_Max:
+    default:
+        pLogger->info("TaskListModel::SetValue - Invalid column selected");
+        break;
+    }
+
+    return false;
 }
 
 void TaskListModel::Append() {}
