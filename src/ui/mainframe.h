@@ -186,9 +186,6 @@ private:
 
     void ResetTaskContextMenuVariables();
 
-    enum DataViewType { Week, Day };
-    void BuildDataViewControl(DataViewType type);
-
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
@@ -197,8 +194,6 @@ private:
     wxInfoBar* pInfoBar;
     TaskBarIcon* pTaskBarIcon;
     StatusBar* pStatusBar;
-    wxPanel* pFramePanel;
-    wxSizer* pSizer;
 
     NotificationPopupWindow* pNotificationPopupWindow;
     wxDatePickerCtrl* pFromDateCtrl;
@@ -211,7 +206,6 @@ private:
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
     wxDataViewCtrl* pDataViewCtrl;
     wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
-    wxObjectDataPtr<TaskListModel> pTaskListModel;
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
     std::int64_t mTaskIdToModify;
@@ -221,7 +215,7 @@ private:
         tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 1000,
         tksIDC_FROMDATE,
         tksIDC_TODATE,
-        tksIDC_WEEK_TASKDATAVIEW,
+        tksIDC_TASKDATAVIEWCTRL,
         tksIDC_DAY_TASKDATAVIEW
     };
 };
