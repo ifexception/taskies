@@ -19,6 +19,8 @@
 
 #include "daytaskviewdlg.h"
 
+#include <wx/statline.h>
+
 #include <fmt/format.h>
 
 #include "../events.h"
@@ -140,6 +142,10 @@ void DayTaskViewDialog::CreateControls()
 
     sizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
+    /* Horizontal Line */
+    auto line = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
     /* OK buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
@@ -147,9 +153,11 @@ void DayTaskViewDialog::CreateControls()
     buttonsSizer->AddStretchSpacer();
 
     auto okButton = new wxButton(this, wxID_OK, "OK");
+    auto cancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
     okButton->SetDefault();
 
     buttonsSizer->Add(okButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(cancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     SetSizerAndFit(sizer);
 }
@@ -180,8 +188,9 @@ void DayTaskViewDialog::DataToControls()
 
     int rc = taskRepo.FilterByDate(mSelectedDate, models);
     if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
     } else {
-
+        pTaskListModel->AppendMany(models);
     }
 }
 
