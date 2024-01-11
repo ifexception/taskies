@@ -149,7 +149,21 @@ bool TaskListModel::SetValueByRow(const wxVariant& variant, unsigned int row, un
     return false;
 }
 
-void TaskListModel::Append() {}
+void TaskListModel::Append(const repos::TaskRepositoryModel& model)
+{
+    TaskListItemModel listModel(
+        model.ProjectName, model.CategoryName, model.GetDuration(), model.Description, model.TaskId);
+    mListItemModels.push_back(listModel);
+
+    RowAppended();
+}
+
+void TaskListModel::AppendMany(const std::vector<repos::TaskRepositoryModel>& models)
+{
+    for (const auto& model : models) {
+        Append(model);
+    }
+}
 
 void TaskListModel::ChangeItem() {}
 

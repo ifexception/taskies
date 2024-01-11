@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -30,6 +31,9 @@
 #include <wx/dataview.h>
 
 #include <spdlog/logger.h>
+
+#include "../../repository/taskrepository.h"
+#include "../../repository/taskrepositorymodel.h"
 
 constexpr auto INITIAL_NUMBER_OF_ITEMS = 32;
 
@@ -73,7 +77,8 @@ public:
     virtual bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override;
     virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override;
 
-    void Append();
+    void Append(const repos::TaskRepositoryModel& model);
+    void AppendMany(const std::vector<repos::TaskRepositoryModel>& models);
     void ChangeItem();
     void DeleteItem();
 
