@@ -29,6 +29,7 @@
 #endif
 #include <wx/dataview.h>
 #include <wx/datectrl.h>
+#include <wx/dateevt.h>
 
 #include <spdlog/logger.h>
 
@@ -44,6 +45,7 @@ public:
     DayTaskViewDialog(wxWindow* parent,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
+        const std::string& selectedDate,
         const wxString& name = "daytaskviewdlg");
     virtual ~DayTaskViewDialog() = default;
 
@@ -57,12 +59,24 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
+    void OnDateChange(wxDateEvent& event);
+    void OnKeyDown(wxKeyEvent& event);
+
+    void QueueFetchTasksErrorNotificationEvent();
+
     std::shared_ptr<spdlog::logger> pLogger;
 
+    wxWindow* pParent;
     wxDatePickerCtrl* pDateCtrl;
     wxDataViewCtrl* pDataViewCtrl;
     wxObjectDataPtr<TaskListModel> pTaskListModel;
 
     std::string mDatabaseFilePath;
+    std::string mSelectedDate;
+
+    enum {
+        tksIDC_DATEPICKERCTRL = wxID_HIGHEST + 100,
+        tksIDC_TASKDATAVIEWCTRL
+    };
 };
 }
