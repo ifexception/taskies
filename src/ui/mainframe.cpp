@@ -58,6 +58,7 @@
 #include "../ui/dlg/aboutdlg.h"
 #include "../ui/dlg/preferencesdlg.h"
 #include "../ui/dlg/taskdialog.h"
+#include "../ui/dlg/daytaskviewdlg.h"
 
 #include "events.h"
 #include "notificationclientdata.h"
@@ -371,10 +372,6 @@ void MainFrame::CreateControls()
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
 
-    // ENHANCEMENT: Ctrl-G shortcut to go to particular date and view tasks
-    // will open a simple dialog to ask for the date and then refresh view after date entry
-    // (can only be done once "day task" feature is done)
-
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
     SetAcceleratorTable(table);
 
@@ -573,7 +570,12 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     DoResetToCurrentWeek();
 }
 
-void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event)) {}
+void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
+{
+    UI::dlg::DayTaskViewDialog dayTaskView(
+        this, pLogger, mDatabaseFilePath, mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
+    dayTaskView.ShowModal();
+}
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
