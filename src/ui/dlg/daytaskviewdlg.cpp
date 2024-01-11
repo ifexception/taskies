@@ -58,6 +58,7 @@ DayTaskViewDialog::DayTaskViewDialog(wxWindow* parent,
 
     Create();
     //SetMinSize(wxSize(FromDIP(320), FromDIP(240)));
+    SetMinSize(FromDIP(wxSize(320, 240)));
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
@@ -103,6 +104,8 @@ void DayTaskViewDialog::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
+    pDataViewCtrl->SetMinSize(FromDIP(wxSize(-1, 128)));
+    sizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     pTaskListModel = new TaskListModel(pLogger);
     pDataViewCtrl->AssociateModel(pTaskListModel.get());
@@ -140,8 +143,6 @@ void DayTaskViewDialog::CreateControls()
         new wxDataViewColumn("ID", idRenderer, TaskListModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
     pDataViewCtrl->AppendColumn(listIdColumn);
 
-    sizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
     sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
@@ -159,7 +160,7 @@ void DayTaskViewDialog::CreateControls()
     buttonsSizer->Add(okButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
     buttonsSizer->Add(cancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
-    SetSizerAndFit(sizer);
+    SetSizer(sizer);
 }
 
 void DayTaskViewDialog::FillControls() {}
