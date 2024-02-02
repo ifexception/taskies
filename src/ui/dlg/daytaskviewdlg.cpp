@@ -19,7 +19,11 @@
 
 #include "daytaskviewdlg.h"
 
+#include <chrono>
+
 #include <wx/statline.h>
+
+#include <date/date.h>
 
 #include <fmt/format.h>
 
@@ -57,7 +61,7 @@ DayTaskViewDialog::DayTaskViewDialog(wxWindow* parent,
     SetTitle(fmt::format("View Daily Tasks for {0}", selectedDate));
 
     Create();
-    //SetMinSize(wxSize(FromDIP(320), FromDIP(240)));
+    // SetMinSize(wxSize(FromDIP(320), FromDIP(240)));
     SetMinSize(FromDIP(wxSize(320, 240)));
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
@@ -195,10 +199,66 @@ void DayTaskViewDialog::DataToControls()
     }
 }
 
-void DayTaskViewDialog::OnDateChange(wxDateEvent& event) {}
+void DayTaskViewDialog::OnDateChange(wxDateEvent& event)
+{
+    // clear the model
+    pTaskListModel->Clear();
+
+    // get the newly selected date
+    wxDateTime eventDate = wxDateTime(event.GetDate());
+    auto& eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+    auto dateTicks = eventDateUtc.GetTicks();
+
+    auto date = date::floor<date::days>(std::chrono::system_clock::from_time_t(dateTicks));
+    mSelectedDate = date::format("%F", date);
+
+    // fetch data for new date
+    std::vector<repos::TaskRepositoryModel> models;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.FilterByDate(mSelectedDate, models);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        pTaskListModel->AppendMany(models);
+    }
+}
 
 void DayTaskViewDialog::OnKeyDown(wxKeyEvent& event)
 {
+    std::istringstream ssTaskDate{ mSelectedDate };
+    std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskDate;
+    ssTaskDate >> date::parse("%F", dateTaskDate);
+
+    if (event.GetKeyCode() == WXK_RIGHT) {
+        dateTaskDate += date::days{ 1 };
+    }
+    if (event.GetKeyCode() == WXK_LEFT) {
+        dateTaskDate -= date::days{ 1 };
+    }
+
+    // clear the model
+    pTaskListModel->Clear();
+
+    // update control with date
+    auto dateEpoch = dateTaskDate.time_since_epoch();
+    pDateCtrl->SetValue(wxDateTime(std::chrono::duration_cast<std::chrono::seconds>(dateEpoch).count()));
+
+    mSelectedDate = date::format("%F", dateTaskDate);
+
+    // fetch data for new date
+    std::vector<repos::TaskRepositoryModel> models;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.FilterByDate(mSelectedDate, models);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        pTaskListModel->AppendMany(models);
+    }
+
+    pDataViewCtrl->SetFocus();
+
     event.Skip();
 }
 

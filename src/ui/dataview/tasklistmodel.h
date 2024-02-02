@@ -76,11 +76,13 @@ public:
     virtual void GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const override;
     virtual bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override;
     virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override;
+    virtual unsigned int GetCount() const override;
 
     void Append(const repos::TaskRepositoryModel& model);
     void AppendMany(const std::vector<repos::TaskRepositoryModel>& models);
     void ChangeItem();
     void DeleteItem();
+    void Clear();
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;

@@ -149,6 +149,11 @@ bool TaskListModel::SetValueByRow(const wxVariant& variant, unsigned int row, un
     return false;
 }
 
+unsigned int TaskListModel::GetCount() const
+{
+    return mListItemModels.size();
+}
+
 void TaskListModel::Append(const repos::TaskRepositoryModel& model)
 {
     TaskListItemModel listModel(
@@ -168,4 +173,10 @@ void TaskListModel::AppendMany(const std::vector<repos::TaskRepositoryModel>& mo
 void TaskListModel::ChangeItem() {}
 
 void TaskListModel::DeleteItem() {}
+
+void TaskListModel::Clear()
+{
+    mListItemModels.clear();
+    Reset(0);
+}
 } // namespace tks::UI
