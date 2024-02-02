@@ -35,7 +35,14 @@
 
 #include "../dataview/tasklistmodel.h"
 
-namespace tks::UI::dlg
+namespace tks
+{
+namespace Core
+{
+class Environment;
+class Configuration;
+} // namespace Core
+namespace UI::dlg
 {
 class DayTaskViewDialog : public wxDialog
 {
@@ -44,6 +51,7 @@ public:
     DayTaskViewDialog(const DayTaskViewDialog&) = delete;
     DayTaskViewDialog(wxWindow* parent,
         std::shared_ptr<spdlog::logger> logger,
+        std::shared_ptr<Core::Environment> env,
         const std::string& databaseFilePath,
         const std::string& selectedDate,
         const wxString& name = "daytaskviewdlg");
@@ -61,13 +69,20 @@ private:
 
     void OnDateChange(wxDateEvent& event);
     void OnKeyDown(wxKeyEvent& event);
+    void OnCopy(wxCommandEvent& event);
+    void OnCopyWithHeaders(wxCommandEvent& event);
 
     void QueueFetchTasksErrorNotificationEvent();
 
+    void CopyTasksToClipboard(bool includeHeaders = false);
+
     std::shared_ptr<spdlog::logger> pLogger;
+    std::shared_ptr<Core::Environment> pEnv;
 
     wxWindow* pParent;
     wxDatePickerCtrl* pDateCtrl;
+    wxButton* pCopyButton;
+    wxButton* pCopyWithHeadersButton;
     wxDataViewCtrl* pDataViewCtrl;
     wxObjectDataPtr<TaskListModel> pTaskListModel;
 
@@ -76,7 +91,10 @@ private:
 
     enum {
         tksIDC_DATEPICKERCTRL = wxID_HIGHEST + 100,
+        tksIDC_COPYTASKS,
+        tksIDC_COPYTASKSWITHEADERS,
         tksIDC_TASKDATAVIEWCTRL
     };
-};
-}
+}; // namespace UI::dlg
+} // namespace UI::dlg
+} // namespace tks

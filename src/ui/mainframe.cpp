@@ -573,7 +573,7 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::DayTaskViewDialog dayTaskView(
-        this, pLogger, mDatabaseFilePath, mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
+        this, pLogger, pEnv, mDatabaseFilePath, mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
     dayTaskView.ShowModal();
 }
 

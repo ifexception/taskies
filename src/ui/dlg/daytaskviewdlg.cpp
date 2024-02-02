@@ -21,6 +21,7 @@
 
 #include <chrono>
 
+#include <wx/clipbrd.h>
 #include <wx/statline.h>
 
 #include <date/date.h>
@@ -32,6 +33,8 @@
 
 #include "../../common/common.h"
 
+#include "../../core/environment.h"
+
 #include "../../repository/taskrepository.h"
 #include "../../repository/taskrepositorymodel.h"
 
@@ -39,6 +42,7 @@ namespace tks::UI::dlg
 {
 DayTaskViewDialog::DayTaskViewDialog(wxWindow* parent,
     std::shared_ptr<spdlog::logger> logger,
+    std::shared_ptr<Core::Environment> env,
     const std::string& databaseFilePath,
     const std::string& selectedDate,
     const wxString& name)
@@ -51,6 +55,7 @@ DayTaskViewDialog::DayTaskViewDialog(wxWindow* parent,
           name)
     , pParent(nullptr)
     , pLogger(logger)
+    , pEnv(env)
     , pDateCtrl(nullptr)
     , pDataViewCtrl(nullptr)
     , pTaskListModel(nullptr)
@@ -93,6 +98,15 @@ void DayTaskViewDialog::CreateControls()
 
     topSizer->Add(dateStaticLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     topSizer->Add(pDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    topSizer->AddStretchSpacer(1);
+
+    /* Copy buttons */
+    pCopyButton = new wxButton(this, tksIDC_COPYTASKS, "&Copy");
+    pCopyWithHeadersButton = new wxButton(this, tksIDC_COPYTASKSWITHEADERS, "Copy with &Headers");
+
+    topSizer->Add(pCopyButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    topSizer->Add(pCopyWithHeadersButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Data view ctrl */
     /* Data View Columns Renderers */
@@ -183,6 +197,20 @@ void DayTaskViewDialog::ConfigureEventBindings()
         &DayTaskViewDialog::OnKeyDown,
         this
     );
+
+    Bind(
+        wxEVT_BUTTON,
+        &DayTaskViewDialog::OnCopy,
+        this,
+        tksIDC_COPYTASKS
+    );
+
+    Bind(
+        wxEVT_BUTTON,
+        &DayTaskViewDialog::OnCopyWithHeaders,
+        this,
+        tksIDC_COPYTASKSWITHEADERS
+    );
 }
 // clang-format on
 
@@ -262,6 +290,16 @@ void DayTaskViewDialog::OnKeyDown(wxKeyEvent& event)
     event.Skip();
 }
 
+void DayTaskViewDialog::OnCopy(wxCommandEvent& event)
+{
+    CopyTasksToClipboard(false);
+}
+
+void DayTaskViewDialog::OnCopyWithHeaders(wxCommandEvent& event)
+{
+    CopyTasksToClipboard(true);
+}
+
 void DayTaskViewDialog::QueueFetchTasksErrorNotificationEvent()
 {
     std::string message = fmt::format("Failed to fetch tasks for date {0}", mSelectedDate);
@@ -270,5 +308,59 @@ void DayTaskViewDialog::QueueFetchTasksErrorNotificationEvent()
     addNotificationEvent->SetClientObject(clientData);
 
     wxQueueEvent(pParent, addNotificationEvent);
+}
+
+void DayTaskViewDialog::CopyTasksToClipboard(bool includeHeaders)
+{
+    pLogger->info("DayTaskViewDialog::CopyTasksToClipboard - Copy all tasks for date {0}", mSelectedDate);
+
+    std::vector<repos::TaskRepositoryModel> taskModels;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.FilterByDate(mSelectedDate, taskModels);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        std::stringstream formattedClipboardData;
+        if (includeHeaders) {
+            if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+                formattedClipboardData << "Task Id"
+                                       << "\t";
+            }
+            formattedClipboardData << "Project"
+                                   << "\t";
+            formattedClipboardData << "Category"
+                                   << "\t";
+            formattedClipboardData << "Duration"
+                                   << "\t";
+            formattedClipboardData << "Description"
+                                   << "\t";
+            formattedClipboardData << "\n";
+        }
+
+        for (const auto& taskModel : taskModels) {
+            if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+                formattedClipboardData << taskModel.TaskId << "\t";
+            }
+
+            formattedClipboardData << taskModel.ProjectName << "\t";
+            formattedClipboardData << taskModel.CategoryName << "\t";
+            formattedClipboardData << taskModel.GetDuration() << "\t";
+            formattedClipboardData << taskModel.Description << "\t";
+            formattedClipboardData << "\n";
+        }
+
+        std::string clipboardData = formattedClipboardData.str();
+        auto canOpen = wxTheClipboard->Open();
+        if (canOpen) {
+            auto textData = new wxTextDataObject(clipboardData);
+            wxTheClipboard->SetData(textData);
+            wxTheClipboard->Close();
+
+            pLogger->info("DayTaskViewDialog::CopyTasksToClipboard - Successfully copied \"{0}\" tasks for date \"{1}\"",
+                taskModels.size(),
+                mSelectedDate);
+        }
+    }
 }
 } // namespace tks::UI::dlg
