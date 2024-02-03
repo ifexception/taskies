@@ -62,6 +62,7 @@ set (SRC_DIALOGS
     "ui/dlg/taskdialog.cpp"
     "ui/dlg/daytaskviewdlg.cpp"
     "ui/dlg/exporttocsvdlg.cpp"
+    "ui/wizards/setupwizard.cpp"
 )
 
 set (SRC
