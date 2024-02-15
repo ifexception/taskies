@@ -39,12 +39,14 @@ class Server : public wxServer
 public:
     Server() = delete;
     Server(UI::MainFrame* frame);
-    virtual ~Server() = default;
+    virtual ~Server();
 
     wxConnectionBase* OnAcceptConnection(const wxString& topic) override;
 
 private:
     UI::MainFrame* pFrame;
+
+    wxConnection* pConnection;
 };
 }
 }

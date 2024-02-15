@@ -199,10 +199,13 @@ bool Application::FirstStartupProcedure()
 
 void Application::ActivateOtherInstance()
 {
+    pLogger->info("MainFrame::ActivateOtherInstance begin");
+
     wxClient client;
     auto connection = client.MakeConnection("localhost", Common::GetProgramName(), "ApplicationOptions");
 
     if (connection) {
+        pLogger->info("MainFrame::ActivateOtherInstance connection established");
         connection->Execute("");
         connection->Disconnect();
     }

@@ -27,14 +27,24 @@ namespace tks::IPC
 {
 Server::Server(UI::MainFrame* frame)
     : pFrame(frame)
+    , pConnection(nullptr)
 {
     Create(Common::GetProgramName());
+}
+
+Server::~Server()
+{
+    if (pConnection) {
+        pConnection->Disconnect();
+        wxDELETE(pConnection);
+    }
 }
 
 wxConnectionBase* Server::OnAcceptConnection(const wxString& topic)
 {
     if (topic == "ApplicationOptions") {
-        return new ApplicationOptionsConnection(pFrame);
+        pConnection = new ApplicationOptionsConnection(pFrame);
+        return pConnection;
     }
 
     return nullptr;
