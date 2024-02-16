@@ -149,29 +149,34 @@ bool Environment::SetIsSetup()
 std::filesystem::path Environment::GetApplicationDatabasePath()
 {
     std::filesystem::path appDataPath;
+    const std::string data = "data";
+
     switch (mBuildConfig) {
     case BuildConfiguration::Debug:
-        appDataPath = GetApplicationPath() / "data";
-        std::filesystem::create_directories(appDataPath);
+        appDataPath = GetApplicationPath() / data;
         break;
     case BuildConfiguration::Release:
-        appDataPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
+        appDataPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString()) / data;
         break;
     default:
         break;
     }
+
+    std::filesystem::create_directories(appDataPath);
     return appDataPath;
 }
 
 std::filesystem::path Environment::GetApplicationLogPath()
 {
     std::filesystem::path appLogPath;
+    const std::string logs = "logs";
+
     switch (mBuildConfig) {
     case BuildConfiguration::Debug:
-        appLogPath = GetApplicationPath() / "logs";
+        appLogPath = GetApplicationPath() / logs;
         break;
     case BuildConfiguration::Release:
-        appLogPath = std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / "logs";
+        appLogPath = std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / logs;
         break;
     default:
         break;
@@ -195,7 +200,7 @@ std::filesystem::path Environment::GetApplicationLanguagesPath()
         appLangPath = GetApplicationPath() / lang;
         break;
     case BuildConfiguration::Release:
-        appLangPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString()) / lang;
+        appLangPath = std::filesystem::path(wxStandardPaths::Get().GetResourcesDir().ToStdString()) / lang;
         break;
     default:
         break;
@@ -210,10 +215,9 @@ std::filesystem::path Environment::GetApplicationConfigurationPath()
     switch (mBuildConfig) {
     case BuildConfiguration::Debug:
         appConfigPath = GetApplicationPath();
-        // std::filesystem::create_directories(appConfigPath);
         break;
     case BuildConfiguration::Release:
-        appConfigPath = std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString());
+        appConfigPath = std::filesystem::path(wxStandardPaths::Get().GetUserConfigDir().ToStdString());
         break;
     default:
         break;
@@ -230,7 +234,7 @@ std::filesystem::path Environment::GetApplicationResourcesPath()
         appResPath = GetApplicationPath() / "res";
         break;
     case tks::BuildConfiguration::Release:
-        appResPath = GetApplicationPath() / "res";
+        appResPath = std::filesystem::path(wxStandardPaths::Get().GetResourcesDir().ToStdString()) / "res";
         break;
     default:
         break;
@@ -250,18 +254,36 @@ std::string Environment::GetConfigName()
 
 std::string Environment::GetRegistryKey()
 {
-    if (mBuildConfig == BuildConfiguration::Debug) {
-        wxRegKey key(wxRegKey::HKCU, "Software\\Taskiesd");
+    switch (mBuildConfig) {
+    case BuildConfiguration::Debug: {
+        const std::string debugKey = "Software\\Taskiesd";
+
+        wxRegKey key(wxRegKey::HKCU, debugKey);
         if (!key.Exists()) {
-            key.Create("Software\\Taskiesd");
+            if (key.Create()) {
+                return debugKey;
+            } else {
+                return "";
+            }
+        } else {
+            return "";
         }
     }
 
-    switch (mBuildConfig) {
-    case BuildConfiguration::Debug:
-        return "Software\\Taskiesd";
-    case BuildConfiguration::Release:
-        return "Software\\Taskies";
+    case BuildConfiguration::Release: {
+        const std::string releaseKey = "Software\\Taskies";
+
+        wxRegKey key(wxRegKey::HKCU, releaseKey);
+        if (!key.Exists()) {
+            if (key.Create()) {
+                return releaseKey;
+            } else {
+                return "";
+            }
+        } else {
+            return "";
+        }
+    }
     default:
         return "";
     }
