@@ -572,39 +572,42 @@ void TaskDialog::DataToControls()
             }
         }
 
+        std::vector<repos::CategoryRepositoryModel> categories;
+        repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+
         if (pCfg->ShowProjectAssociatedCategories()) {
-            std::vector<repos::CategoryRepositoryModel> categories;
-            repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
-
             rc = categoryRepo.FilterByProjectId(task.ProjectId, categories);
-            if (rc == -1) {
-                std::string message = "Failed to get categories";
-                QueueErrorNotificationEventToParent(message);
-            } else {
-                if (!categories.empty()) {
-                    if (!pCategoryChoiceCtrl->IsEnabled()) {
-                        pCategoryChoiceCtrl->Enable();
-                    }
+        } else {
+            rc = categoryRepo.Filter(categories);
+        }
 
-                    for (auto& category : categories) {
-                        pCategoryChoiceCtrl->Append(
-                            category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
-                    }
-                } else {
-                    ConfigureCategoryChoiceData(true);
+        if (rc == -1) {
+            std::string message = "Failed to get categories";
+            QueueErrorNotificationEventToParent(message);
+        } else {
+            if (!categories.empty()) {
+                if (!pCategoryChoiceCtrl->IsEnabled()) {
+                    pCategoryChoiceCtrl->Enable();
                 }
-            }
 
-            repos::CategoryRepositoryModel category;
-            rc = categoryRepo.GetById(task.CategoryId, category);
-            if (rc != 0) {
-                std::string message = "Failed to get category";
-                QueueErrorNotificationEventToParent(message);
-                isSuccess = false;
+                for (auto& category : categories) {
+                    pCategoryChoiceCtrl->Append(
+                        category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+                }
             } else {
-                pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
-                isSuccess = true;
+                ConfigureCategoryChoiceData(true);
             }
+        }
+
+        repos::CategoryRepositoryModel category;
+        rc = categoryRepo.GetById(task.CategoryId, category);
+        if (rc != 0) {
+            std::string message = "Failed to get category";
+            QueueErrorNotificationEventToParent(message);
+            isSuccess = false;
+        } else {
+            pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
+            isSuccess = true;
         }
 
         if (isSuccess) {
