@@ -1,12 +1,12 @@
-; -- Install Taskies -- 
+; -- Install Taskies --
 
-#define TaskiesVersion "0.0.1"
+#define TaskiesVersion "0.0.2"
 [Setup]
 AppName=Taskies
 AppVersion={#TaskiesVersion}
 AppContact=szymonwelgus at gmail dot com
 AppCopyright=Copyright (C) 2024 Szymon Welgus
-AppPublisher=Szymon Welgus   
+AppPublisher=Szymon Welgus
 AppId={{f106cae9-8ca1-45e2-bbad-49caf39a7a2c}
 AppVerName=Taskies {#TaskiesVersion}
 DefaultDirName={commonpf}\Taskies
@@ -16,7 +16,7 @@ WizardStyle=modern
 Compression=lzma2
 SolidCompression=yes
 OutputDir=Installer
-OutputBaseFilename=Taskies-x64.0.0.1-Installer
+OutputBaseFilename=Taskies-x64.0.0.2-Installer
 LicenseFile=License.txt
 WindowResizable=no
 DisableWelcomePage=no
