@@ -23,7 +23,7 @@ namespace tks::Common
 {
 std::string GetProgramName()
 {
-#if TKS_DEBUG
+#ifdef TKS_DEBUG
     return "Taskiesd";
 #else
     return "Taskies";
