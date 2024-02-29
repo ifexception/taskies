@@ -374,7 +374,7 @@ const std::string CategoryRepository::getById = "SELECT "
                                                 "categories.project_id, "
                                                 "projects.display_name "
                                                 "FROM categories "
-                                                "INNER JOIN projects "
+                                                "LEFT JOIN projects "
                                                 "ON categories.project_id = projects.project_id "
                                                 "WHERE categories.category_id = ? "
                                                 "AND categories.is_active = 1;";
