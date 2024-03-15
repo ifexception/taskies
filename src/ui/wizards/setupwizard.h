@@ -72,12 +72,12 @@ private:
  * Skip
  */
 
-class WelcomePage final : public wxWizard
+class WelcomePage final : public wxWizardPageSimple
 {
 public:
     WelcomePage()=delete;
     WelcomePage(const WelcomePage&) = delete;
-    WelcomePage(wxWizard* parent);
+    WelcomePage(SetupWizard* parent);
     virtual ~WelcomePage() = default;
 
 private:

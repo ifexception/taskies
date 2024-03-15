@@ -21,14 +21,48 @@
 
 namespace tks::UI::wizard
 {
-SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger) {}
+SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger)
+    : wxWizard(frame, wxID_ANY, "Setup/Restore Wizard")
+    , pLogger(logger)
+    , pPage1(nullptr)
+{
+    pPage1 = new WelcomePage(this);
+    GetPageAreaSizer()->Add(pPage1);
+}
 
 bool SetupWizard::Run()
 {
-    return false;
+    bool wizardSuccess = wxWizard::RunWizard(pPage1);
+
+    Destroy();
+    return wizardSuccess;
 }
 
-WelcomePage::WelcomePage(wxWizard* parent) {}
+WelcomePage::WelcomePage(SetupWizard* parent)
+    : wxWizardPageSimple(parent)
+    , pParent(parent)
+{
+    CreateControls();
+}
 
-void WelcomePage::CreateControls() {}
+void WelcomePage::CreateControls()
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    std::string welcome = "Welcome to the Taskies Setup/Restore Wizard";
+    auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
+    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+    std::string introMessage = "This wizard will help you get Taskies setup or restored to your computer";
+    auto introLabel = new wxStaticText(this, wxID_ANY, introMessage);
+
+    std::string continueNextMessage = "To continue, click Next";
+    auto continueNextLabel = new wxStaticText(this, wxID_ANY, continueNextMessage);
+
+    sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(introLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(continueNextLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    SetSizerAndFit(sizer);
+}
 } // namespace tks::UI::wizard
