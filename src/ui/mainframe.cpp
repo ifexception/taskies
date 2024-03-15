@@ -931,9 +931,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         event.GetDate().FormatISODate().ToStdString());
 
     auto eventDate = wxDateTime(event.GetDate());
-
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
-    auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
     if (eventDateUtc > mToCtrlDate) {
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
@@ -942,13 +940,13 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         return;
     }
 
-    auto currentDate = wxDateTime::Now();
-    auto& sixMonthsPast = currentDate.Subtract(wxDateSpan::Months(6));
+    auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
-    bool isYearMoreThanSixMonths = eventDateUtc.GetYear() < sixMonthsPast.GetYear();
-    bool isMonthMoreThanSixMonths = eventDateUtc.GetMonth() < sixMonthsPast.GetMonth();
+    auto currentDate = date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::now()) };
+    auto sixMonthsPastDate = currentDate - date::months{ 6 };
+    auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
 
-    if (isYearMoreThanSixMonths || isMonthMoreThanSixMonths) {
+    if (newFromDate < sixMonthsPastDate) {
         int ret = wxMessageBox(
             "Are you sure you want to load tasks that are older than six (6) months?", "Confirmation", wxYES_NO, this);
         if (ret == wxNO) {
@@ -958,12 +956,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     }
 
     mFromCtrlDate = eventDateUtc;
-    auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
     mFromDate = newFromDate;
-
-    pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
-        date::format("%F", mFromDate),
-        date::format("%F", mToDate));
 
     if (mFromDate == mToDate) {
         auto date = date::format("%F", mFromDate);
@@ -981,6 +974,9 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         return;
     }
 
+    pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
+        date::format("%F", mFromDate),
+        date::format("%F", mToDate));
     // Calculate list of dates between from and to date
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 

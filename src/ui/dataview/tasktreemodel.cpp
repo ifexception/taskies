@@ -36,8 +36,7 @@ TaskTreeModel::TaskTreeModel(std::chrono::time_point<std::chrono::system_clock, 
     auto& dateIterator = monday;
     int loopIdx = 0;
     do {
-        pRoots.push_back(
-            std::make_unique<TaskTreeModelNode>(nullptr, date::format("%F", dateIterator)));
+        pRoots.push_back(std::make_unique<TaskTreeModelNode>(nullptr, date::format("%F", dateIterator)));
 
         dateIterator += date::days{ 1 };
         loopIdx++;
@@ -285,8 +284,6 @@ void TaskTreeModel::ClearAll()
         for (auto it = children.begin(); it != children.end(); ++it) {
             auto child = it->get();
             itemsRemoved.Add(wxDataViewItem((void*) child));
-
-            children.erase(it);
         }
 
         parentNode->GetChildren().clear();
@@ -409,7 +406,10 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date, std::vector
 
     pRoots.push_back(std::move(rootDateNode));
 
-    wxDataViewItem child((void*) rootDateNode.get());
+    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+        return ptr->GetProjectName() == date;
+    });
+    wxDataViewItem child((void*) iterator->get());
     wxDataViewItem parent((void*) nullptr);
     ItemAdded(parent, child);
 
