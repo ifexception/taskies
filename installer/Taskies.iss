@@ -1,6 +1,6 @@
 ; -- Install Taskies --
 
-#define TaskiesVersion "0.0.2"
+#define TaskiesVersion "0.0.3"
 [Setup]
 AppName=Taskies
 AppVersion={#TaskiesVersion}
@@ -16,7 +16,7 @@ WizardStyle=modern
 Compression=lzma2
 SolidCompression=yes
 OutputDir=Installer
-OutputBaseFilename=Taskies-x64.0.0.2-Installer
+OutputBaseFilename=Taskies-x64.0.0.3-Installer
 LicenseFile=License.txt
 WindowResizable=no
 DisableWelcomePage=no
