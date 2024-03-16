@@ -577,8 +577,6 @@ void TaskDialog::DataToControls()
 
         if (pCfg->ShowProjectAssociatedCategories()) {
             rc = categoryRepo.FilterByProjectId(task.ProjectId, categories);
-        } else {
-            rc = categoryRepo.Filter(categories);
         }
 
         if (rc == -1) {
@@ -593,6 +591,10 @@ void TaskDialog::DataToControls()
                 for (auto& category : categories) {
                     pCategoryChoiceCtrl->Append(
                         category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+                }
+            } else if (categories.empty() && !pCfg->ShowProjectAssociatedCategories()) {
+                if (!pCategoryChoiceCtrl->IsEnabled()) {
+                    pCategoryChoiceCtrl->Enable();
                 }
             } else {
                 ConfigureCategoryChoiceData(true);

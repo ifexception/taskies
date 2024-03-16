@@ -942,6 +942,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
 
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
+    // Check if the selected date goes beyond six months from the current date
     auto currentDate = date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::now()) };
     auto sixMonthsPastDate = currentDate - date::months{ 6 };
     auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
