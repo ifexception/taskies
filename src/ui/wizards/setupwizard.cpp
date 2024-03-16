@@ -19,20 +19,27 @@
 
 #include "setupwizard.h"
 
+#include "../../common/common.h"
+
 namespace tks::UI::wizard
 {
 SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger)
     : wxWizard(frame, wxID_ANY, "Setup/Restore Wizard")
     , pLogger(logger)
-    , pPage1(nullptr)
+    , pWelcomePage(nullptr)
+    , pOptionPage(nullptr)
 {
-    pPage1 = new WelcomePage(this);
-    GetPageAreaSizer()->Add(pPage1);
+    // Set icon in titlebar
+    wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
+    SetIcons(iconBundle);
+
+    pWelcomePage = new WelcomePage(this);
+    GetPageAreaSizer()->Add(pWelcomePage);
 }
 
 bool SetupWizard::Run()
 {
-    bool wizardSuccess = wxWizard::RunWizard(pPage1);
+    bool wizardSuccess = wxWizard::RunWizard(pWelcomePage);
 
     Destroy();
     return wizardSuccess;
@@ -64,5 +71,91 @@ void WelcomePage::CreateControls()
     sizer->Add(continueNextLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     SetSizerAndFit(sizer);
+}
+
+OptionPage::OptionPage(wxWizardPage* parent, wxWizardPage* prev, wxWizardPage* next)
+    : pParent(parent)
+    , pPrev(prev)
+    , pNext(next)
+{
+    CreateControls();
+    ConfigureEventBindings();
+}
+
+void OptionPage::CreateControls()
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    auto introductionText = "Please select an option below:";
+    auto introductionLabel = new wxStaticText(this, wxID_ANY, introductionText);
+    introductionLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+    auto defaultOptionText = "(not selecting an option will default to the setup wizard)";
+    auto defaultOptionLabel = new wxStaticText(this, wxID_ANY, defaultOptionText);
+    defaultOptionLabel->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
+
+    auto staticBox = new wxStaticBox(this, wxID_ANY, "Options");
+    auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
+
+    pSetupWizardFlowCheckBox = new wxCheckBox(staticBox, tksIDC_SETUPWIZARD_CHECKBOX, "Setup program wizard");
+    pRestoreWizardFlowCheckBox = new wxCheckBox(staticBox, tksIDC_RESTOREWIZARD_CHECKBOX, "Restore database wizard");
+    pSkipWizardFlowCheckBox = new wxCheckBox(staticBox, tksIDC_SKIPWIZARD_CHECKBOX, "Skip program wizard");
+
+    staticBoxSizer->Add(pSetupWizardFlowCheckBox, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    staticBoxSizer->Add(pRestoreWizardFlowCheckBox, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    staticBoxSizer->Add(pSkipWizardFlowCheckBox, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    sizer->Add(introductionLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(defaultOptionLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(staticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
+    SetSizerAndFit(sizer);
+}
+
+// clang-format off
+void OptionPage::ConfigureEventBindings()
+{
+    pSetupWizardFlowCheckBox->Bind(
+        wxEVT_CHECKBOX,
+        &OptionPage::OnSetupWizardFlowCheck,
+        this
+    );
+
+    pRestoreWizardFlowCheckBox->Bind(
+        wxEVT_CHECKBOX,
+        &OptionPage::OnRestoreWizardFlowCheck,
+        this
+    );
+
+    pSkipWizardFlowCheckBox->Bind(
+        wxEVT_CHECKBOX,
+        &OptionPage::OnSkipWizardFlowCheck,
+        this
+    );
+}
+// clang-format on
+
+void OptionPage::OnSetupWizardFlowCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pRestoreWizardFlowCheckBox->SetValue(false);
+        pSkipWizardFlowCheckBox->SetValue(false);
+    }
+}
+
+void OptionPage::OnRestoreWizardFlowCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pSetupWizardFlowCheckBox->SetValue(false);
+        pSkipWizardFlowCheckBox->SetValue(false);
+    }
+}
+
+void OptionPage::OnSkipWizardFlowCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pSetupWizardFlowCheckBox->SetValue(false);
+        pRestoreWizardFlowCheckBox->SetValue(false);
+    }
 }
 } // namespace tks::UI::wizard

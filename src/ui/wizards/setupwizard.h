@@ -34,6 +34,7 @@ namespace tks
 namespace UI::wizard
 {
 class WelcomePage;
+class OptionPage;
 
 class SetupWizard final : public wxWizard
 {
@@ -50,7 +51,8 @@ public:
 private:
     std::shared_ptr<spdlog::logger> pLogger;
 
-    WelcomePage* pPage1;
+    WelcomePage* pWelcomePage;
+    OptionPage* pOptionPage;
 };
 
 /*
@@ -75,15 +77,48 @@ private:
 class WelcomePage final : public wxWizardPageSimple
 {
 public:
-    WelcomePage()=delete;
+    WelcomePage() = delete;
     WelcomePage(const WelcomePage&) = delete;
     WelcomePage(SetupWizard* parent);
     virtual ~WelcomePage() = default;
+
+    WelcomePage& operator=(const WelcomePage&) = delete;
 
 private:
     void CreateControls();
 
     SetupWizard* pParent;
+};
+
+class OptionPage final : public wxWizardPage
+{
+public:
+    OptionPage() = delete;
+    OptionPage(const OptionPage&) = delete;
+    OptionPage(wxWizardPage* parent, wxWizardPage* prev, wxWizardPage* next);
+    virtual ~OptionPage() = default;
+
+private:
+    void CreateControls();
+    void ConfigureEventBindings();
+
+    void OnSetupWizardFlowCheck(wxCommandEvent& event);
+    void OnRestoreWizardFlowCheck(wxCommandEvent& event);
+    void OnSkipWizardFlowCheck(wxCommandEvent& event);
+
+    wxWizardPage* pParent;
+    wxWizardPage* pNext;
+    wxWizardPage* pPrev;
+
+    wxCheckBox* pSetupWizardFlowCheckBox;
+    wxCheckBox* pRestoreWizardFlowCheckBox;
+    wxCheckBox* pSkipWizardFlowCheckBox;
+
+    enum {
+        tksIDC_SETUPWIZARD_CHECKBOX = wxID_HIGHEST + 100,
+        tksIDC_RESTOREWIZARD_CHECKBOX,
+        tksIDC_SKIPWIZARD_CHECKBOX
+    };
 };
 } // namespace UI::wizard
 } // namespace tks
