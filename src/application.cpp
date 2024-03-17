@@ -34,6 +34,8 @@
 #include "core/configuration.h"
 #include "core/database_migration.h"
 
+#include "ui/wizards/setupwizard.h"
+
 #include "ui/persistencemanager.h"
 #include "ui/translator.h"
 #include "ui/mainframe.h"
@@ -93,13 +95,6 @@ bool Application::OnInit()
         return false;
     }
 
-    if (!pEnv->IsSetup()) {
-        pLogger->info("Application - Program not yet set up");
-        if (!FirstStartupProcedure()) {
-            return false;
-        }
-    }
-
     pLogger->info(
         "Application - Initialize MainFrame with WindowState \"{0}\"", WindowStateToString(pCfg->GetWindowState()));
     auto frame = new UI::MainFrame(pEnv, pCfg, pLogger);
@@ -128,6 +123,14 @@ bool Application::OnInit()
         break;
     default:
         break;
+    }
+
+    if (true) {
+        // if (!pEnv->IsSetup()) {
+        pLogger->info("Application - Program not yet set up");
+        if (!FirstStartupProcedure(frame)) {
+            return false;
+        }
     }
 
     return true;
@@ -182,19 +185,24 @@ bool Application::InitializeTranslations()
     return UI::Translator::GetInstance().Load(pCfg->GetUserInterfaceLanguage(), pEnv->GetLanguagesPath());
 }
 
-bool Application::FirstStartupProcedure()
+bool Application::FirstStartupProcedure(wxFrame* frame)
 {
-    // if (!RunSetupWizard()) {
-    //     // DeleteDatabaseFile();
-    //     return false;
-    // }
+    auto wizard = new UI::wizard::SetupWizard(frame, pLogger, pEnv);
+    wizard->CenterOnScreen();
 
-    if (!pEnv->SetIsSetup()) {
-        pLogger->error("Error occured when setting 'IsSetup' Windows registry key.");
-        return false;
+    auto result = wizard->Run();
+    wizard->Destroy();
+
+    if (result) {
+        result = pEnv->SetIsSetup();
+        if (result) {
+            return true;
+        }
+    pLogger->error("Error occured when setting 'IsSetup' Windows registry key.");
     }
+    pLogger->error("Application::FirstStartupProcedure - Wizard canceled or unexpected error occured");
 
-    return true;
+    return false;
 }
 
 void Application::ActivateOtherInstance()

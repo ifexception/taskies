@@ -57,7 +57,7 @@ private:
     bool RunMigrations();
     bool InitializeTranslations();
 
-    bool FirstStartupProcedure();
+    bool FirstStartupProcedure(wxFrame* frame);
 
     void ActivateOtherInstance();
 
