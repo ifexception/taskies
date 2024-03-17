@@ -21,19 +21,35 @@
 
 #include "../../common/common.h"
 
+#include "../../core/environment.h"
+
 namespace tks::UI::wizard
 {
-SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger)
+SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger, std::shared_ptr<Core::Environment> env)
     : wxWizard(frame, wxID_ANY, "Setup/Restore Wizard")
     , pLogger(logger)
+    , pEnv(env)
     , pWelcomePage(nullptr)
     , pOptionPage(nullptr)
+    , pCreateEmployerAndClientPage(nullptr)
+    , pRestoreDatabasePage(nullptr)
 {
+    // Set left side wizard image
+    auto wizardImage = pEnv->GetResourcesPath() / Common::Resources::Wizard();
+    SetBitmap(wxBitmapBundle::FromSVGFile(wizardImage.string(), wxSize(116, 260)));
+
     // Set icon in titlebar
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 
     pWelcomePage = new WelcomePage(this);
+    pCreateEmployerAndClientPage = new CreateEmployerAndClientPage(this);
+    pRestoreDatabasePage = new RestoreDatabasePage(this);
+    pOptionPage = new OptionPage(this, pWelcomePage, pCreateEmployerAndClientPage, pRestoreDatabasePage);
+    pWelcomePage->SetNext(pOptionPage);
+    pCreateEmployerAndClientPage->SetPrev(pOptionPage);
+    pRestoreDatabasePage->SetPrev(pOptionPage);
+
     GetPageAreaSizer()->Add(pWelcomePage);
 }
 
@@ -45,7 +61,7 @@ bool SetupWizard::Run()
     return wizardSuccess;
 }
 
-WelcomePage::WelcomePage(SetupWizard* parent)
+WelcomePage::WelcomePage(wxWizard* parent)
     : wxWizardPageSimple(parent)
     , pParent(parent)
 {
@@ -73,13 +89,25 @@ void WelcomePage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-OptionPage::OptionPage(wxWizardPage* parent, wxWizardPage* prev, wxWizardPage* next)
-    : pParent(parent)
+OptionPage::OptionPage(wxWizard* parent, wxWizardPage* prev, wxWizardPage* nextOption1, wxWizardPage* nextOption2)
+    : wxWizardPage(parent)
+    , pParent(parent)
     , pPrev(prev)
-    , pNext(next)
+    , pNextOption1(nextOption1)
+    , pNextOption2(nextOption2)
 {
     CreateControls();
     ConfigureEventBindings();
+}
+
+wxWizardPage* OptionPage::GetPrev() const
+{
+    return pPrev;
+}
+
+wxWizardPage* OptionPage::GetNext() const
+{
+    return pSetupWizardFlowCheckBox->IsChecked() ? pNextOption1 : pNextOption2;
 }
 
 void OptionPage::CreateControls()
@@ -157,5 +185,45 @@ void OptionPage::OnSkipWizardFlowCheck(wxCommandEvent& event)
         pSetupWizardFlowCheckBox->SetValue(false);
         pRestoreWizardFlowCheckBox->SetValue(false);
     }
+}
+
+CreateEmployerAndClientPage::CreateEmployerAndClientPage(wxWizard* parent)
+    : wxWizardPageSimple(parent)
+    , pParent(parent)
+{
+    CreateControls();
+}
+
+void CreateEmployerAndClientPage::CreateControls()
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    std::string welcome = "Setup an employer and optional client";
+    auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
+    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+    sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    SetSizerAndFit(sizer);
+}
+
+RestoreDatabasePage::RestoreDatabasePage(wxWizard* parent)
+    : wxWizardPageSimple(parent)
+    , pParent(parent)
+{
+    CreateControls();
+}
+
+void RestoreDatabasePage::CreateControls()
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    std::string welcome = "Restore the program with an existing database";
+    auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
+    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+    sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    SetSizerAndFit(sizer);
 }
 } // namespace tks::UI::wizard

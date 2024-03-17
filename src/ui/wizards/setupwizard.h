@@ -31,17 +31,23 @@
 
 namespace tks
 {
+namespace Core
+{
+class Environment;
+}
 namespace UI::wizard
 {
 class WelcomePage;
 class OptionPage;
+class CreateEmployerAndClientPage;
+class RestoreDatabasePage;
 
 class SetupWizard final : public wxWizard
 {
 public:
     SetupWizard() = delete;
     SetupWizard(const SetupWizard&) = delete;
-    SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger);
+    SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger, std::shared_ptr<Core::Environment> env);
     virtual ~SetupWizard() = default;
 
     SetupWizard& operator=(const SetupWizard&) = delete;
@@ -50,9 +56,12 @@ public:
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
+    std::shared_ptr<Core::Environment> pEnv;
 
     WelcomePage* pWelcomePage;
     OptionPage* pOptionPage;
+    CreateEmployerAndClientPage* pCreateEmployerAndClientPage;
+    RestoreDatabasePage* pRestoreDatabasePage;
 };
 
 /*
@@ -79,7 +88,7 @@ class WelcomePage final : public wxWizardPageSimple
 public:
     WelcomePage() = delete;
     WelcomePage(const WelcomePage&) = delete;
-    WelcomePage(SetupWizard* parent);
+    WelcomePage(wxWizard* parent);
     virtual ~WelcomePage() = default;
 
     WelcomePage& operator=(const WelcomePage&) = delete;
@@ -87,7 +96,7 @@ public:
 private:
     void CreateControls();
 
-    SetupWizard* pParent;
+    wxWizard* pParent;
 };
 
 class OptionPage final : public wxWizardPage
@@ -95,8 +104,13 @@ class OptionPage final : public wxWizardPage
 public:
     OptionPage() = delete;
     OptionPage(const OptionPage&) = delete;
-    OptionPage(wxWizardPage* parent, wxWizardPage* prev, wxWizardPage* next);
+    OptionPage(wxWizard* parent, wxWizardPage* prev, wxWizardPage* nextOption1, wxWizardPage* nextOption2);
     virtual ~OptionPage() = default;
+
+    OptionPage& operator=(const OptionPage&) = delete;
+
+    virtual wxWizardPage* GetPrev() const override;
+    virtual wxWizardPage* GetNext() const override;
 
 private:
     void CreateControls();
@@ -106,8 +120,9 @@ private:
     void OnRestoreWizardFlowCheck(wxCommandEvent& event);
     void OnSkipWizardFlowCheck(wxCommandEvent& event);
 
-    wxWizardPage* pParent;
-    wxWizardPage* pNext;
+    wxWizard* pParent;
+    wxWizardPage* pNextOption1;
+    wxWizardPage* pNextOption2;
     wxWizardPage* pPrev;
 
     wxCheckBox* pSetupWizardFlowCheckBox;
@@ -119,6 +134,38 @@ private:
         tksIDC_RESTOREWIZARD_CHECKBOX,
         tksIDC_SKIPWIZARD_CHECKBOX
     };
+};
+
+class CreateEmployerAndClientPage final : public wxWizardPageSimple
+{
+public:
+    CreateEmployerAndClientPage() = delete;
+    CreateEmployerAndClientPage(const CreateEmployerAndClientPage&) = delete;
+    CreateEmployerAndClientPage(wxWizard* parent);
+    virtual ~CreateEmployerAndClientPage() = default;
+
+    CreateEmployerAndClientPage& operator=(const CreateEmployerAndClientPage&) = delete;
+
+private:
+    wxWizard* pParent;
+
+    void CreateControls();
+};
+
+class RestoreDatabasePage final : public wxWizardPageSimple
+{
+public:
+    RestoreDatabasePage() = delete;
+    RestoreDatabasePage(const RestoreDatabasePage&) = delete;
+    RestoreDatabasePage(wxWizard* parent);
+    virtual ~RestoreDatabasePage() = default;
+
+    RestoreDatabasePage& operator=(const RestoreDatabasePage&) = delete;
+
+private:
+    wxWizard* pParent;
+
+    void CreateControls();
 };
 } // namespace UI::wizard
 } // namespace tks
