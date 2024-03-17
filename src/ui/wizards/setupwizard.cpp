@@ -26,7 +26,11 @@
 namespace tks::UI::wizard
 {
 SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger, std::shared_ptr<Core::Environment> env)
-    : wxWizard(frame, wxID_ANY, "Setup/Restore Wizard")
+    : wxWizard(frame,
+          wxID_ANY,
+          "Setup/Restore Wizard",
+          wxBitmapBundle::FromSVGFile((env->GetResourcesPath() / Common::Resources::Wizard()).string(),
+              wxSize(116, 260)))
     , pLogger(logger)
     , pEnv(env)
     , pWelcomePage(nullptr)
@@ -34,14 +38,18 @@ SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger,
     , pCreateEmployerAndClientPage(nullptr)
     , pRestoreDatabasePage(nullptr)
 {
+    pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
     // Set left side wizard image
-    auto wizardImage = pEnv->GetResourcesPath() / Common::Resources::Wizard();
-    SetBitmap(wxBitmapBundle::FromSVGFile(wizardImage.string(), wxSize(116, 260)));
+    /*auto wizardImage = pEnv->GetResourcesPath() / Common::Resources::Wizard();
+    auto wizardImagePath = wizardImage.string();
+    SetBitmap(wxBitmapBundle::FromSVGFile(
+        (pEnv->GetResourcesPath() / Common::Resources::Wizard()).string(), wxSize(116, 260)));*/
 
     // Set icon in titlebar
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 
+    pLogger->info("SetupWizard::SetupWizard - initialize pages");
     pWelcomePage = new WelcomePage(this);
     pCreateEmployerAndClientPage = new CreateEmployerAndClientPage(this);
     pRestoreDatabasePage = new RestoreDatabasePage(this);
@@ -55,9 +63,10 @@ SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger,
 
 bool SetupWizard::Run()
 {
+    pLogger->info("SetupWizard::Run - begin initialization of wizard");
     bool wizardSuccess = wxWizard::RunWizard(pWelcomePage);
+    pLogger->info("SetupWizard::Run - wizard exited with status \"{0}\"", wizardSuccess);
 
-    Destroy();
     return wizardSuccess;
 }
 
