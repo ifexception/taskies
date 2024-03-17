@@ -84,5 +84,10 @@ std::string BellNotification()
 {
     return "bellnotification16x16.png";
 }
+
+std::string Wizard()
+{
+    return "wiztest.svg";
+}
 } // namespace Resources
 } // namespace tks::Common

@@ -41,5 +41,6 @@ namespace Resources
 {
 std::string Bell();
 std::string BellNotification();
+std::string Wizard();
 }
 }
