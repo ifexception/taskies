@@ -41,6 +41,7 @@ class WelcomePage;
 class OptionPage;
 class CreateEmployerAndClientPage;
 class RestoreDatabasePage;
+class SkipWizardPage;
 
 class SetupWizard final : public wxWizard
 {
@@ -62,6 +63,7 @@ private:
     OptionPage* pOptionPage;
     CreateEmployerAndClientPage* pCreateEmployerAndClientPage;
     RestoreDatabasePage* pRestoreDatabasePage;
+    SkipWizardPage* pSkipWizardPage;
 };
 
 /*
@@ -104,7 +106,11 @@ class OptionPage final : public wxWizardPage
 public:
     OptionPage() = delete;
     OptionPage(const OptionPage&) = delete;
-    OptionPage(wxWizard* parent, wxWizardPage* prev, wxWizardPage* nextOption1, wxWizardPage* nextOption2);
+    OptionPage(wxWizard* parent,
+        wxWizardPage* prev,
+        wxWizardPage* nextOption1,
+        wxWizardPage* nextOption2,
+        wxWizardPage* nextOption3);
     virtual ~OptionPage() = default;
 
     OptionPage& operator=(const OptionPage&) = delete;
@@ -123,6 +129,7 @@ private:
     wxWizard* pParent;
     wxWizardPage* pNextOption1;
     wxWizardPage* pNextOption2;
+    wxWizardPage* pNextOption3;
     wxWizardPage* pPrev;
 
     wxCheckBox* pSetupWizardFlowCheckBox;
@@ -161,6 +168,22 @@ public:
     virtual ~RestoreDatabasePage() = default;
 
     RestoreDatabasePage& operator=(const RestoreDatabasePage&) = delete;
+
+private:
+    wxWizard* pParent;
+
+    void CreateControls();
+};
+
+class SkipWizardPage final : public wxWizardPageSimple
+{
+public:
+    SkipWizardPage() = delete;
+    SkipWizardPage(const SkipWizardPage&) = delete;
+    SkipWizardPage(wxWizard* parent);
+    virtual ~SkipWizardPage() = default;
+
+    SkipWizardPage& operator=(const SkipWizardPage&) = delete;
 
 private:
     wxWizard* pParent;

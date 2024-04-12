@@ -37,6 +37,7 @@ SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger,
     , pOptionPage(nullptr)
     , pCreateEmployerAndClientPage(nullptr)
     , pRestoreDatabasePage(nullptr)
+    , pSkipWizardPage(nullptr)
 {
     pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
     // Set left side wizard image
@@ -53,7 +54,11 @@ SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger,
     pWelcomePage = new WelcomePage(this);
     pCreateEmployerAndClientPage = new CreateEmployerAndClientPage(this);
     pRestoreDatabasePage = new RestoreDatabasePage(this);
-    pOptionPage = new OptionPage(this, pWelcomePage, pCreateEmployerAndClientPage, pRestoreDatabasePage);
+    pSkipWizardPage = new SkipWizardPage(this);
+
+    pOptionPage =
+        new OptionPage(this, pWelcomePage, pCreateEmployerAndClientPage, pRestoreDatabasePage, pSkipWizardPage);
+
     pWelcomePage->SetNext(pOptionPage);
     pCreateEmployerAndClientPage->SetPrev(pOptionPage);
     pRestoreDatabasePage->SetPrev(pOptionPage);
@@ -98,12 +103,17 @@ void WelcomePage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-OptionPage::OptionPage(wxWizard* parent, wxWizardPage* prev, wxWizardPage* nextOption1, wxWizardPage* nextOption2)
+OptionPage::OptionPage(wxWizard* parent,
+    wxWizardPage* prev,
+    wxWizardPage* nextOption1,
+    wxWizardPage* nextOption2,
+    wxWizardPage* nextOption3)
     : wxWizardPage(parent)
     , pParent(parent)
     , pPrev(prev)
     , pNextOption1(nextOption1)
     , pNextOption2(nextOption2)
+    , pNextOption3(nextOption3)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -116,7 +126,15 @@ wxWizardPage* OptionPage::GetPrev() const
 
 wxWizardPage* OptionPage::GetNext() const
 {
-    return pSetupWizardFlowCheckBox->IsChecked() ? pNextOption1 : pNextOption2;
+    if (pSetupWizardFlowCheckBox->IsChecked()) {
+        return pNextOption1;
+    } else if (pRestoreWizardFlowCheckBox->IsChecked()) {
+        return pNextOption2;
+    } else if (pSkipWizardFlowCheckBox->IsChecked()) {
+        return pNextOption3;
+    } else {
+        return pNextOption1;
+    }
 }
 
 void OptionPage::CreateControls()
@@ -129,7 +147,7 @@ void OptionPage::CreateControls()
 
     auto defaultOptionText = "(not selecting an option will default to the setup wizard)";
     auto defaultOptionLabel = new wxStaticText(this, wxID_ANY, defaultOptionText);
-    defaultOptionLabel->SetFont(wxFont(10, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
+    defaultOptionLabel->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
 
     auto staticBox = new wxStaticBox(this, wxID_ANY, "Options");
     auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
@@ -232,6 +250,30 @@ void RestoreDatabasePage::CreateControls()
     welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    SetSizerAndFit(sizer);
+}
+
+SkipWizardPage::SkipWizardPage(wxWizard* parent)
+    : wxWizardPageSimple(parent)
+    , pParent(parent)
+{
+    CreateControls();
+}
+
+void SkipWizardPage::CreateControls()
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    std::string welcome = "Wizard skipped";
+    auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
+    welcomeLabel->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+    std::string continueNextMessage = "\n\nTo continue, click 'Finish'";
+    auto continueNextLabel = new wxStaticText(this, wxID_ANY, continueNextMessage);
+
+    sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(continueNextLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     SetSizerAndFit(sizer);
 }
