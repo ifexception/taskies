@@ -198,7 +198,7 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
         if (result) {
             return true;
         }
-    pLogger->error("Error occured when setting 'IsSetup' Windows registry key.");
+        pLogger->error("Error occured when setting 'IsSetup' Windows registry key.");
     }
     pLogger->error("Application::FirstStartupProcedure - Wizard canceled or unexpected error occured");
 

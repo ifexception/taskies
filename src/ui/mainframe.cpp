@@ -366,6 +366,7 @@ void MainFrame::CreateControls()
     pDataViewCtrl->AppendColumn(idColumn);
 
     sizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    pDataViewCtrl->SetFocus();
 
     /* Accelerator Table */
     wxAcceleratorEntry entries[2];
