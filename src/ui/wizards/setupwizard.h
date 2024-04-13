@@ -40,7 +40,7 @@ namespace UI::wizard
 class WelcomePage;
 class OptionPage;
 class CreateEmployerAndClientPage;
-class RestoreDatabasePage;
+class CreateProjectAndCategoryPage;
 class SkipWizardPage;
 
 class SetupWizard final : public wxWizard
@@ -62,6 +62,7 @@ private:
     WelcomePage* pWelcomePage;
     OptionPage* pOptionPage;
     CreateEmployerAndClientPage* pCreateEmployerAndClientPage;
+    CreateProjectAndCategoryPage* pCreateProjectAndCategoryPage;
     RestoreDatabasePage* pRestoreDatabasePage;
     SkipWizardPage* pSkipWizardPage;
 };
@@ -152,6 +153,34 @@ public:
     virtual ~CreateEmployerAndClientPage() = default;
 
     CreateEmployerAndClientPage& operator=(const CreateEmployerAndClientPage&) = delete;
+
+    virtual bool TransferDataFromWindow() override;
+
+private:
+    wxWizard* pParent;
+
+    wxTextCtrl* pEmployerNameTextCtrl;
+    wxTextCtrl* pClientNameTextCtrl;
+
+    void CreateControls();
+
+    enum {
+        tksIDC_EMPLOYERNAME = wxID_HIGHEST + 100,
+        tksIDC_CLIENTNAME
+    };
+};
+
+class CreateProjectAndCategoryPage final : public wxWizardPageSimple
+{
+public:
+    CreateProjectAndCategoryPage() = delete;
+    CreateProjectAndCategoryPage(const CreateProjectAndCategoryPage&) = delete;
+    CreateProjectAndCategoryPage(wxWizard* parent);
+    virtual ~CreateProjectAndCategoryPage() = default;
+
+    CreateProjectAndCategoryPage& operator=(const CreateProjectAndCategoryPage&) = delete;
+
+    virtual bool TransferDataFromWindow() override;
 
 private:
     wxWizard* pParent;

@@ -19,7 +19,13 @@
 
 #include "setupwizard.h"
 
+#include <wx/richtooltip.h>
+
+#include <fmt/format.h>
+
 #include "../../common/common.h"
+#include "../../common/constants.h"
+#include "../../common/validator.h"
 
 #include "../../core/environment.h"
 
@@ -36,6 +42,7 @@ SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger,
     , pWelcomePage(nullptr)
     , pOptionPage(nullptr)
     , pCreateEmployerAndClientPage(nullptr)
+    , pCreateProjectAndCategoryPage(nullptr)
     , pRestoreDatabasePage(nullptr)
     , pSkipWizardPage(nullptr)
 {
@@ -221,15 +228,98 @@ CreateEmployerAndClientPage::CreateEmployerAndClientPage(wxWizard* parent)
     CreateControls();
 }
 
+bool CreateEmployerAndClientPage::TransferDataFromWindow()
+{
+    auto employerName = pEmployerNameTextCtrl->GetValue().ToStdString();
+    if (employerName.empty()) {
+        auto valMsg = "Name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pEmployerNameTextCtrl);
+        return false;
+    }
+
+    if (employerName.length() < MIN_CHARACTER_COUNT || employerName.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pEmployerNameTextCtrl);
+        return false;
+    }
+
+    auto clientName = pClientNameTextCtrl->GetValue().ToStdString();
+    if (!clientName.empty() &&
+        (clientName.length() < MIN_CHARACTER_COUNT || clientName.length() > MAX_CHARACTER_COUNT_NAMES)) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pClientNameTextCtrl);
+        return false;
+    }
+
+    // save entities
+
+    return true;
+}
+
 void CreateEmployerAndClientPage::CreateControls()
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    std::string welcome = "Setup an employer and optional client";
+    std::string welcome = "Setup an employer and (optional) client";
     auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
     welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    /* Employer */
+    auto employerBox = new wxStaticBox(this, wxID_ANY, "Employer");
+    auto employerBoxSizer = new wxStaticBoxSizer(employerBox, wxVERTICAL);
+    sizer->Add(employerBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Employer Name Control */
+    auto employerNameLabel = new wxStaticText(employerBox, wxID_ANY, "Name");
+
+    pEmployerNameTextCtrl = new wxTextCtrl(employerBox, tksIDC_EMPLOYERNAME);
+    pEmployerNameTextCtrl->SetHint("Employer name");
+    pEmployerNameTextCtrl->SetToolTip("Enter a name for an employer");
+
+    pEmployerNameTextCtrl->SetValidator(NameValidator());
+
+    auto employerDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    employerDetailsGridSizer->AddGrowableCol(1, 1);
+
+    employerDetailsGridSizer->Add(employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    employerDetailsGridSizer->Add(
+        pEmployerNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    employerBoxSizer->Add(employerDetailsGridSizer, wxSizerFlags().Expand().Proportion(1));
+
+    /* Client */
+    auto clientBox = new wxStaticBox(this, wxID_ANY, "Client");
+    auto clientBoxSizer = new wxStaticBoxSizer(clientBox, wxVERTICAL);
+    sizer->Add(clientBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Client Name control */
+    auto clientNameLabel = new wxStaticText(clientBox, wxID_ANY, "Name");
+
+    pClientNameTextCtrl = new wxTextCtrl(clientBox, tksIDC_CLIENTNAME);
+    pClientNameTextCtrl->SetHint("Client name");
+    pClientNameTextCtrl->SetToolTip("Enter a name for a client");
+
+    pClientNameTextCtrl->SetValidator(NameValidator());
+
+    auto clienbtDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    clienbtDetailsGridSizer->AddGrowableCol(1, 1);
+
+    clienbtDetailsGridSizer->Add(clientNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    clienbtDetailsGridSizer->Add(pClientNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    clientBoxSizer->Add(clienbtDetailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
     SetSizerAndFit(sizer);
 }
@@ -276,5 +366,28 @@ void SkipWizardPage::CreateControls()
     sizer->Add(continueNextLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     SetSizerAndFit(sizer);
+}
+
+CreateProjectAndCategoryPage::CreateProjectAndCategoryPage(wxWizard* parent)
+    : wxWizardPageSimple(parent)
+    , pParent(parent)
+{
+    CreateControls();
+}
+
+bool CreateProjectAndCategoryPage::TransferDataFromWindow()
+{
+    return true;
+}
+
+void CreateProjectAndCategoryPage::CreateControls()
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    std::string welcome = "Setup a project and category";
+    auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
+    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+    sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 }
 } // namespace tks::UI::wizard
