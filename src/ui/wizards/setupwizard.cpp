@@ -29,9 +29,19 @@
 
 #include "../../core/environment.h"
 
+#include "../../dao/employerdao.h"
+#include "../../dao/clientdao.h"
+
+#include "../../models/employermodel.h"
+
+#include "../../utils/utils.h"
+
 namespace tks::UI::wizard
 {
-SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger, std::shared_ptr<Core::Environment> env)
+SetupWizard::SetupWizard(wxFrame* frame,
+    std::shared_ptr<spdlog::logger> logger,
+    std::shared_ptr<Core::Environment> env,
+    const std::string& databasePath)
     : wxWizard(frame,
           wxID_ANY,
           "Setup/Restore Wizard",
@@ -39,12 +49,15 @@ SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger,
               wxSize(116, 260)))
     , pLogger(logger)
     , pEnv(env)
+    , mDatabasePath(databasePath)
     , pWelcomePage(nullptr)
     , pOptionPage(nullptr)
     , pCreateEmployerAndClientPage(nullptr)
     , pCreateProjectAndCategoryPage(nullptr)
     , pRestoreDatabasePage(nullptr)
     , pSkipWizardPage(nullptr)
+    , mEmployerId(-1)
+    , mClientId(-1)
 {
     pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
     // Set left side wizard image
@@ -59,7 +72,8 @@ SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger,
 
     pLogger->info("SetupWizard::SetupWizard - initialize pages");
     pWelcomePage = new WelcomePage(this);
-    pCreateEmployerAndClientPage = new CreateEmployerAndClientPage(this);
+    pCreateEmployerAndClientPage = new CreateEmployerAndClientPage(this, pLogger, mDatabasePath);
+    pCreateProjectAndCategoryPage = new CreateProjectAndCategoryPage(this);
     pRestoreDatabasePage = new RestoreDatabasePage(this);
     pSkipWizardPage = new SkipWizardPage(this);
 
@@ -69,6 +83,8 @@ SetupWizard::SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger,
     pWelcomePage->SetNext(pOptionPage);
     pCreateEmployerAndClientPage->SetPrev(pOptionPage);
     pRestoreDatabasePage->SetPrev(pOptionPage);
+
+    pCreateEmployerAndClientPage->Chain(pCreateProjectAndCategoryPage);
 
     GetPageAreaSizer()->Add(pWelcomePage);
 }
@@ -82,7 +98,11 @@ bool SetupWizard::Run()
     return wizardSuccess;
 }
 
-WelcomePage::WelcomePage(wxWizard* parent)
+void SetupWizard::SetEmployerId(const std::int64_t employerId) const {}
+
+void SetupWizard::SetClientId(const std::int64_t clientId) const {}
+
+WelcomePage::WelcomePage(SetupWizard* parent)
     : wxWizardPageSimple(parent)
     , pParent(parent)
 {
@@ -110,7 +130,7 @@ void WelcomePage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-OptionPage::OptionPage(wxWizard* parent,
+OptionPage::OptionPage(SetupWizard* parent,
     wxWizardPage* prev,
     wxWizardPage* nextOption1,
     wxWizardPage* nextOption2,
@@ -221,9 +241,13 @@ void OptionPage::OnSkipWizardFlowCheck(wxCommandEvent& event)
     }
 }
 
-CreateEmployerAndClientPage::CreateEmployerAndClientPage(wxWizard* parent)
+CreateEmployerAndClientPage::CreateEmployerAndClientPage(SetupWizard* parent,
+    std::shared_ptr<spdlog::logger> logger,
+    const std::string& databasePath)
     : wxWizardPageSimple(parent)
     , pParent(parent)
+    , pLogger(logger)
+    , mDatabasePath(databasePath)
 {
     CreateControls();
 }
@@ -261,7 +285,32 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
         return false;
     }
 
-    // save entities
+    DAO::EmployerDao employerDao(pLogger, mDatabasePath);
+    Model::EmployerModel employerModel;
+    employerModel.Name = Utils::TrimWhitespace(employerName);
+
+    std::int64_t employerId = employerDao.Create(employerModel);
+    if (employerId == -1) {
+        wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+        return false;
+    } else {
+        pParent->SetEmployerId(employerId);
+    }
+
+    if (!clientName.empty()) {
+        DAO::ClientDao clientDao(pLogger, mDatabasePath);
+        Model::ClientModel clientModel;
+        clientModel.Name = Utils::TrimWhitespace(clientName);
+        clientModel.EmployerId = employerId;
+
+        std::int64_t clientId = clientDao.Create(clientModel);
+        if (clientId == -1) {
+            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            return false;
+        } else {
+            pParent->SetClientId(clientId);
+        }
+    }
 
     return true;
 }

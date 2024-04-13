@@ -19,7 +19,9 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
+#include <string>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -41,6 +43,7 @@ class WelcomePage;
 class OptionPage;
 class CreateEmployerAndClientPage;
 class CreateProjectAndCategoryPage;
+class RestoreDatabasePage;
 class SkipWizardPage;
 
 class SetupWizard final : public wxWizard
@@ -48,16 +51,23 @@ class SetupWizard final : public wxWizard
 public:
     SetupWizard() = delete;
     SetupWizard(const SetupWizard&) = delete;
-    SetupWizard(wxFrame* frame, std::shared_ptr<spdlog::logger> logger, std::shared_ptr<Core::Environment> env);
+    SetupWizard(wxFrame* frame,
+        std::shared_ptr<spdlog::logger> logger,
+        std::shared_ptr<Core::Environment> env,
+        const std::string& databasePath);
     virtual ~SetupWizard() = default;
 
     SetupWizard& operator=(const SetupWizard&) = delete;
 
     bool Run();
 
+    void SetEmployerId(const std::int64_t employerId) const;
+    void SetClientId(const std::int64_t clientId) const;
+
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
+    std::string mDatabasePath;
 
     WelcomePage* pWelcomePage;
     OptionPage* pOptionPage;
@@ -65,6 +75,9 @@ private:
     CreateProjectAndCategoryPage* pCreateProjectAndCategoryPage;
     RestoreDatabasePage* pRestoreDatabasePage;
     SkipWizardPage* pSkipWizardPage;
+
+    std::int64_t mEmployerId;
+    std::int64_t mClientId;
 };
 
 /*
@@ -91,7 +104,7 @@ class WelcomePage final : public wxWizardPageSimple
 public:
     WelcomePage() = delete;
     WelcomePage(const WelcomePage&) = delete;
-    WelcomePage(wxWizard* parent);
+    WelcomePage(SetupWizard* parent);
     virtual ~WelcomePage() = default;
 
     WelcomePage& operator=(const WelcomePage&) = delete;
@@ -99,7 +112,7 @@ public:
 private:
     void CreateControls();
 
-    wxWizard* pParent;
+    SetupWizard* pParent;
 };
 
 class OptionPage final : public wxWizardPage
@@ -107,7 +120,7 @@ class OptionPage final : public wxWizardPage
 public:
     OptionPage() = delete;
     OptionPage(const OptionPage&) = delete;
-    OptionPage(wxWizard* parent,
+    OptionPage(SetupWizard* parent,
         wxWizardPage* prev,
         wxWizardPage* nextOption1,
         wxWizardPage* nextOption2,
@@ -127,7 +140,7 @@ private:
     void OnRestoreWizardFlowCheck(wxCommandEvent& event);
     void OnSkipWizardFlowCheck(wxCommandEvent& event);
 
-    wxWizard* pParent;
+    SetupWizard* pParent;
     wxWizardPage* pNextOption1;
     wxWizardPage* pNextOption2;
     wxWizardPage* pNextOption3;
@@ -149,7 +162,9 @@ class CreateEmployerAndClientPage final : public wxWizardPageSimple
 public:
     CreateEmployerAndClientPage() = delete;
     CreateEmployerAndClientPage(const CreateEmployerAndClientPage&) = delete;
-    CreateEmployerAndClientPage(wxWizard* parent);
+    CreateEmployerAndClientPage(SetupWizard* parent,
+        std::shared_ptr<spdlog::logger> logger,
+        const std::string& databasePath);
     virtual ~CreateEmployerAndClientPage() = default;
 
     CreateEmployerAndClientPage& operator=(const CreateEmployerAndClientPage&) = delete;
@@ -157,17 +172,16 @@ public:
     virtual bool TransferDataFromWindow() override;
 
 private:
-    wxWizard* pParent;
+    SetupWizard* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
+    std::string mDatabasePath;
 
     wxTextCtrl* pEmployerNameTextCtrl;
     wxTextCtrl* pClientNameTextCtrl;
 
     void CreateControls();
 
-    enum {
-        tksIDC_EMPLOYERNAME = wxID_HIGHEST + 100,
-        tksIDC_CLIENTNAME
-    };
+    enum { tksIDC_EMPLOYERNAME = wxID_HIGHEST + 100, tksIDC_CLIENTNAME };
 };
 
 class CreateProjectAndCategoryPage final : public wxWizardPageSimple
