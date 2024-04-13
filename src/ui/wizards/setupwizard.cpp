@@ -373,6 +373,29 @@ void CreateEmployerAndClientPage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
+CreateProjectAndCategoryPage::CreateProjectAndCategoryPage(wxWizard* parent)
+    : wxWizardPageSimple(parent)
+    , pParent(parent)
+{
+    CreateControls();
+}
+
+bool CreateProjectAndCategoryPage::TransferDataFromWindow()
+{
+    return true;
+}
+
+void CreateProjectAndCategoryPage::CreateControls()
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    std::string welcome = "Setup a project and category";
+    auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
+    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+    sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+}
+
 RestoreDatabasePage::RestoreDatabasePage(wxWizard* parent)
     : wxWizardPageSimple(parent)
     , pParent(parent)
@@ -415,28 +438,5 @@ void SkipWizardPage::CreateControls()
     sizer->Add(continueNextLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     SetSizerAndFit(sizer);
-}
-
-CreateProjectAndCategoryPage::CreateProjectAndCategoryPage(wxWizard* parent)
-    : wxWizardPageSimple(parent)
-    , pParent(parent)
-{
-    CreateControls();
-}
-
-bool CreateProjectAndCategoryPage::TransferDataFromWindow()
-{
-    return true;
-}
-
-void CreateProjectAndCategoryPage::CreateControls()
-{
-    auto sizer = new wxBoxSizer(wxVERTICAL);
-
-    std::string welcome = "Setup a project and category";
-    auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
-    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
-
-    sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 }
 } // namespace tks::UI::wizard
