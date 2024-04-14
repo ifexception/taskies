@@ -59,10 +59,10 @@ public:
 
     SetupWizard& operator=(const SetupWizard&) = delete;
 
-    bool Run();
+    wxWizardPage* GetFirstPage() const;
 
-    void SetEmployerId(const std::int64_t employerId) const;
-    void SetClientId(const std::int64_t clientId) const;
+    void SetEmployerId(const std::int64_t employerId);
+    void SetClientId(const std::int64_t clientId);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;

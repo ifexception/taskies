@@ -89,18 +89,20 @@ SetupWizard::SetupWizard(wxFrame* frame,
     GetPageAreaSizer()->Add(pWelcomePage);
 }
 
-bool SetupWizard::Run()
+wxWizardPage* SetupWizard::GetFirstPage() const
 {
-    pLogger->info("SetupWizard::Run - begin initialization of wizard");
-    bool wizardSuccess = wxWizard::RunWizard(pWelcomePage);
-    pLogger->info("SetupWizard::Run - wizard exited with status \"{0}\"", wizardSuccess);
-
-    return wizardSuccess;
+    return pWelcomePage;
 }
 
-void SetupWizard::SetEmployerId(const std::int64_t employerId) const {}
+void SetupWizard::SetEmployerId(const std::int64_t employerId)
+{
+    mEmployerId = employerId;
+}
 
-void SetupWizard::SetClientId(const std::int64_t clientId) const {}
+void SetupWizard::SetClientId(const std::int64_t clientId)
+{
+    mClientId = clientId;
+}
 
 WelcomePage::WelcomePage(SetupWizard* parent)
     : wxWizardPageSimple(parent)
