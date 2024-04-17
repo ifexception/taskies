@@ -31,8 +31,13 @@
 
 #include "../../dao/employerdao.h"
 #include "../../dao/clientdao.h"
+#include "../../dao/projectdao.h"
+#include "../../dao/categorydao.h"
 
 #include "../../models/employermodel.h"
+#include "../../models/clientmodel.h"
+#include "../../models/projectmodel.h"
+#include "../../models/categorymodel.h"
 
 #include "../../utils/utils.h"
 
@@ -73,7 +78,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     pLogger->info("SetupWizard::SetupWizard - initialize pages");
     pWelcomePage = new WelcomePage(this);
     pCreateEmployerAndClientPage = new CreateEmployerAndClientPage(this, pLogger, mDatabasePath);
-    pCreateProjectAndCategoryPage = new CreateProjectAndCategoryPage(this);
+    pCreateProjectAndCategoryPage = new CreateProjectAndCategoryPage(this, pLogger, mDatabasePath);
     pRestoreDatabasePage = new RestoreDatabasePage(this);
     pSkipWizardPage = new SkipWizardPage(this);
 
@@ -94,9 +99,19 @@ wxWizardPage* SetupWizard::GetFirstPage() const
     return pWelcomePage;
 }
 
+const std::int64_t SetupWizard::GetEmployerId() const
+{
+    return mEmployerId;
+}
+
 void SetupWizard::SetEmployerId(const std::int64_t employerId)
 {
     mEmployerId = employerId;
+}
+
+const std::int64_t SetupWizard::GetClientId() const
+{
+    return mClientId;
 }
 
 void SetupWizard::SetClientId(const std::int64_t clientId)
@@ -375,15 +390,108 @@ void CreateEmployerAndClientPage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-CreateProjectAndCategoryPage::CreateProjectAndCategoryPage(wxWizard* parent)
+CreateProjectAndCategoryPage::CreateProjectAndCategoryPage(SetupWizard* parent,
+    std::shared_ptr<spdlog::logger> logger,
+    const std::string& databasePath)
     : wxWizardPageSimple(parent)
     , pParent(parent)
+    , pLogger(logger)
+    , mDatabasePath(databasePath)
 {
     CreateControls();
 }
 
 bool CreateProjectAndCategoryPage::TransferDataFromWindow()
 {
+    // Validate Project properties
+    auto projectName = pProjectNameTextCtrl->GetValue().ToStdString();
+    if (projectName.empty()) {
+        auto valMsg = "Project name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pProjectNameTextCtrl);
+        return false;
+    }
+
+    if (projectName.length() < MIN_CHARACTER_COUNT || projectName.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pProjectNameTextCtrl);
+        return false;
+    }
+
+    auto projectDisplayName = pProjectDisplayNameCtrl->GetValue().ToStdString();
+    if (projectDisplayName.empty()) {
+        auto valMsg = "Display name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pProjectDisplayNameCtrl);
+        return false;
+    }
+
+    if (projectDisplayName.length() < MIN_CHARACTER_COUNT || projectDisplayName.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Display name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pProjectDisplayNameCtrl);
+        return false;
+    }
+
+    // Save project
+    DAO::ProjectDao projectDao(pLogger, mDatabasePath);
+    Model::ProjectModel project;
+    project.Name = projectName;
+    project.DisplayName = projectDisplayName;
+    project.IsDefault = pProjectIsDefaultCtrl->GetValue();
+    project.EmployerId = pParent->GetEmployerId();
+    project.ClientId =
+        pParent->GetClientId() == 0 ? std::nullopt : std::make_optional<std::int64_t>(pParent->GetClientId());
+
+    std::int64_t projectId = projectDao.Create(project);
+    if (projectId == -1) {
+        wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+        return false;
+    }
+
+    // Validate category properties
+    auto categoryName = pCategoryNameTextCtrl->GetValue().ToStdString();
+    if (categoryName.empty()) {
+        auto valMsg = "Category name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pCategoryNameTextCtrl);
+        return false;
+    }
+
+    if (categoryName.length() < MIN_CHARACTER_COUNT || categoryName.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pCategoryNameTextCtrl);
+        return false;
+    }
+
+    // Save category
+    DAO::CategoryDao categoryDao(pLogger, mDatabasePath);
+    Model::CategoryModel category;
+    category.Name = categoryName;
+    category.Color = pColorPickerCtrl->GetColour().GetRGB();
+    category.Billable = pBillableCtrl->GetValue();
+    category.ProjectId = std::make_optional<std::int64_t>(projectId);
+
+    std::int64_t categoryId = categoryDao.Create(category);
+    if (categoryId == -1) {
+        wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+        return false;
+    }
+
     return true;
 }
 
@@ -396,8 +504,106 @@ void CreateProjectAndCategoryPage::CreateControls()
     welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    /* Project Box */
+    auto projectBox = new wxStaticBox(this, wxID_ANY, "Project");
+    auto projectBoxSizer = new wxStaticBoxSizer(projectBox, wxVERTICAL);
+    sizer->Add(projectBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Project Name Ctrl */
+    auto projectNameLabel = new wxStaticText(projectBox, wxID_ANY, "Name");
+
+    pProjectNameTextCtrl = new wxTextCtrl(projectBox, tksIDC_PROJECTNAME);
+    pProjectNameTextCtrl->SetHint("Project name");
+    pProjectNameTextCtrl->SetToolTip("Enter a name for a project");
+    pProjectNameTextCtrl->SetValidator(NameValidator());
+
+    /* Display Name Ctrl */
+    auto displayNameLabel = new wxStaticText(projectBox, wxID_ANY, "Display Name");
+
+    pProjectDisplayNameCtrl = new wxTextCtrl(projectBox, tksIDC_PROJECTDISPLAYNAME);
+    pProjectDisplayNameCtrl->SetHint("Display name");
+    pProjectDisplayNameCtrl->SetToolTip("Enter a nickname, abbreviation or common name for a project (if applicable)");
+    pProjectDisplayNameCtrl->SetValidator(NameValidator());
+
+    /* Is Default Checkbox Ctrl */
+    pProjectIsDefaultCtrl = new wxCheckBox(projectBox, tksIDC_PROJECTISDEFAULT, "Is Default");
+    pProjectIsDefaultCtrl->SetToolTip("Enabling this option for a project will auto-select it on a task entry");
+
+    /* Details Grid Sizer */
+    auto projectDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    projectDetailsGridSizer->AddGrowableCol(1, 1);
+
+    projectDetailsGridSizer->Add(projectNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    projectDetailsGridSizer->Add(pProjectNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    projectDetailsGridSizer->Add(displayNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    projectDetailsGridSizer->Add(
+        pProjectDisplayNameCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    projectDetailsGridSizer->Add(0, 0);
+    projectDetailsGridSizer->Add(pProjectIsDefaultCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    projectBoxSizer->Add(projectDetailsGridSizer, wxSizerFlags().Expand().Proportion(1));
+
+    /* Category Box */
+    auto categoryBox = new wxStaticBox(this, wxID_ANY, "Category");
+    auto categoryBoxSizer = new wxStaticBoxSizer(categoryBox, wxVERTICAL);
+    sizer->Add(categoryBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Name Ctrl */
+    auto categoryNameLabel = new wxStaticText(categoryBox, wxID_ANY, "Name");
+
+    pCategoryNameTextCtrl = new wxTextCtrl(categoryBox, tksIDC_CATEGORYNAME);
+    pCategoryNameTextCtrl->SetHint("Category name");
+    pCategoryNameTextCtrl->SetToolTip("Enter a name for a category");
+
+    pCategoryNameTextCtrl->SetValidator(NameValidator());
+
+    /* Color Picker Ctrl */
+    pColorPickerCtrl = new wxColourPickerCtrl(categoryBox, tksIDC_CATEGORYCOLORPICKER);
+    pColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
+
+    pBillableCtrl = new wxCheckBox(categoryBox, tksIDC_CATEGORYBILLABLE, "Billable");
+    pBillableCtrl->SetToolTip("Indicates if a task captured with this category is billable");
+
+    /* Details Grid Sizer */
+    auto categoryDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    categoryDetailsGridSizer->AddGrowableCol(1, 1);
+
+    categoryDetailsGridSizer->Add(categoryNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    categoryDetailsGridSizer->Add(
+        pCategoryNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    categoryDetailsGridSizer->Add(0, 0);
+    categoryDetailsGridSizer->Add(pColorPickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    categoryDetailsGridSizer->Add(0, 0);
+    categoryDetailsGridSizer->Add(pBillableCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    categoryBoxSizer->Add(categoryDetailsGridSizer, wxSizerFlags().Expand().Proportion(1));
+
+    SetSizerAndFit(sizer);
 }
 
+// clang-format off
+void CreateProjectAndCategoryPage::ConfigureEventBindings()
+{
+    pProjectNameTextCtrl->Bind(
+        wxEVT_TEXT,
+        &CreateProjectAndCategoryPage::OnProjectNameChange,
+        this
+    );
+}
+// clang-format on
+
+void CreateProjectAndCategoryPage::OnProjectNameChange(wxCommandEvent& event)
+{
+    auto name = pProjectNameTextCtrl->GetValue().ToStdString();
+    pProjectDisplayNameCtrl->ChangeValue(name);
+}
+
+// -- Restore Wizard
 RestoreDatabasePage::RestoreDatabasePage(wxWizard* parent)
     : wxWizardPageSimple(parent)
     , pParent(parent)
@@ -433,7 +639,7 @@ void SkipWizardPage::CreateControls()
     auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
     welcomeLabel->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
-    std::string continueNextMessage = "\n\nTo continue, click 'Finish'";
+    std::string continueNextMessage = "\n\nTo continue and exit the wizard, click 'Finish'";
     auto continueNextLabel = new wxStaticText(this, wxID_ANY, continueNextMessage);
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));

@@ -27,6 +27,7 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/clrpicker.h>
 #include <wx/wizard.h>
 
 #include <spdlog/logger.h>
@@ -61,7 +62,9 @@ public:
 
     wxWizardPage* GetFirstPage() const;
 
+    const std::int64_t GetEmployerId() const;
     void SetEmployerId(const std::int64_t employerId);
+    const std::int64_t GetClientId() const;
     void SetClientId(const std::int64_t clientId);
 
 private:
@@ -189,7 +192,9 @@ class CreateProjectAndCategoryPage final : public wxWizardPageSimple
 public:
     CreateProjectAndCategoryPage() = delete;
     CreateProjectAndCategoryPage(const CreateProjectAndCategoryPage&) = delete;
-    CreateProjectAndCategoryPage(wxWizard* parent);
+    CreateProjectAndCategoryPage(SetupWizard* parent,
+        std::shared_ptr<spdlog::logger> logger,
+        const std::string& databasePath);
     virtual ~CreateProjectAndCategoryPage() = default;
 
     CreateProjectAndCategoryPage& operator=(const CreateProjectAndCategoryPage&) = delete;
@@ -197,9 +202,30 @@ public:
     virtual bool TransferDataFromWindow() override;
 
 private:
-    wxWizard* pParent;
-
     void CreateControls();
+    void ConfigureEventBindings();
+
+    void OnProjectNameChange(wxCommandEvent& event);
+
+    SetupWizard* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
+    std::string mDatabasePath;
+
+    wxTextCtrl* pProjectNameTextCtrl;
+    wxTextCtrl* pProjectDisplayNameCtrl;
+    wxCheckBox* pProjectIsDefaultCtrl;
+    wxTextCtrl* pCategoryNameTextCtrl;
+    wxColourPickerCtrl* pColorPickerCtrl;
+    wxCheckBox* pBillableCtrl;
+
+    enum {
+        tksIDC_PROJECTNAME = wxID_HIGHEST + 100,
+        tksIDC_PROJECTDISPLAYNAME,
+        tksIDC_PROJECTISDEFAULT,
+        tksIDC_CATEGORYNAME,
+        tksIDC_CATEGORYCOLORPICKER,
+        tksIDC_CATEGORYBILLABLE,
+    };
 };
 
 class RestoreDatabasePage final : public wxWizardPageSimple
