@@ -587,7 +587,7 @@ bool ProjectDialog::TransferDataAndValidate()
         auto valMsg = "Display name is required";
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pNameTextCtrl);
+        toolTip.ShowFor(pDisplayNameCtrl);
         return false;
     }
 
@@ -597,7 +597,7 @@ bool ProjectDialog::TransferDataAndValidate()
             MAX_CHARACTER_COUNT_NAMES);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pNameTextCtrl);
+        toolTip.ShowFor(pDisplayNameCtrl);
         return false;
     }
 
@@ -638,7 +638,7 @@ bool ProjectDialog::TransferDataAndValidate()
     }
 
     mProjectModel.Name = Utils::TrimWhitespace(name);
-    mProjectModel.DisplayName = displayName;
+    mProjectModel.DisplayName = Utils::TrimWhitespace(displayName);
     mProjectModel.IsDefault = pIsDefaultCtrl->GetValue();
     mProjectModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
     mProjectModel.EmployerId = employerIdData->GetValue();

@@ -79,8 +79,8 @@ private:
     wxWindow* pParent;
     wxTextCtrl* pNameTextCtrl;
     wxTextCtrl* pDisplayNameCtrl;
-    wxTextCtrl* pDescriptionTextCtrl;
     wxCheckBox* pIsDefaultCtrl;
+    wxTextCtrl* pDescriptionTextCtrl;
     wxChoice* pEmployerChoiceCtrl;
     wxChoice* pClientChoiceCtrl;
     wxTextCtrl* pDateCreatedTextCtrl;
@@ -97,8 +97,8 @@ private:
     enum {
         tksIDC_NAME = wxID_HIGHEST + 1,
         tksIDC_DISPLAYNAME,
-        tksIDC_DESCRIPTION,
         tksIDC_ISDEFAULT,
+        tksIDC_DESCRIPTION,
         tksIDC_EMPLOYERCHOICE,
         tksIDC_CLIENTCHOICE,
         tksIDC_ISACTIVE
