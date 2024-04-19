@@ -79,6 +79,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     pWelcomePage = new WelcomePage(this);
     pCreateEmployerAndClientPage = new CreateEmployerAndClientPage(this, pLogger, mDatabasePath);
     pCreateProjectAndCategoryPage = new CreateProjectAndCategoryPage(this, pLogger, mDatabasePath);
+    pSetupCompletePage = new SetupCompletePage(this);
     pRestoreDatabasePage = new RestoreDatabasePage(this);
     pSkipWizardPage = new SkipWizardPage(this);
 
@@ -90,6 +91,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     pRestoreDatabasePage->SetPrev(pOptionPage);
 
     pCreateEmployerAndClientPage->Chain(pCreateProjectAndCategoryPage);
+    pCreateProjectAndCategoryPage->Chain(pSetupCompletePage);
 
     GetPageAreaSizer()->Add(pWelcomePage);
 }
@@ -399,6 +401,7 @@ CreateProjectAndCategoryPage::CreateProjectAndCategoryPage(SetupWizard* parent,
     , mDatabasePath(databasePath)
 {
     CreateControls();
+    ConfigureEventBindings();
 }
 
 bool CreateProjectAndCategoryPage::TransferDataFromWindow()
@@ -450,7 +453,7 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     project.IsDefault = pProjectIsDefaultCtrl->GetValue();
     project.EmployerId = pParent->GetEmployerId();
     project.ClientId =
-        pParent->GetClientId() == 0 ? std::nullopt : std::make_optional<std::int64_t>(pParent->GetClientId());
+        pParent->GetClientId() == -1 ? std::nullopt : std::make_optional<std::int64_t>(pParent->GetClientId());
 
     std::int64_t projectId = projectDao.Create(project);
     if (projectId == -1) {
@@ -601,6 +604,37 @@ void CreateProjectAndCategoryPage::OnProjectNameChange(wxCommandEvent& event)
 {
     auto name = pProjectNameTextCtrl->GetValue().ToStdString();
     pProjectDisplayNameCtrl->ChangeValue(name);
+}
+
+SetupCompletePage::SetupCompletePage(SetupWizard* parent)
+    : wxWizardPageSimple(parent)
+    , pParent(parent)
+{
+    CreateControls();
+    DisableBackButton();
+}
+
+void SetupCompletePage::CreateControls()
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    std::string labelMessage = "The wizard has completed setting up\nTaskies on your computer";
+    auto label = new wxStaticText(this, wxID_ANY, labelMessage);
+    label->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+    std::string continueNextMessage = "\n\nTo exit the wizard, click 'Finish'";
+    auto continueNextLabel = new wxStaticText(this, wxID_ANY, continueNextMessage);
+
+    sizer->Add(label, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(continueNextLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    SetSizerAndFit(sizer);
+}
+
+void SetupCompletePage::DisableBackButton() const
+{
+    auto backButton = FindWindowById(wxID_BACKWARD, GetParent());
+    backButton->Disable();
 }
 
 // -- Restore Wizard

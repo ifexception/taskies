@@ -44,6 +44,7 @@ class WelcomePage;
 class OptionPage;
 class CreateEmployerAndClientPage;
 class CreateProjectAndCategoryPage;
+class SetupCompletePage;
 class RestoreDatabasePage;
 class SkipWizardPage;
 
@@ -76,6 +77,7 @@ private:
     OptionPage* pOptionPage;
     CreateEmployerAndClientPage* pCreateEmployerAndClientPage;
     CreateProjectAndCategoryPage* pCreateProjectAndCategoryPage;
+    SetupCompletePage* pSetupCompletePage;
     RestoreDatabasePage* pRestoreDatabasePage;
     SkipWizardPage* pSkipWizardPage;
 
@@ -175,14 +177,14 @@ public:
     virtual bool TransferDataFromWindow() override;
 
 private:
+    void CreateControls();
+
     SetupWizard* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabasePath;
 
     wxTextCtrl* pEmployerNameTextCtrl;
     wxTextCtrl* pClientNameTextCtrl;
-
-    void CreateControls();
 
     enum { tksIDC_EMPLOYERNAME = wxID_HIGHEST + 100, tksIDC_CLIENTNAME };
 };
@@ -228,6 +230,21 @@ private:
     };
 };
 
+class SetupCompletePage final : public wxWizardPageSimple
+{
+public:
+    SetupCompletePage() = delete;
+    SetupCompletePage(const SetupCompletePage&) = delete;
+    SetupCompletePage(SetupWizard* parent);
+    virtual ~SetupCompletePage() = default;
+
+private:
+    void CreateControls();
+    void DisableBackButton() const;
+
+    SetupWizard* pParent;
+};
+
 class RestoreDatabasePage final : public wxWizardPageSimple
 {
 public:
@@ -239,9 +256,9 @@ public:
     RestoreDatabasePage& operator=(const RestoreDatabasePage&) = delete;
 
 private:
-    wxWizard* pParent;
-
     void CreateControls();
+
+    wxWizard* pParent;
 };
 
 class SkipWizardPage final : public wxWizardPageSimple
@@ -255,9 +272,9 @@ public:
     SkipWizardPage& operator=(const SkipWizardPage&) = delete;
 
 private:
-    wxWizard* pParent;
-
     void CreateControls();
+
+    wxWizard* pParent;
 };
 } // namespace UI::wizard
 } // namespace tks
