@@ -448,8 +448,8 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     // Save project
     DAO::ProjectDao projectDao(pLogger, mDatabasePath);
     Model::ProjectModel project;
-    project.Name = projectName;
-    project.DisplayName = projectDisplayName;
+    project.Name = Utils::TrimWhitespace(projectName);
+    project.DisplayName = Utils::TrimWhitespace(projectDisplayName);
     project.IsDefault = pProjectIsDefaultCtrl->GetValue();
     project.EmployerId = pParent->GetEmployerId();
     project.ClientId =
@@ -484,7 +484,7 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     // Save category
     DAO::CategoryDao categoryDao(pLogger, mDatabasePath);
     Model::CategoryModel category;
-    category.Name = categoryName;
+    category.Name = Utils::TrimWhitespace(categoryName);
     category.Color = pColorPickerCtrl->GetColour().GetRGB();
     category.Billable = pBillableCtrl->GetValue();
     category.ProjectId = std::make_optional<std::int64_t>(projectId);
