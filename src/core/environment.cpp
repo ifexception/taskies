@@ -266,7 +266,7 @@ std::string Environment::GetRegistryKey()
                 return "";
             }
         } else {
-            return "";
+            return debugKey;
         }
     }
 
@@ -281,7 +281,7 @@ std::string Environment::GetRegistryKey()
                 return "";
             }
         } else {
-            return "";
+            return releaseKey;
         }
     }
     default:
