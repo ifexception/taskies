@@ -77,6 +77,7 @@ EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
 EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnNewCategory)
+EVT_MENU(ID_TASKS_BACKUPDATABASE, MainFrame::OnTasksBackupDatabase)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
@@ -240,6 +241,16 @@ void MainFrame::CreateControls()
     fileNewMenu->Append(ID_NEW_CATEGORY, "New Category", "Create new category");
     fileMenu->AppendSubMenu(fileNewMenu, "New");
     fileMenu->AppendSeparator();
+
+    auto fileTasksMenu = new wxMenu();
+    auto fileTasksMenuItem =
+        fileTasksMenu->Append(ID_TASKS_BACKUPDATABASE, "&Backup Database", "Backup a copy of the database");
+    if (!pCfg->BackupDatabase()) {
+        fileTasksMenuItem->Enable(false);
+    }
+    fileMenu->AppendSubMenu(fileTasksMenu, "Tasks");
+    fileMenu->AppendSeparator();
+
     auto exitMenuItem = fileMenu->Append(wxID_EXIT, "Exit\tAlt-F4", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
@@ -531,6 +542,47 @@ void MainFrame::OnNewCategory(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger, mDatabaseFilePath);
     addCategories.ShowModal();
+}
+
+void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
+{
+    int rc = 0;
+    sqlite3* db = nullptr;
+    sqlite3* backupDb = nullptr;
+    sqlite3_backup* backup = nullptr;
+
+    rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(db);
+        pLogger->error(
+            LogMessage::OpenDatabaseTemplate, "MainFrame::OnTasksBackupDatabase", mDatabaseFilePath, rc, err);
+        return;
+    }
+
+    auto backupFilePath = fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseName());
+    rc = sqlite3_open(backupFilePath.c_str(), &backupDb);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(db);
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "MainFrame::OnTasksBackupDatabase", backupFilePath, rc, err);
+        return;
+    }
+
+    backup = sqlite3_backup_init(db, "main", backupDb, "main");
+    if (backup) {
+        sqlite3_backup_step(backup, -1);
+        sqlite3_backup_finish(backup);
+    }
+
+    rc = sqlite3_errcode(backupDb);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(backupDb);
+        pLogger->error("{0} - Failed to backup database to {1}. Error {3}: \"{4}\"",
+            "MainFrame::OnTasksBackupDatabase",
+            backupFilePath,
+            rc,
+            err);
+        return;
+    }
 }
 
 void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))

@@ -57,6 +57,7 @@ enum class MenuIds : int {
     File_NewClient,
     File_NewProject,
     File_NewCategory,
+    File_TasksDatabaseBackup,
     Edit_Employer,
     Edit_Client,
     Edit_Project,
@@ -78,6 +79,7 @@ static const int ID_NEW_EMPLOYER = static_cast<int>(MenuIds::File_NewEmployer);
 static const int ID_NEW_CLIENT = static_cast<int>(MenuIds::File_NewClient);
 static const int ID_NEW_PROJECT = static_cast<int>(MenuIds::File_NewProject);
 static const int ID_NEW_CATEGORY = static_cast<int>(MenuIds::File_NewCategory);
+static const int ID_TASKS_BACKUPDATABASE = static_cast<int>(MenuIds::File_TasksDatabaseBackup);
 
 /* Edit */
 static const int ID_EDIT_EMPLOYER = static_cast<int>(MenuIds::Edit_Employer);
@@ -140,6 +142,7 @@ private:
     void OnNewClient(wxCommandEvent& event);
     void OnNewProject(wxCommandEvent& event);
     void OnNewCategory(wxCommandEvent& event);
+    void OnTasksBackupDatabase(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnEditEmployer(wxCommandEvent& event);
     void OnEditClient(wxCommandEvent& event);
