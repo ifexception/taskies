@@ -218,6 +218,7 @@ void PreferencesDatabasePage::OnBackupDatabaseCheck(wxCommandEvent& event)
     } else {
         pBrowseBackupPathButton->Disable();
         pBackupsRetentionPeriodSpinCtrl->Disable();
+        pBackupPathTextCtrl->ChangeValue(wxEmptyString);
     }
 }
 
