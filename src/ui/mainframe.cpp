@@ -546,6 +546,13 @@ void MainFrame::OnNewCategory(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
 {
+    if (!pCfg->BackupDatabase()) {
+        wxMessageBox("Backups are toggled off!\nToggle backups in \"File\">\"Tasks\">\"Backup Database\"",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_WARNING);
+        return;
+    }
+
     int rc = 0;
     sqlite3* db = nullptr;
     sqlite3* backupDb = nullptr;
@@ -567,7 +574,7 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
         return;
     }
 
-    backup = sqlite3_backup_init(db, "main", backupDb, "main");
+    backup = sqlite3_backup_init(/*destination*/ backupDb, "main", /*source*/ db, "main");
     if (backup) {
         sqlite3_backup_step(backup, -1);
         sqlite3_backup_finish(backup);
@@ -583,6 +590,16 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
             err);
         return;
     }
+
+    sqlite3_close(db);
+    sqlite3_close(backupDb);
+
+    std::string message = "Backup successful!";
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(this, addNotificationEvent);
 }
 
 void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
@@ -641,6 +658,11 @@ void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
         }
         if (!pCfg->ShowInTray() && pTaskBarIcon->IsIconInstalled()) {
             pTaskBarIcon->RemoveIcon();
+        }
+        if (pCfg->BackupDatabase()) {
+            GetMenuBar()->Enable(ID_TASKS_BACKUPDATABASE, true);
+        } else {
+            GetMenuBar()->Enable(ID_TASKS_BACKUPDATABASE, false);
         }
     }
 }
