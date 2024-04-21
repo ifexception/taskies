@@ -28,6 +28,7 @@
 #include "../../common/validator.h"
 
 #include "../../core/environment.h"
+#include "../../core/configuration.h"
 
 #include "../../dao/employerdao.h"
 #include "../../dao/clientdao.h"
@@ -46,6 +47,7 @@ namespace tks::UI::wizard
 SetupWizard::SetupWizard(wxFrame* frame,
     std::shared_ptr<spdlog::logger> logger,
     std::shared_ptr<Core::Environment> env,
+    std::shared_ptr<Core::Configuration> cfg,
     const std::string& databasePath)
     : wxWizard(frame,
           wxID_ANY,
@@ -54,6 +56,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
               wxSize(116, 260)))
     , pLogger(logger)
     , pEnv(env)
+    , pCfg(cfg)
     , mDatabasePath(databasePath)
     , pWelcomePage(nullptr)
     , pOptionPage(nullptr)
@@ -80,7 +83,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     pCreateEmployerAndClientPage = new CreateEmployerAndClientPage(this, pLogger, mDatabasePath);
     pCreateProjectAndCategoryPage = new CreateProjectAndCategoryPage(this, pLogger, mDatabasePath);
     pSetupCompletePage = new SetupCompletePage(this);
-    pRestoreDatabasePage = new RestoreDatabasePage(this);
+    pRestoreDatabasePage = new RestoreDatabasePage(this, pLogger, pEnv, pCfg);
     pSkipWizardPage = new SkipWizardPage(this);
 
     pOptionPage =
@@ -638,11 +641,19 @@ void SetupCompletePage::DisableBackButton() const
 }
 
 // -- Restore Wizard
-RestoreDatabasePage::RestoreDatabasePage(wxWizard* parent)
+RestoreDatabasePage::RestoreDatabasePage(SetupWizard* parent,
+    std::shared_ptr<spdlog::logger> logger,
+    std::shared_ptr<Core::Environment> env,
+    std::shared_ptr<Core::Configuration> cfg)
     : wxWizardPageSimple(parent)
     , pParent(parent)
+    , pLogger(logger)
+    , pEnv(env)
+    , pCfg(cfg)
 {
     CreateControls();
+    ConfigureEventBindings();
+    DataToControls();
 }
 
 void RestoreDatabasePage::CreateControls()
@@ -655,8 +666,75 @@ void RestoreDatabasePage::CreateControls()
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
+    /* Backup box */
+    auto backupBox = new wxStaticBox(this, wxID_ANY, "Backup");
+    auto backupBoxSizer = new wxStaticBoxSizer(backupBox, wxVERTICAL);
+    sizer->Add(backupBoxSizer, wxSizerFlags().Expand());
+
+    /* Backup path sizer */
+    auto backupPathSizer = new wxBoxSizer(wxHORIZONTAL);
+    auto backupPathLabel = new wxStaticText(backupBox, wxID_ANY, "Path");
+    pBackupPathTextCtrl = new wxTextCtrl(
+        backupBox, tksIDC_BACKUP_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
+    pBrowseBackupPathButton = new wxButton(backupBox, tksIDC_BACKUP_PATH_BUTTON, "Browse...");
+    pBrowseBackupPathButton->SetToolTip("Browse and select the backups directory");
+    backupPathSizer->Add(backupPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
+    backupPathSizer->Add(pBackupPathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
+    backupPathSizer->Add(pBrowseBackupPathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
+    backupBoxSizer->Add(backupPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+
+    /* Restore box */
+    auto restoreBox = new wxStaticBox(this, wxID_ANY, "Restore");
+    auto restoreBoxSizer = new wxStaticBoxSizer(restoreBox, wxVERTICAL);
+    sizer->Add(restoreBoxSizer, wxSizerFlags().Expand());
+
+    /* Backup path sizer*/
+    auto restorePathSizer = new wxBoxSizer(wxHORIZONTAL);
+    auto restorePathLabel = new wxStaticText(restoreBox, wxID_ANY, "Path");
+    pRestorePathTextCtrl = new wxTextCtrl(
+        restoreBox, tksIDC_RESTORE_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
+    pBrowseRestorePathButton = new wxButton(restoreBox, tksIDC_RESTORE_PATH_BUTTON, "Browse...");
+    pBrowseRestorePathButton->SetToolTip("Browse and select the restore directory");
+    restorePathSizer->Add(restorePathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
+    restorePathSizer->Add(
+        pRestorePathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
+    restorePathSizer->Add(pBrowseRestorePathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
+    restoreBoxSizer->Add(restorePathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+
     SetSizerAndFit(sizer);
 }
+
+// clang-format off
+void RestoreDatabasePage::ConfigureEventBindings()
+{
+    pBrowseBackupPathButton->Bind(
+        wxEVT_BUTTON,
+        &RestoreDatabasePage::OnOpenDirectoryForBackupLocation,
+        this,
+        tksIDC_BACKUP_PATH_BUTTON
+    );
+
+    pBrowseRestorePathButton->Bind(
+        wxEVT_BUTTON,
+        &RestoreDatabasePage::OnOpenDirectoryForRestoreLocation,
+        this,
+        tksIDC_RESTORE_PATH_BUTTON
+    );
+}
+// clang-format on
+
+void RestoreDatabasePage::DataToControls()
+{
+    pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
+    pBackupPathTextCtrl->SetToolTip(pCfg->GetBackupPath());
+
+    pRestorePathTextCtrl->ChangeValue(pCfg->GetDatabasePath());
+    pRestorePathTextCtrl->SetToolTip(pCfg->GetDatabasePath());
+}
+
+void RestoreDatabasePage::OnOpenDirectoryForBackupLocation(wxCommandEvent& event) {}
+
+void RestoreDatabasePage::OnOpenDirectoryForRestoreLocation(wxCommandEvent& event) {}
 
 SkipWizardPage::SkipWizardPage(wxWizard* parent)
     : wxWizardPageSimple(parent)
@@ -673,7 +751,7 @@ void SkipWizardPage::CreateControls()
     auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
     welcomeLabel->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
-    std::string continueNextMessage = "\n\nTo continue and exit the wizard, click 'Finish'";
+    std::string continueNextMessage = "\n\nTo exit the wizard, click 'Finish'";
     auto continueNextLabel = new wxStaticText(this, wxID_ANY, continueNextMessage);
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));

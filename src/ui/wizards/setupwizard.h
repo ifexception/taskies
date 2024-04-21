@@ -37,6 +37,7 @@ namespace tks
 namespace Core
 {
 class Environment;
+class Configuration;
 }
 namespace UI::wizard
 {
@@ -56,6 +57,7 @@ public:
     SetupWizard(wxFrame* frame,
         std::shared_ptr<spdlog::logger> logger,
         std::shared_ptr<Core::Environment> env,
+        std::shared_ptr<Core::Configuration> cfg,
         const std::string& databasePath);
     virtual ~SetupWizard() = default;
 
@@ -71,6 +73,7 @@ public:
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
+    std::shared_ptr<Core::Configuration> pCfg;
     std::string mDatabasePath;
 
     WelcomePage* pWelcomePage;
@@ -250,15 +253,38 @@ class RestoreDatabasePage final : public wxWizardPageSimple
 public:
     RestoreDatabasePage() = delete;
     RestoreDatabasePage(const RestoreDatabasePage&) = delete;
-    RestoreDatabasePage(wxWizard* parent);
+    RestoreDatabasePage(SetupWizard* parent,
+        std::shared_ptr<spdlog::logger> logger,
+        std::shared_ptr<Core::Environment> env,
+        std::shared_ptr<Core::Configuration> cfg);
     virtual ~RestoreDatabasePage() = default;
 
     RestoreDatabasePage& operator=(const RestoreDatabasePage&) = delete;
 
 private:
     void CreateControls();
+    void ConfigureEventBindings();
+    void DataToControls();
 
-    wxWizard* pParent;
+    void OnOpenDirectoryForBackupLocation(wxCommandEvent& event);
+    void OnOpenDirectoryForRestoreLocation(wxCommandEvent& event);
+
+    SetupWizard* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
+    std::shared_ptr<Core::Environment> pEnv;
+    std::shared_ptr<Core::Configuration> pCfg;
+
+    wxTextCtrl* pBackupPathTextCtrl;
+    wxButton* pBrowseBackupPathButton;
+    wxTextCtrl* pRestorePathTextCtrl;
+    wxButton* pBrowseRestorePathButton;
+
+    enum {
+        tksIDC_BACKUP_PATH = wxID_HIGHEST + 100,
+        tksIDC_BACKUP_PATH_BUTTON,
+        tksIDC_RESTORE_PATH,
+        tksIDC_RESTORE_PATH_BUTTON,
+    };
 };
 
 class SkipWizardPage final : public wxWizardPageSimple

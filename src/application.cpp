@@ -187,7 +187,7 @@ bool Application::InitializeTranslations()
 
 bool Application::FirstStartupProcedure(wxFrame* frame)
 {
-    UI::wizard::SetupWizard wizard(frame, pLogger, pEnv, pCfg->GetDatabasePath());
+    UI::wizard::SetupWizard wizard(frame, pLogger, pEnv, pCfg, pCfg->GetDatabasePath());
     wizard.CenterOnScreen();
     auto result = wizard.RunWizard(wizard.GetFirstPage());
 
