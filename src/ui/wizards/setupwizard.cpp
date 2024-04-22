@@ -19,6 +19,7 @@
 
 #include "setupwizard.h"
 
+#include <wx/filedlg.h>
 #include <wx/richtooltip.h>
 
 #include <fmt/format.h>
@@ -66,6 +67,8 @@ SetupWizard::SetupWizard(wxFrame* frame,
     , pSkipWizardPage(nullptr)
     , mEmployerId(-1)
     , mClientId(-1)
+    , mBackupDatabasePath()
+    , mRestoreDatabasePath()
 {
     pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
     // Set left side wizard image
@@ -84,6 +87,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     pCreateProjectAndCategoryPage = new CreateProjectAndCategoryPage(this, pLogger, mDatabasePath);
     pSetupCompletePage = new SetupCompletePage(this);
     pRestoreDatabasePage = new RestoreDatabasePage(this, pLogger, pEnv, pCfg);
+    pRestoreDatabaseResultPage = new RestoreDatabaseResultPage(this, pLogger);
     pSkipWizardPage = new SkipWizardPage(this);
 
     pOptionPage =
@@ -95,6 +99,8 @@ SetupWizard::SetupWizard(wxFrame* frame,
 
     pCreateEmployerAndClientPage->Chain(pCreateProjectAndCategoryPage);
     pCreateProjectAndCategoryPage->Chain(pSetupCompletePage);
+
+    pRestoreDatabasePage->Chain(pRestoreDatabaseResultPage);
 
     GetPageAreaSizer()->Add(pWelcomePage);
 }
@@ -122,6 +128,26 @@ const std::int64_t SetupWizard::GetClientId() const
 void SetupWizard::SetClientId(const std::int64_t clientId)
 {
     mClientId = clientId;
+}
+
+const std::string& SetupWizard::GetBackupDatabasePath() const
+{
+    return mBackupDatabasePath;
+}
+
+void SetupWizard::SetBackupDatabasePath(const std::string& value)
+{
+    mBackupDatabasePath = value;
+}
+
+const std::string& SetupWizard::GetRestoreDatabasePath() const
+{
+    return mRestoreDatabasePath;
+}
+
+void SetupWizard::SetRestoreDatabasePath(const std::string& value)
+{
+    mRestoreDatabasePath = value;
 }
 
 WelcomePage::WelcomePage(SetupWizard* parent)
@@ -653,7 +679,6 @@ RestoreDatabasePage::RestoreDatabasePage(SetupWizard* parent,
 {
     CreateControls();
     ConfigureEventBindings();
-    DataToControls();
 }
 
 void RestoreDatabasePage::CreateControls()
@@ -679,7 +704,8 @@ void RestoreDatabasePage::CreateControls()
     pBrowseBackupPathButton = new wxButton(backupBox, tksIDC_BACKUP_PATH_BUTTON, "Browse...");
     pBrowseBackupPathButton->SetToolTip("Browse and select the backups directory");
     backupPathSizer->Add(backupPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
-    backupPathSizer->Add(pBackupPathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
+    backupPathSizer->Add(
+        pBackupPathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
     backupPathSizer->Add(pBrowseBackupPathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
     backupBoxSizer->Add(backupPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
@@ -709,32 +735,187 @@ void RestoreDatabasePage::ConfigureEventBindings()
 {
     pBrowseBackupPathButton->Bind(
         wxEVT_BUTTON,
-        &RestoreDatabasePage::OnOpenDirectoryForBackupLocation,
+        &RestoreDatabasePage::OnOpenFileForBackupLocation,
         this,
         tksIDC_BACKUP_PATH_BUTTON
     );
 
     pBrowseRestorePathButton->Bind(
         wxEVT_BUTTON,
-        &RestoreDatabasePage::OnOpenDirectoryForRestoreLocation,
+        &RestoreDatabasePage::OnOpenFileForRestoreLocation,
         this,
         tksIDC_RESTORE_PATH_BUTTON
     );
 }
 // clang-format on
 
-void RestoreDatabasePage::DataToControls()
+void RestoreDatabasePage::OnOpenFileForBackupLocation(wxCommandEvent& event)
 {
-    pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
-    pBackupPathTextCtrl->SetToolTip(pCfg->GetBackupPath());
+    // std::string pathDirectoryToOpenOn = pCfg->GetBackupPath();
+    std::string pathDirectoryToOpenOn;
+    if (pCfg->GetBackupPath().empty()) {
+        pathDirectoryToOpenOn = pCfg->GetDatabasePath();
+    } else {
+        pathDirectoryToOpenOn = pCfg->GetBackupPath();
+    }
 
-    pRestorePathTextCtrl->ChangeValue(pCfg->GetDatabasePath());
-    pRestorePathTextCtrl->SetToolTip(pCfg->GetDatabasePath());
+    auto openFileDialog = new wxFileDialog(this,
+        "Select a backup database file to restore from",
+        pathDirectoryToOpenOn,
+        wxEmptyString,
+        "DB files (*.db)|*.db",
+        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    int ret = openFileDialog->ShowModal();
+
+    if (ret == wxID_OK) {
+        auto selectedBackupPath = openFileDialog->GetPath().ToStdString();
+        pBackupPathTextCtrl->ChangeValue(selectedBackupPath);
+        pBackupPathTextCtrl->SetToolTip(selectedBackupPath);
+
+        pParent->SetBackupDatabasePath(selectedBackupPath);
+    }
+
+    openFileDialog->Destroy();
 }
 
-void RestoreDatabasePage::OnOpenDirectoryForBackupLocation(wxCommandEvent& event) {}
+void RestoreDatabasePage::OnOpenFileForRestoreLocation(wxCommandEvent& event)
+{
+    std::string pathDirectoryToOpenOn;
+    if (pCfg->GetDatabasePath().empty()) {
+        pathDirectoryToOpenOn = pEnv->GetDatabasePath().string();
+    } else {
+        pathDirectoryToOpenOn = pCfg->GetDatabasePath();
+    }
 
-void RestoreDatabasePage::OnOpenDirectoryForRestoreLocation(wxCommandEvent& event) {}
+    auto fullPath = std::filesystem::path(pathDirectoryToOpenOn);
+    auto& pathWithoutFileName = fullPath.remove_filename();
+    pathDirectoryToOpenOn = pathWithoutFileName.string();
+
+    auto openFileDialog = new wxFileDialog(this,
+        "Select a restore database file",
+        pathDirectoryToOpenOn,
+        wxEmptyString,
+        "DB files (*.db)|*.db",
+        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    int res = openFileDialog->ShowModal();
+
+    if (res == wxID_OK) {
+        auto selectedPath = openFileDialog->GetPath().ToStdString();
+        pRestorePathTextCtrl->SetValue(selectedPath);
+        pRestorePathTextCtrl->SetToolTip(selectedPath);
+
+        pParent->SetRestoreDatabasePath(selectedPath);
+    }
+
+    openFileDialog->Destroy();
+}
+
+RestoreDatabaseResultPage::RestoreDatabaseResultPage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger)
+    : wxWizardPageSimple(parent)
+    , pParent(parent)
+    , pLogger(logger)
+{
+    CreateControls();
+    ConfigureEventBindings();
+    DisableBackButton();
+}
+
+void RestoreDatabaseResultPage::CreateControls()
+{
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+
+    std::string welcome = "Restoring database";
+    auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
+    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+
+    sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
+    pRestoreProgressGaugeCtrl = new wxGauge(this, wxID_ANY, 100);
+    sizer->Add(pRestoreProgressGaugeCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    pStatusFeedbackLabel = new wxStaticText(this, wxID_ANY, wxEmptyString);
+    sizer->Add(pStatusFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).Left());
+
+    SetSizerAndFit(sizer);
+}
+
+// clang-format off
+void RestoreDatabaseResultPage::ConfigureEventBindings()
+{
+    Bind(
+        wxEVT_WIZARD_PAGE_SHOWN,
+        &RestoreDatabaseResultPage::OnWizardPageShown,
+        this
+    );
+}
+// clang-format on
+
+void RestoreDatabaseResultPage::DisableBackButton() const
+{
+    auto backButton = FindWindowById(wxID_BACKWARD, GetParent());
+    backButton->Disable();
+}
+
+void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event))
+{
+    pRestoreProgressGaugeCtrl->Pulse();
+
+    int rc = 0;
+    std::string backupDatabasePath = pParent->GetBackupDatabasePath();
+    std::string restoreDatabasePath = pParent->GetRestoreDatabasePath();
+
+    sqlite3* backupDb = nullptr;
+    sqlite3* restoreDb = nullptr;
+    sqlite3_backup* backup = nullptr;
+
+    rc = sqlite3_open(backupDatabasePath.c_str(), &backupDb);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(backupDb);
+        pLogger->error(LogMessage::OpenDatabaseTemplate,
+            "RestoreDatabaseResultPage::OnWizardPageShown",
+            backupDatabasePath,
+            rc,
+            err);
+        return;
+    }
+
+    rc = sqlite3_open(restoreDatabasePath.c_str(), &restoreDb);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(restoreDb);
+        pLogger->error(LogMessage::OpenDatabaseTemplate,
+            "RestoreDatabaseResultPage::OnWizardPageShown",
+            restoreDatabasePath,
+            rc,
+            err);
+        return;
+    }
+
+    //////backup = sqlite3_backup_init(/*destination*/ restoreDb, "main", /*source*/ backupDb, "main");
+    if (backup) {
+        sqlite3_backup_step(backup, -1);
+        sqlite3_backup_finish(backup);
+    }
+
+    rc = sqlite3_errcode(restoreDb);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(restoreDb);
+        pLogger->error("{0} - Failed to restore database to {1}. Error {2}: \"{3}\"",
+            "MainFrame::OnTasksBackupDatabase",
+            restoreDatabasePath,
+            rc,
+            err);
+        return;
+    }
+
+    sqlite3_close(restoreDb);
+    sqlite3_close(backupDb);
+
+    /* Complete operation */
+    std::string continueNextMessage = "\n\n\nTo exit the wizard, click 'Finish'";
+    auto statusComplete = "The wizard has restored the database successfully!" + continueNextMessage;
+    pStatusFeedbackLabel->SetLabel(statusComplete);
+    pRestoreProgressGaugeCtrl->SetValue(100);
+}
 
 SkipWizardPage::SkipWizardPage(wxWizard* parent)
     : wxWizardPageSimple(parent)

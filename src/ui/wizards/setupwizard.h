@@ -38,7 +38,7 @@ namespace Core
 {
 class Environment;
 class Configuration;
-}
+} // namespace Core
 namespace UI::wizard
 {
 class WelcomePage;
@@ -47,6 +47,7 @@ class CreateEmployerAndClientPage;
 class CreateProjectAndCategoryPage;
 class SetupCompletePage;
 class RestoreDatabasePage;
+class RestoreDatabaseResultPage;
 class SkipWizardPage;
 
 class SetupWizard final : public wxWizard
@@ -70,6 +71,11 @@ public:
     const std::int64_t GetClientId() const;
     void SetClientId(const std::int64_t clientId);
 
+    const std::string& GetBackupDatabasePath() const;
+    void SetBackupDatabasePath(const std::string& value);
+    const std::string& GetRestoreDatabasePath() const;
+    void SetRestoreDatabasePath(const std::string& value);
+
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
@@ -82,10 +88,14 @@ private:
     CreateProjectAndCategoryPage* pCreateProjectAndCategoryPage;
     SetupCompletePage* pSetupCompletePage;
     RestoreDatabasePage* pRestoreDatabasePage;
+    RestoreDatabaseResultPage* pRestoreDatabaseResultPage;
     SkipWizardPage* pSkipWizardPage;
 
     std::int64_t mEmployerId;
     std::int64_t mClientId;
+
+    std::string mBackupDatabasePath;
+    std::string mRestoreDatabasePath;
 };
 
 /*
@@ -264,10 +274,9 @@ public:
 private:
     void CreateControls();
     void ConfigureEventBindings();
-    void DataToControls();
 
-    void OnOpenDirectoryForBackupLocation(wxCommandEvent& event);
-    void OnOpenDirectoryForRestoreLocation(wxCommandEvent& event);
+    void OnOpenFileForBackupLocation(wxCommandEvent& event);
+    void OnOpenFileForRestoreLocation(wxCommandEvent& event);
 
     SetupWizard* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
@@ -285,6 +294,30 @@ private:
         tksIDC_RESTORE_PATH,
         tksIDC_RESTORE_PATH_BUTTON,
     };
+};
+
+class RestoreDatabaseResultPage final : public wxWizardPageSimple
+{
+public:
+    RestoreDatabaseResultPage() = delete;
+    RestoreDatabaseResultPage(const RestoreDatabaseResultPage&) = delete;
+    RestoreDatabaseResultPage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger);
+    virtual ~RestoreDatabaseResultPage() = default;
+
+    RestoreDatabaseResultPage& operator=(const RestoreDatabaseResultPage&) = delete;
+
+private:
+    void CreateControls();
+    void ConfigureEventBindings();
+    void DisableBackButton() const;
+
+    void OnWizardPageShown(wxWizardEvent& event);
+
+    SetupWizard* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
+
+    wxGauge* pRestoreProgressGaugeCtrl;
+    wxStaticText* pStatusFeedbackLabel;
 };
 
 class SkipWizardPage final : public wxWizardPageSimple

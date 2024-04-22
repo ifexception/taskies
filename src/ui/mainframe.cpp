@@ -583,7 +583,7 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
     rc = sqlite3_errcode(backupDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(backupDb);
-        pLogger->error("{0} - Failed to backup database to {1}. Error {3}: \"{4}\"",
+        pLogger->error("{0} - Failed to backup database to {1}. Error {2}: \"{3}\"",
             "MainFrame::OnTasksBackupDatabase",
             backupFilePath,
             rc,
