@@ -890,7 +890,7 @@ void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event)
         return;
     }
 
-    //////backup = sqlite3_backup_init(/*destination*/ restoreDb, "main", /*source*/ backupDb, "main");
+    backup = sqlite3_backup_init(/*destination*/ restoreDb, "main", /*source*/ backupDb, "main");
     if (backup) {
         sqlite3_backup_step(backup, -1);
         sqlite3_backup_finish(backup);
