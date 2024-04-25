@@ -125,7 +125,6 @@ bool Application::OnInit()
         break;
     }
 
-    // if (true) {
     if (!pEnv->IsSetup()) {
         pLogger->info("Application - Program not yet set up");
         if (!FirstStartupProcedure(frame)) {

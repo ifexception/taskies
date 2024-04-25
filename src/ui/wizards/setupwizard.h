@@ -98,25 +98,6 @@ private:
     std::string mRestoreDatabasePath;
 };
 
-/*
- * Wizard flow:
- * Welcome page
- * |
- * Restore database backup
- * ---|
- *    SelectAndRestoreDatabaseBackup
- *    Complete
- * |
- * Create entities
- * ---|
- *    AddEmployerAndClient
- *    AddProject
- *    AddCategory
- *    Complete
- * |
- * Skip
- */
-
 class WelcomePage final : public wxWizardPageSimple
 {
 public:
