@@ -156,7 +156,7 @@ std::filesystem::path Environment::GetApplicationDatabasePath()
         appDataPath = GetApplicationPath() / data;
         break;
     case BuildConfiguration::Release:
-        appDataPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString()) / data;
+        appDataPath = std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / data;
         break;
     default:
         break;
@@ -217,7 +217,7 @@ std::filesystem::path Environment::GetApplicationConfigurationPath()
         appConfigPath = GetApplicationPath();
         break;
     case BuildConfiguration::Release:
-        appConfigPath = std::filesystem::path(wxStandardPaths::Get().GetUserConfigDir().ToStdString());
+        appConfigPath = std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString());
         break;
     default:
         break;

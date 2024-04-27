@@ -19,6 +19,7 @@
 
 #include "preferencesdatabasepage.h"
 
+#include <wx/filedlg.h>
 #include <wx/richtooltip.h>
 
 #include "../../core/environment.h"
@@ -167,25 +168,13 @@ void PreferencesDatabasePage::CreateControls()
 //clang-format off
 void PreferencesDatabasePage::ConfigureEventBindings()
 {
-    pBackupDatabaseCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX,
-        &PreferencesDatabasePage::OnBackupDatabaseCheck,
-        this
-    );
+    pBackupDatabaseCheckBoxCtrl->Bind(wxEVT_CHECKBOX, &PreferencesDatabasePage::OnBackupDatabaseCheck, this);
 
     pBrowseDatabasePathButton->Bind(
-        wxEVT_BUTTON,
-        &PreferencesDatabasePage::OnOpenDirectoryForDatabaseLocation,
-        this,
-        tksIDC_DATABASE_PATH_BUTTON
-    );
+        wxEVT_BUTTON, &PreferencesDatabasePage::OnOpenDirectoryForDatabaseLocation, this, tksIDC_DATABASE_PATH_BUTTON);
 
     pBrowseBackupPathButton->Bind(
-        wxEVT_BUTTON,
-        &PreferencesDatabasePage::OnOpenDirectoryForBackupLocation,
-        this,
-        tksIDC_BACKUP_PATH_BUTTON
-    );
+        wxEVT_BUTTON, &PreferencesDatabasePage::OnOpenDirectoryForBackupLocation, this, tksIDC_BACKUP_PATH_BUTTON);
 }
 // clang-format on
 
@@ -231,16 +220,25 @@ void PreferencesDatabasePage::OnOpenDirectoryForDatabaseLocation(wxCommandEvent&
         pathDirectoryToOpenOn = pCfg->GetDatabasePath();
     }
 
-    auto openDirDialog = new wxDirDialog(this, "Select a directory for the database", pathDirectoryToOpenOn);
-    int ret = openDirDialog->ShowModal();
+    auto fullPath = std::filesystem::path(pathDirectoryToOpenOn);
+    auto& pathWithoutFileName = fullPath.remove_filename();
+    pathDirectoryToOpenOn = pathWithoutFileName.string();
+
+    auto openFileDialog = new wxFileDialog(this,
+        "Select a default database location",
+        pathDirectoryToOpenOn,
+        wxEmptyString,
+        "DB files (*.db)|*.db",
+        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    int ret = openFileDialog->ShowModal();
 
     if (ret == wxID_OK) {
-        auto selectedPath = openDirDialog->GetPath().ToStdString();
+        auto selectedPath = openFileDialog->GetPath().ToStdString();
         pDatabasePathTextCtrl->ChangeValue(selectedPath);
         pDatabasePathTextCtrl->SetToolTip(selectedPath);
     }
 
-    openDirDialog->Destroy();
+    openFileDialog->Destroy();
 }
 
 void PreferencesDatabasePage::OnOpenDirectoryForBackupLocation(wxCommandEvent& event)
@@ -253,7 +251,7 @@ void PreferencesDatabasePage::OnOpenDirectoryForBackupLocation(wxCommandEvent& e
     }
 
     auto openDirDialog = new wxDirDialog(this,
-        wxT("Select a backup directory for the database"),
+        "Select a backup directory for the database",
         pathDirectoryToOpenOn,
         wxDD_DEFAULT_STYLE,
         wxDefaultPosition);
