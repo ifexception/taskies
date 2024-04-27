@@ -150,11 +150,12 @@ void Application::InitializeLogger()
     msvcSink->set_level(spdlog::level::info);
 
     auto dialySink = std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 5, 0);
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+    /*if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
         dialySink->set_level(spdlog::level::info);
     } else {
         dialySink->set_level(spdlog::level::warn);
-    }
+    }*/
+    dialySink->set_level(spdlog::level::info);
 
     std::shared_ptr<spdlog::sinks::dist_sink_st> combinedLoggers = std::make_shared<spdlog::sinks::dist_sink_st>();
 
