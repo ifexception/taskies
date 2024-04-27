@@ -39,6 +39,25 @@
         "enableMicrosoftCodeAnalysis": true,
         "intelliSenseMode": "windows-msvc-x64",
         "addressSanitizerEnabled": false
+    },
+    {
+        "name": "x64-RelWithDebInfo",
+        "generator": "Visual Studio 17 2022 Win64",
+        "configurationType": "RelWithDebInfo",
+        "buildRoot": "${projectDir}\\build\\${name}",
+        "cmakeCommandArgs": "",
+        "buildCommandArgs": "-m -v:minimal -p:PreferredToolArchitecture=x64",
+        "variables": [
+            {
+                "name": "CMAKE_TOOLCHAIN_FILE",
+                "value": "C:\\Microsoft\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake",
+                "type": "STRING"
+            }
+        ],
+        "inheritEnvironments": [ "msvc_x64" ],
+        "enableMicrosoftCodeAnalysis": true,
+        "intelliSenseMode": "windows-msvc-x64",
+        "addressSanitizerEnabled": false
     }
   ]
 }
