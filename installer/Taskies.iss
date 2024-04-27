@@ -1,6 +1,6 @@
 ; -- Install Taskies --
 
-#define TaskiesVersion "0.0.3"
+#define TaskiesVersion "0.0.4"
 [Setup]
 AppName=Taskies
 AppVersion={#TaskiesVersion}
@@ -16,7 +16,7 @@ WizardStyle=modern
 Compression=lzma2
 SolidCompression=yes
 OutputDir=Installer
-OutputBaseFilename=Taskies-x64.0.0.3-Installer
+OutputBaseFilename=Taskies-x64.0.0.4-Installer
 LicenseFile=License.txt
 WindowResizable=no
 DisableWelcomePage=no
@@ -40,6 +40,7 @@ Source: "taskies.toml"; DestDir: "{userappdata}\Taskies"; Flags: onlyifdoesntexi
 Source: "lang\*"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\bell16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
 Source: "res\bellnotification16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
+Source: "res\wiztest.svg"; DestDir: "{app}\res"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Taskies"; Filename: "{app}\Taskies.exe"
@@ -53,8 +54,8 @@ Type: files; Name: "{userappdata}\Taskies\taskies.toml"
 Type: filesandordirs; Name: "{userappdata}\Taskies"
 Type: filesandordirs; Name: "{userdocs}\Taskies"
 
-;[Registry]
-;Root: HKCU; Subkey: "Software\Taskies"; Flags: uninsdeletekey
-;Root: HKCU; Subkey: "Software\Taskies"; ValueType: dword; ValueName: "Installed"; ValueData: 1;  Flags: uninsdeletekey
-;Root: HKCU; Subkey: "Software\Taskies"; ValueType: string; ValueName: "Version"; ValueData: {#TaskiesVersion};  Flags: preservestringtype uninsdeletekey
-;Root: HKCR; Subkey: "Applications\Taskies.exe"; ValueType: none; ValueName: "IsHostApp"
+[Registry]
+Root: HKCU; Subkey: "Software\Taskies"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Taskies"; ValueType: dword; ValueName: "Installed"; ValueData: 1;  Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Taskies"; ValueType: string; ValueName: "Version"; ValueData: {#TaskiesVersion};  Flags: preservestringtype uninsdeletekey
+Root: HKCR; Subkey: "Applications\Taskies.exe"; ValueType: none; ValueName: "IsHostApp"
