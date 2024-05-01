@@ -432,4 +432,14 @@ wxDataViewItem TaskTreeModel::TryExpandTodayDateNode(const std::string& todayDat
 
     return wxDataViewItem();
 }
+
+wxDataViewItemArray TaskTreeModel::TryCollapseDateNodes()
+{
+    wxDataViewItemArray array;
+    for (auto& root : pRoots) {
+        array.Add(wxDataViewItem((void*)root.get()));
+    }
+
+    return array;
+}
 } // namespace tks::UI

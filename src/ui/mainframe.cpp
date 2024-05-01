@@ -108,6 +108,7 @@ EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
 EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnContextMenu)
+EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnSelectionChanged)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -1173,6 +1174,24 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
 
             PopupMenu(&menu);
         }
+    }
+}
+
+void MainFrame::OnSelectionChanged(wxDataViewEvent& event)
+{
+    auto item = event.GetItem();
+    if (!item.IsOk()) {
+        return;
+    }
+    auto isContainer = pTaskTreeModel->IsContainer(item);
+    pLogger->info("MainFrame::OnSelectionChanged - IsContainer = {0}", isContainer);
+
+    if (isContainer) {
+        for (auto& item : pTaskTreeModel->TryCollapseDateNodes()) {
+            pDataViewCtrl->Collapse(item);
+        }
+
+        pDataViewCtrl->Expand(item);
     }
 }
 

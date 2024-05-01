@@ -72,6 +72,7 @@ public:
     void InsertRootAndChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
 
     wxDataViewItem TryExpandTodayDateNode(const std::string& todaysDate);
+    wxDataViewItemArray TryCollapseDateNodes();
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
