@@ -1213,9 +1213,13 @@ void MainFrame::DoResetToCurrentWeek()
         RefetchTasksForDateRange();
 
         pDateStore->Reset();
-
-        pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
     }
+
+    for (auto& item : pTaskTreeModel->TryCollapseDateNodes()) {
+        pDataViewCtrl->Collapse(item);
+    }
+
+    pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
 }
 
 void MainFrame::ResetDateRange()
