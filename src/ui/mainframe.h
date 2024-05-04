@@ -173,7 +173,7 @@ private:
     void OnToDateSelection(wxDateEvent& event);
     /* DataViewCtrl Event Handlers */
     void OnContextMenu(wxDataViewEvent& event);
-    void OnSelectionChanged(wxDataViewEvent& event);
+    void OnDataViewSelectionChanged(wxDataViewEvent& event);
 
     void DoResetToCurrentWeek();
     void ResetDateRange();

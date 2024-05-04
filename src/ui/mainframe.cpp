@@ -108,7 +108,9 @@ EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
 EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnContextMenu)
-EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnSelectionChanged)
+EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionChanged)
+/* Keyboard Event Handlers */
+//EVT_CHAR_HOOK(MainFrame::OnKeyDown)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -1177,7 +1179,7 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
     }
 }
 
-void MainFrame::OnSelectionChanged(wxDataViewEvent& event)
+void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
 {
     auto item = event.GetItem();
     if (!item.IsOk()) {
@@ -1187,10 +1189,12 @@ void MainFrame::OnSelectionChanged(wxDataViewEvent& event)
     pLogger->info("MainFrame::OnSelectionChanged - IsContainer = {0}", isContainer);
 
     if (isContainer) {
+        pLogger->info("MainFrame::OnSelectionChanged - Collapse all nodes");
         for (auto& item : pTaskTreeModel->TryCollapseDateNodes()) {
             pDataViewCtrl->Collapse(item);
         }
 
+        pLogger->info("MainFrame::OnSelectionChanged - Expand selected item");
         pDataViewCtrl->Expand(item);
     }
 }
