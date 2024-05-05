@@ -28,6 +28,7 @@ namespace tks::Core
 const std::string Configuration::Sections::GeneralSection = "general";
 const std::string Configuration::Sections::DatabaseSection = "database";
 const std::string Configuration::Sections::TaskSection = "tasks";
+const std::string Configuration::Sections::TasksViewSection = "tasksView";
 
 Configuration::Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger)
     : pEnv(env)
@@ -55,6 +56,7 @@ bool Configuration::Load()
         GetGeneralConfig(data);
         GetDatabaseConfig(data);
         GetTasksConfig(data);
+        GetTasksViewConfig(data);
     } catch (const toml::syntax_error& error) {
         pLogger->error(
             "Configuration - A TOML syntax/parse error occurred when parsing configuration file {0}", error.what());
@@ -94,11 +96,17 @@ bool Configuration::Save()
                 { "minutesIncrement", mSettings.TaskMinutesIncrement },
                 { "showProjectAssociatedCategories", mSettings.ShowProjectAssociatedCategories }
             }
+        },
+        {
+            Sections::TasksViewSection,
+            {
+                { "todayAlwaysExpanded", mSettings.TodayAlwaysExpanded }
+            }
         }
     };
     // clang-format on
 
-    const std::string configString = toml::format(data, 100);
+    const std::string configString = toml::format(data, 120);
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
@@ -161,6 +169,12 @@ bool Configuration::RestoreDefaults()
             {
                 { "minutesIncrement", 15 },
                 { "showProjectAssociatedCategories", false }
+            }
+        },
+        {
+            Sections::TasksViewSection,
+            {
+                { "todayAlwaysExpanded", false }
             }
         }
     };
@@ -305,6 +319,16 @@ void Configuration::ShowProjectAssociatedCategories(const bool value)
     mSettings.ShowProjectAssociatedCategories = value;
 }
 
+bool Configuration::TodayAlwaysExpanded() const
+{
+    return mSettings.TodayAlwaysExpanded;
+}
+
+void Configuration::TodayAlwaysExpanded(const bool value)
+{
+    mSettings.TodayAlwaysExpanded = value;
+}
+
 void Configuration::GetGeneralConfig(const toml::value& config)
 {
     const auto& generalSection = toml::find(config, Sections::GeneralSection);
@@ -334,5 +358,12 @@ void Configuration::GetTasksConfig(const toml::value& config)
 
     mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
     mSettings.ShowProjectAssociatedCategories = toml::find<bool>(taskSection, "showProjectAssociatedCategories");
+}
+
+void Configuration::GetTasksViewConfig(const toml::value& config)
+{
+    const auto& tasksViewSection = toml::find(config, Sections::TasksViewSection);
+
+    mSettings.TodayAlwaysExpanded = toml::find<bool>(tasksViewSection, "todayAlwaysExpanded");
 }
 } // namespace tks::Core

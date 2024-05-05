@@ -78,15 +78,20 @@ public:
     bool ShowProjectAssociatedCategories() const;
     void ShowProjectAssociatedCategories(const bool value);
 
+    bool TodayAlwaysExpanded() const;
+    void TodayAlwaysExpanded(const bool value);
+
 private:
     void GetGeneralConfig(const toml::value& config);
     void GetDatabaseConfig(const toml::value& config);
     void GetTasksConfig(const toml::value& config);
+    void GetTasksViewConfig(const toml::value& config);
 
     struct Sections {
         static const std::string GeneralSection;
         static const std::string DatabaseSection;
         static const std::string TaskSection;
+        static const std::string TasksViewSection;
     };
 
     struct Settings {
@@ -104,6 +109,8 @@ private:
 
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;
+
+        bool TodayAlwaysExpanded;
     };
 
     Settings mSettings;

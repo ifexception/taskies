@@ -15,3 +15,6 @@ backupRetentionPeriod=-1
 [tasks]
 minutesIncrement=15
 showProjectAssociatedCategories=false
+
+[tasksView]
+todayAlwaysExpanded=false

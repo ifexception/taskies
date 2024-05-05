@@ -1194,8 +1194,13 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
             pDataViewCtrl->Collapse(item);
         }
 
-        pLogger->info("MainFrame::OnSelectionChanged - Expand selected item");
+        pLogger->info("MainFrame::OnSelectionChanged - Expand selected item node");
         pDataViewCtrl->Expand(item);
+
+        if (pCfg->TodayAlwaysExpanded()) {
+            pLogger->info("MainFrame::OnSelectionChanged - Expand today's item node");
+            pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+        }
     }
 }
 
