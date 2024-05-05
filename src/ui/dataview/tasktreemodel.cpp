@@ -442,4 +442,23 @@ wxDataViewItemArray TaskTreeModel::TryCollapseDateNodes()
 
     return array;
 }
+
+wxDataViewItemArray TaskTreeModel::TryExpandAllDateNodes(const std::vector<std::string>& dates)
+{
+    wxDataViewItemArray array;
+    for (auto& date : dates) {
+        pLogger->info("TaskTreeModel::TryExpandAllDateNodes - Locate root node with date: \"{0}\"", date);
+        auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+            return ptr->GetProjectName() == date;
+        });
+
+        if (iterator != pRoots.end()) {
+            pLogger->info("TaskTreeModel::TryExpandTodayDateNode - Found root node to expand");
+            auto node = iterator->get();
+            array.Add(wxDataViewItem((void*) node));
+        }
+    }
+
+    return array;
+}
 } // namespace tks::UI

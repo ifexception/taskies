@@ -74,6 +74,8 @@ public:
     wxDataViewItem TryExpandTodayDateNode(const std::string& todaysDate);
     wxDataViewItemArray TryCollapseDateNodes();
 
+    wxDataViewItemArray TryExpandAllDateNodes(const std::vector<std::string>& dates);
+
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::vector<std::unique_ptr<TaskTreeModelNode>> pRoots;

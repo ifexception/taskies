@@ -84,6 +84,7 @@ EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
 EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
 EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
+EVT_MENU(ID_VIEW_EXPAND, MainFrame::OnViewExpand)
 EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
@@ -126,14 +127,17 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
         wxDEFAULT_FRAME_STYLE,
         name
     )
+    , pLogger(logger)
     , pEnv(env)
     , pCfg(cfg)
-    , pLogger(logger)
     , mDatabaseFilePath()
     , pInfoBar(nullptr)
+    , pTaskBarIcon(nullptr)
+    , pStatusBar(nullptr)
     , pNotificationPopupWindow(nullptr)
     , pFromDateCtrl(nullptr)
     , pToDateCtrl(nullptr)
+    , pNotificationButton(nullptr)
     , mBellBitmap(wxNullBitmap)
     , mBellNotificationBitmap(wxNullBitmap)
     , pDateStore(nullptr)
@@ -145,7 +149,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mToCtrlDate()
     , mTaskIdToModify(-1)
     , mTaskDate()
-    , pStatusBar(nullptr)
+    , mExpandCounter(0)
 // clang-format on
 {
     // Initialization setup
@@ -269,6 +273,7 @@ void MainFrame::CreateControls()
     /* View */
     auto viewMenu = new wxMenu();
     viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current week");
+    viewMenu->Append(ID_VIEW_EXPAND, "&Expand\tCtrl-E", "Expand date procedure");
     viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
     viewMenu->AppendSeparator();
     auto preferencesMenuItem = viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
@@ -383,9 +388,10 @@ void MainFrame::CreateControls()
     pDataViewCtrl->SetFocus();
 
     /* Accelerator Table */
-    wxAcceleratorEntry entries[2];
+    wxAcceleratorEntry entries[3];
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
+    entries[2].Set(wxACCEL_CTRL, (int) 'E', ID_VIEW_EXPAND);
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
     SetAcceleratorTable(table);
@@ -641,6 +647,45 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     wxBusyCursor wait;
 
     DoResetToCurrentWeek();
+}
+
+void MainFrame::OnViewExpand(wxCommandEvent& event)
+{
+    for (auto& item : pTaskTreeModel->TryCollapseDateNodes()) {
+        pDataViewCtrl->Collapse(item);
+    }
+
+    if (mExpandCounter == 0) {
+        std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
+        for (auto& item : pTaskTreeModel->TryExpandAllDateNodes(dates)) {
+            pDataViewCtrl->Expand(item);
+        }
+    }
+    if (mExpandCounter == 1) {
+        std::vector<std::string> dates;
+        auto todaysDate = pDateStore->TodayDate;
+        dates.push_back(date::format("%F", todaysDate));
+
+        auto yesterdaysDate = todaysDate - date::days{ 1 };
+        dates.push_back(date::format("%F", yesterdaysDate));
+
+        if (todaysDate != date::Sunday) {
+            auto tomorrowsDate = todaysDate + date::days{ 1 };
+            dates.push_back(date::format("%F", tomorrowsDate));
+        }
+
+        for (auto dataViewItem : pTaskTreeModel->TryExpandAllDateNodes(dates)) {
+            pDataViewCtrl->Expand(dataViewItem);
+        }
+    }
+    if (mExpandCounter == 2) {
+        pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+    }
+
+    mExpandCounter++;
+    if (mExpandCounter >= MAX_EXPAND_COUNT) {
+        mExpandCounter = 0;
+    }
 }
 
 void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))

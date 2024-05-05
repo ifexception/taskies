@@ -63,6 +63,7 @@ enum class MenuIds : int {
     Edit_Project,
     Edit_Category,
     View_Reset,
+    View_Expand,
     View_Day,
     View_Preferences,
     Help_About,
@@ -89,6 +90,7 @@ static const int ID_EDIT_CATEGORY = static_cast<int>(MenuIds::Edit_Category);
 
 /* View */
 static const int ID_VIEW_RESET = static_cast<int>(MenuIds::View_Reset);
+static const int ID_VIEW_EXPAND = static_cast<int>(MenuIds::View_Expand);
 static const int ID_VIEW_DAY = static_cast<int>(MenuIds::View_Day);
 static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preferences);
 
@@ -100,6 +102,8 @@ static const int ID_POP_NEW_TASK = static_cast<int>(MenuIds::Pop_NewTask);
 static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_ContainerCopyTasks);
 static const int ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS =
     static_cast<int>(MenuIds::Pop_ContainerCopyTasksWithHeaders);
+
+static const int MAX_EXPAND_COUNT = 3;
 
 namespace Core
 {
@@ -149,6 +153,7 @@ private:
     void OnEditProject(wxCommandEvent& event);
     void OnEditCategory(wxCommandEvent& event);
     void OnViewReset(wxCommandEvent& event);
+    void OnViewExpand(wxCommandEvent& event);
     void OnViewDay(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
@@ -214,6 +219,7 @@ private:
     wxDateTime mToCtrlDate;
     std::int64_t mTaskIdToModify;
     std::string mTaskDate;
+    int mExpandCounter;
 
     enum {
         tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 1000,
