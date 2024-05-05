@@ -29,6 +29,7 @@
 #include "preferencesgeneralpage.h"
 #include "preferencesdatabasepage.h"
 #include "preferencestaskspage.h"
+#include "preferencestasksviewpage.h"
 
 namespace tks::UI::dlg
 {
@@ -84,6 +85,7 @@ void PreferencesDialog::CreateControls()
     pListBox->Append("General");
     pListBox->Append("Database");
     pListBox->Append("Tasks");
+    pListBox->Append("Tasks View");
     pListBox->SetSelection(0);
 
     /* Simple Book*/
@@ -91,10 +93,12 @@ void PreferencesDialog::CreateControls()
     pGeneralPage = new PreferencesGeneralPage(pSimpleBook, pCfg, pLogger);
     pDatabasePage = new PreferencesDatabasePage(pSimpleBook, pEnv, pCfg);
     pTasksPage = new PreferencesTasksPage(pSimpleBook, pCfg, pLogger);
+    pTasksViewPage = new PreferencesTasksViewPage(pSimpleBook, pCfg, pLogger);
 
-    pSimpleBook->AddPage(pGeneralPage, wxEmptyString, true);
+    pSimpleBook->AddPage(pGeneralPage, wxEmptyString, /*bSelect=*/ true);
     pSimpleBook->AddPage(pDatabasePage, wxEmptyString, false);
     pSimpleBook->AddPage(pTasksPage, wxEmptyString, false);
+    pSimpleBook->AddPage(pTasksViewPage, wxEmptyString, false);
 
     mainSizer->Add(pListBox, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Expand());
     mainSizer->Add(pSimpleBook, wxSizerFlags().Expand().Proportion(1));
@@ -163,6 +167,8 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
 
     pGeneralPage->Reset();
     pDatabasePage->Reset();
+    pTasksPage->Reset();
+    pTasksViewPage->Reset();
 
     std::string message = "Preferences restored to defaults";
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -192,10 +198,17 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
+    if (!pTasksViewPage->IsValid()) {
+        pListBox->SetSelection(3);
+        pSimpleBook->ChangeSelection(pListBox->GetSelection());
+        return;
+    }
+
     // Save changes to cfg pointer in memory
     pGeneralPage->Save();
     pDatabasePage->Save();
     pTasksPage->Save();
+    pTasksViewPage->Save();
 
     // Save changes to disk
     pCfg->Save();

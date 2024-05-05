@@ -49,6 +49,7 @@ namespace dlg
 class PreferencesGeneralPage;
 class PreferencesDatabasePage;
 class PreferencesTasksPage;
+class PreferencesTasksViewPage;
 
 class PreferencesDialog : public wxDialog
 {
@@ -85,6 +86,7 @@ private:
     PreferencesGeneralPage* pGeneralPage;
     PreferencesDatabasePage* pDatabasePage;
     PreferencesTasksPage* pTasksPage;
+    PreferencesTasksViewPage* pTasksViewPage;
     wxButton* pOkButton;
     wxButton* pRestoreDefaultsButton;
 

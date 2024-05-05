@@ -1199,7 +1199,9 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
 
         if (pCfg->TodayAlwaysExpanded()) {
             pLogger->info("MainFrame::OnSelectionChanged - Expand today's item node");
-            pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+            if (mFromDate == pDateStore->MondayDate && mToDate == pDateStore->SundayDate) {
+                pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+            }
         }
     }
 }
