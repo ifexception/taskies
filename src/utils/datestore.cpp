@@ -60,9 +60,11 @@ void DateStore::Initialize()
     pLogger->info("DateStore::Initialize - Todays date: {0}", PrintTodayDate);
 
     MondayDate = TodayDate - (date::weekday{ TodayDate } - date::Monday);
+    PrintMondayDate = date::format("%F", MondayDate);
     pLogger->info("DateStore::Initialize - Monday date: {0}", date::format("%F", MondayDate));
 
     SundayDate = MondayDate + (date::Sunday - date::Monday);
+    PrintSundayDate = date::format("%F", SundayDate);
     pLogger->info("DateStore::Initialize - Sunday date: {0}", date::format("%F", SundayDate));
 
     auto mondayTimestamp = MondayDate.time_since_epoch();

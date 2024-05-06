@@ -40,6 +40,8 @@ struct DateStore {
     long long MondayDateSeconds;
     long long SundayDateSeconds;
     std::string PrintTodayDate;
+    std::string PrintMondayDate;
+    std::string PrintSundayDate;
 
     std::vector<std::string> MondayToSundayDateRangeList;
 
