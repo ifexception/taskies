@@ -33,15 +33,19 @@ StatusBar::StatusBar(wxWindow* parent)
     SetStatusText("Ready", Fields::Default);
 }
 
-void StatusBar::UpdateCurrentDayHours(const std::string& currentDayHours)
+void StatusBar::UpdateAllHours(const std::string& allHoursDay,
+    const std::string& allHoursWeek,
+    const std::string& allHoursMonth)
 {
-    auto text = fmt::format("Day: {0}", currentDayHours);
-    SetStatusText(text, Fields::DayHours);
+    auto text = fmt::format("Hours (D:{0}) (W:{1}) (M:{2})", allHoursDay, allHoursWeek, allHoursMonth);
+    SetStatusText(text, Fields::AllHours);
 }
 
-void StatusBar::UpdateCurrentWeekHours(const std::string& currentWeekHours)
+void StatusBar::UpdateBillableHours(const std::string& billableHoursDay,
+    const std::string& billableHoursWeek,
+    const std::string& billableHoursMonth)
 {
-    auto text = fmt::format("Week: {0}", currentWeekHours);
-    SetStatusText(text, Fields::WeekHours);
+    auto text = fmt::format("Hours (D:{0}) (W:{1}) (M:{2})", billableHoursDay, billableHoursWeek, billableHoursMonth);
+    SetStatusText(text, Fields::BillableHours);
 }
 } // namespace tks::UI

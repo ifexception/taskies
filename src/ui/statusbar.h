@@ -33,14 +33,13 @@ public:
     StatusBar(wxWindow* parent);
     virtual ~StatusBar() = default;
 
-    void UpdateCurrentDayHours(const std::string& currentDayHours);
-    void UpdateCurrentWeekHours(const std::string& currentWeekHours);
+    void UpdateAllHours(const std::string& allHoursDay,
+        const std::string& allHoursWeek,
+        const std::string& allHoursMonth);
+    void UpdateBillableHours(const std::string& billableHoursDay,
+        const std::string& billableHoursWeek,
+        const std::string& billableHoursMonth);
 
-    enum Fields {
-        Default = 0,
-        DayHours = 1,
-        WeekHours = 2,
-        Count
-    };
+    enum Fields { Default = 0, AllHours = 1, BillableHours = 2, Count };
 };
 } // namespace tks::UI
