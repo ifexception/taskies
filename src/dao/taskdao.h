@@ -48,7 +48,9 @@ public:
     int GetDescriptionById(const std::int64_t taskId, std::string& description);
     int IsDeleted(const std::int64_t taskId, bool& value);
     int GetHoursForDay(const std::string& todaysDate, std::vector<Model::TaskDurationModel>& model);
-    int GetHoursForWeek(const std::vector<std::string> weekDates, std::vector<Model::TaskDurationModel>& models);
+    int GetHoursForDateRange(const std::string& firstDayOfWeek,
+        const std::string& lastDayOfWeek,
+        std::vector<Model::TaskDurationModel>& models);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
@@ -60,6 +62,7 @@ private:
     static const std::string isActive;
     static const std::string getDescriptionById;
     static const std::string isDeleted;
-    static const std::string getHoursForToday;
+    static const std::string getAllHoursForToday;
+    static const std::string getAllHoursForDateRange;
 };
 } // namespace tks::DAO

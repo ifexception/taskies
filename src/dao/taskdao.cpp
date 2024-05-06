@@ -541,11 +541,14 @@ int TaskDao::GetHoursForDay(const std::string& todaysDate, std::vector<Model::Ta
 
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(
-        pDb, TaskDao::getHoursForToday.c_str(), static_cast<int>(TaskDao::getHoursForToday.size()), &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(pDb,
+        TaskDao::getAllHoursForToday.c_str(),
+        static_cast<int>(TaskDao::getAllHoursForToday.size()),
+        &stmt,
+        nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::getHoursForToday, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::getAllHoursForToday, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -583,7 +586,7 @@ int TaskDao::GetHoursForDay(const std::string& todaysDate, std::vector<Model::Ta
 
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::getHoursForToday, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::getAllHoursForToday, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -594,19 +597,80 @@ int TaskDao::GetHoursForDay(const std::string& todaysDate, std::vector<Model::Ta
     return 0;
 }
 
-int TaskDao::GetHoursForWeek(const std::vector<std::string> weekDates,
+int TaskDao::GetHoursForDateRange(const std::string& firstDayOfWeek,
+    const std::string& lastDayOfWeek,
     std::vector<Model::TaskDurationModel>& models)
 {
-    for (const auto& date : weekDates) {
-        std::vector<Model::TaskDurationModel> tasksDuration;
-        int rc = GetHoursForDay(date, tasksDuration);
-        if (rc != 0) {
-            pLogger->error("TaskDao - Failed to fatch task durations for day: \"{0}\"", date);
-            return rc;
-        }
+    auto paramFmt = firstDayOfWeek + "|" + lastDayOfWeek;
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", paramFmt);
 
-        models.insert(std::end(models), std::begin(tasksDuration), std::end(tasksDuration));
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        TaskDao::getAllHoursForDateRange.c_str(),
+        static_cast<int>(TaskDao::getAllHoursForDateRange.size()),
+        &stmt,
+        nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::getAllHoursForDateRange, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
     }
+
+    int bindIdx = 1;
+
+    rc = sqlite3_bind_text(
+        stmt, bindIdx++, firstDayOfWeek.c_str(), static_cast<int>(firstDayOfWeek.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "date", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_text(
+        stmt, bindIdx++, lastDayOfWeek.c_str(), static_cast<int>(lastDayOfWeek.size()), SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "date", 2, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            Model::TaskDurationModel model;
+            rc = SQLITE_ROW;
+            int columnIndex = 0;
+
+            model.Hours = sqlite3_column_int(stmt, columnIndex++);
+            model.Minutes = sqlite3_column_int(stmt, columnIndex++);
+
+            models.push_back(model);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::getAllHoursForDateRange, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskDao", paramFmt);
+
     return 0;
 }
 
@@ -669,12 +733,22 @@ const std::string TaskDao::isDeleted = "SELECT "
                                        "FROM tasks "
                                        "WHERE task_id = ?;";
 
-const std::string TaskDao::getHoursForToday = "SELECT "
-                                              "hours, "
-                                              "minutes "
-                                              "FROM tasks "
-                                              "INNER JOIN workdays "
-                                              "ON tasks.workday_id = workdays.workday_id "
-                                              "WHERE workdays.date = ? "
-                                              "AND tasks.is_active = 1";
+const std::string TaskDao::getAllHoursForToday = "SELECT "
+                                                 "hours, "
+                                                 "minutes "
+                                                 "FROM tasks "
+                                                 "INNER JOIN workdays "
+                                                 "ON tasks.workday_id = workdays.workday_id "
+                                                 "WHERE workdays.date = ? "
+                                                 "AND tasks.is_active = 1";
+
+const std::string TaskDao::getAllHoursForDateRange = "SELECT "
+                                                     "hours, "
+                                                     "minutes "
+                                                     "FROM tasks "
+                                                     "INNER JOIN workdays "
+                                                     "ON tasks.workday_id = workdays.workday_id "
+                                                     "WHERE workdays.date >= ? "
+                                                     "AND workdays.date <= ? "
+                                                     "AND tasks.is_active = 1";
 } // namespace tks::DAO
