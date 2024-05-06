@@ -1331,6 +1331,7 @@ void MainFrame::CalculateDayAndWeekTaskDurations()
     std::vector<Model::TaskDurationModel> durationsForToday;
     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
 
+    std::string allHoursDayTime;
     int rc = taskDao.GetHoursForDay(pDateStore->PrintTodayDate, durationsForToday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
@@ -1345,29 +1346,29 @@ void MainFrame::CalculateDayAndWeekTaskDurations()
         hours += (minutes / 60);
         minutes = minutes % 60;
 
-        auto time = fmt::format("{0:02}:{1:02}", hours, minutes);
-        pStatusBar->UpdateCurrentDayHours(time);
+        allHoursDayTime = fmt::format("{0:02}:{1:02}", hours, minutes);
+    }
 
-        // Fetch tasks for current week to calculate hours
-        std::vector<Model::TaskDurationModel> taskDurationsForTheWeek;
+    // Fetch tasks for current week to calculate hours
+    std::vector<Model::TaskDurationModel> taskDurationsForTheWeek;
 
-        rc = taskDao.GetHoursForWeek(pDateStore->MondayToSundayDateRangeList, taskDurationsForTheWeek);
-        if (rc != 0) {
-            QueueFetchTasksErrorNotificationEvent();
-        } else {
-            int minutes = 0;
-            int hours = 0;
-            for (auto& duration : taskDurationsForTheWeek) {
-                hours += duration.Hours;
-                minutes += duration.Minutes;
-            }
-
-            hours += (minutes / 60);
-            minutes = minutes % 60;
-
-            auto time = fmt::format("{0:02}:{1:02}", hours, minutes);
-            pStatusBar->UpdateCurrentWeekHours(time);
+    std::string allHoursWeekTime;
+    rc =
+        taskDao.GetHoursForDateRange(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate, taskDurationsForTheWeek);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        int minutes = 0;
+        int hours = 0;
+        for (auto& duration : taskDurationsForTheWeek) {
+            hours += duration.Hours;
+            minutes += duration.Minutes;
         }
+
+        hours += (minutes / 60);
+        minutes = minutes % 60;
+
+        allHoursWeekTime = fmt::format("{0:02}:{1:02}", hours, minutes);
     }
 }
 
