@@ -49,7 +49,11 @@ public:
     int IsDeleted(const std::int64_t taskId, bool& value);
     int GetHoursForDateRange(const std::string& startDate,
         const std::string& endDate,
-        std::vector<Model::TaskDurationModel>& models);
+        /*out*/ std::vector<Model::TaskDurationModel>& models);
+    int GetBillableHoursForDateRange(const std::string& startDate,
+        const std::string& endDate,
+        bool billable,
+        /*out*/ std::vector<Model::TaskDurationModel>& models);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
@@ -62,5 +66,6 @@ private:
     static const std::string getDescriptionById;
     static const std::string isDeleted;
     static const std::string getAllHoursForDateRange;
+    static const std::string getBillableHoursForDateRange;
 };
 } // namespace tks::DAO

@@ -1327,6 +1327,15 @@ void MainFrame::RefetchTasksForDate(const std::string& date, const std::int64_t 
 
 void MainFrame::CalculateStatusBarTaskDurations()
 {
+    // All hours
+    CalculateAllTaskDurations();
+
+    // Billable
+    CalculateBillableTaskDurations();
+}
+
+void MainFrame::CalculateAllTaskDurations()
+{
     // Fetch tasks to calculate hours for today
     std::vector<Model::TaskDurationModel> taskDurationsForToday;
     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
@@ -1349,7 +1358,6 @@ void MainFrame::CalculateStatusBarTaskDurations()
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
-
         allHoursWeekTime = CalculateTaskDurations(taskDurationsForTheWeek);
     }
 
@@ -1362,11 +1370,52 @@ void MainFrame::CalculateStatusBarTaskDurations()
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
-
         allHoursMonthTime = CalculateTaskDurations(taskDurationsForTheMonth);
     }
 
     pStatusBar->UpdateAllHours(allHoursDayTime, allHoursWeekTime, allHoursMonthTime);
+}
+
+void MainFrame::CalculateBillableTaskDurations()
+{
+    // Fetch tasks to calculate hours for today
+    std::vector<Model::TaskDurationModel> taskDurationsForToday;
+    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+
+    std::string billableHoursDayTime;
+    int rc = taskDao.GetBillableHoursForDateRange(
+        pDateStore->PrintTodayDate, pDateStore->PrintTodayDate, true, taskDurationsForToday);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        billableHoursDayTime = CalculateTaskDurations(taskDurationsForToday);
+    }
+
+    // Fetch tasks for current week to calculate hours
+    std::vector<Model::TaskDurationModel> taskDurationsForTheWeek;
+
+    std::string billableHoursWeekTime;
+    rc = taskDao.GetBillableHoursForDateRange(
+        pDateStore->PrintMondayDate, pDateStore->PrintSundayDate, true, taskDurationsForTheWeek);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        billableHoursWeekTime = CalculateTaskDurations(taskDurationsForTheWeek);
+    }
+
+    // Fetch tasks for current month to calculate hours
+    std::vector<Model::TaskDurationModel> taskDurationsForTheMonth;
+
+    std::string billableHoursMonthTime;
+    rc = taskDao.GetBillableHoursForDateRange(
+        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth, true, taskDurationsForTheMonth);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        billableHoursMonthTime = CalculateTaskDurations(taskDurationsForTheMonth);
+    }
+
+    pStatusBar->UpdateBillableHours(billableHoursDayTime, billableHoursWeekTime, billableHoursMonthTime);
 }
 
 std::string MainFrame::CalculateTaskDurations(const std::vector<Model::TaskDurationModel>& taskDurations)

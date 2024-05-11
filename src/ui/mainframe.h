@@ -189,6 +189,8 @@ private:
     void RefetchTasksForDate(const std::string& date, const std::int64_t taskId);
 
     void CalculateStatusBarTaskDurations();
+    void CalculateAllTaskDurations();
+    void CalculateBillableTaskDurations();
     std::string CalculateTaskDurations(const std::vector<Model::TaskDurationModel>& taskDurations);
 
     void QueueFetchTasksErrorNotificationEvent();
