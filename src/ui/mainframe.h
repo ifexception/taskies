@@ -43,6 +43,8 @@
 #include "../ui/dataview/tasktreemodel.h"
 #include "../ui/dataview/tasklistmodel.h"
 
+#include "../models/taskmodel.h"
+
 #include "../utils/datestore.h"
 
 #include "notificationpopupwindow.h"
@@ -186,7 +188,8 @@ private:
     void RefetchTasksForDateRange();
     void RefetchTasksForDate(const std::string& date, const std::int64_t taskId);
 
-    void CalculateDayAndWeekTaskDurations();
+    void CalculateStatusBarTaskDurations();
+    std::string CalculateTaskDurations(const std::vector<Model::TaskDurationModel>& taskDurations);
 
     void QueueFetchTasksErrorNotificationEvent();
 

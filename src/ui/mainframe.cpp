@@ -445,7 +445,7 @@ void MainFrame::DataToControls()
 
     pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
 
-    CalculateDayAndWeekTaskDurations();
+    CalculateStatusBarTaskDurations();
 }
 
 void MainFrame::OnClose(wxCloseEvent& event)
@@ -879,7 +879,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
             } else {
                 pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
 
-                CalculateDayAndWeekTaskDurations();
+                CalculateStatusBarTaskDurations();
             }
         }
     }
@@ -900,7 +900,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     } else {
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
 
-        CalculateDayAndWeekTaskDurations();
+        CalculateStatusBarTaskDurations();
 
         auto message = "Successfully deleted task";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -956,7 +956,7 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskInsertedId);
 
-        CalculateDayAndWeekTaskDurations();
+        CalculateStatusBarTaskDurations();
     }
 }
 
@@ -985,7 +985,7 @@ void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
         auto& foundDate = *iterator;
         pTaskTreeModel->DeleteChild(foundDate, taskDeletedId);
 
-        CalculateDayAndWeekTaskDurations();
+        CalculateStatusBarTaskDurations();
     }
 }
 
@@ -1015,7 +1015,7 @@ void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
         auto& foundDate = *iterator;
         pTaskTreeModel->DeleteChild(foundDate, taskChangedId);
 
-        CalculateDayAndWeekTaskDurations();
+        CalculateStatusBarTaskDurations();
     }
 }
 
@@ -1044,7 +1044,7 @@ void MainFrame::OnTaskDateChangedTo(wxCommandEvent& event)
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskChangedId);
 
-        CalculateDayAndWeekTaskDurations();
+        CalculateStatusBarTaskDurations();
     }
 }
 
@@ -1325,28 +1325,19 @@ void MainFrame::RefetchTasksForDate(const std::string& date, const std::int64_t 
     }
 }
 
-void MainFrame::CalculateDayAndWeekTaskDurations()
+void MainFrame::CalculateStatusBarTaskDurations()
 {
     // Fetch tasks to calculate hours for today
-    std::vector<Model::TaskDurationModel> durationsForToday;
+    std::vector<Model::TaskDurationModel> taskDurationsForToday;
     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
 
     std::string allHoursDayTime;
-    int rc = taskDao.GetHoursForDay(pDateStore->PrintTodayDate, durationsForToday);
+    int rc =
+        taskDao.GetHoursForDateRange(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate, taskDurationsForToday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
-        int minutes = 0;
-        int hours = 0;
-        for (auto& duration : durationsForToday) {
-            hours += duration.Hours;
-            minutes += duration.Minutes;
-        }
-
-        hours += (minutes / 60);
-        minutes = minutes % 60;
-
-        allHoursDayTime = fmt::format("{0:02}:{1:02}", hours, minutes);
+        allHoursDayTime = CalculateTaskDurations(taskDurationsForToday);
     }
 
     // Fetch tasks for current week to calculate hours
@@ -1358,18 +1349,40 @@ void MainFrame::CalculateDayAndWeekTaskDurations()
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
-        int minutes = 0;
-        int hours = 0;
-        for (auto& duration : taskDurationsForTheWeek) {
-            hours += duration.Hours;
-            minutes += duration.Minutes;
-        }
 
-        hours += (minutes / 60);
-        minutes = minutes % 60;
-
-        allHoursWeekTime = fmt::format("{0:02}:{1:02}", hours, minutes);
+        allHoursWeekTime = CalculateTaskDurations(taskDurationsForTheWeek);
     }
+
+    // Fetch tasks for current month to calculate hours
+    std::vector<Model::TaskDurationModel> taskDurationsForTheMonth;
+
+    std::string allHoursMonthTime;
+    rc = taskDao.GetHoursForDateRange(
+        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth, taskDurationsForTheMonth);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+
+        allHoursMonthTime = CalculateTaskDurations(taskDurationsForTheMonth);
+    }
+
+    pStatusBar->UpdateAllHours(allHoursDayTime, allHoursWeekTime, allHoursMonthTime);
+}
+
+std::string MainFrame::CalculateTaskDurations(const std::vector<Model::TaskDurationModel>& taskDurations)
+{
+    int minutes = 0;
+    int hours = 0;
+    for (auto& duration : taskDurations) {
+        hours += duration.Hours;
+        minutes += duration.Minutes;
+    }
+
+    hours += (minutes / 60);
+    minutes = minutes % 60;
+
+    std::string formattedTotal = fmt::format("{0:02}:{1:02}", hours, minutes);
+    return formattedTotal;
 }
 
 void MainFrame::QueueFetchTasksErrorNotificationEvent()
