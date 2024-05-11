@@ -535,73 +535,11 @@ int TaskDao::IsDeleted(const std::int64_t taskId, bool& value)
     return 0;
 }
 
-int TaskDao::GetHoursForDay(const std::string& todaysDate, std::vector<Model::TaskDurationModel>& models)
-{
-    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", todaysDate);
-
-    sqlite3_stmt* stmt = nullptr;
-
-    int rc = sqlite3_prepare_v2(pDb,
-        TaskDao::getAllHoursForToday.c_str(),
-        static_cast<int>(TaskDao::getAllHoursForToday.size()),
-        &stmt,
-        nullptr);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::getAllHoursForToday, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_text(stmt, 1, todaysDate.c_str(), static_cast<int>(todaysDate.size()), SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "date", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    bool done = false;
-    while (!done) {
-        switch (sqlite3_step(stmt)) {
-        case SQLITE_ROW: {
-            Model::TaskDurationModel model;
-            rc = SQLITE_ROW;
-            int columnIndex = 0;
-
-            model.Hours = sqlite3_column_int(stmt, columnIndex++);
-            model.Minutes = sqlite3_column_int(stmt, columnIndex++);
-
-            models.push_back(model);
-            break;
-        }
-        case SQLITE_DONE:
-            rc = SQLITE_DONE;
-            done = true;
-            break;
-        default:
-            break;
-        }
-    }
-
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::getAllHoursForToday, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskDao", todaysDate);
-
-    return 0;
-}
-
-int TaskDao::GetHoursForDateRange(const std::string& firstDayOfWeek,
-    const std::string& lastDayOfWeek,
+int TaskDao::GetHoursForDateRange(const std::string& startDate,
+    const std::string& endDate,
     std::vector<Model::TaskDurationModel>& models)
 {
-    auto paramFmt = firstDayOfWeek + "|" + lastDayOfWeek;
+    auto paramFmt = startDate + "|" + endDate;
     pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", paramFmt);
 
     sqlite3_stmt* stmt = nullptr;
@@ -620,8 +558,7 @@ int TaskDao::GetHoursForDateRange(const std::string& firstDayOfWeek,
 
     int bindIdx = 1;
 
-    rc = sqlite3_bind_text(
-        stmt, bindIdx++, firstDayOfWeek.c_str(), static_cast<int>(firstDayOfWeek.size()), SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt, bindIdx++, startDate.c_str(), static_cast<int>(startDate.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "date", 1, rc, err);
@@ -629,8 +566,7 @@ int TaskDao::GetHoursForDateRange(const std::string& firstDayOfWeek,
         return -1;
     }
 
-    rc = sqlite3_bind_text(
-        stmt, bindIdx++, lastDayOfWeek.c_str(), static_cast<int>(lastDayOfWeek.size()), SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt, bindIdx++, endDate.c_str(), static_cast<int>(endDate.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "date", 2, rc, err);
@@ -732,15 +668,6 @@ const std::string TaskDao::isDeleted = "SELECT "
                                        "is_active "
                                        "FROM tasks "
                                        "WHERE task_id = ?;";
-
-const std::string TaskDao::getAllHoursForToday = "SELECT "
-                                                 "hours, "
-                                                 "minutes "
-                                                 "FROM tasks "
-                                                 "INNER JOIN workdays "
-                                                 "ON tasks.workday_id = workdays.workday_id "
-                                                 "WHERE workdays.date = ? "
-                                                 "AND tasks.is_active = 1";
 
 const std::string TaskDao::getAllHoursForDateRange = "SELECT "
                                                      "hours, "

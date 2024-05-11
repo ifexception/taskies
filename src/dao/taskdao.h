@@ -47,9 +47,8 @@ public:
     int Delete(const std::int64_t taskId);
     int GetDescriptionById(const std::int64_t taskId, std::string& description);
     int IsDeleted(const std::int64_t taskId, bool& value);
-    int GetHoursForDay(const std::string& todaysDate, std::vector<Model::TaskDurationModel>& model);
-    int GetHoursForDateRange(const std::string& firstDayOfWeek,
-        const std::string& lastDayOfWeek,
+    int GetHoursForDateRange(const std::string& startDate,
+        const std::string& endDate,
         std::vector<Model::TaskDurationModel>& models);
 
 private:
@@ -62,7 +61,6 @@ private:
     static const std::string isActive;
     static const std::string getDescriptionById;
     static const std::string isDeleted;
-    static const std::string getAllHoursForToday;
     static const std::string getAllHoursForDateRange;
 };
 } // namespace tks::DAO
