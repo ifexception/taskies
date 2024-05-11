@@ -37,7 +37,7 @@ void StatusBar::UpdateAllHours(const std::string& allHoursDay,
     const std::string& allHoursWeek,
     const std::string& allHoursMonth)
 {
-    auto text = fmt::format("Hours (D:{0}) (W:{1}) (M:{2})", allHoursDay, allHoursWeek, allHoursMonth);
+    auto text = fmt::format("Hours (D - {0}) (W - {1}) (M - {2})", allHoursDay, allHoursWeek, allHoursMonth);
     SetStatusText(text, Fields::AllHours);
 }
 
@@ -45,7 +45,8 @@ void StatusBar::UpdateBillableHours(const std::string& billableHoursDay,
     const std::string& billableHoursWeek,
     const std::string& billableHoursMonth)
 {
-    auto text = fmt::format("Hours (D:{0}) (W:{1}) (M:{2})", billableHoursDay, billableHoursWeek, billableHoursMonth);
+    auto text =
+        fmt::format("Billable (D - {0}) (W - {1}) (M - {2})", billableHoursDay, billableHoursWeek, billableHoursMonth);
     SetStatusText(text, Fields::BillableHours);
 }
 } // namespace tks::UI
