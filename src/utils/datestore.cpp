@@ -61,11 +61,21 @@ void DateStore::Initialize()
 
     MondayDate = TodayDate - (date::weekday{ TodayDate } - date::Monday);
     PrintMondayDate = date::format("%F", MondayDate);
-    pLogger->info("DateStore::Initialize - Monday date: {0}", date::format("%F", MondayDate));
+    pLogger->info("DateStore::Initialize - Monday date: {0}", PrintMondayDate);
 
     SundayDate = MondayDate + (date::Sunday - date::Monday);
     PrintSundayDate = date::format("%F", SundayDate);
-    pLogger->info("DateStore::Initialize - Sunday date: {0}", date::format("%F", SundayDate));
+    pLogger->info("DateStore::Initialize - Sunday date: {0}", PrintSundayDate);
+
+    auto todayYearMonthDayDate = date::year_month_day{ TodayDate };
+    auto firstDayOfCurrentMonth = todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / 1;
+    auto lastDayOfCurrentMonth = todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / date::last;
+
+    PrintFirstDayOfMonth = date::format("%F", firstDayOfCurrentMonth);
+    pLogger->info("DateStore::Initialize - First day of the month: {0}", PrintFirstDayOfMonth);
+
+    PrintLastDayOfMonth = date::format("%F", lastDayOfCurrentMonth);
+    pLogger->info("DateStore::Initialize - Last day of the month: {0}", PrintLastDayOfMonth);
 
     auto mondayTimestamp = MondayDate.time_since_epoch();
     MondayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
