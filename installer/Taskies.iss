@@ -1,6 +1,6 @@
 ; -- Install Taskies --
 
-#define TaskiesVersion "0.0.4"
+#define TaskiesVersion "0.0.5"
 [Setup]
 AppName=Taskies
 AppVersion={#TaskiesVersion}
@@ -16,7 +16,7 @@ WizardStyle=modern
 Compression=lzma2
 SolidCompression=yes
 OutputDir=Installer
-OutputBaseFilename=Taskies-x64.0.0.4-Installer
+OutputBaseFilename=Taskies-x64.{#TaskiesVersion}-Installer
 LicenseFile=License.txt
 WindowResizable=no
 DisableWelcomePage=no
@@ -52,7 +52,7 @@ WelcomeLabel1=Welcome to the Taskies Installation Wizard
 Type: filesandordirs; Name: "{userappdata}\Taskies\logs"
 Type: files; Name: "{userappdata}\Taskies\taskies.toml"
 Type: filesandordirs; Name: "{userappdata}\Taskies"
-Type: filesandordirs; Name: "{userdocs}\Taskies"
+Type: filesandordirs; Name: "{userappdata}\Taskies"
 
 [Registry]
 Root: HKCU; Subkey: "Software\Taskies"; Flags: uninsdeletekey
