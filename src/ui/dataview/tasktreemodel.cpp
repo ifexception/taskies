@@ -26,23 +26,14 @@
 
 namespace tks::UI
 {
-TaskTreeModel::TaskTreeModel(std::chrono::time_point<std::chrono::system_clock, date::days> monday,
-    std::chrono::time_point<std::chrono::system_clock, date::days> sunday,
-    std::shared_ptr<spdlog::logger> logger)
+TaskTreeModel::TaskTreeModel(const std::vector<std::string>& weekDates, std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , pRoots()
 {
-    pLogger->info("TaskTreeModel - Initialize root nodes starting from {0}", date::format("%F", monday));
-    auto& dateIterator = monday;
-    int loopIdx = 0;
-    do {
-        pRoots.push_back(std::make_unique<TaskTreeModelNode>(nullptr, date::format("%F", dateIterator)));
-
-        dateIterator += date::days{ 1 };
-        loopIdx++;
-    } while (dateIterator != sunday);
-
-    pRoots.push_back(std::make_unique<TaskTreeModelNode>(nullptr, date::format("%F", dateIterator)));
+    pLogger->info("TaskTreeModel - Initialize root nodes from Monday to Sunday");
+    for (const auto& date : weekDates) {
+        pRoots.push_back(std::make_unique<TaskTreeModelNode>(nullptr, date));
+    }
 }
 
 TaskTreeModel::~TaskTreeModel()
@@ -245,7 +236,6 @@ void TaskTreeModel::ChangeChild(const std::string& date, repos::TaskRepositoryMo
 
     if (iterator != pRoots.end()) {
         auto parentNode = iterator->get();
-        wxDataViewItem parent((void*) parentNode);
 
         auto& children = parentNode->GetChildren();
         for (auto it = children.begin(); it != children.end(); ++it) {
@@ -262,6 +252,24 @@ void TaskTreeModel::ChangeChild(const std::string& date, repos::TaskRepositoryMo
                 break;
             }
         }
+    }
+}
+
+void TaskTreeModel::ChangeContainerLabelWithTime(const std::string date, const std::string time)
+{
+    pLogger->info("TaskTreeModel::ChangeContainerLabelWithTime - Begin");
+    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+        return ptr->GetProjectName() == date;
+    });
+
+    if (iterator != pRoots.end()) {
+        auto parentNode = iterator->get();
+
+        auto newContainerLabel = fmt::format("{0} ({1})", parentNode->GetProjectName(), time);
+        parentNode->SetProjectName(newContainerLabel);
+
+        wxDataViewItem item((void*) parentNode);
+        ItemChanged(item);
     }
 }
 
@@ -437,7 +445,7 @@ wxDataViewItemArray TaskTreeModel::TryCollapseDateNodes()
 {
     wxDataViewItemArray array;
     for (auto& root : pRoots) {
-        array.Add(wxDataViewItem((void*)root.get()));
+        array.Add(wxDataViewItem((void*) root.get()));
     }
 
     return array;

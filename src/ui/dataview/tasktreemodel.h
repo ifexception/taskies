@@ -44,8 +44,7 @@ class TaskTreeModel : public wxDataViewModel
 public:
     enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
 
-    TaskTreeModel(std::chrono::time_point<std::chrono::system_clock, date::days> monday,
-        std::chrono::time_point<std::chrono::system_clock, date::days> sunday,
+    TaskTreeModel(const std::vector<std::string>& weekDates,
         std::shared_ptr<spdlog::logger> logger);
     ~TaskTreeModel();
 
@@ -62,6 +61,7 @@ public:
     void DeleteChild(const std::string& date, const std::int64_t taskId);
 
     void ChangeChild(const std::string& date, repos::TaskRepositoryModel& taskModel);
+    void ChangeContainerLabelWithTime(const std::string date, const std::string time);
 
     void Clear();
     void ClearAll();

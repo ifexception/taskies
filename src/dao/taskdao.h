@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
+#include <map>
 
 #include <spdlog/logger.h>
 
@@ -54,6 +55,8 @@ public:
         const std::string& endDate,
         bool billable,
         /*out*/ std::vector<Model::TaskDurationModel>& models);
+    int GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
+        /*out*/ std::map<std::string, std::vector<Model::TaskDurationModel>>& durationsGroupedByDate);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
@@ -67,5 +70,6 @@ private:
     static const std::string isDeleted;
     static const std::string getAllHoursForDateRange;
     static const std::string getBillableHoursForDateRange;
+    static const std::string getAllHoursForDate;
 };
 } // namespace tks::DAO

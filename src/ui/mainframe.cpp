@@ -348,7 +348,7 @@ void MainFrame::CreateControls()
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
 
     /* Week Data View Model */
-    pTaskTreeModel = new TaskTreeModel(mFromDate, mToDate, pLogger);
+    pTaskTreeModel = new TaskTreeModel(pDateStore->MondayToSundayDateRangeList, pLogger);
     pDataViewCtrl->AssociateModel(pTaskTreeModel.get());
 
     /* Project Column */
@@ -444,6 +444,8 @@ void MainFrame::DataToControls()
     }
 
     pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+
+    CalculateAndUpdateContainerLabels(pDateStore->MondayToSundayDateRangeList);
 
     CalculateStatusBarTaskDurations();
 }
@@ -956,6 +958,8 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskInsertedId);
 
+        std::vector<std::string> dates{ foundDate };
+        CalculateAndUpdateContainerLabels(dates);
         CalculateStatusBarTaskDurations();
     }
 }
@@ -985,6 +989,8 @@ void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
         auto& foundDate = *iterator;
         pTaskTreeModel->DeleteChild(foundDate, taskDeletedId);
 
+        std::vector<std::string> dates{ foundDate };
+        CalculateAndUpdateContainerLabels(dates);
         CalculateStatusBarTaskDurations();
     }
 }
@@ -1015,6 +1021,7 @@ void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
         auto& foundDate = *iterator;
         pTaskTreeModel->DeleteChild(foundDate, taskChangedId);
 
+        CalculateAndUpdateContainerLabels(dates);
         CalculateStatusBarTaskDurations();
     }
 }
@@ -1044,6 +1051,8 @@ void MainFrame::OnTaskDateChangedTo(wxCommandEvent& event)
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskChangedId);
 
+        std::vector<std::string> dates{ foundDate };
+        CalculateAndUpdateContainerLabels(dates);
         CalculateStatusBarTaskDurations();
     }
 }
@@ -1094,6 +1103,9 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         } else {
             pTaskTreeModel->ClearAll();
             pTaskTreeModel->InsertRootAndChildNodes(date, tasks);
+
+            std::vector<std::string> dates{ date };
+            CalculateAndUpdateContainerLabels(dates);
         }
         return;
     }
@@ -1116,6 +1128,8 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
             pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
         }
+
+        CalculateAndUpdateContainerLabels(dates);
     }
 }
 
@@ -1158,6 +1172,9 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         } else {
             pTaskTreeModel->ClearAll();
             pTaskTreeModel->InsertRootAndChildNodes(date, tasks);
+
+            std::vector<std::string> dates{ date };
+            CalculateAndUpdateContainerLabels(dates);
         }
         return;
     }
@@ -1177,6 +1194,8 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
             pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
         }
+
+        CalculateAndUpdateContainerLabels(dates);
     }
 }
 
@@ -1244,9 +1263,7 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
 
         if (pCfg->TodayAlwaysExpanded()) {
             pLogger->info("MainFrame::OnSelectionChanged - Expand today's item node");
-            if (mFromDate == pDateStore->MondayDate && mToDate == pDateStore->SundayDate) {
-                pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
-            }
+            pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
         }
     }
 }
@@ -1309,6 +1326,8 @@ void MainFrame::RefetchTasksForDateRange()
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
             pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
         }
+
+        CalculateAndUpdateContainerLabels(pDateStore->MondayToSundayDateRangeList);
     }
 }
 
@@ -1322,6 +1341,9 @@ void MainFrame::RefetchTasksForDate(const std::string& date, const std::int64_t 
         QueueFetchTasksErrorNotificationEvent();
     } else {
         pTaskTreeModel->InsertChildNode(date, taskModel);
+
+        std::vector<std::string> dates{ date };
+        CalculateAndUpdateContainerLabels(dates);
     }
 }
 
@@ -1432,6 +1454,32 @@ std::string MainFrame::CalculateTaskDurations(const std::vector<Model::TaskDurat
 
     std::string formattedTotal = fmt::format("{0:02}:{1:02}", hours, minutes);
     return formattedTotal;
+}
+
+void MainFrame::CalculateAndUpdateContainerLabels(const std::vector<std::string>& dateRange)
+{
+    std::map<std::string, std::vector<Model::TaskDurationModel>> durationsGroupedByDate;
+    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+
+    int rc = taskDao.GetHoursForDateRangeGroupedByDate(dateRange, durationsGroupedByDate);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        // update container label here
+        for (auto& [date, taskDurationModels] : durationsGroupedByDate) {
+            int minutes = 0;
+            int hours = 0;
+            for (auto& duration : taskDurationModels) {
+                hours += duration.Hours;
+                minutes += duration.Minutes;
+            }
+
+            hours += (minutes / 60);
+            minutes = minutes % 60;
+            std::string formattedTime = fmt::format("{0:02}:{1:02}", hours, minutes);
+            pTaskTreeModel->ChangeContainerLabelWithTime(date, formattedTime);
+        }
+    }
 }
 
 void MainFrame::QueueFetchTasksErrorNotificationEvent()

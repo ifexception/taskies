@@ -694,6 +694,77 @@ int TaskDao::GetBillableHoursForDateRange(const std::string& startDate,
     return 0;
 }
 
+int TaskDao::GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
+    std::map<std::string, std::vector<Model::TaskDurationModel>>& durationsGroupedByDate)
+{
+    for (const auto& date : dates) {
+        pLogger->info(LogMessage::InfoBeginGetByIdEntity, "TaskDao", "task", date);
+
+        sqlite3_stmt* stmt = nullptr;
+        std::vector<Model::TaskDurationModel> models;
+
+        int rc = sqlite3_prepare_v2(pDb,
+            TaskDao::getAllHoursForDate.c_str(),
+            static_cast<int>(TaskDao::getAllHoursForDate.size()),
+            &stmt,
+            nullptr);
+        if (rc != SQLITE_OK) {
+            const char* err = sqlite3_errmsg(pDb);
+            pLogger->error(LogMessage::PrepareStatementTemplate, "TaskDao", TaskDao::getAllHoursForDate, rc, err);
+            sqlite3_finalize(stmt);
+            return -1;
+        }
+
+        int bindIndex = 1;
+
+        rc = sqlite3_bind_text(stmt, bindIndex++, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
+        if (rc != SQLITE_OK) {
+            const char* err = sqlite3_errmsg(pDb);
+            pLogger->error(LogMessage::BindParameterTemplate, "TaskDao", "date", 1, rc, err);
+            sqlite3_finalize(stmt);
+            return -1;
+        }
+
+        bool done = false;
+        while (!done) {
+            switch (sqlite3_step(stmt)) {
+            case SQLITE_ROW: {
+                Model::TaskDurationModel model{};
+
+                rc = SQLITE_ROW;
+                int columnIndex = 0;
+
+                model.Hours = sqlite3_column_int(stmt, columnIndex++);
+                model.Minutes = sqlite3_column_int(stmt, columnIndex++);
+
+                models.push_back(model);
+                break;
+            }
+            case SQLITE_DONE:
+                rc = SQLITE_DONE;
+                done = true;
+                break;
+            default:
+                break;
+            }
+        }
+
+        if (rc != SQLITE_DONE) {
+            const char* err = sqlite3_errmsg(pDb);
+            pLogger->error(LogMessage::ExecStepTemplate, "TaskDao", TaskDao::getAllHoursForDate, rc, err);
+            sqlite3_finalize(stmt);
+            return -1;
+        }
+
+        durationsGroupedByDate[date] = models;
+
+        sqlite3_finalize(stmt);
+        pLogger->info(LogMessage::InfoEndGetByIdEntity, "TaskDao", date);
+    }
+
+    return 0;
+}
+
 const std::string TaskDao::getById = "SELECT "
                                      "task_id, "
                                      "billable, "
@@ -773,4 +844,13 @@ const std::string TaskDao::getBillableHoursForDateRange = "SELECT "
                                                           "AND workdays.date <= ? "
                                                           "AND tasks.billable = ? "
                                                           "AND tasks.is_active = 1";
+
+const std::string TaskDao::getAllHoursForDate = "SELECT "
+                                                "hours, "
+                                                "minutes "
+                                                "FROM tasks "
+                                                "INNER JOIN workdays "
+                                                "ON tasks.workday_id = workdays.workday_id "
+                                                "WHERE workdays.date = ? "
+                                                "AND tasks.is_active = 1";
 } // namespace tks::DAO

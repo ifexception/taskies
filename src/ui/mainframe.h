@@ -192,6 +192,7 @@ private:
     void CalculateAllTaskDurations();
     void CalculateBillableTaskDurations();
     std::string CalculateTaskDurations(const std::vector<Model::TaskDurationModel>& taskDurations);
+    void CalculateAndUpdateContainerLabels(const std::vector<std::string>& dateRange);
 
     void QueueFetchTasksErrorNotificationEvent();
 
