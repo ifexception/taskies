@@ -95,6 +95,9 @@ EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTas
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
+/* Keyboard shortcuts */
+EVT_MENU(ID_KYB_LEFT, MainFrame::OnKeyLeft)
+EVT_MENU(ID_KYB_RIGHT, MainFrame::OnKeyRight)
 /* Error Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
@@ -110,7 +113,7 @@ EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnContextMenu)
 EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionChanged)
-/* Keyboard Event Handlers */
+/* Key Event Handlers */
 //EVT_CHAR_HOOK(MainFrame::OnKeyDown)
 wxEND_EVENT_TABLE()
 
@@ -388,10 +391,12 @@ void MainFrame::CreateControls()
     pDataViewCtrl->SetFocus();
 
     /* Accelerator Table */
-    wxAcceleratorEntry entries[3];
+    wxAcceleratorEntry entries[5];
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
     entries[2].Set(wxACCEL_CTRL, (int) 'E', ID_VIEW_EXPAND);
+    entries[3].Set(wxACCEL_CTRL, WXK_LEFT, ID_KYB_LEFT);
+    entries[4].Set(wxACCEL_CTRL, WXK_RIGHT, ID_KYB_RIGHT);
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
     SetAcceleratorTable(table);
@@ -915,6 +920,26 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
+void MainFrame::OnKeyLeft(wxCommandEvent& event)
+{
+    pLogger->info("MainFrame::OnKeyLeft - key left event received. Going back one week.");
+    auto currentMondaysDate = pDateStore->MondayDate;
+
+    auto weekBackMondaysDate = currentMondaysDate + date::weeks{ -1 };
+    pLogger->info(
+        "MainFrame::OnKeyLeft - Mondays date one week in the past: \"{0}\"", date::format("%F", weekBackMondaysDate));
+}
+
+void MainFrame::OnKeyRight(wxCommandEvent& event)
+{
+    pLogger->info("MainFrame::OnKeyRight - key right event received. Going forward one week.");
+    auto currentMondaysDate = pDateStore->MondayDate;
+
+    auto weekBackMondaysDate = currentMondaysDate + date::weeks{ 1 };
+    pLogger->info("MainFrame::OnKeyRight - Mondays date one week in the future: \"{0}\"",
+        date::format("%F", weekBackMondaysDate));
+}
+
 void MainFrame::OnError(wxCommandEvent& event)
 {
     UI::dlg::ErrorDialog errDialog(this, pEnv, pLogger, event.GetString().ToStdString());
@@ -1266,6 +1291,25 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
             pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
         }
     }
+}
+
+void MainFrame::OnKeyDown(wxKeyEvent& event)
+{
+    int direction = 0;
+    auto mondaysDate = pDateStore->MondayDate;
+
+    if (event.GetKeyCode() == WXK_RIGHT) {
+        direction = 1;
+        mondaysDate = mondaysDate + date::weeks{ direction };
+    }
+    if (event.GetKeyCode() == WXK_LEFT) {
+        direction = -1;
+        mondaysDate = mondaysDate + date::weeks{ direction };
+    }
+
+    pLogger->info("MainFrame::OnKeyDown - new date {0}", date::format("%F", mondaysDate));
+
+    event.Skip();
 }
 
 void MainFrame::DoResetToCurrentWeek()

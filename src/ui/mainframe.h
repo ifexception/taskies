@@ -73,7 +73,11 @@ enum class MenuIds : int {
     /* Popup Menu Ids */
     Pop_NewTask,
     Pop_ContainerCopyTasks,
-    Pop_ContainerCopyTasksWithHeaders
+    Pop_ContainerCopyTasksWithHeaders,
+
+    /* Keyboard shortcuts */
+    Kyb_LeftArrow,
+    Kyb_RightArrow,
 };
 
 /* File */
@@ -104,6 +108,10 @@ static const int ID_POP_NEW_TASK = static_cast<int>(MenuIds::Pop_NewTask);
 static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_ContainerCopyTasks);
 static const int ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS =
     static_cast<int>(MenuIds::Pop_ContainerCopyTasksWithHeaders);
+
+/* Keyboard shortcuts */
+static const int ID_KYB_LEFT = static_cast<int>(MenuIds::Kyb_LeftArrow);
+static const int ID_KYB_RIGHT = static_cast<int>(MenuIds::Kyb_RightArrow);
 
 static const int MAX_EXPAND_COUNT = 3;
 
@@ -166,6 +174,9 @@ private:
     void OnCopyTaskToClipboard(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
+    /* Keyboard shortcuts */
+    void OnKeyLeft(wxCommandEvent& event);
+    void OnKeyRight(wxCommandEvent& event);
     /* Error Event Handlers */ /*TODO(SW): Is this still relevant?*/
     void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
@@ -181,6 +192,8 @@ private:
     /* DataViewCtrl Event Handlers */
     void OnContextMenu(wxDataViewEvent& event);
     void OnDataViewSelectionChanged(wxDataViewEvent& event);
+    /* Key Event Handlers */
+    void OnKeyDown(wxKeyEvent& event);
 
     void DoResetToCurrentWeek();
     void ResetDateRange();
