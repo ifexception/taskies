@@ -53,6 +53,37 @@ std::vector<std::string> DateStore::CalculateDatesInRange(
     return dates;
 }
 
+void DateStore::ReinitializeFromWeekChange(std::chrono::time_point<std::chrono::system_clock, date::days> newMondayDate)
+{
+    MondayDate = newMondayDate;
+    PrintMondayDate = date::format("%F", MondayDate);
+    pLogger->info("DateStore::ReinitializeFromWeekChange - Monday date: {0}", PrintMondayDate);
+
+    SundayDate = MondayDate + (date::Sunday - date::Monday);
+    PrintSundayDate = date::format("%F", SundayDate);
+    pLogger->info("DateStore::ReinitializeFromWeekChange - Sunday date: {0}", PrintSundayDate);
+
+    auto mondayTimestamp = MondayDate.time_since_epoch();
+    MondayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
+
+    auto sundayTimestamp = SundayDate.time_since_epoch();
+    SundayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
+
+    MondayToSundayDateRangeList.clear();
+
+    auto dateIterator = MondayDate;
+    int index = 0;
+
+    do {
+        MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
+
+        dateIterator += date::days{ 1 };
+        index++;
+    } while (dateIterator != SundayDate);
+
+    MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
+}
+
 void DateStore::Initialize()
 {
     TodayDate = date::floor<date::days>(std::chrono::system_clock::now());
@@ -62,6 +93,8 @@ void DateStore::Initialize()
     MondayDate = TodayDate - (date::weekday{ TodayDate } - date::Monday);
     PrintMondayDate = date::format("%F", MondayDate);
     pLogger->info("DateStore::Initialize - Monday date: {0}", PrintMondayDate);
+
+    CurrentWeekMondayDate = MondayDate;
 
     SundayDate = MondayDate + (date::Sunday - date::Monday);
     PrintSundayDate = date::format("%F", SundayDate);
@@ -83,14 +116,14 @@ void DateStore::Initialize()
     auto sundayTimestamp = SundayDate.time_since_epoch();
     SundayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
 
+    MondayToSundayDateRangeList.clear();
+
     auto dateIterator = MondayDate;
-    int index = 0;
 
     do {
         MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
 
         dateIterator += date::days{ 1 };
-        index++;
     } while (dateIterator != SundayDate);
 
     MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));

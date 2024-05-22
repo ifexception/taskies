@@ -35,6 +35,7 @@ struct DateStore {
     ~DateStore() = default;
 
     std::chrono::time_point<std::chrono::system_clock, date::days> TodayDate;
+    std::chrono::time_point<std::chrono::system_clock, date::days> CurrentWeekMondayDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> MondayDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> SundayDate;
 
@@ -54,6 +55,8 @@ struct DateStore {
     std::vector<std::string> CalculateDatesInRange(
         std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate,
         std::chrono::time_point<std::chrono::system_clock, date::days> mToDate);
+
+    void ReinitializeFromWeekChange(std::chrono::time_point<std::chrono::system_clock, date::days> newMondayDate);
 
     // -private
     void Initialize();

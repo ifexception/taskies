@@ -51,6 +51,8 @@
 #include "taskbaricon.h"
 #include "statusbar.h"
 
+wxDateTime MakeMaximumFromDate();
+
 namespace tks
 {
 enum class MenuIds : int {
@@ -211,8 +213,11 @@ private:
 
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
+    void SetFromAndToDatePickerRanges();
 
     void ResetTaskContextMenuVariables();
+
+    void OnWeekChangedProcedure();
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;

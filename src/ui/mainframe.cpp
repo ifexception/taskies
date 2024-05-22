@@ -63,6 +63,17 @@
 #include "events.h"
 #include "notificationclientdata.h"
 
+
+wxDateTime MakeMaximumFromDate()
+{
+    wxDateTime maxFromDate = wxDateTime::Now();
+    maxFromDate.SetYear(2015);
+    maxFromDate.SetMonth(wxDateTime::Jan);
+    maxFromDate.SetDay(1);
+
+    return maxFromDate;
+}
+
 namespace tks::UI
 {
 // clang-format off
@@ -414,11 +425,7 @@ void MainFrame::FillControls()
     // wxDatePickerCtrl needs a from and to date for the range
     // So we pick 2015-01-01 as that date
     // Conceivably, a user shouldn't go that far back
-    wxDateTime maxFromDate = wxDateTime::Now();
-    maxFromDate.SetYear(2015);
-    maxFromDate.SetMonth(wxDateTime::Jan);
-    maxFromDate.SetDay(1);
-    pFromDateCtrl->SetRange(maxFromDate, wxDateTime(pDateStore->SundayDateSeconds));
+    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
     pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), wxDateTime(pDateStore->SundayDateSeconds));
 }
 
@@ -923,11 +930,19 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnKeyLeft(wxCommandEvent& event)
 {
     pLogger->info("MainFrame::OnKeyLeft - key left event received. Going back one week.");
+    // get the current week's monday date
     auto currentMondaysDate = pDateStore->MondayDate;
 
+    // calculate last week's monday date
     auto weekBackMondaysDate = currentMondaysDate + date::weeks{ -1 };
     pLogger->info(
         "MainFrame::OnKeyLeft - Mondays date one week in the past: \"{0}\"", date::format("%F", weekBackMondaysDate));
+
+    // date store needs to recalculate the dates for the new range
+    pDateStore->ReinitializeFromWeekChange(weekBackMondaysDate);
+
+    // update the data view control for a week change event
+    OnWeekChangedProcedure();
 }
 
 void MainFrame::OnKeyRight(wxCommandEvent& event)
@@ -935,9 +950,9 @@ void MainFrame::OnKeyRight(wxCommandEvent& event)
     pLogger->info("MainFrame::OnKeyRight - key right event received. Going forward one week.");
     auto currentMondaysDate = pDateStore->MondayDate;
 
-    auto weekBackMondaysDate = currentMondaysDate + date::weeks{ 1 };
+    auto weekForwardMondaysDate = currentMondaysDate + date::weeks{ 1 };
     pLogger->info("MainFrame::OnKeyRight - Mondays date one week in the future: \"{0}\"",
-        date::format("%F", weekBackMondaysDate));
+        date::format("%F", weekForwardMondaysDate));
 }
 
 void MainFrame::OnError(wxCommandEvent& event)
@@ -1168,6 +1183,7 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
+    // TODO rethink this SetRange call here. It does not make sense what it is doing
     pToDateCtrl->SetRange(mFromCtrlDate, wxDateTime(pDateStore->SundayDateSeconds));
 
     if (eventDateUtc < mFromCtrlDate) {
@@ -1324,12 +1340,16 @@ void MainFrame::DoResetToCurrentWeek()
         shouldReset = true;
     }
 
+    if (pDateStore->MondayDate != pDateStore->CurrentWeekMondayDate) {
+        shouldReset = true;
+    }
+
     if (shouldReset) {
+        pDateStore->Reset();
+
         ResetDateRange();
         ResetDatePickerValues();
         RefetchTasksForDateRange();
-
-        pDateStore->Reset();
     }
 
     for (auto& item : pTaskTreeModel->TryCollapseDateNodes()) {
@@ -1540,19 +1560,63 @@ void MainFrame::SetFromDateAndDatePicker()
 {
     pFromDateCtrl->SetValue(pDateStore->MondayDateSeconds);
 
+    pLogger->info("MainFrame::SetFromDateAndDatePicker - Reset pFromDateCtrl to: {0}",
+        pFromDateCtrl->GetValue().FormatISODate().ToStdString());
+
     mFromCtrlDate = pDateStore->MondayDateSeconds;
+
+    pLogger->info(
+        "MainFrame::SetFromDateAndDatePicker - Reset mFromCtrlDate to: {0}", mFromCtrlDate.FormatISODate().ToStdString());
 }
 
 void MainFrame::SetToDateAndDatePicker()
 {
     pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
 
+    pLogger->info("MainFrame::SetToDateAndDatePicker - Reset pToDateCtrl to: {0}",
+        pToDateCtrl->GetValue().FormatISODate().ToStdString());
+
     mToCtrlDate = pDateStore->SundayDateSeconds;
+
+    pLogger->info(
+        "MainFrame::SetToDateAndDatePicker - Reset mToCtrlDate to: {0}", mToCtrlDate.FormatISODate().ToStdString());
+}
+
+void MainFrame::SetFromAndToDatePickerRanges()
+{
+    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
+    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), wxDateTime(pDateStore->SundayDateSeconds));
 }
 
 void MainFrame::ResetTaskContextMenuVariables()
 {
     mTaskIdToModify = -1;
     mTaskDate = "";
+}
+
+void MainFrame::OnWeekChangedProcedure()
+{
+    // Fetch tasks between from date and to date
+    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
+    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+
+    int rc = taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        pTaskTreeModel->ClearAll();
+        for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
+            pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
+        }
+
+        pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+
+        CalculateAndUpdateContainerLabels(pDateStore->MondayToSundayDateRangeList);
+
+        CalculateStatusBarTaskDurations();
+
+        SetFromDateAndDatePicker();
+        SetToDateAndDatePicker();
+    }
 }
 } // namespace tks::UI
