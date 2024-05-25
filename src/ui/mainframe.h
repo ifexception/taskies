@@ -211,9 +211,9 @@ private:
 
     void QueueFetchTasksErrorNotificationEvent();
 
+    void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
-    void SetFromAndToDatePickerRanges();
 
     void ResetTaskContextMenuVariables();
 
@@ -241,6 +241,7 @@ private:
     wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
+    wxDateTime mToLatestPossibleDate;
     std::int64_t mTaskIdToModify;
     std::string mTaskDate;
     int mExpandCounter;

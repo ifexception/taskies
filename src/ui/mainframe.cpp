@@ -160,6 +160,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pDateStore(nullptr)
     , mFromDate()
     , mToDate()
+    , mToLatestPossibleDate()
     , pDataViewCtrl(nullptr)
     , pTaskTreeModel(nullptr)
     , mFromCtrlDate()
@@ -1104,6 +1105,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
     if (eventDateUtc > mToCtrlDate) {
+        SetFromDateAndDatePicker();
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pFromDateCtrl);
@@ -1181,7 +1183,13 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
+    if (eventDateUtc > mToLatestPossibleDate) {
+        SetToDateAndDatePicker();
+        return;
+    }
+
     if (eventDateUtc < mFromCtrlDate) {
+        SetFromDateAndDatePicker();
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past from date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDateCtrl);
@@ -1553,6 +1561,33 @@ void MainFrame::QueueFetchTasksErrorNotificationEvent()
     wxQueueEvent(this, addNotificationEvent);
 }
 
+void MainFrame::SetFromAndToDatePickerRanges()
+{
+    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
+
+    wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
+
+    if (pFromDateCtrl->GetRange(&fromFromDate, &toFromDate)) {
+        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pFromDateCtrl range is [{0} - {1}]",
+            fromFromDate.FormatISODate().ToStdString(),
+            toFromDate.FormatISODate().ToStdString());
+    }
+
+    wxDateSpan oneDay(0, 0, 0, 1);
+    auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
+    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
+
+    wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
+
+    if (pToDateCtrl->GetRange(&toFromDate2, &toToDate)) {
+        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pToDateCtrl range is [{0} - {1})",
+            toFromDate2.FormatISODate().ToStdString(),
+            toToDate.FormatISODate().ToStdString());
+    }
+
+    mToLatestPossibleDate = wxDateTime(pDateStore->SundayDateSeconds);
+}
+
 void MainFrame::SetFromDateAndDatePicker()
 {
     pFromDateCtrl->SetValue(pDateStore->MondayDateSeconds);
@@ -1581,31 +1616,6 @@ void MainFrame::SetToDateAndDatePicker()
 
     pLogger->info(
         "MainFrame::SetToDateAndDatePicker - Reset mToCtrlDate to: {0}", mToCtrlDate.FormatISODate().ToStdString());
-}
-
-void MainFrame::SetFromAndToDatePickerRanges()
-{
-    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
-
-    wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
-
-    if (pFromDateCtrl->GetRange(&fromFromDate, &toFromDate)) {
-        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pFromDateCtrl range is [{0} - {1}]",
-            fromFromDate.FormatISODate().ToStdString(),
-            toFromDate.FormatISODate().ToStdString());
-    }
-
-    wxDateSpan oneDay(0, 0, 0, 1);
-    auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
-    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
-
-    wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
-
-    if (pToDateCtrl->GetRange(&toFromDate2, &toToDate)) {
-        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pToDateCtrl range is [{0} - {1})",
-            toFromDate2.FormatISODate().ToStdString(),
-            toToDate.FormatISODate().ToStdString());
-    }
 }
 
 void MainFrame::ResetTaskContextMenuVariables()
