@@ -63,7 +63,10 @@
 #include "events.h"
 #include "notificationclientdata.h"
 
-
+// This date was selected arbitrarily
+// wxDatePickerCtrl needs a from and to date for the range
+// So we pick 2015-01-01 as that date
+// Conceivably, a user shouldn't go that far back
 wxDateTime MakeMaximumFromDate()
 {
     wxDateTime maxFromDate = wxDateTime::Now();
@@ -418,15 +421,10 @@ void MainFrame::CreateControls()
 
 void MainFrame::FillControls()
 {
+    SetFromAndToDatePickerRanges();
+
     SetFromDateAndDatePicker();
     SetToDateAndDatePicker();
-
-    // This date was selected arbitrarily
-    // wxDatePickerCtrl needs a from and to date for the range
-    // So we pick 2015-01-01 as that date
-    // Conceivably, a user shouldn't go that far back
-    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
-    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), wxDateTime(pDateStore->SundayDateSeconds));
 }
 
 void MainFrame::DataToControls()
@@ -1183,9 +1181,6 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
-    // TODO rethink this SetRange call here. It does not make sense what it is doing
-    pToDateCtrl->SetRange(mFromCtrlDate, wxDateTime(pDateStore->SundayDateSeconds));
-
     if (eventDateUtc < mFromCtrlDate) {
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past from date");
         toolTip.SetIcon(wxICON_WARNING);
@@ -1367,6 +1362,8 @@ void MainFrame::ResetDateRange()
 
 void MainFrame::ResetDatePickerValues()
 {
+    SetFromAndToDatePickerRanges();
+
     SetFromDateAndDatePicker();
 
     SetToDateAndDatePicker();
@@ -1565,13 +1562,17 @@ void MainFrame::SetFromDateAndDatePicker()
 
     mFromCtrlDate = pDateStore->MondayDateSeconds;
 
-    pLogger->info(
-        "MainFrame::SetFromDateAndDatePicker - Reset mFromCtrlDate to: {0}", mFromCtrlDate.FormatISODate().ToStdString());
+    pLogger->info("MainFrame::SetFromDateAndDatePicker - Reset mFromCtrlDate to: {0}",
+        mFromCtrlDate.FormatISODate().ToStdString());
 }
 
 void MainFrame::SetToDateAndDatePicker()
 {
     pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
+
+    pLogger->info("MainFrame::SetToDateAndDatePicker - \npToDateCtrl date = {0}\nSundayDateSeconds = {1}",
+        pToDateCtrl->GetValue().FormatISOCombined().ToStdString(),
+        date::format("%Y-%m-%d %I:%M:%S %p", date::sys_seconds{ std::chrono::seconds(pDateStore->SundayDateSeconds) }));
 
     pLogger->info("MainFrame::SetToDateAndDatePicker - Reset pToDateCtrl to: {0}",
         pToDateCtrl->GetValue().FormatISODate().ToStdString());
@@ -1585,7 +1586,26 @@ void MainFrame::SetToDateAndDatePicker()
 void MainFrame::SetFromAndToDatePickerRanges()
 {
     pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
-    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), wxDateTime(pDateStore->SundayDateSeconds));
+
+    wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
+
+    if (pFromDateCtrl->GetRange(&fromFromDate, &toFromDate)) {
+        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pFromDateCtrl range is [{0} - {1}]",
+            fromFromDate.FormatISODate().ToStdString(),
+            toFromDate.FormatISODate().ToStdString());
+    }
+
+    wxDateSpan oneDay(0, 0, 0, 1);
+    auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
+    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
+
+    wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
+
+    if (pToDateCtrl->GetRange(&toFromDate2, &toToDate)) {
+        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pToDateCtrl range is [{0} - {1})",
+            toFromDate2.FormatISODate().ToStdString(),
+            toToDate.FormatISODate().ToStdString());
+    }
 }
 
 void MainFrame::ResetTaskContextMenuVariables()
@@ -1615,6 +1635,7 @@ void MainFrame::OnWeekChangedProcedure()
 
         CalculateStatusBarTaskDurations();
 
+        SetFromAndToDatePickerRanges();
         SetFromDateAndDatePicker();
         SetToDateAndDatePicker();
     }
