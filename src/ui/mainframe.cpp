@@ -92,6 +92,7 @@ EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
 EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnNewCategory)
 EVT_MENU(ID_TASKS_BACKUPDATABASE, MainFrame::OnTasksBackupDatabase)
+EVT_MENU(ID_TASKS_EXPORTTOCSV, MainFrame::OnTasksExportToCsv)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
@@ -273,6 +274,7 @@ void MainFrame::CreateControls()
     if (!pCfg->BackupDatabase()) {
         fileTasksMenuItem->Enable(false);
     }
+    fileTasksMenu->Append(ID_TASKS_EXPORTTOCSV, "&Export to CSV", "Export selected data to CSV format");
     fileMenu->AppendSubMenu(fileTasksMenu, "Tasks");
     fileMenu->AppendSeparator();
 
@@ -623,6 +625,8 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
 
     wxQueueEvent(this, addNotificationEvent);
 }
+
+void MainFrame::OnTasksExportToCsv(wxCommandEvent& event) {}
 
 void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 {
