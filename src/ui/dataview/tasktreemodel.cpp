@@ -255,23 +255,23 @@ void TaskTreeModel::ChangeChild(const std::string& date, repos::TaskRepositoryMo
     }
 }
 
-void TaskTreeModel::ChangeContainerLabelWithTime(const std::string date, const std::string time)
-{
-    pLogger->info("TaskTreeModel::ChangeContainerLabelWithTime - Begin");
-    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-        return ptr->GetProjectName() == date;
-    });
-
-    if (iterator != pRoots.end()) {
-        auto parentNode = iterator->get();
-
-        auto newContainerLabel = fmt::format("{0} ({1})", parentNode->GetProjectName(), time);
-        parentNode->SetProjectName(newContainerLabel);
-
-        wxDataViewItem item((void*) parentNode);
-        ItemChanged(item);
-    }
-}
+//void TaskTreeModel::ChangeContainerLabelWithTime(const std::string date, const std::string time)
+//{
+//    pLogger->info("TaskTreeModel::ChangeContainerLabelWithTime - Begin");
+//    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+//        return ptr->GetProjectName() == date;
+//    });
+//
+//    if (iterator != pRoots.end()) {
+//        auto parentNode = iterator->get();
+//
+//        auto newContainerLabel = fmt::format("{0} ({1})", parentNode->GetProjectName(), time);
+//        parentNode->SetProjectName(newContainerLabel);
+//
+//        wxDataViewItem item((void*) parentNode);
+//        ItemChanged(item);
+//    }
+//}
 
 void TaskTreeModel::Clear()
 {

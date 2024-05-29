@@ -61,7 +61,7 @@ public:
     void DeleteChild(const std::string& date, const std::int64_t taskId);
 
     void ChangeChild(const std::string& date, repos::TaskRepositoryModel& taskModel);
-    void ChangeContainerLabelWithTime(const std::string date, const std::string time);
+    //void ChangeContainerLabelWithTime(const std::string date, const std::string time);
 
     void Clear();
     void ClearAll();
