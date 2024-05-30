@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <vector>
 #include <string>
 
 namespace tks::Common
@@ -42,5 +43,14 @@ namespace Resources
 std::string Bell();
 std::string BellNotification();
 std::string Wizard();
+}
+
+namespace Static
+{
+std::vector<std::string> DelimiterList();
+std::vector<std::string> TextQualifierList();
+std::vector<std::string> EndOfLineList();
+std::vector<std::string> EmptyValueHandlerList();
+std::vector<std::string> NewLinesHandlerList();
 }
 }

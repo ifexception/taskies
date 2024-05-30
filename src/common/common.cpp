@@ -90,4 +90,31 @@ std::string Wizard()
     return "wiztest.svg";
 }
 } // namespace Resources
+namespace Static
+{
+std::vector<std::string> DelimiterList()
+{
+    return std::vector<std::string>{ ",", ";", "|", "(tab)", "(space)" };
+}
+
+std::vector<std::string> TextQualifierList()
+{
+    return std::vector<std::string>{ "(none)", "\"", "'" };
+}
+
+std::vector<std::string> EndOfLineList()
+{
+    return std::vector<std::string>{ "CRLF (Windows)", "CR (Mac)", "LF (Linux)" };
+}
+
+std::vector<std::string> EmptyValueHandlerList()
+{
+    return std::vector<std::string>{ "(blank)", "NULL" };
+}
+
+std::vector<std::string> NewLinesHandlerList()
+{
+    return std::vector<std::string>{ "Preserve", "Merge" };
+}
+} // namespace Static
 } // namespace tks::Common
