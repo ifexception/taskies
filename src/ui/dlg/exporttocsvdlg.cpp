@@ -19,6 +19,8 @@
 
 #include "exporttocsvdlg.h"
 
+#include <date/date.h>
+
 #include <wx/statline.h>
 
 #include "../../common/common.h"
@@ -27,6 +29,23 @@
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
 #include "../clientdata.h"
+
+namespace
+{
+// This date was selected arbitrarily
+// wxDatePickerCtrl needs a from and to date for the range
+// So we pick 2020-01-01 as that date
+// Conceivably, a user shouldn't go that far back
+wxDateTime MakeMaximumFromDate()
+{
+    wxDateTime maxFromDate = wxDateTime::Now();
+    maxFromDate.SetYear(2020);
+    maxFromDate.SetMonth(wxDateTime::Jan);
+    maxFromDate.SetDay(1);
+
+    return maxFromDate;
+}
+} // namespace
 
 namespace tks::UI::dlg
 {
@@ -48,7 +67,23 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pCfg(cfg)
     , pLogger(logger)
     , mDatabaseFilePath(databasePath)
+    , pDelimiterChoiceCtrl(nullptr)
+    , pTextQualifierChoiceCtrl(nullptr)
+    , pEolTerminatorChoiceCtrl(nullptr)
+    , pEmptyValueHandlerChoiceCtrl(nullptr)
+    , pNewLinesHandlerChoiceCtrl(nullptr)
+    , pRemoveCommasCheckBoxCtrl(nullptr)
+    , pExportToClipboardCheckBoxCtrl(nullptr)
+    , pSaveToFileTextCtrl(nullptr)
+    , pBrowseExportPathButton(nullptr)
+    , pFromDateCtrl(nullptr)
+    , pToDateCtrl(nullptr)
+    , pExportButton(nullptr)
+    , pCancelButton(nullptr)
+    , pDateStore(nullptr)
 {
+    pDateStore = std::make_unique<DateStore>(pLogger);
+
     Create();
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
@@ -59,6 +94,7 @@ void ExportToCsvDialog::Create()
 {
     CreateControls();
     FillControls();
+    ConfigureEventBindings();
 }
 
 void ExportToCsvDialog::CreateControls()
@@ -128,7 +164,7 @@ void ExportToCsvDialog::CreateControls()
     horizontalBoxSizer->Add(outputStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Proportion(1));
 
     auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-    outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
+    outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand());
 
     pExportToClipboardCheckBoxCtrl =
         new wxCheckBox(outputStaticBox, tksIDC_COPY_TO_CLIPBOARD_CTRL, "Copy to Clipboard");
@@ -167,7 +203,7 @@ void ExportToCsvDialog::CreateControls()
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)));
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -226,6 +262,77 @@ void ExportToCsvDialog::FillControls()
     auto newLineHandlers = Common::Static::NewLinesHandlerList();
     for (auto i = 0; i < newLineHandlers.size(); i++) {
         pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i));
+    }
+
+    /* Date Controls */
+    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
+
+    wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
+
+    if (pFromDateCtrl->GetRange(&fromFromDate, &toFromDate)) {
+        pLogger->info("ExportToCsvDialog::FillControls - pFromDateCtrl range is [{0} - {1}]",
+            fromFromDate.FormatISODate().ToStdString(),
+            toFromDate.FormatISODate().ToStdString());
+    }
+
+    wxDateSpan oneDay(0, 0, 0, 1);
+    auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
+    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
+
+    wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
+
+    if (pToDateCtrl->GetRange(&toFromDate2, &toToDate)) {
+        pLogger->info("ExportToCsvDialog::FillControls - pToDateCtrl range is [{0} - {1})",
+            toFromDate2.FormatISODate().ToStdString(),
+            toToDate.FormatISODate().ToStdString());
+    }
+
+    mToLatestPossibleDate = wxDateTime(pDateStore->SundayDateSeconds);
+
+    pFromDateCtrl->SetValue(pDateStore->MondayDateSeconds);
+
+    pLogger->info("ExportToCsvDialog::FillControls - Reset pFromDateCtrl to: {0}",
+        pFromDateCtrl->GetValue().FormatISODate().ToStdString());
+
+    mFromCtrlDate = pDateStore->MondayDateSeconds;
+
+    pLogger->info(
+        "ExportToCsvDialog::FillControls - Reset mFromCtrlDate to: {0}", mFromCtrlDate.FormatISODate().ToStdString());
+
+    pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
+
+    pLogger->info("ExportToCsvDialog::FillControls - \npToDateCtrl date = {0}\nSundayDateSeconds = {1}",
+        pToDateCtrl->GetValue().FormatISOCombined().ToStdString(),
+        date::format("%Y-%m-%d %I:%M:%S %p", date::sys_seconds{ std::chrono::seconds(pDateStore->SundayDateSeconds) }));
+
+    pLogger->info("ExportToCsvDialog::FillControls - Reset pToDateCtrl to: {0}",
+        pToDateCtrl->GetValue().FormatISODate().ToStdString());
+
+    mToCtrlDate = pDateStore->SundayDateSeconds;
+
+    pLogger->info(
+        "ExportToCsvDialog::FillControls - Reset mToCtrlDate to: {0}", mToCtrlDate.FormatISODate().ToStdString());
+}
+
+// clang-format off
+void ExportToCsvDialog::ConfigureEventBindings()
+{
+    pExportToClipboardCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &ExportToCsvDialog::OnExportToClipboardCheck,
+        this
+    );
+}
+// clang-format on
+
+void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pSaveToFileTextCtrl->Disable();
+        pBrowseExportPathButton->Disable();
+    } else {
+        pSaveToFileTextCtrl->Enable();
+        pBrowseExportPathButton->Enable();
     }
 }
 } // namespace tks::UI::dlg

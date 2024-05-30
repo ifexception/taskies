@@ -32,6 +32,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include "../../utils/datestore.h"
+
 namespace tks
 {
 namespace Core
@@ -60,6 +62,9 @@ private:
 
     void CreateControls();
     void FillControls();
+    void ConfigureEventBindings();
+
+    void OnExportToClipboardCheck(wxCommandEvent& event);
 
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
@@ -84,6 +89,12 @@ private:
 
     wxButton* pExportButton;
     wxButton* pCancelButton;
+
+    std::unique_ptr<DateStore> pDateStore;
+
+    wxDateTime mFromCtrlDate;
+    wxDateTime mToCtrlDate;
+    wxDateTime mToLatestPossibleDate;
 
     enum {
         tksIDC_DELIMITER_CTRL = wxID_HIGHEST+ 100,
