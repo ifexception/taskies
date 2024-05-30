@@ -29,7 +29,9 @@ enum class WindowState : int { Normal = 1, Minimized = 2, Hidden = 3, Maximized 
 
 enum class BuildConfiguration { Undefined, Debug, Release };
 
-enum class NotificationType { Information = 1, Error};
+enum class NotificationType { Information = 1, Error };
+
+enum class DelimiterType : int { Comma, SemiColon, Pipe, Tab, Space };
 
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
