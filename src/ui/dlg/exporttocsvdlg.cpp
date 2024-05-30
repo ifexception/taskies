@@ -22,9 +22,11 @@
 #include <wx/statline.h>
 
 #include "../../common/common.h"
+#include "../../common/enums.h"
 
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
+#include "../clientdata.h"
 
 namespace tks::UI::dlg
 {
@@ -56,6 +58,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
 void ExportToCsvDialog::Create()
 {
     CreateControls();
+    FillControls();
 }
 
 void ExportToCsvDialog::CreateControls()
@@ -76,25 +79,91 @@ void ExportToCsvDialog::CreateControls()
     optionsStaticBoxSizer->Add(optionsFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
 
     auto delimiterLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Delimiter");
-    auto delimiterText = new wxTextCtrl(optionsStaticBox, wxID_ANY, ",");
+    pDelimiterChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_DELIMITER_CTRL, wxDefaultPosition, wxSize(128, -1));
+    pDelimiterChoiceCtrl->SetToolTip("Set the field separator character");
+
+    auto textQualifierLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Text Qualifier");
+    pTextQualifierChoiceCtrl =
+        new wxChoice(optionsStaticBox, tksIDC_TEXT_QUALIFIER_CTRL, wxDefaultPosition, wxSize(128, -1));
+    pTextQualifierChoiceCtrl->SetToolTip("Set the text qualifier for text values");
+
+    auto eolLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "End of Line");
+    pEolTerminatorChoiceCtrl =
+        new wxChoice(optionsStaticBox, tksIDC_EOL_TERMINATOR_CTRL, wxDefaultPosition, wxSize(128, -1));
+    pEolTerminatorChoiceCtrl->SetToolTip("Set the end of line qualifier for each row");
+
+    auto emptyValuesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Empty Values");
+    pEmptyValueHandlerChoiceCtrl =
+        new wxChoice(optionsStaticBox, tksIDC_EMPTY_VALUE_HANDLER_CTRL, wxDefaultPosition, wxSize(128, -1));
+    pEmptyValueHandlerChoiceCtrl->SetToolTip("Set how to handle empty or blank field values");
+
+    auto newLinesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "New Lines");
+    pNewLinesHandlerChoiceCtrl =
+        new wxChoice(optionsStaticBox, tksIDC_NEW_LINES_HANDLER_CTRL, wxDefaultPosition, wxSize(128, -1));
+    pNewLinesHandlerChoiceCtrl->SetToolTip("Set how to handle multiline field values");
+
+    pRemoveCommasCheckBoxCtrl = new wxCheckBox(optionsStaticBox, tksIDC_REMOVE_COMMAS_CTRL, "Remove Commas");
 
     optionsFlexGridSizer->Add(delimiterLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    optionsFlexGridSizer->Add(delimiterText, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    optionsFlexGridSizer->Add(pDelimiterChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    optionsFlexGridSizer->Add(textQualifierLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    optionsFlexGridSizer->Add(pTextQualifierChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    optionsFlexGridSizer->Add(eolLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    optionsFlexGridSizer->Add(pEolTerminatorChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    optionsFlexGridSizer->Add(emptyValuesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    optionsFlexGridSizer->Add(pEmptyValueHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    optionsFlexGridSizer->Add(newLinesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    optionsFlexGridSizer->Add(pNewLinesHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    optionsFlexGridSizer->Add(0, 0);
+    optionsFlexGridSizer->Add(pRemoveCommasCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Output static box (right) */
     auto outputStaticBox = new wxStaticBox(this, wxID_ANY, "Output");
     auto outputStaticBoxSizer = new wxStaticBoxSizer(outputStaticBox, wxVERTICAL);
-    horizontalBoxSizer->Add(outputStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    horizontalBoxSizer->Add(outputStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Proportion(1));
 
     auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
 
-    auto fileNameLabel = new wxStaticText(outputStaticBox, wxID_ANY, "File Name");
-    auto fileNameText = new wxTextCtrl(outputStaticBox, wxID_ANY, "");
+    pExportToClipboardCheckBoxCtrl =
+        new wxCheckBox(outputStaticBox, tksIDC_COPY_TO_CLIPBOARD_CTRL, "Copy to Clipboard");
+    pExportToClipboardCheckBoxCtrl->SetToolTip("When checked the data will be exported to the clipboard");
+
+    auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
+    pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
+
+    pBrowseExportPathButton = new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
+    pBrowseExportPathButton->SetToolTip("Set where to the save the results to");
 
     outputFlexGridSizer->AddGrowableCol(1, 1);
-    outputFlexGridSizer->Add(fileNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    outputFlexGridSizer->Add(fileNameText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    outputFlexGridSizer->Add(0, 0);
+    outputFlexGridSizer->Add(pExportToClipboardCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    outputFlexGridSizer->Add(saveToFileLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    outputFlexGridSizer->Add(pSaveToFileTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    outputFlexGridSizer->Add(0, 0);
+    outputFlexGridSizer->Add(pBrowseExportPathButton, wxSizerFlags().Border(wxALL, FromDIP(2)).Right());
+
+    /* Sizer for date range */
+    auto dateRangeStaticBox = new wxStaticBox(this, wxID_ANY, "Date Range");
+    auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxHORIZONTAL);
+    sizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
+    pFromDateCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_FROM_CTRL);
+
+    auto toDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "To: ");
+    pToDateCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
+
+    dateRangeStaticBoxSizer->Add(fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    dateRangeStaticBoxSizer->Add(pFromDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateRangeStaticBoxSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    dateRangeStaticBoxSizer->Add(pToDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
@@ -106,14 +175,57 @@ void ExportToCsvDialog::CreateControls()
 
     buttonsSizer->AddStretchSpacer();
 
-    auto pOkButton = new wxButton(this, wxID_OK, "OK");
-    pOkButton->SetDefault();
+    pExportButton = new wxButton(this, tksIDC_EXPORT_BUTTON, "Export");
+    pExportButton->SetDefault();
 
-    auto pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
+    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
-    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pExportButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
+}
+
+void ExportToCsvDialog::FillControls()
+{
+    pDelimiterChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pDelimiterChoiceCtrl->SetSelection(0);
+
+    auto delimiters = Common::Static::DelimiterList();
+    for (auto i = 0; i < delimiters.size(); i++) {
+        pDelimiterChoiceCtrl->Append(delimiters[i], new ClientData<int>(i));
+    }
+
+    pTextQualifierChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pTextQualifierChoiceCtrl->SetSelection(0);
+
+    auto textQualifiers = Common::Static::TextQualifierList();
+    for (auto i = 0; i < textQualifiers.size(); i++) {
+        pTextQualifierChoiceCtrl->Append(textQualifiers[i], new ClientData<int>(i));
+    }
+
+    pEolTerminatorChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pEolTerminatorChoiceCtrl->SetSelection(0);
+
+    auto eolQualifiers = Common::Static::EndOfLineList();
+    for (auto i = 0; i < eolQualifiers.size(); i++) {
+        pEolTerminatorChoiceCtrl->Append(eolQualifiers[i], new ClientData<int>(i));
+    }
+
+    pEmptyValueHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pEmptyValueHandlerChoiceCtrl->SetSelection(0);
+
+    auto emptyValueHandlers = Common::Static::EmptyValueHandlerList();
+    for (auto i = 0; i < emptyValueHandlers.size(); i++) {
+        pEmptyValueHandlerChoiceCtrl->Append(emptyValueHandlers[i], new ClientData<int>(i));
+    }
+
+    pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pNewLinesHandlerChoiceCtrl->SetSelection(0);
+
+    auto newLineHandlers = Common::Static::NewLinesHandlerList();
+    for (auto i = 0; i < newLineHandlers.size(); i++) {
+        pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i));
+    }
 }
 } // namespace tks::UI::dlg

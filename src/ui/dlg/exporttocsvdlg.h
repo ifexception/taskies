@@ -27,6 +27,8 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/datectrl.h>
+#include <wx/dateevt.h>
 
 #include <spdlog/spdlog.h>
 
@@ -57,6 +59,7 @@ private:
     void Create();
 
     void CreateControls();
+    void FillControls();
 
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
@@ -64,6 +67,38 @@ private:
     std::string mDatabaseFilePath;
 
     wxWindow* pParent;
+
+    wxChoice* pDelimiterChoiceCtrl;
+    wxChoice* pTextQualifierChoiceCtrl;
+    wxChoice* pEolTerminatorChoiceCtrl;
+    wxChoice* pEmptyValueHandlerChoiceCtrl;
+    wxChoice* pNewLinesHandlerChoiceCtrl;
+    wxCheckBox* pRemoveCommasCheckBoxCtrl;
+
+    wxCheckBox* pExportToClipboardCheckBoxCtrl;
+    wxTextCtrl* pSaveToFileTextCtrl;
+    wxButton* pBrowseExportPathButton;
+
+    wxDatePickerCtrl* pFromDateCtrl;
+    wxDatePickerCtrl* pToDateCtrl;
+
+    wxButton* pExportButton;
+    wxButton* pCancelButton;
+
+    enum {
+        tksIDC_DELIMITER_CTRL = wxID_HIGHEST+ 100,
+        tksIDC_TEXT_QUALIFIER_CTRL,
+        tksIDC_EOL_TERMINATOR_CTRL,
+        tksIDC_EMPTY_VALUE_HANDLER_CTRL,
+        tksIDC_NEW_LINES_HANDLER_CTRL,
+        tksIDC_REMOVE_COMMAS_CTRL,
+        tksIDC_COPY_TO_CLIPBOARD_CTRL,
+        tksIDC_SAVE_TO_FILE_CTRL,
+        tksIDC_BROWSE_EXPORT_PATH_CTRL,
+        tksIDC_EXPORT_BUTTON,
+        tksIDC_DATE_FROM_CTRL,
+        tksIDC_DATE_TO_CTRL
+    };
 };
 } // namespace UI::dlg
 } // namespace tks
