@@ -67,6 +67,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pCfg(cfg)
     , pLogger(logger)
     , mDatabaseFilePath(databasePath)
+    , pDateStore(nullptr)
     , pDelimiterChoiceCtrl(nullptr)
     , pTextQualifierChoiceCtrl(nullptr)
     , pEolTerminatorChoiceCtrl(nullptr)
@@ -78,9 +79,11 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pBrowseExportPathButton(nullptr)
     , pFromDateCtrl(nullptr)
     , pToDateCtrl(nullptr)
+    , pDefaultHeadersListView(nullptr)
+    , pRightChevronButton(nullptr)
+    , pLeftChevronButton(nullptr)
     , pExportButton(nullptr)
     , pCancelButton(nullptr)
-    , pDateStore(nullptr)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -104,7 +107,7 @@ void ExportToCsvDialog::CreateControls()
 
     /* Sizer for Options and Output controls */
     auto horizontalBoxSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(horizontalBoxSizer, wxSizerFlags().Expand().Proportion(1));
+    sizer->Add(horizontalBoxSizer, wxSizerFlags().Expand());
 
     /* Options static box (left) */
     auto optionsStaticBox = new wxStaticBox(this, wxID_ANY, "Options");
@@ -201,9 +204,36 @@ void ExportToCsvDialog::CreateControls()
     dateRangeStaticBoxSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateRangeStaticBoxSizer->Add(pToDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
+    /* Header/Data to Export Controls sizer */
+    auto dataToExportStaticBox = new wxStaticBox(this, wxID_ANY, "Data to Export");
+    auto dataToExportStaticBoxSizer = new wxStaticBoxSizer(dataToExportStaticBox, wxVERTICAL);
+    sizer->Add(dataToExportStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    auto headerControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    dataToExportStaticBoxSizer->Add(headerControlsHorizontalSizer, wxSizerFlags().Expand().Proportion(1));
+
+    pDefaultHeadersListView = new wxListView(dataToExportStaticBox, tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL);
+    headerControlsHorizontalSizer->Add(
+        pDefaultHeadersListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    wxListItem defaultHeader;
+    defaultHeader.SetId(0);
+    defaultHeader.SetText("Headers");
+    defaultHeader.SetWidth(120);
+    pDefaultHeadersListView->InsertColumn(0, defaultHeader);
+
+    auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
+    headerControlsHorizontalSizer->Add(chevronButtonSizer, wxSizerFlags());
+
+    pRightChevronButton = new wxButton(dataToExportStaticBox, tksIDC_RIGHT_CHEV_CTRL, ">");
+    pLeftChevronButton = new wxButton(dataToExportStaticBox, tksIDC_LEFT_CHEV_CTRL, "<");
+
+    chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)));
+    sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -213,6 +243,7 @@ void ExportToCsvDialog::CreateControls()
 
     pExportButton = new wxButton(this, tksIDC_EXPORT_BUTTON, "Export");
     pExportButton->SetDefault();
+    pExportButton->SetFocus();
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 

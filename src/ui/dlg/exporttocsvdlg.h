@@ -29,6 +29,7 @@
 #endif
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
+#include <wx/listctrl.h>
 
 #include <spdlog/spdlog.h>
 
@@ -71,6 +72,8 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 
+    std::unique_ptr<DateStore> pDateStore;
+
     wxWindow* pParent;
 
     wxChoice* pDelimiterChoiceCtrl;
@@ -87,14 +90,16 @@ private:
     wxDatePickerCtrl* pFromDateCtrl;
     wxDatePickerCtrl* pToDateCtrl;
 
-    wxButton* pExportButton;
-    wxButton* pCancelButton;
-
-    std::unique_ptr<DateStore> pDateStore;
-
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
+
+    wxListView* pDefaultHeadersListView;
+    wxButton* pRightChevronButton;
+    wxButton* pLeftChevronButton;
+
+    wxButton* pExportButton;
+    wxButton* pCancelButton;
 
     enum {
         tksIDC_DELIMITER_CTRL = wxID_HIGHEST+ 100,
@@ -108,7 +113,10 @@ private:
         tksIDC_BROWSE_EXPORT_PATH_CTRL,
         tksIDC_EXPORT_BUTTON,
         tksIDC_DATE_FROM_CTRL,
-        tksIDC_DATE_TO_CTRL
+        tksIDC_DATE_TO_CTRL,
+        tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
+        tksIDC_RIGHT_CHEV_CTRL,
+        tksIDC_LEFT_CHEV_CTRL
     };
 };
 } // namespace UI::dlg
