@@ -275,6 +275,22 @@ void ExportToCsvDialog::CreateControls()
     upDownButtonSizer->Add(pUpButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     upDownButtonSizer->Add(pDownButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
 
+    pExcludeHeadersCheckBoxCtrl = new wxCheckBox(dataToExportStaticBox, tksIDC_EXCLUDE_HEADERS_CTRL, "Exclude Headers");
+    dataToExportStaticBoxSizer->Add(pExcludeHeadersCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* Data Preview sizer and controls */
+    auto dataPreviewStaticBox = new wxStaticBox(this, wxID_ANY, "Preview");
+    auto dataPreviewStaticBoxSizer = new wxStaticBoxSizer(dataPreviewStaticBox, wxVERTICAL);
+    sizer->Add(dataPreviewStaticBoxSizer, wxSizerFlags().Expand());
+
+    pDataExportPreviewTextCtrl = new wxTextCtrl(dataPreviewStaticBox,
+        tksIDC_DATA_EXPORT_PREVIEW_CTRL,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_READONLY | wxTE_MULTILINE);
+    dataPreviewStaticBoxSizer->Add(pDataExportPreviewTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
     sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());

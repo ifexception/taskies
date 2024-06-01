@@ -107,6 +107,10 @@ private:
     wxButton* pUpButton;
     wxButton* pDownButton;
 
+    wxCheckBox* pExcludeHeadersCheckBoxCtrl;
+
+    wxTextCtrl* pDataExportPreviewTextCtrl;
+
     wxButton* pExportButton;
     wxButton* pCancelButton;
 
@@ -128,6 +132,8 @@ private:
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL,
         tksIDC_UP_BUTTON,
         tksIDC_DOWN_BUTTON,
+        tksIDC_EXCLUDE_HEADERS_CTRL,
+        tksIDC_DATA_EXPORT_PREVIEW_CTRL,
         tksIDC_EXPORT_BUTTON,
     };
 };
