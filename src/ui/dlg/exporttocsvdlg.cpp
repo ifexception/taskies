@@ -264,11 +264,22 @@ void ExportToCsvDialog::CreateControls()
         wxDATAVIEW_COL_HIDDEN);
     pDataViewCtrl->AppendColumn(listIdColumn);
 
+    /* Up|Down Buttons sizer */
+    auto upDownButtonSizer = new wxBoxSizer(wxVERTICAL);
+    headerControlsHorizontalSizer->Add(upDownButtonSizer, wxSizerFlags());
+
+    /* Up|Down Buttons */
+    pUpButton = new wxButton(dataToExportStaticBox, tksIDC_UP_BUTTON, "Up");
+    pDownButton = new wxButton(dataToExportStaticBox, tksIDC_DOWN_BUTTON, "Down");
+
+    upDownButtonSizer->Add(pUpButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+    upDownButtonSizer->Add(pDownButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
     sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
-    /* OK|Cancel buttons */
+    /* Export|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 

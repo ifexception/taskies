@@ -104,11 +104,14 @@ private:
     wxDataViewCtrl* pDataViewCtrl;
     wxObjectDataPtr<ExportHeadersListModel> pExportHeaderListModel;
 
+    wxButton* pUpButton;
+    wxButton* pDownButton;
+
     wxButton* pExportButton;
     wxButton* pCancelButton;
 
     enum {
-        tksIDC_DELIMITER_CTRL = wxID_HIGHEST+ 100,
+        tksIDC_DELIMITER_CTRL = wxID_HIGHEST + 100,
         tksIDC_TEXT_QUALIFIER_CTRL,
         tksIDC_EOL_TERMINATOR_CTRL,
         tksIDC_EMPTY_VALUE_HANDLER_CTRL,
@@ -117,13 +120,15 @@ private:
         tksIDC_COPY_TO_CLIPBOARD_CTRL,
         tksIDC_SAVE_TO_FILE_CTRL,
         tksIDC_BROWSE_EXPORT_PATH_CTRL,
-        tksIDC_EXPORT_BUTTON,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
         tksIDC_RIGHT_CHEV_CTRL,
         tksIDC_LEFT_CHEV_CTRL,
-        tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
+        tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL,
+        tksIDC_UP_BUTTON,
+        tksIDC_DOWN_BUTTON,
+        tksIDC_EXPORT_BUTTON,
     };
 };
 } // namespace UI::dlg
