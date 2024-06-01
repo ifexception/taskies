@@ -213,23 +213,56 @@ void ExportToCsvDialog::CreateControls()
     dataToExportStaticBoxSizer->Add(headerControlsHorizontalSizer, wxSizerFlags().Expand().Proportion(1));
 
     pDefaultHeadersListView = new wxListView(dataToExportStaticBox, tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL);
-    headerControlsHorizontalSizer->Add(
-        pDefaultHeadersListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    headerControlsHorizontalSizer->Add(pDefaultHeadersListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     wxListItem defaultHeader;
     defaultHeader.SetId(0);
-    defaultHeader.SetText("Headers");
-    defaultHeader.SetWidth(120);
+    defaultHeader.SetText("Available Headers");
+    defaultHeader.SetWidth(140);
     pDefaultHeadersListView->InsertColumn(0, defaultHeader);
 
     auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
     headerControlsHorizontalSizer->Add(chevronButtonSizer, wxSizerFlags());
 
-    pRightChevronButton = new wxButton(dataToExportStaticBox, tksIDC_RIGHT_CHEV_CTRL, ">");
-    pLeftChevronButton = new wxButton(dataToExportStaticBox, tksIDC_LEFT_CHEV_CTRL, "<");
+    pRightChevronButton =
+        new wxButton(dataToExportStaticBox, tksIDC_RIGHT_CHEV_CTRL, ">", wxDefaultPosition, wxSize(32, -1));
+    pLeftChevronButton =
+        new wxButton(dataToExportStaticBox, tksIDC_LEFT_CHEV_CTRL, "<", wxDefaultPosition, wxSize(32, -1));
 
-    chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+    chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+
+    pDataViewCtrl = new wxDataViewCtrl(dataToExportStaticBox,
+        tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxDV_SINGLE | wxDV_ROW_LINES);
+    headerControlsHorizontalSizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    /* Model */
+    pExportHeaderListModel = new ExportHeadersListModel(pLogger);
+    pDataViewCtrl->AssociateModel(pExportHeaderListModel.get());
+
+    /* Header Column */
+    auto* textRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_EDITABLE);
+    wxDataViewColumn* headerEditableColumn = new wxDataViewColumn("Headers",
+        textRenderer,
+        ExportHeadersListModel::Col_Header,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_LEFT,
+        wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+    headerEditableColumn->SetMinWidth(80);
+    pDataViewCtrl->AppendColumn(headerEditableColumn);
+
+    /* OrderIndex Column */
+    auto* orderIndexRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
+    auto* listIdColumn = new wxDataViewColumn("Order Index",
+        orderIndexRenderer,
+        ExportHeadersListModel::Col_OrderIndex,
+        FromDIP(32),
+        wxALIGN_CENTER,
+        wxDATAVIEW_COL_HIDDEN);
+    pDataViewCtrl->AppendColumn(listIdColumn);
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);

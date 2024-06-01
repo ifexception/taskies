@@ -29,9 +29,12 @@
 #endif
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
+#include <wx/dataview.h>
 #include <wx/listctrl.h>
 
 #include <spdlog/spdlog.h>
+
+#include "../dataview/exportheaderslistmodel.h"
 
 #include "../../utils/datestore.h"
 
@@ -98,6 +101,9 @@ private:
     wxButton* pRightChevronButton;
     wxButton* pLeftChevronButton;
 
+    wxDataViewCtrl* pDataViewCtrl;
+    wxObjectDataPtr<ExportHeadersListModel> pExportHeaderListModel;
+
     wxButton* pExportButton;
     wxButton* pCancelButton;
 
@@ -116,7 +122,8 @@ private:
         tksIDC_DATE_TO_CTRL,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
         tksIDC_RIGHT_CHEV_CTRL,
-        tksIDC_LEFT_CHEV_CTRL
+        tksIDC_LEFT_CHEV_CTRL,
+        tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
     };
 };
 } // namespace UI::dlg
