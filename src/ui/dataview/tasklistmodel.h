@@ -35,7 +35,7 @@
 #include "../../repository/taskrepository.h"
 #include "../../repository/taskrepositorymodel.h"
 
-constexpr auto INITIAL_NUMBER_OF_ITEMS = 32;
+#include "../../common/constants.h"
 
 namespace tks::UI
 {

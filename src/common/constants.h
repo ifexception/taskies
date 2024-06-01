@@ -23,6 +23,8 @@ constexpr int MIN_CHARACTER_COUNT = 2;
 constexpr int MAX_CHARACTER_COUNT_NAMES = 255;
 constexpr int MAX_CHARACTER_COUNT_DESCRIPTIONS = 3000;
 
+constexpr auto INITIAL_NUMBER_OF_ITEMS = 32;
+
 namespace tks::LogMessage
 {
 /// <summary>
