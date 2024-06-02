@@ -69,6 +69,7 @@ private:
     void ConfigureEventBindings();
 
     void OnExportToClipboardCheck(wxCommandEvent& event);
+    void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
 
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;

@@ -21,6 +21,9 @@
 
 #include <date/date.h>
 
+#include <fmt/format.h>
+
+#include <wx/dirdlg.h>
 #include <wx/statline.h>
 
 #include "../../common/common.h"
@@ -281,7 +284,7 @@ void ExportToCsvDialog::CreateControls()
     /* Data Preview sizer and controls */
     auto dataPreviewStaticBox = new wxStaticBox(this, wxID_ANY, "Preview");
     auto dataPreviewStaticBoxSizer = new wxStaticBoxSizer(dataPreviewStaticBox, wxVERTICAL);
-    sizer->Add(dataPreviewStaticBoxSizer, wxSizerFlags().Expand());
+    sizer->Add(dataPreviewStaticBoxSizer, wxSizerFlags().Expand().Border(wxALL, FromDIP(4)));
 
     pDataExportPreviewTextCtrl = new wxTextCtrl(dataPreviewStaticBox,
         tksIDC_DATA_EXPORT_PREVIEW_CTRL,
@@ -355,6 +358,14 @@ void ExportToCsvDialog::FillControls()
         pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i));
     }
 
+    /* Export File Controls */
+    if (true /*!pCfg->GetExportDirectory()*/) {
+        auto defaultFileName = fmt::format("taskies-tasks-export-{0}.csv", pDateStore->PrintTodayDate);
+        auto defaultSaveToFile = pEnv->GetExportPath() / defaultFileName;
+        pSaveToFileTextCtrl->ChangeValue(defaultSaveToFile.string());
+        pSaveToFileTextCtrl->SetToolTip(defaultSaveToFile.string());
+    }
+
     /* Date Controls */
     pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
 
@@ -413,6 +424,13 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnExportToClipboardCheck,
         this
     );
+
+    pBrowseExportPathButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation,
+        this,
+        tksIDC_BROWSE_EXPORT_PATH_CTRL
+    );
 }
 // clang-format on
 
@@ -425,5 +443,33 @@ void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
         pSaveToFileTextCtrl->Enable();
         pBrowseExportPathButton->Enable();
     }
+}
+
+void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
+{
+    std::string pathDirectoryToOpenOn;
+    if (true /*!pCfg->GetExportPath().empty()*/) {
+        pathDirectoryToOpenOn = pEnv->GetExportPath().string();
+    } else {
+        //pathDirectoryToOpenOn = pCfg->GetExportPath();
+    }
+
+    auto openDirDialog = new wxDirDialog(this,
+        "Select a directory to export the data to",
+        pathDirectoryToOpenOn,
+        wxDD_DEFAULT_STYLE,
+        wxDefaultPosition);
+    int res = openDirDialog->ShowModal();
+
+    if (res == wxID_OK) {
+        auto defaultFileName = fmt::format("taskies-tasks-export-{0}.csv", pDateStore->PrintTodayDate);
+        auto selectedExportPath = openDirDialog->GetPath().ToStdString();
+        auto finalPath = selectedExportPath + "\\" + defaultFileName;
+
+        pSaveToFileTextCtrl->SetValue(finalPath);
+        pSaveToFileTextCtrl->SetToolTip(finalPath);
+    }
+
+    openDirDialog->Destroy();
 }
 } // namespace tks::UI::dlg
