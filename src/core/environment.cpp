@@ -77,6 +77,11 @@ std::filesystem::path Environment::GetResourcesPath()
     return GetApplicationResourcesPath();
 }
 
+std::filesystem::path Environment::GetExportPath()
+{
+    return GetApplicationExportPath();
+}
+
 std::string Environment::GetDatabaseName()
 {
     return "taskies.db";
@@ -240,6 +245,25 @@ std::filesystem::path Environment::GetApplicationResourcesPath()
         break;
     }
     return appResPath;
+}
+
+std::filesystem::path Environment::GetApplicationExportPath()
+{
+    std::filesystem::path exportPath;
+    switch (mBuildConfig) {
+    case BuildConfiguration::Debug:
+        exportPath = GetApplicationPath();
+        break;
+    case BuildConfiguration::Release: {
+        exportPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
+        std::filesystem::create_directories(exportPath);
+        break;
+    }
+    default:
+        break;
+    }
+
+    return exportPath;
 }
 
 std::string Environment::GetLogName()
