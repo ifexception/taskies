@@ -165,16 +165,28 @@ void PreferencesDatabasePage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-//clang-format off
+// clang-format off
 void PreferencesDatabasePage::ConfigureEventBindings()
 {
-    pBackupDatabaseCheckBoxCtrl->Bind(wxEVT_CHECKBOX, &PreferencesDatabasePage::OnBackupDatabaseCheck, this);
+    pBackupDatabaseCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &PreferencesDatabasePage::OnBackupDatabaseCheck,
+        this
+    );
 
     pBrowseDatabasePathButton->Bind(
-        wxEVT_BUTTON, &PreferencesDatabasePage::OnOpenDirectoryForDatabaseLocation, this, tksIDC_DATABASE_PATH_BUTTON);
+        wxEVT_BUTTON,
+        &PreferencesDatabasePage::OnOpenDirectoryForDatabaseLocation,
+        this,
+        tksIDC_DATABASE_PATH_BUTTON
+    );
 
     pBrowseBackupPathButton->Bind(
-        wxEVT_BUTTON, &PreferencesDatabasePage::OnOpenDirectoryForBackupLocation, this, tksIDC_BACKUP_PATH_BUTTON);
+        wxEVT_BUTTON,
+        &PreferencesDatabasePage::OnOpenDirectoryForBackupLocation,
+        this,
+        tksIDC_BACKUP_PATH_BUTTON
+    );
 }
 // clang-format on
 
