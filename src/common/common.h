@@ -52,5 +52,6 @@ std::vector<std::string> TextQualifierList();
 std::vector<std::string> EndOfLineList();
 std::vector<std::string> EmptyValueHandlerList();
 std::vector<std::string> NewLinesHandlerList();
+std::vector<std::string> AvailableHeaderList();
 }
 }

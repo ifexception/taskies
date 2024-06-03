@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -71,6 +72,13 @@ private:
     void OnExportToClipboardCheck(wxCommandEvent& event);
     void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
 
+    void OnFromDateSelection(wxDateEvent& event);
+    void OnToDateSelection(wxDateEvent& event);
+
+    void SetFromAndToDatePickerRanges();
+    void SetFromDateAndDatePicker();
+    void SetToDateAndDatePicker();
+
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
@@ -114,6 +122,9 @@ private:
 
     wxButton* pExportButton;
     wxButton* pCancelButton;
+
+    std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
+    std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
 
     enum {
         tksIDC_DELIMITER_CTRL = wxID_HIGHEST + 100,

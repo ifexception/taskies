@@ -116,5 +116,19 @@ std::vector<std::string> NewLinesHandlerList()
 {
     return std::vector<std::string>{ "Preserve", "Merge" };
 }
+
+std::vector<std::string> AvailableHeaderList()
+{
+    return std::vector<std::string>{ "Employer",
+        "Client",
+        "Project",
+        "Display Name",
+        "Category",
+        "Date",
+        "Description",
+        "Billable",
+        "Unique ID",
+        "Time" };
+}
 } // namespace Static
 } // namespace tks::Common

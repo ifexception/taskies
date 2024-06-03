@@ -24,6 +24,7 @@
 #include <fmt/format.h>
 
 #include <wx/dirdlg.h>
+#include <wx/richtooltip.h>
 #include <wx/statline.h>
 
 #include "../../common/common.h"
@@ -85,8 +86,14 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pDefaultHeadersListView(nullptr)
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
+    , pDataViewCtrl(nullptr)
+    , pUpButton(nullptr)
+    , pDownButton(nullptr)
+    , pExcludeHeadersCheckBoxCtrl(nullptr)
     , pExportButton(nullptr)
     , pCancelButton(nullptr)
+    , mFromDate()
+    , mToDate()
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -215,13 +222,17 @@ void ExportToCsvDialog::CreateControls()
     auto headerControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     dataToExportStaticBoxSizer->Add(headerControlsHorizontalSizer, wxSizerFlags().Expand().Proportion(1));
 
-    pDefaultHeadersListView = new wxListView(dataToExportStaticBox, tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL);
+    pDefaultHeadersListView = new wxListView(dataToExportStaticBox,
+        tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
     headerControlsHorizontalSizer->Add(pDefaultHeadersListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     wxListItem defaultHeader;
     defaultHeader.SetId(0);
     defaultHeader.SetText("Available Headers");
-    defaultHeader.SetWidth(140);
+    defaultHeader.SetWidth(180);
     pDefaultHeadersListView->InsertColumn(0, defaultHeader);
 
     auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
@@ -367,53 +378,17 @@ void ExportToCsvDialog::FillControls()
     }
 
     /* Date Controls */
-    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
+    SetFromAndToDatePickerRanges();
 
-    wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
+    SetFromDateAndDatePicker();
+    SetToDateAndDatePicker();
 
-    if (pFromDateCtrl->GetRange(&fromFromDate, &toFromDate)) {
-        pLogger->info("ExportToCsvDialog::FillControls - pFromDateCtrl range is [{0} - {1}]",
-            fromFromDate.FormatISODate().ToStdString(),
-            toFromDate.FormatISODate().ToStdString());
+    /* Available Headers */
+    int columnIndex = 0;
+
+    for (auto& header : Common::Static::AvailableHeaderList()) {
+        pDefaultHeadersListView->InsertItem(0, header);
     }
-
-    wxDateSpan oneDay(0, 0, 0, 1);
-    auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
-    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
-
-    wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
-
-    if (pToDateCtrl->GetRange(&toFromDate2, &toToDate)) {
-        pLogger->info("ExportToCsvDialog::FillControls - pToDateCtrl range is [{0} - {1})",
-            toFromDate2.FormatISODate().ToStdString(),
-            toToDate.FormatISODate().ToStdString());
-    }
-
-    mToLatestPossibleDate = wxDateTime(pDateStore->SundayDateSeconds);
-
-    pFromDateCtrl->SetValue(pDateStore->MondayDateSeconds);
-
-    pLogger->info("ExportToCsvDialog::FillControls - Reset pFromDateCtrl to: {0}",
-        pFromDateCtrl->GetValue().FormatISODate().ToStdString());
-
-    mFromCtrlDate = pDateStore->MondayDateSeconds;
-
-    pLogger->info(
-        "ExportToCsvDialog::FillControls - Reset mFromCtrlDate to: {0}", mFromCtrlDate.FormatISODate().ToStdString());
-
-    pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
-
-    pLogger->info("ExportToCsvDialog::FillControls - \npToDateCtrl date = {0}\nSundayDateSeconds = {1}",
-        pToDateCtrl->GetValue().FormatISOCombined().ToStdString(),
-        date::format("%Y-%m-%d %I:%M:%S %p", date::sys_seconds{ std::chrono::seconds(pDateStore->SundayDateSeconds) }));
-
-    pLogger->info("ExportToCsvDialog::FillControls - Reset pToDateCtrl to: {0}",
-        pToDateCtrl->GetValue().FormatISODate().ToStdString());
-
-    mToCtrlDate = pDateStore->SundayDateSeconds;
-
-    pLogger->info(
-        "ExportToCsvDialog::FillControls - Reset mToCtrlDate to: {0}", mToCtrlDate.FormatISODate().ToStdString());
 }
 
 // clang-format off
@@ -430,6 +405,20 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation,
         this,
         tksIDC_BROWSE_EXPORT_PATH_CTRL
+    );
+
+    pFromDateCtrl->Bind(
+        wxEVT_DATE_CHANGED,
+        &ExportToCsvDialog::OnFromDateSelection,
+        this,
+        tksIDC_DATE_FROM_CTRL
+    );
+
+    pToDateCtrl->Bind(
+        wxEVT_DATE_CHANGED,
+        &ExportToCsvDialog::OnToDateSelection,
+        this,
+        tksIDC_DATE_TO_CTRL
     );
 }
 // clang-format on
@@ -451,14 +440,11 @@ void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& eve
     if (true /*!pCfg->GetExportPath().empty()*/) {
         pathDirectoryToOpenOn = pEnv->GetExportPath().string();
     } else {
-        //pathDirectoryToOpenOn = pCfg->GetExportPath();
+        // pathDirectoryToOpenOn = pCfg->GetExportPath();
     }
 
-    auto openDirDialog = new wxDirDialog(this,
-        "Select a directory to export the data to",
-        pathDirectoryToOpenOn,
-        wxDD_DEFAULT_STYLE,
-        wxDefaultPosition);
+    auto openDirDialog = new wxDirDialog(
+        this, "Select a directory to export the data to", pathDirectoryToOpenOn, wxDD_DEFAULT_STYLE, wxDefaultPosition);
     int res = openDirDialog->ShowModal();
 
     if (res == wxID_OK) {
@@ -471,5 +457,114 @@ void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& eve
     }
 
     openDirDialog->Destroy();
+}
+
+void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
+{
+    pLogger->info("ExportToCsvDialog::OnFromDateSelection - Received date (wxDateTime) with value \"{0}\"",
+        event.GetDate().FormatISODate().ToStdString());
+
+    auto eventDate = wxDateTime(event.GetDate());
+    auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+
+    if (eventDateUtc > mToCtrlDate) {
+        SetFromDateAndDatePicker();
+        wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pFromDateCtrl);
+        return;
+    }
+
+    auto eventDateUtcTicks = eventDateUtc.GetTicks();
+    auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+
+    mFromCtrlDate = eventDateUtc;
+    mFromDate = newFromDate;
+}
+
+void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
+{
+    pLogger->info("ExportToCsvDialog::OnToDateSelection - Received date (wxDateTime) event with value \"{0}\"",
+        event.GetDate().FormatISODate().ToStdString());
+
+    auto eventDate = wxDateTime(event.GetDate());
+
+    auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+
+    if (eventDateUtc > mToLatestPossibleDate) {
+        SetToDateAndDatePicker();
+        return;
+    }
+
+    if (eventDateUtc < mFromCtrlDate) {
+        SetFromDateAndDatePicker();
+        wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past from date");
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pToDateCtrl);
+        return;
+    }
+
+    auto eventDateUtcTicks = eventDateUtc.GetTicks();
+    auto newToDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+
+    mToCtrlDate = eventDateUtc;
+    mToDate = newToDate;
+}
+
+void ExportToCsvDialog::SetFromAndToDatePickerRanges()
+{
+    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
+
+    wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
+
+    if (pFromDateCtrl->GetRange(&fromFromDate, &toFromDate)) {
+        pLogger->info("ExportToCsvDialog::SetFromAndToDatePickerRanges - pFromDateCtrl range is [{0} - {1}]",
+            fromFromDate.FormatISODate().ToStdString(),
+            toFromDate.FormatISODate().ToStdString());
+    }
+
+    wxDateSpan oneDay(0, 0, 0, 1);
+    auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
+    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
+
+    wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
+
+    if (pToDateCtrl->GetRange(&toFromDate2, &toToDate)) {
+        pLogger->info("ExportToCsvDialog::SetFromAndToDatePickerRanges - pToDateCtrl range is [{0} - {1})",
+            toFromDate2.FormatISODate().ToStdString(),
+            toToDate.FormatISODate().ToStdString());
+    }
+
+    mToLatestPossibleDate = wxDateTime(pDateStore->SundayDateSeconds);
+}
+
+void ExportToCsvDialog::SetFromDateAndDatePicker()
+{
+    pFromDateCtrl->SetValue(pDateStore->MondayDateSeconds);
+
+    pLogger->info("ExportToCsvDialog::SetFromDateAndDatePicker - Reset pFromDateCtrl to: {0}",
+        pFromDateCtrl->GetValue().FormatISODate().ToStdString());
+
+    mFromCtrlDate = pDateStore->MondayDateSeconds;
+
+    pLogger->info("ExportToCsvDialog::SetFromDateAndDatePicker - Reset mFromCtrlDate to: {0}",
+        mFromCtrlDate.FormatISODate().ToStdString());
+}
+
+void ExportToCsvDialog::SetToDateAndDatePicker()
+{
+    pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
+
+    pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - \npToDateCtrl date = {0}\nSundayDateSeconds = {1}",
+        pToDateCtrl->GetValue().FormatISOCombined().ToStdString(),
+        date::format("%Y-%m-%d %I:%M:%S %p", date::sys_seconds{ std::chrono::seconds(pDateStore->SundayDateSeconds) }));
+
+    pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - Reset pToDateCtrl to: {0}",
+        pToDateCtrl->GetValue().FormatISODate().ToStdString());
+
+    mToCtrlDate = pDateStore->SundayDateSeconds;
+
+    pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - Reset mToCtrlDate to: {0}",
+        mToCtrlDate.FormatISODate().ToStdString());
 }
 } // namespace tks::UI::dlg
