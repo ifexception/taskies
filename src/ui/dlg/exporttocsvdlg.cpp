@@ -124,34 +124,42 @@ void ExportToCsvDialog::CreateControls()
     auto optionsStaticBoxSizer = new wxStaticBoxSizer(optionsStaticBox, wxVERTICAL);
     horizontalBoxSizer->Add(optionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+    /* Flex grid sizer for option choices */
     auto optionsFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     optionsStaticBoxSizer->Add(optionsFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
 
+    /* Delimiter choice control */
     auto delimiterLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Delimiter");
     pDelimiterChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_DELIMITER_CTRL, wxDefaultPosition, wxSize(128, -1));
     pDelimiterChoiceCtrl->SetToolTip("Set the field separator character");
 
+    /* Text qualifiers choice control */
     auto textQualifierLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Text Qualifier");
     pTextQualifierChoiceCtrl =
         new wxChoice(optionsStaticBox, tksIDC_TEXT_QUALIFIER_CTRL, wxDefaultPosition, wxSize(128, -1));
     pTextQualifierChoiceCtrl->SetToolTip("Set the text qualifier for text values");
 
+    /* End of line choice control */
     auto eolLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "End of Line");
     pEolTerminatorChoiceCtrl =
         new wxChoice(optionsStaticBox, tksIDC_EOL_TERMINATOR_CTRL, wxDefaultPosition, wxSize(128, -1));
     pEolTerminatorChoiceCtrl->SetToolTip("Set the end of line qualifier for each row");
 
+    /* Empty values choice control */
     auto emptyValuesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Empty Values");
     pEmptyValueHandlerChoiceCtrl =
         new wxChoice(optionsStaticBox, tksIDC_EMPTY_VALUE_HANDLER_CTRL, wxDefaultPosition, wxSize(128, -1));
     pEmptyValueHandlerChoiceCtrl->SetToolTip("Set how to handle empty or blank field values");
 
+    /* New lines choice control */
     auto newLinesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "New Lines");
     pNewLinesHandlerChoiceCtrl =
         new wxChoice(optionsStaticBox, tksIDC_NEW_LINES_HANDLER_CTRL, wxDefaultPosition, wxSize(128, -1));
     pNewLinesHandlerChoiceCtrl->SetToolTip("Set how to handle multiline field values");
 
+    /* Remove commans checkbox control */
     pRemoveCommasCheckBoxCtrl = new wxCheckBox(optionsStaticBox, tksIDC_REMOVE_COMMAS_CTRL, "Remove Commas");
+    pRemoveCommasCheckBoxCtrl->SetToolTip("Remove commas from text to be exported");
 
     optionsFlexGridSizer->Add(delimiterLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     optionsFlexGridSizer->Add(pDelimiterChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -179,15 +187,17 @@ void ExportToCsvDialog::CreateControls()
     auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand());
 
+    /* Export to clipboard checkbox control */
     pExportToClipboardCheckBoxCtrl =
         new wxCheckBox(outputStaticBox, tksIDC_COPY_TO_CLIPBOARD_CTRL, "Copy to Clipboard");
     pExportToClipboardCheckBoxCtrl->SetToolTip("When checked the data will be exported to the clipboard");
 
+    /* Save to file text control */
     auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
     pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
 
     pBrowseExportPathButton = new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
-    pBrowseExportPathButton->SetToolTip("Set where to the save the results to");
+    pBrowseExportPathButton->SetToolTip("Set where to the save the exported data to");
 
     outputFlexGridSizer->AddGrowableCol(1, 1);
 
@@ -203,11 +213,15 @@ void ExportToCsvDialog::CreateControls()
     auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxHORIZONTAL);
     sizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+    /* From date control */
     auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
     pFromDateCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_FROM_CTRL);
+    pFromDateCtrl->SetToolTip("Set the earliest inclusive date to export the data from");
 
+    /* To date control */
     auto toDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "To: ");
     pToDateCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
+    pToDateCtrl->SetToolTip("Set the latest inclusive date to export the data from");
 
     dateRangeStaticBoxSizer->Add(fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateRangeStaticBoxSizer->Add(pFromDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -222,11 +236,15 @@ void ExportToCsvDialog::CreateControls()
     auto headerControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     dataToExportStaticBoxSizer->Add(headerControlsHorizontalSizer, wxSizerFlags().Expand().Proportion(1));
 
+    /* Default headers list view controls */
     pDefaultHeadersListView = new wxListView(dataToExportStaticBox,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
         wxDefaultPosition,
         wxDefaultSize,
         wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
+    pDefaultHeadersListView->EnableCheckBoxes();
+    pDefaultHeadersListView->SetToolTip(
+        "Available headers that can be exported (use the controls to select which headers to export)");
     headerControlsHorizontalSizer->Add(pDefaultHeadersListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     wxListItem defaultHeader;
@@ -235,22 +253,27 @@ void ExportToCsvDialog::CreateControls()
     defaultHeader.SetWidth(180);
     pDefaultHeadersListView->InsertColumn(0, defaultHeader);
 
+    /* Chevrons buttons */
     auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
     headerControlsHorizontalSizer->Add(chevronButtonSizer, wxSizerFlags());
 
     pRightChevronButton =
         new wxButton(dataToExportStaticBox, tksIDC_RIGHT_CHEV_CTRL, ">", wxDefaultPosition, wxSize(32, -1));
+    pRightChevronButton->SetToolTip("Select a header to be included in the export");
     pLeftChevronButton =
         new wxButton(dataToExportStaticBox, tksIDC_LEFT_CHEV_CTRL, "<", wxDefaultPosition, wxSize(32, -1));
+    pLeftChevronButton->SetToolTip("Select a header to be excluded in the export (if any)");
 
     chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
 
+    /* Export Headers data view list control */
     pDataViewCtrl = new wxDataViewCtrl(dataToExportStaticBox,
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL,
         wxDefaultPosition,
         wxDefaultSize,
         wxDV_SINGLE | wxDV_ROW_LINES);
+    pDataViewCtrl->SetToolTip("Headers to be exported to file or clipboard");
     headerControlsHorizontalSizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Model */
@@ -297,6 +320,7 @@ void ExportToCsvDialog::CreateControls()
     auto dataPreviewStaticBoxSizer = new wxStaticBoxSizer(dataPreviewStaticBox, wxVERTICAL);
     sizer->Add(dataPreviewStaticBoxSizer, wxSizerFlags().Expand().Border(wxALL, FromDIP(4)));
 
+    /* Data export preview text control */
     pDataExportPreviewTextCtrl = new wxTextCtrl(dataPreviewStaticBox,
         tksIDC_DATA_EXPORT_PREVIEW_CTRL,
         wxEmptyString,
@@ -420,6 +444,20 @@ void ExportToCsvDialog::ConfigureEventBindings()
         this,
         tksIDC_DATE_TO_CTRL
     );
+
+    pDefaultHeadersListView->Bind(
+        wxEVT_LIST_ITEM_CHECKED,
+        &ExportToCsvDialog::OnAvailableHeaderItemCheck,
+        this,
+        tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL
+    );
+
+    pDefaultHeadersListView->Bind(
+        wxEVT_LIST_ITEM_UNCHECKED,
+        &ExportToCsvDialog::OnAvailableHeaderItemUncheck,
+        this,
+        tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL
+    );
 }
 // clang-format on
 
@@ -477,6 +515,7 @@ void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
 
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
     auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+    pLogger->info("ExportToCsvDialog::OnFromDateSelection - New date value \"{0}\"", date::format("%F", newFromDate));
 
     mFromCtrlDate = eventDateUtc;
     mFromDate = newFromDate;
@@ -506,10 +545,50 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
 
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
     auto newToDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+    pLogger->info("ExportToCsvDialog::OnToDateSelection - New date value \"{0}\"", date::format("%F", newToDate));
 
     mToCtrlDate = eventDateUtc;
     mToDate = newToDate;
 }
+
+void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
+{
+    long index = event.GetIndex();
+    mSelectedItemIndexes.push_back(index);
+
+    std::string name;
+
+    wxListItem item;
+    item.m_itemId = index;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pDefaultHeadersListView->GetItem(item);
+
+    name = item.GetText().ToStdString();
+
+    pLogger->info("ExportToCsvDialog::OnAvailableHeaderItemCheck - Selected header name \"{0}\"", name);
+}
+
+void ExportToCsvDialog::OnAvailableHeaderItemUncheck(wxListEvent& event)
+{
+    long index = event.GetIndex();
+    mSelectedItemIndexes.erase(
+        std::remove(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), index), mSelectedItemIndexes.end());
+
+    std::string name;
+
+    wxListItem item;
+    item.m_itemId = index;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pDefaultHeadersListView->GetItem(item);
+
+    name = item.GetText().ToStdString();
+
+    pLogger->info("ExportToCsvDialog::OnAvailableHeaderItemUncheck - Unselected header name \"{0}\"", name);
+}
+
+void ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList(wxCommandEvent& event) {}
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()
 {
@@ -554,10 +633,6 @@ void ExportToCsvDialog::SetFromDateAndDatePicker()
 void ExportToCsvDialog::SetToDateAndDatePicker()
 {
     pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
-
-    pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - \npToDateCtrl date = {0}\nSundayDateSeconds = {1}",
-        pToDateCtrl->GetValue().FormatISOCombined().ToStdString(),
-        date::format("%Y-%m-%d %I:%M:%S %p", date::sys_seconds{ std::chrono::seconds(pDateStore->SundayDateSeconds) }));
 
     pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - Reset pToDateCtrl to: {0}",
         pToDateCtrl->GetValue().FormatISODate().ToStdString());
