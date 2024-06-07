@@ -60,6 +60,8 @@ public:
     virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override;
     virtual unsigned int GetCount() const override;
 
+    void Append(const std::string& headerName, int orderIndex);
+
 private:
     std::shared_ptr<spdlog::logger> pLogger;
 

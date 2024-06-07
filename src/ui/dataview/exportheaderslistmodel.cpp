@@ -78,4 +78,12 @@ unsigned int ExportHeadersListModel::GetCount() const
 {
     return mListItemModels.size();
 }
+
+void ExportHeadersListModel::Append(const std::string& headerName, int orderIndex)
+{
+    ExportHeaderListItemModel model(headerName, orderIndex);
+    mListItemModels.push_back(model);
+
+    RowAppended();
+}
 } // namespace tks::UI

@@ -458,6 +458,13 @@ void ExportToCsvDialog::ConfigureEventBindings()
         this,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL
     );
+
+    pRightChevronButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList,
+        this,
+        tksIDC_RIGHT_CHEV_CTRL
+    );
 }
 // clang-format on
 
@@ -588,7 +595,42 @@ void ExportToCsvDialog::OnAvailableHeaderItemUncheck(wxListEvent& event)
     pLogger->info("ExportToCsvDialog::OnAvailableHeaderItemUncheck - Unselected header name \"{0}\"", name);
 }
 
-void ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList(wxCommandEvent& event) {}
+void ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList(wxCommandEvent& WXUNUSED(event))
+{
+    if (mSelectedItemIndexes.size() == 0) {
+        pLogger->info(
+            "ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList - No items (headers) selected to move");
+        return;
+    }
+
+    int orderIndex = 0;
+    for (auto index : mSelectedItemIndexes) {
+        // Extract the header name text from item index
+        std::string name;
+        wxListItem item;
+        item.m_itemId = index;
+        item.m_col = 0;
+        item.m_mask = wxLIST_MASK_TEXT;
+        pDefaultHeadersListView->GetItem(item);
+
+        name = item.GetText().ToStdString();
+
+        /* Uncheck the item (not sure if this is needed) */
+        pDefaultHeadersListView->CheckItem(index, false);
+
+        /* Add export header in data view control and update */
+        pExportHeaderListModel->Append(name, orderIndex);
+
+        /* Remove header from available header list control */
+        pDefaultHeadersListView->DeleteItem(index);
+
+        pLogger->info("ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList - Header \"{0}\" moved from available "
+                      "to export list",
+            name);
+    }
+}
+
+void ExportToCsvDialog::OnRemoveAvailableHeadertoExportHeaderList(wxCommandEvent& WXUNUSED(event)) {}
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()
 {
