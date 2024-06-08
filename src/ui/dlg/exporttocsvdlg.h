@@ -77,8 +77,8 @@ private:
 
     void OnAvailableHeaderItemCheck(wxListEvent& event);
     void OnAvailableHeaderItemUncheck(wxListEvent& event);
-    void OnAddAvailableHeadertoExportHeaderList(wxCommandEvent& event);
-    void OnRemoveAvailableHeadertoExportHeaderList(wxCommandEvent& event);
+    void OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& event);
+    void OnRemoveExportHeaderToAvailableHeaderList(wxCommandEvent& event);
 
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();

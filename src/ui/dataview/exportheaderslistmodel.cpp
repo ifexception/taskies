@@ -22,7 +22,8 @@
 namespace tks::UI
 {
 ExportHeaderListItemModel::ExportHeaderListItemModel(const std::string& header, int orderIndex)
-    : Header(header)
+    : Toggled(false)
+    , Header(header)
     , OrderIndex(orderIndex)
 {
 }
@@ -38,6 +39,10 @@ ExportHeadersListModel::ExportHeadersListModel(std::shared_ptr<spdlog::logger> l
 void ExportHeadersListModel::GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const
 {
     switch (col) {
+    case Col_Toggled: {
+        variant = mListItemModels[row].Toggled;
+        break;
+    }
     case Col_Header:
         variant = mListItemModels[row].Header;
         break;
@@ -53,12 +58,16 @@ void ExportHeadersListModel::GetValueByRow(wxVariant& variant, unsigned int row,
 
 bool ExportHeadersListModel::GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const
 {
-    return false;
+    return true;
 }
 
 bool ExportHeadersListModel::SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col)
 {
     switch (col) {
+    case Col_Toggled: {
+        mListItemModels[row].Toggled = variant.GetBool();
+        break;
+    }
     case Col_Header:
         mListItemModels[row].Header = variant.GetString().ToStdString();
         break;
@@ -85,5 +94,36 @@ void ExportHeadersListModel::Append(const std::string& headerName, int orderInde
     mListItemModels.push_back(model);
 
     RowAppended();
+}
+
+void ExportHeadersListModel::DeleteItems(const wxDataViewItemArray& items)
+{
+    wxArrayInt rows;
+    for (auto i = 0; i < items.GetCount(); i++) {
+        unsigned int row = GetRow(items[i]);
+        if (row < mListItemModels.size()) {
+            rows.Add(row);
+        }
+    }
+
+    for (auto i = 0; i < items.GetCount(); i++) {
+        mListItemModels.erase(mListItemModels.begin() + rows[i]);
+    }
+
+    RowsDeleted(rows);
+}
+
+std::vector<std::string> ExportHeadersListModel::GetSelectedHeaders()
+{
+    std::vector<std::string> headers;
+    for (const auto& listItem : mListItemModels) {
+        if (listItem.Toggled) {
+            pLogger->info(
+                "ExportHeadersListModel::GetSelectedHeaders - Found toggled header with name \"{0}\"", listItem.Header);
+            headers.push_back(listItem.Header);
+        }
+    }
+
+    return headers;
 }
 } // namespace tks::UI

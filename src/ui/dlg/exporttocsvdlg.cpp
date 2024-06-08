@@ -280,6 +280,13 @@ void ExportToCsvDialog::CreateControls()
     pExportHeaderListModel = new ExportHeadersListModel(pLogger);
     pDataViewCtrl->AssociateModel(pExportHeaderListModel.get());
 
+    /* Toggled Column */
+    /*auto* toggleRenderer = new wxDataViewToggleRenderer();
+    auto* toggleColumn = new wxDataViewColumn(
+        wxEmptyString, toggleRenderer, ExportHeadersListModel::Col_Toggled, FromDIP(48), wxALIGN_CENTER);
+    pDataViewCtrl->AppendColumn(toggleColumn);*/
+    pDataViewCtrl->AppendToggleColumn("", ExportHeadersListModel::Col_Toggled, wxDATAVIEW_CELL_ACTIVATABLE);
+
     /* Header Column */
     auto* textRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_EDITABLE);
     wxDataViewColumn* headerEditableColumn = new wxDataViewColumn("Headers",
@@ -288,18 +295,18 @@ void ExportToCsvDialog::CreateControls()
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_LEFT,
         wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-    headerEditableColumn->SetMinWidth(80);
+    headerEditableColumn->SetMinWidth(120);
     pDataViewCtrl->AppendColumn(headerEditableColumn);
 
     /* OrderIndex Column */
-    auto* orderIndexRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
-    auto* listIdColumn = new wxDataViewColumn("Order Index",
-        orderIndexRenderer,
+    auto* orderRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
+    auto* orderColumn = new wxDataViewColumn("Order",
+        orderRenderer,
         ExportHeadersListModel::Col_OrderIndex,
         FromDIP(32),
         wxALIGN_CENTER,
         wxDATAVIEW_COL_HIDDEN);
-    pDataViewCtrl->AppendColumn(listIdColumn);
+    pDataViewCtrl->AppendColumn(orderColumn);
 
     /* Up|Down Buttons sizer */
     auto upDownButtonSizer = new wxBoxSizer(wxVERTICAL);
@@ -461,9 +468,16 @@ void ExportToCsvDialog::ConfigureEventBindings()
 
     pRightChevronButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList,
+        &ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList,
         this,
         tksIDC_RIGHT_CHEV_CTRL
+    );
+
+    pLeftChevronButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnRemoveExportHeaderToAvailableHeaderList,
+        this,
+        tksIDC_LEFT_CHEV_CTRL
     );
 }
 // clang-format on
@@ -595,7 +609,7 @@ void ExportToCsvDialog::OnAvailableHeaderItemUncheck(wxListEvent& event)
     pLogger->info("ExportToCsvDialog::OnAvailableHeaderItemUncheck - Unselected header name \"{0}\"", name);
 }
 
-void ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList(wxCommandEvent& WXUNUSED(event))
+void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& WXUNUSED(event))
 {
     if (mSelectedItemIndexes.size() == 0) {
         pLogger->info(
@@ -630,7 +644,19 @@ void ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList(wxCommandEvent& W
     }
 }
 
-void ExportToCsvDialog::OnRemoveAvailableHeadertoExportHeaderList(wxCommandEvent& WXUNUSED(event)) {}
+void ExportToCsvDialog::OnRemoveExportHeaderToAvailableHeaderList(wxCommandEvent& WXUNUSED(event))
+{
+    auto headersToRemove = pExportHeaderListModel->GetSelectedHeaders();
+    wxDataViewItemArray items;
+    auto selections = pDataViewCtrl->GetSelections(items);
+    if (selections > 0) {
+        pExportHeaderListModel->DeleteItems(items);
+
+        for (const auto& header : headersToRemove) {
+            pDefaultHeadersListView->InsertItem(0, header);
+        }
+    }
+}
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()
 {

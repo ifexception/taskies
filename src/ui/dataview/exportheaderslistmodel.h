@@ -39,6 +39,7 @@ namespace tks::UI
 struct ExportHeaderListItemModel {
     ExportHeaderListItemModel(const std::string& header, int orderIndex);
 
+    bool Toggled;
     std::string Header;
     int OrderIndex;
 };
@@ -46,7 +47,7 @@ struct ExportHeaderListItemModel {
 class ExportHeadersListModel : public wxDataViewVirtualListModel
 {
 public:
-    enum { Col_Header = 0, Col_OrderIndex, Col_Max };
+    enum { Col_Toggled = 0, Col_Header, Col_OrderIndex, Col_Max };
 
     ExportHeadersListModel() = delete;
     ExportHeadersListModel(const ExportHeadersListModel&) = delete;
@@ -61,6 +62,9 @@ public:
     virtual unsigned int GetCount() const override;
 
     void Append(const std::string& headerName, int orderIndex);
+    void DeleteItems(const wxDataViewItemArray& items);
+
+    std::vector<std::string> GetSelectedHeaders();
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
