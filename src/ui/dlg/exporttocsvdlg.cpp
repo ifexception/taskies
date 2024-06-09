@@ -281,10 +281,6 @@ void ExportToCsvDialog::CreateControls()
     pDataViewCtrl->AssociateModel(pExportHeaderListModel.get());
 
     /* Toggled Column */
-    /*auto* toggleRenderer = new wxDataViewToggleRenderer();
-    auto* toggleColumn = new wxDataViewColumn(
-        wxEmptyString, toggleRenderer, ExportHeadersListModel::Col_Toggled, FromDIP(48), wxALIGN_CENTER);
-    pDataViewCtrl->AppendColumn(toggleColumn);*/
     pDataViewCtrl->AppendToggleColumn("", ExportHeadersListModel::Col_Toggled, wxDATAVIEW_CELL_ACTIVATABLE);
 
     /* Header Column */
@@ -618,12 +614,14 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
     }
 
     int orderIndex = 0;
+    int columnIndex = 0;
+
     for (long i = (mSelectedItemIndexes.size() - 1); 0 <= i; i--) {
         // Extract the header name text from item index
         std::string name;
         wxListItem item;
         item.m_itemId = mSelectedItemIndexes[i];
-        item.m_col = 0;
+        item.m_col = columnIndex;
         item.m_mask = wxLIST_MASK_TEXT;
         pDefaultHeadersListView->GetItem(item);
 
@@ -633,7 +631,7 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
         // pDefaultHeadersListView->CheckItem(index, false);
 
         /* Add export header in data view control and update */
-        pExportHeaderListModel->Append(name, orderIndex);
+        pExportHeaderListModel->Append(name, orderIndex++);
 
         /* Remove header from available header list control */
         pDefaultHeadersListView->DeleteItem(mSelectedItemIndexes[i]);
