@@ -66,7 +66,7 @@ bool ExportHeadersListModel::SetValueByRow(const wxVariant& variant, unsigned in
     switch (col) {
     case Col_Toggled: {
         mListItemModels[row].Toggled = variant.GetBool();
-        break;
+        return true;
     }
     case Col_Header:
         mListItemModels[row].Header = variant.GetString().ToStdString();
