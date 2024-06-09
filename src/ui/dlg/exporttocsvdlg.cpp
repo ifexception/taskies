@@ -618,11 +618,11 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
     }
 
     int orderIndex = 0;
-    for (auto index : mSelectedItemIndexes) {
+    for (long i = (mSelectedItemIndexes.size() - 1); 0 <= i; i--) {
         // Extract the header name text from item index
         std::string name;
         wxListItem item;
-        item.m_itemId = index;
+        item.m_itemId = mSelectedItemIndexes[i];
         item.m_col = 0;
         item.m_mask = wxLIST_MASK_TEXT;
         pDefaultHeadersListView->GetItem(item);
@@ -630,13 +630,13 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
         name = item.GetText().ToStdString();
 
         /* Uncheck the item (not sure if this is needed) */
-        pDefaultHeadersListView->CheckItem(index, false);
+        // pDefaultHeadersListView->CheckItem(index, false);
 
         /* Add export header in data view control and update */
         pExportHeaderListModel->Append(name, orderIndex);
 
         /* Remove header from available header list control */
-        pDefaultHeadersListView->DeleteItem(index);
+        pDefaultHeadersListView->DeleteItem(mSelectedItemIndexes[i]);
 
         pLogger->info("ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList - Header \"{0}\" moved from available "
                       "to export list",
