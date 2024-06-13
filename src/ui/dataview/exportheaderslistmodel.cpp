@@ -70,10 +70,10 @@ bool ExportHeadersListModel::SetValueByRow(const wxVariant& variant, unsigned in
     }
     case Col_Header:
         mListItemModels[row].Header = variant.GetString().ToStdString();
-        break;
+        return true;
     case Col_OrderIndex:
         mListItemModels[row].OrderIndex = (static_cast<int>(variant.GetInteger()));
-        break;
+        return true;
     case Col_Max:
     default:
         pLogger->info("ExportHeadersListModel::SetValue - Invalid column selected");
@@ -111,6 +111,16 @@ void ExportHeadersListModel::DeleteItems(const wxDataViewItemArray& items)
     }
 
     RowsDeleted(rows);
+}
+
+void ExportHeadersListModel::ChangeItem(const wxDataViewItem& item, const std::string& newItem)
+{
+    unsigned int row = GetRow(item);
+    if (newItem.length() > 0) {
+        mListItemModels[row].Header = newItem;
+
+        RowChanged(row);
+    }
 }
 
 std::vector<std::string> ExportHeadersListModel::GetSelectedHeaders()

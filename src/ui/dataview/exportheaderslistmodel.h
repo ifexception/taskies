@@ -63,6 +63,7 @@ public:
 
     void Append(const std::string& headerName, int orderIndex);
     void DeleteItems(const wxDataViewItemArray& items);
+    void ChangeItem(const wxDataViewItem& item, const std::string& newItem);
 
     std::vector<std::string> GetSelectedHeaders();
 

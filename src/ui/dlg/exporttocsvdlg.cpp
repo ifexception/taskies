@@ -475,6 +475,20 @@ void ExportToCsvDialog::ConfigureEventBindings()
         this,
         tksIDC_LEFT_CHEV_CTRL
     );
+
+    pDataViewCtrl->Bind(
+        wxEVT_DATAVIEW_ITEM_EDITING_STARTED,
+        &ExportToCsvDialog::OnExportHeaderEditingStart,
+        this,
+        tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
+    );
+
+    pDataViewCtrl->Bind(
+        wxEVT_DATAVIEW_ITEM_EDITING_DONE,
+        &ExportToCsvDialog::OnExportHeaderEditingDone,
+        this,
+        tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
+    );
 }
 // clang-format on
 
@@ -627,14 +641,13 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
 
         name = item.GetText().ToStdString();
 
-        /* Uncheck the item (not sure if this is needed) */
-        // pDefaultHeadersListView->CheckItem(index, false);
-
         /* Add export header in data view control and update */
         pExportHeaderListModel->Append(name, orderIndex++);
 
         /* Remove header from available header list control */
         pDefaultHeadersListView->DeleteItem(mSelectedItemIndexes[i]);
+
+        mSelectedItemIndexes.erase(mSelectedItemIndexes.begin() + i);
 
         pLogger->info("ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList - Header \"{0}\" moved from available "
                       "to export list",
@@ -653,6 +666,29 @@ void ExportToCsvDialog::OnRemoveExportHeaderToAvailableHeaderList(wxCommandEvent
         for (const auto& header : headersToRemove) {
             pDefaultHeadersListView->InsertItem(0, header);
         }
+    }
+}
+
+void ExportToCsvDialog::OnExportHeaderEditingStart(wxDataViewEvent& event)
+{
+    const wxDataViewModel* model = event.GetModel();
+
+    wxVariant value;
+    model->GetValue(value, event.GetItem(), event.GetColumn());
+
+    pLogger->info("ExportToCsvDialog::OnExportHeaderEditingStart - Editing started on export header - {0}",
+        value.GetString().ToStdString());
+}
+
+void ExportToCsvDialog::OnExportHeaderEditingDone(wxDataViewEvent& event)
+{
+    if (event.IsEditCancelled()) {
+        pLogger->info("ExportToCsvDialog::OnExportHeaderEditingDone - edit was cancelled");
+    } else {
+        pLogger->info("ExportToCsvDialog::OnExportHeaderEditingDone - edit completed with new value: \"{0}\"",
+            event.GetValue().GetString().ToStdString());
+
+        pExportHeaderListModel->ChangeItem(event.GetItem(), event.GetValue().GetString().ToStdString());
     }
 }
 

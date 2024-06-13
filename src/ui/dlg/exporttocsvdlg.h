@@ -80,6 +80,9 @@ private:
     void OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& event);
     void OnRemoveExportHeaderToAvailableHeaderList(wxCommandEvent& event);
 
+    void OnExportHeaderEditingStart(wxDataViewEvent& event);
+    void OnExportHeaderEditingDone(wxDataViewEvent& event);
+
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
