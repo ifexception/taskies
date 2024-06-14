@@ -24,6 +24,7 @@ namespace tks::UI
 ExportHeaderListItemModel::ExportHeaderListItemModel(const std::string& header, int orderIndex)
     : Toggled(false)
     , Header(header)
+    , OriginalHeader(header)
     , OrderIndex(orderIndex)
 {
 }
@@ -64,10 +65,9 @@ bool ExportHeadersListModel::GetAttrByRow(unsigned int row, unsigned int col, wx
 bool ExportHeadersListModel::SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col)
 {
     switch (col) {
-    case Col_Toggled: {
+    case Col_Toggled:
         mListItemModels[row].Toggled = variant.GetBool();
         return true;
-    }
     case Col_Header:
         mListItemModels[row].Header = variant.GetString().ToStdString();
         return true;

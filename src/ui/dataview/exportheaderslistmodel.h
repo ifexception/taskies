@@ -41,6 +41,7 @@ struct ExportHeaderListItemModel {
 
     bool Toggled;
     std::string Header;
+    std::string OriginalHeader;
     int OrderIndex;
 };
 
