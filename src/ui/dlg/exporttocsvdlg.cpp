@@ -649,6 +649,10 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
         return;
     }
 
+    // Sort the item indexes by ascending order so the
+    // subsequent for loop correctly iterates over the entries in reverse
+    std::sort(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), std::less{});
+
     int orderIndex = 0;
     int columnIndex = 0;
 
@@ -671,9 +675,8 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
 
         mSelectedItemIndexes.erase(mSelectedItemIndexes.begin() + i);
 
-        pLogger->info("ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList - Header \"{0}\" moved from available "
-                      "to export list",
-            name);
+        pLogger->info(
+            "ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList - Header \"{0}\" removed from available", name);
     }
 }
 
