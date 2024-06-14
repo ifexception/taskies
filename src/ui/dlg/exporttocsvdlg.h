@@ -79,9 +79,11 @@ private:
     void OnAvailableHeaderItemUncheck(wxListEvent& event);
     void OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& event);
     void OnRemoveExportHeaderToAvailableHeaderList(wxCommandEvent& event);
-
     void OnExportHeaderEditingStart(wxDataViewEvent& event);
     void OnExportHeaderEditingDone(wxDataViewEvent& event);
+    void OnExportHeaderSelectionChanged(wxDataViewEvent& event);
+    void OnUpButtonSort(wxCommandEvent& event);
+    void OnDownButtonSort(wxCommandEvent& event);
 
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();
@@ -135,6 +137,7 @@ private:
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
 
     std::vector<long> mSelectedItemIndexes;
+    wxDataViewItem mItemToSort;
 
     enum {
         tksIDC_DELIMITER_CTRL = wxID_HIGHEST + 100,

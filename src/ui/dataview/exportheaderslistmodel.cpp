@@ -123,6 +123,42 @@ void ExportHeadersListModel::ChangeItem(const wxDataViewItem& item, const std::s
     }
 }
 
+void ExportHeadersListModel::MoveItem(const wxDataViewItem& item, bool up)
+{
+    pLogger->info("ExportHeadersListModel::MoveItem - Begin move item");
+    unsigned int row = GetRow(item);
+    if (row != 0 && up) {
+        pLogger->info("ExportHeadersListModel::MoveItem - Moving header \"{0}\" up", mListItemModels[row].Header);
+
+        auto modelAtRow = mListItemModels[row];
+        mListItemModels.erase(mListItemModels.begin() + row);
+        modelAtRow.OrderIndex--;
+        modelAtRow.Toggled = false;
+        RowDeleted(row);
+
+        unsigned int rowAbove = --row;
+        mListItemModels[rowAbove].OrderIndex++;
+        mListItemModels.insert(mListItemModels.begin() + rowAbove, modelAtRow);
+
+        RowInserted(rowAbove);
+    }
+
+    if (row != 0 && row != (mListItemModels.size() - 1) && !up) {
+        pLogger->info("ExportHeadersListModel::MoveItem - Moving header \"{0}\" down", mListItemModels[row].Header);
+        auto modelAtRow = mListItemModels[row];
+        mListItemModels.erase(mListItemModels.begin() + row);
+        modelAtRow.OrderIndex++;
+        modelAtRow.Toggled = false;
+        RowDeleted(row);
+
+        unsigned int rowBelow = ++row;
+        mListItemModels[rowBelow].OrderIndex--;
+        mListItemModels.insert(mListItemModels.begin() + rowBelow, modelAtRow);
+
+        RowInserted(rowBelow);
+    }
+}
+
 std::vector<std::string> ExportHeadersListModel::GetSelectedHeaders()
 {
     std::vector<std::string> headers;

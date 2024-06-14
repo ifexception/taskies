@@ -290,7 +290,7 @@ void ExportToCsvDialog::CreateControls()
         ExportHeadersListModel::Col_Header,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_LEFT,
-        wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+        wxDATAVIEW_COL_RESIZABLE);
     headerEditableColumn->SetMinWidth(120);
     pDataViewCtrl->AppendColumn(headerEditableColumn);
 
@@ -301,7 +301,8 @@ void ExportToCsvDialog::CreateControls()
         ExportHeadersListModel::Col_OrderIndex,
         FromDIP(32),
         wxALIGN_CENTER,
-        wxDATAVIEW_COL_HIDDEN);
+        wxDATAVIEW_COL_HIDDEN | wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_REORDERABLE);
+    orderColumn->SetSortOrder(true /* ascending */);
     pDataViewCtrl->AppendColumn(orderColumn);
 
     /* Up|Down Buttons sizer */
@@ -488,6 +489,27 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnExportHeaderEditingDone,
         this,
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
+    );
+
+    pDataViewCtrl->Bind(
+        wxEVT_DATAVIEW_SELECTION_CHANGED,
+        &ExportToCsvDialog::OnExportHeaderSelectionChanged,
+        this,
+        tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
+    );
+
+    pUpButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnUpButtonSort,
+        this,
+        tksIDC_UP_BUTTON
+    );
+
+    pDownButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnDownButtonSort,
+        this,
+        tksIDC_DOWN_BUTTON
     );
 }
 // clang-format on
@@ -683,12 +705,49 @@ void ExportToCsvDialog::OnExportHeaderEditingStart(wxDataViewEvent& event)
 void ExportToCsvDialog::OnExportHeaderEditingDone(wxDataViewEvent& event)
 {
     if (event.IsEditCancelled()) {
-        pLogger->info("ExportToCsvDialog::OnExportHeaderEditingDone - edit was cancelled");
+        pLogger->info("ExportToCsvDialog::OnExportHeaderEditingDone - Edit was cancelled");
     } else {
-        pLogger->info("ExportToCsvDialog::OnExportHeaderEditingDone - edit completed with new value: \"{0}\"",
+        pLogger->info("ExportToCsvDialog::OnExportHeaderEditingDone - Edit completed with new value: \"{0}\"",
             event.GetValue().GetString().ToStdString());
 
         pExportHeaderListModel->ChangeItem(event.GetItem(), event.GetValue().GetString().ToStdString());
+    }
+}
+
+void ExportToCsvDialog::OnExportHeaderSelectionChanged(wxDataViewEvent& event)
+{
+    auto item = event.GetItem();
+    if (!item.IsOk()) {
+        return;
+    }
+
+    mItemToSort = item;
+
+    const wxDataViewModel* model = event.GetModel();
+
+    wxVariant value;
+    model->GetValue(value, event.GetItem(), ExportHeadersListModel::Col_Header);
+
+    pLogger->info("ExportToCsvDialog::OnExportHeaderSelectionChanged - Selected item header: \"{0}\"",
+        value.GetString().ToStdString());
+}
+
+void ExportToCsvDialog::OnUpButtonSort(wxCommandEvent& event)
+{
+    if (mItemToSort.IsOk()) {
+        pLogger->info("ExportToCsvDialog::OnUpButtonSort - Begin ordering selected header up");
+        pExportHeaderListModel->MoveItem(mItemToSort);
+
+        mItemToSort.Unset();
+    }
+}
+
+void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
+{
+    if (mItemToSort.IsOk()) {
+        pExportHeaderListModel->MoveItem(mItemToSort, false);
+
+        mItemToSort.Unset();
     }
 }
 
