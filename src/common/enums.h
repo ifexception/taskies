@@ -31,8 +31,6 @@ enum class BuildConfiguration { Undefined, Debug, Release };
 
 enum class NotificationType { Information = 1, Error };
 
-enum class DelimiterType : int { Comma, SemiColon, Pipe, Tab, Space };
-
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);
