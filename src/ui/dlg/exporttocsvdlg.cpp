@@ -90,6 +90,8 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pUpButton(nullptr)
     , pDownButton(nullptr)
     , pExcludeHeadersCheckBoxCtrl(nullptr)
+    , pDataExportPreviewTextCtrl(nullptr)
+    , pShowPreviewButton(nullptr)
     , pExportButton(nullptr)
     , pCancelButton(nullptr)
     , mFromDate()
@@ -332,6 +334,11 @@ void ExportToCsvDialog::CreateControls()
         wxDefaultSize,
         wxTE_READONLY | wxTE_MULTILINE);
     dataPreviewStaticBoxSizer->Add(pDataExportPreviewTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    pShowPreviewButton = new wxButton(dataPreviewStaticBox, tksIDC_SHOW_PREVIEW_BUTTON, "Show Preview");
+    pShowPreviewButton->SetToolTip("Show a preview of the data to be exported (if all fields are selected correctly)");
+
+    dataPreviewStaticBoxSizer->Add(pShowPreviewButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
