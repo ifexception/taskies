@@ -397,6 +397,8 @@ void ExportToCsvDialog::FillControls()
         pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i));
     }
 
+    pRemoveCommasCheckBoxCtrl->SetValue(true);
+
     /* Export File Controls */
     if (true /*!pCfg->GetExportDirectory()*/) {
         auto defaultFileName = fmt::format("taskies-tasks-export-{0}.csv", pDateStore->PrintTodayDate);
@@ -422,6 +424,42 @@ void ExportToCsvDialog::FillControls()
 // clang-format off
 void ExportToCsvDialog::ConfigureEventBindings()
 {
+    pDelimiterChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &ExportToCsvDialog::OnDelimiterChoiceSelection,
+        this
+    );
+
+    pTextQualifierChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &ExportToCsvDialog::OnTextQualifierChoiceSelection,
+        this
+    );
+
+    pEolTerminatorChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &ExportToCsvDialog::OnEolTerminatorChoiceSelection,
+        this
+    );
+
+    pEmptyValueHandlerChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection,
+        this
+    );
+
+    pNewLinesHandlerChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &ExportToCsvDialog::OnNewLinesHandlerChoiceSelection,
+        this
+    );
+
+    pRemoveCommasCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &ExportToCsvDialog::OnRemoveCommasCheck,
+        this
+    );
+
     pExportToClipboardCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &ExportToCsvDialog::OnExportToClipboardCheck,
@@ -513,6 +551,52 @@ void ExportToCsvDialog::ConfigureEventBindings()
     );
 }
 // clang-format on
+
+void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+
+    pLogger->info("ExportToCsvDialog::OnDelimiterChoiceSelection - Selected delimiter \"{0}\"", choice.ToStdString());
+}
+
+void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+
+    pLogger->info(
+        "ExportToCsvDialog::OnTextQualifierChoiceSelection - Selected text qualifier \"{0}\"", choice.ToStdString());
+}
+
+void ExportToCsvDialog::OnEolTerminatorChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+
+    pLogger->info(
+        "ExportToCsvDialog::OnEolTerminatorChoiceSelection - Selected EOL terminator \"{0}\"", choice.ToStdString());
+}
+
+void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+
+    pLogger->info("ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection - Selected empty value handler \"{0}\"",
+        choice.ToStdString());
+}
+
+void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+
+    pLogger->info("ExportToCsvDialog::OnNewLinesHandlerChoiceSelection - Selected new lines handler \"{0}\"",
+        choice.ToStdString());
+}
+
+void ExportToCsvDialog::OnRemoveCommasCheck(wxCommandEvent& event)
+{
+    auto choice = event.IsChecked();
+
+    pLogger->info("ExportToCsvDialog::OnRemoveCommasCheck - Checked \"{0}\"", choice);
+}
 
 void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
 {

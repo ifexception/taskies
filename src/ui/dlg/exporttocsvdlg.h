@@ -69,6 +69,14 @@ private:
     void FillControls();
     void ConfigureEventBindings();
 
+    void OnDelimiterChoiceSelection(wxCommandEvent& event);
+    void OnTextQualifierChoiceSelection(wxCommandEvent& event);
+    void OnEolTerminatorChoiceSelection(wxCommandEvent& event);
+    void OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event);
+    void OnNewLinesHandlerChoiceSelection(wxCommandEvent& event);
+
+    void OnRemoveCommasCheck(wxCommandEvent& event);
+
     void OnExportToClipboardCheck(wxCommandEvent& event);
     void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
 
