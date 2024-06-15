@@ -95,6 +95,7 @@ set (SRC
     "common/validator.cpp"
     "ipc/applicationoptionsconnection.cpp"
     "ipc/server.cpp"
+    "utils/export/csvexporter.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
     ${SRC_REPOS}
