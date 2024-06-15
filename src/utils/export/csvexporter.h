@@ -20,22 +20,73 @@
 #pragma once
 
 #include <memory>
+#include <sstream>
+#include <string>
 
 #include <spdlog/logger.h>
 
 namespace tks::Utils
 {
+enum class EndOfLine : int { Windows = 1, Macintosh, Linux };
+enum class EmptyValues : int { Blank = 1, Null };
+enum class NewLines : int { Preserve = 1, Merge };
+
+struct CsvExportOptions {
+    char Delimiter;
+    char TextQualifier;
+    EndOfLine EolTerminator;
+    EmptyValues EmptyValuesHandler;
+    NewLines NewLinesHandler;
+
+    CsvExportOptions();
+    ~CsvExportOptions() = default;
+};
+
+class DatabaseExportQueryBuilder
+{
+public:
+    DatabaseExportQueryBuilder();
+    ~DatabaseExportQueryBuilder() = default;
+
+    DatabaseExportQueryBuilder& WithEmployerName();
+    DatabaseExportQueryBuilder& WithClientName();
+    DatabaseExportQueryBuilder& WithProjectName();
+    DatabaseExportQueryBuilder& WithProjectDisplayName();
+    DatabaseExportQueryBuilder& WithCategoryName();
+    DatabaseExportQueryBuilder& WithDate();
+    DatabaseExportQueryBuilder& WithTaskDescription();
+    DatabaseExportQueryBuilder& WithBillable();
+    DatabaseExportQueryBuilder& WithUniqueId();
+    DatabaseExportQueryBuilder& WithTime();
+    DatabaseExportQueryBuilder& WithDateRange(const std::string& fromDate, const std::string& toDate);
+
+    std::string Build();
+
+private:
+    std::stringstream mSelectQuery;
+    std::stringstream mFromQuery;
+    std::stringstream mJoinsQuery;
+    std::stringstream mWhereQuery;
+
+    const char newline = '\n';
+    const char comma = ',';
+};
+
 class CsvExporter
 {
 public:
     CsvExporter() = delete;
     CsvExporter(const CsvExporter&) = delete;
-    CsvExporter(std::shared_ptr<spdlog::logger> logger);
+    CsvExporter(std::shared_ptr<spdlog::logger> logger, CsvExportOptions options);
     ~CsvExporter() = default;
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
+    void GeneratePreview();
+
 private:
     std::shared_ptr<spdlog::logger> pLogger;
+
+    CsvExportOptions mOptions;
 };
 } // namespace tks::Utils
