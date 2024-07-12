@@ -172,4 +172,9 @@ std::vector<std::string> ExportHeadersListModel::GetSelectedHeaders()
 
     return headers;
 }
+
+std::vector<ExportHeaderListItemModel> ExportHeadersListModel::GetHeadersToExport() const
+{
+    return mListItemModels;
+}
 } // namespace tks::UI

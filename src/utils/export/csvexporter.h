@@ -22,6 +22,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
 #include <spdlog/logger.h>
 
@@ -42,34 +43,20 @@ struct CsvExportOptions {
     ~CsvExportOptions() = default;
 };
 
-class DatabaseExportQueryBuilder
-{
-public:
-    DatabaseExportQueryBuilder();
-    ~DatabaseExportQueryBuilder() = default;
+struct ColumnProjection {
+    std::string databaseColumn;
+    std::string userColumn;
 
-    DatabaseExportQueryBuilder& WithEmployerName();
-    DatabaseExportQueryBuilder& WithClientName();
-    DatabaseExportQueryBuilder& WithProjectName();
-    DatabaseExportQueryBuilder& WithProjectDisplayName();
-    DatabaseExportQueryBuilder& WithCategoryName();
-    DatabaseExportQueryBuilder& WithDate();
-    DatabaseExportQueryBuilder& WithTaskDescription();
-    DatabaseExportQueryBuilder& WithBillable();
-    DatabaseExportQueryBuilder& WithUniqueId();
-    DatabaseExportQueryBuilder& WithTime();
-    DatabaseExportQueryBuilder& WithDateRange(const std::string& fromDate, const std::string& toDate);
+    ColumnProjection();
+    ColumnProjection(std::string databaseColumn, std::string userColumn);
+};
 
-    std::string Build();
+struct Projection {
+    int orderIndex;
+    ColumnProjection columnProjection;
 
-private:
-    std::stringstream mSelectQuery;
-    std::stringstream mFromQuery;
-    std::stringstream mJoinsQuery;
-    std::stringstream mWhereQuery;
-
-    const char newline = '\n';
-    const char comma = ',';
+    Projection();
+    Projection(int orderIndex, ColumnProjection columnProjection);
 };
 
 class CsvExporter
@@ -82,11 +69,30 @@ public:
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
-    void GeneratePreview();
+    void GeneratePreview(const std::vector<Projection>& projections);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
 
+    std::unique_ptr<SQLiteExportQueryBuilder> pQueryBuilder;
+
     CsvExportOptions mOptions;
+};
+
+class SQLiteExportQueryBuilder final
+{
+public:
+    SQLiteExportQueryBuilder() = delete;
+    SQLiteExportQueryBuilder(const SQLiteExportQueryBuilder&) = delete;
+    explicit SQLiteExportQueryBuilder(bool isPreview = false);
+    ~SQLiteExportQueryBuilder() = default;
+
+    const SQLiteExportQueryBuilder& operator=(const SQLiteExportQueryBuilder&) = delete;
+
+    const bool IsPreview() const;
+    void IsPreview(const bool preview);
+
+private:
+    bool bIsPreview;
 };
 } // namespace tks::Utils

@@ -69,6 +69,8 @@ public:
 
     std::vector<std::string> GetSelectedHeaders();
 
+    std::vector<ExportHeaderListItemModel> GetHeadersToExport() const;
+
 private:
     std::shared_ptr<spdlog::logger> pLogger;
 

@@ -38,6 +38,7 @@
 #include "../dataview/exportheaderslistmodel.h"
 
 #include "../../utils/datestore.h"
+#include "../../utils/export/csvexporter.h"
 
 namespace tks
 {
@@ -92,6 +93,7 @@ private:
     void OnExportHeaderSelectionChanged(wxDataViewEvent& event);
     void OnUpButtonSort(wxCommandEvent& event);
     void OnDownButtonSort(wxCommandEvent& event);
+    void OnShowPreview(wxCommandEvent& event);
 
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();
@@ -147,6 +149,9 @@ private:
 
     std::vector<long> mSelectedItemIndexes;
     wxDataViewItem mItemToSort;
+
+    Utils::CsvExportOptions mCsvOptions;
+    Utils::CsvExporter mCsvExporter;
 
     enum {
         tksIDC_DELIMITER_CTRL = wxID_HIGHEST + 100,

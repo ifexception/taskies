@@ -96,6 +96,8 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pCancelButton(nullptr)
     , mFromDate()
     , mToDate()
+    , mCsvOptions()
+    , mCsvExporter(pLogger, mCsvOptions)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -556,6 +558,13 @@ void ExportToCsvDialog::ConfigureEventBindings()
         this,
         tksIDC_DOWN_BUTTON
     );
+
+    pShowPreviewButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnShowPreview,
+        this,
+        tksIDC_SHOW_PREVIEW_BUTTON
+    );
 }
 // clang-format on
 
@@ -842,6 +851,19 @@ void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
         pExportHeaderListModel->MoveItem(mItemToSort, false);
 
         mItemToSort.Unset();
+    }
+}
+
+void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
+{
+    const auto& headersToExport = pExportHeaderListModel->GetHeadersToExport();
+
+    std::vector<Utils::Projection> projections;
+    for (const auto& headerToExport : headersToExport) {
+        Utils::ColumnProjection cp(headerToExport.OriginalHeader, headerToExport.Header);
+        Utils::Projection projection(headerToExport.OrderIndex, cp);
+
+        projections.push_back(projection);
     }
 }
 
