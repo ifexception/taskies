@@ -34,7 +34,7 @@ CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger, CsvExportOption
     : pLogger(logger)
     , mOptions(options)
 {
-    pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>();
+    pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
 }
 
 void CsvExporter::GeneratePreview(const std::vector<Projection>& projections)

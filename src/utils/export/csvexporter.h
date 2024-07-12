@@ -28,6 +28,8 @@
 
 namespace tks::Utils
 {
+class SQLiteExportQueryBuilder;
+
 enum class EndOfLine : int { Windows = 1, Macintosh, Linux };
 enum class EmptyValues : int { Blank = 1, Null };
 enum class NewLines : int { Preserve = 1, Merge };
