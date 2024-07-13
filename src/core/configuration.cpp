@@ -184,7 +184,7 @@ bool Configuration::RestoreDefaults()
     );
     // clang-format on
 
-    const std::string configString = toml::format(data);
+    const std::string configString = toml::format(v);
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
