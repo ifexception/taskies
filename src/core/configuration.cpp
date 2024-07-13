@@ -69,44 +69,46 @@ bool Configuration::Load()
 bool Configuration::Save()
 {
     // clang-format off
-    const toml::value data{
-        {
-            Sections::GeneralSection,
+    const toml::value v(
+        toml::table{
             {
-                { "lang", mSettings.UserInterfaceLanguage },
-                { "startOnBoot", mSettings.StartOnBoot },
-                { "startPosition", static_cast<int>(mSettings.StartPosition) },
-                { "showInTray", mSettings.ShowInTray },
-                { "minimizeToTray", mSettings.MinimizeToTray },
-                { "closeToTray", mSettings.CloseToTray },
-            }
-        },
-        {
-            Sections::DatabaseSection,
+                Sections::GeneralSection,
+                toml::table {
+                    { "lang", mSettings.UserInterfaceLanguage },
+                    { "startOnBoot", mSettings.StartOnBoot },
+                    { "startPosition", static_cast<int>(mSettings.StartPosition) },
+                    { "showInTray", mSettings.ShowInTray },
+                    { "minimizeToTray", mSettings.MinimizeToTray },
+                    { "closeToTray", mSettings.CloseToTray },
+                }
+            },
             {
-                { "databasePath", mSettings.DatabasePath },
-                { "backupDatabase", mSettings.BackupDatabase },
-                { "backupPath", mSettings.BackupPath },
-                { "backupRetentionPeriod", mSettings.BackupRetentionPeriod }
-            }
-        },
-        {
-            Sections::TaskSection,
+                Sections::DatabaseSection,
+                toml::table {
+                    { "databasePath", mSettings.DatabasePath },
+                    { "backupDatabase", mSettings.BackupDatabase },
+                    { "backupPath", mSettings.BackupPath },
+                    { "backupRetentionPeriod", mSettings.BackupRetentionPeriod }
+                }
+            },
             {
-                { "minutesIncrement", mSettings.TaskMinutesIncrement },
-                { "showProjectAssociatedCategories", mSettings.ShowProjectAssociatedCategories }
-            }
-        },
-        {
-            Sections::TasksViewSection,
+                Sections::TaskSection,
+                toml::table {
+                    { "minutesIncrement", mSettings.TaskMinutesIncrement },
+                    { "showProjectAssociatedCategories", mSettings.ShowProjectAssociatedCategories }
+                }
+            },
             {
-                { "todayAlwaysExpanded", mSettings.TodayAlwaysExpanded }
+                Sections::TasksViewSection,
+                toml::table {
+                    { "todayAlwaysExpanded", mSettings.TodayAlwaysExpanded }
+                }
             }
         }
-    };
+    );
     // clang-format on
 
-    const std::string configString = toml::format(data, 120);
+    const std::string configString = toml::format(v);
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
@@ -143,44 +145,46 @@ bool Configuration::RestoreDefaults()
     ShowProjectAssociatedCategories(false);
 
     // clang-format off
-    const toml::value data{
-        {
-            Sections::GeneralSection,
+    const toml::value v(
+        toml::table{
             {
-                { "lang", "en-US" },
-                { "startOnBoot", false },
-                { "startPosition", static_cast<int>(WindowState::Normal) },
-                { "showInTray", false },
-                { "minimizeToTray", false },
-                { "closeToTray", false },
-            }
-        },
-        {
-            Sections::DatabaseSection,
+                Sections::GeneralSection,
+                toml::table {
+                    { "lang", "en-US" },
+                    { "startOnBoot", false },
+                    { "startPosition", static_cast<int>(WindowState::Normal) },
+                    { "showInTray", false },
+                    { "minimizeToTray", false },
+                    { "closeToTray", mSettings.CloseToTray },
+                }
+            },
             {
-                { "databasePath", pEnv->ApplicationDatabasePath().string() },
-                { "backupDatabase", false },
-                { "backupPath", "" },
-                { "backupRetentionPeriod", 0 }
-            }
-        },
-        {
-            Sections::TaskSection,
+                Sections::DatabaseSection,
+                toml::table {
+                    { "databasePath", pEnv->ApplicationDatabasePath().string() },
+                    { "backupDatabase", false },
+                    { "backupPath", "" },
+                    { "backupRetentionPeriod", 0 }
+                }
+            },
             {
-                { "minutesIncrement", 15 },
-                { "showProjectAssociatedCategories", false }
-            }
-        },
-        {
-            Sections::TasksViewSection,
+                Sections::TaskSection,
+                toml::table {
+                    { "minutesIncrement", 15 },
+                    { "showProjectAssociatedCategories", false }
+                }
+            },
             {
-                { "todayAlwaysExpanded", false }
+                Sections::TasksViewSection,
+                toml::table {
+                    { "todayAlwaysExpanded", false }
+                }
             }
         }
-    };
+    );
     // clang-format on
 
-    const std::string configString = toml::format(data, 100);
+    const std::string configString = toml::format(data);
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
