@@ -118,34 +118,78 @@ std::string SQLiteExportQueryBuilder::Build(const std::vector<Projection>& proje
     return std::string();
 }
 
-std::string SQLiteExportQueryBuilder::BuildQuery()
+std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& projections,
+    const std::vector<FirstLevelJoinTable>& joinTables)
 {
-    return std::string();
+    const auto& columns = ComputeProjections(projections);
+    const auto& joins = ComputeFirstLevelJoins(joinTables);
+    const auto& where = BuildWhere();
+
+    std::string query = BuildQueryString(columns, joins, where);
 }
 
-std::string SQLiteExportQueryBuilder::BuildQueryString()
+std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::string>& columns,
+    const std::vector<std::string>& joins,
+    const std::string& where)
 {
-    return std::string();
-}
+    std::stringstream query;
 
-std::vector<std::string> SQLiteExportQueryBuilder::ComputeProjection(const std::vector<Projection>& projections)
-{
-    if (projections.size() != 0) {
-        std::vector<std::string> projectionsOut;
+    query << "SELECT ";
+    AppendColumns(query, columns);
 
-        for (const auto& projection : projections) {
-            std::string projectionOut = ComputeSingleProjection(projection);
-            projectionsOut.push_back(projectionOut);
-        }
+    query << "FROM tasks ";
+    AppendFirstLevelJoins(query, joins);
 
-        if (!projectionsOut.empty()) {
-            projectionsOut.back().pop_back(); // remove last comma of selection
-        }
+    AppendClause(query, " WHERE ", where);
 
-        return projectionsOut;
+    if (bIsPreview) {
+        AppendClause(query, " LIMIT ", "1");
     }
 
-    return std::vector<std::string>();
+    return query.str();
+}
+
+std::vector<std::string> SQLiteExportQueryBuilder::ComputeFirstLevelJoins(const std::vector<FirstLevelJoinTable>& joinTables)
+{
+    if (joinTables.empty()) {
+        return std::vector<std::string>();
+    }
+
+    std::vector<std::string> computedJoins;
+    for (const auto& joinTable : joinTables) {
+        std::string joinStatement = ComputeFirstLevelJoin(joinTable);
+        computedJoins.push_back(joinStatement);
+    }
+
+    return computedJoins;
+}
+
+std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoin(const FirstLevelJoinTable& joinTable)
+{
+    std::stringstream query;
+    if (joinTable.joinType == JoinType::InnerJoin) {
+        query << "INNER JOIN " << joinTable.tableName << "ON "
+              << "tasks"
+              << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
+    }
+
+    return query.str();
+}
+
+std::vector<std::string> SQLiteExportQueryBuilder::ComputeProjections(const std::vector<Projection>& projections)
+{
+    if (projections.size() == 0) {
+        return std::vector<std::string>();
+    }
+
+    std::vector<std::string> projectionsOut;
+
+    for (const auto& projection : projections) {
+        std::string projectionOut = ComputeSingleProjection(projection);
+        projectionsOut.push_back(projectionOut);
+    }
+
+    return projectionsOut;
 }
 
 std::string SQLiteExportQueryBuilder::ComputeSingleProjection(const Projection& projection)
@@ -168,13 +212,55 @@ std::string SQLiteExportQueryBuilder::ComputeSingleProjection(const Projection& 
               << "':'"
               << " || "
               << "(printf('%02d'," << cp.columnTableName << ".minutes)"
-              << " AS Duration";
+              << " AS "
+              << "Duration";
     } else {
         query << cp.columnTableName << "." << cp.databaseColumn;
     }
 
-    query << ",";
-
     return query.str();
+}
+std::string SQLiteExportQueryBuilder::BuildWhere()
+{
+    if (mFromDate.empty() || mToDate.empty()) {
+        return std::string();
+    }
+
+    std::stringstream whereClause;
+
+    whereClause << "workdays.date"
+                << " >= " << mFromDate << " AND "
+                << "workdays.date"
+                << " <= " << mToDate << " ";
+
+    return whereClause.str();
+}
+
+void SQLiteExportQueryBuilder::AppendColumns(std::stringstream& query, const std::vector<std::string>& columns)
+{
+    for (const auto& column : columns) {
+        if (!column.empty()) {
+            query << column << ", ";
+        }
+    }
+    query << " ";
+}
+
+void SQLiteExportQueryBuilder::AppendFirstLevelJoins(std::stringstream& query, const std::vector<std::string>& joins)
+{
+    for (const auto& join : joins) {
+        if (!join.empty()) {
+            query << join << " ";
+        }
+    }
+
+    query << " ";
+}
+
+void SQLiteExportQueryBuilder::AppendClause(std::stringstream& query, std::string name, std::string clause)
+{
+    if (!clause.empty()) {
+        query << name << clause;
+    }
 }
 } // namespace tks::Utils

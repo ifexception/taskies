@@ -45,6 +45,20 @@ struct CsvExportOptions {
     ~CsvExportOptions() = default;
 };
 
+enum class JoinType { InnerJoin = 1, LeftJoin = 2 };
+
+struct FirstLevelJoinTable {
+    std::string tableName;
+    JoinType joinType;
+    std::string idColumn;
+};
+
+struct SecondLevelJoinTable {
+    std::string tableName;
+    JoinType joinType;
+    std::string idColumn;
+};
+
 struct ColumnProjection {
     std::string databaseColumn;
     std::string userColumn;
@@ -109,10 +123,25 @@ public:
     std::string Build(const std::vector<Projection>& projections);
 
 private:
-    std::string BuildQuery();
-    std::string BuildQueryString();
-    std::vector<std::string> ComputeProjection(const std::vector<Projection>& projections);
+    std::string BuildQuery(const std::vector<Projection>& projections, const std::vector<FirstLevelJoinTable>& joinTables);
+    std::string BuildQueryString(const std::vector<std::string>& columns,
+        const std::vector<std::string>& joins,
+        const std::string& where);
+
+    std::vector<std::string> ComputeFirstLevelJoins(const std::vector<FirstLevelJoinTable>& joinTables);
+    std::string ComputeFirstLevelJoin(const FirstLevelJoinTable& joinTable);
+
+    std::vector<std::string> ComputeSecondLevelJoins(const std::vector<SecondLevelJoinTable>& joinTables);
+    std::string ComputeSecondLevelJoin(const SecondLevelJoinTable& joinTable);
+
+    std::vector<std::string> ComputeProjections(const std::vector<Projection>& projections);
     std::string ComputeSingleProjection(const Projection& projection);
+
+    std::string BuildWhere();
+
+    void AppendColumns(std::stringstream& query, const std::vector<std::string>& columns);
+    void AppendFirstLevelJoins(std::stringstream& query, const std::vector<std::string>& joins);
+    void AppendClause(std::stringstream& query, std::string name, std::string clause);
 
     bool bIsPreview;
     std::string mFromDate;
