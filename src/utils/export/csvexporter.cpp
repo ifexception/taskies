@@ -113,23 +113,29 @@ void SQLiteExportQueryBuilder::SetToDate(const std::string& date)
     mToDate = date;
 }
 
-std::string SQLiteExportQueryBuilder::Build(const std::vector<Projection>& projections)
+std::string SQLiteExportQueryBuilder::Build(const std::vector<Projection>& projections,
+    const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
+    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables)
 {
-    return std::string();
+    return BuildQuery(projections, firstLevelJoinTables, secondLevelJoinTables);
 }
 
 std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& projections,
-    const std::vector<FirstLevelJoinTable>& joinTables)
+    const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
+    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables)
 {
     const auto& columns = ComputeProjections(projections);
-    const auto& joins = ComputeFirstLevelJoins(joinTables);
+    const auto& firstLevelJoins = ComputeFirstLevelJoins(firstLevelJoinTables);
+    const auto& secondLevelJoins = ComputeSecondLevelJoins(secondLevelJoinTables);
     const auto& where = BuildWhere();
 
-    std::string query = BuildQueryString(columns, joins, where);
+    std::string query = BuildQueryString(columns, firstLevelJoins, secondLevelJoins, where);
+    return query;
 }
 
 std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::string>& columns,
-    const std::vector<std::string>& joins,
+    const std::vector<std::string>& firstLevelJoins,
+    const std::vector<std::string>& secondLevelJoins,
     const std::string& where)
 {
     std::stringstream query;
@@ -138,7 +144,13 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
     AppendColumns(query, columns);
 
     query << "FROM tasks ";
-    AppendFirstLevelJoins(query, joins);
+    if (!firstLevelJoins.empty()) {
+        AppendJoins(query, firstLevelJoins);
+    }
+
+    if (!secondLevelJoins.empty()) {
+        AppendJoins(query, secondLevelJoins);
+    }
 
     AppendClause(query, " WHERE ", where);
 
@@ -149,7 +161,8 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
     return query.str();
 }
 
-std::vector<std::string> SQLiteExportQueryBuilder::ComputeFirstLevelJoins(const std::vector<FirstLevelJoinTable>& joinTables)
+std::vector<std::string> SQLiteExportQueryBuilder::ComputeFirstLevelJoins(
+    const std::vector<FirstLevelJoinTable>& joinTables)
 {
     if (joinTables.empty()) {
         return std::vector<std::string>();
@@ -170,6 +183,39 @@ std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoin(const FirstLevelJoin
     if (joinTable.joinType == JoinType::InnerJoin) {
         query << "INNER JOIN " << joinTable.tableName << "ON "
               << "tasks"
+              << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
+    }
+
+    return query.str();
+}
+
+std::vector<std::string> SQLiteExportQueryBuilder::ComputeSecondLevelJoins(
+    const std::vector<SecondLevelJoinTable>& joinTables)
+{
+    if (joinTables.empty()) {
+        return std::vector<std::string>();
+    }
+
+    std::vector<std::string> computedJoins;
+    for (const auto& joinTable : joinTables) {
+        std::string joinStatement = ComputeSecondLevelJoin(joinTable);
+        computedJoins.push_back(joinStatement);
+    }
+
+    return computedJoins;
+}
+
+std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoin(const SecondLevelJoinTable& joinTable)
+{
+    std::stringstream query;
+    if (joinTable.joinType == JoinType::InnerJoin) {
+        query << "INNER JOIN " << joinTable.tableName << "ON "
+              << "projects"
+              << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
+    }
+    if (joinTable.joinType == JoinType::LeftJoin) {
+        query << "LEFT JOIN " << joinTable.tableName << "ON "
+              << "projects"
               << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
     }
 
@@ -246,7 +292,7 @@ void SQLiteExportQueryBuilder::AppendColumns(std::stringstream& query, const std
     query << " ";
 }
 
-void SQLiteExportQueryBuilder::AppendFirstLevelJoins(std::stringstream& query, const std::vector<std::string>& joins)
+void SQLiteExportQueryBuilder::AppendJoins(std::stringstream& query, const std::vector<std::string>& joins)
 {
     for (const auto& join : joins) {
         if (!join.empty()) {

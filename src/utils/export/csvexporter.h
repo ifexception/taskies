@@ -120,12 +120,18 @@ public:
     const std::string GetToDate() const;
     void SetToDate(const std::string& date);
 
-    std::string Build(const std::vector<Projection>& projections);
+    std::string Build(const std::vector<Projection>& projections,
+        const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
+        const std::vector<SecondLevelJoinTable>& secondLevelJoinTables);
 
 private:
-    std::string BuildQuery(const std::vector<Projection>& projections, const std::vector<FirstLevelJoinTable>& joinTables);
+    std::string BuildQuery(const std::vector<Projection>& projections,
+        const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
+        const std::vector<SecondLevelJoinTable>& secondLevelJoinTables);
+
     std::string BuildQueryString(const std::vector<std::string>& columns,
-        const std::vector<std::string>& joins,
+        const std::vector<std::string>& firstLevelJoins,
+        const std::vector<std::string>& secondLevelJoins,
         const std::string& where);
 
     std::vector<std::string> ComputeFirstLevelJoins(const std::vector<FirstLevelJoinTable>& joinTables);
@@ -140,7 +146,7 @@ private:
     std::string BuildWhere();
 
     void AppendColumns(std::stringstream& query, const std::vector<std::string>& columns);
-    void AppendFirstLevelJoins(std::stringstream& query, const std::vector<std::string>& joins);
+    void AppendJoins(std::stringstream& query, const std::vector<std::string>& joins);
     void AppendClause(std::stringstream& query, std::string name, std::string clause);
 
     bool bIsPreview;
