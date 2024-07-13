@@ -49,6 +49,14 @@ class Configuration;
 } // namespace Core
 namespace UI::dlg
 {
+struct AvailableColumn {
+    std::string DatabaseColumn;
+    std::string Display;
+    std::string TableName;
+};
+
+std::vector<AvailableColumn> AvailableColumns();
+
 class ExportToCsvDialog final : public wxDialog
 {
 public:
@@ -126,12 +134,12 @@ private:
     wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
 
-    wxListView* pDefaultHeadersListView;
+    wxListView* pAvailableColumnsListView;
     wxButton* pRightChevronButton;
     wxButton* pLeftChevronButton;
 
     wxDataViewCtrl* pDataViewCtrl;
-    wxObjectDataPtr<ExportHeadersListModel> pExportHeaderListModel;
+    wxObjectDataPtr<ExportHeadersListModel> pExportColumnListModel;
 
     wxButton* pUpButton;
     wxButton* pDownButton;

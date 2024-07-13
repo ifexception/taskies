@@ -55,6 +55,20 @@ wxDateTime MakeMaximumFromDate()
 
 namespace tks::UI::dlg
 {
+std::vector<AvailableColumn> AvailableColumns()
+{
+    AvailableColumn employer{ "name", "Employer", "employers" };
+    AvailableColumn client{ "name", "Client", "clients" };
+    AvailableColumn project{ "name", "Project", "projects" };
+    AvailableColumn projectDisplayName{ "display_name", "Project", "projects" };
+    AvailableColumn category{ "name", "Category", "categories" };
+    AvailableColumn date{ "date", "Date", "workdays" };
+    AvailableColumn description{ "description", "Description", "tasks" };
+    AvailableColumn billable{ "billable", "Billable", "tasks" };
+    AvailableColumn uid{ "unique_identifier", "Unique ID", "tasks" };
+    AvailableColumn time{ "*time*", "Duration", "tasks" }; // *time* special identifier to select two columns into one
+}
+
 ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     std::shared_ptr<Core::Environment> env,
     std::shared_ptr<Core::Configuration> cfg,
@@ -85,7 +99,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pBrowseExportPathButton(nullptr)
     , pFromDateCtrl(nullptr)
     , pToDateCtrl(nullptr)
-    , pDefaultHeadersListView(nullptr)
+    , pAvailableColumnsListView(nullptr)
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
     , pDataViewCtrl(nullptr)
@@ -243,21 +257,23 @@ void ExportToCsvDialog::CreateControls()
     dataToExportStaticBoxSizer->Add(headerControlsHorizontalSizer, wxSizerFlags().Expand().Proportion(1));
 
     /* Default headers list view controls */
-    pDefaultHeadersListView = new wxListView(dataToExportStaticBox,
+    pAvailableColumnsListView = new wxListView(dataToExportStaticBox,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
         wxDefaultPosition,
         wxDefaultSize,
         wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
-    pDefaultHeadersListView->EnableCheckBoxes();
-    pDefaultHeadersListView->SetToolTip(
-        "Available headers that can be exported (use the controls to select which headers to export)");
-    headerControlsHorizontalSizer->Add(pDefaultHeadersListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    pAvailableColumnsListView->EnableCheckBoxes();
+    pAvailableColumnsListView->SetToolTip(
+        "Available headers (columns) that can be exported (use the controls to select which headers to export)");
+    headerControlsHorizontalSizer->Add(pAvailableColumnsListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    wxListItem defaultHeader;
-    defaultHeader.SetId(0);
-    defaultHeader.SetText("Available Headers");
-    defaultHeader.SetWidth(180);
-    pDefaultHeadersListView->InsertColumn(0, defaultHeader);
+    int columnIndex = 0;
+
+    wxListItem availableColumn;
+    availableColumn.SetId(columnIndex);
+    availableColumn.SetText("Available Headers");
+    availableColumn.SetWidth(180);
+    pAvailableColumnsListView->InsertColumn(columnIndex++, availableColumn);
 
     /* Chevrons buttons */
     auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
@@ -283,8 +299,8 @@ void ExportToCsvDialog::CreateControls()
     headerControlsHorizontalSizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Model */
-    pExportHeaderListModel = new ExportHeadersListModel(pLogger);
-    pDataViewCtrl->AssociateModel(pExportHeaderListModel.get());
+    pExportColumnListModel = new ExportHeadersListModel(pLogger);
+    pDataViewCtrl->AssociateModel(pExportColumnListModel.get());
 
     /* Toggled Column */
     pDataViewCtrl->AppendToggleColumn("", ExportHeadersListModel::Col_Toggled, wxDATAVIEW_CELL_ACTIVATABLE);
@@ -424,11 +440,9 @@ void ExportToCsvDialog::FillControls()
     SetFromDateAndDatePicker();
     SetToDateAndDatePicker();
 
-    /* Available Headers */
-    int columnIndex = 0;
-
-    for (auto& header : Common::Static::AvailableHeaderList()) {
-        pDefaultHeadersListView->InsertItem(0, header);
+    /* Available Columns */
+    for (auto& column : AvailableColumns()) {
+        pAvailableColumnsListView->InsertItem(0, column.Display);
     }
 }
 
@@ -498,14 +512,14 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_DATE_TO_CTRL
     );
 
-    pDefaultHeadersListView->Bind(
+    pAvailableColumnsListView->Bind(
         wxEVT_LIST_ITEM_CHECKED,
         &ExportToCsvDialog::OnAvailableHeaderItemCheck,
         this,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL
     );
 
-    pDefaultHeadersListView->Bind(
+    pAvailableColumnsListView->Bind(
         wxEVT_LIST_ITEM_UNCHECKED,
         &ExportToCsvDialog::OnAvailableHeaderItemUncheck,
         this,
@@ -717,7 +731,7 @@ void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
     item.m_itemId = index;
     item.m_col = 0;
     item.m_mask = wxLIST_MASK_TEXT;
-    pDefaultHeadersListView->GetItem(item);
+    pAvailableColumnsListView->GetItem(item);
 
     name = item.GetText().ToStdString();
 
@@ -736,7 +750,7 @@ void ExportToCsvDialog::OnAvailableHeaderItemUncheck(wxListEvent& event)
     item.m_itemId = index;
     item.m_col = 0;
     item.m_mask = wxLIST_MASK_TEXT;
-    pDefaultHeadersListView->GetItem(item);
+    pAvailableColumnsListView->GetItem(item);
 
     name = item.GetText().ToStdString();
 
@@ -765,15 +779,15 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
         item.m_itemId = mSelectedItemIndexes[i];
         item.m_col = columnIndex;
         item.m_mask = wxLIST_MASK_TEXT;
-        pDefaultHeadersListView->GetItem(item);
+        pAvailableColumnsListView->GetItem(item);
 
         name = item.GetText().ToStdString();
 
         /* Add export header in data view control and update */
-        pExportHeaderListModel->Append(name, orderIndex++);
+        pExportColumnListModel->Append(name, orderIndex++);
 
         /* Remove header from available header list control */
-        pDefaultHeadersListView->DeleteItem(mSelectedItemIndexes[i]);
+        pAvailableColumnsListView->DeleteItem(mSelectedItemIndexes[i]);
 
         mSelectedItemIndexes.erase(mSelectedItemIndexes.begin() + i);
 
@@ -784,14 +798,14 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
 
 void ExportToCsvDialog::OnRemoveExportHeaderToAvailableHeaderList(wxCommandEvent& WXUNUSED(event))
 {
-    auto headersToRemove = pExportHeaderListModel->GetSelectedHeaders();
+    auto headersToRemove = pExportColumnListModel->GetSelectedHeaders();
     wxDataViewItemArray items;
     auto selections = pDataViewCtrl->GetSelections(items);
     if (selections > 0) {
-        pExportHeaderListModel->DeleteItems(items);
+        pExportColumnListModel->DeleteItems(items);
 
         for (const auto& header : headersToRemove) {
-            pDefaultHeadersListView->InsertItem(0, header);
+            pAvailableColumnsListView->InsertItem(0, header);
         }
     }
 }
@@ -815,7 +829,7 @@ void ExportToCsvDialog::OnExportHeaderEditingDone(wxDataViewEvent& event)
         pLogger->info("ExportToCsvDialog::OnExportHeaderEditingDone - Edit completed with new value: \"{0}\"",
             event.GetValue().GetString().ToStdString());
 
-        pExportHeaderListModel->ChangeItem(event.GetItem(), event.GetValue().GetString().ToStdString());
+        pExportColumnListModel->ChangeItem(event.GetItem(), event.GetValue().GetString().ToStdString());
     }
 }
 
@@ -841,7 +855,7 @@ void ExportToCsvDialog::OnUpButtonSort(wxCommandEvent& event)
 {
     if (mItemToSort.IsOk()) {
         pLogger->info("ExportToCsvDialog::OnUpButtonSort - Begin ordering selected header up");
-        pExportHeaderListModel->MoveItem(mItemToSort);
+        pExportColumnListModel->MoveItem(mItemToSort);
 
         mItemToSort.Unset();
     }
@@ -850,7 +864,7 @@ void ExportToCsvDialog::OnUpButtonSort(wxCommandEvent& event)
 void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
 {
     if (mItemToSort.IsOk()) {
-        pExportHeaderListModel->MoveItem(mItemToSort, false);
+        pExportColumnListModel->MoveItem(mItemToSort, false);
 
         mItemToSort.Unset();
     }
@@ -858,14 +872,29 @@ void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 {
-    const auto& headersToExport = pExportHeaderListModel->GetHeadersToExport();
+    const auto& columnsToExport = pExportColumnListModel->GetHeadersToExport();
+    const auto& availableColumnsList = AvailableColumns();
 
     std::vector<Utils::Projection> projections;
-    for (const auto& headerToExport : headersToExport) {
-        Utils::ColumnProjection cp(headerToExport.OriginalHeader, headerToExport.Header, "" /*CHANGEME*/);
-        Utils::Projection projection(headerToExport.OrderIndex, cp);
+    for (const auto& columnToExport : columnsToExport) {
+        const auto& availableColumnIterator = std::find_if(availableColumnsList.begin(),
+            availableColumnsList.end(),
+            [=](const AvailableColumn& column) { return column.Display == columnToExport.OriginalHeader; });
 
-        projections.push_back(projection);
+        if (availableColumnIterator != availableColumnsList.end()) {
+            const auto& availableColumn = *availableColumnIterator;
+
+            Utils::ColumnProjection cp(
+                availableColumn.DatabaseColumn, columnToExport.Header, availableColumn.TableName);
+
+            if (availableColumn.DatabaseColumn == "*time*") {
+                cp.SetIdentifier("*time*");
+            }
+
+            Utils::Projection projection(columnToExport.OrderIndex, cp);
+
+            projections.push_back(projection);
+        }
     }
 
     std::sort(projections.begin(), projections.end(), [](const Utils::Projection& lhs, const Utils::Projection& rhs) {
