@@ -48,9 +48,10 @@ struct CsvExportOptions {
 struct ColumnProjection {
     std::string databaseColumn;
     std::string userColumn;
+    std::string columnTableName;
 
     ColumnProjection();
-    ColumnProjection(std::string databaseColumn, std::string userColumn);
+    ColumnProjection(std::string databaseColumn, std::string userColumn, std::string columnTableName);
 };
 
 struct Projection {
@@ -71,7 +72,9 @@ public:
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
-    void GeneratePreview(const std::vector<Projection>& projections);
+    void GeneratePreview(const std::vector<Projection>& projections,
+        const std::string& fromDate,
+        const std::string& toDate);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
@@ -94,7 +97,22 @@ public:
     const bool IsPreview() const;
     void IsPreview(const bool preview);
 
+    const std::string GetFromDate() const;
+    void SetFromDate(const std::string& date);
+
+    const std::string GetToDate() const;
+    void SetToDate(const std::string& date);
+
+    std::string Build(const std::vector<Projection>& projections);
+
 private:
+    std::string BuildQuery();
+    std::string BuildQueryString();
+    std::vector<std::string> ComputeProjection(const std::vector<Projection>& projections);
+    std::string ComputeSingleProjection(const Projection& projection);
+
     bool bIsPreview;
+    std::string mFromDate;
+    std::string mToDate;
 };
 } // namespace tks::Utils
