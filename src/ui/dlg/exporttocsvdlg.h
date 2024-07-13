@@ -53,6 +53,7 @@ struct AvailableColumn {
     std::string DatabaseColumn;
     std::string Display;
     std::string TableName;
+    std::string IdColumn;
 };
 
 std::vector<AvailableColumn> AvailableColumns();

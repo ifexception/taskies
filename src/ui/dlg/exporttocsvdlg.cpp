@@ -57,16 +57,20 @@ namespace tks::UI::dlg
 {
 std::vector<AvailableColumn> AvailableColumns()
 {
-    AvailableColumn employer{ "name", "Employer", "employers" };
-    AvailableColumn client{ "name", "Client", "clients" };
-    AvailableColumn project{ "name", "Project", "projects" };
-    AvailableColumn projectDisplayName{ "display_name", "Project", "projects" };
-    AvailableColumn category{ "name", "Category", "categories" };
-    AvailableColumn date{ "date", "Date", "workdays" };
+    AvailableColumn employer{ "name", "Employer", "employers", "employer_id" };
+    AvailableColumn client{ "name", "Client", "clients", "client_id" };
+    AvailableColumn project{ "name", "Project", "projects", "project_id" };
+    AvailableColumn projectDisplayName{ "display_name", "Project", "projects", "project_id" };
+    AvailableColumn category{ "name", "Category", "categories", "cateogory_id" };
+    AvailableColumn date{ "date", "Date", "workdays", "workday_id" };
     AvailableColumn description{ "description", "Description", "tasks" };
     AvailableColumn billable{ "billable", "Billable", "tasks" };
     AvailableColumn uid{ "unique_identifier", "Unique ID", "tasks" };
     AvailableColumn time{ "*time*", "Duration", "tasks" }; // *time* special identifier to select two columns into one
+
+    return std::vector<AvailableColumn>{
+        employer, client, project, projectDisplayName, category, date, description, billable, uid, time
+    };
 }
 
 ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
@@ -876,6 +880,9 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     const auto& availableColumnsList = AvailableColumns();
 
     std::vector<Utils::Projection> projections;
+    std::vector<Utils::FirstLevelJoinTable> firstLevelTablesToJoinOn;
+    std::vector<Utils::SecondLevelJoinTable> secondLevelTablesToJoinOn;
+
     for (const auto& columnToExport : columnsToExport) {
         const auto& availableColumnIterator = std::find_if(availableColumnsList.begin(),
             availableColumnsList.end(),
@@ -894,6 +901,32 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
             Utils::Projection projection(columnToExport.OrderIndex, cp);
 
             projections.push_back(projection);
+
+            if (availableColumn.TableName == "employers" || availableColumn.TableName == "clients") {
+                Utils::SecondLevelJoinTable jt;
+
+                jt.tableName = availableColumn.TableName;
+                jt.idColumn = availableColumn.IdColumn;
+
+                if (availableColumn.TableName == "clients") {
+                    jt.joinType = Utils::JoinType::LeftJoin;
+                } else {
+                    jt.joinType = Utils::JoinType::InnerJoin;
+                }
+
+                secondLevelTablesToJoinOn.push_back(jt);
+            }
+
+            if (availableColumn.TableName == "projects" || availableColumn.TableName == "categories" ||
+                availableColumn.TableName == "workdays") {
+                Utils::FirstLevelJoinTable jt;
+
+                jt.tableName = availableColumn.TableName;
+                jt.idColumn = availableColumn.IdColumn;
+                jt.joinType = Utils::JoinType::InnerJoin;
+
+                firstLevelTablesToJoinOn.push_back(jt);
+            }
         }
     }
 
