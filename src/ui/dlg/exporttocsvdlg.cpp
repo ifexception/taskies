@@ -19,6 +19,8 @@
 
 #include "exporttocsvdlg.h"
 
+#include <algorithm>
+
 #include <date/date.h>
 
 #include <fmt/format.h>
@@ -860,11 +862,18 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
     std::vector<Utils::Projection> projections;
     for (const auto& headerToExport : headersToExport) {
-        Utils::ColumnProjection cp(headerToExport.OriginalHeader, headerToExport.Header);
+        Utils::ColumnProjection cp(headerToExport.OriginalHeader, headerToExport.Header, "" /*CHANGEME*/);
         Utils::Projection projection(headerToExport.OrderIndex, cp);
 
         projections.push_back(projection);
     }
+
+    std::sort(projections.begin(), projections.end(), [](const Utils::Projection& lhs, const Utils::Projection& rhs) {
+        return lhs.orderIndex < rhs.orderIndex;
+    });
+
+    const std::string fromDate = date::format("%F", mFromDate);
+    const std::string toDate = date::format("%F", mToDate);
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()
