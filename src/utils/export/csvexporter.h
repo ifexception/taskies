@@ -49,9 +49,12 @@ struct ColumnProjection {
     std::string databaseColumn;
     std::string userColumn;
     std::string columnTableName;
+    std::string identifier;
 
     ColumnProjection();
     ColumnProjection(std::string databaseColumn, std::string userColumn, std::string columnTableName);
+
+    void SetIdentifier(const std::string value);
 };
 
 struct Projection {

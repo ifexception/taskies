@@ -50,6 +50,7 @@ ColumnProjection::ColumnProjection()
     : databaseColumn("")
     , userColumn("")
     , columnTableName("")
+    , identifier("")
 {
 }
 
@@ -58,6 +59,11 @@ ColumnProjection::ColumnProjection(std::string databaseColumn, std::string userC
     , userColumn(userColumn)
     , columnTableName(columnTableName)
 {
+}
+
+void ColumnProjection::SetIdentifier(const std::string value)
+{
+    identifier = value;
 }
 
 Projection::Projection()
@@ -132,6 +138,10 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeProjection(const std::
             projectionsOut.push_back(projectionOut);
         }
 
+        if (!projectionsOut.empty()) {
+            projectionsOut.back().pop_back(); // remove last comma of selection
+        }
+
         return projectionsOut;
     }
 
@@ -143,8 +153,22 @@ std::string SQLiteExportQueryBuilder::ComputeSingleProjection(const Projection& 
     std::stringstream query;
     ColumnProjection cp = projection.columnProjection;
 
-    if (cp.userColumn.size() != 0) {
+    if (!cp.userColumn.empty() && cp.identifier.empty()) {
         query << cp.columnTableName << "." << cp.databaseColumn << " AS " << cp.userColumn;
+    } else if (!cp.userColumn.empty() && !cp.identifier.empty()) {
+        query << "(printf('%02d'," << cp.columnTableName << ".hours)"
+              << " || "
+              << "':'"
+              << " || "
+              << "(printf('%02d'," << cp.columnTableName << ".minutes)"
+              << " AS " << cp.userColumn;
+    } else if (cp.userColumn.empty() && !cp.identifier.empty()) {
+        query << "(printf('%02d'," << cp.columnTableName << ".hours)"
+              << " || "
+              << "':'"
+              << " || "
+              << "(printf('%02d'," << cp.columnTableName << ".minutes)"
+              << " AS Duration";
     } else {
         query << cp.columnTableName << "." << cp.databaseColumn;
     }
