@@ -171,7 +171,7 @@ std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoin(const FirstLevelJoin
 {
     std::stringstream query;
     if (joinTable.joinType == JoinType::InnerJoin) {
-        query << "INNER JOIN " << joinTable.tableName << "ON "
+        query << "INNER JOIN " << joinTable.tableName << " ON "
               << "tasks"
               << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
     }
@@ -188,16 +188,34 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeSecondLevelJoins(
 
     std::vector<std::string> computedJoins;
     for (const auto& joinTable : joinTables) {
-        std::string joinStatement = ComputeSecondLevelJoin(joinTable);
+        std::string joinStatement;
+        if (joinTable.isProjectsSelected) {
+            joinStatement = ComputeSecondLevelProjectsTableJoin(joinTable);
+        } else {
+            joinStatement = ComputeSecondLevelJoin(joinTable);
+        }
         computedJoins.push_back(joinStatement);
     }
 
     return computedJoins;
 }
 
+std::string SQLiteExportQueryBuilder::ComputeSecondLevelProjectsTableJoin(const SecondLevelJoinTable& joinTable)
+{
+    std::stringstream query;
+    query << "INNER JOIN projects "
+          << "ON "
+          << "tasks.project_id"
+          << " = "
+          << "projects.project_id";
+
+    return query.str();
+}
+
 std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoin(const SecondLevelJoinTable& joinTable)
 {
     std::stringstream query;
+
     if (joinTable.joinType == JoinType::InnerJoin) {
         query << "INNER JOIN " << joinTable.tableName << "ON "
               << "projects"
@@ -268,7 +286,8 @@ std::string SQLiteExportQueryBuilder::BuildWhere(const std::string& fromDate, co
 
     whereClause << "workdays.date"
                 << " >= "
-                << "'" << fromDate << "'"<< " AND "
+                << "'" << fromDate << "'"
+                << " AND "
                 << "workdays.date"
                 << " <= "
                 << "'" << toDate << "'";
@@ -294,7 +313,7 @@ void SQLiteExportQueryBuilder::AppendJoins(std::stringstream& query, const std::
 {
     for (const auto& join : joins) {
         if (!join.empty()) {
-            query << join << " ";
+            query << join;
         }
     }
 

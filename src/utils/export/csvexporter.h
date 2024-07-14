@@ -57,6 +57,7 @@ struct SecondLevelJoinTable {
     std::string tableName;
     JoinType joinType;
     std::string idColumn;
+    bool isProjectsSelected;
 };
 
 struct ColumnProjection {
@@ -138,6 +139,7 @@ private:
     std::string ComputeFirstLevelJoin(const FirstLevelJoinTable& joinTable);
 
     std::vector<std::string> ComputeSecondLevelJoins(const std::vector<SecondLevelJoinTable>& joinTables);
+    std::string ComputeSecondLevelProjectsTableJoin(const SecondLevelJoinTable& joinTable);
     std::string ComputeSecondLevelJoin(const SecondLevelJoinTable& joinTable);
 
     std::vector<std::string> ComputeProjections(const std::vector<Projection>& projections);

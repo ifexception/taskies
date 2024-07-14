@@ -886,6 +886,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     pLogger->info("ExportToCsvDialog::OnShowPreview - Count of columns to export: \"{0}\"", columnsToExport.size());
 
     const auto& availableColumnsList = AvailableColumns();
+    bool isProjectsTableSelected = false;
 
     std::vector<Utils::Projection> projections;
     std::vector<Utils::FirstLevelJoinTable> firstLevelTablesToJoinOn;
@@ -914,11 +915,36 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
             projections.push_back(projection);
 
+            if (availableColumn.TableName == "projects" || availableColumn.TableName == "categories") {
+                Utils::FirstLevelJoinTable jt;
+
+                if (availableColumn.TableName == "projects") {
+                    isProjectsTableSelected = true;
+                }
+
+                jt.tableName = availableColumn.TableName;
+                jt.idColumn = availableColumn.IdColumn;
+                jt.joinType = Utils::JoinType::InnerJoin;
+
+                pLogger->info(
+                    "ExportToCsvDialog::OnShowPreview - Insert first level table to join on \"{0}\" with join \"{1}\"",
+                    availableColumn.TableName,
+                    "INNER");
+
+                firstLevelTablesToJoinOn.push_back(jt);
+            }
+
             if (availableColumn.TableName == "employers" || availableColumn.TableName == "clients") {
                 Utils::SecondLevelJoinTable jt;
 
                 jt.tableName = availableColumn.TableName;
                 jt.idColumn = availableColumn.IdColumn;
+
+                if (isProjectsTableSelected) {
+                    Utils::SecondLevelJoinTable jtProjects;
+                    jtProjects.isProjectsSelected = true;
+                    secondLevelTablesToJoinOn.push_back(jtProjects);
+                }
 
                 if (availableColumn.TableName == "clients") {
                     jt.joinType = Utils::JoinType::LeftJoin;
@@ -932,21 +958,6 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
                     jt.joinType == Utils::JoinType::InnerJoin ? "INNER" : "LEFT");
 
                 secondLevelTablesToJoinOn.push_back(jt);
-            }
-
-            if (availableColumn.TableName == "projects" || availableColumn.TableName == "categories") {
-                Utils::FirstLevelJoinTable jt;
-
-                jt.tableName = availableColumn.TableName;
-                jt.idColumn = availableColumn.IdColumn;
-                jt.joinType = Utils::JoinType::InnerJoin;
-
-                pLogger->info(
-                    "ExportToCsvDialog::OnShowPreview - Insert first level table to join on \"{0}\" with join \"{1}\"",
-                    availableColumn.TableName,
-                    "INNER");
-
-                firstLevelTablesToJoinOn.push_back(jt);
             }
         }
     }
