@@ -131,6 +131,9 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
     AppendColumns(query, columns);
 
     query << "FROM tasks ";
+    query << "INNER JOIN workdays ";
+    query << "ON tasks.workday_id = workdays.workday_id ";
+
     if (!firstLevelJoins.empty()) {
         AppendJoins(query, firstLevelJoins);
     }
@@ -264,18 +267,24 @@ std::string SQLiteExportQueryBuilder::BuildWhere(const std::string& fromDate, co
     std::stringstream whereClause;
 
     whereClause << "workdays.date"
-                << " >= " << fromDate << " AND "
+                << " >= "
+                << "'" << fromDate << "'"<< " AND "
                 << "workdays.date"
-                << " <= " << toDate;
+                << " <= "
+                << "'" << toDate << "'";
 
     return whereClause.str();
 }
 
 void SQLiteExportQueryBuilder::AppendColumns(std::stringstream& query, const std::vector<std::string>& columns)
 {
-    for (const auto& column : columns) {
+    for (auto i = 0; i < columns.size(); i++) {
+        const auto& column = columns[i];
         if (!column.empty()) {
-            query << column << ", ";
+            query << column;
+            if (i != columns.size() - 1) {
+                query << ", ";
+            }
         }
     }
     query << " ";

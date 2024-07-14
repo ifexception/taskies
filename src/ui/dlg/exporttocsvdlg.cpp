@@ -934,8 +934,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
                 secondLevelTablesToJoinOn.push_back(jt);
             }
 
-            if (availableColumn.TableName == "projects" || availableColumn.TableName == "categories" ||
-                availableColumn.TableName == "workdays") {
+            if (availableColumn.TableName == "projects" || availableColumn.TableName == "categories") {
                 Utils::FirstLevelJoinTable jt;
 
                 jt.tableName = availableColumn.TableName;
