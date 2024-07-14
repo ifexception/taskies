@@ -60,7 +60,7 @@ std::vector<AvailableColumn> AvailableColumns()
     AvailableColumn employer{ "name", "Employer", "employers", "employer_id" };
     AvailableColumn client{ "name", "Client", "clients", "client_id" };
     AvailableColumn project{ "name", "Project", "projects", "project_id" };
-    AvailableColumn projectDisplayName{ "display_name", "Project", "projects", "project_id" };
+    AvailableColumn projectDisplayName{ "display_name", "Display Name", "projects", "project_id" };
     AvailableColumn category{ "name", "Category", "categories", "cateogory_id" };
     AvailableColumn date{ "date", "Date", "workdays", "workday_id" };
     AvailableColumn description{ "description", "Description", "tasks" };
@@ -120,6 +120,9 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , mCsvExporter(pLogger, mCsvOptions)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
+
+    mFromDate = pDateStore->MondayDate;
+    mToDate = pDateStore->SundayDate;
 
     Create();
 
@@ -868,6 +871,7 @@ void ExportToCsvDialog::OnUpButtonSort(wxCommandEvent& event)
 void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
 {
     if (mItemToSort.IsOk()) {
+        pLogger->info("ExportToCsvDialog::OnDownButtonSort - Begin ordering selected header down");
         pExportColumnListModel->MoveItem(mItemToSort, false);
 
         mItemToSort.Unset();
@@ -876,7 +880,11 @@ void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 {
+    pLogger->info("ExportToCsvDialog::OnShowPreview - Begin show preview");
+
     const auto& columnsToExport = pExportColumnListModel->GetHeadersToExport();
+    pLogger->info("ExportToCsvDialog::OnShowPreview - Count of columns to export: \"{0}\"", columnsToExport.size());
+
     const auto& availableColumnsList = AvailableColumns();
 
     std::vector<Utils::Projection> projections;
@@ -890,6 +898,10 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
         if (availableColumnIterator != availableColumnsList.end()) {
             const auto& availableColumn = *availableColumnIterator;
+            pLogger->info(
+                "ExportToCsvDialog::OnShowPreview - Matched export column \"{0}\" with available column \"{1}\"",
+                columnToExport.OriginalHeader,
+                availableColumn.DatabaseColumn);
 
             Utils::ColumnProjection cp(
                 availableColumn.DatabaseColumn, columnToExport.Header, availableColumn.TableName);
@@ -914,6 +926,11 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
                     jt.joinType = Utils::JoinType::InnerJoin;
                 }
 
+                pLogger->info(
+                    "ExportToCsvDialog::OnShowPreview - Insert second level table to join on \"{0}\" with join \"{1}\"",
+                    availableColumn.TableName,
+                    jt.joinType == Utils::JoinType::InnerJoin ? "INNER" : "LEFT");
+
                 secondLevelTablesToJoinOn.push_back(jt);
             }
 
@@ -925,17 +942,26 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
                 jt.idColumn = availableColumn.IdColumn;
                 jt.joinType = Utils::JoinType::InnerJoin;
 
+                pLogger->info(
+                    "ExportToCsvDialog::OnShowPreview - Insert first level table to join on \"{0}\" with join \"{1}\"",
+                    availableColumn.TableName,
+                    "INNER");
+
                 firstLevelTablesToJoinOn.push_back(jt);
             }
         }
     }
 
+    pLogger->info("ExportToCsvDialog::OnShowPreview - Sort projections by order index ascending");
     std::sort(projections.begin(), projections.end(), [](const Utils::Projection& lhs, const Utils::Projection& rhs) {
         return lhs.orderIndex < rhs.orderIndex;
     });
 
     const std::string fromDate = date::format("%F", mFromDate);
     const std::string toDate = date::format("%F", mToDate);
+
+    pLogger->info("ExportToCsvDialog::OnShowPreview - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
+    // mCsvExporter.GeneratePreview(projections, firstLevelTablesToJoinOn, secondLevelTablesToJoinOn, fromDate, toDate);
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()
