@@ -38,10 +38,13 @@ CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger, CsvExportOption
 }
 
 void CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
+    const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
+    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
     const std::string& fromDate,
     const std::string& toDate)
 {
     pQueryBuilder->IsPreview(true);
+    std::string sql = pQueryBuilder->Build(projections, firstLevelJoinTables, secondLevelJoinTables, fromDate, toDate);
 }
 
 // #####################################################################################################################
@@ -93,41 +96,25 @@ void SQLiteExportQueryBuilder::IsPreview(const bool preview)
     bIsPreview = preview;
 }
 
-const std::string SQLiteExportQueryBuilder::GetFromDate() const
-{
-    return mFromDate;
-}
-
-void SQLiteExportQueryBuilder::SetFromDate(const std::string& date)
-{
-    mFromDate = date;
-}
-
-const std::string SQLiteExportQueryBuilder::GetToDate() const
-{
-    return mToDate;
-}
-
-void SQLiteExportQueryBuilder::SetToDate(const std::string& date)
-{
-    mToDate = date;
-}
-
 std::string SQLiteExportQueryBuilder::Build(const std::vector<Projection>& projections,
     const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
-    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables)
+    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
+    const std::string& fromDate,
+    const std::string& toDate)
 {
-    return BuildQuery(projections, firstLevelJoinTables, secondLevelJoinTables);
+    return BuildQuery(projections, firstLevelJoinTables, secondLevelJoinTables, fromDate, toDate);
 }
 
 std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& projections,
     const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
-    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables)
+    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
+    const std::string& fromDate,
+    const std::string& toDate)
 {
     const auto& columns = ComputeProjections(projections);
     const auto& firstLevelJoins = ComputeFirstLevelJoins(firstLevelJoinTables);
     const auto& secondLevelJoins = ComputeSecondLevelJoins(secondLevelJoinTables);
-    const auto& where = BuildWhere();
+    const auto& where = BuildWhere(fromDate, toDate);
 
     std::string query = BuildQueryString(columns, firstLevelJoins, secondLevelJoins, where);
     return query;
@@ -266,18 +253,18 @@ std::string SQLiteExportQueryBuilder::ComputeSingleProjection(const Projection& 
 
     return query.str();
 }
-std::string SQLiteExportQueryBuilder::BuildWhere()
+std::string SQLiteExportQueryBuilder::BuildWhere(const std::string& fromDate, const std::string& toDate)
 {
-    if (mFromDate.empty() || mToDate.empty()) {
+    if (fromDate.empty() || toDate.empty()) {
         return std::string();
     }
 
     std::stringstream whereClause;
 
     whereClause << "workdays.date"
-                << " >= " << mFromDate << " AND "
+                << " >= " << fromDate << " AND "
                 << "workdays.date"
-                << " <= " << mToDate << " ";
+                << " <= " << toDate << " ";
 
     return whereClause.str();
 }

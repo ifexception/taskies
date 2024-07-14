@@ -90,6 +90,8 @@ public:
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
     void GeneratePreview(const std::vector<Projection>& projections,
+        const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
+        const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
         const std::string& fromDate,
         const std::string& toDate);
 
@@ -114,20 +116,18 @@ public:
     const bool IsPreview() const;
     void IsPreview(const bool preview);
 
-    const std::string GetFromDate() const;
-    void SetFromDate(const std::string& date);
-
-    const std::string GetToDate() const;
-    void SetToDate(const std::string& date);
-
     std::string Build(const std::vector<Projection>& projections,
         const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
-        const std::vector<SecondLevelJoinTable>& secondLevelJoinTables);
+        const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
+        const std::string& fromDate,
+        const std::string& toDate);
 
 private:
     std::string BuildQuery(const std::vector<Projection>& projections,
         const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
-        const std::vector<SecondLevelJoinTable>& secondLevelJoinTables);
+        const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
+        const std::string& fromDate,
+        const std::string& toDate);
 
     std::string BuildQueryString(const std::vector<std::string>& columns,
         const std::vector<std::string>& firstLevelJoins,
@@ -143,14 +143,12 @@ private:
     std::vector<std::string> ComputeProjections(const std::vector<Projection>& projections);
     std::string ComputeSingleProjection(const Projection& projection);
 
-    std::string BuildWhere();
+    std::string BuildWhere(const std::string& fromDate, const std::string& toDate);
 
     void AppendColumns(std::stringstream& query, const std::vector<std::string>& columns);
     void AppendJoins(std::stringstream& query, const std::vector<std::string>& joins);
     void AppendClause(std::stringstream& query, std::string name, std::string clause);
 
     bool bIsPreview;
-    std::string mFromDate;
-    std::string mToDate;
 };
 } // namespace tks::Utils
