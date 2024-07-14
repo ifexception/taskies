@@ -961,7 +961,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     const std::string toDate = date::format("%F", mToDate);
 
     pLogger->info("ExportToCsvDialog::OnShowPreview - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
-    // mCsvExporter.GeneratePreview(projections, firstLevelTablesToJoinOn, secondLevelTablesToJoinOn, fromDate, toDate);
+    mCsvExporter.GeneratePreview(projections, firstLevelTablesToJoinOn, secondLevelTablesToJoinOn, fromDate, toDate);
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()

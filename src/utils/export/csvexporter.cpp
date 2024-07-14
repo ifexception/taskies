@@ -231,20 +231,22 @@ std::string SQLiteExportQueryBuilder::ComputeSingleProjection(const Projection& 
     ColumnProjection cp = projection.columnProjection;
 
     if (!cp.userColumn.empty() && cp.identifier.empty()) {
-        query << cp.columnTableName << "." << cp.databaseColumn << " AS " << cp.userColumn;
+        query << cp.columnTableName << "." << cp.databaseColumn << " AS "
+              << "\"" << cp.userColumn << "\"";
     } else if (!cp.userColumn.empty() && !cp.identifier.empty()) {
-        query << "(printf('%02d'," << cp.columnTableName << ".hours)"
+        query << "(printf('%02d', " << cp.columnTableName << ".hours)"
               << " || "
               << "':'"
               << " || "
-              << "(printf('%02d'," << cp.columnTableName << ".minutes)"
-              << " AS " << cp.userColumn;
+              << "printf('%02d'," << cp.columnTableName << ".minutes))"
+              << " AS "
+              << "\"" << cp.userColumn << "\"";
     } else if (cp.userColumn.empty() && !cp.identifier.empty()) {
-        query << "(printf('%02d'," << cp.columnTableName << ".hours)"
+        query << "(printf('%02d', " << cp.columnTableName << ".hours)"
               << " || "
               << "':'"
               << " || "
-              << "(printf('%02d'," << cp.columnTableName << ".minutes)"
+              << "printf('%02d'," << cp.columnTableName << ".minutes))"
               << " AS "
               << "Duration";
     } else {
@@ -264,7 +266,7 @@ std::string SQLiteExportQueryBuilder::BuildWhere(const std::string& fromDate, co
     whereClause << "workdays.date"
                 << " >= " << fromDate << " AND "
                 << "workdays.date"
-                << " <= " << toDate << " ";
+                << " <= " << toDate;
 
     return whereClause.str();
 }
