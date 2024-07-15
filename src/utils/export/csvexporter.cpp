@@ -311,13 +311,15 @@ void SQLiteExportQueryBuilder::AppendColumns(std::stringstream& query, const std
 
 void SQLiteExportQueryBuilder::AppendJoins(std::stringstream& query, const std::vector<std::string>& joins)
 {
-    for (const auto& join : joins) {
+    for (auto i = 0; i < joins.size(); i++) {
+        const auto& join = joins[i];
         if (!join.empty()) {
             query << join;
+            if (i != joins.size() - 1) {
+                query << " ";
+            }
         }
     }
-
-    query << " ";
 }
 
 void SQLiteExportQueryBuilder::AppendClause(std::stringstream& query, std::string name, std::string clause)
