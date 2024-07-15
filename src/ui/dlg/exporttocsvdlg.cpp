@@ -939,12 +939,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
                 jt.tableName = availableColumn.TableName;
                 jt.idColumn = availableColumn.IdColumn;
-
-                if (isProjectsTableSelected) {
-                    Utils::SecondLevelJoinTable jtProjects;
-                    jtProjects.isProjectsSelected = true;
-                    secondLevelTablesToJoinOn.push_back(jtProjects);
-                }
+                jt.isProjectsSelected = false;
 
                 if (availableColumn.TableName == "clients") {
                     jt.joinType = Utils::JoinType::LeftJoin;
@@ -960,6 +955,12 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
                 secondLevelTablesToJoinOn.push_back(jt);
             }
         }
+    }
+
+    if (!isProjectsTableSelected) {
+        Utils::SecondLevelJoinTable jtProjects;
+        jtProjects.isProjectsSelected = true;
+        secondLevelTablesToJoinOn.push_back(jtProjects);
     }
 
     pLogger->info("ExportToCsvDialog::OnShowPreview - Sort projections by order index ascending");

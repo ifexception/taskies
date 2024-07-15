@@ -203,8 +203,8 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeSecondLevelJoins(
 std::string SQLiteExportQueryBuilder::ComputeSecondLevelProjectsTableJoin(const SecondLevelJoinTable& joinTable)
 {
     std::stringstream query;
-    query << "INNER JOIN projects "
-          << "ON "
+    query << "INNER JOIN projects"
+          << " ON "
           << "tasks.project_id"
           << " = "
           << "projects.project_id";
@@ -217,12 +217,12 @@ std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoin(const SecondLevelJo
     std::stringstream query;
 
     if (joinTable.joinType == JoinType::InnerJoin) {
-        query << "INNER JOIN " << joinTable.tableName << "ON "
+        query << "INNER JOIN " << joinTable.tableName << " ON "
               << "projects"
               << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
     }
     if (joinTable.joinType == JoinType::LeftJoin) {
-        query << "LEFT JOIN " << joinTable.tableName << "ON "
+        query << "LEFT JOIN " << joinTable.tableName << " ON "
               << "projects"
               << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
     }
