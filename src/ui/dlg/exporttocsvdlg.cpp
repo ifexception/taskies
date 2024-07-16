@@ -61,7 +61,7 @@ std::vector<AvailableColumn> AvailableColumns()
     AvailableColumn client{ "name", "Client", "clients", "client_id" };
     AvailableColumn project{ "name", "Project", "projects", "project_id" };
     AvailableColumn projectDisplayName{ "display_name", "Display Name", "projects", "project_id" };
-    AvailableColumn category{ "name", "Category", "categories", "cateogory_id" };
+    AvailableColumn category{ "name", "Category", "categories", "category_id" };
     AvailableColumn date{ "date", "Date", "workdays", "workday_id" };
     AvailableColumn description{ "description", "Description", "tasks" };
     AvailableColumn billable{ "billable", "Billable", "tasks" };
@@ -892,6 +892,23 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     std::vector<Utils::FirstLevelJoinTable> firstLevelTablesToJoinOn;
     std::vector<Utils::SecondLevelJoinTable> secondLevelTablesToJoinOn;
 
+    /* Insert projects regardless as a catch-all scenario for first and second level table joins */
+    const auto& projectColumnIterator = std::find_if(availableColumnsList.begin(),
+        availableColumnsList.end(),
+        [=](const AvailableColumn& column) { return column.TableName == "projects"; });
+    if (projectColumnIterator != availableColumnsList.end()) {
+        const auto& projectColumn = *projectColumnIterator;
+        Utils::FirstLevelJoinTable jt;
+
+        jt.tableName = projectColumn.TableName;
+        jt.idColumn = projectColumn.IdColumn;
+        jt.joinType = Utils::JoinType::InnerJoin;
+
+        pLogger->info("ExportToCsvDialog::OnShowPreview - Insert projects table to join on");
+
+        firstLevelTablesToJoinOn.push_back(jt);
+    }
+
     for (const auto& columnToExport : columnsToExport) {
         const auto& availableColumnIterator = std::find_if(availableColumnsList.begin(),
             availableColumnsList.end(),
@@ -915,12 +932,8 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
             projections.push_back(projection);
 
-            if (availableColumn.TableName == "projects" || availableColumn.TableName == "categories") {
+            if (availableColumn.TableName == "categories") {
                 Utils::FirstLevelJoinTable jt;
-
-                if (availableColumn.TableName == "projects") {
-                    isProjectsTableSelected = true;
-                }
 
                 jt.tableName = availableColumn.TableName;
                 jt.idColumn = availableColumn.IdColumn;
@@ -939,7 +952,6 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
                 jt.tableName = availableColumn.TableName;
                 jt.idColumn = availableColumn.IdColumn;
-                jt.isProjectsSelected = false;
 
                 if (availableColumn.TableName == "clients") {
                     jt.joinType = Utils::JoinType::LeftJoin;
@@ -955,12 +967,6 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
                 secondLevelTablesToJoinOn.push_back(jt);
             }
         }
-    }
-
-    if (!isProjectsTableSelected) {
-        Utils::SecondLevelJoinTable jtProjects;
-        jtProjects.isProjectsSelected = true;
-        secondLevelTablesToJoinOn.push_back(jtProjects);
     }
 
     pLogger->info("ExportToCsvDialog::OnShowPreview - Sort projections by order index ascending");

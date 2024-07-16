@@ -139,6 +139,7 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
     }
 
     if (!secondLevelJoins.empty()) {
+        query << " ";
         AppendJoins(query, secondLevelJoins);
     }
 
@@ -188,28 +189,12 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeSecondLevelJoins(
 
     std::vector<std::string> computedJoins;
     for (const auto& joinTable : joinTables) {
-        std::string joinStatement;
-        if (joinTable.isProjectsSelected) {
-            joinStatement = ComputeSecondLevelProjectsTableJoin(joinTable);
-        } else {
-            joinStatement = ComputeSecondLevelJoin(joinTable);
-        }
+        auto joinStatement = ComputeSecondLevelJoin(joinTable);
+
         computedJoins.push_back(joinStatement);
     }
 
     return computedJoins;
-}
-
-std::string SQLiteExportQueryBuilder::ComputeSecondLevelProjectsTableJoin(const SecondLevelJoinTable& joinTable)
-{
-    std::stringstream query;
-    query << "INNER JOIN projects"
-          << " ON "
-          << "tasks.project_id"
-          << " = "
-          << "projects.project_id";
-
-    return query.str();
 }
 
 std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoin(const SecondLevelJoinTable& joinTable)
