@@ -42,6 +42,7 @@ struct CsvExportOptions {
     EndOfLine EolTerminator;
     EmptyValues EmptyValuesHandler;
     NewLines NewLinesHandler;
+    bool ExcludeHeaders;
 
     CsvExportOptions();
     ~CsvExportOptions() = default;
@@ -97,7 +98,8 @@ public:
         const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
         const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
         const std::string& fromDate,
-        const std::string& toDate);
+        const std::string& toDate,
+        /*out*/ std::string& exportedDataPreview);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;

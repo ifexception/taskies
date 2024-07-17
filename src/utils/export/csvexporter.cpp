@@ -31,6 +31,7 @@ CsvExportOptions::CsvExportOptions()
     , EolTerminator(EndOfLine::Windows)
     , EmptyValuesHandler(EmptyValues::Blank)
     , NewLinesHandler(NewLines::Merge)
+    , ExcludeHeaders(false)
 {
 }
 
@@ -65,7 +66,8 @@ bool CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
     const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
     const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
     const std::string& fromDate,
-    const std::string& toDate)
+    const std::string& toDate,
+    std::string& exportedDataPreview)
 {
     int rc = -1;
     std::vector<std ::vector<std::pair<std::string, std::string>>> projectionModel;
@@ -80,6 +82,24 @@ bool CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
     if (rc != 0) {
         return false;
     }
+
+    std::stringstream exportedData;
+
+    if (!mOptions.ExcludeHeaders) {
+        for (const auto& column : computedProjectionModel) {
+            exportedData << column << mOptions.Delimiter;
+        }
+        exportedData << "\n";
+    }
+
+    for (const auto& rowModel : projectionModel) {
+        for (const auto& rowValue : rowModel) {
+            exportedData << rowValue.second << mOptions.Delimiter;
+        }
+        exportedData << "\n";
+    }
+
+    exportedDataPreview = exportedData.str();
 
     return true;
 }
@@ -459,7 +479,7 @@ int ExportDao::FilterExportData(const std::string& sql,
 
     sqlite3_finalize(stmt);
 
-    pLogger->info(LogMessage::InfoEndFilterEntities, "ExportDao", "<na>");
+    pLogger->info(LogMessage::InfoEndFilterEntities, "ExportDao", projectionModel.size(), "");
     return 0;
 }
 } // namespace tks::Utils
