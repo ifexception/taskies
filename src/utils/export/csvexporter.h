@@ -22,9 +22,11 @@
 #include <memory>
 #include <sstream>
 #include <string>
-#include <unordered_map>
+#include <utility>
 
 #include <spdlog/logger.h>
+
+#include <sqlite3.h>
 
 namespace tks::Utils
 {
@@ -89,6 +91,8 @@ public:
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
+    std ::vector<std::string> ComputeProjectionModel(const std::vector<Projection>& projections);
+
     void GeneratePreview(const std::vector<Projection>& projections,
         const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
         const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
@@ -150,5 +154,24 @@ private:
     void AppendClause(std::stringstream& query, std::string name, std::string clause);
 
     bool bIsPreview;
+};
+
+class ExportDao final
+{
+public:
+    ExportDao() = delete;
+    ExportDao(const ExportDao&) = delete;
+    explicit ExportDao(const std::string& databaseFilePath, const std::shared_ptr<spdlog::logger> logger);
+    ~ExportDao();
+
+    const ExportDao& operator=(const ExportDao&) = delete;
+
+    int FilterExportData(const std::string& sql,
+        const std::vector<std::string>& projectionMap,
+        /*out*/ std::vector<std ::vector<std::pair<std::string, std::string>>>& projectionModel);
+
+private:
+    std::shared_ptr<spdlog::logger> pLogger;
+    sqlite3* pDb;
 };
 } // namespace tks::Utils

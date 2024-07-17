@@ -19,6 +19,10 @@
 
 #include "csvexporter.h"
 
+#include "../../common/constants.h"
+
+#include "../utils.h"
+
 namespace tks::Utils
 {
 CsvExportOptions::CsvExportOptions()
@@ -37,12 +41,33 @@ CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger, CsvExportOption
     pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
 }
 
+std::vector<std::string> CsvExporter::ComputeProjectionModel(const std::vector<Projection>& projections)
+{
+    if (projections.empty()) {
+        return std::vector<std::string>();
+    }
+
+    std::vector<std::string> projectionMap;
+
+    for (const auto& projection : projections) {
+        const auto& columnProjection = projection.columnProjection.databaseColumn;
+        auto columnKeyValuePair = columnProjection;
+
+        projectionMap.push_back(columnKeyValuePair);
+    }
+
+    mProjectionModelValueCount = projectionMap.size();
+    return projectionMap;
+}
+
 void CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
     const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
     const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
     const std::string& fromDate,
     const std::string& toDate)
 {
+    std::vector<std ::vector<std::pair<std::string, std::string>>> projectionModel;
+
     pQueryBuilder->IsPreview(true);
     std::string sql = pQueryBuilder->Build(projections, firstLevelJoinTables, secondLevelJoinTables, fromDate, toDate);
 }
@@ -312,5 +337,117 @@ void SQLiteExportQueryBuilder::AppendClause(std::stringstream& query, std::strin
     if (!clause.empty()) {
         query << name << clause;
     }
+}
+
+ExportDao::ExportDao(const std::string& databaseFilePath, const std::shared_ptr<spdlog::logger> logger)
+    : pLogger(logger)
+    , pDb(nullptr)
+{
+    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "ExportDao", databaseFilePath);
+    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "ExportDao", databaseFilePath, rc, std::string(err));
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::JournalMode, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::Synchronous, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::TempStore, rc, err);
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::MmapSize, rc, err);
+        return;
+    }
+}
+
+ExportDao::~ExportDao()
+{
+    sqlite3_close(pDb);
+    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "ExportDao");
+}
+
+int ExportDao::FilterExportData(const std::string& sql,
+    const std::vector<std::string>& projectionMap,
+    std::vector<std ::vector<std::pair<std::string, std::string>>>& projectionModel)
+{
+    pLogger->info(LogMessage::InfoBeginFilterEntities, "ExportDao", "<na>", fmt::format("[\"{0}\",\"{1}\"]"));
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ExportDao", sql, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            std::vector<std::pair<std::string, std::string>> rowProjectionModel;
+
+            for (size_t i = 0; i < projectionMap.size(); i++) {
+                int index = static_cast<int>(i);
+                const auto& key = projectionMap[i];
+
+                const unsigned char* res = sqlite3_column_text(stmt, index);
+                const auto& value = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, index));
+
+                rowProjectionModel.push_back(std::make_pair(key, value));
+            }
+
+            projectionModel.push_back(rowProjectionModel);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "ExportDao", sql, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    pLogger->info(LogMessage::InfoEndFilterEntities, "ExportDao", "<na>", fmt::format("[\"{0}\",\"{1}\"]"));
+    return 0;
 }
 } // namespace tks::Utils
