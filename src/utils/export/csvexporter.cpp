@@ -34,9 +34,12 @@ CsvExportOptions::CsvExportOptions()
 {
 }
 
-CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger, CsvExportOptions options)
+CsvExporter::CsvExporter(const std::string& databaseFilePath,
+    std::shared_ptr<spdlog::logger> logger,
+    CsvExportOptions options)
     : pLogger(logger)
     , mOptions(options)
+    , mDatabaseFilePath(databaseFilePath)
 {
     pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
 }
@@ -50,26 +53,35 @@ std::vector<std::string> CsvExporter::ComputeProjectionModel(const std::vector<P
     std::vector<std::string> projectionMap;
 
     for (const auto& projection : projections) {
-        const auto& columnProjection = projection.columnProjection.databaseColumn;
-        auto columnKeyValuePair = columnProjection;
+        const auto& columnProjection = projection.columnProjection.userColumn;
 
-        projectionMap.push_back(columnKeyValuePair);
+        projectionMap.push_back(columnProjection);
     }
 
-    mProjectionModelValueCount = projectionMap.size();
     return projectionMap;
 }
 
-void CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
+bool CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
     const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
     const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
     const std::string& fromDate,
     const std::string& toDate)
 {
+    int rc = -1;
     std::vector<std ::vector<std::pair<std::string, std::string>>> projectionModel;
 
     pQueryBuilder->IsPreview(true);
-    std::string sql = pQueryBuilder->Build(projections, firstLevelJoinTables, secondLevelJoinTables, fromDate, toDate);
+    const auto& sql = pQueryBuilder->Build(projections, firstLevelJoinTables, secondLevelJoinTables, fromDate, toDate);
+
+    const auto& computedProjectionModel = ComputeProjectionModel(projections);
+
+    ExportDao exportDao(mDatabaseFilePath, pLogger);
+    rc = exportDao.FilterExportData(sql, computedProjectionModel, projectionModel);
+    if (rc != 0) {
+        return false;
+    }
+
+    return true;
 }
 
 // #####################################################################################################################
@@ -396,7 +408,7 @@ int ExportDao::FilterExportData(const std::string& sql,
     const std::vector<std::string>& projectionMap,
     std::vector<std ::vector<std::pair<std::string, std::string>>>& projectionModel)
 {
-    pLogger->info(LogMessage::InfoBeginFilterEntities, "ExportDao", "<na>", fmt::format("[\"{0}\",\"{1}\"]"));
+    pLogger->info(LogMessage::InfoBeginFilterEntities, "ExportDao", "<na>", "");
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
@@ -447,7 +459,7 @@ int ExportDao::FilterExportData(const std::string& sql,
 
     sqlite3_finalize(stmt);
 
-    pLogger->info(LogMessage::InfoEndFilterEntities, "ExportDao", "<na>", fmt::format("[\"{0}\",\"{1}\"]"));
+    pLogger->info(LogMessage::InfoEndFilterEntities, "ExportDao", "<na>");
     return 0;
 }
 } // namespace tks::Utils

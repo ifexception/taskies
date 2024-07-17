@@ -86,14 +86,14 @@ class CsvExporter
 public:
     CsvExporter() = delete;
     CsvExporter(const CsvExporter&) = delete;
-    CsvExporter(std::shared_ptr<spdlog::logger> logger, CsvExportOptions options);
+    CsvExporter(const std::string& databaseFilePath, std::shared_ptr<spdlog::logger> logger, CsvExportOptions options);
     ~CsvExporter() = default;
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
     std ::vector<std::string> ComputeProjectionModel(const std::vector<Projection>& projections);
 
-    void GeneratePreview(const std::vector<Projection>& projections,
+    bool GeneratePreview(const std::vector<Projection>& projections,
         const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
         const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
         const std::string& fromDate,
@@ -105,6 +105,8 @@ private:
     std::unique_ptr<SQLiteExportQueryBuilder> pQueryBuilder;
 
     CsvExportOptions mOptions;
+
+    std::string mDatabaseFilePath;
 };
 
 class SQLiteExportQueryBuilder final
