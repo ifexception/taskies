@@ -34,7 +34,10 @@
 
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
+
 #include "../clientdata.h"
+#include "../events.h"
+#include "../notificationclientdata.h"
 
 namespace
 {
@@ -117,7 +120,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , mFromDate()
     , mToDate()
     , mCsvOptions()
-    , mCsvExporter(pLogger, mCsvOptions)
+    , mCsvExporter(pCfg->GetDatabasePath(), pLogger, mCsvOptions)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -978,7 +981,17 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     const std::string toDate = date::format("%F", mToDate);
 
     pLogger->info("ExportToCsvDialog::OnShowPreview - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
-    mCsvExporter.GeneratePreview(projections, firstLevelTablesToJoinOn, secondLevelTablesToJoinOn, fromDate, toDate);
+    bool success = mCsvExporter.GeneratePreview(
+        projections, firstLevelTablesToJoinOn, secondLevelTablesToJoinOn, fromDate, toDate);
+
+    if (!success) {
+        std::string message = "Failed to export data";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    }
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()
