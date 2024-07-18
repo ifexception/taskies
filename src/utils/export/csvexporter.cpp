@@ -86,15 +86,22 @@ bool CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
     std::stringstream exportedData;
 
     if (!mOptions.ExcludeHeaders) {
-        for (const auto& column : computedProjectionModel) {
-            exportedData << column << mOptions.Delimiter;
+        for (auto i = 0; i < computedProjectionModel.size(); i++) {
+            exportedData << computedProjectionModel[i];
+            if (i < computedProjectionModel.size() - 1) {
+                exportedData << mOptions.Delimiter;
+            }
         }
         exportedData << "\n";
     }
 
     for (const auto& rowModel : projectionModel) {
-        for (const auto& rowValue : rowModel) {
-            exportedData << rowValue.second << mOptions.Delimiter;
+        for (auto i = 0; i < rowModel.size(); i++) {
+            const auto& rowValue = rowModel[i];
+            exportedData << rowValue.second;
+            if (i < rowModel.size() - 1) {
+                exportedData << mOptions.Delimiter;
+            }
         }
         exportedData << "\n";
     }
