@@ -98,7 +98,11 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
     for (const auto& rowModel : projectionModel) {
         for (auto i = 0; i < rowModel.size(); i++) {
             const auto& rowValue = rowModel[i];
-            exportedData << rowValue.second;
+            if (rowValue.second.find(',') != std::string::npos) {
+                exportedData << mOptions.TextQualifier << rowValue.second << mOptions.TextQualifier;
+            } else {
+                exportedData << rowValue.second;
+            }
             if (i < rowModel.size() - 1) {
                 exportedData << mOptions.Delimiter;
             }

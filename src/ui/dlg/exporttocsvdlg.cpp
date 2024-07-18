@@ -612,6 +612,8 @@ void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
 
     pLogger->info(
         "ExportToCsvDialog::OnTextQualifierChoiceSelection - Selected text qualifier \"{0}\"", choice.ToStdString());
+
+    mCsvOptions.TextQualifier = *choice.ToStdString().data();
 }
 
 void ExportToCsvDialog::OnEolTerminatorChoiceSelection(wxCommandEvent& event)
