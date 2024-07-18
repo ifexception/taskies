@@ -35,11 +35,8 @@ CsvExportOptions::CsvExportOptions()
 {
 }
 
-CsvExporter::CsvExporter(const std::string& databaseFilePath,
-    std::shared_ptr<spdlog::logger> logger,
-    CsvExportOptions options)
+CsvExporter::CsvExporter(const std::string& databaseFilePath, std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
-    , mOptions(options)
     , mDatabaseFilePath(databaseFilePath)
 {
     pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
@@ -62,7 +59,8 @@ std::vector<std::string> CsvExporter::ComputeProjectionModel(const std::vector<P
     return projectionMap;
 }
 
-bool CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
+bool CsvExporter::GeneratePreview(CsvExportOptions options,
+    const std::vector<Projection>& projections,
     const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
     const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
     const std::string& fromDate,
@@ -71,6 +69,8 @@ bool CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
 {
     int rc = -1;
     std::vector<std ::vector<std::pair<std::string, std::string>>> projectionModel;
+
+    mOptions = options;
 
     pQueryBuilder->IsPreview(true);
     const auto& sql = pQueryBuilder->Build(projections, firstLevelJoinTables, secondLevelJoinTables, fromDate, toDate);

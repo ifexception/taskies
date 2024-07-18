@@ -92,9 +92,15 @@ std::string Wizard()
 } // namespace Resources
 namespace Static
 {
-std::vector<std::string> DelimiterList()
+std::vector<std::pair<std::string, char>> DelimiterList()
 {
-    return std::vector<std::string>{ ",", ";", "|", "(tab)", "(space)" };
+    auto o1 = std::make_pair(",", ',');
+    auto o2 = std::make_pair(";", ';');
+    auto o3 = std::make_pair("|", '|');
+    auto o4 = std::make_pair("(tab)", '\t');
+    auto o5 = std::make_pair("(space)", ' ');
+
+    return std::vector<std::pair<std::string, char>>{ o1, o2, o3, o4, o5 };
 }
 
 std::vector<std::string> TextQualifierList()

@@ -120,7 +120,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , mFromDate()
     , mToDate()
     , mCsvOptions()
-    , mCsvExporter(pCfg->GetDatabasePath(), pLogger, mCsvOptions)
+    , mCsvExporter(pCfg->GetDatabasePath(), pLogger)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -399,7 +399,7 @@ void ExportToCsvDialog::FillControls()
 
     auto delimiters = Common::Static::DelimiterList();
     for (auto i = 0; i < delimiters.size(); i++) {
-        pDelimiterChoiceCtrl->Append(delimiters[i], new ClientData<int>(i));
+        pDelimiterChoiceCtrl->Append(delimiters[i].first, new ClientData<char>(delimiters[i].second));
     }
 
     pTextQualifierChoiceCtrl->Append("(default)", new ClientData<int>(-1));
@@ -597,8 +597,13 @@ void ExportToCsvDialog::ConfigureEventBindings()
 void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
+    int delimiterIndex = pDelimiterChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* delimiterData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pDelimiterChoiceCtrl->GetClientObject(delimiterIndex));
 
     pLogger->info("ExportToCsvDialog::OnDelimiterChoiceSelection - Selected delimiter \"{0}\"", choice.ToStdString());
+
+    mCsvOptions.Delimiter = delimiterData->GetValue();
 }
 
 void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
@@ -982,8 +987,13 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
     pLogger->info("ExportToCsvDialog::OnShowPreview - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
     std::string exportedDataPreview = "";
-    bool success = mCsvExporter.GeneratePreview(
-        projections, firstLevelTablesToJoinOn, secondLevelTablesToJoinOn, fromDate, toDate, exportedDataPreview);
+    bool success = mCsvExporter.GeneratePreview(mCsvOptions,
+        projections,
+        firstLevelTablesToJoinOn,
+        secondLevelTablesToJoinOn,
+        fromDate,
+        toDate,
+        exportedDataPreview);
 
     if (!success) {
         std::string message = "Failed to export data";
