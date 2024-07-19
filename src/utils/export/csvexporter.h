@@ -82,6 +82,26 @@ struct Projection {
     Projection(int orderIndex, ColumnProjection columnProjection);
 };
 
+class CsvExportEngine final
+{
+public:
+    CsvExportEngine() = delete;
+    CsvExportEngine(const CsvExportEngine&) = delete;
+    CsvExportEngine(CsvExportOptions options);
+    ~CsvExportEngine() = default;
+
+    const CsvExportEngine& operator=(const CsvExportEngine&) = delete;
+
+    void ProcessData(std::stringstream& data, std::string& value);
+
+private:
+    void TryProcessNewLines(std::string& value) const;
+    void TryProcessEmptyValues(std::string& value) const;
+    void TryApplyTextQualifier(std::stringstream& data, std::string& value) const;
+
+    CsvExportOptions mOptions;
+};
+
 class CsvExporter
 {
 public:
@@ -94,7 +114,8 @@ public:
 
     std ::vector<std::string> ComputeProjectionModel(const std::vector<Projection>& projections);
 
-    bool GeneratePreview(CsvExportOptions options, const std::vector<Projection>& projections,
+    bool GeneratePreview(CsvExportOptions options,
+        const std::vector<Projection>& projections,
         const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
         const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
         const std::string& fromDate,

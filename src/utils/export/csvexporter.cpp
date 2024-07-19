@@ -19,6 +19,8 @@
 
 #include "csvexporter.h"
 
+#include <cctype>
+
 #include "../../common/constants.h"
 
 #include "../utils.h"
@@ -33,6 +35,59 @@ CsvExportOptions::CsvExportOptions()
     , NewLinesHandler(NewLines::Merge)
     , ExcludeHeaders(false)
 {
+}
+
+CsvExportEngine::CsvExportEngine(CsvExportOptions options)
+    : mOptions(options)
+{
+}
+
+void CsvExportEngine::ProcessData(std::stringstream& data, std::string& value)
+{
+    TryProcessEmptyValues(value);
+    TryProcessNewLines(value);
+    TryApplyTextQualifier(data, value);
+}
+
+void CsvExportEngine::TryProcessNewLines(std::string& value) const
+{
+    if (mOptions.NewLinesHandler == NewLines::Merge) {
+        std::string newline = "\n";
+        std::string space = " ";
+
+        std::string::size_type pos = 0;
+        while ((pos = value.find(newline, pos)) != std::string::npos) {
+            value.replace(pos, newline.length(), space);
+            pos += space.length();
+        }
+    }
+}
+
+void CsvExportEngine::TryProcessEmptyValues(std::string& value) const
+{
+    if (value.empty()) {
+        if (mOptions.EmptyValuesHandler == EmptyValues::Null) {
+            value = "NULL";
+        }
+    }
+}
+
+void CsvExportEngine::TryApplyTextQualifier(std::stringstream& data, std::string& value) const
+{
+    std::string quote = "\"";
+    std::string doubleQuote = "\"\"";
+
+    std::string::size_type pos = 0;
+    while ((pos = value.find(quote, pos)) != std::string::npos) {
+        value.replace(pos, quote.length(), doubleQuote);
+        pos += doubleQuote.length();
+    }
+
+    if (!::isblank(mOptions.TextQualifier) && value.find(mOptions.Delimiter) != std::string::npos) {
+        data << mOptions.TextQualifier << value << mOptions.TextQualifier;
+    } else {
+        data << value;
+    }
 }
 
 CsvExporter::CsvExporter(const std::string& databaseFilePath, std::shared_ptr<spdlog::logger> logger)
@@ -83,6 +138,8 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
         return false;
     }
 
+    CsvExportEngine exportEngine(mOptions);
+
     std::stringstream exportedData;
 
     if (!mOptions.ExcludeHeaders) {
@@ -97,16 +154,16 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
 
     for (const auto& rowModel : projectionModel) {
         for (auto i = 0; i < rowModel.size(); i++) {
-            const auto& rowValue = rowModel[i];
-            if (rowValue.second.find(',') != std::string::npos) {
-                exportedData << mOptions.TextQualifier << rowValue.second << mOptions.TextQualifier;
-            } else {
-                exportedData << rowValue.second;
-            }
+            auto& rowValue = rowModel[i];
+            std::string value = rowValue.second;
+
+            exportEngine.ProcessData(exportedData, value);
+
             if (i < rowModel.size() - 1) {
                 exportedData << mOptions.Delimiter;
             }
         }
+
         exportedData << "\n";
     }
 
