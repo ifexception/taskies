@@ -873,6 +873,10 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     const auto& columnsToExport = pExportColumnListModel->GetHeadersToExport();
     pLogger->info("ExportToCsvDialog::OnShowPreview - Count of columns to export: \"{0}\"", columnsToExport.size());
 
+    if (columnsToExport.size() == 0) {
+        return;
+    }
+
     const auto& availableColumnsList = AvailableColumns();
     bool isProjectsTableSelected = false;
 
