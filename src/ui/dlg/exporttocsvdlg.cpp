@@ -97,7 +97,6 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pDateStore(nullptr)
     , pDelimiterChoiceCtrl(nullptr)
     , pTextQualifierChoiceCtrl(nullptr)
-    , pEolTerminatorChoiceCtrl(nullptr)
     , pEmptyValueHandlerChoiceCtrl(nullptr)
     , pNewLinesHandlerChoiceCtrl(nullptr)
     , pRemoveCommasCheckBoxCtrl(nullptr)
@@ -169,12 +168,6 @@ void ExportToCsvDialog::CreateControls()
         new wxChoice(optionsStaticBox, tksIDC_TEXT_QUALIFIER_CTRL, wxDefaultPosition, wxSize(128, -1));
     pTextQualifierChoiceCtrl->SetToolTip("Set the text qualifier for text values");
 
-    /* End of line choice control */
-    auto eolLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "End of Line");
-    pEolTerminatorChoiceCtrl =
-        new wxChoice(optionsStaticBox, tksIDC_EOL_TERMINATOR_CTRL, wxDefaultPosition, wxSize(128, -1));
-    pEolTerminatorChoiceCtrl->SetToolTip("Set the end of line qualifier for each row");
-
     /* Empty values choice control */
     auto emptyValuesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Empty Values");
     pEmptyValueHandlerChoiceCtrl =
@@ -196,9 +189,6 @@ void ExportToCsvDialog::CreateControls()
 
     optionsFlexGridSizer->Add(textQualifierLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     optionsFlexGridSizer->Add(pTextQualifierChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    optionsFlexGridSizer->Add(eolLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    optionsFlexGridSizer->Add(pEolTerminatorChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     optionsFlexGridSizer->Add(emptyValuesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     optionsFlexGridSizer->Add(pEmptyValueHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -410,14 +400,6 @@ void ExportToCsvDialog::FillControls()
         pTextQualifierChoiceCtrl->Append(textQualifiers[i], new ClientData<int>(i));
     }
 
-    pEolTerminatorChoiceCtrl->Append("(default)", new ClientData<int>(-1));
-    pEolTerminatorChoiceCtrl->SetSelection(0);
-
-    auto eolQualifiers = Common::Static::EndOfLineList();
-    for (auto i = 0; i < eolQualifiers.size(); i++) {
-        pEolTerminatorChoiceCtrl->Append(eolQualifiers[i], new ClientData<int>(i));
-    }
-
     pEmptyValueHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
     pEmptyValueHandlerChoiceCtrl->SetSelection(0);
 
@@ -468,12 +450,6 @@ void ExportToCsvDialog::ConfigureEventBindings()
     pTextQualifierChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ExportToCsvDialog::OnTextQualifierChoiceSelection,
-        this
-    );
-
-    pEolTerminatorChoiceCtrl->Bind(
-        wxEVT_CHOICE,
-        &ExportToCsvDialog::OnEolTerminatorChoiceSelection,
         this
     );
 
@@ -598,8 +574,8 @@ void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
     int delimiterIndex = pDelimiterChoiceCtrl->GetSelection();
-    ClientData<std::int64_t>* delimiterData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pDelimiterChoiceCtrl->GetClientObject(delimiterIndex));
+    ClientData<char>* delimiterData =
+        reinterpret_cast<ClientData<char>*>(pDelimiterChoiceCtrl->GetClientObject(delimiterIndex));
 
     pLogger->info("ExportToCsvDialog::OnDelimiterChoiceSelection - Selected delimiter \"{0}\"", choice.ToStdString());
 
@@ -616,20 +592,18 @@ void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
     mCsvOptions.TextQualifier = *choice.ToStdString().data();
 }
 
-void ExportToCsvDialog::OnEolTerminatorChoiceSelection(wxCommandEvent& event)
-{
-    auto choice = event.GetString();
-
-    pLogger->info(
-        "ExportToCsvDialog::OnEolTerminatorChoiceSelection - Selected EOL terminator \"{0}\"", choice.ToStdString());
-}
-
 void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
 
+    int emptyValueIndex = pEmptyValueHandlerChoiceCtrl->GetSelection();
+    ClientData<int>* emptyValueData =
+        reinterpret_cast<ClientData<int>*>(pEmptyValueHandlerChoiceCtrl->GetClientObject(emptyValueIndex));
+
     pLogger->info("ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection - Selected empty value handler \"{0}\"",
         choice.ToStdString());
+
+    mCsvOptions.EmptyValuesHandler = static_cast<Utils::EmptyValues>(emptyValueData->GetValue());
 }
 
 void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)

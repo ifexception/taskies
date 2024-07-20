@@ -108,11 +108,6 @@ std::vector<std::string> TextQualifierList()
     return std::vector<std::string>{ "(none)", "\"", "'" };
 }
 
-std::vector<std::string> EndOfLineList()
-{
-    return std::vector<std::string>{ "CRLF (Windows)", "CR (Mac)", "LF (Linux)" };
-}
-
 std::vector<std::string> EmptyValueHandlerList()
 {
     return std::vector<std::string>{ "(blank)", "NULL" };

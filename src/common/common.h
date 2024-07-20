@@ -50,7 +50,6 @@ namespace Static
 {
 std::vector<std::pair<std::string, char>> DelimiterList();
 std::vector<std::string> TextQualifierList();
-std::vector<std::string> EndOfLineList();
 std::vector<std::string> EmptyValueHandlerList();
 std::vector<std::string> NewLinesHandlerList();
 } // namespace Static

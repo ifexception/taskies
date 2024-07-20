@@ -81,7 +81,6 @@ private:
 
     void OnDelimiterChoiceSelection(wxCommandEvent& event);
     void OnTextQualifierChoiceSelection(wxCommandEvent& event);
-    void OnEolTerminatorChoiceSelection(wxCommandEvent& event);
     void OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event);
     void OnNewLinesHandlerChoiceSelection(wxCommandEvent& event);
 
@@ -119,7 +118,6 @@ private:
 
     wxChoice* pDelimiterChoiceCtrl;
     wxChoice* pTextQualifierChoiceCtrl;
-    wxChoice* pEolTerminatorChoiceCtrl;
     wxChoice* pEmptyValueHandlerChoiceCtrl;
     wxChoice* pNewLinesHandlerChoiceCtrl;
     wxCheckBox* pRemoveCommasCheckBoxCtrl;

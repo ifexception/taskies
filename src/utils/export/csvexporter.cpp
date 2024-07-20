@@ -30,7 +30,6 @@ namespace tks::Utils
 CsvExportOptions::CsvExportOptions()
     : Delimiter(',')
     , TextQualifier('"')
-    , EolTerminator(EndOfLine::Windows)
     , EmptyValuesHandler(EmptyValues::Blank)
     , NewLinesHandler(NewLines::Merge)
     , ExcludeHeaders(false)
