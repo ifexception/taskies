@@ -82,15 +82,15 @@ struct Projection {
     Projection(int orderIndex, ColumnProjection columnProjection);
 };
 
-class CsvExportEngine final
+class CsvExportProcessor final
 {
 public:
-    CsvExportEngine() = delete;
-    CsvExportEngine(const CsvExportEngine&) = delete;
-    CsvExportEngine(CsvExportOptions options);
-    ~CsvExportEngine() = default;
+    CsvExportProcessor() = delete;
+    CsvExportProcessor(const CsvExportProcessor&) = delete;
+    CsvExportProcessor(CsvExportOptions options);
+    ~CsvExportProcessor() = default;
 
-    const CsvExportEngine& operator=(const CsvExportEngine&) = delete;
+    const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;
 
     void ProcessData(std::stringstream& data, std::string& value);
 

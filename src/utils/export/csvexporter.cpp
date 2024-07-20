@@ -37,19 +37,19 @@ CsvExportOptions::CsvExportOptions()
 {
 }
 
-CsvExportEngine::CsvExportEngine(CsvExportOptions options)
+CsvExportProcessor::CsvExportProcessor(CsvExportOptions options)
     : mOptions(options)
 {
 }
 
-void CsvExportEngine::ProcessData(std::stringstream& data, std::string& value)
+void CsvExportProcessor::ProcessData(std::stringstream& data, std::string& value)
 {
     TryProcessEmptyValues(value);
     TryProcessNewLines(value);
     TryApplyTextQualifier(data, value);
 }
 
-void CsvExportEngine::TryProcessNewLines(std::string& value) const
+void CsvExportProcessor::TryProcessNewLines(std::string& value) const
 {
     if (mOptions.NewLinesHandler == NewLines::Merge) {
         std::string newline = "\n";
@@ -63,7 +63,7 @@ void CsvExportEngine::TryProcessNewLines(std::string& value) const
     }
 }
 
-void CsvExportEngine::TryProcessEmptyValues(std::string& value) const
+void CsvExportProcessor::TryProcessEmptyValues(std::string& value) const
 {
     if (value.empty()) {
         if (mOptions.EmptyValuesHandler == EmptyValues::Null) {
@@ -72,7 +72,7 @@ void CsvExportEngine::TryProcessEmptyValues(std::string& value) const
     }
 }
 
-void CsvExportEngine::TryApplyTextQualifier(std::stringstream& data, std::string& value) const
+void CsvExportProcessor::TryApplyTextQualifier(std::stringstream& data, std::string& value) const
 {
     std::string quote = "\"";
     std::string doubleQuote = "\"\"";
@@ -138,7 +138,7 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
         return false;
     }
 
-    CsvExportEngine exportEngine(mOptions);
+    CsvExportProcessor exportProcessor(mOptions);
 
     std::stringstream exportedData;
 
@@ -157,7 +157,7 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
             auto& rowValue = rowModel[i];
             std::string value = rowValue.second;
 
-            exportEngine.ProcessData(exportedData, value);
+            exportProcessor.ProcessData(exportedData, value);
 
             if (i < rowModel.size() - 1) {
                 exportedData << mOptions.Delimiter;
@@ -271,7 +271,7 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
     AppendClause(query, " WHERE ", where);
 
     if (bIsPreview) {
-        AppendClause(query, " LIMIT ", "1");
+        AppendClause(query, " LIMIT ", "10");
     }
 
     return query.str();
