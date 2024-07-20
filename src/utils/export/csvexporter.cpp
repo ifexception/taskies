@@ -82,7 +82,7 @@ void CsvExportProcessor::TryApplyTextQualifier(std::stringstream& data, std::str
         pos += doubleQuote.length();
     }
 
-    if (!::isblank(mOptions.TextQualifier) && value.find(mOptions.Delimiter) != std::string::npos) {
+    if (mOptions.TextQualifier != '\0' && value.find(mOptions.Delimiter) != std::string::npos) {
         data << mOptions.TextQualifier << value << mOptions.TextQualifier;
     } else {
         data << value;
