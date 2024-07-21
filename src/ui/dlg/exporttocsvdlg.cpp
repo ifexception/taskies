@@ -561,6 +561,13 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_DOWN_BUTTON
     );
 
+    pExcludeHeadersCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &ExportToCsvDialog::OnExcludeHeadersCheck,
+        this,
+        tksIDC_EXCLUDE_HEADERS_CTRL
+    );
+
     pShowPreviewButton->Bind(
         wxEVT_BUTTON,
         &ExportToCsvDialog::OnShowPreview,
@@ -864,6 +871,11 @@ void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
 
         mItemToSort.Unset();
     }
+}
+
+void ExportToCsvDialog::OnExcludeHeadersCheck(wxCommandEvent& event)
+{
+    mCsvOptions.ExcludeHeaders = event.IsChecked();
 }
 
 void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
