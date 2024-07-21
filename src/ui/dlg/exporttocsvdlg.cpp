@@ -405,7 +405,7 @@ void ExportToCsvDialog::FillControls()
 
     auto emptyValueHandlers = Common::Static::EmptyValueHandlerList();
     for (auto i = 0; i < emptyValueHandlers.size(); i++) {
-        pEmptyValueHandlerChoiceCtrl->Append(emptyValueHandlers[i], new ClientData<int>(i));
+        pEmptyValueHandlerChoiceCtrl->Append(emptyValueHandlers[i], new ClientData<int>(i + 1));
     }
 
     pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
