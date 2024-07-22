@@ -84,8 +84,6 @@ private:
     void OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event);
     void OnNewLinesHandlerChoiceSelection(wxCommandEvent& event);
 
-    void OnRemoveCommasCheck(wxCommandEvent& event);
-
     void OnExportToClipboardCheck(wxCommandEvent& event);
     void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
 

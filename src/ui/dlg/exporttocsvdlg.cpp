@@ -100,7 +100,6 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pTextQualifierChoiceCtrl(nullptr)
     , pEmptyValueHandlerChoiceCtrl(nullptr)
     , pNewLinesHandlerChoiceCtrl(nullptr)
-    , pRemoveCommasCheckBoxCtrl(nullptr)
     , pExportToClipboardCheckBoxCtrl(nullptr)
     , pSaveToFileTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
@@ -184,10 +183,6 @@ void ExportToCsvDialog::CreateControls()
         new wxChoice(optionsStaticBox, tksIDC_NEW_LINES_HANDLER_CTRL, wxDefaultPosition, wxSize(128, -1));
     pNewLinesHandlerChoiceCtrl->SetToolTip("Set how to handle multiline field values");
 
-    /* Remove commans checkbox control */
-    pRemoveCommasCheckBoxCtrl = new wxCheckBox(optionsStaticBox, tksIDC_REMOVE_COMMAS_CTRL, "Remove Commas");
-    pRemoveCommasCheckBoxCtrl->SetToolTip("Remove commas from text to be exported");
-
     optionsFlexGridSizer->Add(delimiterLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     optionsFlexGridSizer->Add(pDelimiterChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
@@ -199,9 +194,6 @@ void ExportToCsvDialog::CreateControls()
 
     optionsFlexGridSizer->Add(newLinesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     optionsFlexGridSizer->Add(pNewLinesHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    optionsFlexGridSizer->Add(0, 0);
-    optionsFlexGridSizer->Add(pRemoveCommasCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Output static box (right) */
     auto outputStaticBox = new wxStaticBox(this, wxID_ANY, "Output");
@@ -420,8 +412,6 @@ void ExportToCsvDialog::FillControls()
         pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i));
     }
 
-    pRemoveCommasCheckBoxCtrl->SetValue(true);
-
     /* Export File Controls */
     if (true /*!pCfg->GetExportDirectory()*/) {
         auto defaultFileName = fmt::format("taskies-tasks-export-{0}.csv", pDateStore->PrintTodayDate);
@@ -466,12 +456,6 @@ void ExportToCsvDialog::ConfigureEventBindings()
     pNewLinesHandlerChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ExportToCsvDialog::OnNewLinesHandlerChoiceSelection,
-        this
-    );
-
-    pRemoveCommasCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnRemoveCommasCheck,
         this
     );
 
@@ -627,13 +611,6 @@ void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
 
     pLogger->info("ExportToCsvDialog::OnNewLinesHandlerChoiceSelection - Selected new lines handler \"{0}\"",
         choice.ToStdString());
-}
-
-void ExportToCsvDialog::OnRemoveCommasCheck(wxCommandEvent& event)
-{
-    auto choice = event.IsChecked();
-
-    pLogger->info("ExportToCsvDialog::OnRemoveCommasCheck - Checked \"{0}\"", choice);
 }
 
 void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
