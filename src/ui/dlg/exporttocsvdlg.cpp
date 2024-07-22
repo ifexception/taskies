@@ -26,6 +26,7 @@
 #include <fmt/format.h>
 
 #include <wx/dirdlg.h>
+#include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -127,6 +128,9 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     mToDate = pDateStore->SundayDate;
 
     Create();
+    if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
+        SetSize(FromDIP(wxSize(500, 700)));
+    }
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
