@@ -54,11 +54,7 @@ void CsvExportProcessor::TryProcessNewLines(std::string& value) const
         std::string newline = "\n";
         std::string space = " ";
 
-        std::string::size_type pos = 0;
-        while ((pos = value.find(newline, pos)) != std::string::npos) {
-            value.replace(pos, newline.length(), space);
-            pos += space.length();
-        }
+        value = Utils::ReplaceAll(value, newline, space);
     }
 }
 
@@ -76,11 +72,7 @@ void CsvExportProcessor::TryApplyTextQualifier(std::stringstream& data, std::str
     std::string quote = "\"";
     std::string doubleQuote = "\"\"";
 
-    std::string::size_type pos = 0;
-    while ((pos = value.find(quote, pos)) != std::string::npos) {
-        value.replace(pos, quote.length(), doubleQuote);
-        pos += doubleQuote.length();
-    }
+    value = Utils::ReplaceAll(value, quote, doubleQuote);
 
     if (mOptions.TextQualifier != '\0' && value.find(mOptions.Delimiter) != std::string::npos) {
         data << mOptions.TextQualifier << value << mOptions.TextQualifier;

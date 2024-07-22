@@ -117,6 +117,19 @@ std::string ReplaceNewlineWithEllipses(const std::string& value)
     return replacedString;
 }
 
+std::string ReplaceAll(std::string value, const std::string& src, const std::string& dest)
+{
+    std::string replacedValue = "";
+    std::string::size_type pos = 0;
+    while ((pos = value.find(src, pos)) != std::string::npos) {
+        value.replace(pos, src.length(), dest);
+        pos += dest.length();
+    }
+
+    replacedValue = value;
+    return replacedValue;
+}
+
 namespace sqlite
 {
 std::string FormatSearchTerm(const std::string& source)
