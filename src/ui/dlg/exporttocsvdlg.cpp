@@ -33,7 +33,6 @@
 #include "../../common/common.h"
 #include "../../common/enums.h"
 
-#include "../../core/environment.h"
 #include "../../core/configuration.h"
 
 #include "../clientdata.h"
@@ -78,7 +77,6 @@ std::vector<AvailableColumn> AvailableColumns()
 }
 
 ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databasePath,
@@ -91,7 +89,6 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pCfg(cfg)
     , pLogger(logger)
     , mDatabaseFilePath(databasePath)
@@ -413,12 +410,10 @@ void ExportToCsvDialog::FillControls()
     }
 
     /* Export File Controls */
-    if (true /*!pCfg->GetExportDirectory()*/) {
-        auto defaultFileName = fmt::format("taskies-tasks-export-{0}.csv", pDateStore->PrintTodayDate);
-        auto defaultSaveToFile = pEnv->GetExportPath() / defaultFileName;
-        pSaveToFileTextCtrl->ChangeValue(defaultSaveToFile.string());
-        pSaveToFileTextCtrl->SetToolTip(defaultSaveToFile.string());
-    }
+    auto saveToFile =
+        fmt::format("{0}\\taskies-tasks-export-{1}.csv", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
+    pSaveToFileTextCtrl->ChangeValue(saveToFile);
+    pSaveToFileTextCtrl->SetToolTip(saveToFile);
 
     /* Date Controls */
     SetFromAndToDatePickerRanges();
@@ -626,24 +621,19 @@ void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
 {
-    std::string pathDirectoryToOpenOn;
-    if (true /*!pCfg->GetExportPath().empty()*/) {
-        pathDirectoryToOpenOn = pEnv->GetExportPath().string();
-    } else {
-        // pathDirectoryToOpenOn = pCfg->GetExportPath();
-    }
+    std::string directoryToOpen = pCfg->GetExportPath();
 
     auto openDirDialog = new wxDirDialog(
-        this, "Select a directory to export the data to", pathDirectoryToOpenOn, wxDD_DEFAULT_STYLE, wxDefaultPosition);
+        this, "Select a directory to export the data to", directoryToOpen, wxDD_DEFAULT_STYLE, wxDefaultPosition);
     int res = openDirDialog->ShowModal();
 
     if (res == wxID_OK) {
-        auto defaultFileName = fmt::format("taskies-tasks-export-{0}.csv", pDateStore->PrintTodayDate);
         auto selectedExportPath = openDirDialog->GetPath().ToStdString();
-        auto finalPath = selectedExportPath + "\\" + defaultFileName;
+        auto saveToFile =
+            fmt::format("{0}\\taskies-tasks-export-{1}.csv", selectedExportPath, pDateStore->PrintTodayDate);
 
-        pSaveToFileTextCtrl->SetValue(finalPath);
-        pSaveToFileTextCtrl->SetToolTip(finalPath);
+        pSaveToFileTextCtrl->SetValue(saveToFile);
+        pSaveToFileTextCtrl->SetToolTip(saveToFile);
     }
 
     openDirDialog->Destroy();
@@ -659,7 +649,7 @@ void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
 
     if (eventDateUtc > mToCtrlDate) {
         SetFromDateAndDatePicker();
-        wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
+        wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed \"to\" date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pFromDateCtrl);
         return;
@@ -689,7 +679,7 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
 
     if (eventDateUtc < mFromCtrlDate) {
         SetFromDateAndDatePicker();
-        wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past from date");
+        wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"from\" date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDateCtrl);
         return;

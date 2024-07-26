@@ -44,7 +44,6 @@ namespace tks
 {
 namespace Core
 {
-class Environment;
 class Configuration;
 } // namespace Core
 namespace UI::dlg
@@ -64,7 +63,6 @@ public:
     ExportToCsvDialog() = delete;
     ExportToCsvDialog(const ExportToCsvDialog&) = delete;
     ExportToCsvDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databasePath,
@@ -106,7 +104,6 @@ private:
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
 
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
