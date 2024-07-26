@@ -50,6 +50,7 @@ class PreferencesGeneralPage;
 class PreferencesDatabasePage;
 class PreferencesTasksPage;
 class PreferencesTasksViewPage;
+class PreferencesExportPage;
 
 class PreferencesDialog : public wxDialog
 {
@@ -87,6 +88,7 @@ private:
     PreferencesDatabasePage* pDatabasePage;
     PreferencesTasksPage* pTasksPage;
     PreferencesTasksViewPage* pTasksViewPage;
+    PreferencesExportPage* pExportPage;
     wxButton* pOkButton;
     wxButton* pRestoreDefaultsButton;
 

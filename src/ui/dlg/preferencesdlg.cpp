@@ -30,6 +30,7 @@
 #include "preferencesdatabasepage.h"
 #include "preferencestaskspage.h"
 #include "preferencestasksviewpage.h"
+#include "preferencesexportpage.h"
 
 namespace tks::UI::dlg
 {
@@ -53,6 +54,9 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     , pSimpleBook(nullptr)
     , pGeneralPage(nullptr)
     , pDatabasePage(nullptr)
+    , pTasksPage(nullptr)
+    , pTasksViewPage(nullptr)
+    , pExportPage(nullptr)
     , pRestoreDefaultsButton(nullptr)
     , pOkButton(nullptr)
 {
@@ -86,6 +90,7 @@ void PreferencesDialog::CreateControls()
     pListBox->Append("Database");
     pListBox->Append("Tasks");
     pListBox->Append("Tasks View");
+    pListBox->Append("Export");
     pListBox->SetSelection(0);
 
     /* Simple Book*/
@@ -94,11 +99,13 @@ void PreferencesDialog::CreateControls()
     pDatabasePage = new PreferencesDatabasePage(pSimpleBook, pEnv, pCfg);
     pTasksPage = new PreferencesTasksPage(pSimpleBook, pCfg, pLogger);
     pTasksViewPage = new PreferencesTasksViewPage(pSimpleBook, pCfg, pLogger);
+    pExportPage = new PreferencesExportPage(pSimpleBook, pEnv, pCfg, pLogger);
 
-    pSimpleBook->AddPage(pGeneralPage, wxEmptyString, /*bSelect=*/ true);
+    pSimpleBook->AddPage(pGeneralPage, wxEmptyString, /*bSelect=*/true);
     pSimpleBook->AddPage(pDatabasePage, wxEmptyString, false);
     pSimpleBook->AddPage(pTasksPage, wxEmptyString, false);
     pSimpleBook->AddPage(pTasksViewPage, wxEmptyString, false);
+    pSimpleBook->AddPage(pExportPage, wxEmptyString, false);
 
     mainSizer->Add(pListBox, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Expand());
     mainSizer->Add(pSimpleBook, wxSizerFlags().Expand().Proportion(1));
@@ -169,6 +176,7 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
     pDatabasePage->Reset();
     pTasksPage->Reset();
     pTasksViewPage->Reset();
+    pExportPage->Reset();
 
     std::string message = "Preferences restored to defaults";
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -204,11 +212,18 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
+    if (!pExportPage->IsValid()) {
+        pListBox->SetSelection(4);
+        pSimpleBook->ChangeSelection(pListBox->GetSelection());
+        return;
+    }
+
     // Save changes to cfg pointer in memory
     pGeneralPage->Save();
     pDatabasePage->Save();
     pTasksPage->Save();
     pTasksViewPage->Save();
+    pExportPage->Save();
 
     // Save changes to disk
     pCfg->Save();
