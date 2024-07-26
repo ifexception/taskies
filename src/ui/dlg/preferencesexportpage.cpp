@@ -45,12 +45,27 @@ PreferencesExportPage::PreferencesExportPage(wxWindow* parent,
 
 bool PreferencesExportPage::IsValid()
 {
-    return false;
+    auto databasePathSelected = pExportPathTextCtrl->GetValue().ToStdString();
+    if (databasePathSelected.empty()) {
+        auto valMsg = "An export directory is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pExportPathTextCtrl);
+        return false;
+    }
+
+    return true;
 }
 
-void PreferencesExportPage::Save() {}
+void PreferencesExportPage::Save()
+{
+    pCfg->SetExportPath(pExportPathTextCtrl->GetValue().ToStdString());
+}
 
-void PreferencesExportPage::Reset() {}
+void PreferencesExportPage::Reset()
+{
+    pExportPathTextCtrl->ChangeValue(pCfg->GetExportPath());
+}
 
 void PreferencesExportPage::CreateControls()
 {
@@ -103,7 +118,31 @@ void PreferencesExportPage::ConfigureEventBindings()
 
 void PreferencesExportPage::FillControls() {}
 
-void PreferencesExportPage::DataToControls() {}
+void PreferencesExportPage::DataToControls()
+{
+    pExportPathTextCtrl->ChangeValue(pCfg->GetExportPath());
+    pExportPathTextCtrl->SetToolTip(pCfg->GetExportPath());
+}
 
-void PreferencesExportPage::OnOpenDirectoryForExportLocation(wxCommandEvent& event) {}
+void PreferencesExportPage::OnOpenDirectoryForExportLocation(wxCommandEvent& event)
+{
+    std::string directoryToOpen = "";
+    if (pCfg->GetExportPath().empty()) {
+        directoryToOpen = pEnv->GetExportPath().string();
+    } else {
+        directoryToOpen = pCfg->GetExportPath();
+    }
+
+    auto openDirDialog =
+        new wxDirDialog(this, "Select an export directory", directoryToOpen, wxDD_DEFAULT_STYLE, wxDefaultPosition);
+    int res = openDirDialog->ShowModal();
+
+    if (res == wxID_OK) {
+        auto selectedExportPath = openDirDialog->GetPath().ToStdString();
+        pExportPathTextCtrl->SetValue(selectedExportPath);
+        pExportPathTextCtrl->SetToolTip(selectedExportPath);
+    }
+
+    openDirDialog->Destroy();
+}
 } // namespace tks::UI::dlg
