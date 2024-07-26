@@ -167,9 +167,9 @@ void ExportToCsvDialog::CreateControls()
     outputFlexGridSizer->AddGrowableCol(1, 1);
 
     outputFlexGridSizer->Add(0, 0);
-    outputFlexGridSizer->Add(pExportToClipboardCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    outputFlexGridSizer->Add(saveToFileLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    outputFlexGridSizer->Add(pSaveToFileTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    outputFlexGridSizer->Add(pExportToClipboardCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)));
+    outputFlexGridSizer->Add(saveToFileLabel, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
+    outputFlexGridSizer->Add(pSaveToFileTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
     outputFlexGridSizer->Add(0, 0);
     outputFlexGridSizer->Add(pBrowseExportPathButton, wxSizerFlags().Border(wxALL, FromDIP(2)).Right());
 
@@ -250,19 +250,34 @@ void ExportToCsvDialog::CreateControls()
     auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxVERTICAL);
     rightSideVertSizer->Add(presetsStaticBoxSizer, wxSizerFlags().Expand());
 
-    auto presetManagementHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
-    presetsStaticBoxSizer->Add(presetManagementHorizontalSizer, wxSizerFlags().Expand());
+    /* Presets management sizer */
+    auto presetFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    presetsStaticBoxSizer->Add(presetFlexGridSizer, wxSizerFlags().Expand());
+
+    presetFlexGridSizer->AddGrowableCol(1, 1);
 
     auto presetNameLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Name");
     pPresetNameTextCtrl = new wxTextCtrl(presetsStaticBox, tksIDC_PRESET_NAME_TEXT_CTRL, "");
     pPresetNameTextCtrl->SetHint("Preset Name");
     pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
 
-    presetManagementHorizontalSizer->Add(
-        presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    presetManagementHorizontalSizer->Add(
-        pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-    presetsStaticBoxSizer->Add(pPresetSaveButton, wxSizerFlags().Right().Border(wxALL, FromDIP(4)));
+    presetFlexGridSizer->Add(
+        presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
+    presetFlexGridSizer->Add(
+        pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
+    presetFlexGridSizer->Add(0, 0);
+    presetFlexGridSizer->Add(pPresetSaveButton, wxSizerFlags().Right().Border(wxALL, FromDIP(2)));
+
+    /* Presets selection */
+    auto presetsChoiceLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Presets");
+    pPresetsChoiceCtrl = new wxChoice(presetsStaticBox, tksIDC_PRESET_CHOICE_CTRL);
+    pPresetApplyButton = new wxButton(presetsStaticBox, tksIDC_PRESET_APPLY_BUTTON, "Apply");
+
+    presetFlexGridSizer->Add(presetsChoiceLabel, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
+    presetFlexGridSizer->Add(
+        pPresetsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
+    presetFlexGridSizer->Add(0, 0);
+    presetFlexGridSizer->Add(pPresetApplyButton, wxSizerFlags().Right().Border(wxALL, FromDIP(2)));
 
     /* Header/Columns to Export Controls sizer */
     auto dataToExportStaticBox = new wxStaticBox(this, wxID_ANY, "Data to Export");
@@ -443,6 +458,10 @@ void ExportToCsvDialog::FillControls()
 
     SetFromDateAndDatePicker();
     SetToDateAndDatePicker();
+
+    /* Presets controls */
+    pPresetsChoiceCtrl->Append("(none)", new ClientData<int>(-1));
+    pPresetsChoiceCtrl->SetSelection(0);
 
     /* Available Columns */
     for (auto& column : AvailableColumns()) {
