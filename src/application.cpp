@@ -81,6 +81,11 @@ bool Application::OnInit()
         pCfg->Save();
     }
 
+    if (pCfg->GetExportPath().empty()) {
+        pCfg->SetExportPath(pEnv->GetExportPath().string());
+        pCfg->Save();
+    }
+
     pPersistenceManager = std::make_unique<UI::PersistenceManager>(pLogger, pCfg->GetDatabasePath());
     wxPersistenceManager::Set(*pPersistenceManager);
 
