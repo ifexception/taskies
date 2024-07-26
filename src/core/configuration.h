@@ -81,17 +81,22 @@ public:
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
+    std::string GetExportPath() const;
+    void SetExportPath(const std::string& value);
+
 private:
     void GetGeneralConfig(const toml::value& config);
     void GetDatabaseConfig(const toml::value& config);
     void GetTasksConfig(const toml::value& config);
     void GetTasksViewConfig(const toml::value& config);
+    void GetExportConfig(const toml::value& config);
 
     struct Sections {
         static const std::string GeneralSection;
         static const std::string DatabaseSection;
         static const std::string TaskSection;
         static const std::string TasksViewSection;
+        static const std::string ExportSection;
     };
 
     struct Settings {
@@ -111,9 +116,12 @@ private:
         bool ShowProjectAssociatedCategories;
 
         bool TodayAlwaysExpanded;
+
+        std::string ExportPath;
     };
 
     Settings mSettings;
+
     std::shared_ptr<Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 };

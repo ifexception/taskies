@@ -29,6 +29,7 @@ const std::string Configuration::Sections::GeneralSection = "general";
 const std::string Configuration::Sections::DatabaseSection = "database";
 const std::string Configuration::Sections::TaskSection = "tasks";
 const std::string Configuration::Sections::TasksViewSection = "tasksView";
+const std::string Configuration::Sections::ExportSection = "export";
 
 Configuration::Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger)
     : pEnv(env)
@@ -57,6 +58,7 @@ bool Configuration::Load()
         GetDatabaseConfig(data);
         GetTasksConfig(data);
         GetTasksViewConfig(data);
+        GetExportConfig(data);
     } catch (const toml::syntax_error& error) {
         pLogger->error(
             "Configuration - A TOML syntax/parse error occurred when parsing configuration file {0}", error.what());
@@ -103,6 +105,12 @@ bool Configuration::Save()
                 toml::table {
                     { "todayAlwaysExpanded", mSettings.TodayAlwaysExpanded }
                 }
+            },
+            {
+                Sections::ExportSection,
+                toml::table {
+                    { "exportPath", mSettings.ExportPath }
+                }
             }
         }
     );
@@ -144,6 +152,8 @@ bool Configuration::RestoreDefaults()
     SetMinutesIncrement(15);
     ShowProjectAssociatedCategories(false);
 
+    SetExportPath(pEnv->GetExportPath().string());
+
     // clang-format off
     const toml::value v(
         toml::table{
@@ -178,6 +188,12 @@ bool Configuration::RestoreDefaults()
                 Sections::TasksViewSection,
                 toml::table {
                     { "todayAlwaysExpanded", false }
+                }
+            },
+            {
+                Sections::ExportSection,
+                toml::table {
+                    { "exportPath", pEnv->GetExportPath().string() }
                 }
             }
         }
@@ -333,6 +349,16 @@ void Configuration::TodayAlwaysExpanded(const bool value)
     mSettings.TodayAlwaysExpanded = value;
 }
 
+std::string Configuration::GetExportPath() const
+{
+    return mSettings.ExportPath;
+}
+
+void Configuration::SetExportPath(const std::string& value)
+{
+    mSettings.ExportPath = value;
+}
+
 void Configuration::GetGeneralConfig(const toml::value& config)
 {
     const auto& generalSection = toml::find(config, Sections::GeneralSection);
@@ -369,5 +395,12 @@ void Configuration::GetTasksViewConfig(const toml::value& config)
     const auto& tasksViewSection = toml::find(config, Sections::TasksViewSection);
 
     mSettings.TodayAlwaysExpanded = toml::find<bool>(tasksViewSection, "todayAlwaysExpanded");
+}
+
+void Configuration::GetExportConfig(const toml::value& config)
+{
+    const auto& exportSection = toml::find(config, Sections::ExportSection);
+
+    mSettings.ExportPath = toml::find<std::string>(exportSection, "exportPath");
 }
 } // namespace tks::Core
