@@ -39,6 +39,20 @@ std::string GetPreferencesIconBundleName();
 
 std::string GetLicense();
 
+struct Preset {
+    std::string Name;
+    char Delimiter;
+    char TextQualifier;
+    int EmptyValuesHandler;
+    int NewLinesHandler;
+    bool ExcludeHeaders;
+    std::vector<std::string> Columns;
+    std::vector<std::string> OriginalColumns;
+
+    Preset() = default;
+    ~Preset() = default;
+};
+
 namespace Resources
 {
 std::string Bell();

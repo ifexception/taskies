@@ -37,6 +37,7 @@
 
 #include "../dataview/exportheaderslistmodel.h"
 
+#include "../../common/common.h"
 #include "../../utils/datestore.h"
 #include "../../utils/export/csvexporter.h"
 
@@ -77,16 +78,18 @@ private:
     void FillControls();
     void ConfigureEventBindings();
 
+    void OnExportToClipboardCheck(wxCommandEvent& event);
+    void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
+
     void OnDelimiterChoiceSelection(wxCommandEvent& event);
     void OnTextQualifierChoiceSelection(wxCommandEvent& event);
     void OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event);
     void OnNewLinesHandlerChoiceSelection(wxCommandEvent& event);
 
-    void OnExportToClipboardCheck(wxCommandEvent& event);
-    void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
-
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
+
+    void OnSavePreset(wxCommandEvent& event);
 
     void OnAvailableHeaderItemCheck(wxListEvent& event);
     void OnAvailableHeaderItemUncheck(wxListEvent& event);
@@ -98,6 +101,7 @@ private:
     void OnUpButtonSort(wxCommandEvent& event);
     void OnDownButtonSort(wxCommandEvent& event);
     void OnExcludeHeadersCheck(wxCommandEvent& event);
+
     void OnShowPreview(wxCommandEvent& event);
 
     void SetFromAndToDatePickerRanges();

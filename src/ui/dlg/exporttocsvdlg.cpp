@@ -523,6 +523,13 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_DATE_TO_CTRL
     );
 
+    pPresetSaveButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnSavePreset,
+        this,
+        tksIDC_PRESET_SAVE_BUTTON
+    );
+
     pAvailableColumnsListView->Bind(
         wxEVT_LIST_ITEM_CHECKED,
         &ExportToCsvDialog::OnAvailableHeaderItemCheck,
@@ -733,6 +740,33 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
 
     mToCtrlDate = eventDateUtc;
     mToDate = newToDate;
+}
+
+void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
+{
+    // if check if there are any selected columns
+
+    auto columnsSelected = pExportColumnListModel->GetHeadersToExport();
+    std::vector<std::string> columns = {};
+    std::vector<std::string> originalColumns = {};
+    for (const auto& column : columnsSelected) {
+        std::string originalColumnName = column.OriginalHeader;
+        std::string columnName = column.Header;
+
+        originalColumns.push_back(originalColumnName);
+        columns.push_back(columnName);
+    }
+
+    Common::Preset preset;
+    preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
+    preset.Delimiter = mCsvOptions.Delimiter;
+    preset.TextQualifier = mCsvOptions.TextQualifier;
+    preset.EmptyValuesHandler = static_cast<int>(mCsvOptions.EmptyValuesHandler);
+    preset.NewLinesHandler = static_cast<int>(mCsvOptions.NewLinesHandler);
+    preset.OriginalColumns = originalColumns;
+    preset.Columns = columns;
+
+    // pCfg->SaveExportPreset(preset);
 }
 
 void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
