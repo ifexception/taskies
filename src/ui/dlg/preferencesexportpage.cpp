@@ -99,14 +99,17 @@ void PreferencesExportPage::CreateControls()
 
     /* Presets box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
-    auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxHORIZONTAL);
+    auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxVERTICAL);
     sizer->Add(presetsStaticBoxSizer, wxSizerFlags().Expand());
 
     /* Sizers for list view and button */
+    auto listAndButtonHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    presetsStaticBoxSizer->Add(listAndButtonHorizontalSizer, wxSizerFlags().Expand().Proportion(1));
+
     auto listViewSizer = new wxBoxSizer(wxVERTICAL);
     auto buttonSizer = new wxBoxSizer(wxVERTICAL);
-    presetsStaticBoxSizer->Add(listViewSizer, wxSizerFlags().Expand().Proportion(1));
-    presetsStaticBoxSizer->Add(buttonSizer, wxSizerFlags().Expand());
+    listAndButtonHorizontalSizer->Add(listViewSizer, wxSizerFlags().Expand().Proportion(1));
+    listAndButtonHorizontalSizer->Add(buttonSizer, wxSizerFlags().Expand());
 
     pPresetsListView = new wxListView(presetsStaticBox,
         tksIDC_PRESETS_LIST_VIEW,
@@ -130,6 +133,19 @@ void PreferencesExportPage::CreateControls()
     pRemovePresetButton = new wxBitmapButton(presetsStaticBox, tksIDC_REMOVE_PRESET_BUTTON, providedDeleteBitmap);
     pRemovePresetButton->SetToolTip("Remove selected preset(s)");
     buttonSizer->Add(pRemovePresetButton, wxSizerFlags().Right().Border(wxALL, FromDIP(5)));
+
+    auto infoLabelSizer = new wxBoxSizer(wxHORIZONTAL);
+    presetsStaticBoxSizer->Add(infoLabelSizer, wxSizerFlags().Expand());
+
+    auto providedInfoBitmap =
+        wxArtProvider::GetBitmapBundle(wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    auto infoStaticBitmap = new wxStaticBitmap(presetsStaticBox, wxID_ANY, providedInfoBitmap);
+    infoLabelSizer->Add(infoStaticBitmap, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+
+    auto presetManagementLabel = new wxStaticText(
+        presetsStaticBox, wxID_ANY, "Presets creation and management is done from the \"Export to CSV\" dialog");
+    presetManagementLabel->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    infoLabelSizer->Add(presetManagementLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
     SetSizerAndFit(sizer);
 }
