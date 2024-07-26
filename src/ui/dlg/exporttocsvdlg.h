@@ -112,15 +112,15 @@ private:
 
     wxWindow* pParent;
 
+    wxCheckBox* pExportToClipboardCheckBoxCtrl;
+    wxTextCtrl* pSaveToFileTextCtrl;
+    wxButton* pBrowseExportPathButton;
+
     wxChoice* pDelimiterChoiceCtrl;
     wxChoice* pTextQualifierChoiceCtrl;
     wxChoice* pEmptyValueHandlerChoiceCtrl;
     wxChoice* pNewLinesHandlerChoiceCtrl;
     wxCheckBox* pRemoveCommasCheckBoxCtrl;
-
-    wxCheckBox* pExportToClipboardCheckBoxCtrl;
-    wxTextCtrl* pSaveToFileTextCtrl;
-    wxButton* pBrowseExportPathButton;
 
     wxDatePickerCtrl* pFromDateCtrl;
     wxDatePickerCtrl* pToDateCtrl;
@@ -128,6 +128,12 @@ private:
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
+
+    wxTextCtrl* pPresetNameTextCtrl;
+    wxButton* pPresetSaveButton;
+
+    wxChoice* pPresetsChoiceCtrl;
+    wxButton* pPresetApplyButton;
 
     wxListView* pAvailableColumnsListView;
     wxButton* pRightChevronButton;
@@ -157,17 +163,18 @@ private:
     Utils::CsvExporter mCsvExporter;
 
     enum {
-        tksIDC_DELIMITER_CTRL = wxID_HIGHEST + 100,
+        tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
+        tksIDC_SAVE_TO_FILE_CTRL,
+        tksIDC_BROWSE_EXPORT_PATH_CTRL,
+        tksIDC_DELIMITER_CTRL ,
         tksIDC_TEXT_QUALIFIER_CTRL,
         tksIDC_EOL_TERMINATOR_CTRL,
         tksIDC_EMPTY_VALUE_HANDLER_CTRL,
         tksIDC_NEW_LINES_HANDLER_CTRL,
-        tksIDC_REMOVE_COMMAS_CTRL,
-        tksIDC_COPY_TO_CLIPBOARD_CTRL,
-        tksIDC_SAVE_TO_FILE_CTRL,
-        tksIDC_BROWSE_EXPORT_PATH_CTRL,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
+        tksIDC_PRESET_NAME_TEXT_CTRL,
+        tksIDC_PRESET_SAVE_BUTTON,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
         tksIDC_RIGHT_CHEV_CTRL,
         tksIDC_LEFT_CHEV_CTRL,

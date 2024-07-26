@@ -144,7 +144,36 @@ void ExportToCsvDialog::CreateControls()
     /* Main Window Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    /* Sizer for Options and Output controls */
+    /* Output static box (top) */
+    auto outputStaticBox = new wxStaticBox(this, wxID_ANY, "Output");
+    auto outputStaticBoxSizer = new wxStaticBoxSizer(outputStaticBox, wxVERTICAL);
+    sizer->Add(outputStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand());
+
+    /* Export to clipboard checkbox control */
+    pExportToClipboardCheckBoxCtrl =
+        new wxCheckBox(outputStaticBox, tksIDC_COPY_TO_CLIPBOARD_CTRL, "Copy to Clipboard");
+    pExportToClipboardCheckBoxCtrl->SetToolTip("When checked the data will be exported to the clipboard");
+
+    /* Save to file text control */
+    auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
+    pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
+
+    pBrowseExportPathButton = new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
+    pBrowseExportPathButton->SetToolTip("Set where to the save the exported data to");
+
+    outputFlexGridSizer->AddGrowableCol(1, 1);
+
+    outputFlexGridSizer->Add(0, 0);
+    outputFlexGridSizer->Add(pExportToClipboardCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    outputFlexGridSizer->Add(saveToFileLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    outputFlexGridSizer->Add(pSaveToFileTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    outputFlexGridSizer->Add(0, 0);
+    outputFlexGridSizer->Add(pBrowseExportPathButton, wxSizerFlags().Border(wxALL, FromDIP(2)).Right());
+
+    /* Sizer for Options and Date Range + Presets controls */
     auto horizontalBoxSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(horizontalBoxSizer, wxSizerFlags().Expand());
 
@@ -192,39 +221,14 @@ void ExportToCsvDialog::CreateControls()
     optionsFlexGridSizer->Add(newLinesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     optionsFlexGridSizer->Add(pNewLinesHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    /* Output static box (right) */
-    auto outputStaticBox = new wxStaticBox(this, wxID_ANY, "Output");
-    auto outputStaticBoxSizer = new wxStaticBoxSizer(outputStaticBox, wxVERTICAL);
-    horizontalBoxSizer->Add(outputStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Proportion(1));
+    /* Sizer for Date Range and Presets controls */
+    auto rightSideVertSizer = new wxBoxSizer(wxVERTICAL);
+    horizontalBoxSizer->Add(rightSideVertSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-    outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand());
-
-    /* Export to clipboard checkbox control */
-    pExportToClipboardCheckBoxCtrl =
-        new wxCheckBox(outputStaticBox, tksIDC_COPY_TO_CLIPBOARD_CTRL, "Copy to Clipboard");
-    pExportToClipboardCheckBoxCtrl->SetToolTip("When checked the data will be exported to the clipboard");
-
-    /* Save to file text control */
-    auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
-    pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
-
-    pBrowseExportPathButton = new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
-    pBrowseExportPathButton->SetToolTip("Set where to the save the exported data to");
-
-    outputFlexGridSizer->AddGrowableCol(1, 1);
-
-    outputFlexGridSizer->Add(0, 0);
-    outputFlexGridSizer->Add(pExportToClipboardCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    outputFlexGridSizer->Add(saveToFileLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    outputFlexGridSizer->Add(pSaveToFileTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-    outputFlexGridSizer->Add(0, 0);
-    outputFlexGridSizer->Add(pBrowseExportPathButton, wxSizerFlags().Border(wxALL, FromDIP(2)).Right());
-
-    /* Sizer for date range */
+    /* Date range static box */
     auto dateRangeStaticBox = new wxStaticBox(this, wxID_ANY, "Date Range");
     auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxHORIZONTAL);
-    sizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    rightSideVertSizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Expand());
 
     /* From date control */
     auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
@@ -241,7 +245,26 @@ void ExportToCsvDialog::CreateControls()
     dateRangeStaticBoxSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateRangeStaticBoxSizer->Add(pToDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    /* Header/Data to Export Controls sizer */
+    /* Presets static box */
+    auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
+    auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxVERTICAL);
+    rightSideVertSizer->Add(presetsStaticBoxSizer, wxSizerFlags().Expand());
+
+    auto presetManagementHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    presetsStaticBoxSizer->Add(presetManagementHorizontalSizer, wxSizerFlags().Expand());
+
+    auto presetNameLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Name");
+    pPresetNameTextCtrl = new wxTextCtrl(presetsStaticBox, tksIDC_PRESET_NAME_TEXT_CTRL, "");
+    pPresetNameTextCtrl->SetHint("Preset Name");
+    pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
+
+    presetManagementHorizontalSizer->Add(
+        presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    presetManagementHorizontalSizer->Add(
+        pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    presetsStaticBoxSizer->Add(pPresetSaveButton, wxSizerFlags().Right().Border(wxALL, FromDIP(4)));
+
+    /* Header/Columns to Export Controls sizer */
     auto dataToExportStaticBox = new wxStaticBox(this, wxID_ANY, "Data to Export");
     auto dataToExportStaticBoxSizer = new wxStaticBoxSizer(dataToExportStaticBox, wxVERTICAL);
     sizer->Add(dataToExportStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
