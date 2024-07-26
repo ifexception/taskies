@@ -26,6 +26,7 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/listctrl.h>
 
 #include <spdlog/logger.h>
 
@@ -68,10 +69,14 @@ private:
 
     wxTextCtrl* pExportPathTextCtrl;
     wxButton* pBrowseExportPathButton;
+    wxListView* pPresetsListView;
+    wxBitmapButton* pRemovePresetButton;
 
     enum {
         tksIDC_EXPORT_PATH = wxID_HIGHEST + 100,
         tksIDC_EXPORT_PATH_BUTTON,
+        tksIDC_PRESETS_LIST_VIEW,
+        tksIDC_REMOVE_PRESET_BUTTON,
     };
 };
 } // namespace UI::dlg

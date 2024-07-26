@@ -19,6 +19,7 @@
 
 #include "preferencesexportpage.h"
 
+#include <wx/artprov.h>
 #include <wx/dirdlg.h>
 #include <wx/richtooltip.h>
 
@@ -79,7 +80,7 @@ void PreferencesExportPage::CreateControls()
 
     /* Export path sizer */
     auto exportPathSizer = new wxBoxSizer(wxHORIZONTAL);
-    auto exportPathLabel = new wxStaticText(exportStaticBox, wxID_ANY, "Export");
+    auto exportPathLabel = new wxStaticText(exportStaticBox, wxID_ANY, "Path");
 
     /* Export path controls */
     pExportPathTextCtrl = new wxTextCtrl(exportStaticBox,
@@ -98,8 +99,37 @@ void PreferencesExportPage::CreateControls()
 
     /* Presets box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
-    auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxVERTICAL);
+    auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxHORIZONTAL);
     sizer->Add(presetsStaticBoxSizer, wxSizerFlags().Expand());
+
+    /* Sizers for list view and button */
+    auto listViewSizer = new wxBoxSizer(wxVERTICAL);
+    auto buttonSizer = new wxBoxSizer(wxVERTICAL);
+    presetsStaticBoxSizer->Add(listViewSizer, wxSizerFlags().Expand().Proportion(1));
+    presetsStaticBoxSizer->Add(buttonSizer, wxSizerFlags().Expand());
+
+    pPresetsListView = new wxListView(presetsStaticBox,
+        tksIDC_PRESETS_LIST_VIEW,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
+    pPresetsListView->EnableCheckBoxes();
+    pPresetsListView->SetToolTip("View and manage your export presets");
+    listViewSizer->Add(pPresetsListView, wxSizerFlags().Left().Border(wxALL, FromDIP(5)).Expand());
+
+    int columnIndex = 0;
+
+    wxListItem presetNamesColumn;
+    presetNamesColumn.SetId(columnIndex);
+    presetNamesColumn.SetText("Presets");
+    presetNamesColumn.SetWidth(100);
+    pPresetsListView->InsertColumn(columnIndex++, presetNamesColumn);
+
+    auto providedDeleteBitmap =
+        wxArtProvider::GetBitmapBundle(wxART_DELETE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    pRemovePresetButton = new wxBitmapButton(presetsStaticBox, tksIDC_REMOVE_PRESET_BUTTON, providedDeleteBitmap);
+    pRemovePresetButton->SetToolTip("Remove selected preset(s)");
+    buttonSizer->Add(pRemovePresetButton, wxSizerFlags().Right().Border(wxALL, FromDIP(5)));
 
     SetSizerAndFit(sizer);
 }
