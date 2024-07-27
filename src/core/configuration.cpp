@@ -251,7 +251,23 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
 
     pLogger->info("Configuration::SaveExportPreset - Preset serialized to:\n{0}", toml::format(v));
 
-    return false;
+    const std::string presetConfigString = toml::format(v);
+    const std::string configFilePath = pEnv->GetConfigurationPath().string();
+
+    pLogger->info("Configuration - Probing for configuration file for appending preset at path {0}", configFilePath);
+
+    std::ofstream configFile;
+    configFile.open(configFilePath, std::ios_base::app);
+    if (!configFile) {
+        pLogger->error("Configuration - Failed to open configuration file at path {0}", configFilePath);
+        return false;
+    }
+
+    configFile << presetConfigString;
+
+    configFile.close();
+
+    return true;
 }
 
 std::string Configuration::GetUserInterfaceLanguage() const
