@@ -219,6 +219,41 @@ bool Configuration::RestoreDefaults()
     return true;
 }
 
+bool Configuration::SaveExportPreset(const Common::Preset& preset)
+{
+    // clang-format off
+    toml::value v(
+        toml::table {
+            {"presets", toml::array {} }
+        }
+    );
+
+    auto& presets = v.at("presets");
+    toml::value v1(
+        toml::table{
+            { "name", preset.Name },
+            { "delimiter", preset.Delimiter },
+            { "textQualifier", preset.TextQualifier },
+            { "emptyValues", preset.EmptyValuesHandler },
+            { "newLines", preset.NewLinesHandler },
+            { "excludeHeaders", preset.ExcludeHeaders },
+            { "columns", toml::array {} }
+        }
+    );
+
+    auto& columns = v1.at("columns");
+    for (const auto& column : preset.Columns) {
+        columns.push_back(column);
+    }
+
+    presets.push_back(std::move(v1));
+    // clang-format on
+
+    pLogger->info("Configuration::SaveExportPreset - Preset serialized to:\n{0}", toml::format(v));
+
+    return false;
+}
+
 std::string Configuration::GetUserInterfaceLanguage() const
 {
     return mSettings.UserInterfaceLanguage;

@@ -261,10 +261,8 @@ void ExportToCsvDialog::CreateControls()
     pPresetNameTextCtrl->SetHint("Preset Name");
     pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
 
-    presetFlexGridSizer->Add(
-        presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
-    presetFlexGridSizer->Add(
-        pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
+    presetFlexGridSizer->Add(presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
+    presetFlexGridSizer->Add(pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
     presetFlexGridSizer->Add(0, 0);
     presetFlexGridSizer->Add(pPresetSaveButton, wxSizerFlags().Right().Border(wxALL, FromDIP(2)));
 
@@ -274,8 +272,7 @@ void ExportToCsvDialog::CreateControls()
     pPresetApplyButton = new wxButton(presetsStaticBox, tksIDC_PRESET_APPLY_BUTTON, "Apply");
 
     presetFlexGridSizer->Add(presetsChoiceLabel, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
-    presetFlexGridSizer->Add(
-        pPresetsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
+    presetFlexGridSizer->Add(pPresetsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
     presetFlexGridSizer->Add(0, 0);
     presetFlexGridSizer->Add(pPresetApplyButton, wxSizerFlags().Right().Border(wxALL, FromDIP(2)));
 
@@ -759,14 +756,14 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     Common::Preset preset;
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
-    preset.Delimiter = mCsvOptions.Delimiter;
-    preset.TextQualifier = mCsvOptions.TextQualifier;
+    preset.Delimiter = std::string(1, mCsvOptions.Delimiter);
+    preset.TextQualifier = std::string(1, mCsvOptions.TextQualifier);
     preset.EmptyValuesHandler = static_cast<int>(mCsvOptions.EmptyValuesHandler);
     preset.NewLinesHandler = static_cast<int>(mCsvOptions.NewLinesHandler);
     preset.OriginalColumns = originalColumns;
     preset.Columns = columns;
 
-    // pCfg->SaveExportPreset(preset);
+    pCfg->SaveExportPreset(preset);
 }
 
 void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)

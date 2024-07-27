@@ -25,6 +25,7 @@
 #include <toml.hpp>
 #include <spdlog/spdlog.h>
 
+#include "../common/common.h"
 #include "../common/enums.h"
 
 namespace tks::Core
@@ -41,6 +42,8 @@ public:
 
     bool Save();
     bool RestoreDefaults();
+
+    bool SaveExportPreset(const Common::Preset& preset);
 
     std::string GetUserInterfaceLanguage() const;
     void SetUserInterfaceLanguage(const std::string& value);

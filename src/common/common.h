@@ -41,8 +41,8 @@ std::string GetLicense();
 
 struct Preset {
     std::string Name;
-    char Delimiter;
-    char TextQualifier;
+    std::string Delimiter;
+    std::string TextQualifier;
     int EmptyValuesHandler;
     int NewLinesHandler;
     bool ExcludeHeaders;

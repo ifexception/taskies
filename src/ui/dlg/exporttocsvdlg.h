@@ -37,7 +37,6 @@
 
 #include "../dataview/exportheaderslistmodel.h"
 
-#include "../../common/common.h"
 #include "../../utils/datestore.h"
 #include "../../utils/export/csvexporter.h"
 
