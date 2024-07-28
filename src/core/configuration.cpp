@@ -111,7 +111,8 @@ bool Configuration::Save()
             {
                 Sections::ExportSection,
                 toml::table {
-                    { "exportPath", mSettings.ExportPath }
+                    { "exportPath", mSettings.ExportPath },
+                    { "presetCount", mSettings.PresetCount }
                 }
             }
         }
@@ -158,7 +159,7 @@ bool Configuration::RestoreDefaults()
 
     // clang-format off
     const toml::value v(
-        toml::table{
+        toml::table {
             {
                 Sections::GeneralSection,
                 toml::table {
@@ -198,6 +199,10 @@ bool Configuration::RestoreDefaults()
                     { "exportPath", pEnv->GetExportPath().string() },
                     { "presetCount", 0 }
                 }
+            },
+            {
+                Sections::PresetsSection,
+                toml::array {}
             }
         }
     );
@@ -224,6 +229,18 @@ bool Configuration::RestoreDefaults()
 
 bool Configuration::SaveExportPreset(const Common::Preset& preset)
 {
+    auto configPath = pEnv->GetConfigurationPath();
+
+    toml::value root;
+    try {
+        root = toml::parse(configPath.string());
+    } catch (const toml::syntax_error& error) {
+        pLogger->error(
+            "Configuration::SaveExportPreset - A TOML syntax/parse error occurred when parsing configuration file {0}",
+            error.what());
+        return false;
+    }
+
     // clang-format off
     toml::value v(
         toml::table {
@@ -231,7 +248,7 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
         }
     );
 
-    auto& presets = v.at("presets");
+    auto& presets = root.at("presets");
     toml::value v1(
         toml::table {
             { "name", preset.Name },
