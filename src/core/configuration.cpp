@@ -561,10 +561,17 @@ void Configuration::GetPresetsConfig2(const toml::value& root)
                 static_cast<NewLines>(root.at(Sections::PresetsSection).at(i).at("newLines").as_integer());
             preset.ExcludeHeaders = root.at(Sections::PresetsSection).at(i).at("excludeHeaders").as_boolean();
 
-            //auto columnsSize
+            auto columnsSize = root.at(Sections::PresetsSection).at(i).at("columns").size();
+            for (size_t j = 0; j < columnsSize; j++) {
+                auto& column = root.at(Sections::PresetsSection).at(i).at("columns").at(j).as_string();
+                preset.Columns.push_back(column);
+            }
 
-            // preset.Columns = presetSections.at(i).columns;
-            // preset.OriginalColumns = presetSections.at(i).originalColumns;
+            auto originalColumnsSize = root.at(Sections::PresetsSection).at(i).at("originalColumns").size();
+            for (size_t j = 0; j < originalColumnsSize; j++) {
+                auto& column = root.at(Sections::PresetsSection).at(i).at("originalColumns").at(j).as_string();
+                preset.OriginalColumns.push_back(column);
+            }
 
             mSettings.PresetSettings.push_back(preset);
         }
