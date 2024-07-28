@@ -31,6 +31,10 @@ enum class BuildConfiguration { Undefined, Debug, Release };
 
 enum class NotificationType { Information = 1, Error };
 
+enum class EmptyValues : int { Blank = 1, Null };
+
+enum class NewLines : int { Preserve = 1, Merge };
+
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);

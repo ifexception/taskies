@@ -28,12 +28,11 @@
 
 #include <sqlite3.h>
 
+#include "../../common/enums.h"
+
 namespace tks::Utils
 {
 class SQLiteExportQueryBuilder;
-
-enum class EmptyValues : int { Blank = 1, Null };
-enum class NewLines : int { Preserve = 1, Merge };
 
 struct CsvExportOptions {
     char Delimiter;
