@@ -31,6 +31,7 @@
 #include <wx/statline.h>
 
 #include "../../common/common.h"
+#include "../../common/constants.h"
 #include "../../common/enums.h"
 
 #include "../../core/configuration.h"
@@ -741,6 +742,14 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
 
 void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 {
+    if (pCfg->GetPresetCount() == MAX_PRESET_COUNT) {
+        auto valMsg = "Maximum limit of 5 presets has been reached";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pPresetSaveButton);
+        return;
+    }
+
     if (pExportColumnListModel->GetHeadersToExport().empty()) {
         auto valMsg = "At least one column selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
