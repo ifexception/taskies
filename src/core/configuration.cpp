@@ -60,7 +60,7 @@ bool Configuration::Load()
         GetTasksConfig(root);
         GetTasksViewConfig(root);
         GetExportConfig(root);
-        GetPresetsConfig(root);
+        GetPresetsConfig2(root);
     } catch (const toml::syntax_error& error) {
         pLogger->error(
             "Configuration - A TOML syntax/parse error occurred when parsing configuration file {0}", error.what());
@@ -512,8 +512,8 @@ void Configuration::GetPresetsConfig(const toml::value& root)
             : name(toml::find_or<std::string>(v, "name", ""))
             , delimiter(toml::find_or<std::string>(v, "delimiter", ""))
             , textQualifier(toml::find_or<std::string>(v, "textQualifier", ""))
-            , emptyValues(toml::find_or<int>(v, "emptyValues",-1))
-            , newLines(toml::find_or<int>(v, "newLines",-1))
+            , emptyValues(toml::find_or<int>(v, "emptyValues", -1))
+            , newLines(toml::find_or<int>(v, "newLines", -1))
             , excludeHeaders(toml::find_or<bool>(v, "excludeHeaders", false))
             , columns(toml::find_or<std::vector<std::string>>(v, "columns", std::vector<std::string>{}))
             , originalColumns(toml::find_or<std::vector<std::string>>(v, "originalColumns", std::vector<std::string>{}))
@@ -538,6 +538,40 @@ void Configuration::GetPresetsConfig(const toml::value& root)
 
             mSettings.PresetSettings.push_back(preset);
         }
+    }
+}
+
+void Configuration::GetPresetsConfig2(const toml::value& root)
+{
+    try {
+        auto presetsSectionSize = root.at(Sections::PresetsSection).size();
+        for (size_t i = 0; i < presetsSectionSize; i++) {
+            if (root.at(Sections::PresetsSection).at(i).as_table().empty()) {
+                continue;
+            }
+
+            PresetSettings preset;
+
+            preset.Name = root.at(Sections::PresetsSection).at(i).at("name").as_string();
+            preset.Delimiter = root.at(Sections::PresetsSection).at(i).at("delimiter").as_string();
+            preset.TextQualifier = root.at(Sections::PresetsSection).at(i).at("textQualifier").as_string();
+            preset.EmptyValuesHandler =
+                static_cast<EmptyValues>(root.at(Sections::PresetsSection).at(i).at("emptyValues").as_integer());
+            preset.NewLinesHandler =
+                static_cast<NewLines>(root.at(Sections::PresetsSection).at(i).at("newLines").as_integer());
+            preset.ExcludeHeaders = root.at(Sections::PresetsSection).at(i).at("excludeHeaders").as_boolean();
+
+            //auto columnsSize
+
+            // preset.Columns = presetSections.at(i).columns;
+            // preset.OriginalColumns = presetSections.at(i).originalColumns;
+
+            mSettings.PresetSettings.push_back(preset);
+        }
+    } catch (const std::out_of_range& error) {
+        pLogger->error("Error - {0}", error.what());
+    } catch (const toml::type_error& error) {
+        pLogger->error("Error - {0}", error.what());
     }
 }
 } // namespace tks::Core
