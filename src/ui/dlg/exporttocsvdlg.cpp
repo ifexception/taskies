@@ -643,7 +643,7 @@ void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event
     pLogger->info("ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection - Selected empty value handler \"{0}\"",
         choice.ToStdString());
 
-    mCsvOptions.EmptyValuesHandler = static_cast<Utils::EmptyValues>(emptyValueData->GetValue());
+    mCsvOptions.EmptyValuesHandler = static_cast<EmptyValues>(emptyValueData->GetValue());
 }
 
 void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
@@ -741,7 +741,21 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
 
 void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 {
-    // if check if there are any selected columns
+    if (pExportColumnListModel->GetHeadersToExport().empty()) {
+        auto valMsg = "At least one column selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pPresetSaveButton);
+        return;
+    }
+
+    if (pPresetNameTextCtrl->GetValue().ToStdString().empty()) {
+        auto valMsg = "A preset name is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pPresetNameTextCtrl);
+        return;
+    }
 
     auto columnsSelected = pExportColumnListModel->GetHeadersToExport();
     std::vector<std::string> columns = {};
@@ -758,12 +772,13 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
     preset.Delimiter = std::string(1, mCsvOptions.Delimiter);
     preset.TextQualifier = std::string(1, mCsvOptions.TextQualifier);
-    preset.EmptyValuesHandler = static_cast<int>(mCsvOptions.EmptyValuesHandler);
-    preset.NewLinesHandler = static_cast<int>(mCsvOptions.NewLinesHandler);
+    preset.EmptyValuesHandler = mCsvOptions.EmptyValuesHandler;
+    preset.NewLinesHandler = mCsvOptions.NewLinesHandler;
     preset.OriginalColumns = originalColumns;
     preset.Columns = columns;
 
     pCfg->SaveExportPreset(preset);
+    pCfg->SetPresetCount(pCfg->GetPresetCount() + 1);
 }
 
 void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
