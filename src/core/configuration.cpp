@@ -30,6 +30,7 @@ const std::string Configuration::Sections::DatabaseSection = "database";
 const std::string Configuration::Sections::TaskSection = "tasks";
 const std::string Configuration::Sections::TasksViewSection = "tasksView";
 const std::string Configuration::Sections::ExportSection = "export";
+const std::string Configuration::Sections::PresetsSection = "presets";
 
 Configuration::Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger)
     : pEnv(env)
@@ -52,13 +53,14 @@ bool Configuration::Load()
     pLogger->info("Configuration - Successfully located configuration file at path {0}", configPath.string());
 
     try {
-        auto data = toml::parse(configPath.string());
+        auto root = toml::parse(configPath.string());
 
-        GetGeneralConfig(data);
-        GetDatabaseConfig(data);
-        GetTasksConfig(data);
-        GetTasksViewConfig(data);
-        GetExportConfig(data);
+        GetGeneralConfig(root);
+        GetDatabaseConfig(root);
+        GetTasksConfig(root);
+        GetTasksViewConfig(root);
+        GetExportConfig(root);
+        GetPresetsConfig(root);
     } catch (const toml::syntax_error& error) {
         pLogger->error(
             "Configuration - A TOML syntax/parse error occurred when parsing configuration file {0}", error.what());
@@ -193,7 +195,8 @@ bool Configuration::RestoreDefaults()
             {
                 Sections::ExportSection,
                 toml::table {
-                    { "exportPath", pEnv->GetExportPath().string() }
+                    { "exportPath", pEnv->GetExportPath().string() },
+                    { "presetCount", 0 }
                 }
             }
         }
@@ -230,20 +233,26 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
 
     auto& presets = v.at("presets");
     toml::value v1(
-        toml::table{
+        toml::table {
             { "name", preset.Name },
             { "delimiter", preset.Delimiter },
             { "textQualifier", preset.TextQualifier },
-            { "emptyValues", preset.EmptyValuesHandler },
-            { "newLines", preset.NewLinesHandler },
+            { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
+            { "newLines", static_cast<int>(preset.NewLinesHandler) },
             { "excludeHeaders", preset.ExcludeHeaders },
-            { "columns", toml::array {} }
+            { "columns", toml::array {} },
+            { "originalColumns", toml::array {} }
         }
     );
 
     auto& columns = v1.at("columns");
     for (const auto& column : preset.Columns) {
         columns.push_back(column);
+    }
+
+    auto& originalColumns = v1.at("originalColumns");
+    for (const auto& originalColumn : preset.OriginalColumns) {
+        originalColumns.push_back(originalColumn);
     }
 
     presets.push_back(std::move(v1));
@@ -410,9 +419,19 @@ void Configuration::SetExportPath(const std::string& value)
     mSettings.ExportPath = value;
 }
 
-void Configuration::GetGeneralConfig(const toml::value& config)
+int Configuration::GetPresetCount() const
 {
-    const auto& generalSection = toml::find(config, Sections::GeneralSection);
+    return mSettings.PresetCount;
+}
+
+void Configuration::SetPresetCount(const int value)
+{
+    mSettings.PresetCount = value;
+}
+
+void Configuration::GetGeneralConfig(const toml::value& root)
+{
+    const auto& generalSection = toml::find(root, Sections::GeneralSection);
 
     mSettings.UserInterfaceLanguage = toml::find<std::string>(generalSection, "lang");
     mSettings.StartOnBoot = toml::find<bool>(generalSection, "startOnBoot");
@@ -423,9 +442,9 @@ void Configuration::GetGeneralConfig(const toml::value& config)
     mSettings.CloseToTray = toml::find<bool>(generalSection, "closeToTray");
 }
 
-void Configuration::GetDatabaseConfig(const toml::value& config)
+void Configuration::GetDatabaseConfig(const toml::value& root)
 {
-    const auto& databaseSection = toml::find(config, Sections::DatabaseSection);
+    const auto& databaseSection = toml::find(root, Sections::DatabaseSection);
 
     mSettings.DatabasePath = toml::find<std::string>(databaseSection, "databasePath");
     mSettings.BackupDatabase = toml::find<bool>(databaseSection, "backupDatabase");
@@ -433,25 +452,71 @@ void Configuration::GetDatabaseConfig(const toml::value& config)
     mSettings.BackupRetentionPeriod = toml::find<int>(databaseSection, "backupRetentionPeriod");
 }
 
-void Configuration::GetTasksConfig(const toml::value& config)
+void Configuration::GetTasksConfig(const toml::value& root)
 {
-    const auto& taskSection = toml::find(config, Sections::TaskSection);
+    const auto& taskSection = toml::find(root, Sections::TaskSection);
 
     mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
     mSettings.ShowProjectAssociatedCategories = toml::find<bool>(taskSection, "showProjectAssociatedCategories");
 }
 
-void Configuration::GetTasksViewConfig(const toml::value& config)
+void Configuration::GetTasksViewConfig(const toml::value& root)
 {
-    const auto& tasksViewSection = toml::find(config, Sections::TasksViewSection);
+    const auto& tasksViewSection = toml::find(root, Sections::TasksViewSection);
 
     mSettings.TodayAlwaysExpanded = toml::find<bool>(tasksViewSection, "todayAlwaysExpanded");
 }
 
-void Configuration::GetExportConfig(const toml::value& config)
+void Configuration::GetExportConfig(const toml::value& root)
 {
-    const auto& exportSection = toml::find(config, Sections::ExportSection);
+    const auto& exportSection = toml::find(root, Sections::ExportSection);
 
     mSettings.ExportPath = toml::find<std::string>(exportSection, "exportPath");
+    mSettings.PresetCount = toml::find<int>(exportSection, "presetCount");
+}
+
+void Configuration::GetPresetsConfig(const toml::value& root)
+{
+    struct preset_t {
+        std::string name;
+        std::string delimiter;
+        std::string textQualifier;
+        int emptyValues;
+        int newLines;
+        bool excludeHeaders;
+        std::vector<std::string> columns;
+        std::vector<std::string> originalColumns;
+
+        preset_t(const toml::value& v)
+            : name(toml::find<std::string>(v, "name"))
+            , delimiter(toml::find<std::string>(v, "delimiter"))
+            , textQualifier(toml::find<std::string>(v, "textQualifier"))
+            , emptyValues(toml::find<int>(v, "emptyValues"))
+            , newLines(toml::find<int>(v, "newLines"))
+            , excludeHeaders(toml::find<bool>(v, "excludeHeaders"))
+            , columns(toml::find<std::vector<std::string>>(v, "columns"))
+            , originalColumns(toml::find<std::vector<std::string>>(v, "originalColumns"))
+        {
+        }
+    };
+
+    const auto& presetSections = toml::find<std::vector<preset_t>>(root, Sections::PresetsSection);
+
+    if (!presetSections.empty()) {
+        for (auto i = 0; i < presetSections.size(); i++) {
+            PresetSettings preset;
+
+            preset.Name = presetSections.at(i).name;
+            preset.Delimiter = presetSections.at(i).delimiter;
+            preset.TextQualifier = presetSections.at(i).textQualifier;
+            preset.EmptyValuesHandler = static_cast<EmptyValues>(presetSections.at(i).emptyValues);
+            preset.NewLinesHandler = static_cast<NewLines>(presetSections.at(i).newLines);
+            preset.ExcludeHeaders = presetSections.at(i).excludeHeaders;
+            preset.Columns = presetSections.at(i).columns;
+            preset.OriginalColumns = presetSections.at(i).originalColumns;
+
+            mSettings.PresetSettings.push_back(preset);
+        }
+    }
 }
 } // namespace tks::Core

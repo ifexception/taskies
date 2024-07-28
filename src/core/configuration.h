@@ -87,12 +87,16 @@ public:
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
 
+    int GetPresetCount() const;
+    void SetPresetCount(const int value);
+
 private:
-    void GetGeneralConfig(const toml::value& config);
-    void GetDatabaseConfig(const toml::value& config);
-    void GetTasksConfig(const toml::value& config);
-    void GetTasksViewConfig(const toml::value& config);
-    void GetExportConfig(const toml::value& config);
+    void GetGeneralConfig(const toml::value& root);
+    void GetDatabaseConfig(const toml::value& root);
+    void GetTasksConfig(const toml::value& root);
+    void GetTasksViewConfig(const toml::value& root);
+    void GetExportConfig(const toml::value& root);
+    void GetPresetsConfig(const toml::value& root);
 
     struct Sections {
         static const std::string GeneralSection;
@@ -100,6 +104,18 @@ private:
         static const std::string TaskSection;
         static const std::string TasksViewSection;
         static const std::string ExportSection;
+        static const std::string PresetsSection;
+    };
+
+    struct PresetSettings {
+        std::string Name;
+        std::string Delimiter;
+        std::string TextQualifier;
+        EmptyValues EmptyValuesHandler;
+        NewLines NewLinesHandler;
+        bool ExcludeHeaders;
+        std::vector<std::string> Columns;
+        std::vector<std::string> OriginalColumns;
     };
 
     struct Settings {
@@ -121,6 +137,9 @@ private:
         bool TodayAlwaysExpanded;
 
         std::string ExportPath;
+        int PresetCount;
+
+        std::vector<PresetSettings> PresetSettings;
     };
 
     Settings mSettings;
