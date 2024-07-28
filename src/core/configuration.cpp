@@ -229,11 +229,11 @@ bool Configuration::RestoreDefaults()
 
 bool Configuration::SaveExportPreset(const Common::Preset& preset)
 {
-    auto configPath = pEnv->GetConfigurationPath();
+    auto configPath = pEnv->GetConfigurationPath().string();
 
     toml::value root;
     try {
-        root = toml::parse(configPath.string());
+        root = toml::parse(configPath);
     } catch (const toml::syntax_error& error) {
         pLogger->error(
             "Configuration::SaveExportPreset - A TOML syntax/parse error occurred when parsing configuration file {0}",
@@ -242,14 +242,14 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
     }
 
     // clang-format off
-    toml::value v(
+    /*toml::value v(
         toml::table {
             {"presets", toml::array {} }
         }
-    );
+    );*/
 
-    auto& presets = root.at("presets");
-    toml::value v1(
+    auto& presets = root.at(Sections::PresetsSection);
+    toml::value presetValue(
         toml::table {
             { "name", preset.Name },
             { "delimiter", preset.Delimiter },
@@ -261,37 +261,36 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
             { "originalColumns", toml::array {} }
         }
     );
+    // clang-format on
 
-    auto& columns = v1.at("columns");
+    auto& columns = presetValue.at("columns");
     for (const auto& column : preset.Columns) {
         columns.push_back(column);
     }
 
-    auto& originalColumns = v1.at("originalColumns");
+    auto& originalColumns = presetValue.at("originalColumns");
     for (const auto& originalColumn : preset.OriginalColumns) {
         originalColumns.push_back(originalColumn);
     }
 
-    presets.push_back(std::move(v1));
-    // clang-format on
+    presets.push_back(std::move(presetValue));
 
-    pLogger->info("Configuration::SaveExportPreset - Preset serialized to:\n{0}", toml::format(v));
+    pLogger->info("Configuration::SaveExportPreset - Preset serialized to:\n{0}", toml::format(root));
 
-    const std::string presetConfigString = toml::format(v);
-    const std::string configFilePath = pEnv->GetConfigurationPath().string();
+    const std::string presetConfigString = toml::format(root);
 
-    pLogger->info("Configuration - Probing for configuration file for appending preset at path {0}", configFilePath);
+    pLogger->info("Configuration - Probing for configuration file for appending preset at path {0}", configPath);
 
-    std::ofstream configFile;
-    configFile.open(configFilePath, std::ios_base::app);
-    if (!configFile) {
-        pLogger->error("Configuration - Failed to open configuration file at path {0}", configFilePath);
+    std::ofstream configFileStream;
+    configFileStream.open(configPath, std::ios_base::out);
+    if (!configFileStream) {
+        pLogger->error("Configuration - Failed to open configuration file at path {0}", configPath);
         return false;
     }
 
-    configFile << presetConfigString;
+    configFileStream << presetConfigString;
 
-    configFile.close();
+    configFileStream.close();
 
     return true;
 }
@@ -494,7 +493,8 @@ void Configuration::GetExportConfig(const toml::value& root)
 
 void Configuration::GetPresetsConfig(const toml::value& root)
 {
-    if (root.at(Sections::PresetsSection).at(0).as_table().empty()) {
+    auto presetsSectionSize = root.at(Sections::PresetsSection).size();
+    if (root.at(Sections::PresetsSection).at(0).as_table().empty() && presetsSectionSize == 1) {
         return;
     }
 
@@ -509,14 +509,14 @@ void Configuration::GetPresetsConfig(const toml::value& root)
         std::vector<std::string> originalColumns;
 
         preset_t(const toml::value& v)
-            : name(toml::find<std::string>(v, "name"))
-            , delimiter(toml::find<std::string>(v, "delimiter"))
-            , textQualifier(toml::find<std::string>(v, "textQualifier"))
-            , emptyValues(toml::find<int>(v, "emptyValues"))
-            , newLines(toml::find<int>(v, "newLines"))
-            , excludeHeaders(toml::find<bool>(v, "excludeHeaders"))
-            , columns(toml::find<std::vector<std::string>>(v, "columns"))
-            , originalColumns(toml::find<std::vector<std::string>>(v, "originalColumns"))
+            : name(toml::find_or<std::string>(v, "name", ""))
+            , delimiter(toml::find_or<std::string>(v, "delimiter", ""))
+            , textQualifier(toml::find_or<std::string>(v, "textQualifier", ""))
+            , emptyValues(toml::find_or<int>(v, "emptyValues",-1))
+            , newLines(toml::find_or<int>(v, "newLines",-1))
+            , excludeHeaders(toml::find_or<bool>(v, "excludeHeaders", false))
+            , columns(toml::find_or<std::vector<std::string>>(v, "columns", std::vector<std::string>{}))
+            , originalColumns(toml::find_or<std::vector<std::string>>(v, "originalColumns", std::vector<std::string>{}))
         {
         }
     };
@@ -524,7 +524,7 @@ void Configuration::GetPresetsConfig(const toml::value& root)
     const auto& presetSections = toml::find<std::vector<preset_t>>(root, Sections::PresetsSection);
 
     if (!presetSections.empty()) {
-        for (auto i = 0; i < presetSections.size(); i++) {
+        for (auto i = 1; i < presetSections.size(); i++) {
             PresetSettings preset;
 
             preset.Name = presetSections.at(i).name;
