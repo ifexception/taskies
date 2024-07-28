@@ -22,3 +22,5 @@ todayAlwaysExpanded=false
 [export]
 exportPath=""
 presetCount=0
+
+[[presets]]

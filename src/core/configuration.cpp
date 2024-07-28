@@ -477,6 +477,10 @@ void Configuration::GetExportConfig(const toml::value& root)
 
 void Configuration::GetPresetsConfig(const toml::value& root)
 {
+    if (root.at(Sections::PresetsSection).at(0).as_table().empty()) {
+        return;
+    }
+
     struct preset_t {
         std::string name;
         std::string delimiter;
