@@ -23,6 +23,8 @@
 #include <string>
 #include <utility>
 
+#include "enums.h"
+
 namespace tks::Common
 {
 std::string GetProgramName();
@@ -43,8 +45,8 @@ struct Preset {
     std::string Name;
     std::string Delimiter;
     std::string TextQualifier;
-    int EmptyValuesHandler;
-    int NewLinesHandler;
+    EmptyValues EmptyValuesHandler;
+    NewLines NewLinesHandler;
     bool ExcludeHeaders;
     std::vector<std::string> Columns;
     std::vector<std::string> OriginalColumns;
