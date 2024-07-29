@@ -89,6 +89,7 @@ private:
     void OnToDateSelection(wxDateEvent& event);
 
     void OnSavePreset(wxCommandEvent& event);
+    void OnApplyPreset(wxCommandEvent& event);
 
     void OnAvailableHeaderItemCheck(wxListEvent& event);
     void OnAvailableHeaderItemUncheck(wxListEvent& event);

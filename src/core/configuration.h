@@ -35,6 +35,8 @@ class Environment;
 class Configuration
 {
 public:
+    struct PresetSettings;
+
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
     ~Configuration() = default;
 
@@ -89,6 +91,8 @@ public:
 
     int GetPresetCount() const;
     void SetPresetCount(const int value);
+
+    std::vector<PresetSettings> GetPresets() const;
 
 private:
     void GetGeneralConfig(const toml::value& root);

@@ -413,6 +413,12 @@ void ExportToCsvDialog::CreateControls()
 
 void ExportToCsvDialog::FillControls()
 {
+    /* Export File Controls */
+    auto saveToFile =
+        fmt::format("{0}\\taskies-tasks-export-{1}.csv", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
+    pSaveToFileTextCtrl->ChangeValue(saveToFile);
+    pSaveToFileTextCtrl->SetToolTip(saveToFile);
+
     pDelimiterChoiceCtrl->Append("(default)", new ClientData<int>(-1));
     pDelimiterChoiceCtrl->SetSelection(0);
 
@@ -445,12 +451,6 @@ void ExportToCsvDialog::FillControls()
         pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i));
     }
 
-    /* Export File Controls */
-    auto saveToFile =
-        fmt::format("{0}\\taskies-tasks-export-{1}.csv", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
-    pSaveToFileTextCtrl->ChangeValue(saveToFile);
-    pSaveToFileTextCtrl->SetToolTip(saveToFile);
-
     /* Date Controls */
     SetFromAndToDatePickerRanges();
 
@@ -460,6 +460,10 @@ void ExportToCsvDialog::FillControls()
     /* Presets controls */
     pPresetsChoiceCtrl->Append("(none)", new ClientData<int>(-1));
     pPresetsChoiceCtrl->SetSelection(0);
+
+    for (const auto& preset : pCfg->GetPresets()) {
+        pPresetsChoiceCtrl->Append(preset.Name, new ClientData<int>(-1));
+    }
 
     /* Available Columns */
     for (auto& column : AvailableColumns()) {
@@ -526,6 +530,13 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnSavePreset,
         this,
         tksIDC_PRESET_SAVE_BUTTON
+    );
+
+    pPresetApplyButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnApplyPreset,
+        this,
+        tksIDC_PRESET_APPLY_BUTTON
     );
 
     pAvailableColumnsListView->Bind(
@@ -650,9 +661,14 @@ void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event
 void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
+    int newLinesIndex = pNewLinesHandlerChoiceCtrl->GetSelection();
+    ClientData<int>* newLinesData =
+        reinterpret_cast<ClientData<int>*>(pNewLinesHandlerChoiceCtrl->GetClientObject(newLinesIndex));
 
     pLogger->info("ExportToCsvDialog::OnNewLinesHandlerChoiceSelection - Selected new lines handler \"{0}\"",
         choice.ToStdString());
+
+    mCsvOptions.NewLinesHandler = static_cast<NewLines>(newLinesData->GetValue());
 }
 
 void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
@@ -789,6 +805,8 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     pCfg->SaveExportPreset(preset);
     pCfg->SetPresetCount(pCfg->GetPresetCount() + 1);
 }
+
+void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& event) {}
 
 void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
 {
@@ -1011,8 +1029,8 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
                 jt.idColumn = availableColumn.IdColumn;
                 jt.joinType = Utils::JoinType::InnerJoin;
 
-                pLogger->info(
-                    "ExportToCsvDialog::OnShowPreview - Insert first level table to join on \"{0}\" with join \"{1}\"",
+                pLogger->info("ExportToCsvDialog::OnShowPreview - Insert first level table to join on \"{0}\" with "
+                              "join \"{1}\"",
                     availableColumn.TableName,
                     "INNER");
 
@@ -1031,8 +1049,8 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
                     jt.joinType = Utils::JoinType::InnerJoin;
                 }
 
-                pLogger->info(
-                    "ExportToCsvDialog::OnShowPreview - Insert second level table to join on \"{0}\" with join \"{1}\"",
+                pLogger->info("ExportToCsvDialog::OnShowPreview - Insert second level table to join on \"{0}\" "
+                              "with join \"{1}\"",
                     availableColumn.TableName,
                     jt.joinType == Utils::JoinType::InnerJoin ? "INNER" : "LEFT");
 

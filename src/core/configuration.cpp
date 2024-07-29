@@ -445,6 +445,11 @@ void Configuration::SetPresetCount(const int value)
     mSettings.PresetCount = value;
 }
 
+std::vector<Configuration::PresetSettings> Configuration::GetPresets() const
+{
+    return mSettings.PresetSettings;
+}
+
 void Configuration::GetGeneralConfig(const toml::value& root)
 {
     const auto& generalSection = toml::find(root, Sections::GeneralSection);
