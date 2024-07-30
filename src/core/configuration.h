@@ -35,7 +35,16 @@ class Environment;
 class Configuration
 {
 public:
-    struct PresetSettings;
+    struct PresetSettings {
+        std::string Name;
+        std::string Delimiter;
+        std::string TextQualifier;
+        EmptyValues EmptyValuesHandler;
+        NewLines NewLinesHandler;
+        bool ExcludeHeaders;
+        std::vector<std::string> Columns;
+        std::vector<std::string> OriginalColumns;
+    };
 
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
     ~Configuration() = default;
@@ -110,17 +119,6 @@ private:
         static const std::string TasksViewSection;
         static const std::string ExportSection;
         static const std::string PresetsSection;
-    };
-
-    struct PresetSettings {
-        std::string Name;
-        std::string Delimiter;
-        std::string TextQualifier;
-        EmptyValues EmptyValuesHandler;
-        NewLines NewLinesHandler;
-        bool ExcludeHeaders;
-        std::vector<std::string> Columns;
-        std::vector<std::string> OriginalColumns;
     };
 
     struct Settings {
