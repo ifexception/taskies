@@ -35,6 +35,7 @@ PreferencesExportPage::PreferencesExportPage(wxWindow* parent,
     : wxPanel(parent, wxID_ANY)
     , pEnv(env)
     , pCfg(cfg)
+    , pLogger(logger)
     , pExportPathTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
 {
@@ -159,6 +160,27 @@ void PreferencesExportPage::ConfigureEventBindings()
         this,
         tksIDC_EXPORT_PATH_BUTTON
     );
+
+    pPresetsListView->Bind(
+        wxEVT_LIST_ITEM_CHECKED,
+        &PreferencesExportPage::OnPresetItemCheck,
+        this,
+        tksIDC_PRESETS_LIST_VIEW
+    );
+
+    pPresetsListView->Bind(
+        wxEVT_LIST_ITEM_UNCHECKED,
+        &PreferencesExportPage::OnPresetItemUncheck,
+        this,
+        tksIDC_PRESETS_LIST_VIEW
+    );
+
+    pRemovePresetButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesExportPage::OnRemovePreset,
+        this,
+        tksIDC_REMOVE_PRESET_BUTTON
+    );
 }
 // clang-format on
 
@@ -168,6 +190,10 @@ void PreferencesExportPage::DataToControls()
 {
     pExportPathTextCtrl->ChangeValue(pCfg->GetExportPath());
     pExportPathTextCtrl->SetToolTip(pCfg->GetExportPath());
+
+    for (const auto& presetSetting : pCfg->GetPresets()) {
+        pPresetsListView->InsertItem(0, presetSetting.Name);
+    }
 }
 
 void PreferencesExportPage::OnOpenDirectoryForExportLocation(wxCommandEvent& event)
@@ -190,5 +216,91 @@ void PreferencesExportPage::OnOpenDirectoryForExportLocation(wxCommandEvent& eve
     }
 
     openDirDialog->Destroy();
+}
+
+void PreferencesExportPage::OnPresetItemCheck(wxListEvent& event)
+{
+    long index = event.GetIndex();
+    mSelectedItemIndexes.push_back(index);
+
+    std::string name;
+
+    wxListItem item;
+    item.m_itemId = index;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pPresetsListView->GetItem(item);
+
+    name = item.GetText().ToStdString();
+
+    pLogger->info("PreferencesExportPage::OnPresetItemCheck - Selected preset name \"{0}\"", name);
+}
+
+void PreferencesExportPage::OnPresetItemUncheck(wxListEvent& event)
+{
+    long index = event.GetIndex();
+    mSelectedItemIndexes.erase(
+        std::remove(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), index), mSelectedItemIndexes.end());
+
+    std::string name;
+
+    wxListItem item;
+    item.m_itemId = index;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pPresetsListView->GetItem(item);
+
+    name = item.GetText().ToStdString();
+
+    pLogger->info("PreferencesExportPage::OnPresetItemUncheck - Unselected preset name \"{0}\"", name);
+}
+
+void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
+{
+    if (mSelectedItemIndexes.size() == 0) {
+        pLogger->info("PreferencesExportPage::OnRemovePreset - No items (presets) selected to remove");
+        return;
+    }
+
+    // Sort the item indexes by ascending order so the
+    // subsequent for loop correctly iterates over the entries in reverse
+    std::sort(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), std::less{});
+
+    int orderIndex = 0;
+    int columnIndex = 0;
+
+    auto presets = pCfg->GetPresets();
+
+    for (long i = (mSelectedItemIndexes.size() - 1); 0 <= i; i--) {
+        // Extract the preset name text from item index
+        std::string name;
+        wxListItem item;
+        item.m_itemId = mSelectedItemIndexes[i];
+        item.m_col = columnIndex;
+        item.m_mask = wxLIST_MASK_TEXT;
+        pPresetsListView->GetItem(item);
+
+        name = item.GetText().ToStdString();
+
+        /* Remove preset from preset list control */
+        pPresetsListView->DeleteItem(mSelectedItemIndexes[i]);
+
+        mSelectedItemIndexes.erase(mSelectedItemIndexes.begin() + i);
+
+        // clang-format off
+        presets.erase(
+            std::remove_if(
+                presets.begin(),
+                presets.end(),
+                [&](const Core::Configuration::PresetSettings& preset) {
+                    return preset.Name == name;
+                }
+            ),
+            presets.end()
+        );
+        // clang-format on
+
+        pLogger->info("PreferencesExportPage::OnRemovePreset - Preset \"{0}\" removed", name);
+    }
 }
 } // namespace tks::UI::dlg

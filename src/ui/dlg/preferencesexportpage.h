@@ -63,14 +63,20 @@ private:
     void DataToControls();
 
     void OnOpenDirectoryForExportLocation(wxCommandEvent& event);
+    void OnPresetItemCheck(wxListEvent& event);
+    void OnPresetItemUncheck(wxListEvent& event);
+    void OnRemovePreset(wxCommandEvent& event);
 
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
+    std::shared_ptr<spdlog::logger> pLogger;
 
     wxTextCtrl* pExportPathTextCtrl;
     wxButton* pBrowseExportPathButton;
     wxListView* pPresetsListView;
     wxBitmapButton* pRemovePresetButton;
+
+    std::vector<long> mSelectedItemIndexes;
 
     enum {
         tksIDC_EXPORT_PATH = wxID_HIGHEST + 100,
