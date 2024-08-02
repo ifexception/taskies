@@ -73,7 +73,7 @@ bool Configuration::Load()
 bool Configuration::Save()
 {
     // clang-format off
-    const toml::value v(
+    toml::value root(
         toml::table{
             {
                 Sections::GeneralSection,
@@ -114,12 +114,47 @@ bool Configuration::Save()
                     { "exportPath", mSettings.ExportPath },
                     { "presetCount", mSettings.PresetCount }
                 }
+            },
+            {
+                Sections::PresetsSection,
+                toml::array {}
             }
         }
     );
+
+    auto& presets = root.at(Sections::PresetsSection);
+    presets.as_array_fmt().fmt = toml::array_format::array_of_tables;
+
+    for (const auto& preset : mSettings.PresetSettings)
+    {
+        toml::value presetValue(
+            toml::table {
+                { "name", preset.Name },
+                { "delimiter", preset.Delimiter },
+                { "textQualifier", preset.TextQualifier },
+                { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
+                { "newLines", static_cast<int>(preset.NewLinesHandler) },
+                { "excludeHeaders", preset.ExcludeHeaders },
+                { "columns", toml::array {} },
+                { "originalColumns", toml::array {} }
+            }
+        );
+
+        auto& columns = presetValue.at("columns");
+        for (const auto& column : preset.Columns) {
+            columns.push_back(column);
+        }
+
+        auto& originalColumns = presetValue.at("originalColumns");
+        for (const auto& originalColumn : preset.OriginalColumns) {
+            originalColumns.push_back(originalColumn);
+        }
+
+        presets.push_back(std::move(presetValue));
+    }
     // clang-format on
 
-    const std::string configString = toml::format(v);
+    const std::string configString = toml::format(root);
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
@@ -158,7 +193,7 @@ bool Configuration::RestoreDefaults()
     SetExportPath(pEnv->GetExportPath().string());
 
     // clang-format off
-    const toml::value v(
+    toml::value root(
         toml::table {
             {
                 Sections::GeneralSection,
@@ -208,7 +243,10 @@ bool Configuration::RestoreDefaults()
     );
     // clang-format on
 
-    const std::string configString = toml::format(v);
+    auto& presets = root.at(Sections::PresetsSection);
+    presets.as_array_fmt().fmt = toml::array_format::array_of_tables;
+
+    const std::string configString = toml::format(root);
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
@@ -448,6 +486,16 @@ void Configuration::SetPresetCount(const int value)
 std::vector<Configuration::PresetSettings> Configuration::GetPresets() const
 {
     return mSettings.PresetSettings;
+}
+
+void Configuration::SetPresets(const std::vector<PresetSettings>& values)
+{
+    mSettings.PresetSettings = values;
+}
+
+void Configuration::ClearPresets()
+{
+    mSettings.PresetSettings.clear();
 }
 
 void Configuration::GetGeneralConfig(const toml::value& root)

@@ -30,11 +30,12 @@
 
 #include <spdlog/logger.h>
 
+#include "../../core/configuration.h"
+
 namespace tks
 {
 namespace Core
 {
-class Configuration;
 class Environment;
 } // namespace Core
 namespace UI::dlg
@@ -77,6 +78,7 @@ private:
     wxBitmapButton* pRemovePresetButton;
 
     std::vector<long> mSelectedItemIndexes;
+    std::vector<Core::Configuration::PresetSettings> mPresetSettings;
 
     enum {
         tksIDC_EXPORT_PATH = wxID_HIGHEST + 100,

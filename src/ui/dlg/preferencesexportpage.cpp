@@ -24,7 +24,6 @@
 #include <wx/richtooltip.h>
 
 #include "../../core/environment.h"
-#include "../../core/configuration.h"
 
 namespace tks::UI::dlg
 {
@@ -38,6 +37,8 @@ PreferencesExportPage::PreferencesExportPage(wxWindow* parent,
     , pLogger(logger)
     , pExportPathTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
+    , mSelectedItemIndexes()
+    , mPresetSettings()
 {
     CreateControls();
     ConfigureEventBindings();
@@ -62,11 +63,15 @@ bool PreferencesExportPage::IsValid()
 void PreferencesExportPage::Save()
 {
     pCfg->SetExportPath(pExportPathTextCtrl->GetValue().ToStdString());
+    pCfg->SetPresets(mPresetSettings);
 }
 
 void PreferencesExportPage::Reset()
 {
     pExportPathTextCtrl->ChangeValue(pCfg->GetExportPath());
+
+    pCfg->ClearPresets();
+    pPresetsListView->DeleteAllItems();
 }
 
 void PreferencesExportPage::CreateControls()
@@ -184,7 +189,10 @@ void PreferencesExportPage::ConfigureEventBindings()
 }
 // clang-format on
 
-void PreferencesExportPage::FillControls() {}
+void PreferencesExportPage::FillControls()
+{
+    mPresetSettings = pCfg->GetPresets();
+}
 
 void PreferencesExportPage::DataToControls()
 {
@@ -269,8 +277,6 @@ void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
     int orderIndex = 0;
     int columnIndex = 0;
 
-    auto presets = pCfg->GetPresets();
-
     for (long i = (mSelectedItemIndexes.size() - 1); 0 <= i; i--) {
         // Extract the preset name text from item index
         std::string name;
@@ -288,15 +294,15 @@ void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
         mSelectedItemIndexes.erase(mSelectedItemIndexes.begin() + i);
 
         // clang-format off
-        presets.erase(
+        mPresetSettings.erase(
             std::remove_if(
-                presets.begin(),
-                presets.end(),
+                mPresetSettings.begin(),
+                mPresetSettings.end(),
                 [&](const Core::Configuration::PresetSettings& preset) {
                     return preset.Name == name;
                 }
             ),
-            presets.end()
+            mPresetSettings.end()
         );
         // clang-format on
 

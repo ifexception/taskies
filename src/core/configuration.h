@@ -102,6 +102,8 @@ public:
     void SetPresetCount(const int value);
 
     std::vector<PresetSettings> GetPresets() const;
+    void SetPresets(const std::vector<PresetSettings>& values);
+    void ClearPresets();
 
 private:
     void GetGeneralConfig(const toml::value& root);
