@@ -185,7 +185,7 @@ void EditListDialog::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-//clang-format off
+// clang-format off
 void EditListDialog::ConfigureEventBindings()
 {
     pSearchTextCtrl->Bind(
@@ -229,7 +229,7 @@ void EditListDialog::ConfigureEventBindings()
         wxID_CANCEL
     );
 }
-//clang-format on
+// clang-format on
 
 void EditListDialog::DataToControls()
 {
