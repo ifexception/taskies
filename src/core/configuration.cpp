@@ -74,54 +74,66 @@ bool Configuration::Save()
 {
     // clang-format off
     toml::value root(
-        toml::table{
+        toml::table {
             {
                 Sections::GeneralSection,
-                toml::table {
-                    { "lang", mSettings.UserInterfaceLanguage },
-                    { "startOnBoot", mSettings.StartOnBoot },
-                    { "startPosition", static_cast<int>(mSettings.StartPosition) },
-                    { "showInTray", mSettings.ShowInTray },
-                    { "minimizeToTray", mSettings.MinimizeToTray },
-                    { "closeToTray", mSettings.CloseToTray },
-                }
+                toml::table { },
             },
             {
                 Sections::DatabaseSection,
-                toml::table {
-                    { "databasePath", mSettings.DatabasePath },
-                    { "backupDatabase", mSettings.BackupDatabase },
-                    { "backupPath", mSettings.BackupPath },
-                    { "backupRetentionPeriod", mSettings.BackupRetentionPeriod }
-                }
+                toml::table { }
             },
             {
                 Sections::TaskSection,
-                toml::table {
-                    { "minutesIncrement", mSettings.TaskMinutesIncrement },
-                    { "showProjectAssociatedCategories", mSettings.ShowProjectAssociatedCategories }
-                }
+                toml::table { }
             },
             {
                 Sections::TasksViewSection,
-                toml::table {
-                    { "todayAlwaysExpanded", mSettings.TodayAlwaysExpanded }
-                }
+                toml::table { }
             },
             {
                 Sections::ExportSection,
-                toml::table {
-                    { "exportPath", mSettings.ExportPath },
-                    { "presetCount", mSettings.PresetCount }
-                }
+                toml::table { }
             },
             {
                 Sections::PresetsSection,
-                toml::array {}
-            }
+                toml::array { }
+            },
         }
     );
 
+    // General section
+    root.at(Sections::GeneralSection).as_table_fmt().fmt = toml::table_format::multiline;
+    root.at(Sections::GeneralSection)["lang"] = mSettings.UserInterfaceLanguage;
+    root.at(Sections::GeneralSection)["startOnBoot"] = mSettings.StartOnBoot;
+    root.at(Sections::GeneralSection)["startPosition"] = static_cast<int>(mSettings.StartPosition);
+    root.at(Sections::GeneralSection)["showInTray"] = mSettings.ShowInTray;
+    root.at(Sections::GeneralSection)["minimizeToTray"] = mSettings.MinimizeToTray;
+    root.at(Sections::GeneralSection)["closeToTray"] = mSettings.CloseToTray;
+
+    // Database section
+    root.at(Sections::DatabaseSection).as_table_fmt().fmt = toml::table_format::multiline;
+    root.at(Sections::DatabaseSection)["databasePath"] = mSettings.DatabasePath;
+    root.at(Sections::DatabaseSection)["backupDatabase"] = mSettings.BackupDatabase;
+    root.at(Sections::DatabaseSection)["backupPath"] = mSettings.BackupPath;
+    root.at(Sections::DatabaseSection)["backupRetentionPeriod"] = mSettings.BackupRetentionPeriod;
+
+    // Task section
+    root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
+
+    root.at(Sections::TaskSection)["minutesIncrement"] = mSettings.TaskMinutesIncrement;
+    root.at(Sections::TaskSection)["showProjectAssociatedCategories"] = mSettings.ShowProjectAssociatedCategories;
+
+    // Tasks View section
+    root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
+    root.at(Sections::TasksViewSection)["todayAlwaysExpanded"] = mSettings.TodayAlwaysExpanded;
+
+    // Export section
+    root.at(Sections::ExportSection).as_table_fmt().fmt = toml::table_format::multiline;
+    root.at(Sections::ExportSection)["exportPath"] = mSettings.ExportPath;
+    root.at(Sections::ExportSection)["presetCount"] = mSettings.PresetCount;
+
+    // Presets section
     auto& presets = root.at(Sections::PresetsSection);
     presets.as_array_fmt().fmt = toml::array_format::array_of_tables;
 
