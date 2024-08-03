@@ -274,6 +274,7 @@ void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
     // subsequent for loop correctly iterates over the entries in reverse
     std::sort(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), std::less{});
 
+    int presetCount = pCfg->GetPresetCount();
     int orderIndex = 0;
     int columnIndex = 0;
 
@@ -306,7 +307,11 @@ void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
         );
         // clang-format on
 
+        presetCount--;
+
         pLogger->info("PreferencesExportPage::OnRemovePreset - Preset \"{0}\" removed", name);
     }
+
+    pCfg->SetPresetCount(presetCount);
 }
 } // namespace tks::UI::dlg
