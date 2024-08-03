@@ -71,6 +71,8 @@ void PreferencesExportPage::Reset()
     pExportPathTextCtrl->ChangeValue(pCfg->GetExportPath());
 
     pCfg->ClearPresets();
+    pCfg->SetPresetCount(0);
+
     pPresetsListView->DeleteAllItems();
 }
 
