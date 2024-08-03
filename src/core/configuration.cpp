@@ -101,6 +101,7 @@ bool Configuration::Save()
             },
         }
     );
+    // clang-format on
 
     // General section
     root.at(Sections::GeneralSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -137,8 +138,8 @@ bool Configuration::Save()
     auto& presets = root.at(Sections::PresetsSection);
     presets.as_array_fmt().fmt = toml::array_format::array_of_tables;
 
-    for (const auto& preset : mSettings.PresetSettings)
-    {
+    for (const auto& preset : mSettings.PresetSettings) {
+        // clang-format off
         toml::value presetValue(
             toml::table {
                 { "name", preset.Name },
@@ -151,6 +152,7 @@ bool Configuration::Save()
                 { "originalColumns", toml::array {} }
             }
         );
+        // clang-format on
 
         auto& columns = presetValue.at("columns");
         for (const auto& column : preset.Columns) {
@@ -164,7 +166,6 @@ bool Configuration::Save()
 
         presets.push_back(std::move(presetValue));
     }
-    // clang-format on
 
     const std::string configString = toml::format(root);
 
