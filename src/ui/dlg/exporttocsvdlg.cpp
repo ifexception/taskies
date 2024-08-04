@@ -804,6 +804,9 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     pCfg->SaveExportPreset(preset);
     pCfg->SetPresetCount(pCfg->GetPresetCount() + 1);
+
+    int selection = pPresetsChoiceCtrl->Append(preset.Name, new ClientData<int>(-1));
+    pPresetsChoiceCtrl->SetSelection(selection);
 }
 
 void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& event) {}
