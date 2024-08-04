@@ -143,6 +143,7 @@ bool Configuration::Save()
         toml::value presetValue(
             toml::table {
                 { "name", preset.Name },
+                { "isDefault", preset.IsDefault },
                 { "delimiter", preset.Delimiter },
                 { "textQualifier", preset.TextQualifier },
                 { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
@@ -303,6 +304,7 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
     toml::value presetValue(
         toml::table {
             { "name", preset.Name },
+            { "isDefault", preset.IsDefault },
             { "delimiter", preset.Delimiter },
             { "textQualifier", preset.TextQualifier },
             { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
@@ -619,6 +621,7 @@ void Configuration::GetPresetsConfig2(const toml::value& root)
             PresetSettings preset;
 
             preset.Name = root.at(Sections::PresetsSection).at(i).at("name").as_string();
+            preset.IsDefault = root.at(Sections::PresetsSection).at(i).at("isDefault").as_boolean();
             preset.Delimiter = root.at(Sections::PresetsSection).at(i).at("delimiter").as_string();
             preset.TextQualifier = root.at(Sections::PresetsSection).at(i).at("textQualifier").as_string();
             preset.EmptyValuesHandler =
@@ -644,6 +647,8 @@ void Configuration::GetPresetsConfig2(const toml::value& root)
     } catch (const std::out_of_range& error) {
         pLogger->error("Error - {0}", error.what());
     } catch (const toml::type_error& error) {
+        pLogger->error("Error - {0}", error.what());
+    } catch (const std::exception& error) {
         pLogger->error("Error - {0}", error.what());
     }
 }

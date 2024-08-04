@@ -103,6 +103,11 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pBrowseExportPathButton(nullptr)
     , pFromDateCtrl(nullptr)
     , pToDateCtrl(nullptr)
+    , pPresetNameTextCtrl(nullptr)
+    , pPresetIsDefaultCtrl(nullptr)
+    , pPresetsChoiceCtrl(nullptr)
+    , pPresetSaveButton(nullptr)
+    , pPresetApplyButton(nullptr)
     , pAvailableColumnsListView(nullptr)
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
@@ -260,10 +265,15 @@ void ExportToCsvDialog::CreateControls()
     auto presetNameLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Name");
     pPresetNameTextCtrl = new wxTextCtrl(presetsStaticBox, tksIDC_PRESET_NAME_TEXT_CTRL, "");
     pPresetNameTextCtrl->SetHint("Preset Name");
+    pPresetIsDefaultCtrl = new wxCheckBox(presetsStaticBox, tksIDC_PRESET_IS_DEFAULT_CTRL, "Is Default");
+    pPresetIsDefaultCtrl->SetToolTip(
+        "If selected, this preset will be selected and applied when the dialog gets launched");
     pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
 
     presetFlexGridSizer->Add(presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
     presetFlexGridSizer->Add(pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
+    presetFlexGridSizer->Add(0, 0);
+    presetFlexGridSizer->Add(pPresetIsDefaultCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)));
     presetFlexGridSizer->Add(0, 0);
     presetFlexGridSizer->Add(pPresetSaveButton, wxSizerFlags().Right().Border(wxALL, FromDIP(2)));
 
@@ -795,6 +805,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     Common::Preset preset;
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
+    preset.IsDefault = pPresetIsDefaultCtrl->GetValue();
     preset.Delimiter = std::string(1, mCsvOptions.Delimiter);
     preset.TextQualifier = std::string(1, mCsvOptions.TextQualifier);
     preset.EmptyValuesHandler = mCsvOptions.EmptyValuesHandler;
@@ -807,6 +818,9 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     int selection = pPresetsChoiceCtrl->Append(preset.Name, new ClientData<int>(-1));
     pPresetsChoiceCtrl->SetSelection(selection);
+
+    pPresetNameTextCtrl->ChangeValue("");
+    pPresetIsDefaultCtrl->SetValue(false);
 }
 
 void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& event) {}

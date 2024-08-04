@@ -43,6 +43,7 @@ std::string GetLicense();
 
 struct Preset {
     std::string Name;
+    bool IsDefault;
     std::string Delimiter;
     std::string TextQualifier;
     EmptyValues EmptyValuesHandler;

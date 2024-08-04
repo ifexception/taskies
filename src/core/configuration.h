@@ -37,6 +37,7 @@ class Configuration
 public:
     struct PresetSettings {
         std::string Name;
+        bool IsDefault;
         std::string Delimiter;
         std::string TextQualifier;
         EmptyValues EmptyValuesHandler;

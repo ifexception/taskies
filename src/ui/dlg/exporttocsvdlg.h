@@ -134,6 +134,7 @@ private:
     wxDateTime mToLatestPossibleDate;
 
     wxTextCtrl* pPresetNameTextCtrl;
+    wxCheckBox* pPresetIsDefaultCtrl;
     wxButton* pPresetSaveButton;
 
     wxChoice* pPresetsChoiceCtrl;
@@ -179,6 +180,7 @@ private:
         tksIDC_DATE_TO_CTRL,
         tksIDC_PRESET_NAME_TEXT_CTRL,
         tksIDC_PRESET_SAVE_BUTTON,
+        tksIDC_PRESET_IS_DEFAULT_CTRL,
         tksIDC_PRESET_CHOICE_CTRL,
         tksIDC_PRESET_APPLY_BUTTON,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
