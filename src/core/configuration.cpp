@@ -138,6 +138,15 @@ bool Configuration::Save()
     auto& presets = root.at(Sections::PresetsSection);
     presets.as_array_fmt().fmt = toml::array_format::array_of_tables;
 
+    if (mSettings.PresetSettings.empty() && presets.as_array().size() != 1) {
+        // clang-format off
+        toml::value v(
+            toml::table {}
+        );
+        presets.push_back(std::move(v));
+        // clang-format on
+    }
+
     for (const auto& preset : mSettings.PresetSettings) {
         // clang-format off
         toml::value presetValue(
@@ -251,7 +260,7 @@ bool Configuration::RestoreDefaults()
             },
             {
                 Sections::PresetsSection,
-                toml::array {}
+                toml::array { toml::table {} }
             }
         }
     );
