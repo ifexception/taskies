@@ -43,6 +43,8 @@ struct CsvExportOptions {
 
     CsvExportOptions();
     ~CsvExportOptions() = default;
+
+    void Reset();
 };
 
 enum class JoinType { InnerJoin = 1, LeftJoin = 2 };

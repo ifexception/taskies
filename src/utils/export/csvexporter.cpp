@@ -36,6 +36,15 @@ CsvExportOptions::CsvExportOptions()
 {
 }
 
+void CsvExportOptions::Reset()
+{
+    Delimiter = ',';
+    TextQualifier = '"';
+    EmptyValuesHandler = EmptyValues::Blank;
+    NewLinesHandler = NewLines::Merge;
+    ExcludeHeaders = false;
+}
+
 CsvExportProcessor::CsvExportProcessor(CsvExportOptions options)
     : mOptions(options)
 {

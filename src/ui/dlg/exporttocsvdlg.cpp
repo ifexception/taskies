@@ -783,6 +783,31 @@ void ExportToCsvDialog::OnCreateNewPreset(wxCommandEvent& event)
 {
     const std::string TAG = "ExportToCsvDialog::OnCreateNewPreset";
     pLogger->info("{0} - Begin reset of controls to create new preset", TAG);
+
+    mCsvOptions.Reset();
+
+    pDelimiterChoiceCtrl->SetSelection(0);
+    pTextQualifierChoiceCtrl->SetSelection(0);
+    pEmptyValueHandlerChoiceCtrl->SetSelection(0);
+    pNewLinesHandlerChoiceCtrl->SetSelection(0);
+
+    pPresetIsDefaultCtrl->SetValue(false);
+    pPresetsChoiceCtrl->SetSelection(0);
+    pPresetNameTextCtrl->ChangeValue("");
+
+    //auto headersToRemove = pExportColumnListModel->GetSelectedHeaders();
+    auto headersToRemove = pExportColumnListModel->GetHeadersToExport();
+    wxDataViewItemArray items;
+    auto selections = pDataViewCtrl->GetSelections(items);
+    if (selections > 0) {
+        pExportColumnListModel->DeleteItems(items);
+
+        for (const auto& header : headersToRemove) {
+            pAvailableColumnsListView->InsertItem(0, header.Header);
+        }
+    }
+
+    pExcludeHeadersCheckBoxCtrl->SetValue(false);
 }
 
 void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
@@ -838,11 +863,11 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     int selection = pPresetsChoiceCtrl->Append(preset.Name, new ClientData<int>(-1));
     pPresetsChoiceCtrl->SetSelection(selection);
 
-    pPresetNameTextCtrl->ChangeValue("");
     pPresetIsDefaultCtrl->SetValue(false);
 }
 
-void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& event) {}
+void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& event)
+{}
 
 void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
 {
