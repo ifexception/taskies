@@ -881,7 +881,62 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     pPresetIsDefaultCtrl->SetValue(false);
 }
 
-void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& event) {}
+void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
+{
+    const std::string TAG = "ExportToCsvDialog::OnApplyPreset";
+    pLogger->info("{0} - Begin to apply selected preset", TAG);
+
+    // get preset name
+    int n = pPresetsChoiceCtrl->GetSelection();
+    auto selectedPresetToApplyName = pPresetsChoiceCtrl->GetString(n).ToStdString();
+    pLogger->info("{0} - Applying selected preset \"{1}\"", TAG, selectedPresetToApplyName);
+
+    auto presets = pCfg->GetPresets();
+    const auto& selectedPresetToApplyIterator = std::find_if(presets.begin(),
+        presets.end(),
+        [&](const Core::Configuration::PresetSettings& preset) { return preset.Name == selectedPresetToApplyName; });
+
+    if (selectedPresetToApplyIterator == presets.end()) {
+        pLogger->warn("{0} - Could not find preset \"{1}\" in config", TAG, selectedPresetToApplyName);
+        return;
+    }
+
+    auto& selectedPresetToApply = *selectedPresetToApplyIterator;
+
+    // apply options
+    pDelimiterChoiceCtrl->SetStringSelection(selectedPresetToApply.Delimiter);
+    pTextQualifierChoiceCtrl->SetStringSelection(selectedPresetToApply.TextQualifier);
+    pEmptyValueHandlerChoiceCtrl->SetSelection(static_cast<int>(selectedPresetToApply.EmptyValuesHandler));
+    pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(selectedPresetToApply.NewLinesHandler));
+
+    pPresetNameTextCtrl->ChangeValue(selectedPresetToApply.Name);
+    pPresetIsDefaultCtrl->SetValue(selectedPresetToApply.IsDefault);
+
+    for (long i = (pAvailableColumnsListView->GetItemCount() - 1); 0 <= i; i--) {
+        std::string name;
+        wxListItem item;
+        item.m_itemId = i;
+        item.m_col = 0;
+        item.m_mask = wxLIST_MASK_TEXT;
+        pAvailableColumnsListView->GetItem(item);
+
+        name = item.GetText().ToStdString();
+
+        auto presetOriginalColumnIterator = std::find_if(selectedPresetToApply.OriginalColumns.begin(),
+            selectedPresetToApply.OriginalColumns.end(),
+            [=](const std::string& originalColumnName) { return name == originalColumnName; });
+
+        if (presetOriginalColumnIterator == selectedPresetToApply.OriginalColumns.end()) {
+            continue;
+        }
+
+        /* Add export header in data view control and update */
+        pExportColumnListModel->Append(name, i);
+
+        /* Remove header from available header list control */
+        pAvailableColumnsListView->DeleteItem(i);
+    }
+}
 
 void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
 {
@@ -961,6 +1016,7 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
 
 void ExportToCsvDialog::OnRemoveExportHeaderToAvailableHeaderList(wxCommandEvent& WXUNUSED(event))
 {
+    // FIXME: This returns the header ONLY which could have been modified by the user by this time
     auto headersToRemove = pExportColumnListModel->GetSelectedHeaders();
     wxDataViewItemArray items;
     auto selections = pDataViewCtrl->GetSelections(items);
