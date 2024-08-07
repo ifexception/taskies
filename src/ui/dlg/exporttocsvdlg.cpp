@@ -103,7 +103,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pBrowseExportPathButton(nullptr)
     , pFromDateCtrl(nullptr)
     , pToDateCtrl(nullptr)
-    , pCreateNewPresetButton(nullptr)
+    , pResetPresetButton(nullptr)
     , pPresetNameTextCtrl(nullptr)
     , pPresetIsDefaultCtrl(nullptr)
     , pPresetsChoiceCtrl(nullptr)
@@ -263,8 +263,8 @@ void ExportToCsvDialog::CreateControls()
 
     presetFlexGridSizer->AddGrowableCol(1, 1);
 
-    pCreateNewPresetButton = new wxButton(presetsStaticBox, tksIDC_CREATE_NEW_PRESET_BUTTON, "Create New");
-    pCreateNewPresetButton->SetToolTip("Resets all controls to default options to create new preset (if any)");
+    pResetPresetButton = new wxButton(presetsStaticBox, tksIDC_PRESET_RESET_BUTTON, "Reset");
+    pResetPresetButton->SetToolTip("Resets all controls to default options");
 
     auto presetNameLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Name");
     pPresetNameTextCtrl = new wxTextCtrl(presetsStaticBox, tksIDC_PRESET_NAME_TEXT_CTRL, "");
@@ -275,7 +275,7 @@ void ExportToCsvDialog::CreateControls()
     pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
 
     presetFlexGridSizer->Add(0, 0);
-    presetFlexGridSizer->Add(pCreateNewPresetButton, wxSizerFlags().Right().Border(wxALL, FromDIP(2)));
+    presetFlexGridSizer->Add(pResetPresetButton, wxSizerFlags().Right().Border(wxALL, FromDIP(2)));
     presetFlexGridSizer->Add(presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
     presetFlexGridSizer->Add(pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
     presetFlexGridSizer->Add(0, 0);
@@ -541,11 +541,11 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_DATE_TO_CTRL
     );
 
-    pCreateNewPresetButton->Bind(
+    pResetPresetButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnCreateNewPreset,
+        &ExportToCsvDialog::OnResetPreset,
         this,
-        tksIDC_CREATE_NEW_PRESET_BUTTON
+        tksIDC_PRESET_RESET_BUTTON
     );
 
     pPresetSaveButton->Bind(
@@ -779,7 +779,7 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     mToDate = newToDate;
 }
 
-void ExportToCsvDialog::OnCreateNewPreset(wxCommandEvent& event)
+void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 {
     const std::string TAG = "ExportToCsvDialog::OnCreateNewPreset";
     pLogger->info("{0} - Begin reset of controls to create new preset", TAG);

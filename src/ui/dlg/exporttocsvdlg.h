@@ -88,7 +88,7 @@ private:
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
 
-    void OnCreateNewPreset(wxCommandEvent& event);
+    void OnResetPreset(wxCommandEvent& event);
     void OnSavePreset(wxCommandEvent& event);
     void OnApplyPreset(wxCommandEvent& event);
 
@@ -134,7 +134,7 @@ private:
     wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
 
-    wxButton* pCreateNewPresetButton;
+    wxButton* pResetPresetButton;
     wxTextCtrl* pPresetNameTextCtrl;
     wxCheckBox* pPresetIsDefaultCtrl;
     wxButton* pPresetSaveButton;
@@ -180,7 +180,7 @@ private:
         tksIDC_NEW_LINES_HANDLER_CTRL,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
-        tksIDC_CREATE_NEW_PRESET_BUTTON,
+        tksIDC_PRESET_RESET_BUTTON,
         tksIDC_PRESET_NAME_TEXT_CTRL,
         tksIDC_PRESET_SAVE_BUTTON,
         tksIDC_PRESET_IS_DEFAULT_CTRL,
