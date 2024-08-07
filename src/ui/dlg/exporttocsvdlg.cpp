@@ -936,6 +936,8 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
         /* Remove header from available header list control */
         pAvailableColumnsListView->DeleteItem(i);
     }
+
+    pExcludeHeadersCheckBoxCtrl->SetValue(selectedPresetToApply.ExcludeHeaders);
 }
 
 void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
