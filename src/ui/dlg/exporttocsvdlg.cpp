@@ -180,62 +180,61 @@ void ExportToCsvDialog::CreateControls()
     outputFlexGridSizer->Add(0, 0);
     outputFlexGridSizer->Add(pBrowseExportPathButton, wxSizerFlags().Border(wxALL, FromDIP(2)).Right());
 
-    /* Sizer for Options and Date Range + Presets controls */
+    /* Sizer for Options, Date Range and Presets controls */
     auto horizontalBoxSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(horizontalBoxSizer, wxSizerFlags().Expand());
+
+    /* Sizer for Options and Date Range controls */
+    auto leftSideVerticalSizer = new wxBoxSizer(wxVERTICAL);
+    horizontalBoxSizer->Add(leftSideVerticalSizer, wxSizerFlags().Expand());
 
     /* Options static box (left) */
     auto optionsStaticBox = new wxStaticBox(this, wxID_ANY, "Options");
     auto optionsStaticBoxSizer = new wxStaticBoxSizer(optionsStaticBox, wxVERTICAL);
-    horizontalBoxSizer->Add(optionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    leftSideVerticalSizer->Add(optionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Flex grid sizer for option choices */
     auto optionsFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     optionsStaticBoxSizer->Add(optionsFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
 
+    optionsFlexGridSizer->AddGrowableCol(1, 1);
+
     /* Delimiter choice control */
     auto delimiterLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Delimiter");
-    pDelimiterChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_DELIMITER_CTRL, wxDefaultPosition, wxSize(128, -1));
+    pDelimiterChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_DELIMITER_CTRL);
     pDelimiterChoiceCtrl->SetToolTip("Set the field separator character");
 
     /* Text qualifiers choice control */
     auto textQualifierLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Text Qualifier");
-    pTextQualifierChoiceCtrl =
-        new wxChoice(optionsStaticBox, tksIDC_TEXT_QUALIFIER_CTRL, wxDefaultPosition, wxSize(128, -1));
+    pTextQualifierChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_TEXT_QUALIFIER_CTRL);
     pTextQualifierChoiceCtrl->SetToolTip("Set the text qualifier for text values");
 
     /* Empty values choice control */
     auto emptyValuesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Empty Values");
-    pEmptyValueHandlerChoiceCtrl =
-        new wxChoice(optionsStaticBox, tksIDC_EMPTY_VALUE_HANDLER_CTRL, wxDefaultPosition, wxSize(128, -1));
+    pEmptyValueHandlerChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_EMPTY_VALUE_HANDLER_CTRL);
     pEmptyValueHandlerChoiceCtrl->SetToolTip("Set how to handle empty or blank field values");
 
     /* New lines choice control */
     auto newLinesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "New Lines");
-    pNewLinesHandlerChoiceCtrl =
-        new wxChoice(optionsStaticBox, tksIDC_NEW_LINES_HANDLER_CTRL, wxDefaultPosition, wxSize(128, -1));
+    pNewLinesHandlerChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_NEW_LINES_HANDLER_CTRL);
     pNewLinesHandlerChoiceCtrl->SetToolTip("Set how to handle multiline field values");
 
     optionsFlexGridSizer->Add(delimiterLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    optionsFlexGridSizer->Add(pDelimiterChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    optionsFlexGridSizer->Add(pDelimiterChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     optionsFlexGridSizer->Add(textQualifierLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    optionsFlexGridSizer->Add(pTextQualifierChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    optionsFlexGridSizer->Add(pTextQualifierChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     optionsFlexGridSizer->Add(emptyValuesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    optionsFlexGridSizer->Add(pEmptyValueHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    optionsFlexGridSizer->Add(pEmptyValueHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     optionsFlexGridSizer->Add(newLinesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    optionsFlexGridSizer->Add(pNewLinesHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    /* Sizer for Date Range and Presets controls */
-    auto rightSideVertSizer = new wxBoxSizer(wxVERTICAL);
-    horizontalBoxSizer->Add(rightSideVertSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    optionsFlexGridSizer->Add(pNewLinesHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Date range static box */
     auto dateRangeStaticBox = new wxStaticBox(this, wxID_ANY, "Date Range");
     auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxHORIZONTAL);
-    rightSideVertSizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Expand());
+    leftSideVerticalSizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* From date control */
     auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
@@ -251,6 +250,10 @@ void ExportToCsvDialog::CreateControls()
     dateRangeStaticBoxSizer->Add(pFromDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     dateRangeStaticBoxSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateRangeStaticBoxSizer->Add(pToDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* Sizer for Presets controls */
+    auto rightSideVertSizer = new wxBoxSizer(wxVERTICAL);
+    horizontalBoxSizer->Add(rightSideVertSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Presets static box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
@@ -795,7 +798,7 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
     pPresetsChoiceCtrl->SetSelection(0);
     pPresetNameTextCtrl->ChangeValue("");
 
-    //auto headersToRemove = pExportColumnListModel->GetSelectedHeaders();
+    // auto headersToRemove = pExportColumnListModel->GetSelectedHeaders();
     auto headersToRemove = pExportColumnListModel->GetHeadersToExport();
     wxDataViewItemArray items;
     auto selections = pDataViewCtrl->GetSelections(items);
@@ -866,8 +869,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     pPresetIsDefaultCtrl->SetValue(false);
 }
 
-void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& event)
-{}
+void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& event) {}
 
 void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
 {
