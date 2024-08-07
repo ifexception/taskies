@@ -134,7 +134,7 @@ private:
     wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
 
-    wxButton* pResetPresetButton;
+    wxButton* pPresetResetButton;
     wxTextCtrl* pPresetNameTextCtrl;
     wxCheckBox* pPresetIsDefaultCtrl;
     wxButton* pPresetSaveButton;
