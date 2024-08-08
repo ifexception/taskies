@@ -60,7 +60,7 @@ bool Configuration::Load()
         GetTasksConfig(root);
         GetTasksViewConfig(root);
         GetExportConfig(root);
-        GetPresetsConfig2(root);
+        GetPresetsConfigEx(root);
     } catch (const toml::syntax_error& error) {
         pLogger->error(
             "Configuration - A TOML syntax/parse error occurred when parsing configuration file {0}", error.what());
@@ -143,8 +143,8 @@ bool Configuration::Save()
         toml::value v(
             toml::table {}
         );
-        presets.push_back(std::move(v));
         // clang-format on
+        presets.push_back(std::move(v));
     }
 
     for (const auto& preset : mSettings.PresetSettings) {
@@ -159,19 +159,23 @@ bool Configuration::Save()
                 { "newLines", static_cast<int>(preset.NewLinesHandler) },
                 { "excludeHeaders", preset.ExcludeHeaders },
                 { "columns", toml::array {} },
-                { "originalColumns", toml::array {} }
             }
         );
         // clang-format on
 
         auto& columns = presetValue.at("columns");
         for (const auto& column : preset.Columns) {
-            columns.push_back(column);
-        }
+            // clang-format off
+            toml::value columnValue(
+                toml::table {
+                    { "column", column.Column },
+                    { "originalColumn", column.OriginalColumn },
+                    { "order", column.Order }
+                }
+            );
+            // clang-format on
 
-        auto& originalColumns = presetValue.at("originalColumns");
-        for (const auto& originalColumn : preset.OriginalColumns) {
-            originalColumns.push_back(originalColumn);
+            columns.push_back(std::move(columnValue));
         }
 
         presets.push_back(std::move(presetValue));
@@ -319,20 +323,24 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
             { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
             { "newLines", static_cast<int>(preset.NewLinesHandler) },
             { "excludeHeaders", preset.ExcludeHeaders },
-            { "columns", toml::array {} },
-            { "originalColumns", toml::array {} }
+            { "columns", toml::array {} }
         }
     );
     // clang-format on
 
     auto& columns = presetValue.at("columns");
     for (const auto& column : preset.Columns) {
-        columns.push_back(column);
-    }
+        // clang-format off
+            toml::value columnValue(
+                toml::table {
+                    { "column", column.Column },
+                    { "originalColumn", column.OriginalColumn },
+                    { "order", column.Order }
+                }
+            );
+        // clang-format on
 
-    auto& originalColumns = presetValue.at("originalColumns");
-    for (const auto& originalColumn : preset.OriginalColumns) {
-        originalColumns.push_back(originalColumn);
+        columns.push_back(std::move(columnValue));
     }
 
     presets.push_back(std::move(presetValue));
@@ -568,57 +576,7 @@ void Configuration::GetExportConfig(const toml::value& root)
     mSettings.PresetCount = toml::find<int>(exportSection, "presetCount");
 }
 
-void Configuration::GetPresetsConfig(const toml::value& root)
-{
-    auto presetsSectionSize = root.at(Sections::PresetsSection).size();
-    if (root.at(Sections::PresetsSection).at(0).as_table().empty() && presetsSectionSize == 1) {
-        return;
-    }
-
-    struct preset_t {
-        std::string name;
-        std::string delimiter;
-        std::string textQualifier;
-        int emptyValues;
-        int newLines;
-        bool excludeHeaders;
-        std::vector<std::string> columns;
-        std::vector<std::string> originalColumns;
-
-        preset_t(const toml::value& v)
-            : name(toml::find_or<std::string>(v, "name", ""))
-            , delimiter(toml::find_or<std::string>(v, "delimiter", ""))
-            , textQualifier(toml::find_or<std::string>(v, "textQualifier", ""))
-            , emptyValues(toml::find_or<int>(v, "emptyValues", -1))
-            , newLines(toml::find_or<int>(v, "newLines", -1))
-            , excludeHeaders(toml::find_or<bool>(v, "excludeHeaders", false))
-            , columns(toml::find_or<std::vector<std::string>>(v, "columns", std::vector<std::string>{}))
-            , originalColumns(toml::find_or<std::vector<std::string>>(v, "originalColumns", std::vector<std::string>{}))
-        {
-        }
-    };
-
-    const auto& presetSections = toml::find<std::vector<preset_t>>(root, Sections::PresetsSection);
-
-    if (!presetSections.empty()) {
-        for (auto i = 1; i < presetSections.size(); i++) {
-            PresetSettings preset;
-
-            preset.Name = presetSections.at(i).name;
-            preset.Delimiter = presetSections.at(i).delimiter;
-            preset.TextQualifier = presetSections.at(i).textQualifier;
-            preset.EmptyValuesHandler = static_cast<EmptyValues>(presetSections.at(i).emptyValues);
-            preset.NewLinesHandler = static_cast<NewLines>(presetSections.at(i).newLines);
-            preset.ExcludeHeaders = presetSections.at(i).excludeHeaders;
-            preset.Columns = presetSections.at(i).columns;
-            preset.OriginalColumns = presetSections.at(i).originalColumns;
-
-            mSettings.PresetSettings.push_back(preset);
-        }
-    }
-}
-
-void Configuration::GetPresetsConfig2(const toml::value& root)
+void Configuration::GetPresetsConfigEx(const toml::value& root)
 {
     try {
         auto presetsSectionSize = root.at(Sections::PresetsSection).size();
@@ -641,15 +599,26 @@ void Configuration::GetPresetsConfig2(const toml::value& root)
 
             auto columnsSize = root.at(Sections::PresetsSection).at(i).at("columns").size();
             for (size_t j = 0; j < columnsSize; j++) {
-                auto& column = root.at(Sections::PresetsSection).at(i).at("columns").at(j).as_string();
-                preset.Columns.push_back(column);
+                PresetColumnSettings presetColumn;
+                presetColumn.Column =
+                    root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("column").as_string();
+                presetColumn.OriginalColumn =
+                    root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("originalColumn").as_string();
+                presetColumn.Order =
+                    root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("order").as_integer();
+
+                preset.Columns.push_back(presetColumn);
             }
 
-            auto originalColumnsSize = root.at(Sections::PresetsSection).at(i).at("originalColumns").size();
-            for (size_t j = 0; j < originalColumnsSize; j++) {
-                auto& column = root.at(Sections::PresetsSection).at(i).at("originalColumns").at(j).as_string();
-                preset.OriginalColumns.push_back(column);
-            }
+            // clang-format off
+            std::sort(
+                preset.Columns.begin(),
+                preset.Columns.end(),
+                [](const PresetColumnSettings& lhs, const PresetColumnSettings& rhs) {
+                    return lhs.Order < rhs.Order;
+                }
+            );
+            // clang-format on
 
             mSettings.PresetSettings.push_back(preset);
         }

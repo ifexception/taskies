@@ -35,6 +35,12 @@ class Environment;
 class Configuration
 {
 public:
+    struct PresetColumnSettings {
+        std::string Column;
+        std::string OriginalColumn;
+        int Order;
+    };
+
     struct PresetSettings {
         std::string Name;
         bool IsDefault;
@@ -43,8 +49,7 @@ public:
         EmptyValues EmptyValuesHandler;
         NewLines NewLinesHandler;
         bool ExcludeHeaders;
-        std::vector<std::string> Columns;
-        std::vector<std::string> OriginalColumns;
+        std::vector<PresetColumnSettings> Columns;
     };
 
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
@@ -112,8 +117,7 @@ private:
     void GetTasksConfig(const toml::value& root);
     void GetTasksViewConfig(const toml::value& root);
     void GetExportConfig(const toml::value& root);
-    void GetPresetsConfig(const toml::value& root);
-    void GetPresetsConfig2(const toml::value& root);
+    void GetPresetsConfigEx(const toml::value& root);
 
     struct Sections {
         static const std::string GeneralSection;
