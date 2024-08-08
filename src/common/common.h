@@ -41,6 +41,12 @@ std::string GetPreferencesIconBundleName();
 
 std::string GetLicense();
 
+struct PresetColumn {
+    std::string Column;
+    std::string OriginalColumn;
+    int Order;
+};
+
 struct Preset {
     std::string Name;
     bool IsDefault;
@@ -49,8 +55,7 @@ struct Preset {
     EmptyValues EmptyValuesHandler;
     NewLines NewLinesHandler;
     bool ExcludeHeaders;
-    std::vector<std::string> Columns;
-    std::vector<std::string> OriginalColumns;
+    std::vector<PresetColumn> Columns;
 
     Preset() = default;
     ~Preset() = default;

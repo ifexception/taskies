@@ -827,6 +827,7 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 {
+    // validation before saving preset
     if (pCfg->GetPresetCount() == MAX_PRESET_COUNT) {
         auto valMsg = "Maximum limit of 5 presets has been reached";
         wxRichToolTip tooltip("Validation", valMsg);
@@ -851,17 +852,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         return;
     }
 
-    auto columnsSelected = pExportColumnListModel->GetHeadersToExport();
-    std::vector<std::string> columns = {};
-    std::vector<std::string> originalColumns = {};
-    for (const auto& column : columnsSelected) {
-        std::string originalColumnName = column.OriginalHeader;
-        std::string columnName = column.Header;
-
-        originalColumns.push_back(originalColumnName);
-        columns.push_back(columnName);
-    }
-
+    // build preset
     Common::Preset preset;
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
     preset.IsDefault = pPresetIsDefaultCtrl->GetValue();
@@ -869,12 +860,25 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     preset.TextQualifier = std::string(1, mCsvOptions.TextQualifier);
     preset.EmptyValuesHandler = mCsvOptions.EmptyValuesHandler;
     preset.NewLinesHandler = mCsvOptions.NewLinesHandler;
-    preset.OriginalColumns = originalColumns;
+
+    std::vector<Common::PresetColumn> columns;
+
+    auto columnsSelected = pExportColumnListModel->GetHeadersToExport();
+    for (const auto& selectedColumn : columnsSelected) {
+        Common::PresetColumn presetColumn;
+        presetColumn.Column = selectedColumn.Header;
+        presetColumn.OriginalColumn = selectedColumn.OriginalHeader;
+        presetColumn.Order = selectedColumn.OrderIndex;
+        columns.push_back(presetColumn);
+    }
+
     preset.Columns = columns;
 
+    // save preset
     pCfg->SaveExportPreset(preset);
     pCfg->SetPresetCount(pCfg->GetPresetCount() + 1);
 
+    // set as the active preset
     int selection = pPresetsChoiceCtrl->Append(preset.Name, new ClientData<int>(-1));
     pPresetsChoiceCtrl->SetSelection(selection);
 
@@ -885,6 +889,10 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
 {
     const std::string TAG = "ExportToCsvDialog::OnApplyPreset";
     pLogger->info("{0} - Begin to apply selected preset", TAG);
+
+    if (pPresetsChoiceCtrl->GetCount() < 2) {
+        return;
+    }
 
     // get preset name
     int n = pPresetsChoiceCtrl->GetSelection();
@@ -912,6 +920,7 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
     pPresetNameTextCtrl->ChangeValue(selectedPresetToApply.Name);
     pPresetIsDefaultCtrl->SetValue(selectedPresetToApply.IsDefault);
 
+    // apply selected columns
     for (long i = (pAvailableColumnsListView->GetItemCount() - 1); 0 <= i; i--) {
         std::string name;
         wxListItem item;
@@ -922,11 +931,13 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
 
         name = item.GetText().ToStdString();
 
-        auto presetOriginalColumnIterator = std::find_if(selectedPresetToApply.OriginalColumns.begin(),
-            selectedPresetToApply.OriginalColumns.end(),
-            [=](const std::string& originalColumnName) { return name == originalColumnName; });
+        auto presetOriginalColumnIterator = std::find_if(selectedPresetToApply.Columns.begin(),
+            selectedPresetToApply.Columns.end(),
+            [=](const Core::Configuration::PresetColumnSettings& presetColumn) {
+                return name == presetColumn.OriginalColumn;
+            });
 
-        if (presetOriginalColumnIterator == selectedPresetToApply.OriginalColumns.end()) {
+        if (presetOriginalColumnIterator == selectedPresetToApply.Columns.end()) {
             continue;
         }
 
