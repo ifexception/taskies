@@ -128,7 +128,7 @@ void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
     pLogger->info("ColumnListModel::MoveItem - Begin move item");
     unsigned int row = GetRow(item);
     if (row != 0 && asc) {
-        pLogger->info("ColumnListModel::MoveItem - Moving header \"{0}\" up", mListItemModels[row].Column);
+        pLogger->info("ColumnListModel::MoveItem - Moving column \"{0}\" up", mListItemModels[row].Column);
 
         auto modelAtRow = mListItemModels[row];
         mListItemModels.erase(mListItemModels.begin() + row);
@@ -143,7 +143,7 @@ void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
     }
 
     if (row != 0 && row != (mListItemModels.size() - 1) && !asc) {
-        pLogger->info("ColumnListModel::MoveItem - Moving header \"{0}\" down", mListItemModels[row].Column);
+        pLogger->info("ColumnListModel::MoveItem - Moving column \"{0}\" down", mListItemModels[row].Column);
         auto modelAtRow = mListItemModels[row];
         mListItemModels.erase(mListItemModels.begin() + row);
         modelAtRow.Order++;
@@ -163,7 +163,7 @@ std::vector<ColumnListItemModel> ColumnListModel::GetSelectedColumns()
     for (const auto& listItem : mListItemModels) {
         if (listItem.Toggled) {
             pLogger->info(
-                "ColumnListModel::GetSelectedColumns - Found toggled header with name \"{0}\"", listItem.Column);
+                "ColumnListModel::GetSelectedColumns - Found toggled column with name \"{0}\"", listItem.Column);
             selectedColumns.push_back(listItem);
         }
     }
