@@ -359,17 +359,17 @@ void ExportToCsvDialog::CreateControls()
     headerControlsHorizontalSizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Model */
-    pExportColumnListModel = new ExportHeadersListModel(pLogger);
+    pExportColumnListModel = new ColumnListModel(pLogger);
     pDataViewCtrl->AssociateModel(pExportColumnListModel.get());
 
     /* Toggled Column */
-    pDataViewCtrl->AppendToggleColumn("", ExportHeadersListModel::Col_Toggled, wxDATAVIEW_CELL_ACTIVATABLE);
+    pDataViewCtrl->AppendToggleColumn("", ColumnListModel::Col_Toggled, wxDATAVIEW_CELL_ACTIVATABLE);
 
     /* Header Column */
     auto* textRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_EDITABLE);
     wxDataViewColumn* headerEditableColumn = new wxDataViewColumn("Headers",
         textRenderer,
-        ExportHeadersListModel::Col_Header,
+        ColumnListModel::Col_Column,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_LEFT,
         wxDATAVIEW_COL_RESIZABLE);
@@ -380,7 +380,7 @@ void ExportToCsvDialog::CreateControls()
     auto* orderRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
     auto* orderColumn = new wxDataViewColumn("Order",
         orderRenderer,
-        ExportHeadersListModel::Col_OrderIndex,
+        ColumnListModel::Col_Order,
         FromDIP(32),
         wxALIGN_CENTER,
         wxDATAVIEW_COL_HIDDEN | wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_REORDERABLE);
@@ -579,49 +579,49 @@ void ExportToCsvDialog::ConfigureEventBindings()
 
     pAvailableColumnsListView->Bind(
         wxEVT_LIST_ITEM_CHECKED,
-        &ExportToCsvDialog::OnAvailableHeaderItemCheck,
+        &ExportToCsvDialog::OnAvailableColumnItemCheck,
         this,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL
     );
 
     pAvailableColumnsListView->Bind(
         wxEVT_LIST_ITEM_UNCHECKED,
-        &ExportToCsvDialog::OnAvailableHeaderItemUncheck,
+        &ExportToCsvDialog::OnAvailableColumnItemUncheck,
         this,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL
     );
 
     pRightChevronButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList,
+        &ExportToCsvDialog::OnAddAvailableColumnToExportColumnListView,
         this,
         tksIDC_RIGHT_CHEV_CTRL
     );
 
     pLeftChevronButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnRemoveExportHeaderToAvailableHeaderList,
+        &ExportToCsvDialog::OnRemoveExportColumnToAvailableColumnList,
         this,
         tksIDC_LEFT_CHEV_CTRL
     );
 
     pDataViewCtrl->Bind(
         wxEVT_DATAVIEW_ITEM_EDITING_STARTED,
-        &ExportToCsvDialog::OnExportHeaderEditingStart,
+        &ExportToCsvDialog::OnExportColumnEditingStart,
         this,
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
     );
 
     pDataViewCtrl->Bind(
         wxEVT_DATAVIEW_ITEM_EDITING_DONE,
-        &ExportToCsvDialog::OnExportHeaderEditingDone,
+        &ExportToCsvDialog::OnExportColumnEditingDone,
         this,
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
     );
 
     pDataViewCtrl->Bind(
         wxEVT_DATAVIEW_SELECTION_CHANGED,
-        &ExportToCsvDialog::OnExportHeaderSelectionChanged,
+        &ExportToCsvDialog::OnExportColumnSelectionChanged,
         this,
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
     );
@@ -811,14 +811,14 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
     pPresetNameTextCtrl->ChangeValue("");
 
     // auto headersToRemove = pExportColumnListModel->GetSelectedHeaders();
-    auto headersToRemove = pExportColumnListModel->GetHeadersToExport();
+    auto headersToRemove = pExportColumnListModel->GetColumnsToExport();
     wxDataViewItemArray items;
     auto selections = pDataViewCtrl->GetSelections(items);
     if (selections > 0) {
         pExportColumnListModel->DeleteItems(items);
 
         for (const auto& header : headersToRemove) {
-            pAvailableColumnsListView->InsertItem(0, header.Header);
+            pAvailableColumnsListView->InsertItem(0, header.Column);
         }
     }
 
@@ -836,7 +836,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         return;
     }
 
-    if (pExportColumnListModel->GetHeadersToExport().empty()) {
+    if (pExportColumnListModel->GetColumnsToExport().empty()) {
         auto valMsg = "At least one column selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
@@ -863,12 +863,12 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     std::vector<Common::PresetColumn> columns;
 
-    auto columnsSelected = pExportColumnListModel->GetHeadersToExport();
+    auto columnsSelected = pExportColumnListModel->GetColumnsToExport();
     for (const auto& selectedColumn : columnsSelected) {
         Common::PresetColumn presetColumn;
-        presetColumn.Column = selectedColumn.Header;
-        presetColumn.OriginalColumn = selectedColumn.OriginalHeader;
-        presetColumn.Order = selectedColumn.OrderIndex;
+        presetColumn.Column = selectedColumn.Column;
+        presetColumn.OriginalColumn = selectedColumn.OriginalColumn;
+        presetColumn.Order = selectedColumn.Order;
         columns.push_back(presetColumn);
     }
 
@@ -951,52 +951,59 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
     pExcludeHeadersCheckBoxCtrl->SetValue(selectedPresetToApply.ExcludeHeaders);
 }
 
-void ExportToCsvDialog::OnAvailableHeaderItemCheck(wxListEvent& event)
+void ExportToCsvDialog::OnAvailableColumnItemCheck(wxListEvent& event)
 {
     long index = event.GetIndex();
+
     mSelectedItemIndexes.push_back(index);
 
-    std::string name;
-
+    // This code is purely just for logging purposes
     wxListItem item;
     item.m_itemId = index;
     item.m_col = 0;
     item.m_mask = wxLIST_MASK_TEXT;
     pAvailableColumnsListView->GetItem(item);
 
-    name = item.GetText().ToStdString();
+    std::string name = item.GetText().ToStdString();
 
-    pLogger->info("ExportToCsvDialog::OnAvailableHeaderItemCheck - Selected header name \"{0}\"", name);
+    pLogger->info("ExportToCsvDialog::OnAvailableColumnItemCheck - Selected column name \"{0}\"", name);
 }
 
-void ExportToCsvDialog::OnAvailableHeaderItemUncheck(wxListEvent& event)
+void ExportToCsvDialog::OnAvailableColumnItemUncheck(wxListEvent& event)
 {
     long index = event.GetIndex();
+
+    // clang-format off
     mSelectedItemIndexes.erase(
-        std::remove(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), index), mSelectedItemIndexes.end());
+        std::remove(
+            mSelectedItemIndexes.begin(),
+            mSelectedItemIndexes.end(),
+            index),
+        mSelectedItemIndexes.end()
+    );
+    // clang-format on
 
-    std::string name;
-
+    // This code is purely just for logging purposes
     wxListItem item;
     item.m_itemId = index;
     item.m_col = 0;
     item.m_mask = wxLIST_MASK_TEXT;
     pAvailableColumnsListView->GetItem(item);
 
-    name = item.GetText().ToStdString();
+    std::string name = item.GetText().ToStdString();
 
-    pLogger->info("ExportToCsvDialog::OnAvailableHeaderItemUncheck - Unselected header name \"{0}\"", name);
+    pLogger->info("ExportToCsvDialog::OnAvailableColumnItemUncheck - Unselected column name \"{0}\"", name);
 }
 
-void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& WXUNUSED(event))
+void ExportToCsvDialog::OnAddAvailableColumnToExportColumnListView(wxCommandEvent& WXUNUSED(event))
 {
     if (mSelectedItemIndexes.size() == 0) {
         pLogger->info(
-            "ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList - No items (headers) selected to move");
+            "ExportToCsvDialog::OnAddAvailableColumnToExportColumnListView - No items (columns) selected to move");
         return;
     }
 
-    // Sort the item indexes by ascending order so the
+    // sort the item indexes by ascending order so the
     // subsequent for loop correctly iterates over the entries in reverse
     std::sort(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), std::less{});
 
@@ -1004,68 +1011,67 @@ void ExportToCsvDialog::OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& W
     int columnIndex = 0;
 
     for (long i = (mSelectedItemIndexes.size() - 1); 0 <= i; i--) {
-        // Extract the header name text from item index
-        std::string name;
+        // Extract the column name text from item index
         wxListItem item;
         item.m_itemId = mSelectedItemIndexes[i];
         item.m_col = columnIndex;
         item.m_mask = wxLIST_MASK_TEXT;
         pAvailableColumnsListView->GetItem(item);
 
-        name = item.GetText().ToStdString();
+        std::string name = item.GetText().ToStdString();
 
-        /* Add export header in data view control and update */
+        /* Add export column in data view control and update */
         pExportColumnListModel->Append(name, orderIndex++);
 
-        /* Remove header from available header list control */
+        /* Remove column from available column list control */
         pAvailableColumnsListView->DeleteItem(mSelectedItemIndexes[i]);
 
         mSelectedItemIndexes.erase(mSelectedItemIndexes.begin() + i);
 
         pLogger->info(
-            "ExportToCsvDialog::OnAddAvailableHeadertoExportHeaderList - Header \"{0}\" removed from available", name);
+            "ExportToCsvDialog::OnAddAvailableColumnToExportColumnListView - Column \"{0}\" removed from available",
+            name);
     }
 }
 
-void ExportToCsvDialog::OnRemoveExportHeaderToAvailableHeaderList(wxCommandEvent& WXUNUSED(event))
+void ExportToCsvDialog::OnRemoveExportColumnToAvailableColumnList(wxCommandEvent& WXUNUSED(event))
 {
-    // FIXME: This returns the header ONLY which could have been modified by the user by this time
-    auto headersToRemove = pExportColumnListModel->GetSelectedHeaders();
+    auto columnsToRemove = pExportColumnListModel->GetSelectedColumns();
     wxDataViewItemArray items;
     auto selections = pDataViewCtrl->GetSelections(items);
     if (selections > 0) {
         pExportColumnListModel->DeleteItems(items);
 
-        for (const auto& header : headersToRemove) {
-            pAvailableColumnsListView->InsertItem(0, header);
+        for (const auto& column : columnsToRemove) {
+            pAvailableColumnsListView->InsertItem(0, column.OriginalColumn);
         }
     }
 }
 
-void ExportToCsvDialog::OnExportHeaderEditingStart(wxDataViewEvent& event)
+void ExportToCsvDialog::OnExportColumnEditingStart(wxDataViewEvent& event)
 {
     const wxDataViewModel* model = event.GetModel();
 
     wxVariant value;
     model->GetValue(value, event.GetItem(), event.GetColumn());
 
-    pLogger->info("ExportToCsvDialog::OnExportHeaderEditingStart - Editing started on export header - {0}",
+    pLogger->info("ExportToCsvDialog::OnExportColumnEditingStart - Editing started on export column \"{0}\"",
         value.GetString().ToStdString());
 }
 
-void ExportToCsvDialog::OnExportHeaderEditingDone(wxDataViewEvent& event)
+void ExportToCsvDialog::OnExportColumnEditingDone(wxDataViewEvent& event)
 {
     if (event.IsEditCancelled()) {
-        pLogger->info("ExportToCsvDialog::OnExportHeaderEditingDone - Edit was cancelled");
+        pLogger->info("ExportToCsvDialog::OnExportColumnEditingDone - Edit was cancelled");
     } else {
-        pLogger->info("ExportToCsvDialog::OnExportHeaderEditingDone - Edit completed with new value: \"{0}\"",
+        pLogger->info("ExportToCsvDialog::OnExportColumnEditingDone - Edit completed with new value \"{0}\"",
             event.GetValue().GetString().ToStdString());
 
         pExportColumnListModel->ChangeItem(event.GetItem(), event.GetValue().GetString().ToStdString());
     }
 }
 
-void ExportToCsvDialog::OnExportHeaderSelectionChanged(wxDataViewEvent& event)
+void ExportToCsvDialog::OnExportColumnSelectionChanged(wxDataViewEvent& event)
 {
     auto item = event.GetItem();
     if (!item.IsOk()) {
@@ -1077,9 +1083,9 @@ void ExportToCsvDialog::OnExportHeaderSelectionChanged(wxDataViewEvent& event)
     const wxDataViewModel* model = event.GetModel();
 
     wxVariant value;
-    model->GetValue(value, event.GetItem(), ExportHeadersListModel::Col_Header);
+    model->GetValue(value, event.GetItem(), ColumnListModel::Col_Column);
 
-    pLogger->info("ExportToCsvDialog::OnExportHeaderSelectionChanged - Selected item header: \"{0}\"",
+    pLogger->info("ExportToCsvDialog::OnExportColumnSelectionChanged - Selected item header: \"{0}\"",
         value.GetString().ToStdString());
 }
 
@@ -1112,7 +1118,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 {
     pLogger->info("ExportToCsvDialog::OnShowPreview - Begin show preview");
 
-    const auto& columnsToExport = pExportColumnListModel->GetHeadersToExport();
+    const auto& columnsToExport = pExportColumnListModel->GetColumnsToExport();
     pLogger->info("ExportToCsvDialog::OnShowPreview - Count of columns to export: \"{0}\"", columnsToExport.size());
 
     if (columnsToExport.size() == 0) {
@@ -1146,23 +1152,23 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     for (const auto& columnToExport : columnsToExport) {
         const auto& availableColumnIterator = std::find_if(availableColumnsList.begin(),
             availableColumnsList.end(),
-            [=](const AvailableColumn& column) { return column.Display == columnToExport.OriginalHeader; });
+            [=](const AvailableColumn& column) { return column.Display == columnToExport.OriginalColumn; });
 
         if (availableColumnIterator != availableColumnsList.end()) {
             const auto& availableColumn = *availableColumnIterator;
             pLogger->info(
                 "ExportToCsvDialog::OnShowPreview - Matched export column \"{0}\" with available column \"{1}\"",
-                columnToExport.OriginalHeader,
+                columnToExport.OriginalColumn,
                 availableColumn.DatabaseColumn);
 
             Utils::ColumnProjection cp(
-                availableColumn.DatabaseColumn, columnToExport.Header, availableColumn.TableName);
+                availableColumn.DatabaseColumn, columnToExport.Column, availableColumn.TableName);
 
             if (availableColumn.DatabaseColumn == "*time*") {
                 cp.SetIdentifier("*time*");
             }
 
-            Utils::Projection projection(columnToExport.OrderIndex, cp);
+            Utils::Projection projection(columnToExport.Order, cp);
 
             projections.push_back(projection);
 

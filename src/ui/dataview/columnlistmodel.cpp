@@ -17,86 +17,86 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "exportheaderslistmodel.h"
+#include "columnlistmodel.h"
 
 namespace tks::UI
 {
-ExportHeaderListItemModel::ExportHeaderListItemModel(const std::string& header, int orderIndex)
+ColumnListItemModel::ColumnListItemModel(const std::string& column, int orderIndex)
     : Toggled(false)
-    , Header(header)
-    , OriginalHeader(header)
-    , OrderIndex(orderIndex)
+    , Column(column)
+    , OriginalColumn(column)
+    , Order(orderIndex)
 {
 }
 
 // #############################################
 
-ExportHeadersListModel::ExportHeadersListModel(std::shared_ptr<spdlog::logger> logger)
+ColumnListModel::ColumnListModel(std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , mListItemModels()
 {
 }
 
-void ExportHeadersListModel::GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const
+void ColumnListModel::GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const
 {
     switch (col) {
     case Col_Toggled: {
         variant = mListItemModels[row].Toggled;
         break;
     }
-    case Col_Header:
-        variant = mListItemModels[row].Header;
+    case Col_Column:
+        variant = mListItemModels[row].Column;
         break;
-    case Col_OrderIndex:
-        variant = (long) mListItemModels[row].OrderIndex;
+    case Col_Order:
+        variant = (long) mListItemModels[row].Order;
         break;
     case Col_Max:
     default:
-        pLogger->info("ExportHeadersListModel::GetValueByRow - Invalid column selected");
+        pLogger->info("ColumnListModel::GetValueByRow - Invalid column selected");
         break;
     }
 }
 
-bool ExportHeadersListModel::GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const
+bool ColumnListModel::GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const
 {
     return true;
 }
 
-bool ExportHeadersListModel::SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col)
+bool ColumnListModel::SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col)
 {
     switch (col) {
     case Col_Toggled:
         mListItemModels[row].Toggled = variant.GetBool();
         return true;
-    case Col_Header:
-        mListItemModels[row].Header = variant.GetString().ToStdString();
+    case Col_Column:
+        mListItemModels[row].Column = variant.GetString().ToStdString();
         return true;
-    case Col_OrderIndex:
-        mListItemModels[row].OrderIndex = (static_cast<int>(variant.GetInteger()));
+    case Col_Order:
+        mListItemModels[row].Order = (static_cast<int>(variant.GetInteger()));
         return true;
     case Col_Max:
     default:
-        pLogger->info("ExportHeadersListModel::SetValue - Invalid column selected");
+        pLogger->info("ColumnListModel::SetValue - Invalid column selected");
         break;
     }
 
     return false;
 }
 
-unsigned int ExportHeadersListModel::GetCount() const
+unsigned int ColumnListModel::GetCount() const
 {
     return mListItemModels.size();
 }
 
-void ExportHeadersListModel::Append(const std::string& headerName, int orderIndex)
+void ColumnListModel::Append(const std::string& columnName, int orderIndex)
 {
-    ExportHeaderListItemModel model(headerName, orderIndex);
+    ColumnListItemModel model(columnName, orderIndex);
     mListItemModels.push_back(model);
 
     RowAppended();
 }
 
-void ExportHeadersListModel::DeleteItems(const wxDataViewItemArray& items)
+void ColumnListModel::DeleteItems(const wxDataViewItemArray& items)
 {
     wxArrayInt rows;
     for (auto i = 0; i < items.GetCount(); i++) {
@@ -113,67 +113,67 @@ void ExportHeadersListModel::DeleteItems(const wxDataViewItemArray& items)
     RowsDeleted(rows);
 }
 
-void ExportHeadersListModel::ChangeItem(const wxDataViewItem& item, const std::string& newItem)
+void ColumnListModel::ChangeItem(const wxDataViewItem& item, const std::string& newItem)
 {
     unsigned int row = GetRow(item);
     if (newItem.length() > 0) {
-        mListItemModels[row].Header = newItem;
+        mListItemModels[row].Column = newItem;
 
         RowChanged(row);
     }
 }
 
-void ExportHeadersListModel::MoveItem(const wxDataViewItem& item, bool up)
+void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
 {
-    pLogger->info("ExportHeadersListModel::MoveItem - Begin move item");
+    pLogger->info("ColumnListModel::MoveItem - Begin move item");
     unsigned int row = GetRow(item);
-    if (row != 0 && up) {
-        pLogger->info("ExportHeadersListModel::MoveItem - Moving header \"{0}\" up", mListItemModels[row].Header);
+    if (row != 0 && asc) {
+        pLogger->info("ColumnListModel::MoveItem - Moving header \"{0}\" up", mListItemModels[row].Column);
 
         auto modelAtRow = mListItemModels[row];
         mListItemModels.erase(mListItemModels.begin() + row);
-        modelAtRow.OrderIndex--;
+        modelAtRow.Order--;
         modelAtRow.Toggled = false;
         RowDeleted(row);
 
         unsigned int rowAbove = --row;
-        mListItemModels[rowAbove].OrderIndex++;
+        mListItemModels[rowAbove].Order++;
         mListItemModels.insert(mListItemModels.begin() + rowAbove, modelAtRow);
 
         RowInserted(rowAbove);
     }
 
-    if (row != 0 && row != (mListItemModels.size() - 1) && !up) {
-        pLogger->info("ExportHeadersListModel::MoveItem - Moving header \"{0}\" down", mListItemModels[row].Header);
+    if (row != 0 && row != (mListItemModels.size() - 1) && !asc) {
+        pLogger->info("ColumnListModel::MoveItem - Moving header \"{0}\" down", mListItemModels[row].Column);
         auto modelAtRow = mListItemModels[row];
         mListItemModels.erase(mListItemModels.begin() + row);
-        modelAtRow.OrderIndex++;
+        modelAtRow.Order++;
         modelAtRow.Toggled = false;
         RowDeleted(row);
 
         unsigned int rowBelow = ++row;
-        mListItemModels[rowBelow].OrderIndex--;
+        mListItemModels[rowBelow].Order--;
         mListItemModels.insert(mListItemModels.begin() + rowBelow, modelAtRow);
 
         RowInserted(rowBelow);
     }
 }
 
-std::vector<std::string> ExportHeadersListModel::GetSelectedHeaders()
+std::vector<ColumnListItemModel> ColumnListModel::GetSelectedColumns()
 {
-    std::vector<std::string> headers;
+    std::vector<ColumnListItemModel> selectedColumns;
     for (const auto& listItem : mListItemModels) {
         if (listItem.Toggled) {
             pLogger->info(
-                "ExportHeadersListModel::GetSelectedHeaders - Found toggled header with name \"{0}\"", listItem.Header);
-            headers.push_back(listItem.Header);
+                "ColumnListModel::GetSelectedColumns - Found toggled header with name \"{0}\"", listItem.Column);
+            selectedColumns.push_back(listItem);
         }
     }
 
-    return headers;
+    return selectedColumns;
 }
 
-std::vector<ExportHeaderListItemModel> ExportHeadersListModel::GetHeadersToExport() const
+std::vector<ColumnListItemModel> ColumnListModel::GetColumnsToExport() const
 {
     return mListItemModels;
 }

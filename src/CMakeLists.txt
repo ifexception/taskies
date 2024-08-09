@@ -86,7 +86,7 @@ set (SRC
     "ui/dataview/tasktreemodel.cpp"
     "ui/dataview/tasktreemodelnode.cpp"
     "ui/dataview/tasklistmodel.cpp"
-    "ui/dataview/exportheaderslistmodel.cpp"
+    "ui/dataview/columnlistmodel.cpp"
     "ui/statusbar.cpp"
     "resources.rc"
     "application.manifest"

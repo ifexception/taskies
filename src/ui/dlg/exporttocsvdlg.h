@@ -35,7 +35,7 @@
 
 #include <spdlog/spdlog.h>
 
-#include "../dataview/exportheaderslistmodel.h"
+#include "../dataview/columnlistmodel.h"
 
 #include "../../utils/datestore.h"
 #include "../../utils/export/csvexporter.h"
@@ -92,13 +92,13 @@ private:
     void OnSavePreset(wxCommandEvent& event);
     void OnApplyPreset(wxCommandEvent& event);
 
-    void OnAvailableHeaderItemCheck(wxListEvent& event);
-    void OnAvailableHeaderItemUncheck(wxListEvent& event);
-    void OnAddAvailableHeaderToExportHeaderList(wxCommandEvent& event);
-    void OnRemoveExportHeaderToAvailableHeaderList(wxCommandEvent& event);
-    void OnExportHeaderEditingStart(wxDataViewEvent& event);
-    void OnExportHeaderEditingDone(wxDataViewEvent& event);
-    void OnExportHeaderSelectionChanged(wxDataViewEvent& event);
+    void OnAvailableColumnItemCheck(wxListEvent& event);
+    void OnAvailableColumnItemUncheck(wxListEvent& event);
+    void OnAddAvailableColumnToExportColumnListView(wxCommandEvent& event);
+    void OnRemoveExportColumnToAvailableColumnList(wxCommandEvent& event);
+    void OnExportColumnEditingStart(wxDataViewEvent& event);
+    void OnExportColumnEditingDone(wxDataViewEvent& event);
+    void OnExportColumnSelectionChanged(wxDataViewEvent& event);
     void OnUpButtonSort(wxCommandEvent& event);
     void OnDownButtonSort(wxCommandEvent& event);
     void OnExcludeHeadersCheck(wxCommandEvent& event);
@@ -147,7 +147,7 @@ private:
     wxButton* pLeftChevronButton;
 
     wxDataViewCtrl* pDataViewCtrl;
-    wxObjectDataPtr<ExportHeadersListModel> pExportColumnListModel;
+    wxObjectDataPtr<ColumnListModel> pExportColumnListModel;
 
     wxButton* pUpButton;
     wxButton* pDownButton;

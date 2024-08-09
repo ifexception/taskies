@@ -36,44 +36,44 @@
 
 namespace tks::UI
 {
-struct ExportHeaderListItemModel {
-    ExportHeaderListItemModel(const std::string& header, int orderIndex);
+struct ColumnListItemModel {
+    ColumnListItemModel(const std::string& column, int orderIndex);
 
     bool Toggled;
-    std::string Header;
-    std::string OriginalHeader;
-    int OrderIndex;
+    std::string Column;
+    std::string OriginalColumn;
+    int Order;
 };
 
-class ExportHeadersListModel : public wxDataViewVirtualListModel
+class ColumnListModel : public wxDataViewVirtualListModel
 {
 public:
-    enum { Col_Toggled = 0, Col_Header, Col_OrderIndex, Col_Max };
+    enum { Col_Toggled = 0, Col_Column, Col_Order, Col_Max };
 
-    ExportHeadersListModel() = delete;
-    ExportHeadersListModel(const ExportHeadersListModel&) = delete;
-    ExportHeadersListModel(std::shared_ptr<spdlog::logger> logger);
-    virtual ~ExportHeadersListModel() = default;
+    ColumnListModel() = delete;
+    ColumnListModel(const ColumnListModel&) = delete;
+    ColumnListModel(std::shared_ptr<spdlog::logger> logger);
+    virtual ~ColumnListModel() = default;
 
-    const ExportHeadersListModel& operator=(const ExportHeadersListModel&) = delete;
+    const ColumnListModel& operator=(const ColumnListModel&) = delete;
 
     virtual void GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const override;
     virtual bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override;
     virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override;
     virtual unsigned int GetCount() const override;
 
-    void Append(const std::string& headerName, int orderIndex);
+    void Append(const std::string& columnName, int order);
     void DeleteItems(const wxDataViewItemArray& items);
     void ChangeItem(const wxDataViewItem& item, const std::string& newItem);
-    void MoveItem(const wxDataViewItem& item, bool up = true);
+    void MoveItem(const wxDataViewItem& item, bool asc = true);
 
-    std::vector<std::string> GetSelectedHeaders();
+    std::vector<ColumnListItemModel> GetSelectedColumns();
 
-    std::vector<ExportHeaderListItemModel> GetHeadersToExport() const;
+    std::vector<ColumnListItemModel> GetColumnsToExport() const;
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
 
-    std::vector<ExportHeaderListItemModel> mListItemModels;
+    std::vector<ColumnListItemModel> mListItemModels;
 };
 } // namespace tks::UI
