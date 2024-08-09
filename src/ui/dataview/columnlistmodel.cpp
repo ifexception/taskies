@@ -139,7 +139,6 @@ void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
         unsigned int rowAbove = --row;
         mListItemModels[rowAbove].Order++;
         mListItemModels.insert(mListItemModels.begin() + rowAbove, modelAtRow);
-
         RowInserted(rowAbove);
     }
 
@@ -152,9 +151,8 @@ void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
         RowDeleted(row);
 
         unsigned int rowBelow = ++row;
-        mListItemModels[rowBelow].Order--;
         mListItemModels.insert(mListItemModels.begin() + rowBelow, modelAtRow);
-
+        mListItemModels[rowBelow].Order--;
         RowInserted(rowBelow);
     }
 }
