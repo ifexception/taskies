@@ -941,8 +941,13 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
             continue;
         }
 
+        auto& presetColumn = *presetOriginalColumnIterator;
         /* Add export header in data view control and update */
-        pExportColumnListModel->Append(name, presetOriginalColumnIterator->Order);
+        if (presetColumn.Column == presetColumn.OriginalColumn) {
+            pExportColumnListModel->Append(presetColumn.OriginalColumn, presetOriginalColumnIterator->Order);
+        } else {
+            pExportColumnListModel->Append(presetColumn.Column, presetOriginalColumnIterator->Order);
+        }
 
         /* Remove header from available header list control */
         pAvailableColumnsListView->DeleteItem(i);
