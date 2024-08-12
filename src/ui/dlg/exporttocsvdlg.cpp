@@ -25,6 +25,7 @@
 
 #include <fmt/format.h>
 
+#include <wx/clipbrd.h>
 #include <wx/dirdlg.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
@@ -416,7 +417,7 @@ void ExportToCsvDialog::CreateControls()
     dataPreviewStaticBoxSizer->Add(pDataExportPreviewTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     pShowPreviewButton = new wxButton(dataPreviewStaticBox, tksIDC_SHOW_PREVIEW_BUTTON, "Show Preview");
-    pShowPreviewButton->SetToolTip("Show a preview of the data to be exported (if all fields are selected correctly)");
+    pShowPreviewButton->SetToolTip("Show a preview of the data to be exported");
 
     dataPreviewStaticBoxSizer->Add(pShowPreviewButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
 
@@ -653,6 +654,13 @@ void ExportToCsvDialog::ConfigureEventBindings()
         this,
         tksIDC_SHOW_PREVIEW_BUTTON
     );
+
+    pExportButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnExport,
+        this,
+        tksIDC_EXPORT_BUTTON
+    );
 }
 // clang-format on
 
@@ -796,11 +804,12 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
 
 void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 {
-    const std::string TAG = "ExportToCsvDialog::OnCreateNewPreset";
-    pLogger->info("{0} - Begin reset of controls to create new preset", TAG);
+    const std::string TAG = "ExportToCsvDialog::OnResetPreset";
+    pLogger->info("{0} - Begin reset of controls to reset", TAG);
 
     mCsvOptions.Reset();
 
+    pLogger->info("{0} - Reset of choice controls", TAG);
     pDelimiterChoiceCtrl->SetSelection(0);
     pTextQualifierChoiceCtrl->SetSelection(0);
     pEmptyValueHandlerChoiceCtrl->SetSelection(0);
@@ -810,7 +819,7 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
     pPresetsChoiceCtrl->SetSelection(0);
     pPresetNameTextCtrl->ChangeValue("");
 
-    // auto headersToRemove = pExportColumnListModel->GetSelectedHeaders();
+    pLogger->info("{0} - Reset of columns", TAG);
     auto headersToRemove = pExportColumnListModel->GetColumnsToExport();
     wxDataViewItemArray items;
     auto selections = pDataViewCtrl->GetSelections(items);
@@ -829,7 +838,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 {
     // validation before saving preset
     if (pCfg->GetPresetCount() == MAX_PRESET_COUNT) {
-        auto valMsg = "Maximum limit of 5 presets has been reached";
+        auto valMsg = "Maximum of 5 presets can be saved";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pPresetSaveButton);
@@ -873,6 +882,8 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     }
 
     preset.Columns = columns;
+
+    preset.ExcludeHeaders = mCsvOptions.ExcludeHeaders;
 
     // save preset
     pCfg->SaveExportPreset(preset);
@@ -1242,6 +1253,150 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     }
 
     pDataExportPreviewTextCtrl->ChangeValue(exportedDataPreview);
+}
+
+void ExportToCsvDialog::OnExport(wxCommandEvent& event)
+{
+    pLogger->info("ExportToCsvDialog::OnExport - Begin export");
+
+    const auto& columnsToExport = pExportColumnListModel->GetColumnsToExport();
+    pLogger->info("ExportToCsvDialog::OnExport - Count of columns to export: \"{0}\"", columnsToExport.size());
+
+    if (columnsToExport.size() == 0) {
+        return;
+    }
+
+    const auto& availableColumnsList = AvailableColumns();
+    bool isProjectsTableSelected = false;
+
+    std::vector<Utils::Projection> projections;
+    std::vector<Utils::FirstLevelJoinTable> firstLevelTablesToJoinOn;
+    std::vector<Utils::SecondLevelJoinTable> secondLevelTablesToJoinOn;
+
+    /* Insert projects regardless as a catch-all scenario for first and second level table joins */
+    const auto& projectColumnIterator = std::find_if(availableColumnsList.begin(),
+        availableColumnsList.end(),
+        [=](const AvailableColumn& column) { return column.TableName == "projects"; });
+    if (projectColumnIterator != availableColumnsList.end()) {
+        const auto& projectColumn = *projectColumnIterator;
+        Utils::FirstLevelJoinTable jt;
+
+        jt.tableName = projectColumn.TableName;
+        jt.idColumn = projectColumn.IdColumn;
+        jt.joinType = Utils::JoinType::InnerJoin;
+
+        pLogger->info("ExportToCsvDialog::OnExport - Insert projects table to join on");
+
+        firstLevelTablesToJoinOn.push_back(jt);
+    }
+
+    for (const auto& columnToExport : columnsToExport) {
+        const auto& availableColumnIterator = std::find_if(availableColumnsList.begin(),
+            availableColumnsList.end(),
+            [=](const AvailableColumn& column) { return column.Display == columnToExport.OriginalColumn; });
+
+        if (availableColumnIterator != availableColumnsList.end()) {
+            const auto& availableColumn = *availableColumnIterator;
+            pLogger->info(
+                "ExportToCsvDialog::OnExport - Matched export column \"{0}\" with available column \"{1}\"",
+                columnToExport.OriginalColumn,
+                availableColumn.DatabaseColumn);
+
+            Utils::ColumnProjection cp(
+                availableColumn.DatabaseColumn, columnToExport.Column, availableColumn.TableName);
+
+            if (availableColumn.DatabaseColumn == "*time*") {
+                cp.SetIdentifier("*time*");
+            }
+
+            Utils::Projection projection(columnToExport.Order, cp);
+
+            projections.push_back(projection);
+
+            if (availableColumn.TableName == "categories") {
+                Utils::FirstLevelJoinTable jt;
+
+                jt.tableName = availableColumn.TableName;
+                jt.idColumn = availableColumn.IdColumn;
+                jt.joinType = Utils::JoinType::InnerJoin;
+
+                pLogger->info("ExportToCsvDialog::OnExport - Insert first level table to join on \"{0}\" with "
+                              "join \"{1}\"",
+                    availableColumn.TableName,
+                    "INNER");
+
+                firstLevelTablesToJoinOn.push_back(jt);
+            }
+
+            if (availableColumn.TableName == "employers" || availableColumn.TableName == "clients") {
+                Utils::SecondLevelJoinTable jt;
+
+                jt.tableName = availableColumn.TableName;
+                jt.idColumn = availableColumn.IdColumn;
+
+                if (availableColumn.TableName == "clients") {
+                    jt.joinType = Utils::JoinType::LeftJoin;
+                } else {
+                    jt.joinType = Utils::JoinType::InnerJoin;
+                }
+
+                pLogger->info("ExportToCsvDialog::OnExport - Insert second level table to join on \"{0}\" "
+                              "with join \"{1}\"",
+                    availableColumn.TableName,
+                    jt.joinType == Utils::JoinType::InnerJoin ? "INNER" : "LEFT");
+
+                secondLevelTablesToJoinOn.push_back(jt);
+            }
+        }
+    }
+
+    pLogger->info("ExportToCsvDialog::OnExport - Sort projections by order index ascending");
+    std::sort(projections.begin(), projections.end(), [](const Utils::Projection& lhs, const Utils::Projection& rhs) {
+        return lhs.orderIndex < rhs.orderIndex;
+    });
+
+    const std::string fromDate = date::format("%F", mFromDate);
+    const std::string toDate = date::format("%F", mToDate);
+
+    pLogger->info("ExportToCsvDialog::OnExport - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
+    std::string exportedData = "";
+    bool success = mCsvExporter.GeneratePreview(mCsvOptions,
+        projections,
+        firstLevelTablesToJoinOn,
+        secondLevelTablesToJoinOn,
+        fromDate,
+        toDate,
+        exportedData);
+
+    if (!success) {
+        std::string message = "Failed to export data";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    }
+
+    if (pExportToClipboardCheckBoxCtrl->IsChecked()) {
+        auto canOpen = wxTheClipboard->Open();
+        if (canOpen) {
+            auto textData = new wxTextDataObject(exportedData);
+            wxTheClipboard->SetData(textData);
+            wxTheClipboard->Close();
+        }
+    } else {
+        std::ofstream configFile;
+        configFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
+        if (!configFile) {
+            pLogger->error("ExportToCsvDialog::OnExport - Failed to open export file at path {0}",
+                pSaveToFileTextCtrl->GetValue().ToStdString());
+            return;
+        }
+
+        configFile << exportedData;
+
+        configFile.close();
+    }
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()

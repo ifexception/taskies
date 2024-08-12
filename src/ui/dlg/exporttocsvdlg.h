@@ -104,6 +104,7 @@ private:
     void OnExcludeHeadersCheck(wxCommandEvent& event);
 
     void OnShowPreview(wxCommandEvent& event);
+    void OnExport(wxCommandEvent& event);
 
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();
