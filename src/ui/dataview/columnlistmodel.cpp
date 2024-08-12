@@ -21,16 +21,6 @@
 
 namespace tks::UI
 {
-ColumnListItemModel::ColumnListItemModel(const std::string& column, int orderIndex)
-    : Toggled(false)
-    , Column(column)
-    , OriginalColumn(column)
-    , Order(orderIndex)
-{
-}
-
-// #############################################
-
 ColumnListModel::ColumnListModel(std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , mListItemModels()

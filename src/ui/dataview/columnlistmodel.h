@@ -33,18 +33,10 @@
 #include <spdlog/logger.h>
 
 #include "../../common/constants.h"
+#include "columnlistitemmodel.h"
 
 namespace tks::UI
 {
-struct ColumnListItemModel {
-    ColumnListItemModel(const std::string& column, int orderIndex);
-
-    bool Toggled;
-    std::string Column;
-    std::string OriginalColumn;
-    int Order;
-};
-
 class ColumnListModel : public wxDataViewVirtualListModel
 {
 public:
