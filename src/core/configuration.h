@@ -44,7 +44,7 @@ public:
     struct PresetSettings {
         std::string Name;
         bool IsDefault;
-        std::string Delimiter;
+        Delimiter Delimiter;
         std::string TextQualifier;
         EmptyValues EmptyValuesHandler;
         NewLines NewLinesHandler;

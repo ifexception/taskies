@@ -153,7 +153,7 @@ bool Configuration::Save()
             toml::table {
                 { "name", preset.Name },
                 { "isDefault", preset.IsDefault },
-                { "delimiter", preset.Delimiter },
+                { "delimiter", static_cast<int>(preset.Delimiter) },
                 { "textQualifier", preset.TextQualifier },
                 { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
                 { "newLines", static_cast<int>(preset.NewLinesHandler) },
@@ -306,19 +306,13 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
         return false;
     }
 
-    // clang-format off
-    /*toml::value v(
-        toml::table {
-            {"presets", toml::array {} }
-        }
-    );*/
-
     auto& presets = root.at(Sections::PresetsSection);
+    // clang-format off
     toml::value presetValue(
         toml::table {
             { "name", preset.Name },
             { "isDefault", preset.IsDefault },
-            { "delimiter", preset.Delimiter },
+            { "delimiter", static_cast<int>(preset.Delimiter) },
             { "textQualifier", preset.TextQualifier },
             { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
             { "newLines", static_cast<int>(preset.NewLinesHandler) },
@@ -589,7 +583,8 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
 
             preset.Name = root.at(Sections::PresetsSection).at(i).at("name").as_string();
             preset.IsDefault = root.at(Sections::PresetsSection).at(i).at("isDefault").as_boolean();
-            preset.Delimiter = root.at(Sections::PresetsSection).at(i).at("delimiter").as_string();
+            preset.Delimiter =
+                static_cast<Delimiter>(root.at(Sections::PresetsSection).at(i).at("delimiter").as_integer());
             preset.TextQualifier = root.at(Sections::PresetsSection).at(i).at("textQualifier").as_string();
             preset.EmptyValuesHandler =
                 static_cast<EmptyValues>(root.at(Sections::PresetsSection).at(i).at("emptyValues").as_integer());

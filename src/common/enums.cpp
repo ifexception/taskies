@@ -50,6 +50,7 @@ std::string WindowStateToString(WindowState windowState)
         return "";
     }
 }
+
 std::string NotificationTypeToString(NotificationType notificationType)
 {
     switch (notificationType) {
@@ -61,4 +62,43 @@ std::string NotificationTypeToString(NotificationType notificationType)
         return "";
     }
 }
+
+std::string MapDelimiterEnumToValue(Delimiter delimiter)
+{
+    switch (delimiter) {
+    case tks::Delimiter::None:
+        return "";
+    case tks::Delimiter::Comma:
+        return ",";
+    case tks::Delimiter::Semicolon:
+        return ";";
+    case tks::Delimiter::Pipe:
+        return "|";
+    case tks::Delimiter::Tab:
+        return "(tab)";
+    case tks::Delimiter::Space:
+        return "(space)";
+    default:
+        return "";
+    }
 }
+
+Delimiter MapValueToDelimiterEnum(std::string delimiter)
+{
+    if (delimiter.empty() || delimiter == "") {
+        return Delimiter::None;
+    } else if (delimiter == ",") {
+        return Delimiter::Comma;
+    } else if (delimiter == ";") {
+        return Delimiter::Semicolon;
+    } else if (delimiter == "|") {
+        return Delimiter::Pipe;
+    } else if (delimiter == "\t") {
+        return Delimiter::Tab;
+    } else if (delimiter == " ") {
+        return Delimiter::Space;
+    } else {
+        return Delimiter::None;
+    }
+}
+} // namespace tks

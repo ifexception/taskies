@@ -865,7 +865,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     Common::Preset preset;
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
     preset.IsDefault = pPresetIsDefaultCtrl->GetValue();
-    preset.Delimiter = std::string(1, mCsvOptions.Delimiter);
+    preset.Delimiter = MapValueToDelimiterEnum(std::string(1, mCsvOptions.Delimiter));
     preset.TextQualifier = std::string(1, mCsvOptions.TextQualifier);
     preset.EmptyValuesHandler = mCsvOptions.EmptyValuesHandler;
     preset.NewLinesHandler = mCsvOptions.NewLinesHandler;
@@ -923,7 +923,7 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
     auto& selectedPresetToApply = *selectedPresetToApplyIterator;
 
     // apply options
-    pDelimiterChoiceCtrl->SetStringSelection(selectedPresetToApply.Delimiter);
+    pDelimiterChoiceCtrl->SetSelection(static_cast<int>(selectedPresetToApply.Delimiter));
     pTextQualifierChoiceCtrl->SetStringSelection(selectedPresetToApply.TextQualifier);
     pEmptyValueHandlerChoiceCtrl->SetSelection(static_cast<int>(selectedPresetToApply.EmptyValuesHandler));
     pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(selectedPresetToApply.NewLinesHandler));
