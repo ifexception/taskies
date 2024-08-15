@@ -306,6 +306,8 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
         return false;
     }
 
+    root.at(Sections::ExportSection)["presetCount"] = GetPresetCount() + 1;
+
     auto& presets = root.at(Sections::PresetsSection);
     // clang-format off
     toml::value presetValue(
@@ -599,8 +601,8 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
                     root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("column").as_string();
                 presetColumn.OriginalColumn =
                     root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("originalColumn").as_string();
-                presetColumn.Order =
-                    root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("order").as_integer();
+                presetColumn.Order = static_cast<int>(
+                    root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("order").as_integer());
 
                 preset.Columns.push_back(presetColumn);
             }
