@@ -435,7 +435,7 @@ void ExportToCsvDialog::CreateControls()
     pExportButton->SetDefault();
     pExportButton->SetFocus();
 
-    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
+    pCancelButton = new wxButton(this, wxID_CANCEL, "Close");
 
     buttonsSizer->Add(pExportButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -965,6 +965,13 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
     }
 
     pExcludeHeadersCheckBoxCtrl->SetValue(selectedPresetToApply.ExcludeHeaders);
+
+    auto value = MapDelimiterEnumToValue(selectedPresetToApply.Delimiter);
+    mCsvOptions.Delimiter = *&value[0];
+    mCsvOptions.TextQualifier = *&selectedPresetToApply.TextQualifier[0];
+    mCsvOptions.EmptyValuesHandler = selectedPresetToApply.EmptyValuesHandler;
+    mCsvOptions.NewLinesHandler = selectedPresetToApply.NewLinesHandler;
+    mCsvOptions.ExcludeHeaders = selectedPresetToApply.ExcludeHeaders;
 }
 
 void ExportToCsvDialog::OnAvailableColumnItemCheck(wxListEvent& event)
@@ -1297,8 +1304,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
         if (availableColumnIterator != availableColumnsList.end()) {
             const auto& availableColumn = *availableColumnIterator;
-            pLogger->info(
-                "ExportToCsvDialog::OnExport - Matched export column \"{0}\" with available column \"{1}\"",
+            pLogger->info("ExportToCsvDialog::OnExport - Matched export column \"{0}\" with available column \"{1}\"",
                 columnToExport.OriginalColumn,
                 availableColumn.DatabaseColumn);
 
@@ -1360,13 +1366,8 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     pLogger->info("ExportToCsvDialog::OnExport - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
     std::string exportedData = "";
-    bool success = mCsvExporter.GeneratePreview(mCsvOptions,
-        projections,
-        firstLevelTablesToJoinOn,
-        secondLevelTablesToJoinOn,
-        fromDate,
-        toDate,
-        exportedData);
+    bool success = mCsvExporter.GeneratePreview(
+        mCsvOptions, projections, firstLevelTablesToJoinOn, secondLevelTablesToJoinOn, fromDate, toDate, exportedData);
 
     if (!success) {
         std::string message = "Failed to export data";
