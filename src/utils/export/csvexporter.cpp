@@ -271,7 +271,7 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
     AppendClause(query, " WHERE ", where);
 
     if (bIsPreview) {
-        AppendClause(query, " LIMIT ", "10");
+        AppendClause(query, " LIMIT ", "1");
     }
 
     return query.str();
