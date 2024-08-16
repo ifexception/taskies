@@ -59,6 +59,9 @@ public:
     void ChangeItem(const wxDataViewItem& item, const std::string& newItem);
     void MoveItem(const wxDataViewItem& item, bool asc = true);
 
+    void AppendStagingItem(const std::string& column, const std::string& originalColumn, int order);
+    void AppendFromStaging();
+
     std::vector<ColumnListItemModel> GetSelectedColumns();
 
     std::vector<ColumnListItemModel> GetColumnsToExport() const;
@@ -67,5 +70,6 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
 
     std::vector<ColumnListItemModel> mListItemModels;
+    std::vector<ColumnListItemModel> mListItemModelsStaging;
 };
 } // namespace tks::UI

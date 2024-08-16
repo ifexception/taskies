@@ -28,8 +28,8 @@
 namespace tks::UI
 {
 struct ColumnListItemModel {
-    ColumnListItemModel(const std::string& column, int orderIndex);
-    ColumnListItemModel(const std::string& column, const std::string& originalColumn, int orderIndex);
+    ColumnListItemModel(const std::string& column, int order);
+    ColumnListItemModel(const std::string& column, const std::string& originalColumn, int order);
 
     bool Toggled;
     std::string Column;

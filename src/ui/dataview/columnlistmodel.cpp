@@ -19,6 +19,8 @@
 
 #include "columnlistmodel.h"
 
+#include <algorithm>
+
 namespace tks::UI
 {
 ColumnListModel::ColumnListModel(std::shared_ptr<spdlog::logger> logger)
@@ -145,6 +147,27 @@ void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
         mListItemModels[rowBelow].Order--;
         RowInserted(rowBelow);
     }
+}
+
+void ColumnListModel::AppendStagingItem(const std::string& column, const std::string& originalColumn, int order)
+{
+    ColumnListItemModel model(column, originalColumn, order);
+    mListItemModelsStaging.push_back(model);
+}
+
+void ColumnListModel::AppendFromStaging()
+{
+    std::sort(mListItemModelsStaging.begin(),
+        mListItemModelsStaging.end(),
+        [&](const ColumnListItemModel& lhs, const ColumnListItemModel& rhs) { return lhs.Order < rhs.Order; });
+
+    for (const auto& model: mListItemModelsStaging) {
+        mListItemModels.push_back(model);
+
+        RowAppended();
+    }
+
+    mListItemModelsStaging.clear();
 }
 
 std::vector<ColumnListItemModel> ColumnListModel::GetSelectedColumns()

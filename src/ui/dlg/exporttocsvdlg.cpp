@@ -35,8 +35,6 @@
 #include "../../common/constants.h"
 #include "../../common/enums.h"
 
-#include "../../core/configuration.h"
-
 #include "../clientdata.h"
 #include "../events.h"
 #include "../notificationclientdata.h"
@@ -324,8 +322,7 @@ void ExportToCsvDialog::CreateControls()
         wxDefaultSize,
         wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
     pAvailableColumnsListView->EnableCheckBoxes();
-    pAvailableColumnsListView->SetToolTip(
-        "Available headers (columns) that can be exported (use the controls to select which headers to export)");
+    pAvailableColumnsListView->SetToolTip("Available headers (columns) that can be exported");
     headerControlsHorizontalSizer->Add(pAvailableColumnsListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     int columnIndex = 0;
@@ -356,7 +353,7 @@ void ExportToCsvDialog::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxDV_SINGLE | wxDV_ROW_LINES);
-    pDataViewCtrl->SetToolTip("Headers to be exported to file or clipboard");
+    pDataViewCtrl->SetToolTip("Headers (columns) to be exported to file or clipboard");
     headerControlsHorizontalSizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Model */
@@ -500,6 +497,18 @@ void ExportToCsvDialog::FillControls()
     /* Available Columns */
     for (auto& column : AvailableColumns()) {
         pAvailableColumnsListView->InsertItem(0, column.Display);
+    }
+
+    auto presets = pCfg->GetPresets();
+    const auto& defaultPresetToApplyIterator = std::find_if(presets.begin(),
+        presets.end(),
+        [&](const Core::Configuration::PresetSettings& preset) { return preset.IsDefault == true; });
+
+    if (defaultPresetToApplyIterator == presets.end()) {
+        pLogger->warn("ExportToCsvDialog::FillControls - No default preset found");
+    } else {
+        auto& selectedPresetToApply = *defaultPresetToApplyIterator;
+        ApplyPreset(selectedPresetToApply);
     }
 }
 
@@ -885,15 +894,23 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     preset.ExcludeHeaders = mCsvOptions.ExcludeHeaders;
 
-    // save preset
-    pCfg->SaveExportPreset(preset);
-    pCfg->SetPresetCount(pCfg->GetPresetCount() + 1);
+    int n = pPresetsChoiceCtrl->GetSelection();
+    auto selectedPresetToApplyName = pPresetsChoiceCtrl->GetString(n).ToStdString();
 
-    // set as the active preset
-    int selection = pPresetsChoiceCtrl->Append(preset.Name, new ClientData<int>(-1));
-    pPresetsChoiceCtrl->SetSelection(selection);
+    if (n != 0) {
+        // save preset
+        pCfg->SaveExportPreset(preset);
+        pCfg->SetPresetCount(pCfg->GetPresetCount() + 1);
 
-    pPresetIsDefaultCtrl->SetValue(false);
+        // set as the active preset
+        int selection = pPresetsChoiceCtrl->Append(preset.Name, new ClientData<int>(-1));
+        pPresetsChoiceCtrl->SetSelection(selection);
+
+        pPresetIsDefaultCtrl->SetValue(false);
+    } else {
+        // update preset
+        // pCfg->UpdateExportPreset(preset);
+    }
 }
 
 void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
@@ -905,7 +922,6 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
-    // get preset name
     int n = pPresetsChoiceCtrl->GetSelection();
     auto selectedPresetToApplyName = pPresetsChoiceCtrl->GetString(n).ToStdString();
     pLogger->info("{0} - Applying selected preset \"{1}\"", TAG, selectedPresetToApplyName);
@@ -922,56 +938,7 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
 
     auto& selectedPresetToApply = *selectedPresetToApplyIterator;
 
-    // apply options
-    pDelimiterChoiceCtrl->SetSelection(static_cast<int>(selectedPresetToApply.Delimiter));
-    pTextQualifierChoiceCtrl->SetStringSelection(selectedPresetToApply.TextQualifier);
-    pEmptyValueHandlerChoiceCtrl->SetSelection(static_cast<int>(selectedPresetToApply.EmptyValuesHandler));
-    pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(selectedPresetToApply.NewLinesHandler));
-
-    pPresetNameTextCtrl->ChangeValue(selectedPresetToApply.Name);
-    pPresetIsDefaultCtrl->SetValue(selectedPresetToApply.IsDefault);
-
-    // apply selected columns
-    for (long i = (pAvailableColumnsListView->GetItemCount() - 1); 0 <= i; i--) {
-        std::string name;
-        wxListItem item;
-        item.m_itemId = i;
-        item.m_col = 0;
-        item.m_mask = wxLIST_MASK_TEXT;
-        pAvailableColumnsListView->GetItem(item);
-
-        name = item.GetText().ToStdString();
-
-        auto presetOriginalColumnIterator = std::find_if(selectedPresetToApply.Columns.begin(),
-            selectedPresetToApply.Columns.end(),
-            [=](const Core::Configuration::PresetColumnSettings& presetColumn) {
-                return name == presetColumn.OriginalColumn;
-            });
-
-        if (presetOriginalColumnIterator == selectedPresetToApply.Columns.end()) {
-            continue;
-        }
-
-        auto& presetColumn = *presetOriginalColumnIterator;
-        /* Add export header in data view control and update */
-        if (presetColumn.Column == presetColumn.OriginalColumn) {
-            pExportColumnListModel->Append(presetColumn.OriginalColumn, presetOriginalColumnIterator->Order);
-        } else {
-            pExportColumnListModel->Append(presetColumn.Column, presetOriginalColumnIterator->Order);
-        }
-
-        /* Remove header from available header list control */
-        pAvailableColumnsListView->DeleteItem(i);
-    }
-
-    pExcludeHeadersCheckBoxCtrl->SetValue(selectedPresetToApply.ExcludeHeaders);
-
-    auto value = MapDelimiterEnumToValue(selectedPresetToApply.Delimiter);
-    mCsvOptions.Delimiter = *&value[0];
-    mCsvOptions.TextQualifier = *&selectedPresetToApply.TextQualifier[0];
-    mCsvOptions.EmptyValuesHandler = selectedPresetToApply.EmptyValuesHandler;
-    mCsvOptions.NewLinesHandler = selectedPresetToApply.NewLinesHandler;
-    mCsvOptions.ExcludeHeaders = selectedPresetToApply.ExcludeHeaders;
+    ApplyPreset(selectedPresetToApply);
 }
 
 void ExportToCsvDialog::OnAvailableColumnItemCheck(wxListEvent& event)
@@ -1451,5 +1418,60 @@ void ExportToCsvDialog::SetToDateAndDatePicker()
 
     pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - Reset mToCtrlDate to: {0}",
         mToCtrlDate.FormatISODate().ToStdString());
+}
+
+void ExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetSettings)
+{
+    const std::string TAG = "ExportToCsvDialog::ApplyPreset";
+    pLogger->info("{0} - Begin to apply selected preset", TAG);
+
+    // apply options
+    pDelimiterChoiceCtrl->SetSelection(static_cast<int>(presetSettings.Delimiter));
+    pTextQualifierChoiceCtrl->SetStringSelection(presetSettings.TextQualifier);
+    pEmptyValueHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.EmptyValuesHandler));
+    pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.NewLinesHandler));
+
+    pPresetNameTextCtrl->ChangeValue(presetSettings.Name);
+    pPresetIsDefaultCtrl->SetValue(presetSettings.IsDefault);
+
+    // apply selected columns
+    for (long i = (pAvailableColumnsListView->GetItemCount() - 1); 0 <= i; i--) {
+        std::string name;
+        wxListItem item;
+        item.m_itemId = i;
+        item.m_col = 0;
+        item.m_mask = wxLIST_MASK_TEXT;
+        pAvailableColumnsListView->GetItem(item);
+
+        name = item.GetText().ToStdString();
+
+        auto presetOriginalColumnIterator = std::find_if(presetSettings.Columns.begin(),
+            presetSettings.Columns.end(),
+            [=](const Core::Configuration::PresetColumnSettings& presetColumn) {
+                return name == presetColumn.OriginalColumn;
+            });
+
+        if (presetOriginalColumnIterator == presetSettings.Columns.end()) {
+            continue;
+        }
+
+        auto& presetColumn = *presetOriginalColumnIterator;
+        /* Add export header in data view control and update */
+        pExportColumnListModel->AppendStagingItem(presetColumn.Column, presetColumn.OriginalColumn, presetColumn.Order);
+
+        /* Remove header from available header list control */
+        pAvailableColumnsListView->DeleteItem(i);
+    }
+
+    pExportColumnListModel->AppendFromStaging();
+
+    pExcludeHeadersCheckBoxCtrl->SetValue(presetSettings.ExcludeHeaders);
+
+    auto value = MapDelimiterEnumToValue(presetSettings.Delimiter);
+    mCsvOptions.Delimiter = *&value[0];
+    mCsvOptions.TextQualifier = *&presetSettings.TextQualifier[0];
+    mCsvOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
+    mCsvOptions.NewLinesHandler = presetSettings.NewLinesHandler;
+    mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
 }
 } // namespace tks::UI::dlg

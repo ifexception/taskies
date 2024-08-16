@@ -37,15 +37,13 @@
 
 #include "../dataview/columnlistmodel.h"
 
+#include "../../core/configuration.h"
+
 #include "../../utils/datestore.h"
 #include "../../utils/export/csvexporter.h"
 
 namespace tks
 {
-namespace Core
-{
-class Configuration;
-} // namespace Core
 namespace UI::dlg
 {
 struct AvailableColumn {
@@ -109,6 +107,8 @@ private:
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
+
+    void ApplyPreset(Core::Configuration::PresetSettings& presetSettings);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;

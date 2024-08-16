@@ -21,19 +21,19 @@
 
 namespace tks::UI
 {
-ColumnListItemModel::ColumnListItemModel(const std::string& column, int orderIndex)
+ColumnListItemModel::ColumnListItemModel(const std::string& column, int order)
     : Toggled(false)
     , Column(column)
     , OriginalColumn(column)
-    , Order(orderIndex)
+    , Order(order)
 {
 }
 
-ColumnListItemModel::ColumnListItemModel(const std::string& column, const std::string& originalColumn, int orderIndex)
+ColumnListItemModel::ColumnListItemModel(const std::string& column, const std::string& originalColumn, int order)
     : Toggled(false)
     , Column(column)
     , OriginalColumn(originalColumn)
-    , Order(orderIndex)
+    , Order(order)
 {
 }
 } // namespace tks::UI
