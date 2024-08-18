@@ -361,6 +361,53 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
     return true;
 }
 
+bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
+{
+    auto configPath = pEnv->GetConfigurationPath().string();
+
+    toml::value root;
+    try {
+        root = toml::parse(configPath);
+    } catch (const toml::syntax_error& error) {
+        pLogger->error(
+            "Configuration::SaveExportPreset - A TOML syntax/parse error occurred when parsing configuration file {0}",
+            error.what());
+        return false;
+    }
+
+    auto& presets = root.at(Sections::PresetsSection).as_array();
+    for (auto& preset : presets) {
+        if (preset["name"].as_string() == presetToUpdate.Name) { // prests need a UID as name can be updated
+            preset["name"] = presetToUpdate.Name;
+            preset["isDefault"] = presetToUpdate.IsDefault;
+            preset["delimiter"] = static_cast<int>(presetToUpdate.Delimiter);
+            preset["textQualifier"] = presetToUpdate.TextQualifier;
+            preset["emptyValues"] = static_cast<int>(presetToUpdate.EmptyValuesHandler);
+            preset["newLines"] = static_cast<int>(presetToUpdate.NewLinesHandler);
+            preset["excludeHeaders"] = presetToUpdate.ExcludeHeaders;
+
+            auto& columns = preset.at("columns").as_array();
+            columns.clear();
+
+            for (const auto& column : presetToUpdate.Columns) {
+                // clang-format off
+                toml::value columnValue(
+                    toml::table {
+                        { "column", column.Column },
+                        { "originalColumn", column.OriginalColumn },
+                        { "order", column.Order }
+                    }
+                );
+                // clang-format on
+
+                columns.push_back(std::move(columnValue));
+            }
+        }
+    }
+
+    return true;
+}
+
 std::string Configuration::GetUserInterfaceLanguage() const
 {
     return mSettings.UserInterfaceLanguage;

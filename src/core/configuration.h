@@ -61,6 +61,7 @@ public:
     bool RestoreDefaults();
 
     bool SaveExportPreset(const Common::Preset& preset);
+    bool UpdateExportPreset(const Common::Preset& presetToUpdate);
 
     std::string GetUserInterfaceLanguage() const;
     void SetUserInterfaceLanguage(const std::string& value);
