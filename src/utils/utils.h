@@ -46,6 +46,8 @@ std::string ReplaceNewlineWithEllipses(const std::string& value);
 
 std::string ReplaceAll(std::string value, const std::string& src, const std::string& dest);
 
+std::string Uuid();
+
 namespace sqlite
 {
 // SQLite interprets single quotes as string and performs no parameterization.

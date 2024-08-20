@@ -42,6 +42,7 @@ public:
     };
 
     struct PresetSettings {
+        std::string Uuid;
         std::string Name;
         bool IsDefault;
         Delimiter Delimiter;
@@ -60,7 +61,7 @@ public:
     bool Save();
     bool RestoreDefaults();
 
-    bool SaveExportPreset(const Common::Preset& preset);
+    bool SaveExportPreset(const Common::Preset& presetToSave);
     bool UpdateExportPreset(const Common::Preset& presetToUpdate);
 
     std::string GetUserInterfaceLanguage() const;

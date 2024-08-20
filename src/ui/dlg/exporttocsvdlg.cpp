@@ -34,6 +34,7 @@
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/enums.h"
+#include "../../utils/utils.h"
 
 #include "../clientdata.h"
 #include "../events.h"
@@ -487,11 +488,11 @@ void ExportToCsvDialog::FillControls()
     SetToDateAndDatePicker();
 
     /* Presets controls */
-    pPresetsChoiceCtrl->Append("(none)", new ClientData<int>(-1));
+    pPresetsChoiceCtrl->Append("(none)", new ClientData<std::string>(""));
     pPresetsChoiceCtrl->SetSelection(0);
 
     for (const auto& preset : pCfg->GetPresets()) {
-        pPresetsChoiceCtrl->Append(preset.Name, new ClientData<int>(-1));
+        pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
     }
 
     /* Available Columns */
@@ -505,10 +506,12 @@ void ExportToCsvDialog::FillControls()
         [&](const Core::Configuration::PresetSettings& preset) { return preset.IsDefault == true; });
 
     if (defaultPresetToApplyIterator == presets.end()) {
-        pLogger->warn("ExportToCsvDialog::FillControls - No default preset found");
+        pLogger->info("ExportToCsvDialog::FillControls - No default preset found");
     } else {
         auto& selectedPresetToApply = *defaultPresetToApplyIterator;
         ApplyPreset(selectedPresetToApply);
+
+        pPresetsChoiceCtrl->SetStringSelection(selectedPresetToApply.Name);
     }
 }
 
@@ -870,8 +873,17 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         return;
     }
 
+    int presetIndex = pPresetsChoiceCtrl->GetSelection();
+    ClientData<std::string>* presetData =
+        reinterpret_cast<ClientData<std::string>*>(pPresetsChoiceCtrl->GetClientObject(presetIndex));
+
     // build preset
     Common::Preset preset;
+    if (presetData->GetValue().empty()) {
+        preset.Uuid = Utils::Uuid();
+    } else {
+        preset.Uuid = presetData->GetValue();
+    }
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
     preset.IsDefault = pPresetIsDefaultCtrl->GetValue();
     preset.Delimiter = MapValueToDelimiterEnum(std::string(1, mCsvOptions.Delimiter));
@@ -894,22 +906,19 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     preset.ExcludeHeaders = mCsvOptions.ExcludeHeaders;
 
-    int n = pPresetsChoiceCtrl->GetSelection();
-    auto selectedPresetToApplyName = pPresetsChoiceCtrl->GetString(n).ToStdString();
-
-    if (n != 0) {
+    if (presetData->GetValue().empty()) {
         // save preset
         pCfg->SaveExportPreset(preset);
         pCfg->SetPresetCount(pCfg->GetPresetCount() + 1);
 
         // set as the active preset
-        int selection = pPresetsChoiceCtrl->Append(preset.Name, new ClientData<int>(-1));
+        int selection = pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
         pPresetsChoiceCtrl->SetSelection(selection);
 
         pPresetIsDefaultCtrl->SetValue(false);
     } else {
         // update preset
-        // pCfg->UpdateExportPreset(preset);
+        pCfg->UpdateExportPreset(preset);
     }
 }
 
@@ -918,21 +927,25 @@ void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
     const std::string TAG = "ExportToCsvDialog::OnApplyPreset";
     pLogger->info("{0} - Begin to apply selected preset", TAG);
 
-    if (pPresetsChoiceCtrl->GetCount() < 2) {
+    int presetIndex = pPresetsChoiceCtrl->GetSelection();
+    ClientData<std::string>* presetData =
+        reinterpret_cast<ClientData<std::string>*>(pPresetsChoiceCtrl->GetClientObject(presetIndex));
+
+    if (presetData->GetValue().empty()) {
         return;
     }
 
-    int n = pPresetsChoiceCtrl->GetSelection();
-    auto selectedPresetToApplyName = pPresetsChoiceCtrl->GetString(n).ToStdString();
-    pLogger->info("{0} - Applying selected preset \"{1}\"", TAG, selectedPresetToApplyName);
+    auto presetUuid = presetData->GetValue();
+
+    pLogger->info("{0} - Applying selected preset uuid \"{1}\"", TAG, presetUuid);
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetToApplyIterator = std::find_if(presets.begin(),
         presets.end(),
-        [&](const Core::Configuration::PresetSettings& preset) { return preset.Name == selectedPresetToApplyName; });
+        [&](const Core::Configuration::PresetSettings& preset) { return preset.Uuid == presetUuid; });
 
     if (selectedPresetToApplyIterator == presets.end()) {
-        pLogger->warn("{0} - Could not find preset \"{1}\" in config", TAG, selectedPresetToApplyName);
+        pLogger->warn("{0} - Could not find preset uuid \"{1}\" in config", TAG, presetUuid);
         return;
     }
 

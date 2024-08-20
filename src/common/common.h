@@ -48,6 +48,7 @@ struct PresetColumn {
 };
 
 struct Preset {
+    std::string Uuid;
     std::string Name;
     bool IsDefault;
     Delimiter Delimiter;

@@ -151,6 +151,7 @@ bool Configuration::Save()
         // clang-format off
         toml::value presetValue(
             toml::table {
+                { "uuid", preset.Uuid },
                 { "name", preset.Name },
                 { "isDefault", preset.IsDefault },
                 { "delimiter", static_cast<int>(preset.Delimiter) },
@@ -292,7 +293,7 @@ bool Configuration::RestoreDefaults()
     return true;
 }
 
-bool Configuration::SaveExportPreset(const Common::Preset& preset)
+bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 {
     auto configPath = pEnv->GetConfigurationPath().string();
 
@@ -312,20 +313,21 @@ bool Configuration::SaveExportPreset(const Common::Preset& preset)
     // clang-format off
     toml::value presetValue(
         toml::table {
-            { "name", preset.Name },
-            { "isDefault", preset.IsDefault },
-            { "delimiter", static_cast<int>(preset.Delimiter) },
-            { "textQualifier", preset.TextQualifier },
-            { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
-            { "newLines", static_cast<int>(preset.NewLinesHandler) },
-            { "excludeHeaders", preset.ExcludeHeaders },
+            { "uuid", presetToSave.Uuid },
+            { "name", presetToSave.Name },
+            { "isDefault", presetToSave.IsDefault },
+            { "delimiter", static_cast<int>(presetToSave.Delimiter) },
+            { "textQualifier", presetToSave.TextQualifier },
+            { "emptyValues", static_cast<int>(presetToSave.EmptyValuesHandler) },
+            { "newLines", static_cast<int>(presetToSave.NewLinesHandler) },
+            { "excludeHeaders", presetToSave.ExcludeHeaders },
             { "columns", toml::array {} }
         }
     );
     // clang-format on
 
     auto& columns = presetValue.at("columns");
-    for (const auto& column : preset.Columns) {
+    for (const auto& column : presetToSave.Columns) {
         // clang-format off
             toml::value columnValue(
                 toml::table {
@@ -369,15 +371,19 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
     try {
         root = toml::parse(configPath);
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "Configuration::SaveExportPreset - A TOML syntax/parse error occurred when parsing configuration file {0}",
+        pLogger->error("Configuration::UpdateExportPreset - A TOML syntax/parse error occurred when parsing "
+                       "configuration file {0}",
             error.what());
         return false;
     }
 
     auto& presets = root.at(Sections::PresetsSection).as_array();
     for (auto& preset : presets) {
-        if (preset["name"].as_string() == presetToUpdate.Name) { // prests need a UID as name can be updated
+        if (preset.as_table().empty()) {
+            continue;
+        }
+
+        if (preset["uuid"].as_string() == presetToUpdate.Uuid) {
             preset["name"] = presetToUpdate.Name;
             preset["isDefault"] = presetToUpdate.IsDefault;
             preset["delimiter"] = static_cast<int>(presetToUpdate.Delimiter);
@@ -402,8 +408,27 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
 
                 columns.push_back(std::move(columnValue));
             }
+            break;
         }
     }
+
+    pLogger->info("Configuration::UpdateExportPreset - Preset serialized to:\n{0}", toml::format(root));
+
+    const std::string presetConfigString = toml::format(root);
+
+    pLogger->info("Configuration::UpdateExportPreset - Probing for configuration file for appending preset at path {0}",
+        configPath);
+
+    std::ofstream configFileStream;
+    configFileStream.open(configPath, std::ios_base::out);
+    if (!configFileStream) {
+        pLogger->error("Configuration::UpdateExportPreset - Failed to open configuration file at path {0}", configPath);
+        return false;
+    }
+
+    configFileStream << presetConfigString;
+
+    configFileStream.close();
 
     return true;
 }
@@ -630,6 +655,7 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
 
             PresetSettings preset;
 
+            preset.Uuid = root.at(Sections::PresetsSection).at(i).at("uuid").as_string();
             preset.Name = root.at(Sections::PresetsSection).at(i).at("name").as_string();
             preset.IsDefault = root.at(Sections::PresetsSection).at(i).at("isDefault").as_boolean();
             preset.Delimiter =
