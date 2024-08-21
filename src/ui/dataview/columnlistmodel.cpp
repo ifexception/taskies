@@ -123,30 +123,39 @@ void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
         pLogger->info("ColumnListModel::MoveItem - Moving column \"{0}\" up", mListItemModels[row].Column);
 
         auto modelAtRow = mListItemModels[row];
-        mListItemModels.erase(mListItemModels.begin() + row);
-        modelAtRow.Order--;
+        modelAtRow.Order -= 1;
         modelAtRow.Toggled = false;
+
+        unsigned int rowAbove = row - 1;
+        mListItemModels[rowAbove].Order += 1;
+
+        mListItemModels.erase(mListItemModels.begin() + row);
         RowDeleted(row);
 
-        unsigned int rowAbove = --row;
-        mListItemModels[rowAbove].Order++;
         mListItemModels.insert(mListItemModels.begin() + rowAbove, modelAtRow);
         RowInserted(rowAbove);
     }
 
-    if (row != 0 && row != (mListItemModels.size() - 1) && !asc) {
+    if (row != (mListItemModels.size() - 1) && !asc) {
         pLogger->info("ColumnListModel::MoveItem - Moving column \"{0}\" down", mListItemModels[row].Column);
+
         auto modelAtRow = mListItemModels[row];
-        mListItemModels.erase(mListItemModels.begin() + row);
-        modelAtRow.Order++;
+        modelAtRow.Order += 1;
         modelAtRow.Toggled = false;
+
+        unsigned int rowBelow = row + 1;
+        mListItemModels[rowBelow].Order -= 1;
+
+        mListItemModels.erase(mListItemModels.begin() + row);
         RowDeleted(row);
 
-        unsigned int rowBelow = ++row;
         mListItemModels.insert(mListItemModels.begin() + rowBelow, modelAtRow);
-        mListItemModels[rowBelow].Order--;
         RowInserted(rowBelow);
     }
+
+    std::sort(mListItemModels.begin(),
+        mListItemModels.end(),
+        [&](const ColumnListItemModel& lhs, const ColumnListItemModel& rhs) { return lhs.Order < rhs.Order; });
 }
 
 void ColumnListModel::AppendStagingItem(const std::string& column, const std::string& originalColumn, int order)
@@ -161,7 +170,7 @@ void ColumnListModel::AppendFromStaging()
         mListItemModelsStaging.end(),
         [&](const ColumnListItemModel& lhs, const ColumnListItemModel& rhs) { return lhs.Order < rhs.Order; });
 
-    for (const auto& model: mListItemModelsStaging) {
+    for (const auto& model : mListItemModelsStaging) {
         mListItemModels.push_back(model);
 
         RowAppended();
