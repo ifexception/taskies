@@ -120,6 +120,7 @@ public:
     std::vector<PresetSettings> GetPresets() const;
     void SetPresets(const std::vector<PresetSettings>& values);
     void SetPreset(const PresetSettings& value);
+    void EmplacePreset(const PresetSettings& value);
     void ClearPresets();
 
 private:

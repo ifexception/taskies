@@ -19,6 +19,7 @@
 
 #include "configuration.h"
 
+#include <algorithm>
 #include <filesystem>
 
 #include "environment.h"
@@ -442,6 +443,11 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
 
     pLogger->info("Configuration::UpdateExportPreset - Preset serialized to:\n{0}", toml::format(root));
 
+    // update ptr data
+
+    PresetSettings updatedPresetSettings(presetToUpdate);
+    EmplacePreset(updatedPresetSettings);
+
     const std::string presetConfigString = toml::format(root);
 
     pLogger->info("Configuration::UpdateExportPreset - Probing for configuration file for appending preset at path {0}",
@@ -623,6 +629,23 @@ void Configuration::SetPresets(const std::vector<PresetSettings>& values)
 
 void Configuration::SetPreset(const PresetSettings& value)
 {
+    mSettings.PresetSettings.push_back(value);
+}
+
+void Configuration::EmplacePreset(const PresetSettings& value)
+{
+    // clang-format off
+    mSettings.PresetSettings.erase(
+        std::remove_if(
+            mSettings.PresetSettings.begin(),
+            mSettings.PresetSettings.end(),
+            [&](const PresetSettings& preset) {
+                return preset.Uuid == value.Uuid;
+            }),
+        mSettings.PresetSettings.end()
+    );
+    // clang-format on
+
     mSettings.PresetSettings.push_back(value);
 }
 
