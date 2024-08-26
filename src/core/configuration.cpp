@@ -32,6 +32,29 @@ const std::string Configuration::Sections::TasksViewSection = "tasksView";
 const std::string Configuration::Sections::ExportSection = "export";
 const std::string Configuration::Sections::PresetsSection = "presets";
 
+Configuration::PresetColumnSettings::PresetColumnSettings(Common::PresetColumn presetColumn)
+{
+    Column = presetColumn.Column;
+    OriginalColumn = presetColumn.OriginalColumn;
+    Order = presetColumn.Order;
+}
+
+Configuration::PresetSettings::PresetSettings(Common::Preset preset)
+{
+    Uuid = preset.Uuid;
+    Name = preset.Name;
+    IsDefault = preset.IsDefault;
+    Delimiter = preset.Delimiter;
+    TextQualifier = preset.TextQualifier;
+    EmptyValuesHandler = preset.EmptyValuesHandler;
+    NewLinesHandler = preset.NewLinesHandler;
+    ExcludeHeaders = preset.ExcludeHeaders;
+    for (auto& presetColumn : preset.Columns) {
+        PresetColumnSettings presetColumnSettings(presetColumn);
+        Columns.push_back(presetColumnSettings);
+    }
+}
+
 Configuration::Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger)
     : pEnv(env)
     , pLogger(logger)
@@ -345,6 +368,11 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 
     pLogger->info("Configuration::SaveExportPreset - Preset serialized to:\n{0}", toml::format(root));
 
+    // update/save ptr data
+    PresetSettings newPreset(presetToSave);
+    SetPreset(newPreset);
+
+    // save settings to file
     const std::string presetConfigString = toml::format(root);
 
     pLogger->info("Configuration - Probing for configuration file for appending preset at path {0}", configPath);
@@ -591,6 +619,11 @@ std::vector<Configuration::PresetSettings> Configuration::GetPresets() const
 void Configuration::SetPresets(const std::vector<PresetSettings>& values)
 {
     mSettings.PresetSettings = values;
+}
+
+void Configuration::SetPreset(const PresetSettings& value)
+{
+    mSettings.PresetSettings.push_back(value);
 }
 
 void Configuration::ClearPresets()

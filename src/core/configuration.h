@@ -39,6 +39,10 @@ public:
         std::string Column;
         std::string OriginalColumn;
         int Order;
+
+        PresetColumnSettings() = default;
+        PresetColumnSettings(Common::PresetColumn presetColumn);
+        ~PresetColumnSettings() = default;
     };
 
     struct PresetSettings {
@@ -51,6 +55,10 @@ public:
         NewLines NewLinesHandler;
         bool ExcludeHeaders;
         std::vector<PresetColumnSettings> Columns;
+
+        PresetSettings() = default;
+        PresetSettings(Common::Preset preset);
+        ~PresetSettings() = default;
     };
 
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
@@ -111,6 +119,7 @@ public:
 
     std::vector<PresetSettings> GetPresets() const;
     void SetPresets(const std::vector<PresetSettings>& values);
+    void SetPreset(const PresetSettings& value);
     void ClearPresets();
 
 private:
