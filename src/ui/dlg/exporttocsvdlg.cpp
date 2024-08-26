@@ -478,7 +478,7 @@ void ExportToCsvDialog::FillControls()
 
     auto newLineHandlers = Common::Static::NewLinesHandlerList();
     for (auto i = 0; i < newLineHandlers.size(); i++) {
-        pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i));
+        pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i + 1));
     }
 
     /* Date Controls */
@@ -914,8 +914,6 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         // set as the active preset
         int selection = pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
         pPresetsChoiceCtrl->SetSelection(selection);
-
-        pPresetIsDefaultCtrl->SetValue(false);
     } else {
         // update preset
         pCfg->UpdateExportPreset(preset);
@@ -1284,7 +1282,8 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
         if (availableColumnIterator != availableColumnsList.end()) {
             const auto& availableColumn = *availableColumnIterator;
-            pLogger->info("ExportToCsvDialog::OnExport - Matched export column \"{0}\" with available column \"{1}\"",
+            pLogger->info("ExportToCsvDialog::OnExport - Matched export column \"{0}\" with available column "
+                          "\"{1}\"",
                 columnToExport.OriginalColumn,
                 availableColumn.DatabaseColumn);
 
