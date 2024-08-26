@@ -850,7 +850,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 {
     // validation before saving preset
     if (pCfg->GetPresetCount() == MAX_PRESET_COUNT) {
-        auto valMsg = "Maximum of 5 presets can be saved";
+        auto valMsg = "Limit of 5 presets has been exceeded";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pPresetSaveButton);
