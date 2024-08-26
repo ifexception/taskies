@@ -25,7 +25,9 @@
 
 #include "enums.h"
 
-namespace tks::Common
+namespace tks
+{
+namespace Common
 {
 std::string GetProgramName();
 
@@ -76,4 +78,5 @@ std::vector<std::string> TextQualifierList();
 std::vector<std::string> EmptyValueHandlerList();
 std::vector<std::string> NewLinesHandlerList();
 } // namespace Static
-} // namespace tks::Common
+} // namespace Common
+} // namespace tks
