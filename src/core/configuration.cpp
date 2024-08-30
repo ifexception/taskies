@@ -444,7 +444,6 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
     pLogger->info("Configuration::UpdateExportPreset - Preset serialized to:\n{0}", toml::format(root));
 
     // update ptr data
-
     PresetSettings updatedPresetSettings(presetToUpdate);
     EmplacePreset(updatedPresetSettings);
 

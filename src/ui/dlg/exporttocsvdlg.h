@@ -37,6 +37,8 @@
 
 #include "../dataview/columnlistmodel.h"
 
+#include "../../common/enums.h"
+
 #include "../../core/configuration.h"
 
 #include "../../utils/datestore.h"
@@ -48,9 +50,10 @@ namespace UI::dlg
 {
 struct AvailableColumn {
     std::string DatabaseColumn;
-    std::string Display;
+    std::string UserColumn;
     std::string TableName;
     std::string IdColumn;
+    JoinType Join;
 };
 
 std::vector<AvailableColumn> AvailableColumns();

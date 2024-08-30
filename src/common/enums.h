@@ -37,6 +37,8 @@ enum class EmptyValues : int { None = 0, Blank, Null };
 
 enum class NewLines : int { None = 0, Preserve, Merge };
 
+enum class JoinType { None = 0, InnerJoin = 1, LeftJoin = 2 };
+
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);

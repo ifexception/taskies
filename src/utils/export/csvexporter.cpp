@@ -19,6 +19,7 @@
 
 #include "csvexporter.h"
 
+#include <algorithm>
 #include <cctype>
 
 #include "../../common/constants.h"
@@ -106,7 +107,7 @@ std::vector<std::string> CsvExporter::ComputeProjectionModel(const std::vector<P
     std::vector<std::string> projectionMap;
 
     for (const auto& projection : projections) {
-        const auto& columnProjection = projection.columnProjection.userColumn;
+        const auto& columnProjection = projection.columnProjection.UserColumn;
 
         projectionMap.push_back(columnProjection);
     }
@@ -116,8 +117,7 @@ std::vector<std::string> CsvExporter::ComputeProjectionModel(const std::vector<P
 
 bool CsvExporter::GeneratePreview(CsvExportOptions options,
     const std::vector<Projection>& projections,
-    const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
-    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
+    const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
     std::string& exportedDataPreview)
@@ -128,7 +128,7 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
     mOptions = options;
 
     pQueryBuilder->IsPreview(true);
-    const auto& sql = pQueryBuilder->Build(projections, firstLevelJoinTables, secondLevelJoinTables, fromDate, toDate);
+    const auto& sql = pQueryBuilder->Build(projections, joinProjections, fromDate, toDate);
 
     const auto& computedProjectionModel = ComputeProjectionModel(projections);
 
@@ -174,24 +174,56 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
 
 // #####################################################################################################################
 
+ColumnJoinProjection::ColumnJoinProjection()
+    : IdColumn("")
+    , TableName("")
+    , Join(JoinType::None)
+    , IsSecondLevelJoin(false)
+{
+}
+
+ColumnJoinProjection::ColumnJoinProjection(std::string tableName, std::string idColumn, bool isSecondLevelJoin)
+    : TableName(tableName)
+    , IdColumn(idColumn)
+    , IsSecondLevelJoin(isSecondLevelJoin)
+    , Join(JoinType::None)
+{
+}
+
+ColumnJoinProjection::ColumnJoinProjection(std::string tableName,
+    std::string idColumn,
+    JoinType join,
+    bool isSecondLevelJoin)
+    : TableName(tableName)
+    , IdColumn(idColumn)
+    , Join(join)
+    , IsSecondLevelJoin(isSecondLevelJoin)
+{
+}
+
 ColumnProjection::ColumnProjection()
-    : databaseColumn("")
-    , userColumn("")
-    , columnTableName("")
-    , identifier("")
+    : DatabaseColumn("")
+    , UserColumn("")
+    , IdColumn("")
+    , TableName("")
+    , SpecialIdentifierForDurationColumns("")
 {
 }
 
-ColumnProjection::ColumnProjection(std::string databaseColumn, std::string userColumn, std::string columnTableName)
-    : databaseColumn(databaseColumn)
-    , userColumn(userColumn)
-    , columnTableName(columnTableName)
+ColumnProjection::ColumnProjection(std::string databaseColumn,
+    std::string userColumn,
+    std::string idColumn,
+    std::string tableName)
+    : DatabaseColumn(databaseColumn)
+    , UserColumn(userColumn)
+    , IdColumn(idColumn)
+    , TableName(tableName)
 {
 }
 
-void ColumnProjection::SetIdentifier(const std::string value)
+void ColumnProjection::SetSpecialIdentifierForDurationColumns(const std::string value)
 {
-    identifier = value;
+    SpecialIdentifierForDurationColumns = value;
 }
 
 Projection::Projection()
@@ -222,23 +254,21 @@ void SQLiteExportQueryBuilder::IsPreview(const bool preview)
 }
 
 std::string SQLiteExportQueryBuilder::Build(const std::vector<Projection>& projections,
-    const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
-    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
+    const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate)
 {
-    return BuildQuery(projections, firstLevelJoinTables, secondLevelJoinTables, fromDate, toDate);
+    return BuildQuery(projections, joinProjections, fromDate, toDate);
 }
 
 std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& projections,
-    const std::vector<FirstLevelJoinTable>& firstLevelJoinTables,
-    const std::vector<SecondLevelJoinTable>& secondLevelJoinTables,
+    const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate)
 {
     const auto& columns = ComputeProjections(projections);
-    const auto& firstLevelJoins = ComputeFirstLevelJoins(firstLevelJoinTables);
-    const auto& secondLevelJoins = ComputeSecondLevelJoins(secondLevelJoinTables);
+    const auto& firstLevelJoins = ComputeFirstLevelJoinProjections(joinProjections);
+    const auto& secondLevelJoins = ComputeSecondLevelJoinProjections(joinProjections);
     const auto& where = BuildWhere(fromDate, toDate);
 
     std::string query = BuildQueryString(columns, firstLevelJoins, secondLevelJoins, where);
@@ -277,65 +307,85 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
     return query.str();
 }
 
-std::vector<std::string> SQLiteExportQueryBuilder::ComputeFirstLevelJoins(
-    const std::vector<FirstLevelJoinTable>& joinTables)
+std::vector<std::string> SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjections(
+    const std::vector<ColumnJoinProjection>& joinProjections)
 {
-    if (joinTables.empty()) {
+    if (joinProjections.empty()) {
         return std::vector<std::string>();
     }
 
     std::vector<std::string> computedJoins;
-    for (const auto& joinTable : joinTables) {
-        std::string joinStatement = ComputeFirstLevelJoin(joinTable);
-        computedJoins.push_back(joinStatement);
+    for (const auto& joinProjection : joinProjections) {
+        if (!joinProjection.IsSecondLevelJoin) {
+            std::string joinStatement = ComputeFirstLevelJoinProjection(joinProjection);
+            computedJoins.push_back(joinStatement);
+        }
     }
 
     return computedJoins;
 }
 
-std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoin(const FirstLevelJoinTable& joinTable)
+std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjection(const ColumnJoinProjection& joinProjection)
 {
     std::stringstream query;
-    if (joinTable.joinType == JoinType::InnerJoin) {
-        query << "INNER JOIN " << joinTable.tableName << " ON "
-              << "tasks"
-              << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
+    if (joinProjection.Join == JoinType::InnerJoin) {
+        // clang-format off
+        query
+            << "INNER JOIN "
+            << joinProjection.TableName
+            << " ON "
+            << "tasks"
+            << "."
+            << joinProjection.IdColumn
+            << " = "
+            << joinProjection.TableName
+            << "." << joinProjection.IdColumn;
+        // clang-format on
     }
 
     return query.str();
 }
 
-std::vector<std::string> SQLiteExportQueryBuilder::ComputeSecondLevelJoins(
-    const std::vector<SecondLevelJoinTable>& joinTables)
+std::vector<std::string> SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjections(
+    const std::vector<ColumnJoinProjection>& joinProjections)
 {
-    if (joinTables.empty()) {
+    if (joinProjections.empty()) {
         return std::vector<std::string>();
     }
 
     std::vector<std::string> computedJoins;
-    for (const auto& joinTable : joinTables) {
-        auto joinStatement = ComputeSecondLevelJoin(joinTable);
-
-        computedJoins.push_back(joinStatement);
+    for (const auto& joinTable : joinProjections) {
+        if (joinTable.IsSecondLevelJoin) {
+            auto joinStatement = ComputeSecondLevelJoinProjection(joinTable);
+            computedJoins.push_back(joinStatement);
+        }
     }
 
     return computedJoins;
 }
 
-std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoin(const SecondLevelJoinTable& joinTable)
+std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjection(const ColumnJoinProjection& joinProjection)
 {
     std::stringstream query;
 
-    if (joinTable.joinType == JoinType::InnerJoin) {
-        query << "INNER JOIN " << joinTable.tableName << " ON "
-              << "projects"
-              << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
+    if (joinProjection.Join == JoinType::InnerJoin) {
+        query << "INNER JOIN ";
     }
-    if (joinTable.joinType == JoinType::LeftJoin) {
-        query << "LEFT JOIN " << joinTable.tableName << " ON "
-              << "projects"
-              << "." << joinTable.idColumn << " = " << joinTable.tableName << "." << joinTable.idColumn;
+    if (joinProjection.Join == JoinType::LeftJoin) {
+        query << "LEFT JOIN ";
     }
+
+    // clang-format off
+    query
+        << joinProjection.TableName
+        << " ON "
+        << "projects"
+        << "."
+        << joinProjection.IdColumn
+        << " = " << joinProjection.TableName
+        << "."
+        << joinProjection.IdColumn;
+    // clang-format on
 
     return query.str();
 }
@@ -361,27 +411,53 @@ std::string SQLiteExportQueryBuilder::ComputeSingleProjection(const Projection& 
     std::stringstream query;
     ColumnProjection cp = projection.columnProjection;
 
-    if (!cp.userColumn.empty() && cp.identifier.empty()) {
-        query << cp.columnTableName << "." << cp.databaseColumn << " AS "
-              << "\"" << cp.userColumn << "\"";
-    } else if (!cp.userColumn.empty() && !cp.identifier.empty()) {
-        query << "(printf('%02d', " << cp.columnTableName << ".hours)"
-              << " || "
-              << "':'"
-              << " || "
-              << "printf('%02d'," << cp.columnTableName << ".minutes))"
-              << " AS "
-              << "\"" << cp.userColumn << "\"";
-    } else if (cp.userColumn.empty() && !cp.identifier.empty()) {
-        query << "(printf('%02d', " << cp.columnTableName << ".hours)"
-              << " || "
-              << "':'"
-              << " || "
-              << "printf('%02d'," << cp.columnTableName << ".minutes))"
-              << " AS "
-              << "Duration";
+    if (!cp.UserColumn.empty() && cp.SpecialIdentifierForDurationColumns.empty()) {
+        // clang-format off
+        query
+            << cp.TableName
+            << "."
+            << cp.DatabaseColumn
+            << " AS "
+            << "\""
+            << cp.UserColumn
+            << "\"";
+        // clang-format on
+    } else if (!cp.UserColumn.empty() && !cp.SpecialIdentifierForDurationColumns.empty()) {
+        // clang-format off
+        query
+            << "("
+            << "printf('%02d', "
+            << cp.TableName
+            << ".hours)"
+              <<" || "
+            << "':'"
+            << " || "
+            << "printf('%02d'," << cp.TableName << ".minutes)"
+            << ")"
+            << " AS "
+            << "\""
+            << cp.UserColumn
+            << "\"";
+        // clang-format on
+    } else if (cp.UserColumn.empty() && !cp.SpecialIdentifierForDurationColumns.empty()) {
+        // clang-format off
+        query
+            << "("
+            << "printf('%02d', "
+            << cp.TableName
+            << ".hours)"
+            << " || "
+            << "':'"
+            << " || "
+            << "printf('%02d',"
+            << cp.TableName
+            << ".minutes)"
+            << ")"
+            << " AS "
+            << "Duration";
+        // clang-format on
     } else {
-        query << cp.columnTableName << "." << cp.databaseColumn;
+        query << cp.TableName << "." << cp.DatabaseColumn;
     }
 
     return query.str();
