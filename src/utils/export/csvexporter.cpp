@@ -98,7 +98,8 @@ CsvExporter::CsvExporter(const std::string& databaseFilePath, std::shared_ptr<sp
     pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
 }
 
-std::vector<std::string> CsvExporter::ComputeProjectionModel(const std::vector<Projection>& projections)
+std::vector<std::string> CsvExporter::ComputeProjectionModel(
+    const std::vector<Services::Export::Projection>& projections)
 {
     if (projections.empty()) {
         return std::vector<std::string>();
@@ -116,8 +117,8 @@ std::vector<std::string> CsvExporter::ComputeProjectionModel(const std::vector<P
 }
 
 bool CsvExporter::GeneratePreview(CsvExportOptions options,
-    const std::vector<Projection>& projections,
-    const std::vector<ColumnJoinProjection>& joinProjections,
+    const std::vector<Services::Export::Projection>& projections,
+    const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
     std::string& exportedDataPreview)
@@ -172,72 +173,6 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
     return true;
 }
 
-// #####################################################################################################################
-
-ColumnJoinProjection::ColumnJoinProjection()
-    : IdColumn("")
-    , TableName("")
-    , Join(JoinType::None)
-    , IsSecondLevelJoin(false)
-{
-}
-
-ColumnJoinProjection::ColumnJoinProjection(std::string tableName, std::string idColumn, bool isSecondLevelJoin)
-    : TableName(tableName)
-    , IdColumn(idColumn)
-    , IsSecondLevelJoin(isSecondLevelJoin)
-    , Join(JoinType::None)
-{
-}
-
-ColumnJoinProjection::ColumnJoinProjection(std::string tableName,
-    std::string idColumn,
-    JoinType join,
-    bool isSecondLevelJoin)
-    : TableName(tableName)
-    , IdColumn(idColumn)
-    , Join(join)
-    , IsSecondLevelJoin(isSecondLevelJoin)
-{
-}
-
-ColumnProjection::ColumnProjection()
-    : DatabaseColumn("")
-    , UserColumn("")
-    , IdColumn("")
-    , TableName("")
-    , SpecialIdentifierForDurationColumns("")
-{
-}
-
-ColumnProjection::ColumnProjection(std::string databaseColumn,
-    std::string userColumn,
-    std::string idColumn,
-    std::string tableName)
-    : DatabaseColumn(databaseColumn)
-    , UserColumn(userColumn)
-    , IdColumn(idColumn)
-    , TableName(tableName)
-{
-}
-
-void ColumnProjection::SetSpecialIdentifierForDurationColumns(const std::string value)
-{
-    SpecialIdentifierForDurationColumns = value;
-}
-
-Projection::Projection()
-    : orderIndex(-1)
-    , columnProjection()
-{
-}
-
-Projection::Projection(int orderIndex, ColumnProjection columnProjection)
-    : orderIndex(orderIndex)
-    , columnProjection(columnProjection)
-{
-}
-
 SQLiteExportQueryBuilder::SQLiteExportQueryBuilder(bool isPreview)
     : bIsPreview(isPreview)
 {
@@ -253,16 +188,16 @@ void SQLiteExportQueryBuilder::IsPreview(const bool preview)
     bIsPreview = preview;
 }
 
-std::string SQLiteExportQueryBuilder::Build(const std::vector<Projection>& projections,
-    const std::vector<ColumnJoinProjection>& joinProjections,
+std::string SQLiteExportQueryBuilder::Build(const std::vector<Services::Export::Projection>& projections,
+    const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate)
 {
     return BuildQuery(projections, joinProjections, fromDate, toDate);
 }
 
-std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& projections,
-    const std::vector<ColumnJoinProjection>& joinProjections,
+std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Services::Export::Projection>& projections,
+    const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate)
 {
@@ -308,7 +243,7 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
 }
 
 std::vector<std::string> SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjections(
-    const std::vector<ColumnJoinProjection>& joinProjections)
+    const std::vector<Services::Export::ColumnJoinProjection>& joinProjections)
 {
     if (joinProjections.empty()) {
         return std::vector<std::string>();
@@ -325,7 +260,8 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjecti
     return computedJoins;
 }
 
-std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjection(const ColumnJoinProjection& joinProjection)
+std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjection(
+    const Services::Export::ColumnJoinProjection& joinProjection)
 {
     std::stringstream query;
     if (joinProjection.Join == JoinType::InnerJoin) {
@@ -347,7 +283,7 @@ std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjection(const Colu
 }
 
 std::vector<std::string> SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjections(
-    const std::vector<ColumnJoinProjection>& joinProjections)
+    const std::vector<Services::Export::ColumnJoinProjection>& joinProjections)
 {
     if (joinProjections.empty()) {
         return std::vector<std::string>();
@@ -364,7 +300,8 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeSecondLevelJoinProject
     return computedJoins;
 }
 
-std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjection(const ColumnJoinProjection& joinProjection)
+std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjection(
+    const Services::Export::ColumnJoinProjection& joinProjection)
 {
     std::stringstream query;
 
@@ -390,7 +327,8 @@ std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjection(const Col
     return query.str();
 }
 
-std::vector<std::string> SQLiteExportQueryBuilder::ComputeProjections(const std::vector<Projection>& projections)
+std::vector<std::string> SQLiteExportQueryBuilder::ComputeProjections(
+    const std::vector<Services::Export::Projection>& projections)
 {
     if (projections.size() == 0) {
         return std::vector<std::string>();
@@ -406,10 +344,10 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeProjections(const std:
     return projectionsOut;
 }
 
-std::string SQLiteExportQueryBuilder::ComputeSingleProjection(const Projection& projection)
+std::string SQLiteExportQueryBuilder::ComputeSingleProjection(const Services::Export::Projection& projection)
 {
     std::stringstream query;
-    ColumnProjection cp = projection.columnProjection;
+    Services::Export::ColumnProjection cp = projection.columnProjection;
 
     if (!cp.UserColumn.empty() && cp.SpecialIdentifierForDurationColumns.empty()) {
         // clang-format off

@@ -34,6 +34,9 @@
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/enums.h"
+#include "../../services/export/columnjoinprojection.h"
+#include "../../services/export/projection.h"
+#include "../../services/export/projectionbuilder.h"
 #include "../../utils/utils.h"
 
 #include "../clientdata.h"
@@ -1128,83 +1131,10 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
-    const auto& availableColumnsList = AvailableColumns();
-
-    std::vector<Utils::Projection> projections;
-    std::vector<Utils::ColumnJoinProjection> joinProjections;
-
-    /* Insert projects regardless as a catch-all scenario for first and second level table joins */
-    const auto& projectColumnIterator = std::find_if(availableColumnsList.begin(),
-        availableColumnsList.end(),
-        [=](const AvailableColumn& column) { return column.TableName == "projects"; });
-
-    if (projectColumnIterator != availableColumnsList.end()) {
-        const auto& projectColumn = *projectColumnIterator;
-        Utils::ColumnJoinProjection cjp(projectColumn.TableName, projectColumn.IdColumn, projectColumn.Join);
-
-        joinProjections.push_back(cjp);
-
-        pLogger->info("ExportToCsvDialog::OnShowPreview - Insert projects table to join on");
-    }
-
-    for (const auto& columnToExport : columnsToExport) {
-        const auto& availableColumnIterator = std::find_if(availableColumnsList.begin(),
-            availableColumnsList.end(),
-            [=](const AvailableColumn& column) { return column.UserColumn == columnToExport.OriginalColumn; });
-
-        if (availableColumnIterator != availableColumnsList.end()) {
-            const auto& availableColumn = *availableColumnIterator;
-            pLogger->info(
-                "ExportToCsvDialog::OnShowPreview - Matched export column \"{0}\" with available column \"{1}\"",
-                columnToExport.OriginalColumn,
-                availableColumn.DatabaseColumn);
-
-            Utils::ColumnProjection cp(availableColumn.DatabaseColumn,
-                columnToExport.Column,
-                availableColumn.IdColumn,
-                availableColumn.TableName);
-
-            if (availableColumn.DatabaseColumn == "*time*") {
-                cp.SetSpecialIdentifierForDurationColumns("*time*");
-            }
-
-            Utils::Projection projection(columnToExport.Order, cp);
-
-            projections.push_back(projection);
-
-            if (availableColumn.TableName == "categories") {
-                Utils::ColumnJoinProjection cjp(
-                    availableColumn.TableName, availableColumn.IdColumn, JoinType::InnerJoin);
-
-                pLogger->info("ExportToCsvDialog::OnShowPreview - First level join on \"{0}\" with join \"{1}\"",
-                    availableColumn.TableName,
-                    "INNER");
-
-                joinProjections.push_back(cjp);
-            }
-
-            if (availableColumn.TableName == "employers" || availableColumn.TableName == "clients") {
-                Utils::ColumnJoinProjection cjp(availableColumn.TableName, availableColumn.IdColumn, true);
-
-                if (availableColumn.TableName == "clients") {
-                    cjp.Join = JoinType::LeftJoin;
-                } else {
-                    cjp.Join = JoinType::InnerJoin;
-                }
-
-                pLogger->info("ExportToCsvDialog::OnShowPreview - Second level join on \"{0}\" with join \"{1}\"",
-                    availableColumn.TableName,
-                    cjp.Join == JoinType::InnerJoin ? "INNER" : "LEFT");
-
-                joinProjections.push_back(cjp);
-            }
-        }
-    }
-
-    pLogger->info("ExportToCsvDialog::OnShowPreview - Sort projections by order index ascending");
-    std::sort(projections.begin(), projections.end(), [](const Utils::Projection& lhs, const Utils::Projection& rhs) {
-        return lhs.orderIndex < rhs.orderIndex;
-    });
+    Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+    std::vector<Services::Export::Projection> projections = projectionBuilder.BuildProjections(columnsToExport);
+    std::vector<Services::Export::ColumnJoinProjection> joinProjections =
+        projectionBuilder.BuildJoinProjections(columnsToExport);
 
     const std::string fromDate = date::format("%F", mFromDate);
     const std::string toDate = date::format("%F", mToDate);

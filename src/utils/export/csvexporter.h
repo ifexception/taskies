@@ -29,6 +29,8 @@
 #include <sqlite3.h>
 
 #include "../../common/enums.h"
+#include "../../services/export/columnjoinprojection.h"
+#include "../../services/export/projection.h"
 
 namespace tks::Utils
 {
@@ -45,38 +47,6 @@ struct CsvExportOptions {
     ~CsvExportOptions() = default;
 
     void Reset();
-};
-
-struct ColumnJoinProjection {
-    std::string TableName;
-    std::string IdColumn;
-    JoinType Join;
-    bool IsSecondLevelJoin;
-
-    ColumnJoinProjection();
-    ColumnJoinProjection(std::string tableName, std::string idColumn, bool isSecondLevelJoin = false);
-    ColumnJoinProjection(std::string tableName, std::string idColumn, JoinType join, bool isSecondLevelJoin = false);
-};
-
-struct ColumnProjection {
-    std::string DatabaseColumn;
-    std::string UserColumn;
-    std::string IdColumn;
-    std::string TableName;
-    std::string SpecialIdentifierForDurationColumns;
-
-    ColumnProjection();
-    ColumnProjection(std::string databaseColumn, std::string userColumn, std::string idColumn, std::string tableName);
-
-    void SetSpecialIdentifierForDurationColumns(const std::string value);
-};
-
-struct Projection {
-    int orderIndex;
-    ColumnProjection columnProjection;
-
-    Projection();
-    Projection(int orderIndex, ColumnProjection columnProjection);
 };
 
 class CsvExportProcessor final
@@ -109,11 +79,11 @@ public:
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
-    std ::vector<std::string> ComputeProjectionModel(const std::vector<Projection>& projections);
+    std ::vector<std::string> ComputeProjectionModel(const std::vector<Services::Export::Projection>& projections);
 
     bool GeneratePreview(CsvExportOptions options,
-        const std::vector<Projection>& projections,
-        const std::vector<ColumnJoinProjection>& joinProjections,
+        const std::vector<Services::Export::Projection>& projections,
+        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
         /*out*/ std::string& exportedDataPreview);
@@ -141,14 +111,14 @@ public:
     const bool IsPreview() const;
     void IsPreview(const bool preview);
 
-    std::string Build(const std::vector<Projection>& projections,
-        const std::vector<ColumnJoinProjection>& joinProjections,
+    std::string Build(const std::vector<Services::Export::Projection>& projections,
+        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate);
 
 private:
-    std::string BuildQuery(const std::vector<Projection>& projections,
-        const std::vector<ColumnJoinProjection>& joinProjections,
+    std::string BuildQuery(const std::vector<Services::Export::Projection>& projections,
+        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate);
 
@@ -157,15 +127,16 @@ private:
         const std::vector<std::string>& secondLevelJoins,
         const std::string& where);
 
-    std::vector<std::string> ComputeFirstLevelJoinProjections(const std::vector<ColumnJoinProjection>& joinProjections);
-    std::string ComputeFirstLevelJoinProjection(const ColumnJoinProjection& joinProjection);
+    std::vector<std::string> ComputeFirstLevelJoinProjections(
+        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections);
+    std::string ComputeFirstLevelJoinProjection(const Services::Export::ColumnJoinProjection& joinProjection);
 
     std::vector<std::string> ComputeSecondLevelJoinProjections(
-        const std::vector<ColumnJoinProjection>& joinProjections);
-    std::string ComputeSecondLevelJoinProjection(const ColumnJoinProjection& joinProjection);
+        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections);
+    std::string ComputeSecondLevelJoinProjection(const Services::Export::ColumnJoinProjection& joinProjection);
 
-    std::vector<std::string> ComputeProjections(const std::vector<Projection>& projections);
-    std::string ComputeSingleProjection(const Projection& projection);
+    std::vector<std::string> ComputeProjections(const std::vector<Services::Export::Projection>& projections);
+    std::string ComputeSingleProjection(const Services::Export::Projection& projection);
 
     std::string BuildWhere(const std::string& fromDate, const std::string& toDate);
 

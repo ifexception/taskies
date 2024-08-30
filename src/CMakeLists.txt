@@ -98,6 +98,11 @@ set (SRC
     "ipc/applicationoptionsconnection.cpp"
     "ipc/server.cpp"
     "utils/export/csvexporter.cpp"
+    "services/export/projectionbuilder.cpp"
+    "services/export/availablecolumns.cpp"
+    "services/export/columnprojection.cpp"
+    "services/export/projection.cpp"
+    "services/export/columnjoinprojection.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
     ${SRC_REPOS}
