@@ -74,7 +74,9 @@ std::vector<ColumnJoinProjection> ProjectionBuilder::BuildJoinProjections(
             mAvailableColumns.begin(),
             mAvailableColumns.end(),
             [=](const AvailableColumn& availableColumn) {
-                return availableColumn.UserColumn == column.OriginalColumn;
+                return availableColumn.UserColumn == column.OriginalColumn &&
+                    availableColumn.Join != JoinType::None &&
+                    availableColumn.TableName != "projects";
             });
         // clang-format on
 
@@ -140,6 +142,8 @@ ColumnJoinProjection ProjectionBuilder::BuildRequiredProjectTableJoinProjection(
 
         return cjp;
     }
+
+    return ColumnJoinProjection();
 }
 
 ColumnJoinProjection ProjectionBuilder::BuildJoinProjection(const UI::ColumnListItemModel& column,
@@ -170,5 +174,7 @@ ColumnJoinProjection ProjectionBuilder::BuildJoinProjection(const UI::ColumnList
 
         return cjp;
     }
+
+    return ColumnJoinProjection();
 }
 } // namespace tks::Services::Export
