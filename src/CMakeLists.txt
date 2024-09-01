@@ -103,6 +103,7 @@ set (SRC
     "services/export/columnprojection.cpp"
     "services/export/projection.cpp"
     "services/export/columnjoinprojection.cpp"
+    "services/export/sqliteexportquerybuilder.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
     ${SRC_REPOS}
