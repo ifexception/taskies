@@ -84,23 +84,4 @@ private:
 
     std::string mDatabaseFilePath;
 };
-
-class ExportDao final
-{
-public:
-    ExportDao() = delete;
-    ExportDao(const ExportDao&) = delete;
-    explicit ExportDao(const std::string& databaseFilePath, const std::shared_ptr<spdlog::logger> logger);
-    ~ExportDao();
-
-    const ExportDao& operator=(const ExportDao&) = delete;
-
-    int FilterExportData(const std::string& sql,
-        const std::vector<std::string>& projectionMap,
-        /*out*/ std::vector<std ::vector<std::pair<std::string, std::string>>>& projectionModel);
-
-private:
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
-};
 } // namespace tks::Utils

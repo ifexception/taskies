@@ -37,6 +37,7 @@ set(SRC_DAO
     "dao/categorydao.cpp"
     "dao/workdaydao.cpp"
     "dao/taskdao.cpp"
+    "dao/exportdao.cpp"
 )
 
 set(SRC_REPOS
