@@ -33,29 +33,10 @@
 #include "../../services/export/projection.h"
 #include "../../services/export/sqliteexportquerybuilder.h"
 #include "../../services/export/csvexportoptions.h"
+#include "../../services/export/csvexportprocessor.h"
 
 namespace tks::Utils
 {
-class CsvExportProcessor final
-{
-public:
-    CsvExportProcessor() = delete;
-    CsvExportProcessor(const CsvExportProcessor&) = delete;
-    CsvExportProcessor(Services::Export::CsvExportOptions options);
-    ~CsvExportProcessor() = default;
-
-    const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;
-
-    void ProcessData(std::stringstream& data, std::string& value);
-
-private:
-    void TryProcessNewLines(std::string& value) const;
-    void TryProcessEmptyValues(std::string& value) const;
-    void TryApplyTextQualifier(std::stringstream& data, std::string& value) const;
-
-    Services::Export::CsvExportOptions mOptions;
-};
-
 class CsvExporter
 {
 public:

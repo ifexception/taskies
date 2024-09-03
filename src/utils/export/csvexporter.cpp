@@ -30,52 +30,6 @@
 
 namespace tks::Utils
 {
-
-CsvExportProcessor::CsvExportProcessor(Services::Export::CsvExportOptions options)
-    : mOptions(options)
-{
-}
-
-void CsvExportProcessor::ProcessData(std::stringstream& data, std::string& value)
-{
-    TryProcessEmptyValues(value);
-    TryProcessNewLines(value);
-    TryApplyTextQualifier(data, value);
-}
-
-void CsvExportProcessor::TryProcessNewLines(std::string& value) const
-{
-    if (mOptions.NewLinesHandler == NewLines::Merge) {
-        std::string newline = "\n";
-        std::string space = " ";
-
-        value = Utils::ReplaceAll(value, newline, space);
-    }
-}
-
-void CsvExportProcessor::TryProcessEmptyValues(std::string& value) const
-{
-    if (value.empty()) {
-        if (mOptions.EmptyValuesHandler == EmptyValues::Null) {
-            value = "NULL";
-        }
-    }
-}
-
-void CsvExportProcessor::TryApplyTextQualifier(std::stringstream& data, std::string& value) const
-{
-    std::string quote = "\"";
-    std::string doubleQuote = "\"\"";
-
-    value = Utils::ReplaceAll(value, quote, doubleQuote);
-
-    if (mOptions.TextQualifier != '\0' && value.find(mOptions.Delimiter) != std::string::npos) {
-        data << mOptions.TextQualifier << value << mOptions.TextQualifier;
-    } else {
-        data << value;
-    }
-}
-
 CsvExporter::CsvExporter(const std::string& databaseFilePath, std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
@@ -124,7 +78,7 @@ bool CsvExporter::GeneratePreview(Services::Export::CsvExportOptions options,
         return false;
     }
 
-    CsvExportProcessor exportProcessor(mOptions);
+    Services::Export::CsvExportProcessor exportProcessor(mOptions);
 
     std::stringstream exportedData;
 
