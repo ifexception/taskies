@@ -63,42 +63,42 @@ std::string NotificationTypeToString(NotificationType notificationType)
     }
 }
 
-std::string MapDelimiterEnumToValue(Delimiter delimiter)
+std::string MapDelimiterEnumToValue(DelimiterType delimiter)
 {
     switch (delimiter) {
-    case tks::Delimiter::None:
+    case tks::DelimiterType::None:
         return "";
-    case tks::Delimiter::Comma:
+    case tks::DelimiterType::Comma:
         return ",";
-    case tks::Delimiter::Semicolon:
+    case tks::DelimiterType::Semicolon:
         return ";";
-    case tks::Delimiter::Pipe:
+    case tks::DelimiterType::Pipe:
         return "|";
-    case tks::Delimiter::Tab:
+    case tks::DelimiterType::Tab:
         return "(tab)";
-    case tks::Delimiter::Space:
+    case tks::DelimiterType::Space:
         return "(space)";
     default:
         return "";
     }
 }
 
-Delimiter MapValueToDelimiterEnum(std::string delimiter)
+DelimiterType MapValueToDelimiterEnum(std::string delimiter)
 {
     if (delimiter.empty() || delimiter == "") {
-        return Delimiter::None;
+        return DelimiterType::None;
     } else if (delimiter == ",") {
-        return Delimiter::Comma;
+        return DelimiterType::Comma;
     } else if (delimiter == ";") {
-        return Delimiter::Semicolon;
+        return DelimiterType::Semicolon;
     } else if (delimiter == "|") {
-        return Delimiter::Pipe;
+        return DelimiterType::Pipe;
     } else if (delimiter == "\t") {
-        return Delimiter::Tab;
+        return DelimiterType::Tab;
     } else if (delimiter == " ") {
-        return Delimiter::Space;
+        return DelimiterType::Space;
     } else {
-        return Delimiter::None;
+        return DelimiterType::None;
     }
 }
 } // namespace tks

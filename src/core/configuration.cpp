@@ -714,7 +714,7 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
             preset.Name = root.at(Sections::PresetsSection).at(i).at("name").as_string();
             preset.IsDefault = root.at(Sections::PresetsSection).at(i).at("isDefault").as_boolean();
             preset.Delimiter =
-                static_cast<Delimiter>(root.at(Sections::PresetsSection).at(i).at("delimiter").as_integer());
+                static_cast<DelimiterType>(root.at(Sections::PresetsSection).at(i).at("delimiter").as_integer());
             preset.TextQualifier = root.at(Sections::PresetsSection).at(i).at("textQualifier").as_string();
             preset.EmptyValuesHandler =
                 static_cast<EmptyValues>(root.at(Sections::PresetsSection).at(i).at("emptyValues").as_integer());

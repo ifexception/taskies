@@ -28,25 +28,8 @@
 
 namespace tks::Utils
 {
-CsvExportOptions::CsvExportOptions()
-    : Delimiter(',')
-    , TextQualifier('"')
-    , EmptyValuesHandler(EmptyValues::Blank)
-    , NewLinesHandler(NewLines::Merge)
-    , ExcludeHeaders(false)
-{
-}
 
-void CsvExportOptions::Reset()
-{
-    Delimiter = ',';
-    TextQualifier = '"';
-    EmptyValuesHandler = EmptyValues::Blank;
-    NewLinesHandler = NewLines::Merge;
-    ExcludeHeaders = false;
-}
-
-CsvExportProcessor::CsvExportProcessor(CsvExportOptions options)
+CsvExportProcessor::CsvExportProcessor(Services::Export::CsvExportOptions options)
     : mOptions(options)
 {
 }
@@ -116,7 +99,7 @@ std::vector<std::string> CsvExporter::ComputeProjectionModel(
     return projectionMap;
 }
 
-bool CsvExporter::GeneratePreview(CsvExportOptions options,
+bool CsvExporter::GeneratePreview(Services::Export::CsvExportOptions options,
     const std::vector<Services::Export::Projection>& projections,
     const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,

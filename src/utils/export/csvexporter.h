@@ -32,30 +32,16 @@
 #include "../../services/export/columnjoinprojection.h"
 #include "../../services/export/projection.h"
 #include "../../services/export/sqliteexportquerybuilder.h"
+#include "../../services/export/csvexportoptions.h"
 
 namespace tks::Utils
 {
-class SQLiteExportQueryBuilder;
-
-struct CsvExportOptions {
-    char Delimiter;
-    char TextQualifier;
-    EmptyValues EmptyValuesHandler;
-    NewLines NewLinesHandler;
-    bool ExcludeHeaders;
-
-    CsvExportOptions();
-    ~CsvExportOptions() = default;
-
-    void Reset();
-};
-
 class CsvExportProcessor final
 {
 public:
     CsvExportProcessor() = delete;
     CsvExportProcessor(const CsvExportProcessor&) = delete;
-    CsvExportProcessor(CsvExportOptions options);
+    CsvExportProcessor(Services::Export::CsvExportOptions options);
     ~CsvExportProcessor() = default;
 
     const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;
@@ -67,7 +53,7 @@ private:
     void TryProcessEmptyValues(std::string& value) const;
     void TryApplyTextQualifier(std::stringstream& data, std::string& value) const;
 
-    CsvExportOptions mOptions;
+    Services::Export::CsvExportOptions mOptions;
 };
 
 class CsvExporter
@@ -82,7 +68,7 @@ public:
 
     std ::vector<std::string> ComputeProjectionModel(const std::vector<Services::Export::Projection>& projections);
 
-    bool GeneratePreview(CsvExportOptions options,
+    bool GeneratePreview(Services::Export::CsvExportOptions options,
         const std::vector<Services::Export::Projection>& projections,
         const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
@@ -94,7 +80,7 @@ private:
 
     std::unique_ptr<Services::Export::SQLiteExportQueryBuilder> pQueryBuilder;
 
-    CsvExportOptions mOptions;
+    Services::Export::CsvExportOptions mOptions;
 
     std::string mDatabaseFilePath;
 };

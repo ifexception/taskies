@@ -41,14 +41,14 @@ public:
     const bool IsPreview() const;
     void IsPreview(const bool preview);
 
-    std::string Build(const std::vector<Services::Export::Projection>& projections,
-        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
+    std::string Build(const std::vector<Projection>& projections,
+        const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate);
 
 private:
-    std::string BuildQuery(const std::vector<Services::Export::Projection>& projections,
-        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
+    std::string BuildQuery(const std::vector<Projection>& projections,
+        const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate);
 
@@ -58,15 +58,15 @@ private:
         const std::string& where);
 
     std::vector<std::string> ComputeFirstLevelJoinProjections(
-        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections);
-    std::string ComputeFirstLevelJoinProjection(const Services::Export::ColumnJoinProjection& joinProjection);
+        const std::vector<ColumnJoinProjection>& joinProjections);
+    std::string ComputeFirstLevelJoinProjection(const ColumnJoinProjection& joinProjection);
 
     std::vector<std::string> ComputeSecondLevelJoinProjections(
-        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections);
-    std::string ComputeSecondLevelJoinProjection(const Services::Export::ColumnJoinProjection& joinProjection);
+        const std::vector<ColumnJoinProjection>& joinProjections);
+    std::string ComputeSecondLevelJoinProjection(const ColumnJoinProjection& joinProjection);
 
-    std::vector<std::string> ComputeProjections(const std::vector<Services::Export::Projection>& projections);
-    std::string ComputeSingleProjection(const Services::Export::Projection& projection);
+    std::vector<std::string> ComputeProjections(const std::vector<Projection>& projections);
+    std::string ComputeSingleProjection(const Projection& projection);
 
     std::string BuildWhere(const std::string& fromDate, const std::string& toDate);
 

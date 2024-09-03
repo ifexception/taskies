@@ -53,7 +53,7 @@ struct Preset {
     std::string Uuid;
     std::string Name;
     bool IsDefault;
-    Delimiter Delimiter;
+    DelimiterType Delimiter;
     std::string TextQualifier;
     EmptyValues EmptyValuesHandler;
     NewLines NewLinesHandler;

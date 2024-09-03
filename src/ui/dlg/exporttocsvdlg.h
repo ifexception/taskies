@@ -43,6 +43,7 @@
 
 #include "../../utils/datestore.h"
 #include "../../utils/export/csvexporter.h"
+#include "../../services/export/csvexportoptions.h"
 
 namespace tks
 {
@@ -170,7 +171,7 @@ private:
     std::vector<long> mSelectedItemIndexes;
     wxDataViewItem mItemToSort;
 
-    Utils::CsvExportOptions mCsvOptions;
+    Services::Export::CsvExportOptions mCsvOptions;
     Utils::CsvExporter mCsvExporter;
 
     enum {

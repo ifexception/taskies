@@ -31,7 +31,7 @@ enum class BuildConfiguration { Undefined, Debug, Release };
 
 enum class NotificationType { Information = 1, Error };
 
-enum class Delimiter : int { None = 0, Comma, Semicolon, Pipe, Tab, Space };
+enum class DelimiterType : int { None = 0, Comma, Semicolon, Pipe, Tab, Space };
 
 enum class EmptyValues : int { None = 0, Blank, Null };
 
@@ -42,6 +42,6 @@ enum class JoinType { None = 0, InnerJoin = 1, LeftJoin = 2 };
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);
-std::string MapDelimiterEnumToValue(Delimiter delimiter);
-Delimiter MapValueToDelimiterEnum(std::string delimiter);
+std::string MapDelimiterEnumToValue(DelimiterType delimiter);
+DelimiterType MapValueToDelimiterEnum(std::string delimiter);
 } // namespace tks
