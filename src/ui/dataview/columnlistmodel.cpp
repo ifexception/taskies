@@ -197,4 +197,10 @@ std::vector<ColumnListItemModel> ColumnListModel::GetColumnsToExport() const
 {
     return mListItemModels;
 }
+
+void ColumnListModel::Clear()
+{
+    mListItemModels.clear();
+    Reset(0);
+}
 } // namespace tks::UI

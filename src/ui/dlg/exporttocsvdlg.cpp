@@ -838,15 +838,12 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 
     pLogger->info("{0} - Reset of columns", TAG);
     auto headersToRemove = pExportColumnListModel->GetColumnsToExport();
-    wxDataViewItemArray items;
-    auto selections = pDataViewCtrl->GetSelections(items);
-    if (selections > 0) {
-        pExportColumnListModel->DeleteItems(items);
 
-        for (const auto& header : headersToRemove) {
-            pAvailableColumnsListView->InsertItem(0, header.Column);
-        }
+    for (const auto& header : headersToRemove) {
+        pAvailableColumnsListView->InsertItem(0, header.Column);
     }
+
+    pExportColumnListModel->Clear();
 
     pExcludeHeadersCheckBoxCtrl->SetValue(false);
 }

@@ -65,6 +65,7 @@ public:
     std::vector<ColumnListItemModel> GetSelectedColumns();
 
     std::vector<ColumnListItemModel> GetColumnsToExport() const;
+    void Clear();
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
