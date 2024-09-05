@@ -908,6 +908,11 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     preset.ExcludeHeaders = mCsvOptions.ExcludeHeaders;
 
+    auto success = pCfg->TryUnsetDefaultPreset();
+    if (!success) {
+        pLogger->info("ExportToCsvDialog::OnSavePreset - Failed to unset preset default selection");
+    }
+
     if (presetData->GetValue().empty()) {
         // save preset
         pCfg->SaveExportPreset(preset);

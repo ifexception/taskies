@@ -466,6 +466,52 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
     return true;
 }
 
+bool Configuration::TryUnsetDefaultPreset()
+{
+    auto configPath = pEnv->GetConfigurationPath().string();
+
+    toml::value root;
+    try {
+        root = toml::parse(configPath);
+    } catch (const toml::syntax_error& error) {
+        pLogger->error(
+            "Configuration::TryUnsetDefaultPreset - A TOML syntax/parse error occurred when parsing file {0}",
+            error.what());
+        return false;
+    }
+
+    auto& presets = root.at(Sections::PresetsSection).as_array();
+    for (auto& preset : presets) {
+        if (preset.as_table().empty()) {
+            continue;
+        }
+
+        preset["isDefault"] = false;
+    }
+
+    pLogger->info("Configuration::TryUnsetDefaultPreset - Preset serialized to:\n{0}", toml::format(root));
+
+    const std::string presetConfigString = toml::format(root);
+
+    pLogger->info(
+        "Configuration::TryUnsetDefaultPreset - Probing for configuration file for appending preset at path {0}",
+        configPath);
+
+    std::ofstream configFileStream;
+    configFileStream.open(configPath, std::ios_base::out);
+    if (!configFileStream) {
+        pLogger->error(
+            "Configuration::TryUnsetDefaultPreset - Failed to open configuration file at path {0}", configPath);
+        return false;
+    }
+
+    configFileStream << presetConfigString;
+
+    configFileStream.close();
+
+    return true;
+}
+
 std::string Configuration::GetUserInterfaceLanguage() const
 {
     return mSettings.UserInterfaceLanguage;
