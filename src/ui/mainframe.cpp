@@ -112,8 +112,8 @@ EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
 /* Keyboard shortcuts */
-EVT_MENU(ID_KYB_LEFT, MainFrame::OnKeyLeft)
-EVT_MENU(ID_KYB_RIGHT, MainFrame::OnKeyRight)
+//EVT_MENU(ID_KYB_LEFT, MainFrame::OnKeyLeft)
+//EVT_MENU(ID_KYB_RIGHT, MainFrame::OnKeyRight)
 /* Error Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
@@ -935,33 +935,34 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnKeyLeft(wxCommandEvent& event)
-{
-    pLogger->info("MainFrame::OnKeyLeft - key left event received. Going back one week.");
-    // get the current week's monday date
-    auto currentMondaysDate = pDateStore->MondayDate;
-
-    // calculate last week's monday date
-    auto weekBackMondaysDate = currentMondaysDate + date::weeks{ -1 };
-    pLogger->info(
-        "MainFrame::OnKeyLeft - Mondays date one week in the past: \"{0}\"", date::format("%F", weekBackMondaysDate));
-
-    // date store needs to recalculate the dates for the new range
-    pDateStore->ReinitializeFromWeekChange(weekBackMondaysDate);
-
-    // update the data view control for a week change event
-    OnWeekChangedProcedure();
-}
-
-void MainFrame::OnKeyRight(wxCommandEvent& event)
-{
-    pLogger->info("MainFrame::OnKeyRight - key right event received. Going forward one week.");
-    auto currentMondaysDate = pDateStore->MondayDate;
-
-    auto weekForwardMondaysDate = currentMondaysDate + date::weeks{ 1 };
-    pLogger->info("MainFrame::OnKeyRight - Mondays date one week in the future: \"{0}\"",
-        date::format("%F", weekForwardMondaysDate));
-}
+// void MainFrame::OnKeyLeft(wxCommandEvent& event)
+//{
+//     pLogger->info("MainFrame::OnKeyLeft - key left event received. Going back one week.");
+//     // get the current week's monday date
+//     auto currentMondaysDate = pDateStore->MondayDate;
+//
+//     // calculate last week's monday date
+//     auto weekBackMondaysDate = currentMondaysDate + date::weeks{ -1 };
+//     pLogger->info(
+//         "MainFrame::OnKeyLeft - Mondays date one week in the past: \"{0}\"", date::format("%F",
+//         weekBackMondaysDate));
+//
+//     // date store needs to recalculate the dates for the new range
+//     pDateStore->ReinitializeFromWeekChange(weekBackMondaysDate);
+//
+//     // update the data view control for a week change event
+//     OnWeekChangedProcedure();
+// }
+//
+// void MainFrame::OnKeyRight(wxCommandEvent& event)
+//{
+//     pLogger->info("MainFrame::OnKeyRight - key right event received. Going forward one week.");
+//     auto currentMondaysDate = pDateStore->MondayDate;
+//
+//     auto weekForwardMondaysDate = currentMondaysDate + date::weeks{ 1 };
+//     pLogger->info("MainFrame::OnKeyRight - Mondays date one week in the future: \"{0}\"",
+//         date::format("%F", weekForwardMondaysDate));
+// }
 
 void MainFrame::OnError(wxCommandEvent& event)
 {

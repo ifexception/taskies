@@ -180,8 +180,8 @@ private:
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
     /* Keyboard shortcuts */
-    void OnKeyLeft(wxCommandEvent& event);
-    void OnKeyRight(wxCommandEvent& event);
+    // void OnKeyLeft(wxCommandEvent& event);
+    // void OnKeyRight(wxCommandEvent& event);
     /* Error Event Handlers */ /*TODO(SW): Is this still relevant?*/
     void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
