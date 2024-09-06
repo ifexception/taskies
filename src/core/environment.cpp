@@ -47,7 +47,7 @@ std::filesystem::path Environment::GetApplicationPath()
     return wxPathOnly(wxStandardPaths::Get().GetExecutablePath()).ToStdString();
 }
 
-BuildConfiguration Environment::GetBuildConfiguration()
+BuildConfiguration Environment::GetBuildConfiguration() const
 {
     return mBuildConfig;
 }

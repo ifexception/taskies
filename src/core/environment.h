@@ -39,7 +39,7 @@ public:
 
     Environment& operator=(const Environment&) = delete;
 
-    BuildConfiguration GetBuildConfiguration();
+    BuildConfiguration GetBuildConfiguration() const;
 
     std::filesystem::path GetLogFilePath();
     std::filesystem::path GetLanguagesPath();
