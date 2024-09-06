@@ -34,13 +34,20 @@ void CsvExportProcessor::ProcessData(std::stringstream& data, std::string& value
 {
     TryProcessEmptyValues(value);
     TryProcessNewLines(value);
-    TryApplyTextQualifier(data, value);
+    TryProcessTextQualifier(data, value);
 }
 
 void CsvExportProcessor::TryProcessNewLines(std::string& value) const
 {
     if (mOptions.NewLinesHandler == NewLines::Merge) {
-        value.erase(std::remove(value.begin(), value.end(), '\n'), value.end());
+        // clang-format off
+        value.erase(
+            std::remove(
+                value.begin(),
+                value.end(),
+                '\n'),
+            value.end());
+        // clang-format on
     }
 }
 
@@ -53,7 +60,7 @@ void CsvExportProcessor::TryProcessEmptyValues(std::string& value) const
     }
 }
 
-void CsvExportProcessor::TryApplyTextQualifier(std::stringstream& data, std::string& value) const
+void CsvExportProcessor::TryProcessTextQualifier(std::stringstream& data, std::string& value) const
 {
     std::string quote = "\"";
     std::string doubleQuote = "\"\"";
@@ -66,4 +73,4 @@ void CsvExportProcessor::TryApplyTextQualifier(std::stringstream& data, std::str
         data << value;
     }
 }
-}
+} // namespace tks::Services::Export
