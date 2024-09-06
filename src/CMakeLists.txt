@@ -98,7 +98,6 @@ set (SRC
     "common/validator.cpp"
     "ipc/applicationoptionsconnection.cpp"
     "ipc/server.cpp"
-    "utils/export/csvexporter.cpp"
     "services/export/projectionbuilder.cpp"
     "services/export/availablecolumns.cpp"
     "services/export/columnprojection.cpp"
@@ -107,6 +106,7 @@ set (SRC
     "services/export/sqliteexportquerybuilder.cpp"
     "services/export/csvexportoptions.cpp"
     "services/export/csvexportprocessor.cpp"
+    "services/export/csvexporter.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
     ${SRC_REPOS}

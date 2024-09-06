@@ -20,22 +20,20 @@
 #pragma once
 
 #include <memory>
-#include <sstream>
 #include <string>
-#include <utility>
+#include <vector>
 
 #include <spdlog/logger.h>
 
-#include <sqlite3.h>
-
 #include "../../common/enums.h"
-#include "../../services/export/columnjoinprojection.h"
-#include "../../services/export/projection.h"
-#include "../../services/export/sqliteexportquerybuilder.h"
-#include "../../services/export/csvexportoptions.h"
-#include "../../services/export/csvexportprocessor.h"
 
-namespace tks::Utils
+#include "columnjoinprojection.h"
+#include "projection.h"
+#include "sqliteexportquerybuilder.h"
+#include "csvexportoptions.h"
+#include "csvexportprocessor.h"
+
+namespace tks::Services::Export
 {
 class CsvExporter
 {
@@ -47,11 +45,11 @@ public:
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
-    std ::vector<std::string> ComputeProjectionModel(const std::vector<Services::Export::Projection>& projections);
+    std ::vector<std::string> ComputeProjectionModel(const std::vector<Projection>& projections);
 
-    bool GeneratePreview(Services::Export::CsvExportOptions options,
-        const std::vector<Services::Export::Projection>& projections,
-        const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
+    bool GeneratePreview(CsvExportOptions options,
+        const std::vector<Projection>& projections,
+        const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
         /*out*/ std::string& exportedDataPreview);
@@ -59,10 +57,10 @@ public:
 private:
     std::shared_ptr<spdlog::logger> pLogger;
 
-    std::unique_ptr<Services::Export::SQLiteExportQueryBuilder> pQueryBuilder;
+    std::unique_ptr<SQLiteExportQueryBuilder> pQueryBuilder;
 
-    Services::Export::CsvExportOptions mOptions;
+    CsvExportOptions mOptions;
 
     std::string mDatabaseFilePath;
 };
-} // namespace tks::Utils
+}

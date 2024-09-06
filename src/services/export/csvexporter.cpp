@@ -19,26 +19,18 @@
 
 #include "csvexporter.h"
 
-#include <algorithm>
-#include <cctype>
-
-#include "../../common/constants.h"
-
 #include "../../dao/exportdao.h"
 
-#include "../utils.h"
-
-namespace tks::Utils
+namespace tks::Services::Export
 {
 CsvExporter::CsvExporter(const std::string& databaseFilePath, std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
 {
-    pQueryBuilder = std::make_unique<Services::Export::SQLiteExportQueryBuilder>(false);
+    pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
 }
 
-std::vector<std::string> CsvExporter::ComputeProjectionModel(
-    const std::vector<Services::Export::Projection>& projections)
+std::vector<std::string> CsvExporter::ComputeProjectionModel(const std::vector<Projection>& projections)
 {
     if (projections.empty()) {
         return std::vector<std::string>();
@@ -55,15 +47,15 @@ std::vector<std::string> CsvExporter::ComputeProjectionModel(
     return projectionMap;
 }
 
-bool CsvExporter::GeneratePreview(Services::Export::CsvExportOptions options,
-    const std::vector<Services::Export::Projection>& projections,
-    const std::vector<Services::Export::ColumnJoinProjection>& joinProjections,
+bool CsvExporter::GeneratePreview(CsvExportOptions options,
+    const std::vector<Projection>& projections,
+    const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
     std::string& exportedDataPreview)
 {
     int rc = -1;
-    std::vector<std ::vector<std::pair<std::string, std::string>>> projectionModel;
+    std::vector<std::vector<std::pair<std::string, std::string>>> projectionModel;
 
     mOptions = options;
 
@@ -78,7 +70,7 @@ bool CsvExporter::GeneratePreview(Services::Export::CsvExportOptions options,
         return false;
     }
 
-    Services::Export::CsvExportProcessor exportProcessor(mOptions);
+    CsvExportProcessor exportProcessor(mOptions);
 
     std::stringstream exportedData;
 
@@ -111,4 +103,4 @@ bool CsvExporter::GeneratePreview(Services::Export::CsvExportOptions options,
 
     return true;
 }
-} // namespace tks::Utils
+} // namespace tks::Services::Export

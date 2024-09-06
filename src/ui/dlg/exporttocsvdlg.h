@@ -42,7 +42,7 @@
 #include "../../core/configuration.h"
 
 #include "../../utils/datestore.h"
-#include "../../utils/export/csvexporter.h"
+#include "../../services/export/csvexporter.h"
 #include "../../services/export/csvexportoptions.h"
 
 namespace tks
@@ -172,7 +172,7 @@ private:
     wxDataViewItem mItemToSort;
 
     Services::Export::CsvExportOptions mCsvOptions;
-    Utils::CsvExporter mCsvExporter;
+    Services::Export::CsvExporter mCsvExporter;
 
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
