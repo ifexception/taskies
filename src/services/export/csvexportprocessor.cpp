@@ -19,6 +19,8 @@
 
 #include "csvexportprocessor.h"
 
+#include <algorithm>
+
 #include "../../utils/utils.h"
 
 namespace tks::Services::Export
@@ -38,10 +40,7 @@ void CsvExportProcessor::ProcessData(std::stringstream& data, std::string& value
 void CsvExportProcessor::TryProcessNewLines(std::string& value) const
 {
     if (mOptions.NewLinesHandler == NewLines::Merge) {
-        std::string newline = "\n";
-        std::string space = " ";
-
-        value = Utils::ReplaceAll(value, newline, space);
+        value.erase(std::remove(value.begin(), value.end(), '\n'), value.end());
     }
 }
 
