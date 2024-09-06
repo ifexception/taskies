@@ -125,6 +125,6 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
     }
 
     exportedDataPreview = exportedData.str();
-    return false;
+    return true;
 }
 } // namespace tks::Services::Export
