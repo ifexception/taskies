@@ -60,7 +60,7 @@ void AboutDialog::CreateControls()
     sizer->Add(staticBmp, wxSizerFlags().Border(wxLEFT | wxRIGHT, FromDIP(8)).Center());
 
     /* Taskies version */
-    auto version = fmt::format("Taskies v{0}.{1}.{2}", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH);
+    auto version = fmt::format("Taskies v{0}.{1}.{2}-{3}", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH, TASKIES_SRLC);
     auto versionLabel = new wxStaticText(this, wxID_ANY, version);
     sizer->Add(versionLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).Center());
 
