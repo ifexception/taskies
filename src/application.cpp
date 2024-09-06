@@ -160,7 +160,6 @@ void Application::InitializeLogger()
     } else {
         dialySink->set_level(spdlog::level::warn);
     }
-    dialySink->set_level(spdlog::level::info);
 
     std::shared_ptr<spdlog::sinks::dist_sink_st> combinedLoggers = std::make_shared<spdlog::sinks::dist_sink_st>();
 
