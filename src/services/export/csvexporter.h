@@ -54,7 +54,21 @@ public:
         const std::string& toDate,
         /*out*/ std::string& exportedDataPreview);
 
+    bool Generate(CsvExportOptions options,
+        const std::vector<Projection>& projections,
+        const std::vector<ColumnJoinProjection>& joinProjections,
+        const std::string& fromDate,
+        const std::string& toDate,
+        /*out*/ std::string& exportedDataPreview);
+
 private:
+    bool GenerateExport(CsvExportOptions options,
+        const std::vector<Projection>& projections,
+        const std::vector<ColumnJoinProjection>& joinProjections,
+        const std::string& fromDate,
+        const std::string& toDate,
+        /*out*/ std::string& exportedDataPreview);
+
     std::shared_ptr<spdlog::logger> pLogger;
 
     std::unique_ptr<SQLiteExportQueryBuilder> pQueryBuilder;
@@ -63,4 +77,4 @@ private:
 
     std::string mDatabaseFilePath;
 };
-}
+} // namespace tks::Services::Export

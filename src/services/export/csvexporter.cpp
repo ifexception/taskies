@@ -54,18 +54,43 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
     const std::string& toDate,
     std::string& exportedDataPreview)
 {
-    int rc = -1;
-    std::vector<std::vector<std::pair<std::string, std::string>>> projectionModel;
-
     mOptions = options;
 
     pQueryBuilder->IsPreview(true);
+    auto success = GenerateExport(mOptions, projections, joinProjections, fromDate, toDate, exportedDataPreview);
+
+    return success;
+}
+
+bool CsvExporter::Generate(CsvExportOptions options,
+    const std::vector<Projection>& projections,
+    const std::vector<ColumnJoinProjection>& joinProjections,
+    const std::string& fromDate,
+    const std::string& toDate,
+    std::string& exportedDataPreview)
+{
+    mOptions = options;
+
+    auto success = GenerateExport(mOptions, projections, joinProjections, fromDate, toDate, exportedDataPreview);
+
+    return success;
+}
+
+bool CsvExporter::GenerateExport(CsvExportOptions options,
+    const std::vector<Projection>& projections,
+    const std::vector<ColumnJoinProjection>& joinProjections,
+    const std::string& fromDate,
+    const std::string& toDate,
+    std::string& exportedDataPreview)
+{
+    std::vector<std::vector<std::pair<std::string, std::string>>> projectionModel;
+
     const auto& sql = pQueryBuilder->Build(projections, joinProjections, fromDate, toDate);
 
     const auto& computedProjectionModel = ComputeProjectionModel(projections);
 
     DAO::ExportDao exportDao(mDatabaseFilePath, pLogger);
-    rc = exportDao.FilterExportCsvData(sql, computedProjectionModel, projectionModel);
+    int rc = exportDao.FilterExportCsvData(sql, computedProjectionModel, projectionModel);
     if (rc != 0) {
         return false;
     }
@@ -100,7 +125,6 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
     }
 
     exportedDataPreview = exportedData.str();
-
-    return true;
+    return false;
 }
 } // namespace tks::Services::Export
