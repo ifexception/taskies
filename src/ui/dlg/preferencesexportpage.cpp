@@ -133,7 +133,7 @@ void PreferencesExportPage::CreateControls()
     wxListItem presetNamesColumn;
     presetNamesColumn.SetId(columnIndex);
     presetNamesColumn.SetText("Presets");
-    presetNamesColumn.SetWidth(100);
+    presetNamesColumn.SetWidth(180);
     pPresetsListView->InsertColumn(columnIndex++, presetNamesColumn);
 
     auto providedDeleteBitmap =
