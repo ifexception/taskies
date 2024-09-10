@@ -1169,23 +1169,24 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     pLogger->info("ExportToCsvDialog::OnExport - Count of columns to export: \"{0}\"", columnsToExport.size());
 
     if (columnsToExport.size() == 0) {
+        wxMessageBox("Please select at least one column to export!",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_INFORMATION);
         return;
     }
 
-    // ADD HERE
-
-    /*pLogger->info("ExportToCsvDialog::OnExport - Sort projections by order index ascending");
-    std::sort(projections.begin(), projections.end(), [](const Utils::Projection& lhs, const Utils::Projection& rhs) {
-        return lhs.orderIndex < rhs.orderIndex;
-    });
+    Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+    std::vector<Services::Export::Projection> projections = projectionBuilder.BuildProjections(columnsToExport);
+    std::vector<Services::Export::ColumnJoinProjection> joinProjections =
+        projectionBuilder.BuildJoinProjections(columnsToExport);
 
     const std::string fromDate = date::format("%F", mFromDate);
     const std::string toDate = date::format("%F", mToDate);
 
     pLogger->info("ExportToCsvDialog::OnExport - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
     std::string exportedData = "";
-    bool success = mCsvExporter.GeneratePreview(
-        mCsvOptions, projections, firstLevelTablesToJoinOn, secondLevelTablesToJoinOn, fromDate, toDate, exportedData);
+    bool success =
+        mCsvExporter.Generate(mCsvOptions, projections, joinProjections, fromDate, toDate, exportedData);
 
     if (!success) {
         std::string message = "Failed to export data";
@@ -1215,7 +1216,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
         configFile << exportedData;
 
         configFile.close();
-    }*/
+    }
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()
