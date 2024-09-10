@@ -71,6 +71,7 @@ bool CsvExporter::Generate(CsvExportOptions options,
 {
     mOptions = options;
 
+    pQueryBuilder->IsPreview(false);
     auto success = GenerateExport(mOptions, projections, joinProjections, fromDate, toDate, exportedDataPreview);
 
     return success;
