@@ -34,6 +34,7 @@
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/enums.h"
+#include "../../services/export/availablecolumns.h"
 #include "../../services/export/columnjoinprojection.h"
 #include "../../services/export/projection.h"
 #include "../../services/export/projectionbuilder.h"
@@ -60,28 +61,12 @@ wxDateTime MakeMaximumFromDate()
 }
 } // namespace
 
+// ISSUES:
+// Add wxTextCtrl with label: transform booleans
+// Allow hours and minutes as separate selectable columns
+
 namespace tks::UI::dlg
 {
-std::vector<AvailableColumn> AvailableColumns()
-{
-    AvailableColumn employer{ "name", "Employer", "employers", "employer_id", JoinType::InnerJoin };
-    AvailableColumn client{ "name", "Client", "clients", "client_id", JoinType::LeftJoin };
-    AvailableColumn project{ "name", "Project", "projects", "project_id", JoinType::InnerJoin };
-    AvailableColumn projectDisplayName{ "display_name", "Display Name", "projects", "project_id", JoinType::InnerJoin };
-    AvailableColumn category{ "name", "Category", "categories", "category_id", JoinType::InnerJoin };
-    AvailableColumn date{ "date", "Date", "workdays", "workday_id", JoinType::None };
-    AvailableColumn description{ "description", "Description", "tasks", "", JoinType::None };
-    AvailableColumn billable{ "billable", "Billable", "tasks", "", JoinType::None };
-    AvailableColumn uid{ "unique_identifier", "Unique ID", "tasks", "", JoinType::None };
-    AvailableColumn time{
-        "*time*", "Duration", "tasks", "", JoinType::None
-    }; // *time* special identifier to select two columns into one
-
-    return std::vector<AvailableColumn>{
-        employer, client, project, projectDisplayName, category, date, description, billable, uid, time
-    };
-}
-
 ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
@@ -501,7 +486,7 @@ void ExportToCsvDialog::FillControls()
     }
 
     /* Available Columns */
-    for (auto& column : AvailableColumns()) {
+    for (auto& column : Services::Export::MakeAvailableColumns()) {
         int i = pAvailableColumnsListView->InsertItem(0, column.UserColumn);
     }
 
@@ -1185,8 +1170,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     pLogger->info("ExportToCsvDialog::OnExport - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
     std::string exportedData = "";
-    bool success =
-        mCsvExporter.Generate(mCsvOptions, projections, joinProjections, fromDate, toDate, exportedData);
+    bool success = mCsvExporter.Generate(mCsvOptions, projections, joinProjections, fromDate, toDate, exportedData);
 
     if (!success) {
         std::string message = "Failed to export data";

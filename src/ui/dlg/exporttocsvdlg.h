@@ -49,16 +49,6 @@ namespace tks
 {
 namespace UI::dlg
 {
-struct AvailableColumn {
-    std::string DatabaseColumn;
-    std::string UserColumn;
-    std::string TableName;
-    std::string IdColumn;
-    JoinType Join;
-};
-
-std::vector<AvailableColumn> AvailableColumns();
-
 class ExportToCsvDialog final : public wxDialog
 {
 public:

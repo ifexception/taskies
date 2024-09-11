@@ -32,12 +32,13 @@ std::vector<AvailableColumn> MakeAvailableColumns()
     AvailableColumn description{ "description", "Description", "tasks", "", JoinType::None };
     AvailableColumn billable{ "billable", "Billable", "tasks", "", JoinType::None };
     AvailableColumn uid{ "unique_identifier", "Unique ID", "tasks", "", JoinType::None };
-    AvailableColumn time{
-        "*time*", "Duration", "tasks", "", JoinType::None
-    }; // *time* special identifier to select two columns into one
+    AvailableColumn hours{ "hours", "Hours", "tasks", "", JoinType::None };
+    AvailableColumn minutes{ "minutes", "Minutes", "tasks", "", JoinType::None };
+    // *time* special identifier to select two columns into one
+    AvailableColumn time{ "*time*", "Duration", "tasks", "", JoinType::None };
 
     return std::vector<AvailableColumn>{
-        employer, client, project, projectDisplayName, category, date, description, billable, uid, time
+        employer, client, project, projectDisplayName, category, date, description, billable, uid, hours, minutes, time
     };
 }
 } // namespace tks::Services::Export

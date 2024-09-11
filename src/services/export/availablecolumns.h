@@ -26,6 +26,14 @@
 
 namespace tks::Services::Export
 {
+/// <summary>
+/// struct AvailableColumn AS
+/// > field: DatabaseColumn
+/// > field: UserColumn
+/// > field: TableName
+/// > field: IdColumn
+/// > enum: Join
+/// </summary>
 struct AvailableColumn {
     std::string DatabaseColumn;
     std::string UserColumn;
