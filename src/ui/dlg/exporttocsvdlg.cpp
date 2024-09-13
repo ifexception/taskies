@@ -822,10 +822,10 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
     pPresetNameTextCtrl->ChangeValue("");
 
     pLogger->info("{0} - Reset of columns", TAG);
-    auto headersToRemove = pExportColumnListModel->GetColumnsToExport();
+    auto columns = pExportColumnListModel->GetColumns();
 
-    for (const auto& header : headersToRemove) {
-        pAvailableColumnsListView->InsertItem(0, header.Column);
+    for (const auto& column : columns) {
+        pAvailableColumnsListView->InsertItem(0, column.OriginalColumn);
     }
 
     pExportColumnListModel->Clear();
@@ -844,7 +844,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         return;
     }
 
-    if (pExportColumnListModel->GetColumnsToExport().empty()) {
+    if (pExportColumnListModel->GetColumns().empty()) {
         auto valMsg = "At least one column selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
@@ -880,7 +880,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     std::vector<Common::PresetColumn> columns;
 
-    auto columnsSelected = pExportColumnListModel->GetColumnsToExport();
+    auto columnsSelected = pExportColumnListModel->GetColumns();
     for (const auto& selectedColumn : columnsSelected) {
         Common::PresetColumn presetColumn;
         presetColumn.Column = selectedColumn.Column;
@@ -1111,7 +1111,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 {
     pLogger->info("ExportToCsvDialog::OnShowPreview - Begin show preview");
 
-    const auto& columnsToExport = pExportColumnListModel->GetColumnsToExport();
+    const auto& columnsToExport = pExportColumnListModel->GetColumns();
     pLogger->info("ExportToCsvDialog::OnShowPreview - Count of columns to export: \"{0}\"", columnsToExport.size());
 
     if (columnsToExport.size() == 0) {
@@ -1150,7 +1150,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 {
     pLogger->info("ExportToCsvDialog::OnExport - Begin export");
 
-    const auto& columnsToExport = pExportColumnListModel->GetColumnsToExport();
+    const auto& columnsToExport = pExportColumnListModel->GetColumns();
     pLogger->info("ExportToCsvDialog::OnExport - Count of columns to export: \"{0}\"", columnsToExport.size());
 
     if (columnsToExport.size() == 0) {
