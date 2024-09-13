@@ -64,7 +64,7 @@ public:
 
     std::vector<ColumnListItemModel> GetSelectedColumns();
 
-    std::vector<ColumnListItemModel> GetColumnsToExport() const;
+    std::vector<ColumnListItemModel> GetColumns() const;
     void Clear();
 
 private:

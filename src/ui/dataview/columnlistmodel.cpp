@@ -193,7 +193,7 @@ std::vector<ColumnListItemModel> ColumnListModel::GetSelectedColumns()
     return selectedColumns;
 }
 
-std::vector<ColumnListItemModel> ColumnListModel::GetColumnsToExport() const
+std::vector<ColumnListItemModel> ColumnListModel::GetColumns() const
 {
     return mListItemModels;
 }
