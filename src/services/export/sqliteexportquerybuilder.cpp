@@ -108,8 +108,7 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjecti
     return computedJoins;
 }
 
-std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjection(
-    const ColumnJoinProjection& joinProjection)
+std::string SQLiteExportQueryBuilder::ComputeFirstLevelJoinProjection(const ColumnJoinProjection& joinProjection)
 {
     std::stringstream query;
     if (joinProjection.Join == JoinType::InnerJoin) {
@@ -148,8 +147,7 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeSecondLevelJoinProject
     return computedJoins;
 }
 
-std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjection(
-    const ColumnJoinProjection& joinProjection)
+std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjection(const ColumnJoinProjection& joinProjection)
 {
     std::stringstream query;
 
@@ -175,8 +173,7 @@ std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjection(
     return query.str();
 }
 
-std::vector<std::string> SQLiteExportQueryBuilder::ComputeProjections(
-    const std::vector<Projection>& projections)
+std::vector<std::string> SQLiteExportQueryBuilder::ComputeProjections(const std::vector<Projection>& projections)
 {
     if (projections.size() == 0) {
         return std::vector<std::string>();
@@ -195,55 +192,65 @@ std::vector<std::string> SQLiteExportQueryBuilder::ComputeProjections(
 std::string SQLiteExportQueryBuilder::ComputeSingleProjection(const Projection& projection)
 {
     std::stringstream query;
-    ColumnProjection cp = projection.columnProjection;
+    SColumnProjection cp = projection.ColumnProjection;
 
-    if (!cp.UserColumn.empty() && cp.SpecialIdentifierForDurationColumns.empty()) {
-        // clang-format off
-        query
-            << cp.TableName
-            << "."
-            << cp.DatabaseColumn
-            << " AS "
-            << "\""
-            << cp.UserColumn
-            << "\"";
-        // clang-format on
-    } else if (!cp.UserColumn.empty() && !cp.SpecialIdentifierForDurationColumns.empty()) {
-        // clang-format off
-        query
-            << "("
-            << "printf('%02d', "
-            << cp.TableName
-            << ".hours)"
-              <<" || "
-            << "':'"
-            << " || "
-            << "printf('%02d'," << cp.TableName << ".minutes)"
-            << ")"
-            << " AS "
-            << "\""
-            << cp.UserColumn
-            << "\"";
-        // clang-format on
-    } else if (cp.UserColumn.empty() && !cp.SpecialIdentifierForDurationColumns.empty()) {
-        // clang-format off
-        query
-            << "("
-            << "printf('%02d', "
-            << cp.TableName
-            << ".hours)"
-            << " || "
-            << "':'"
-            << " || "
-            << "printf('%02d',"
-            << cp.TableName
-            << ".minutes)"
-            << ")"
-            << " AS "
-            << "Duration";
-        // clang-format on
-    } else {
-        query << cp.TableName << "." << cp.DatabaseColumn;
+    if (cp.Field == FieldType::Default) {
+        if (!cp.UserColumn.empty()) {
+            // clang-format off
+            query
+                << cp.TableName
+                << "."
+                << cp.DatabaseColumn
+                << " AS "
+                << "\""
+                << cp.UserColumn
+                << "\"";
+            // clang-format on
+        } else {
+            query << cp.TableName << "." << cp.DatabaseColumn;
+        }
+    } else if (cp.Field == FieldType::Formatted) {
+        if (cp.SpecialIdentifierForDurationColumns.empty()) {
+            if (!cp.UserColumn.empty()) {
+                // clang-format off
+                query
+                    << "("
+                    << "printf('%02d', "
+                    << cp.TableName
+                    << "."
+                    << cp.DatabaseColumn
+                    << ")"
+                    << ")"
+                    << " AS "
+                    << "\""
+                    << cp.UserColumn
+                    << "\"";
+                // clang-format on
+            }
+        } else {
+            // clang-format off
+            query
+                << "("
+                << "printf('%02d', "
+                << cp.TableName
+                << ".hours)"
+                <<" || "
+                << "':'"
+                << " || "
+                << "printf('%02d',"
+                << cp.TableName
+                << ".minutes)"
+                << ")"
+                << " AS "
+                << "\"";
+            if (!cp.UserColumn.empty()) {
+                query << cp.UserColumn;
+            } else {
+                query << "Duration";
+            }
+                query << "\"";
+            // clang-format on
+        }
     }
 
     return query.str();
