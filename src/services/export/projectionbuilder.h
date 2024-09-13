@@ -47,7 +47,7 @@ private:
     std::vector<AvailableColumn> mAvailableColumns;
 
     Projection BuildProjection(const UI::ColumnListItemModel& column, const AvailableColumn& availableColumn);
-    void SortProjectionsByOrder(std::vector<Projection>& projections);
+    void SortProjectionsByOrderDescending(std::vector<Projection>& projections);
     ColumnJoinProjection BuildRequiredProjectTableJoinProjection();
     ColumnJoinProjection BuildJoinProjection(const UI::ColumnListItemModel& column,
         const AvailableColumn& availableColumn);

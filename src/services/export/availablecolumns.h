@@ -33,6 +33,7 @@ namespace tks::Services::Export
 /// > field: TableName
 /// > field: IdColumn
 /// > enum: Join
+/// > enum: Field
 /// </summary>
 struct AvailableColumn {
     std::string DatabaseColumn;
@@ -40,6 +41,7 @@ struct AvailableColumn {
     std::string TableName;
     std::string IdColumn;
     JoinType Join;
+    FieldType Field;
 };
 
 std::vector<AvailableColumn> MakeAvailableColumns();

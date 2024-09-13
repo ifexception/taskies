@@ -27,9 +27,9 @@ namespace tks::Services::Export
 {
 struct Projection {
     int Order;
-    ColumnProjection columnProjection;
+    SColumnProjection ColumnProjection;
 
     Projection();
-    Projection(int Order, ColumnProjection columnProjection);
+    Projection(int Order, SColumnProjection columnProjection);
 };
 }

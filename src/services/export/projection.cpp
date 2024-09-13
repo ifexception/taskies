@@ -23,13 +23,13 @@ namespace tks::Services::Export
 {
 Projection::Projection()
     : Order(-1)
-    , columnProjection()
+    , ColumnProjection()
 {
 }
 
-Projection::Projection(int order, ColumnProjection columnProjection)
+Projection::Projection(int order, SColumnProjection columnProjection)
     : Order(order)
-    , columnProjection(columnProjection)
+    , ColumnProjection(columnProjection)
 {
 }
 }

@@ -21,16 +21,24 @@
 
 #include <string>
 
+#include "../../common/enums.h"
+
 namespace tks::Services::Export
 {
-struct ColumnProjection {
+struct SColumnProjection {
     std::string DatabaseColumn;
     std::string UserColumn;
     std::string IdColumn;
     std::string TableName;
+    FieldType Field;
+
     std::string SpecialIdentifierForDurationColumns;
 
-    ColumnProjection();
-    ColumnProjection(std::string databaseColumn, std::string userColumn, std::string idColumn, std::string tableName);
+    SColumnProjection();
+    SColumnProjection(std::string databaseColumn,
+        std::string userColumn,
+        std::string idColumn,
+        std::string tableName,
+        FieldType field);
 };
 } // namespace tks::Services::Export

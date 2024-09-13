@@ -21,23 +21,26 @@
 
 namespace tks::Services::Export
 {
-ColumnProjection::ColumnProjection()
+SColumnProjection::SColumnProjection()
     : DatabaseColumn("")
     , UserColumn("")
     , IdColumn("")
     , TableName("")
+    , Field(FieldType::Default)
     , SpecialIdentifierForDurationColumns("")
 {
 }
 
-ColumnProjection::ColumnProjection(std::string databaseColumn,
+SColumnProjection::SColumnProjection(std::string databaseColumn,
     std::string userColumn,
     std::string idColumn,
-    std::string tableName)
+    std::string tableName,
+    FieldType field)
     : DatabaseColumn(databaseColumn)
     , UserColumn(userColumn)
     , IdColumn(idColumn)
     , TableName(tableName)
+    , Field(field)
 {
 }
 } // namespace tks::Services::Export

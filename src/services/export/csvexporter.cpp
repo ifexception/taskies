@@ -39,7 +39,7 @@ std::vector<std::string> CsvExporter::ComputeProjectionModel(const std::vector<P
     std::vector<std::string> projectionMap;
 
     for (const auto& projection : projections) {
-        const auto& columnProjection = projection.columnProjection.UserColumn;
+        const auto& columnProjection = projection.ColumnProjection.UserColumn;
 
         projectionMap.push_back(columnProjection);
     }

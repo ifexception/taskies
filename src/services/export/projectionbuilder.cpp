@@ -55,7 +55,7 @@ std::vector<Projection> ProjectionBuilder::BuildProjections(const std::vector<UI
         }
     }
 
-    SortProjectionsByOrder(projections);
+    SortProjectionsByOrderDescending(projections);
 
     return projections;
 }
@@ -97,8 +97,11 @@ std::vector<ColumnJoinProjection> ProjectionBuilder::BuildJoinProjections(
 Projection ProjectionBuilder::BuildProjection(const UI::ColumnListItemModel& column,
     const AvailableColumn& availableColumn)
 {
-    ColumnProjection cp(
-        availableColumn.DatabaseColumn, column.Column, availableColumn.IdColumn, availableColumn.TableName);
+    SColumnProjection cp(availableColumn.DatabaseColumn,
+        column.Column,
+        availableColumn.IdColumn,
+        availableColumn.TableName,
+        availableColumn.Field);
 
     if (availableColumn.DatabaseColumn == "*time*") {
         cp.SpecialIdentifierForDurationColumns = "*time*";
@@ -108,7 +111,7 @@ Projection ProjectionBuilder::BuildProjection(const UI::ColumnListItemModel& col
     return projection;
 }
 
-void ProjectionBuilder::SortProjectionsByOrder(std::vector<Projection>& projections)
+void ProjectionBuilder::SortProjectionsByOrderDescending(std::vector<Projection>& projections)
 {
     pLogger->info("ProjectionBuilder::SortProjectionsByOrder - Sort projections by order index ascending");
 
