@@ -40,6 +40,21 @@ public:
         const std::string& billableHoursWeek,
         const std::string& billableHoursMonth);
 
+    void SetAllHoursDay(const std::string& allHoursDay, bool updateText = false);
+    void SetAllHoursWeek(const std::string& allHoursWeek, bool updateText = false);
+    void SetAllHoursMonth(const std::string& allHoursMonth, bool updateText = false);
+    void SetBillableHoursDay(const std::string& billableHoursDay, bool updateText = false);
+    void SetBillableHoursWeek(const std::string& billableHoursWeek, bool updateText = false);
+    void SetBillableHoursMonth(const std::string& billableHoursMonth, bool updateText = false);
+
     enum Fields { Default = 0, AllHours = 1, BillableHours = 2, Count };
+
+private:
+    std::string mAllHoursDay;
+    std::string mAllHoursWeek;
+    std::string mAllHoursMonth;
+    std::string mBillableHoursDay;
+    std::string mBillableHoursWeek;
+    std::string mBillableHoursMonth;
 };
 } // namespace tks::UI

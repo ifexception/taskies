@@ -669,7 +669,7 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
 {
     wxBusyCursor wait;
 
-    DoResetToCurrentWeek();
+    DoResetToCurrentWeekAndOrToday();
 }
 
 void MainFrame::OnViewExpand(wxCommandEvent& event)
@@ -1316,6 +1316,12 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
         pLogger->info("MainFrame::OnSelectionChanged - Expand selected item node");
         pDataViewCtrl->Expand(item);
 
+        auto model = (TaskTreeModelNode*) item.GetID();
+        auto selectedDate = model->GetProjectName();
+
+        CalculateSelectedDateAllHoursDayDuration(selectedDate);
+        CalculateSelectedDayBillableHoursDayDuration(selectedDate);
+
         if (pCfg->TodayAlwaysExpanded()) {
             pLogger->info("MainFrame::OnSelectionChanged - Expand today's item node");
             pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
@@ -1342,7 +1348,7 @@ void MainFrame::OnKeyDown(wxKeyEvent& event)
     event.Skip();
 }
 
-void MainFrame::DoResetToCurrentWeek()
+void MainFrame::DoResetToCurrentWeekAndOrToday()
 {
     bool shouldReset = false;
 
@@ -1370,6 +1376,8 @@ void MainFrame::DoResetToCurrentWeek()
         pDataViewCtrl->Collapse(item);
     }
 
+    CalculateSelectedDateAllHoursDayDuration(pDateStore->PrintTodayDate);
+    CalculateSelectedDayBillableHoursDayDuration(pDateStore->PrintTodayDate);
     pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
 }
 
@@ -1451,6 +1459,8 @@ void MainFrame::CalculateAllTaskDurations()
         allHoursDayTime = CalculateTaskDurations(taskDurationsForToday);
     }
 
+    pStatusBar->SetAllHoursDay(allHoursDayTime);
+
     // Fetch tasks for current week to calculate hours
     std::vector<Model::TaskDurationModel> taskDurationsForTheWeek;
 
@@ -1463,6 +1473,8 @@ void MainFrame::CalculateAllTaskDurations()
         allHoursWeekTime = CalculateTaskDurations(taskDurationsForTheWeek);
     }
 
+    pStatusBar->SetAllHoursWeek(allHoursWeekTime);
+
     // Fetch tasks for current month to calculate hours
     std::vector<Model::TaskDurationModel> taskDurationsForTheMonth;
 
@@ -1474,6 +1486,8 @@ void MainFrame::CalculateAllTaskDurations()
     } else {
         allHoursMonthTime = CalculateTaskDurations(taskDurationsForTheMonth);
     }
+
+    pStatusBar->SetAllHoursMonth(allHoursMonthTime);
 
     pStatusBar->UpdateAllHours(allHoursDayTime, allHoursWeekTime, allHoursMonthTime);
 }
@@ -1493,6 +1507,8 @@ void MainFrame::CalculateBillableTaskDurations()
         billableHoursDayTime = CalculateTaskDurations(taskDurationsForToday);
     }
 
+    pStatusBar->SetBillableHoursDay(billableHoursDayTime);
+
     // Fetch tasks for current week to calculate hours
     std::vector<Model::TaskDurationModel> taskDurationsForTheWeek;
 
@@ -1504,6 +1520,8 @@ void MainFrame::CalculateBillableTaskDurations()
     } else {
         billableHoursWeekTime = CalculateTaskDurations(taskDurationsForTheWeek);
     }
+
+    pStatusBar->SetBillableHoursWeek(billableHoursWeekTime);
 
     // Fetch tasks for current month to calculate hours
     std::vector<Model::TaskDurationModel> taskDurationsForTheMonth;
@@ -1517,7 +1535,43 @@ void MainFrame::CalculateBillableTaskDurations()
         billableHoursMonthTime = CalculateTaskDurations(taskDurationsForTheMonth);
     }
 
+    pStatusBar->SetBillableHoursMonth(billableHoursMonthTime);
+
     pStatusBar->UpdateBillableHours(billableHoursDayTime, billableHoursWeekTime, billableHoursMonthTime);
+}
+
+void MainFrame::CalculateSelectedDateAllHoursDayDuration(const std::string& date)
+{
+    // Fetch tasks to calculate hours for today
+    std::vector<Model::TaskDurationModel> taskDurationsForToday;
+    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+
+    std::string allHoursDayTime;
+    int rc = taskDao.GetHoursForDateRange(date, date, taskDurationsForToday);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        allHoursDayTime = CalculateTaskDurations(taskDurationsForToday);
+    }
+
+    pStatusBar->SetAllHoursDay(allHoursDayTime, true);
+}
+
+void MainFrame::CalculateSelectedDayBillableHoursDayDuration(const std::string& date)
+{
+    // Fetch tasks to calculate hours for today
+    std::vector<Model::TaskDurationModel> taskDurationsForToday;
+    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+
+    std::string billableHoursDayTime;
+    int rc = taskDao.GetBillableHoursForDateRange(date, date, true, taskDurationsForToday);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        billableHoursDayTime = CalculateTaskDurations(taskDurationsForToday);
+    }
+
+    pStatusBar->SetBillableHoursDay(billableHoursDayTime, true);
 }
 
 std::string MainFrame::CalculateTaskDurations(const std::vector<Model::TaskDurationModel>& taskDurations)

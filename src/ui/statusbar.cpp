@@ -49,4 +49,67 @@ void StatusBar::UpdateBillableHours(const std::string& billableHoursDay,
         fmt::format("Billable (D - {0}) (W - {1}) (M - {2})", billableHoursDay, billableHoursWeek, billableHoursMonth);
     SetStatusText(text, Fields::BillableHours);
 }
+
+void StatusBar::SetAllHoursDay(const std::string& allHoursDay, bool updateText)
+{
+    mAllHoursDay = allHoursDay;
+
+    if (updateText) {
+        auto text = fmt::format("Hours (D - {0}) (W - {1}) (M - {2})", mAllHoursDay, mAllHoursWeek, mAllHoursMonth);
+        SetStatusText(text, Fields::AllHours);
+    }
+}
+
+void StatusBar::SetAllHoursWeek(const std::string& allHoursWeek, bool updateText)
+{
+    mAllHoursWeek = allHoursWeek;
+
+    if (updateText) {
+        auto text = fmt::format("Hours (D - {0}) (W - {1}) (M - {2})", mAllHoursDay, mAllHoursWeek, mAllHoursMonth);
+        SetStatusText(text, Fields::AllHours);
+    }
+}
+
+void StatusBar::SetAllHoursMonth(const std::string& allHoursMonth, bool updateText)
+{
+    mAllHoursMonth = allHoursMonth;
+
+    if (updateText) {
+        auto text = fmt::format("Hours (D - {0}) (W - {1}) (M - {2})", mAllHoursDay, mAllHoursWeek, mAllHoursMonth);
+        SetStatusText(text, Fields::AllHours);
+    }
+}
+
+void StatusBar::SetBillableHoursDay(const std::string& billableHoursDay, bool updateText)
+{
+    mBillableHoursDay = billableHoursDay;
+
+    if (updateText) {
+        auto text = fmt::format(
+            "Billable (D - {0}) (W - {1}) (M - {2})", mBillableHoursDay, mBillableHoursWeek, mBillableHoursMonth);
+        SetStatusText(text, Fields::BillableHours);
+    }
+}
+
+void StatusBar::SetBillableHoursWeek(const std::string& billableHoursWeek, bool updateText)
+{
+    mBillableHoursWeek = billableHoursWeek;
+
+    if (updateText) {
+        auto text = fmt::format(
+            "Billable (D - {0}) (W - {1}) (M - {2})", mBillableHoursDay, mBillableHoursWeek, mBillableHoursMonth);
+        SetStatusText(text, Fields::BillableHours);
+    }
+}
+
+void StatusBar::SetBillableHoursMonth(const std::string& billableHoursMonth, bool updateText)
+{
+    mBillableHoursMonth = billableHoursMonth;
+
+    if (updateText) {
+        auto text = fmt::format(
+            "Billable (D - {0}) (W - {1}) (M - {2})", mBillableHoursDay, mBillableHoursWeek, mBillableHoursMonth);
+        SetStatusText(text, Fields::BillableHours);
+    }
+}
 } // namespace tks::UI

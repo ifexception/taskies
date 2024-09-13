@@ -200,7 +200,7 @@ private:
     /* Key Event Handlers */
     void OnKeyDown(wxKeyEvent& event);
 
-    void DoResetToCurrentWeek();
+    void DoResetToCurrentWeekAndOrToday();
     void ResetDateRange();
     void ResetDatePickerValues();
     void RefetchTasksForDateRange();
@@ -209,6 +209,8 @@ private:
     void CalculateStatusBarTaskDurations();
     void CalculateAllTaskDurations();
     void CalculateBillableTaskDurations();
+    void CalculateSelectedDateAllHoursDayDuration(const std::string& date);
+    void CalculateSelectedDayBillableHoursDayDuration(const std::string& date);
     std::string CalculateTaskDurations(const std::vector<Model::TaskDurationModel>& taskDurations);
     //void CalculateAndUpdateContainerLabels(const std::vector<std::string>& dateRange);
 
