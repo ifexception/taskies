@@ -212,7 +212,6 @@ private:
     void CalculateSelectedDateAllHoursDayDuration(const std::string& date);
     void CalculateSelectedDayBillableHoursDayDuration(const std::string& date);
     std::string CalculateTaskDurations(const std::vector<Model::TaskDurationModel>& taskDurations);
-    //void CalculateAndUpdateContainerLabels(const std::vector<std::string>& dateRange);
 
     void QueueFetchTasksErrorNotificationEvent();
 
