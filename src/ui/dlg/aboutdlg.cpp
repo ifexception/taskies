@@ -19,10 +19,13 @@
 
 #include "aboutdlg.h"
 
+#include <chrono>
+
 #include <wx/collpane.h>
 #include <wx/hyperlink.h>
 #include <wx/statline.h>
 
+#include <date/date.h>
 #include <fmt/format.h>
 
 #include "../../common/common.h"
@@ -115,31 +118,31 @@ void AboutDialog::CreateControls()
     int columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "date");
-    softwaresListView->SetItem(listIndex, columnIndex++, "3.0.1#2");
+    softwaresListView->SetItem(listIndex, columnIndex++, "2024-05-14");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "fmt");
-    softwaresListView->SetItem(listIndex, columnIndex++, "9.1.0#1");
+    softwaresListView->SetItem(listIndex, columnIndex++, "11.0.2");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "nlohmann_json");
-    softwaresListView->SetItem(listIndex, columnIndex++, "3.11.2");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.11.3#1");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "spdlog");
-    softwaresListView->SetItem(listIndex, columnIndex++, "1.11.0");
+    softwaresListView->SetItem(listIndex, columnIndex++, "1.14.1");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "SQLite");
-    softwaresListView->SetItem(listIndex, columnIndex++, "3.40.1#3");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.46.1");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "toml11");
-    softwaresListView->SetItem(listIndex, columnIndex++, "3.7.1");
+    softwaresListView->SetItem(listIndex, columnIndex++, "4.2.0");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "wxWidgets");
-    softwaresListView->SetItem(listIndex, columnIndex++, "3.2.2.1#2");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.2.5#3");
 
     softwareCollPaneWindowSizer->Add(softwaresListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
 
@@ -209,7 +212,9 @@ void AboutDialog::CreateControls()
     sizer->Add(footerSizer, wxSizerFlags().Expand());
 
     /* Copyright text */
-    auto copyrightText = new wxStaticText(this, wxID_ANY, "(C) 2023");
+    date::year_month_day ymd = date::floor<date::days>(std::chrono::system_clock::now());
+    auto year = fmt::format("(C) {0}", int(ymd.year()));
+    auto copyrightText = new wxStaticText(this, wxID_ANY, year);
     footerSizer->Add(copyrightText, wxSizerFlags().Border(wxALL, FromDIP(4)));
     footerSizer->AddStretchSpacer();
 
