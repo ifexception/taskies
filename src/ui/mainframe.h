@@ -197,8 +197,6 @@ private:
     /* DataViewCtrl Event Handlers */
     void OnContextMenu(wxDataViewEvent& event);
     void OnDataViewSelectionChanged(wxDataViewEvent& event);
-    /* Key Event Handlers */
-    void OnKeyDown(wxKeyEvent& event);
 
     void DoResetToCurrentWeekAndOrToday();
     void ResetDateRange();

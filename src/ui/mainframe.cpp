@@ -129,8 +129,6 @@ EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnContextMenu)
 EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionChanged)
-/* Key Event Handlers */
-//EVT_CHAR_HOOK(MainFrame::OnKeyDown)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -1305,25 +1303,6 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
             pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
         }
     }
-}
-
-void MainFrame::OnKeyDown(wxKeyEvent& event)
-{
-    int direction = 0;
-    auto mondaysDate = pDateStore->MondayDate;
-
-    if (event.GetKeyCode() == WXK_RIGHT) {
-        direction = 1;
-        mondaysDate = mondaysDate + date::weeks{ direction };
-    }
-    if (event.GetKeyCode() == WXK_LEFT) {
-        direction = -1;
-        mondaysDate = mondaysDate + date::weeks{ direction };
-    }
-
-    pLogger->info("MainFrame::OnKeyDown - new date {0}", date::format("%F", mondaysDate));
-
-    event.Skip();
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()
