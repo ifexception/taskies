@@ -692,11 +692,6 @@ void MainFrame::OnViewExpand(wxCommandEvent& event)
         auto yesterdaysDate = todaysDate - date::days{ 1 };
         dates.push_back(date::format("%F", yesterdaysDate));
 
-        if (todaysDate != date::Sunday) {
-            auto tomorrowsDate = todaysDate + date::days{ 1 };
-            dates.push_back(date::format("%F", tomorrowsDate));
-        }
-
         for (auto dataViewItem : pTaskTreeModel->TryExpandAllDateNodes(dates)) {
             pDataViewCtrl->Expand(dataViewItem);
         }
@@ -709,6 +704,8 @@ void MainFrame::OnViewExpand(wxCommandEvent& event)
     if (mExpandCounter >= MAX_EXPAND_COUNT) {
         mExpandCounter = 0;
     }
+
+    CalculateSelectedDateAllHoursDayDuration(pDateStore->PrintTodayDate);
 }
 
 void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
