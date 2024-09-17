@@ -113,10 +113,6 @@ static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_Con
 static const int ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS =
     static_cast<int>(MenuIds::Pop_ContainerCopyTasksWithHeaders);
 
-/* Keyboard shortcuts */
-static const int ID_KYB_LEFT = static_cast<int>(MenuIds::Kyb_LeftArrow);
-static const int ID_KYB_RIGHT = static_cast<int>(MenuIds::Kyb_RightArrow);
-
 static const int MAX_EXPAND_COUNT = 3;
 
 namespace Core
@@ -179,9 +175,6 @@ private:
     void OnCopyTaskToClipboard(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
-    /* Keyboard shortcuts */
-    // void OnKeyLeft(wxCommandEvent& event);
-    // void OnKeyRight(wxCommandEvent& event);
     /* Error Event Handlers */ /*TODO(SW): Is this still relevant?*/
     void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
