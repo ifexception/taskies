@@ -42,7 +42,7 @@ Source: "taskies.toml"; DestDir: "{userappdata}\Taskies"; Flags: onlyifdoesntexi
 Source: "lang\*"; DestDir: "{app}"; Flags: ignoreversion
 Source: "res\bell16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
 Source: "res\bellnotification16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
-Source: "res\wiztest.svg"; DestDir: "{app}\res"; Flags: ignoreversion
+Source: "res\install-wizard.svg"; DestDir: "{app}\res"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Taskies"; Filename: "{app}\Taskies.exe"

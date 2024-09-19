@@ -83,7 +83,7 @@ std::string BellNotification()
 
 std::string Wizard()
 {
-    return "wiztest.svg";
+    return "install-wizard.svg";
 }
 } // namespace Resources
 namespace Static
