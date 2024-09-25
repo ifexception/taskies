@@ -202,8 +202,6 @@ private:
     void CalculateBillableTaskDurations();
     void TryUpdateTodayOrAllStatusBarTaskDurations();
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
-    // void CalculateSelectedDateAllHoursDayDuration(const std::string& date);
-    // void CalculateSelectedDayBillableHoursDayDuration(const std::string& date);
 
     void QueueFetchTasksErrorNotificationEvent();
 

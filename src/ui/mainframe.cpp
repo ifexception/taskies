@@ -1393,40 +1393,6 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
     pStatusBar->UpdateBillableHoursDay(date, date);
 }
 
-// void MainFrame::CalculateSelectedDateAllHoursDayDuration(const std::string& date)
-//{
-//     // Fetch tasks to calculate hours for today
-//     std::vector<Model::TaskDurationModel> taskDurationsForToday;
-//     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
-//
-//     std::string allHoursDayTime;
-//     int rc = taskDao.GetHoursForDateRange(date, date, taskDurationsForToday);
-//     if (rc != 0) {
-//         QueueFetchTasksErrorNotificationEvent();
-//     } else {
-//         allHoursDayTime = CalculateTaskDurations(taskDurationsForToday);
-//     }
-//
-//     pStatusBar->SetAllHoursDay(allHoursDayTime, true);
-// }
-
-// void MainFrame::CalculateSelectedDayBillableHoursDayDuration(const std::string& date)
-//{
-//     // Fetch tasks to calculate hours for today
-//     std::vector<Model::TaskDurationModel> taskDurationsForToday;
-//     DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
-//
-//     std::string billableHoursDayTime;
-//     int rc = taskDao.GetBillableHoursForDateRange(date, date, true, taskDurationsForToday);
-//     if (rc != 0) {
-//         QueueFetchTasksErrorNotificationEvent();
-//     } else {
-//         billableHoursDayTime = CalculateTaskDurations(taskDurationsForToday);
-//     }
-//
-//     pStatusBar->SetBillableHoursDay(billableHoursDayTime, true);
-// }
-
 void MainFrame::QueueFetchTasksErrorNotificationEvent()
 {
     std::string message = "Failed to fetch tasks";
