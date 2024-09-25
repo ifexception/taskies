@@ -19,10 +19,17 @@
 
 #pragma once
 
+#include <memory>
+#include <string>
+
+#include <spdlog/spdlog.h>
+
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+
+#include "../services/taskduration/taskdurationservice.h"
 
 namespace tks::UI
 {
@@ -30,31 +37,52 @@ class StatusBar : public wxStatusBar
 {
 public:
     StatusBar() = delete;
-    StatusBar(wxWindow* parent);
+    StatusBar(wxWindow* parent, std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     virtual ~StatusBar() = default;
 
-    void UpdateAllHours(const std::string& allHoursDay,
-        const std::string& allHoursWeek,
-        const std::string& allHoursMonth);
-    void UpdateBillableHours(const std::string& billableHoursDay,
-        const std::string& billableHoursWeek,
-        const std::string& billableHoursMonth);
+    void UpdateDefaultHoursDay(const std::string& fromDate, const std::string& toDate);
+    void UpdateDefaultHoursWeek(const std::string& fromDate, const std::string& toDate);
+    void UpdateDefaultHoursMonth(const std::string& fromDate, const std::string& toDate);
 
-    void SetAllHoursDay(const std::string& allHoursDay, bool updateText = false);
-    void SetAllHoursWeek(const std::string& allHoursWeek, bool updateText = false);
-    void SetAllHoursMonth(const std::string& allHoursMonth, bool updateText = false);
-    void SetBillableHoursDay(const std::string& billableHoursDay, bool updateText = false);
-    void SetBillableHoursWeek(const std::string& billableHoursWeek, bool updateText = false);
-    void SetBillableHoursMonth(const std::string& billableHoursMonth, bool updateText = false);
+    void UpdateBillableHoursDay(const std::string& fromDate, const std::string& toDate);
+    void UpdateBillableHoursWeek(const std::string& fromDate, const std::string& toDate);
+    void UpdateBillableHoursMonth(const std::string& fromDate, const std::string& toDate);
 
-    enum Fields { Default = 0, AllHours = 1, BillableHours = 2, Count };
+    void QueueErrorNotificationEventToParentWindow();
+
+    enum Fields {
+        Default = 0,
+        HoursText = 1,
+        HoursDay,
+        HoursWeekMonthOrRange,
+        BillableText,
+        BillableDay,
+        BillableWeekMonthOrRange,
+        Count
+    };
 
 private:
-    std::string mAllHoursDay;
-    std::string mAllHoursWeek;
-    std::string mAllHoursMonth;
-    std::string mBillableHoursDay;
+    void UpdateDefaultHoursWeekMonth();
+    void UpdateBillableHoursWeekMonth();
+
+    wxWindow* pParent;
+
+    std::shared_ptr<spdlog::logger> pLogger;
+    std::string mDatabaseFilePath;
+
+    Services::TaskDuration::TaskDurationService mTaskDurationService;
+
+    std::string mDefaultHoursWeek;
+    std::string mDefaultHoursMonth;
     std::string mBillableHoursWeek;
     std::string mBillableHoursMonth;
+
+    static std::string HoursDayFormat;
+    static std::string HoursWeekMonthFormat;
+    static std::string HoursRangeFormat;
+
+    static std::string BillableDayFormat;
+    static std::string BillableWeekMonthFormat;
+    static std::string BillableRangeFormat;
 };
 } // namespace tks::UI
