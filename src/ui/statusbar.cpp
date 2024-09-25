@@ -45,9 +45,16 @@ StatusBar::StatusBar(wxWindow* parent, std::shared_ptr<spdlog::logger> logger, c
     , mBillableHoursWeek()
     , mBillableHoursMonth()
 {
-    int widths[] = { -1, 48, 48, -1, 48, 48, -1 };
-    SetFieldsCount(Fields::Count);
-    SetStatusWidths(Fields::Count, widths);
+    int widths[] = { -1, 48, 48, 128, 48, 48, 128 };
+
+    // TODO(SW): calling SetFieldsCount *without* the width parameters logs the following error(?) messages:
+    // statusbar.cpp(448): 'SendMessage(SB_GETRECT)' failed with error 0x000000b7 (Cannot create a file when that file
+    // already exists.).
+    // statusbar.cpp(448): 'SendMessage(SB_GETRECT)' failed with error 0x00000000 (The operation
+    // completed successfully.). * 10
+    // Though the statusbar gets painted correctly and continues to work fine
+    SetFieldsCount(7, widths);
+    // SetStatusWidths(7, widths);
 
     SetStatusText("Ready", Fields::Default);
     SetStatusText("Hours", Fields::HoursText);
