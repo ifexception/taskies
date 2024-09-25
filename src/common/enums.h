@@ -41,6 +41,10 @@ enum class JoinType { None = 0, InnerJoin = 1, LeftJoin = 2 };
 
 enum class FieldType { Default = 0, Formatted };
 
+enum class TaskDurationType { Default = 1, Billable };
+
+enum class TaskDurationField { Day = 1, Week, Month, Range = 10 };
+
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);

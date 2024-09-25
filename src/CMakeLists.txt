@@ -107,6 +107,7 @@ set (SRC
     "services/export/csvexportoptions.cpp"
     "services/export/csvexportprocessor.cpp"
     "services/export/csvexporter.cpp"
+    "services/taskduration/taskdurationservice.cpp"
     ${SRC_MODELS}
     ${SRC_DAO}
     ${SRC_REPOS}
