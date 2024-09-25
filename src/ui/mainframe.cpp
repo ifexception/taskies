@@ -891,7 +891,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
             } else {
                 pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
 
-                // CalculateStatusBarTaskDurations();
+                TryUpdateTodayOrAllStatusBarTaskDurations();
             }
         }
     }
@@ -912,7 +912,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     } else {
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
 
-        // CalculateStatusBarTaskDurations();
+        TryUpdateTodayOrAllStatusBarTaskDurations();
 
         auto message = "Successfully deleted task";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -968,7 +968,7 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskInsertedId);
 
-        // CalculateStatusBarTaskDurations();
+        TryUpdateTodayOrAllStatusBarTaskDurations();
     }
 }
 
@@ -997,7 +997,7 @@ void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
         auto& foundDate = *iterator;
         pTaskTreeModel->DeleteChild(foundDate, taskDeletedId);
 
-        // CalculateStatusBarTaskDurations();
+        TryUpdateTodayOrAllStatusBarTaskDurations();
     }
 }
 
@@ -1022,12 +1022,12 @@ void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
 
     // If we are in range, remove the item data for our particular date
     if (iterator != dates.end() && taskChangedId != 0 && eventTaskDateChanged.size() != 0) {
-        pLogger->info("MainFrame::OnTaskDateChangedFrom - Task changed from a date within bounds!");
+        pLogger->info("MainFrame::OnTaskDateChangedFrom - Task changed from a date within bounds");
 
         auto& foundDate = *iterator;
         pTaskTreeModel->DeleteChild(foundDate, taskChangedId);
 
-        // CalculateStatusBarTaskDurations();
+        TryUpdateTodayOrAllStatusBarTaskDurations();
     }
 }
 
@@ -1056,7 +1056,7 @@ void MainFrame::OnTaskDateChangedTo(wxCommandEvent& event)
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskChangedId);
 
-        // CalculateStatusBarTaskDurations();
+        TryUpdateTodayOrAllStatusBarTaskDurations();
     }
 }
 
@@ -1114,6 +1114,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
         date::format("%F", mFromDate),
         date::format("%F", mToDate));
+
     // Calculate list of dates between from and to date
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
@@ -1247,6 +1248,7 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
     if (!item.IsOk()) {
         return;
     }
+
     auto isContainer = pTaskTreeModel->IsContainer(item);
     pLogger->info("MainFrame::OnSelectionChanged - IsContainer = {0}", isContainer);
 
@@ -1262,8 +1264,7 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
         auto model = (TaskTreeModelNode*) item.GetID();
         auto selectedDate = model->GetProjectName();
 
-        // CalculateSelectedDateAllHoursDayDuration(selectedDate);
-        // CalculateSelectedDayBillableHoursDayDuration(selectedDate);
+        UpdateSelectedDayStatusBarTaskDurations(selectedDate);
 
         if (pCfg->TodayAlwaysExpanded()) {
             pLogger->info("MainFrame::OnSelectionChanged - Expand today's item node");
@@ -1300,8 +1301,7 @@ void MainFrame::DoResetToCurrentWeekAndOrToday()
         pDataViewCtrl->Collapse(item);
     }
 
-    // CalculateSelectedDateAllHoursDayDuration(pDateStore->PrintTodayDate);
-    // CalculateSelectedDayBillableHoursDayDuration(pDateStore->PrintTodayDate);
+    CalculateStatusBarTaskDurations();
     pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
 }
 
@@ -1359,7 +1359,7 @@ void MainFrame::CalculateStatusBarTaskDurations()
     // Default hours
     CalculateDefaultTaskDurations();
 
-    // Billable
+    // Billable hours
     CalculateBillableTaskDurations();
 }
 
@@ -1375,6 +1375,22 @@ void MainFrame::CalculateBillableTaskDurations()
     pStatusBar->UpdateBillableHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
     pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
     pStatusBar->UpdateBillableHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+}
+
+void MainFrame::TryUpdateTodayOrAllStatusBarTaskDurations()
+{
+    if (pDateStore->PrintTodayDate == mTaskDate) {
+        pStatusBar->UpdateDefaultHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
+        pStatusBar->UpdateBillableHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
+    } else {
+        CalculateStatusBarTaskDurations();
+    }
+}
+
+void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
+{
+    pStatusBar->UpdateDefaultHoursDay(date, date);
+    pStatusBar->UpdateBillableHoursDay(date, date);
 }
 
 // void MainFrame::CalculateSelectedDateAllHoursDayDuration(const std::string& date)
