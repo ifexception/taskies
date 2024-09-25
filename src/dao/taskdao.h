@@ -28,6 +28,8 @@
 
 #include <sqlite3.h>
 
+#include "../common/enums.h"
+
 #include "../models/taskmodel.h"
 
 namespace tks::DAO
@@ -48,12 +50,9 @@ public:
     int Delete(const std::int64_t taskId);
     int GetDescriptionById(const std::int64_t taskId, std::string& description);
     int IsDeleted(const std::int64_t taskId, bool& value);
-    int GetHoursForDateRange(const std::string& startDate,
+    int GetTaskDurationsForDateRange(const std::string& startDate,
         const std::string& endDate,
-        /*out*/ std::vector<Model::TaskDurationModel>& models);
-    int GetBillableHoursForDateRange(const std::string& startDate,
-        const std::string& endDate,
-        bool billable,
+        TaskDurationType type,
         /*out*/ std::vector<Model::TaskDurationModel>& models);
     int GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
         /*out*/ std::map<std::string, std::vector<Model::TaskDurationModel>>& durationsGroupedByDate);
