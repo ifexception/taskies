@@ -200,6 +200,8 @@ private:
     void CalculateStatusBarTaskDurations();
     void CalculateDefaultTaskDurations();
     void CalculateBillableTaskDurations();
+    void UpdateDefaultWeekMonthTaskDurations();
+    void UpdateBillableWeekMonthTaskDurations();
     void TryUpdateTodayOrAllStatusBarTaskDurations();
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
@@ -210,8 +212,6 @@ private:
     void SetToDateAndDatePicker();
 
     void ResetTaskContextMenuVariables();
-
-    void OnWeekChangedProcedure();
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;

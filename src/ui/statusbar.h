@@ -44,9 +44,13 @@ public:
     void UpdateDefaultHoursWeek(const std::string& fromDate, const std::string& toDate);
     void UpdateDefaultHoursMonth(const std::string& fromDate, const std::string& toDate);
 
+    void UpdateDefaultHoursRange(const std::string& fromDate, const std::string& toDate);
+
     void UpdateBillableHoursDay(const std::string& fromDate, const std::string& toDate);
     void UpdateBillableHoursWeek(const std::string& fromDate, const std::string& toDate);
     void UpdateBillableHoursMonth(const std::string& fromDate, const std::string& toDate);
+
+    void UpdateBillableHoursRange(const std::string& fromDate, const std::string& toDate);
 
     void QueueErrorNotificationEventToParentWindow();
 

@@ -26,13 +26,13 @@
 
 #include <date/date.h>
 
+#include <sqlite3.h>
+
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/taskbarbutton.h>
-
-#include <sqlite3.h>
 
 #include "../common/common.h"
 #include "../common/constants.h"
@@ -697,7 +697,7 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
         mExpandCounter = 0;
     }
 
-    // CalculateSelectedDateAllHoursDayDuration(pDateStore->PrintTodayDate);
+    UpdateSelectedDayStatusBarTaskDurations(pDateStore->PrintTodayDate);
 }
 
 void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
@@ -1096,17 +1096,17 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     mFromDate = newFromDate;
 
     if (mFromDate == mToDate) {
-        auto date = date::format("%F", mFromDate);
+        auto fromDateString = date::format("%F", mFromDate);
 
         std::vector<repos::TaskRepositoryModel> tasks;
         repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
-        int rc = taskRepo.FilterByDate(date, tasks);
+        int rc = taskRepo.FilterByDate(fromDateString, tasks);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
         } else {
             pTaskTreeModel->ClearAll();
-            pTaskTreeModel->InsertRootAndChildNodes(date, tasks);
+            pTaskTreeModel->InsertRootAndChildNodes(fromDateString, tasks);
         }
         return;
     }
@@ -1130,6 +1130,19 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
             pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
         }
+    }
+
+    // Update status bar hours
+    // Check if the week dates have changed
+    if (mFromDate != pDateStore->MondayDate) {
+        // If so, we cannot display [Week] and [Month] as there is no guarantee where we have gone
+        // Thus, switch to a [Range] format as a catch all for whatever the date selection is
+        pStatusBar->UpdateDefaultHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
+        pStatusBar->UpdateBillableHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
+    } else {
+        // Otherwise we are back in our week range and reset to the default
+        UpdateDefaultWeekMonthTaskDurations();
+        UpdateBillableWeekMonthTaskDurations();
     }
 }
 
@@ -1195,6 +1208,19 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
             pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
         }
+    }
+
+    // Update status bar hours
+    // Check if the week dates have changed
+    if (mToDate != pDateStore->SundayDate) {
+        // If so, we cannot display [Week] and [Month] as there is no guarantee where we have gone
+        // Thus, switch to a [Range] format as a catch all for whatever the date selection is
+        pStatusBar->UpdateDefaultHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
+        pStatusBar->UpdateBillableHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
+    } else {
+        // Otherwise we are back in our week range and reset to the default
+        UpdateDefaultWeekMonthTaskDurations();
+        UpdateBillableWeekMonthTaskDurations();
     }
 }
 
@@ -1377,6 +1403,18 @@ void MainFrame::CalculateBillableTaskDurations()
     pStatusBar->UpdateBillableHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
 }
 
+void MainFrame::UpdateDefaultWeekMonthTaskDurations()
+{
+    pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
+    pStatusBar->UpdateDefaultHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+}
+
+void MainFrame::UpdateBillableWeekMonthTaskDurations()
+{
+    pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
+    pStatusBar->UpdateBillableHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+}
+
 void MainFrame::TryUpdateTodayOrAllStatusBarTaskDurations()
 {
     if (pDateStore->PrintTodayDate == mTaskDate) {
@@ -1464,30 +1502,5 @@ void MainFrame::ResetTaskContextMenuVariables()
 {
     mTaskIdToModify = -1;
     mTaskDate = "";
-}
-
-void MainFrame::OnWeekChangedProcedure()
-{
-    // Fetch tasks between from date and to date
-    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
-
-    int rc = taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
-    } else {
-        pTaskTreeModel->ClearAll();
-        for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
-            pTaskTreeModel->InsertRootAndChildNodes(workdayDate, tasks);
-        }
-
-        pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
-
-        // CalculateStatusBarTaskDurations();
-
-        SetFromAndToDatePickerRanges();
-        SetFromDateAndDatePicker();
-        SetToDateAndDatePicker();
-    }
 }
 } // namespace tks::UI

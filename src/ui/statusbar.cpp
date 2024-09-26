@@ -109,6 +109,20 @@ void StatusBar::UpdateDefaultHoursMonth(const std::string& fromDate, const std::
     }
 }
 
+void StatusBar::UpdateDefaultHoursRange(const std::string& fromDate, const std::string& toDate)
+{
+    int rc = 0;
+    std::string duration = "";
+
+    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Default, duration);
+    if (rc != 0) {
+        QueueErrorNotificationEventToParentWindow();
+    } else {
+        auto durationStatusBarFormat = fmt::format(StatusBar::HoursRangeFormat, duration);
+        SetStatusText(durationStatusBarFormat, Fields::HoursWeekMonthOrRange);
+    }
+}
+
 void StatusBar::UpdateBillableHoursDay(const std::string& fromDate, const std::string& toDate)
 {
     int rc = 0;
@@ -150,6 +164,20 @@ void StatusBar::UpdateBillableHoursMonth(const std::string& fromDate, const std:
         mBillableHoursMonth = duration;
 
         UpdateBillableHoursWeekMonth();
+    }
+}
+
+void StatusBar::UpdateBillableHoursRange(const std::string& fromDate, const std::string& toDate)
+{
+    int rc = 0;
+    std::string duration = "";
+
+    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Billable, duration);
+    if (rc !=0 ) {
+        QueueErrorNotificationEventToParentWindow();
+    } else {
+        auto durationStatusBarFormat = fmt::format(StatusBar::BillableRangeFormat, duration);
+        SetStatusText(durationStatusBarFormat, Fields::BillableWeekMonthOrRange);
     }
 }
 
