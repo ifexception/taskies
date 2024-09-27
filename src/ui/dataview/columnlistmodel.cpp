@@ -166,9 +166,17 @@ void ColumnListModel::AppendStagingItem(const std::string& column, const std::st
 
 void ColumnListModel::AppendFromStaging()
 {
-    std::sort(mListItemModelsStaging.begin(),
+    // clang-format off
+    std::sort(
+        mListItemModelsStaging.begin(),
         mListItemModelsStaging.end(),
-        [&](const ColumnListItemModel& lhs, const ColumnListItemModel& rhs) { return lhs.Order < rhs.Order; });
+        [&](
+            const ColumnListItemModel& lhs,
+            const ColumnListItemModel& rhs
+        ) {
+                return lhs.Order < rhs.Order;
+        });
+    // clang-format on
 
     for (const auto& model : mListItemModelsStaging) {
         mListItemModels.push_back(model);
