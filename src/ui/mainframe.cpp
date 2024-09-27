@@ -323,8 +323,6 @@ void MainFrame::CreateControls()
     pInfoBar = new wxInfoBar(framePanel, wxID_ANY);
     sizer->Add(pInfoBar, wxSizerFlags().Expand());
 
-    // Bind Ctrl+G plus menu bar option to a new dialog that pops up
-    // Instead of hacking the mainframe continually
     auto topSizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto fromDateLabel = new wxStaticText(framePanel, wxID_ANY, "From: ");
@@ -612,7 +610,7 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
     sqlite3_close(db);
     sqlite3_close(backupDb);
 
-    std::string message = "Backup successful!";
+    std::string message = "Backup successful";
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);
@@ -785,7 +783,7 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& event)
+void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
 
