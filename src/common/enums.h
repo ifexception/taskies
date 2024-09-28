@@ -37,6 +37,8 @@ enum class EmptyValues : int { None = 0, Blank, Null };
 
 enum class NewLines : int { None = 0, Preserve, Merge };
 
+enum class BooleanHandler : int { None = 0, OneZero, TrueFalse, YesNo };
+
 enum class JoinType { None = 0, InnerJoin = 1, LeftJoin = 2 };
 
 enum class FieldType { Default = 0, Formatted };
@@ -48,6 +50,10 @@ enum class TaskDurationField { Day = 1, Week, Month, Range = 10 };
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);
+
 std::string MapDelimiterEnumToValue(DelimiterType delimiter);
 DelimiterType MapValueToDelimiterEnum(std::string delimiter);
+
+std::string MapBooleanEnumToValue(BooleanHandler booleanHandler);
+BooleanHandler MapValueToBooleanHandlerEnum(std::string booleanHandler);
 } // namespace tks

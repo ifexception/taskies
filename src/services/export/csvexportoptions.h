@@ -28,6 +28,7 @@ struct CsvExportOptions {
     char TextQualifier;
     EmptyValues EmptyValuesHandler;
     NewLines NewLinesHandler;
+    BooleanHandler BooleanHandler;
     bool ExcludeHeaders;
 
     CsvExportOptions();

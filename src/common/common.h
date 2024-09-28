@@ -57,6 +57,7 @@ struct Preset {
     std::string TextQualifier;
     EmptyValues EmptyValuesHandler;
     NewLines NewLinesHandler;
+    BooleanHandler BooleanHandler;
     bool ExcludeHeaders;
     std::vector<PresetColumn> Columns;
 
@@ -77,6 +78,7 @@ std::vector<std::pair<std::string, char>> DelimiterList();
 std::vector<std::string> TextQualifierList();
 std::vector<std::string> EmptyValueHandlerList();
 std::vector<std::string> NewLinesHandlerList();
+std::vector<std::string> BooleanHandlerList();
 } // namespace Static
 } // namespace Common
 } // namespace tks

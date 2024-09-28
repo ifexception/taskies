@@ -101,4 +101,31 @@ DelimiterType MapValueToDelimiterEnum(std::string delimiter)
         return DelimiterType::None;
     }
 }
+
+std::string MapBooleanEnumToValue(BooleanHandler booleanHandler)
+{
+    switch (booleanHandler) {
+    case BooleanHandler::OneZero:
+        return "1|0";
+    case BooleanHandler::TrueFalse:
+        return "true|false";
+    case BooleanHandler::YesNo:
+        return "yes|no";
+    default:
+        return "";
+    }
+}
+
+BooleanHandler MapValueToBooleanHandlerEnum(std::string booleanHandler)
+{
+    if (booleanHandler.empty() || booleanHandler == "1|0") {
+        return BooleanHandler::OneZero;
+    } else if (booleanHandler == "true|false") {
+        return BooleanHandler::TrueFalse;
+    } else if (booleanHandler == "yes|no") {
+        return BooleanHandler::YesNo;
+    } else {
+        return BooleanHandler::OneZero;
+    }
+}
 } // namespace tks

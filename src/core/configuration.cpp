@@ -344,6 +344,7 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
             { "textQualifier", presetToSave.TextQualifier },
             { "emptyValues", static_cast<int>(presetToSave.EmptyValuesHandler) },
             { "newLines", static_cast<int>(presetToSave.NewLinesHandler) },
+            { "booleans", static_cast<int>(presetToSave.BooleanHandler) },
             { "excludeHeaders", presetToSave.ExcludeHeaders },
             { "columns", toml::array {} }
         }
@@ -419,6 +420,7 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
             preset["textQualifier"] = presetToUpdate.TextQualifier;
             preset["emptyValues"] = static_cast<int>(presetToUpdate.EmptyValuesHandler);
             preset["newLines"] = static_cast<int>(presetToUpdate.NewLinesHandler);
+            preset["booleans"] = static_cast<int>(presetToUpdate.BooleanHandler);
             preset["excludeHeaders"] = presetToUpdate.ExcludeHeaders;
 
             auto& columns = preset.at("columns").as_array();
@@ -766,6 +768,8 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
                 static_cast<EmptyValues>(root.at(Sections::PresetsSection).at(i).at("emptyValues").as_integer());
             preset.NewLinesHandler =
                 static_cast<NewLines>(root.at(Sections::PresetsSection).at(i).at("newLines").as_integer());
+            preset.BooleanHandler =
+                static_cast<BooleanHandler>(root.at(Sections::PresetsSection).at(i).at("booleans").as_integer());
             preset.ExcludeHeaders = root.at(Sections::PresetsSection).at(i).at("excludeHeaders").as_boolean();
 
             auto columnsSize = root.at(Sections::PresetsSection).at(i).at("columns").size();

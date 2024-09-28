@@ -34,6 +34,7 @@ void CsvExportProcessor::ProcessData(std::stringstream& data, std::string& value
 {
     TryProcessEmptyValues(value);
     TryProcessNewLines(value);
+    TryProcessBooleanHandler(value);
     TryProcessTextQualifier(data, value);
 }
 
@@ -56,6 +57,27 @@ void CsvExportProcessor::TryProcessEmptyValues(std::string& value) const
     if (value.empty()) {
         if (mOptions.EmptyValuesHandler == EmptyValues::Null) {
             value = "NULL";
+        }
+    }
+}
+
+void CsvExportProcessor::TryProcessBooleanHandler(std::string& value) const
+{
+    if (!value.empty() && value.size() == 1) {
+        if (value == "0" || value == "1" && mOptions.BooleanHandler != BooleanHandler::OneZero) {
+            if (mOptions.BooleanHandler == BooleanHandler::TrueFalse) {
+                if (value == "1") {
+                    value = "true";
+                } else if (value == "0") {
+                    value = "false";
+                }
+            } else if (mOptions.BooleanHandler == BooleanHandler::YesNo) {
+                if (value == "1") {
+                    value = "yes";
+                } else if (value == "0") {
+                    value = "no";
+                }
+            }
         }
     }
 }

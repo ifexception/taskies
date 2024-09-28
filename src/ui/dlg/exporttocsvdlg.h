@@ -76,6 +76,7 @@ private:
     void OnTextQualifierChoiceSelection(wxCommandEvent& event);
     void OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event);
     void OnNewLinesHandlerChoiceSelection(wxCommandEvent& event);
+    void OnBooleanHandlerChoiceSelection(wxCommandEvent& event);
 
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
@@ -120,6 +121,7 @@ private:
     wxChoice* pTextQualifierChoiceCtrl;
     wxChoice* pEmptyValueHandlerChoiceCtrl;
     wxChoice* pNewLinesHandlerChoiceCtrl;
+    wxChoice* pBooleanHanderChoiceCtrl;
     wxCheckBox* pRemoveCommasCheckBoxCtrl;
 
     wxDatePickerCtrl* pFromDateCtrl;
@@ -173,6 +175,7 @@ private:
         tksIDC_EOL_TERMINATOR_CTRL,
         tksIDC_EMPTY_VALUE_HANDLER_CTRL,
         tksIDC_NEW_LINES_HANDLER_CTRL,
+        tksIDC_BOOLEAN_HANDLER_CTRL,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
         tksIDC_PRESET_RESET_BUTTON,

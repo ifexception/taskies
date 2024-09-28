@@ -53,6 +53,7 @@ public:
         std::string TextQualifier;
         EmptyValues EmptyValuesHandler;
         NewLines NewLinesHandler;
+        BooleanHandler BooleanHandler;
         bool ExcludeHeaders;
         std::vector<PresetColumnSettings> Columns;
 

@@ -26,6 +26,7 @@ CsvExportOptions::CsvExportOptions()
     , TextQualifier('"')
     , EmptyValuesHandler(EmptyValues::Blank)
     , NewLinesHandler(NewLines::Merge)
+    , BooleanHandler(BooleanHandler::OneZero)
     , ExcludeHeaders(false)
 {
 }
@@ -36,6 +37,7 @@ void CsvExportOptions::Reset()
     TextQualifier = '"';
     EmptyValuesHandler = EmptyValues::Blank;
     NewLinesHandler = NewLines::Merge;
+    BooleanHandler = BooleanHandler::OneZero;
     ExcludeHeaders = false;
 }
 } // namespace tks::Service::Export

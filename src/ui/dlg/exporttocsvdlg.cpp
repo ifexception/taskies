@@ -88,6 +88,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pTextQualifierChoiceCtrl(nullptr)
     , pEmptyValueHandlerChoiceCtrl(nullptr)
     , pNewLinesHandlerChoiceCtrl(nullptr)
+    , pBooleanHanderChoiceCtrl(nullptr)
     , pExportToClipboardCheckBoxCtrl(nullptr)
     , pSaveToFileTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
@@ -209,6 +210,11 @@ void ExportToCsvDialog::CreateControls()
     pNewLinesHandlerChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_NEW_LINES_HANDLER_CTRL);
     pNewLinesHandlerChoiceCtrl->SetToolTip("Set how to handle multiline field values");
 
+    /* Boolean handler control */
+    auto booleanHandlerLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Booleans");
+    pBooleanHanderChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_BOOLEAN_HANDLER_CTRL);
+    pBooleanHanderChoiceCtrl->SetToolTip("Set how to handle boolean values");
+
     optionsFlexGridSizer->Add(delimiterLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     optionsFlexGridSizer->Add(pDelimiterChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
@@ -220,6 +226,9 @@ void ExportToCsvDialog::CreateControls()
 
     optionsFlexGridSizer->Add(newLinesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     optionsFlexGridSizer->Add(pNewLinesHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    optionsFlexGridSizer->Add(booleanHandlerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    optionsFlexGridSizer->Add(pBooleanHanderChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Date range static box */
     auto dateRangeStaticBox = new wxStaticBox(this, wxID_ANY, "Date Range");
@@ -471,6 +480,14 @@ void ExportToCsvDialog::FillControls()
         pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i + 1));
     }
 
+    pBooleanHanderChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pBooleanHanderChoiceCtrl->SetSelection(0);
+
+    auto booleanHandlers = Common::Static::BooleanHandlerList();
+    for (auto i = 0; i < booleanHandlers.size(); i++) {
+        pBooleanHanderChoiceCtrl->Append(booleanHandlers[i], new ClientData<int>(i + 1));
+    }
+
     /* Date Controls */
     SetFromAndToDatePickerRanges();
 
@@ -529,6 +546,12 @@ void ExportToCsvDialog::ConfigureEventBindings()
     pNewLinesHandlerChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ExportToCsvDialog::OnNewLinesHandlerChoiceSelection,
+        this
+    );
+
+    pBooleanHanderChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &ExportToCsvDialog::OnBooleanHandlerChoiceSelection,
         this
     );
 
@@ -719,6 +742,19 @@ void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
     mCsvOptions.NewLinesHandler = static_cast<NewLines>(newLinesData->GetValue());
 }
 
+void ExportToCsvDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+    int booleanHandlerIndex = pBooleanHanderChoiceCtrl->GetSelection();
+    ClientData<int>* booleanHandlerData =
+        reinterpret_cast<ClientData<int>*>(pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
+
+    pLogger->info(
+        "ExportToCsvDialog::OnBooleanHandlerChoiceSelection - Selected boolean handler \"{0}\"", choice.ToStdString());
+
+    mCsvOptions.BooleanHandler = static_cast<BooleanHandler>(booleanHandlerData->GetValue());
+}
+
 void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
@@ -816,6 +852,7 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
     pTextQualifierChoiceCtrl->SetSelection(0);
     pEmptyValueHandlerChoiceCtrl->SetSelection(0);
     pNewLinesHandlerChoiceCtrl->SetSelection(0);
+    pBooleanHanderChoiceCtrl->SetSelection(0);
 
     pPresetIsDefaultCtrl->SetValue(false);
     pPresetsChoiceCtrl->SetSelection(0);
@@ -877,6 +914,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     preset.TextQualifier = std::string(1, mCsvOptions.TextQualifier);
     preset.EmptyValuesHandler = mCsvOptions.EmptyValuesHandler;
     preset.NewLinesHandler = mCsvOptions.NewLinesHandler;
+    preset.BooleanHandler = mCsvOptions.BooleanHandler;
 
     std::vector<Common::PresetColumn> columns;
 
@@ -1201,6 +1239,10 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
         configFile.close();
     }
+
+    std::string message = pExportToClipboardCheckBoxCtrl->IsChecked() ? "Successfully exported data to clipboard"
+                                                                      : "Successfully exported data to file";
+    wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()
@@ -1266,6 +1308,7 @@ void ExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetS
     pTextQualifierChoiceCtrl->SetStringSelection(presetSettings.TextQualifier);
     pEmptyValueHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.EmptyValuesHandler));
     pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.NewLinesHandler));
+    pBooleanHanderChoiceCtrl->SetSelection(static_cast<int>(presetSettings.BooleanHandler));
 
     pPresetNameTextCtrl->ChangeValue(presetSettings.Name);
     pPresetIsDefaultCtrl->SetValue(presetSettings.IsDefault);
