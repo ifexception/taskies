@@ -168,6 +168,7 @@ private:
     Services::Export::CsvExportOptions mCsvOptions;
     Services::Export::CsvExporter mCsvExporter;
 
+    bool bExportToClipboard;
     bool bCloseDialogAfterExporting;
 
     enum {
