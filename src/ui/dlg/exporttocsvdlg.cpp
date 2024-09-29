@@ -533,6 +533,13 @@ void ExportToCsvDialog::FillControls()
 // clang-format off
 void ExportToCsvDialog::ConfigureEventBindings()
 {
+    pCloseDialogAfterExporting->Bind(
+        wxEVT_CHECKBOX,
+        &ExportToCsvDialog::OnCloseDialogAfterExportingCheck,
+        this,
+        tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL
+    );
+
     pDelimiterChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ExportToCsvDialog::OnDelimiterChoiceSelection,
