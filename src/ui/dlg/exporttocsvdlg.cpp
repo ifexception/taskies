@@ -159,6 +159,12 @@ void ExportToCsvDialog::CreateControls()
     auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
     pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
 
+    /* Close dialog after export check box control */
+    pCloseDialogAfterExporting =
+        new wxCheckBox(outputStaticBox, tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL, "Close dialog after exporting");
+    pCloseDialogAfterExporting->SetToolTip(
+        "If selected, the dialog will close automatically after a successful export");
+
     pBrowseExportPathButton = new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
     pBrowseExportPathButton->SetToolTip("Set where to the save the exported data to");
 
@@ -170,6 +176,8 @@ void ExportToCsvDialog::CreateControls()
     outputFlexGridSizer->Add(pSaveToFileTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand().Proportion(1));
     outputFlexGridSizer->Add(0, 0);
     outputFlexGridSizer->Add(pBrowseExportPathButton, wxSizerFlags().Border(wxALL, FromDIP(2)).Right());
+    outputFlexGridSizer->Add(0, 0);
+    outputFlexGridSizer->Add(pCloseDialogAfterExporting, wxSizerFlags().Border(wxALL, FromDIP(2)));
 
     /* Sizer for Options, Date Range and Presets controls */
     auto horizontalBoxSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -766,6 +774,14 @@ void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
     }
 }
 
+void ExportToCsvDialog::OnCloseDialogAfterExportingCheck(wxCommandEvent& event)
+{
+    bCloseDialogAfterExporting = event.IsChecked();
+    pLogger->info(
+        "ExportToCsvDialog::OnCloseDialogAfterExportingCheck - Close dialog after exporting toggled to: \"{0}\"",
+        event.IsChecked());
+}
+
 void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
 {
     std::string directoryToOpen = pCfg->GetExportPath();
@@ -1217,6 +1233,8 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
+
+        return;
     }
 
     if (pExportToClipboardCheckBoxCtrl->IsChecked()) {
@@ -1243,6 +1261,10 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     std::string message = pExportToClipboardCheckBoxCtrl->IsChecked() ? "Successfully exported data to clipboard"
                                                                       : "Successfully exported data to file";
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
+
+    if (bCloseDialogAfterExporting) {
+        EndDialog(wxID_OK);
+    }
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()

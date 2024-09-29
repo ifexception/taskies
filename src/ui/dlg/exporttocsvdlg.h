@@ -70,6 +70,7 @@ private:
     void ConfigureEventBindings();
 
     void OnExportToClipboardCheck(wxCommandEvent& event);
+    void OnCloseDialogAfterExportingCheck(wxCommandEvent& event);
     void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
 
     void OnDelimiterChoiceSelection(wxCommandEvent& event);
@@ -115,6 +116,7 @@ private:
 
     wxCheckBox* pExportToClipboardCheckBoxCtrl;
     wxTextCtrl* pSaveToFileTextCtrl;
+    wxCheckBox* pCloseDialogAfterExporting;
     wxButton* pBrowseExportPathButton;
 
     wxChoice* pDelimiterChoiceCtrl;
@@ -166,11 +168,14 @@ private:
     Services::Export::CsvExportOptions mCsvOptions;
     Services::Export::CsvExporter mCsvExporter;
 
+    bool bCloseDialogAfterExporting;
+
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
         tksIDC_SAVE_TO_FILE_CTRL,
+        tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL,
         tksIDC_BROWSE_EXPORT_PATH_CTRL,
-        tksIDC_DELIMITER_CTRL ,
+        tksIDC_DELIMITER_CTRL,
         tksIDC_TEXT_QUALIFIER_CTRL,
         tksIDC_EOL_TERMINATOR_CTRL,
         tksIDC_EMPTY_VALUE_HANDLER_CTRL,
