@@ -853,7 +853,7 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     }
 
     if (eventDateUtc < mFromCtrlDate) {
-        SetFromDateAndDatePicker();
+        SetToDateAndDatePicker();
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"from\" date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDateCtrl);
@@ -1293,7 +1293,7 @@ void ExportToCsvDialog::SetFromAndToDatePickerRanges()
 
     wxDateSpan oneDay(0, 0, 0, 1);
     auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
-    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
+    pToDateCtrl->SetRange(MakeMaximumFromDate(), latestPossibleDatePlusOneDay);
 
     wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
 
