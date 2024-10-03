@@ -39,7 +39,7 @@ Source: "wxbase32u_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "wxmsw32u_core_vc_custom.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "taskies.toml"; DestDir: "{userappdata}\Taskies"; Flags: onlyifdoesntexist
-Source: "lang\*"; DestDir: "{app}"; Flags: ignoreversion
+Source: "lang\*"; DestDir: "{app}\lang"; Flags: ignoreversion
 Source: "res\bell16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
 Source: "res\bellnotification16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
 Source: "res\install-wizard.svg"; DestDir: "{app}\res"; Flags: ignoreversion
