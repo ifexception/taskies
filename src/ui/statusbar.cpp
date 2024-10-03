@@ -45,7 +45,7 @@ StatusBar::StatusBar(wxWindow* parent, std::shared_ptr<spdlog::logger> logger, c
     , mBillableHoursWeek()
     , mBillableHoursMonth()
 {
-    int widths[] = { -1, 48, 48, 128, 48, 48, 128 };
+    int widths[] = { -1, FromDIP(56), FromDIP(64), FromDIP(136), FromDIP(56), FromDIP(64), FromDIP(136) };
 
     // TODO(SW): calling SetFieldsCount *without* the width parameters logs the following error(?) messages:
     // statusbar.cpp(448): 'SendMessage(SB_GETRECT)' failed with error 0x000000b7 (Cannot create a file when that file
