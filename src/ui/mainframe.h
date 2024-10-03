@@ -179,7 +179,7 @@ private:
     void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
     void OnAddNotification(wxCommandEvent& event);
-    void OnTaskDateAdded(wxCommandEvent& event);
+    void OnTaskAddedOnDate(wxCommandEvent& event);
     void OnTaskDeletedOnDate(wxCommandEvent& event);
     void OnTaskDateChangedFrom(wxCommandEvent& event);
     void OnTaskDateChangedTo(wxCommandEvent& event);
@@ -202,7 +202,7 @@ private:
     void CalculateBillableTaskDurations();
     void UpdateDefaultWeekMonthTaskDurations();
     void UpdateBillableWeekMonthTaskDurations();
-    void TryUpdateTodayOrAllStatusBarTaskDurations();
+    void TryUpdateSelectedDateOrTodayOrAllTaskDurations();
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
     void QueueFetchTasksErrorNotificationEvent();

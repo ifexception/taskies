@@ -115,7 +115,7 @@ EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
 EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
-EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskDateAdded)
+EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDFROM, MainFrame::OnTaskDateChangedFrom)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDTO, MainFrame::OnTaskDateChangedTo)
@@ -889,7 +889,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
             } else {
                 pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
 
-                TryUpdateTodayOrAllStatusBarTaskDurations();
+                UpdateSelectedDayStatusBarTaskDurations(mTaskDate);
             }
         }
     }
@@ -910,7 +910,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     } else {
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
 
-        TryUpdateTodayOrAllStatusBarTaskDurations();
+        UpdateSelectedDayStatusBarTaskDurations(mTaskDate);
 
         auto message = "Successfully deleted task";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -944,12 +944,12 @@ void MainFrame::OnAddNotification(wxCommandEvent& event)
     }
 }
 
-void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
+void MainFrame::OnTaskAddedOnDate(wxCommandEvent& event)
 {
     // A task got inserted for a specific day
     auto eventTaskDateAdded = event.GetString().ToStdString();
     auto taskInsertedId = static_cast<std::int64_t>(event.GetExtraLong());
-    pLogger->info("MainFrame::OnTaskDateAdded - Received task added event with date \"{0}\" and ID \"{1}\"",
+    pLogger->info("MainFrame::OnTaskAddedOnDate - Received task added event with date \"{0}\" and ID \"{1}\"",
         eventTaskDateAdded,
         taskInsertedId);
 
@@ -966,7 +966,7 @@ void MainFrame::OnTaskDateAdded(wxCommandEvent& event)
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskInsertedId);
 
-        TryUpdateTodayOrAllStatusBarTaskDurations();
+        UpdateSelectedDayStatusBarTaskDurations(foundDate);
     }
 }
 
@@ -995,7 +995,7 @@ void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
         auto& foundDate = *iterator;
         pTaskTreeModel->DeleteChild(foundDate, taskDeletedId);
 
-        TryUpdateTodayOrAllStatusBarTaskDurations();
+        UpdateSelectedDayStatusBarTaskDurations(foundDate);
     }
 }
 
@@ -1025,7 +1025,7 @@ void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
         auto& foundDate = *iterator;
         pTaskTreeModel->DeleteChild(foundDate, taskChangedId);
 
-        TryUpdateTodayOrAllStatusBarTaskDurations();
+        UpdateSelectedDayStatusBarTaskDurations(foundDate);
     }
 }
 
@@ -1054,7 +1054,7 @@ void MainFrame::OnTaskDateChangedTo(wxCommandEvent& event)
         auto& foundDate = *iterator;
         RefetchTasksForDate(foundDate, taskChangedId);
 
-        TryUpdateTodayOrAllStatusBarTaskDurations();
+        UpdateSelectedDayStatusBarTaskDurations(foundDate);
     }
 }
 
@@ -1413,7 +1413,7 @@ void MainFrame::UpdateBillableWeekMonthTaskDurations()
     pStatusBar->UpdateBillableHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
 }
 
-void MainFrame::TryUpdateTodayOrAllStatusBarTaskDurations()
+void MainFrame::TryUpdateSelectedDateOrTodayOrAllTaskDurations()
 {
     if (pDateStore->PrintTodayDate == mTaskDate) {
         pStatusBar->UpdateDefaultHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
