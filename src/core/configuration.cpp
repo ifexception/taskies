@@ -234,7 +234,7 @@ bool Configuration::RestoreDefaults()
     MinimizeToTray(false);
     CloseToTray(false);
 
-    SetDatabasePath(pEnv->ApplicationDatabasePath().string());
+    SetDatabasePath(pEnv->GetDatabasePath().string());
     BackupDatabase(false);
     SetBackupPath("");
     SetBackupRetentionPeriod(0);
