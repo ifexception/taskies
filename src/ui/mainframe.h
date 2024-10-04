@@ -200,9 +200,13 @@ private:
     void CalculateStatusBarTaskDurations();
     void CalculateDefaultTaskDurations();
     void CalculateBillableTaskDurations();
+
     void UpdateDefaultWeekMonthTaskDurations();
     void UpdateBillableWeekMonthTaskDurations();
-    void TryUpdateTodayOrAllTaskDurations();
+
+    void UpdateDefaultRangeTaskDurations();
+    void UpdateBillableRangeTaskDurations();
+
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
@@ -240,6 +244,7 @@ private:
     std::int64_t mTaskIdToModify;
     std::string mTaskDate;
     int mExpandCounter;
+    bool bDateRangeChanged;
 
     enum {
         tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 1000,

@@ -165,6 +165,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mTaskIdToModify(-1)
     , mTaskDate()
     , mExpandCounter(0)
+    , bDateRangeChanged(false)
 // clang-format on
 {
     // Initialization setup
@@ -1137,6 +1138,8 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         // Thus, switch to a [Range] format as a catch all for whatever the date selection is
         pStatusBar->UpdateDefaultHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
         pStatusBar->UpdateBillableHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
+
+        bDateRangeChanged = true;
     } else {
         // Otherwise we are back in our week range and reset to the default
         UpdateDefaultWeekMonthTaskDurations();
@@ -1215,6 +1218,8 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         // Thus, switch to a [Range] format as a catch all for whatever the date selection is
         pStatusBar->UpdateDefaultHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
         pStatusBar->UpdateBillableHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
+
+        bDateRangeChanged = true;
     } else {
         // Otherwise we are back in our week range and reset to the default
         UpdateDefaultWeekMonthTaskDurations();
@@ -1325,6 +1330,8 @@ void MainFrame::DoResetToCurrentWeekAndOrToday()
         pDataViewCtrl->Collapse(item);
     }
 
+    bDateRangeChanged = false;
+
     CalculateStatusBarTaskDurations();
     pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
 }
@@ -1413,23 +1420,33 @@ void MainFrame::UpdateBillableWeekMonthTaskDurations()
     pStatusBar->UpdateBillableHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
 }
 
-void MainFrame::TryUpdateTodayOrAllTaskDurations()
+void MainFrame::UpdateDefaultRangeTaskDurations()
 {
-    if (pDateStore->PrintTodayDate == mTaskDate) {
-        pStatusBar->UpdateDefaultHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
-        pStatusBar->UpdateBillableHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
-    } else {
-        CalculateStatusBarTaskDurations();
-    }
+    const auto& fromDate = date::format("%F", mFromDate);
+    const auto& toDate = date::format("%F", mToDate);
+
+    pStatusBar->UpdateDefaultHoursRange(fromDate, toDate);
+}
+
+void MainFrame::UpdateBillableRangeTaskDurations()
+{
+    const auto& fromDate = date::format("%F", mFromDate);
+    const auto& toDate = date::format("%F", mToDate);
+
+    pStatusBar->UpdateBillableHoursRange(fromDate, toDate);
 }
 
 void MainFrame::TryUpdateSelectedDateAndAllTaskDurations(const std::string& date)
 {
     pStatusBar->UpdateDefaultHoursDay(date, date);
     pStatusBar->UpdateBillableHoursDay(date, date);
-
-    UpdateDefaultWeekMonthTaskDurations();
-    UpdateBillableWeekMonthTaskDurations();
+    if (bDateRangeChanged) {
+        UpdateDefaultRangeTaskDurations();
+        UpdateBillableRangeTaskDurations();
+    } else {
+        UpdateDefaultWeekMonthTaskDurations();
+        UpdateBillableWeekMonthTaskDurations();
+    }
 }
 
 void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
