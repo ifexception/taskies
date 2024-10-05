@@ -38,7 +38,6 @@ PreferencesDatabasePage::PreferencesDatabasePage(wxWindow* parent,
     , pBackupDatabaseCheckBoxCtrl(nullptr)
     , pBackupPathTextCtrl(nullptr)
     , pBrowseBackupPathButton(nullptr)
-    , pBackupsRetentionPeriodSpinCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -77,10 +76,8 @@ void PreferencesDatabasePage::Save()
     pCfg->BackupDatabase(pBackupDatabaseCheckBoxCtrl->IsChecked());
     if (pCfg->BackupDatabase()) {
         pCfg->SetBackupPath(pBackupPathTextCtrl->GetValue().ToStdString());
-        pCfg->SetBackupRetentionPeriod(pBackupsRetentionPeriodSpinCtrl->GetValue());
     } else {
         pCfg->SetBackupPath("");
-        pCfg->SetBackupRetentionPeriod(-1);
     }
 }
 
@@ -91,12 +88,10 @@ void PreferencesDatabasePage::Reset()
     pBackupDatabaseCheckBoxCtrl->SetValue(pCfg->BackupDatabase());
     if (!pCfg->BackupDatabase()) {
         pBrowseBackupPathButton->Disable();
-        pBackupsRetentionPeriodSpinCtrl->Disable();
     }
 
     pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
     pBackupPathTextCtrl->SetToolTip(pCfg->GetBackupPath());
-    pBackupsRetentionPeriodSpinCtrl->SetValue(pCfg->GetBackupRetentionPeriod());
 }
 
 void PreferencesDatabasePage::CreateControls()
@@ -144,24 +139,6 @@ void PreferencesDatabasePage::CreateControls()
     backupPathSizer->Add(pBrowseBackupPathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
     backupBoxSizer->Add(backupPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
-    /* Backup retention input */
-    auto retentionPeriodSizer = new wxBoxSizer(wxHORIZONTAL);
-    auto retentionPeriodLabel = new wxStaticText(backupBox, wxID_ANY, "Retention Period (days)");
-    pBackupsRetentionPeriodSpinCtrl = new wxSpinCtrl(backupBox,
-        tksIDC_BACKUPS_RETENTION_PERIOD,
-        wxEmptyString,
-        wxDefaultPosition,
-        wxDefaultSize,
-        wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
-        1,
-        14);
-    pBackupsRetentionPeriodSpinCtrl->SetValue(3);
-    pBackupsRetentionPeriodSpinCtrl->SetToolTip("Select for how many days to retain the backups for");
-    retentionPeriodSizer->Add(retentionPeriodLabel, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).CenterVertical());
-    retentionPeriodSizer->AddStretchSpacer();
-    retentionPeriodSizer->Add(pBackupsRetentionPeriodSpinCtrl, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
-    backupBoxSizer->Add(retentionPeriodSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
-
     SetSizerAndFit(sizer);
 }
 
@@ -193,7 +170,6 @@ void PreferencesDatabasePage::ConfigureEventBindings()
 void PreferencesDatabasePage::FillControls()
 {
     pBrowseBackupPathButton->Disable();
-    pBackupsRetentionPeriodSpinCtrl->Disable();
 }
 
 void PreferencesDatabasePage::DataToControls()
@@ -203,22 +179,18 @@ void PreferencesDatabasePage::DataToControls()
     pBackupDatabaseCheckBoxCtrl->SetValue(pCfg->BackupDatabase());
     if (pCfg->BackupDatabase()) {
         pBrowseBackupPathButton->Enable();
-        pBackupsRetentionPeriodSpinCtrl->Enable();
     }
 
     pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
     pBackupPathTextCtrl->SetToolTip(pCfg->GetBackupPath());
-    pBackupsRetentionPeriodSpinCtrl->SetValue(pCfg->GetBackupRetentionPeriod());
 }
 
 void PreferencesDatabasePage::OnBackupDatabaseCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         pBrowseBackupPathButton->Enable();
-        pBackupsRetentionPeriodSpinCtrl->Enable();
     } else {
         pBrowseBackupPathButton->Disable();
-        pBackupsRetentionPeriodSpinCtrl->Disable();
         pBackupPathTextCtrl->ChangeValue(wxEmptyString);
     }
 }

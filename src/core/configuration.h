@@ -101,9 +101,6 @@ public:
     std::string GetBackupPath() const;
     void SetBackupPath(const std::string& value);
 
-    int GetBackupRetentionPeriod() const;
-    void SetBackupRetentionPeriod(const int value);
-
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
 
@@ -153,7 +150,6 @@ private:
         std::string DatabasePath;
         bool BackupDatabase;
         std::string BackupPath;
-        int BackupRetentionPeriod;
 
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;

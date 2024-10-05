@@ -141,7 +141,6 @@ bool Configuration::Save()
     root.at(Sections::DatabaseSection)["databasePath"] = mSettings.DatabasePath;
     root.at(Sections::DatabaseSection)["backupDatabase"] = mSettings.BackupDatabase;
     root.at(Sections::DatabaseSection)["backupPath"] = mSettings.BackupPath;
-    root.at(Sections::DatabaseSection)["backupRetentionPeriod"] = mSettings.BackupRetentionPeriod;
 
     // Task section
     root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -237,7 +236,6 @@ bool Configuration::RestoreDefaults()
     SetDatabasePath(pEnv->GetDatabasePath().string());
     BackupDatabase(false);
     SetBackupPath("");
-    SetBackupRetentionPeriod(0);
 
     SetMinutesIncrement(15);
     ShowProjectAssociatedCategories(false);
@@ -264,7 +262,6 @@ bool Configuration::RestoreDefaults()
                     { "databasePath", pEnv->ApplicationDatabasePath().string() },
                     { "backupDatabase", false },
                     { "backupPath", "" },
-                    { "backupRetentionPeriod", 0 }
                 }
             },
             {
@@ -604,16 +601,6 @@ void Configuration::SetBackupPath(const std::string& value)
     mSettings.BackupPath = value;
 }
 
-int Configuration::GetBackupRetentionPeriod() const
-{
-    return mSettings.BackupRetentionPeriod;
-}
-
-void Configuration::SetBackupRetentionPeriod(const int value)
-{
-    mSettings.BackupRetentionPeriod = value;
-}
-
 int Configuration::GetMinutesIncrement() const
 {
     return mSettings.TaskMinutesIncrement;
@@ -721,7 +708,6 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
     mSettings.DatabasePath = toml::find<std::string>(databaseSection, "databasePath");
     mSettings.BackupDatabase = toml::find<bool>(databaseSection, "backupDatabase");
     mSettings.BackupPath = toml::find<std::string>(databaseSection, "backupPath");
-    mSettings.BackupRetentionPeriod = toml::find<int>(databaseSection, "backupRetentionPeriod");
 }
 
 void Configuration::GetTasksConfig(const toml::value& root)

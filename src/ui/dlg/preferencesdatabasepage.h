@@ -71,7 +71,6 @@ private:
     wxCheckBox* pBackupDatabaseCheckBoxCtrl;
     wxTextCtrl* pBackupPathTextCtrl;
     wxButton* pBrowseBackupPathButton;
-    wxSpinCtrl* pBackupsRetentionPeriodSpinCtrl;
 
     enum {
         tksIDC_DATABASE_PATH = wxID_HIGHEST + 1,
@@ -79,8 +78,7 @@ private:
         tksIDC_BACKUP_DATABASE_CHECK,
         tksIDC_BACKUP_DATABASE,
         tksIDC_BACKUP_PATH,
-        tksIDC_BACKUP_PATH_BUTTON,
-        tksIDC_BACKUPS_RETENTION_PERIOD
+        tksIDC_BACKUP_PATH_BUTTON
     };
 };
 } // namespace UI::dlg
