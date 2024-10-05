@@ -831,20 +831,25 @@ void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
     pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pCategoryChoiceCtrl->SetSelection(0);
 
-    if (event.IsChecked()) {
-        int projectIndex = event.GetSelection();
+    pCfg->ShowProjectAssociatedCategories(event.IsChecked());
+    pCfg->Save();
+
+    if (event.IsChecked() && mEmployerIndex > 0) {
+        int projectIndex = pProjectChoiceCtrl->GetSelection();
         ClientData<std::int64_t>* projectIdData =
             reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
         if (projectIdData->GetValue() < 1) {
             pCategoryChoiceCtrl->Disable();
             mEmployerIndex = -1;
-
             return;
         }
 
         auto projectId = projectIdData->GetValue();
 
         rc = categoryRepo.FilterByProjectId(projectId, categories);
+    } else if (event.IsChecked() && mEmployerIndex < 1) {
+        pCategoryChoiceCtrl->Disable();
+        return;
     } else {
         rc = categoryRepo.Filter(categories);
     }
@@ -866,9 +871,6 @@ void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
             ConfigureCategoryChoiceData(true);
         }
     }
-
-    pCfg->ShowProjectAssociatedCategories(event.IsChecked());
-    pCfg->Save();
 }
 
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
