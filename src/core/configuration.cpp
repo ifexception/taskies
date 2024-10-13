@@ -49,6 +49,7 @@ Configuration::PresetSettings::PresetSettings(Common::Preset preset)
     TextQualifier = preset.TextQualifier;
     EmptyValuesHandler = preset.EmptyValuesHandler;
     NewLinesHandler = preset.NewLinesHandler;
+    BooleanHandler = preset.BooleanHandler;
     ExcludeHeaders = preset.ExcludeHeaders;
     for (auto& presetColumn : preset.Columns) {
         PresetColumnSettings presetColumnSettings(presetColumn);
@@ -181,6 +182,7 @@ bool Configuration::Save()
                 { "textQualifier", preset.TextQualifier },
                 { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
                 { "newLines", static_cast<int>(preset.NewLinesHandler) },
+                { "booleans", static_cast<int>(preset.BooleanHandler) },
                 { "excludeHeaders", preset.ExcludeHeaders },
                 { "columns", toml::array {} },
             }
