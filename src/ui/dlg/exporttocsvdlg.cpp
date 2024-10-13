@@ -1066,7 +1066,6 @@ void ExportToCsvDialog::OnAddAvailableColumnToExportColumnListView(wxCommandEven
     // subsequent for loop correctly iterates over the entries in reverse
     std::sort(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), std::less{});
 
-    int orderIndex = 0;
     int columnIndex = 0;
 
     for (long i = (mSelectedItemIndexes.size() - 1); 0 <= i; i--) {
@@ -1080,7 +1079,7 @@ void ExportToCsvDialog::OnAddAvailableColumnToExportColumnListView(wxCommandEven
         std::string name = item.GetText().ToStdString();
 
         /* Add export column in data view control and update */
-        pExportColumnListModel->Append(name, orderIndex++);
+        pExportColumnListModel->Append(name);
 
         /* Remove column from available column list control */
         pAvailableColumnsListView->DeleteItem(mSelectedItemIndexes[i]);

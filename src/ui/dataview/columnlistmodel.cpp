@@ -80,9 +80,18 @@ unsigned int ColumnListModel::GetCount() const
     return mListItemModels.size();
 }
 
-void ColumnListModel::Append(const std::string& columnName, int orderIndex)
+void ColumnListModel::Append(const std::string& columnName)
 {
-    ColumnListItemModel model(columnName, orderIndex);
+    int order = 0;
+
+    // check if we are appending to existing list
+    if (!mListItemModels.empty()) {
+        // overwrite the order as appending could be starting at 0
+        order = mListItemModels.back().Order;
+        order++;
+    }
+
+    ColumnListItemModel model(columnName, order);
     mListItemModels.push_back(model);
 
     RowAppended();

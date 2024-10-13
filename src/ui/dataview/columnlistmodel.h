@@ -54,7 +54,7 @@ public:
     virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override;
     virtual unsigned int GetCount() const override;
 
-    void Append(const std::string& columnName, int order);
+    void Append(const std::string& columnName);
     void DeleteItems(const wxDataViewItemArray& items);
     void ChangeItem(const wxDataViewItem& item, const std::string& newItem);
     void MoveItem(const wxDataViewItem& item, bool asc = true);
