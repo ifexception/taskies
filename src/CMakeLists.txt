@@ -45,6 +45,7 @@ set(SRC_REPOS
     "repository/taskrepositorymodel.cpp"
     "repository/categoryrepositorymodel.cpp"
     "repository/categoryrepository.cpp"
+    "repository/setupwizardrepository.cpp"
 )
 
 set (SRC_DIALOGS
