@@ -19,7 +19,7 @@
 
 #define TASKIES_MAJOR 0
 #define TASKIES_MINOR 1
-#define TASKIES_PATCH 6
+#define TASKIES_PATCH 7
 #define TASKIES_SRLC "alpha"
 
 #define TASKIES_VERSION (TASKIES_MAJOR * 1000 + TASKIES_MINOR * 100 + TASKIES_PATCH)
@@ -31,7 +31,6 @@
 #define COPYRIGHT_STR "Copyright (C) 2024 Szymon Welgus"
 
 #define FILE_DESCRIPTION "Taskies"
-#define FILE_DESCRIPTION_STR "Task time management solution"
 #define TASKIES_FILE_VERSION TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH
 
 #define FILE_VERSION_STR \
