@@ -272,6 +272,9 @@ std::string SQLiteExportQueryBuilder::BuildWhere(const std::string& fromDate, co
                 << " <= "
                 << "'" << toDate << "'";
 
+    whereClause << " AND "
+                << "tasks.is_active = 1";
+
     return whereClause.str();
 }
 
