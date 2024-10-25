@@ -32,6 +32,8 @@
 
 #include <spdlog/logger.h>
 
+#include "../../repository/setupwizardrepository.h"
+
 namespace tks
 {
 namespace Core
@@ -60,7 +62,7 @@ public:
         std::shared_ptr<Core::Environment> env,
         std::shared_ptr<Core::Configuration> cfg,
         const std::string& databasePath);
-    virtual ~SetupWizard() = default;
+    virtual ~SetupWizard();
 
     SetupWizard& operator=(const SetupWizard&) = delete;
 
@@ -68,19 +70,32 @@ public:
 
     const std::int64_t GetEmployerId() const;
     void SetEmployerId(const std::int64_t employerId);
+
     const std::int64_t GetClientId() const;
     void SetClientId(const std::int64_t clientId);
 
+    const std::int64_t GetProjectId() const;
+    void SetProjectId(const std::int64_t projectId);
+
+    const std::int64_t GetCategoryId() const;
+    void SetCategoryId(const std::int64_t categoryId);
+
     const std::string& GetBackupDatabasePath() const;
     void SetBackupDatabasePath(const std::string& value);
+
     const std::string& GetRestoreDatabasePath() const;
     void SetRestoreDatabasePath(const std::string& value);
+
+    void OnWizardCanceled();
+    void OnSetupWizardFinished();
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
     std::string mDatabasePath;
+
+    repos::SetupWizardRepository* pSetupWizardRepository;
 
     WelcomePage* pWelcomePage;
     OptionPage* pOptionPage;
@@ -93,6 +108,8 @@ private:
 
     std::int64_t mEmployerId;
     std::int64_t mClientId;
+    std::int64_t mProjectId;
+    std::int64_t mCategoryId;
 
     std::string mBackupDatabasePath;
     std::string mRestoreDatabasePath;
@@ -103,15 +120,20 @@ class WelcomePage final : public wxWizardPageSimple
 public:
     WelcomePage() = delete;
     WelcomePage(const WelcomePage&) = delete;
-    WelcomePage(SetupWizard* parent);
+    WelcomePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger);
     virtual ~WelcomePage() = default;
 
     WelcomePage& operator=(const WelcomePage&) = delete;
 
 private:
     void CreateControls();
+    void ConfigureEventBindings();
+
+    void OnWizardCancel(wxWizardEvent& event);
 
     SetupWizard* pParent;
+
+    std::shared_ptr<spdlog::logger> pLogger;
 };
 
 class OptionPage final : public wxWizardPage
@@ -120,6 +142,8 @@ public:
     OptionPage() = delete;
     OptionPage(const OptionPage&) = delete;
     OptionPage(SetupWizard* parent,
+        repos::SetupWizardRepository* setupWizardRepository,
+        std::shared_ptr<spdlog::logger> logger,
         wxWizardPage* prev,
         wxWizardPage* nextOption1,
         wxWizardPage* nextOption2,
@@ -135,11 +159,14 @@ private:
     void CreateControls();
     void ConfigureEventBindings();
 
+    void OnWizardCancel(wxWizardEvent& event);
     void OnSetupWizardFlowCheck(wxCommandEvent& event);
     void OnRestoreWizardFlowCheck(wxCommandEvent& event);
     void OnSkipWizardFlowCheck(wxCommandEvent& event);
 
     SetupWizard* pParent;
+    repos::SetupWizardRepository* pSetupWizardRepository;
+    std::shared_ptr<spdlog::logger> pLogger;
     wxWizardPage* pNextOption1;
     wxWizardPage* pNextOption2;
     wxWizardPage* pNextOption3;
@@ -162,6 +189,7 @@ public:
     CreateEmployerAndClientPage() = delete;
     CreateEmployerAndClientPage(const CreateEmployerAndClientPage&) = delete;
     CreateEmployerAndClientPage(SetupWizard* parent,
+        repos::SetupWizardRepository* setupWizardRepository,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databasePath);
     virtual ~CreateEmployerAndClientPage() = default;
@@ -172,8 +200,13 @@ public:
 
 private:
     void CreateControls();
+    void ConfigureEventBindings();
+
+    void OnWizardCancel(wxWizardEvent& event);
+    void OnWizardPageShown(wxWizardEvent& event);
 
     SetupWizard* pParent;
+    repos::SetupWizardRepository* pSetupWizardRepository;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabasePath;
 
@@ -189,6 +222,7 @@ public:
     CreateProjectAndCategoryPage() = delete;
     CreateProjectAndCategoryPage(const CreateProjectAndCategoryPage&) = delete;
     CreateProjectAndCategoryPage(SetupWizard* parent,
+        repos::SetupWizardRepository* setupWizardRepository,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databasePath);
     virtual ~CreateProjectAndCategoryPage() = default;
@@ -202,8 +236,10 @@ private:
     void ConfigureEventBindings();
 
     void OnProjectNameChange(wxCommandEvent& event);
+    void OnWizardPageShown(wxWizardEvent& event);
 
     SetupWizard* pParent;
+    repos::SetupWizardRepository* pSetupWizardRepository;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabasePath;
 
@@ -211,8 +247,8 @@ private:
     wxTextCtrl* pProjectDisplayNameCtrl;
     wxCheckBox* pProjectIsDefaultCtrl;
     wxTextCtrl* pCategoryNameTextCtrl;
-    wxColourPickerCtrl* pColorPickerCtrl;
-    wxCheckBox* pBillableCtrl;
+    wxColourPickerCtrl* pCategoryColorPickerCtrl;
+    wxCheckBox* pCategoryBillableCtrl;
 
     enum {
         tksIDC_PROJECTNAME = wxID_HIGHEST + 100,
@@ -229,14 +265,20 @@ class SetupCompletePage final : public wxWizardPageSimple
 public:
     SetupCompletePage() = delete;
     SetupCompletePage(const SetupCompletePage&) = delete;
-    SetupCompletePage(SetupWizard* parent);
+    SetupCompletePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger);
     virtual ~SetupCompletePage() = default;
 
 private:
     void CreateControls();
+    void ConfigureEventBindings();
     void DisableBackButton() const;
 
+    void OnSetupCompleteWizardPageShown(wxWizardEvent& event);
+    void OnWizardCancel(wxWizardEvent& event);
+    void OnSetupCompleteWizardFinished(wxWizardEvent& event);
+
     SetupWizard* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
 };
 
 class RestoreDatabasePage final : public wxWizardPageSimple
@@ -313,6 +355,11 @@ public:
 
 private:
     void CreateControls();
+    void ConfigureEventBindings();
+
+    void OnSkipWizardPageShown(wxWizardEvent& event);
+
+    void DisableBackButton() const;
 
     wxWizard* pParent;
 };

@@ -31,11 +31,6 @@
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
 
-#include "../../dao/employerdao.h"
-#include "../../dao/clientdao.h"
-#include "../../dao/projectdao.h"
-#include "../../dao/categorydao.h"
-
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
 #include "../../models/projectmodel.h"
@@ -59,6 +54,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     , pEnv(env)
     , pCfg(cfg)
     , mDatabasePath(databasePath)
+    , pSetupWizardRepository(nullptr)
     , pWelcomePage(nullptr)
     , pOptionPage(nullptr)
     , pCreateEmployerAndClientPage(nullptr)
@@ -67,9 +63,14 @@ SetupWizard::SetupWizard(wxFrame* frame,
     , pSkipWizardPage(nullptr)
     , mEmployerId(-1)
     , mClientId(-1)
+    , mProjectId(-1)
+    , mCategoryId(-1)
     , mBackupDatabasePath()
     , mRestoreDatabasePath()
 {
+    pSetupWizardRepository = new repos::SetupWizardRepository(pLogger, mDatabasePath);
+    pSetupWizardRepository->BeginTransaction();
+
     pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
     // Set left side wizard image
     /*auto wizardImage = pEnv->GetResourcesPath() / Common::Resources::Wizard();
@@ -82,16 +83,23 @@ SetupWizard::SetupWizard(wxFrame* frame,
     SetIcons(iconBundle);
 
     pLogger->info("SetupWizard::SetupWizard - initialize pages");
-    pWelcomePage = new WelcomePage(this);
-    pCreateEmployerAndClientPage = new CreateEmployerAndClientPage(this, pLogger, mDatabasePath);
-    pCreateProjectAndCategoryPage = new CreateProjectAndCategoryPage(this, pLogger, mDatabasePath);
-    pSetupCompletePage = new SetupCompletePage(this);
+    pWelcomePage = new WelcomePage(this, pLogger);
+    pCreateEmployerAndClientPage =
+        new CreateEmployerAndClientPage(this, pSetupWizardRepository, pLogger, mDatabasePath);
+    pCreateProjectAndCategoryPage =
+        new CreateProjectAndCategoryPage(this, pSetupWizardRepository, pLogger, mDatabasePath);
+    pSetupCompletePage = new SetupCompletePage(this, pLogger);
     pRestoreDatabasePage = new RestoreDatabasePage(this, pLogger, pEnv, pCfg);
     pRestoreDatabaseResultPage = new RestoreDatabaseResultPage(this, pLogger);
     pSkipWizardPage = new SkipWizardPage(this);
 
-    pOptionPage =
-        new OptionPage(this, pWelcomePage, pCreateEmployerAndClientPage, pRestoreDatabasePage, pSkipWizardPage);
+    pOptionPage = new OptionPage(this,
+        pSetupWizardRepository,
+        pLogger,
+        pWelcomePage,
+        pCreateEmployerAndClientPage,
+        pRestoreDatabasePage,
+        pSkipWizardPage);
 
     pWelcomePage->SetNext(pOptionPage);
     pCreateEmployerAndClientPage->SetPrev(pOptionPage);
@@ -103,6 +111,13 @@ SetupWizard::SetupWizard(wxFrame* frame,
     pRestoreDatabasePage->Chain(pRestoreDatabaseResultPage);
 
     GetPageAreaSizer()->Add(pWelcomePage);
+}
+
+SetupWizard::~SetupWizard()
+{
+    if (pSetupWizardRepository != nullptr) {
+        delete pSetupWizardRepository;
+    }
 }
 
 wxWizardPage* SetupWizard::GetFirstPage() const
@@ -130,6 +145,26 @@ void SetupWizard::SetClientId(const std::int64_t clientId)
     mClientId = clientId;
 }
 
+const std::int64_t SetupWizard::GetProjectId() const
+{
+    return mProjectId;
+}
+
+void SetupWizard::SetProjectId(const std::int64_t projectId)
+{
+    mProjectId = projectId;
+}
+
+const std::int64_t SetupWizard::GetCategoryId() const
+{
+    return mCategoryId;
+}
+
+void SetupWizard::SetCategoryId(const std::int64_t cateogryId)
+{
+    mCategoryId = cateogryId;
+}
+
 const std::string& SetupWizard::GetBackupDatabasePath() const
 {
     return mBackupDatabasePath;
@@ -150,11 +185,23 @@ void SetupWizard::SetRestoreDatabasePath(const std::string& value)
     mRestoreDatabasePath = value;
 }
 
-WelcomePage::WelcomePage(SetupWizard* parent)
+void SetupWizard::OnWizardCanceled()
+{
+    pSetupWizardRepository->RollbackTransaction();
+}
+
+void SetupWizard::OnSetupWizardFinished()
+{
+    pSetupWizardRepository->CommitTransaction();
+}
+
+WelcomePage::WelcomePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger)
     : wxWizardPageSimple(parent)
     , pParent(parent)
+    , pLogger(logger)
 {
     CreateControls();
+    ConfigureEventBindings();
 }
 
 void WelcomePage::CreateControls()
@@ -178,13 +225,34 @@ void WelcomePage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
+// clang-format off
+void WelcomePage::ConfigureEventBindings()
+{
+    Bind(
+        wxEVT_WIZARD_CANCEL,
+        &WelcomePage::OnWizardCancel,
+        this
+    );
+}
+// clang-format on
+
+void WelcomePage::OnWizardCancel(wxWizardEvent& event)
+{
+    pLogger->info("WelcomePage::OnWizardCancel - Wizard canceled");
+    pParent->OnWizardCanceled();
+}
+
 OptionPage::OptionPage(SetupWizard* parent,
+    repos::SetupWizardRepository* setupWizardRepository,
+    std::shared_ptr<spdlog::logger> logger,
     wxWizardPage* prev,
     wxWizardPage* nextOption1,
     wxWizardPage* nextOption2,
     wxWizardPage* nextOption3)
     : wxWizardPage(parent)
     , pParent(parent)
+    , pSetupWizardRepository(setupWizardRepository)
+    , pLogger(logger)
     , pPrev(prev)
     , pNextOption1(nextOption1)
     , pNextOption2(nextOption2)
@@ -245,6 +313,12 @@ void OptionPage::CreateControls()
 // clang-format off
 void OptionPage::ConfigureEventBindings()
 {
+    Bind(
+        wxEVT_WIZARD_CANCEL,
+        &OptionPage::OnWizardCancel,
+        this
+    );
+
     pSetupWizardFlowCheckBox->Bind(
         wxEVT_CHECKBOX,
         &OptionPage::OnSetupWizardFlowCheck,
@@ -264,6 +338,12 @@ void OptionPage::ConfigureEventBindings()
     );
 }
 // clang-format on
+
+void OptionPage::OnWizardCancel(wxWizardEvent& event)
+{
+    pLogger->info("OptionPage::OnWizardCancel - Wizard canceled");
+    pParent->OnWizardCanceled();
+}
 
 void OptionPage::OnSetupWizardFlowCheck(wxCommandEvent& event)
 {
@@ -290,14 +370,17 @@ void OptionPage::OnSkipWizardFlowCheck(wxCommandEvent& event)
 }
 
 CreateEmployerAndClientPage::CreateEmployerAndClientPage(SetupWizard* parent,
+    repos::SetupWizardRepository* setupWizardRepository,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databasePath)
     : wxWizardPageSimple(parent)
     , pParent(parent)
+    , pSetupWizardRepository(setupWizardRepository)
     , pLogger(logger)
     , mDatabasePath(databasePath)
 {
     CreateControls();
+    ConfigureEventBindings();
 }
 
 bool CreateEmployerAndClientPage::TransferDataFromWindow()
@@ -333,25 +416,39 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
         return false;
     }
 
-    DAO::EmployerDao employerDao(pLogger, mDatabasePath);
     Model::EmployerModel employerModel;
     employerModel.Name = Utils::TrimWhitespace(employerName);
 
-    std::int64_t employerId = employerDao.Create(employerModel);
-    if (employerId == -1) {
-        wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
-        return false;
+    if (pParent->GetEmployerId() > 0) {
+        int rc = pSetupWizardRepository->UpdateEmployer(employerModel);
+        if (rc != 0) {
+            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            return false;
+        }
     } else {
-        pParent->SetEmployerId(employerId);
+        std::int64_t employerId = pSetupWizardRepository->CreateEmployer(employerModel);
+        if (employerId == -1) {
+            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            return false;
+        } else {
+            pParent->SetEmployerId(employerId);
+        }
     }
 
-    if (!clientName.empty()) {
-        DAO::ClientDao clientDao(pLogger, mDatabasePath);
-        Model::ClientModel clientModel;
-        clientModel.Name = Utils::TrimWhitespace(clientName);
-        clientModel.EmployerId = employerId;
+    Model::ClientModel clientModel;
+    clientModel.Name = Utils::TrimWhitespace(clientName);
+    clientModel.EmployerId = pParent->GetEmployerId();
 
-        std::int64_t clientId = clientDao.Create(clientModel);
+    // TODO: Handle client delete scenario
+
+    if (pParent->GetClientId() > 0) {
+        int rc = pSetupWizardRepository->UpdateClient(clientModel);
+        if (rc != 0) {
+            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            return false;
+        }
+    } else if (!clientName.empty()) {
+        std::int64_t clientId = pSetupWizardRepository->CreateClient(clientModel);
         if (clientId == -1) {
             wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
             return false;
@@ -421,11 +518,67 @@ void CreateEmployerAndClientPage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
+// clang-format off
+void CreateEmployerAndClientPage::ConfigureEventBindings()
+{
+    Bind(
+        wxEVT_WIZARD_CANCEL,
+        &CreateEmployerAndClientPage::OnWizardCancel,
+        this
+    );
+
+    Bind(
+        wxEVT_WIZARD_PAGE_SHOWN,
+        &CreateEmployerAndClientPage::OnWizardPageShown,
+        this
+    );
+}
+// clang-format on
+
+void CreateEmployerAndClientPage::OnWizardCancel(wxWizardEvent& event)
+{
+    pLogger->info("CreateEmployerAndClientPage::OnWizardCancel - Wizard canceled");
+    pParent->OnWizardCanceled();
+}
+
+void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
+{
+    if (pParent->GetEmployerId() > 0) {
+        Model::EmployerModel employer;
+        int rc = 0;
+
+        rc = pSetupWizardRepository->GetByEmployerId(pParent->GetEmployerId(), employer);
+        if (rc != 0) {
+            pLogger->info("CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch employer");
+            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            return;
+        }
+
+        pEmployerNameTextCtrl->ChangeValue(employer.Name);
+    }
+
+    if (pParent->GetClientId() > 0) {
+        Model::ClientModel client;
+        int rc = 0;
+
+        rc = pSetupWizardRepository->GetByClientId(pParent->GetClientId(), client);
+        if (rc != 0) {
+            pLogger->info("CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch client");
+            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            return;
+        }
+
+        pClientNameTextCtrl->ChangeValue(client.Name);
+    }
+}
+
 CreateProjectAndCategoryPage::CreateProjectAndCategoryPage(SetupWizard* parent,
+    repos::SetupWizardRepository* setupWizardRepository,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databasePath)
     : wxWizardPageSimple(parent)
     , pParent(parent)
+    , pSetupWizardRepository(setupWizardRepository)
     , pLogger(logger)
     , mDatabasePath(databasePath)
 {
@@ -475,8 +628,8 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     }
 
     // Save project
-    DAO::ProjectDao projectDao(pLogger, mDatabasePath);
     Model::ProjectModel project;
+
     project.Name = Utils::TrimWhitespace(projectName);
     project.DisplayName = Utils::TrimWhitespace(projectDisplayName);
     project.IsDefault = pProjectIsDefaultCtrl->GetValue();
@@ -484,10 +637,12 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     project.ClientId =
         pParent->GetClientId() == -1 ? std::nullopt : std::make_optional<std::int64_t>(pParent->GetClientId());
 
-    std::int64_t projectId = projectDao.Create(project);
+    std::int64_t projectId = pSetupWizardRepository->CreateProject(project);
     if (projectId == -1) {
         wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
         return false;
+    } else {
+        pParent->SetProjectId(projectId);
     }
 
     // Validate category properties
@@ -511,17 +666,18 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     }
 
     // Save category
-    DAO::CategoryDao categoryDao(pLogger, mDatabasePath);
     Model::CategoryModel category;
     category.Name = Utils::TrimWhitespace(categoryName);
-    category.Color = pColorPickerCtrl->GetColour().GetRGB();
-    category.Billable = pBillableCtrl->GetValue();
+    category.Color = pCategoryColorPickerCtrl->GetColour().GetRGB();
+    category.Billable = pCategoryBillableCtrl->GetValue();
     category.ProjectId = std::make_optional<std::int64_t>(projectId);
 
-    std::int64_t categoryId = categoryDao.Create(category);
+    std::int64_t categoryId = pSetupWizardRepository->CreateCategory(category);
     if (categoryId == -1) {
         wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
         return false;
+    } else {
+        pParent->SetCategoryId(categoryId);
     }
 
     return true;
@@ -593,11 +749,11 @@ void CreateProjectAndCategoryPage::CreateControls()
     pCategoryNameTextCtrl->SetValidator(NameValidator());
 
     /* Color Picker Ctrl */
-    pColorPickerCtrl = new wxColourPickerCtrl(categoryBox, tksIDC_CATEGORYCOLORPICKER);
-    pColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
+    pCategoryColorPickerCtrl = new wxColourPickerCtrl(categoryBox, tksIDC_CATEGORYCOLORPICKER);
+    pCategoryColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
 
-    pBillableCtrl = new wxCheckBox(categoryBox, tksIDC_CATEGORYBILLABLE, "Billable");
-    pBillableCtrl->SetToolTip("Indicates if a task captured with this category is billable");
+    pCategoryBillableCtrl = new wxCheckBox(categoryBox, tksIDC_CATEGORYBILLABLE, "Billable");
+    pCategoryBillableCtrl->SetToolTip("Indicates if a task captured with this category is billable");
 
     /* Details Grid Sizer */
     auto categoryDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
@@ -608,10 +764,10 @@ void CreateProjectAndCategoryPage::CreateControls()
         pCategoryNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     categoryDetailsGridSizer->Add(0, 0);
-    categoryDetailsGridSizer->Add(pColorPickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    categoryDetailsGridSizer->Add(pCategoryColorPickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     categoryDetailsGridSizer->Add(0, 0);
-    categoryDetailsGridSizer->Add(pBillableCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    categoryDetailsGridSizer->Add(pCategoryBillableCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     categoryBoxSizer->Add(categoryDetailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -626,6 +782,12 @@ void CreateProjectAndCategoryPage::ConfigureEventBindings()
         &CreateProjectAndCategoryPage::OnProjectNameChange,
         this
     );
+
+    Bind(
+        wxEVT_WIZARD_PAGE_SHOWN,
+        &CreateProjectAndCategoryPage::OnWizardPageShown,
+        this
+    );
 }
 // clang-format on
 
@@ -635,12 +797,48 @@ void CreateProjectAndCategoryPage::OnProjectNameChange(wxCommandEvent& event)
     pProjectDisplayNameCtrl->ChangeValue(name);
 }
 
-SetupCompletePage::SetupCompletePage(SetupWizard* parent)
+void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
+{
+    if (pParent->GetProjectId() > 0) {
+        Model::ProjectModel project;
+        int rc = 0;
+
+        rc = pSetupWizardRepository->GetByProjectId(pParent->GetProjectId(), project);
+        if (rc != 0) {
+            pLogger->info("CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch project");
+            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            return;
+        }
+
+        pProjectNameTextCtrl->ChangeValue(project.Name);
+        pProjectDisplayNameCtrl->ChangeValue(project.DisplayName);
+        pProjectIsDefaultCtrl->SetValue(project.IsDefault);
+    }
+
+    if (pParent->GetCategoryId()) {
+        Model::CategoryModel category;
+        int rc = 0;
+
+        rc = pSetupWizardRepository->GetByCategoryId(pParent->GetCategoryId(), category);
+        if (rc != 0) {
+            pLogger->info("CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch category");
+            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            return;
+        }
+
+        pCategoryNameTextCtrl->ChangeValue(category.Name);
+        pCategoryColorPickerCtrl->SetColour(category.Color);
+        pCategoryBillableCtrl->SetValue(category.Billable);
+    }
+}
+
+SetupCompletePage::SetupCompletePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger)
     : wxWizardPageSimple(parent)
     , pParent(parent)
+    , pLogger(logger)
 {
     CreateControls();
-    DisableBackButton();
+    ConfigureEventBindings();
 }
 
 void SetupCompletePage::CreateControls()
@@ -660,10 +858,51 @@ void SetupCompletePage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
+// clang-format off
+void SetupCompletePage::ConfigureEventBindings()
+{
+    Bind(
+        wxEVT_WIZARD_PAGE_SHOWN,
+        &SetupCompletePage::OnSetupCompleteWizardPageShown,
+        this
+    );
+
+    Bind(
+        wxEVT_WIZARD_CANCEL,
+        &SetupCompletePage::OnWizardCancel,
+        this
+    );
+
+    Bind(
+        wxEVT_WIZARD_FINISHED,
+        &SetupCompletePage::OnSetupCompleteWizardFinished,
+        this
+    );
+}
+// clang-format on
+
 void SetupCompletePage::DisableBackButton() const
 {
-    auto backButton = FindWindowById(wxID_BACKWARD, GetParent());
-    backButton->Disable();
+    auto backButton = FindWindowById(wxID_BACKWARD);
+    if (backButton) {
+        backButton->Enable(false);
+    }
+}
+
+void SetupCompletePage::OnSetupCompleteWizardPageShown(wxWizardEvent& event)
+{
+    DisableBackButton();
+}
+
+void SetupCompletePage::OnWizardCancel(wxWizardEvent& event)
+{
+    pLogger->info("SetupCompletePage::OnWizardCancel - Wizard canceled");
+    pParent->OnWizardCanceled();
+}
+
+void SetupCompletePage::OnSetupCompleteWizardFinished(wxWizardEvent& event)
+{
+    pParent->OnSetupWizardFinished();
 }
 
 // -- Restore Wizard
@@ -751,7 +990,6 @@ void RestoreDatabasePage::ConfigureEventBindings()
 
 void RestoreDatabasePage::OnOpenFileForBackupLocation(wxCommandEvent& event)
 {
-    // std::string pathDirectoryToOpenOn = pCfg->GetBackupPath();
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetBackupPath().empty()) {
         pathDirectoryToOpenOn = pCfg->GetDatabasePath();
@@ -922,6 +1160,7 @@ SkipWizardPage::SkipWizardPage(wxWizard* parent)
     , pParent(parent)
 {
     CreateControls();
+    ConfigureEventBindings();
 }
 
 void SkipWizardPage::CreateControls()
@@ -939,5 +1178,29 @@ void SkipWizardPage::CreateControls()
     sizer->Add(continueNextLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     SetSizerAndFit(sizer);
+}
+
+// clang-format off
+void SkipWizardPage::ConfigureEventBindings()
+{
+    Bind(
+        wxEVT_WIZARD_PAGE_SHOWN,
+        &SkipWizardPage::OnSkipWizardPageShown,
+        this
+    );
+}
+// clang-format on
+
+void SkipWizardPage::OnSkipWizardPageShown(wxWizardEvent& event)
+{
+    DisableBackButton();
+}
+
+void SkipWizardPage::DisableBackButton() const
+{
+    wxWindow* backButton = wxWindow::FindWindowById(wxID_BACKWARD);
+    if (backButton) {
+        backButton->Enable(false);
+    }
 }
 } // namespace tks::UI::wizard
