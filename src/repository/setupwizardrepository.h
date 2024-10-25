@@ -49,9 +49,20 @@ public:
     int RollbackTransaction();
 
     std::int64_t CreateEmployer(const Model::EmployerModel& employer);
+    int GetByEmployerId(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
+    int UpdateEmployer(const Model::EmployerModel& employer);
+
     std::int64_t CreateClient(const Model::ClientModel& client);
+    int GetByClientId(const std::int64_t clientId, /*out*/ Model::ClientModel& model);
+    int UpdateClient(const Model::ClientModel& client);
+
     std::int64_t CreateProject(const Model::ProjectModel& project);
+    int GetByProjectId(const std::int64_t projectId, /*out*/ Model::ProjectModel& model);
+    int UpdateProject(const Model::ProjectModel& project);
+
     std::int64_t CreateCategory(const Model::CategoryModel& category);
+    int GetByCategoryId(const std::int64_t categoryId, /*out*/ Model::CategoryModel& model);
+    int UpdateCategory(const Model::CategoryModel& model);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
@@ -60,9 +71,21 @@ private:
     static const std::string beginTransaction;
     static const std::string commitTransaction;
     static const std::string rollbackTransaction;
+
     static const std::string createEmployer;
+    static const std::string getByEmployerId;
+    static const std::string updateEmployer;
+
     static const std::string createClient;
+    static const std::string getByClientId;
+    static const std::string updateClient;
+
     static const std::string createProject;
+    static const std::string getByProjectId;
+    static const std::string updateProject;
+
     static const std::string createCategory;
+    static const std::string getCategoryById;
+    static const std::string updateCategory;
 };
 } // namespace tks::repos
