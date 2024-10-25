@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS categories
 (
     category_id INTEGER PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
     color INTEGER NOT NULL,
     billable INTEGER NOT NULL DEFAULT (0),
     description TEXT NULL,
