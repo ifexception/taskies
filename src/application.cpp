@@ -191,7 +191,7 @@ bool Application::InitializeTranslations()
 
 bool Application::FirstStartupProcedure(wxFrame* frame)
 {
-    /*UI::wizard::SetupWizard wizard(frame, pLogger, pEnv, pCfg, pCfg->GetDatabasePath());
+    UI::wizard::SetupWizard wizard(frame, pLogger, pEnv, pCfg, pCfg->GetDatabasePath());
     wizard.CenterOnScreen();
     auto result = wizard.RunWizard(wizard.GetFirstPage());
 
@@ -200,15 +200,16 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
         if (result) {
             return true;
         }
-        pLogger->error("Error occured when setting 'IsSetup' Windows registry key.");
+        pLogger->error(
+            "Application::FirstStartupProcedure - Error occured when setting 'IsSetup' Windows registry key.");
     }
-    pLogger->error("Application::FirstStartupProcedure - Wizard canceled or unexpected error occured");*/
+    pLogger->error("Application::FirstStartupProcedure - Wizard canceled or unexpected error occured");
 
-    bool result = pEnv->SetIsSetup();
+    /*bool result = pEnv->SetIsSetup();
     if (result) {
         return true;
     }
-    pLogger->error("Application::FirstStartupProcedure - Error occured when setting 'IsSetup' Windows registry key.");
+    pLogger->error("Application::FirstStartupProcedure - Error occured when setting 'IsSetup' Windows registry key.");*/
 
     return false;
 }
