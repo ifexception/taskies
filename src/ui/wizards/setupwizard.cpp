@@ -627,24 +627,6 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
         return false;
     }
 
-    // Save project
-    Model::ProjectModel project;
-
-    project.Name = Utils::TrimWhitespace(projectName);
-    project.DisplayName = Utils::TrimWhitespace(projectDisplayName);
-    project.IsDefault = pProjectIsDefaultCtrl->GetValue();
-    project.EmployerId = pParent->GetEmployerId();
-    project.ClientId =
-        pParent->GetClientId() == -1 ? std::nullopt : std::make_optional<std::int64_t>(pParent->GetClientId());
-
-    std::int64_t projectId = pSetupWizardRepository->CreateProject(project);
-    if (projectId == -1) {
-        wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
-        return false;
-    } else {
-        pParent->SetProjectId(projectId);
-    }
-
     // Validate category properties
     auto categoryName = pCategoryNameTextCtrl->GetValue().ToStdString();
     if (categoryName.empty()) {
@@ -663,6 +645,24 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pCategoryNameTextCtrl);
         return false;
+    }
+
+    // Save project
+    Model::ProjectModel project;
+
+    project.Name = Utils::TrimWhitespace(projectName);
+    project.DisplayName = Utils::TrimWhitespace(projectDisplayName);
+    project.IsDefault = pProjectIsDefaultCtrl->GetValue();
+    project.EmployerId = pParent->GetEmployerId();
+    project.ClientId =
+        pParent->GetClientId() == -1 ? std::nullopt : std::make_optional<std::int64_t>(pParent->GetClientId());
+
+    std::int64_t projectId = pSetupWizardRepository->CreateProject(project);
+    if (projectId == -1) {
+        wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+        return false;
+    } else {
+        pParent->SetProjectId(projectId);
     }
 
     // Save category
