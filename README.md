@@ -9,11 +9,12 @@ Its core principles are:
 * Small footprint
 
 ---
-## _Taskies is an alpha state. There are  bugs!_
+# _Taskies is an alpha state. There are  bugs!_
 ---
 
 # Goal
-Taskies is a small, minimalist, and easy-to-use desktop program to help you track the tasks you’ve done and how long you’ve spent on them
+Taskies is a small, minimalist, and easy-to-use desktop program to help you track your tasks and their duration
+
 
 ## Installation
 Download an installer executable from [here](https://github.com/ifexception/taskies/releases)
