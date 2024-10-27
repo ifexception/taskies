@@ -86,9 +86,6 @@ public:
     const std::string& GetRestoreDatabasePath() const;
     void SetRestoreDatabasePath(const std::string& value);
 
-    void OnWizardCanceled();
-    void OnSetupWizardFinished();
-
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
@@ -236,6 +233,7 @@ private:
     void ConfigureEventBindings();
 
     void OnProjectNameChange(wxCommandEvent& event);
+    void OnWizardCancel(wxWizardEvent& event);
     void OnWizardPageShown(wxWizardEvent& event);
 
     SetupWizard* pParent;
@@ -265,7 +263,7 @@ class SetupCompletePage final : public wxWizardPageSimple
 public:
     SetupCompletePage() = delete;
     SetupCompletePage(const SetupCompletePage&) = delete;
-    SetupCompletePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger);
+    SetupCompletePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger, repos::SetupWizardRepository* setupWizardRepository);
     virtual ~SetupCompletePage() = default;
 
 private:
@@ -279,6 +277,7 @@ private:
 
     SetupWizard* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
+    repos::SetupWizardRepository* pSetupWizardRepository;
 };
 
 class RestoreDatabasePage final : public wxWizardPageSimple

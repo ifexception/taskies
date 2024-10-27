@@ -69,7 +69,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     , mRestoreDatabasePath()
 {
     pSetupWizardRepository = new repos::SetupWizardRepository(pLogger, mDatabasePath);
-    pSetupWizardRepository->BeginTransaction();
+    // pSetupWizardRepository->BeginTransaction();
 
     pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
     // Set left side wizard image
@@ -88,7 +88,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
         new CreateEmployerAndClientPage(this, pSetupWizardRepository, pLogger, mDatabasePath);
     pCreateProjectAndCategoryPage =
         new CreateProjectAndCategoryPage(this, pSetupWizardRepository, pLogger, mDatabasePath);
-    pSetupCompletePage = new SetupCompletePage(this, pLogger);
+    pSetupCompletePage = new SetupCompletePage(this, pLogger, pSetupWizardRepository);
     pRestoreDatabasePage = new RestoreDatabasePage(this, pLogger, pEnv, pCfg);
     pRestoreDatabaseResultPage = new RestoreDatabaseResultPage(this, pLogger);
     pSkipWizardPage = new SkipWizardPage(this);
@@ -185,16 +185,6 @@ void SetupWizard::SetRestoreDatabasePath(const std::string& value)
     mRestoreDatabasePath = value;
 }
 
-void SetupWizard::OnWizardCanceled()
-{
-    pSetupWizardRepository->RollbackTransaction();
-}
-
-void SetupWizard::OnSetupWizardFinished()
-{
-    pSetupWizardRepository->CommitTransaction();
-}
-
 WelcomePage::WelcomePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger)
     : wxWizardPageSimple(parent)
     , pParent(parent)
@@ -239,7 +229,7 @@ void WelcomePage::ConfigureEventBindings()
 void WelcomePage::OnWizardCancel(wxWizardEvent& event)
 {
     pLogger->info("WelcomePage::OnWizardCancel - Wizard canceled");
-    pParent->OnWizardCanceled();
+    // pParent->OnWizardCanceled();
 }
 
 OptionPage::OptionPage(SetupWizard* parent,
@@ -342,7 +332,6 @@ void OptionPage::ConfigureEventBindings()
 void OptionPage::OnWizardCancel(wxWizardEvent& event)
 {
     pLogger->info("OptionPage::OnWizardCancel - Wizard canceled");
-    pParent->OnWizardCanceled();
 }
 
 void OptionPage::OnSetupWizardFlowCheck(wxCommandEvent& event)
@@ -381,6 +370,8 @@ CreateEmployerAndClientPage::CreateEmployerAndClientPage(SetupWizard* parent,
 {
     CreateControls();
     ConfigureEventBindings();
+
+    pSetupWizardRepository->BeginTransaction();
 }
 
 bool CreateEmployerAndClientPage::TransferDataFromWindow()
@@ -538,7 +529,7 @@ void CreateEmployerAndClientPage::ConfigureEventBindings()
 void CreateEmployerAndClientPage::OnWizardCancel(wxWizardEvent& event)
 {
     pLogger->info("CreateEmployerAndClientPage::OnWizardCancel - Wizard canceled");
-    pParent->OnWizardCanceled();
+    pSetupWizardRepository->RollbackTransaction();
 }
 
 void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
@@ -784,6 +775,12 @@ void CreateProjectAndCategoryPage::ConfigureEventBindings()
     );
 
     Bind(
+        wxEVT_WIZARD_CANCEL,
+        &CreateProjectAndCategoryPage::OnWizardCancel,
+        this
+    );
+
+    Bind(
         wxEVT_WIZARD_PAGE_SHOWN,
         &CreateProjectAndCategoryPage::OnWizardPageShown,
         this
@@ -795,6 +792,12 @@ void CreateProjectAndCategoryPage::OnProjectNameChange(wxCommandEvent& event)
 {
     auto name = pProjectNameTextCtrl->GetValue().ToStdString();
     pProjectDisplayNameCtrl->ChangeValue(name);
+}
+
+void CreateProjectAndCategoryPage::OnWizardCancel(wxWizardEvent& event)
+{
+    pLogger->info("CreateProjectAndCategoryPage::OnWizardCancel - Wizard canceled");
+    pSetupWizardRepository->RollbackTransaction();
 }
 
 void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
@@ -832,10 +835,13 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
     }
 }
 
-SetupCompletePage::SetupCompletePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger)
+SetupCompletePage::SetupCompletePage(SetupWizard* parent,
+    std::shared_ptr<spdlog::logger> logger,
+    repos::SetupWizardRepository* setupWizardRepository)
     : wxWizardPageSimple(parent)
     , pParent(parent)
     , pLogger(logger)
+    , pSetupWizardRepository(setupWizardRepository)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -897,12 +903,12 @@ void SetupCompletePage::OnSetupCompleteWizardPageShown(wxWizardEvent& event)
 void SetupCompletePage::OnWizardCancel(wxWizardEvent& event)
 {
     pLogger->info("SetupCompletePage::OnWizardCancel - Wizard canceled");
-    pParent->OnWizardCanceled();
+    pSetupWizardRepository->RollbackTransaction();
 }
 
 void SetupCompletePage::OnSetupCompleteWizardFinished(wxWizardEvent& event)
 {
-    pParent->OnSetupWizardFinished();
+    pSetupWizardRepository->CommitTransaction();
 }
 
 // -- Restore Wizard
