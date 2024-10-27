@@ -29,6 +29,7 @@ SetupWizardRepository::SetupWizardRepository(const std::shared_ptr<spdlog::logge
     const std::string& databaseFilePath)
     : pLogger(logger)
     , pDb(nullptr)
+    , mTransactionCounter(0)
 {
     pLogger->info(LogMessage::InfoOpenDatabaseConnection, "SetupWizardRepository", databaseFilePath);
 
@@ -88,6 +89,14 @@ SetupWizardRepository::~SetupWizardRepository()
 
 int SetupWizardRepository::BeginTransaction()
 {
+    mTransactionCounter++;
+
+    /*
+     * There must only be one transaction active during the setup wizard's lifetime
+     * This assert enforces the only one transaction being active
+     */
+    assert(mTransactionCounter == 1);
+
     int rc = sqlite3_exec(pDb, SetupWizardRepository::beginTransaction.c_str(), nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
@@ -99,6 +108,10 @@ int SetupWizardRepository::BeginTransaction()
 
 int SetupWizardRepository::CommitTransaction()
 {
+    mTransactionCounter--;
+
+    assert(mTransactionCounter == 0);
+
     int rc = sqlite3_exec(pDb, SetupWizardRepository::commitTransaction.c_str(), nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
@@ -110,6 +123,10 @@ int SetupWizardRepository::CommitTransaction()
 
 int SetupWizardRepository::RollbackTransaction()
 {
+    mTransactionCounter--;
+
+    assert(mTransactionCounter == 0);
+
     int rc = sqlite3_exec(pDb, SetupWizardRepository::rollbackTransaction.c_str(), nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);

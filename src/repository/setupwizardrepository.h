@@ -68,6 +68,8 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
+    int mTransactionCounter;
+
     static const std::string beginTransaction;
     static const std::string commitTransaction;
     static const std::string rollbackTransaction;
