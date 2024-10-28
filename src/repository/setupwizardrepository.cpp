@@ -84,16 +84,18 @@ SetupWizardRepository::SetupWizardRepository(const std::shared_ptr<spdlog::logge
 SetupWizardRepository::~SetupWizardRepository()
 {
     sqlite3_close(pDb);
-    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "TaskRepository");
+    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "SetupWizardRepository");
 }
 
 int SetupWizardRepository::BeginTransaction()
 {
+    pLogger->info("SetupWizardRepository::BeginTransaction");
+
     mTransactionCounter++;
 
     /*
      * There must only be one transaction active during the setup wizard's lifetime
-     * This assert enforces the only one transaction being active
+     * This assert enforces the only one transaction being active rule
      */
     assert(mTransactionCounter == 1);
 
@@ -108,6 +110,8 @@ int SetupWizardRepository::BeginTransaction()
 
 int SetupWizardRepository::CommitTransaction()
 {
+    pLogger->info("SetupWizardRepository::CommitTransaction");
+
     mTransactionCounter--;
 
     assert(mTransactionCounter == 0);
@@ -123,6 +127,8 @@ int SetupWizardRepository::CommitTransaction()
 
 int SetupWizardRepository::RollbackTransaction()
 {
+    pLogger->info("SetupWizardRepository::RollbackTransaction");
+
     mTransactionCounter--;
 
     assert(mTransactionCounter == 0);
