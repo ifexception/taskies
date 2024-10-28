@@ -258,13 +258,17 @@ private:
     };
 };
 
+#define ID_SETUPCOMPLETEPAGE wxID_HIGHEST + 1000
+
 class SetupCompletePage final : public wxWizardPageSimple
 {
 public:
     SetupCompletePage() = delete;
     SetupCompletePage(const SetupCompletePage&) = delete;
-    SetupCompletePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger, repos::SetupWizardRepository* setupWizardRepository);
-    virtual ~SetupCompletePage() = default;
+    SetupCompletePage(SetupWizard* parent,
+        std::shared_ptr<spdlog::logger> logger,
+        repos::SetupWizardRepository* setupWizardRepository);
+    virtual ~SetupCompletePage();
 
 private:
     void CreateControls();

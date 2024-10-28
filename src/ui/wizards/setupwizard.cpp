@@ -818,7 +818,7 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
         pProjectIsDefaultCtrl->SetValue(project.IsDefault);
     }
 
-    if (pParent->GetCategoryId()) {
+    if (pParent->GetCategoryId() > 0) {
         Model::CategoryModel category;
         int rc = 0;
 
@@ -845,6 +845,12 @@ SetupCompletePage::SetupCompletePage(SetupWizard* parent,
 {
     CreateControls();
     ConfigureEventBindings();
+}
+
+SetupCompletePage::~SetupCompletePage()
+{
+    // Disconnect(
+    // wxEVT_WIZARD_FINISHED, wxWizardEventHandler(SetupCompletePage::OnSetupCompleteWizardFinished), NULL, this);
 }
 
 void SetupCompletePage::CreateControls()
@@ -882,8 +888,11 @@ void SetupCompletePage::ConfigureEventBindings()
     Bind(
         wxEVT_WIZARD_FINISHED,
         &SetupCompletePage::OnSetupCompleteWizardFinished,
-        this
+        this,
+        ID_SETUPCOMPLETEPAGE
     );
+
+    //Connect(wxEVT_WIZARD_FINISHED, wxWizardEventHandler(SetupCompletePage::OnSetupCompleteWizardFinished), NULL, this);
 }
 // clang-format on
 
@@ -898,6 +907,7 @@ void SetupCompletePage::DisableBackButton() const
 void SetupCompletePage::OnSetupCompleteWizardPageShown(wxWizardEvent& event)
 {
     DisableBackButton();
+    // pSetupWizardRepository->CommitTransaction();
 }
 
 void SetupCompletePage::OnWizardCancel(wxWizardEvent& event)
@@ -908,6 +918,7 @@ void SetupCompletePage::OnWizardCancel(wxWizardEvent& event)
 
 void SetupCompletePage::OnSetupCompleteWizardFinished(wxWizardEvent& event)
 {
+    pLogger->info("SetupCompletePage::OnSetupCompleteWizardFinished - Wizard is finished");
     pSetupWizardRepository->CommitTransaction();
 }
 
