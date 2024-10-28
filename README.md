@@ -1,20 +1,10 @@
 ![logo](taskies-logo.png)
 # Taskies
-Taskies is a desktop program to help you track the time you spend on your tasks through your day-to-day
-
-Its core principles are:
-* Desktop and native
-* Clean
-* Easy to use
-* Small footprint
+Taskies is a small, minimalist, and easy-to-use desktop program to help you track your tasks and their duration
 
 ---
 # _Taskies is an alpha state. There are  bugs!_
 ---
-
-# Goal
-Taskies is a small, minimalist, and easy-to-use desktop program to help you track your tasks and their duration
-
 
 ## Installation
 Download an installer executable from [here](https://github.com/ifexception/taskies/releases)
