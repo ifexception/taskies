@@ -95,7 +95,7 @@ int SetupWizardRepository::BeginTransaction()
 
     /*
      * There must only be one transaction active during the setup wizard's lifetime
-     * This assert enforces the only one transaction being active rule
+     * This assert ensures the logic of the transaction counter remains correct
      */
     assert(mTransactionCounter == 1);
 
@@ -171,22 +171,6 @@ std::int64_t SetupWizardRepository::CreateEmployer(const Model::EmployerModel& e
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate, "SetupWizardRepository", "name", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    if (employer.Description.has_value()) {
-        rc = sqlite3_bind_text(stmt,
-            2,
-            employer.Description.value().c_str(),
-            static_cast<int>(employer.Description.value().size()),
-            SQLITE_TRANSIENT);
-    } else {
-        rc = sqlite3_bind_null(stmt, 2);
-    }
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "SetupWizardRepository", "description", 2, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -1081,6 +1065,11 @@ int SetupWizardRepository::UpdateCategory(const Model::CategoryModel& model)
     return 0;
 }
 
+bool SetupWizardRepository::IsInTransaction() const
+{
+    return mTransactionCounter == 1;
+}
+
 const std::string SetupWizardRepository::beginTransaction = "BEGIN TRANSACTION";
 
 const std::string SetupWizardRepository::commitTransaction = "COMMIT";
@@ -1090,10 +1079,9 @@ const std::string SetupWizardRepository::rollbackTransaction = "ROLLBACK";
 const std::string SetupWizardRepository::createEmployer = "INSERT INTO "
                                                           "employers "
                                                           "("
-                                                          "name, "
-                                                          "description"
+                                                          "name "
                                                           ") "
-                                                          "VALUES (?, ?);";
+                                                          "VALUES (?);";
 
 const std::string SetupWizardRepository::getByEmployerId = "SELECT "
                                                            "employer_id, "

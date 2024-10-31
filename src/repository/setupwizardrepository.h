@@ -64,6 +64,8 @@ public:
     int GetByCategoryId(const std::int64_t categoryId, /*out*/ Model::CategoryModel& model);
     int UpdateCategory(const Model::CategoryModel& model);
 
+    bool IsInTransaction() const;
+
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
