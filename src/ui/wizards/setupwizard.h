@@ -60,8 +60,7 @@ public:
     SetupWizard(wxFrame* frame,
         std::shared_ptr<spdlog::logger> logger,
         std::shared_ptr<Core::Environment> env,
-        std::shared_ptr<Core::Configuration> cfg,
-        const std::string& databasePath);
+        std::shared_ptr<Core::Configuration> cfg);
     virtual ~SetupWizard();
 
     SetupWizard& operator=(const SetupWizard&) = delete;
@@ -87,6 +86,10 @@ public:
     void SetRestoreDatabasePath(const std::string& value);
 
 private:
+    void ConfigureEventBindings();
+
+    void OnWizardFinished(wxWizardEvent& event);
+
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
@@ -258,8 +261,6 @@ private:
     };
 };
 
-#define ID_SETUPCOMPLETEPAGE wxID_HIGHEST + 1000
-
 class SetupCompletePage final : public wxWizardPageSimple
 {
 public:
@@ -268,7 +269,7 @@ public:
     SetupCompletePage(SetupWizard* parent,
         std::shared_ptr<spdlog::logger> logger,
         repos::SetupWizardRepository* setupWizardRepository);
-    virtual ~SetupCompletePage();
+    virtual ~SetupCompletePage() = default;
 
 private:
     void CreateControls();
@@ -277,7 +278,6 @@ private:
 
     void OnSetupCompleteWizardPageShown(wxWizardEvent& event);
     void OnWizardCancel(wxWizardEvent& event);
-    void OnSetupCompleteWizardFinished(wxWizardEvent& event);
 
     SetupWizard* pParent;
     std::shared_ptr<spdlog::logger> pLogger;

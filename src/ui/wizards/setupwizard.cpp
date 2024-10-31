@@ -43,8 +43,7 @@ namespace tks::UI::wizard
 SetupWizard::SetupWizard(wxFrame* frame,
     std::shared_ptr<spdlog::logger> logger,
     std::shared_ptr<Core::Environment> env,
-    std::shared_ptr<Core::Configuration> cfg,
-    const std::string& databasePath)
+    std::shared_ptr<Core::Configuration> cfg)
     : wxWizard(frame,
           wxID_ANY,
           "Setup/Restore Wizard",
@@ -53,7 +52,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     , pLogger(logger)
     , pEnv(env)
     , pCfg(cfg)
-    , mDatabasePath(databasePath)
+    , mDatabasePath(pCfg->GetDatabasePath())
     , pSetupWizardRepository(nullptr)
     , pWelcomePage(nullptr)
     , pOptionPage(nullptr)
@@ -69,7 +68,6 @@ SetupWizard::SetupWizard(wxFrame* frame,
     , mRestoreDatabasePath()
 {
     pSetupWizardRepository = new repos::SetupWizardRepository(pLogger, mDatabasePath);
-    // pSetupWizardRepository->BeginTransaction();
 
     pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
     // Set left side wizard image
@@ -81,6 +79,8 @@ SetupWizard::SetupWizard(wxFrame* frame,
     // Set icon in titlebar
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
+
+    ConfigureEventBindings();
 
     pLogger->info("SetupWizard::SetupWizard - initialize pages");
     pWelcomePage = new WelcomePage(this, pLogger);
@@ -183,6 +183,24 @@ const std::string& SetupWizard::GetRestoreDatabasePath() const
 void SetupWizard::SetRestoreDatabasePath(const std::string& value)
 {
     mRestoreDatabasePath = value;
+}
+
+// clang-format off
+void SetupWizard::ConfigureEventBindings()
+{
+    Bind(
+        wxEVT_WIZARD_FINISHED,
+        &SetupWizard::OnWizardFinished,
+        this
+    );
+}
+// clang-format on
+
+void SetupWizard::OnWizardFinished(wxWizardEvent& event)
+{
+    if (pSetupWizardRepository->IsInTransaction()) {
+        pSetupWizardRepository->CommitTransaction();
+    }
 }
 
 WelcomePage::WelcomePage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger)
@@ -847,12 +865,6 @@ SetupCompletePage::SetupCompletePage(SetupWizard* parent,
     ConfigureEventBindings();
 }
 
-SetupCompletePage::~SetupCompletePage()
-{
-    // Disconnect(
-    // wxEVT_WIZARD_FINISHED, wxWizardEventHandler(SetupCompletePage::OnSetupCompleteWizardFinished), NULL, this);
-}
-
 void SetupCompletePage::CreateControls()
 {
     auto sizer = new wxBoxSizer(wxVERTICAL);
@@ -884,21 +896,12 @@ void SetupCompletePage::ConfigureEventBindings()
         &SetupCompletePage::OnWizardCancel,
         this
     );
-
-    Bind(
-        wxEVT_WIZARD_FINISHED,
-        &SetupCompletePage::OnSetupCompleteWizardFinished,
-        this,
-        ID_SETUPCOMPLETEPAGE
-    );
-
-    //Connect(wxEVT_WIZARD_FINISHED, wxWizardEventHandler(SetupCompletePage::OnSetupCompleteWizardFinished), NULL, this);
 }
 // clang-format on
 
 void SetupCompletePage::DisableBackButton() const
 {
-    auto backButton = FindWindowById(wxID_BACKWARD);
+    wxWindow* backButton = wxWindow::FindWindowById(wxID_BACKWARD);
     if (backButton) {
         backButton->Enable(false);
     }
@@ -907,19 +910,12 @@ void SetupCompletePage::DisableBackButton() const
 void SetupCompletePage::OnSetupCompleteWizardPageShown(wxWizardEvent& event)
 {
     DisableBackButton();
-    // pSetupWizardRepository->CommitTransaction();
 }
 
 void SetupCompletePage::OnWizardCancel(wxWizardEvent& event)
 {
     pLogger->info("SetupCompletePage::OnWizardCancel - Wizard canceled");
     pSetupWizardRepository->RollbackTransaction();
-}
-
-void SetupCompletePage::OnSetupCompleteWizardFinished(wxWizardEvent& event)
-{
-    pLogger->info("SetupCompletePage::OnSetupCompleteWizardFinished - Wizard is finished");
-    pSetupWizardRepository->CommitTransaction();
 }
 
 // -- Restore Wizard
@@ -1107,8 +1103,10 @@ void RestoreDatabaseResultPage::ConfigureEventBindings()
 
 void RestoreDatabaseResultPage::DisableBackButton() const
 {
-    auto backButton = FindWindowById(wxID_BACKWARD, GetParent());
-    backButton->Disable();
+    wxWindow* backButton = wxWindow::FindWindowById(wxID_BACKWARD);
+    if (backButton) {
+        backButton->Enable(false);
+    }
 }
 
 void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event))
