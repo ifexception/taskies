@@ -219,7 +219,7 @@ void AboutDialog::CreateControls()
     footerSizer->AddStretchSpacer();
 
     /* Link */
-    auto link = new wxHyperlinkCtrl(this, wxID_ANY, "https://taskies.org", "https://taskies.org");
+    auto link = new wxHyperlinkCtrl(this, wxID_ANY, "https://github.com/ifexception/taskies", "https://github.com/ifexception/taskies");
     footerSizer->Add(link, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
