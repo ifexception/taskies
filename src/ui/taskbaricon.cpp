@@ -147,7 +147,7 @@ void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
 close:
     sqlite3_close(db);
 
-    pParent->Close();
+    pParent->Close(true);
 }
 
 void TaskBarIcon::OnLeftButtonDown(wxTaskBarIconEvent& WXUNUSED(event))

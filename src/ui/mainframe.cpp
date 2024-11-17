@@ -629,7 +629,7 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 {
     pLogger->info("MainFrame::OnExit - Menu/shortcut clicked to exit program");
 
-    Close();
+    Close(true);
 }
 
 void MainFrame::OnEditEmployer(wxCommandEvent& WXUNUSED(event))
