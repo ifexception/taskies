@@ -96,7 +96,9 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
         return false;
     }
 
-    CsvExportProcessor exportProcessor(mOptions);
+    CsvMappedOptions mappedOptions(mOptions);
+
+    CsvExportProcessor exportProcessor(mOptions, mappedOptions);
 
     std::stringstream exportedData;
 
@@ -104,7 +106,7 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
         for (auto i = 0; i < computedProjectionModel.size(); i++) {
             exportedData << computedProjectionModel[i];
             if (i < computedProjectionModel.size() - 1) {
-                exportedData << mOptions.Delimiter;
+                exportedData << mappedOptions.Delimiter;
             }
         }
         exportedData << "\n";
@@ -118,7 +120,7 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
             exportProcessor.ProcessData(exportedData, value);
 
             if (i < rowModel.size() - 1) {
-                exportedData << mOptions.Delimiter;
+                exportedData << mappedOptions.Delimiter;
             }
         }
 

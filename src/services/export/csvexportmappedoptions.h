@@ -19,33 +19,16 @@
 
 #pragma once
 
-#include <string>
-#include <sstream>
-
 #include "csvexportoptions.h"
-#include "csvexportmappedoptions.h"
 
 namespace tks::Services::Export
 {
-class CsvExportProcessor final
-{
-public:
-    CsvExportProcessor() = delete;
-    CsvExportProcessor(const CsvExportProcessor&) = delete;
-    CsvExportProcessor(CsvExportOptions options, CsvMappedOptions mappedOptions);
-    ~CsvExportProcessor() = default;
+struct CsvMappedOptions {
+    char Delimiter;
+    char TextQualifier;
 
-    const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;
-
-    void ProcessData(std::stringstream& data, std::string& value);
-
-private:
-    void TryProcessNewLines(std::string& value) const;
-    void TryProcessEmptyValues(std::string& value) const;
-    void TryProcessBooleanHandler(std::string& value) const;
-    void TryProcessTextQualifier(std::stringstream& data, std::string& value) const;
-
-    CsvExportOptions mOptions;
-    CsvMappedOptions mMappedOptions;
+    CsvMappedOptions();
+    CsvMappedOptions(CsvExportOptions options);
+    ~CsvMappedOptions() = default;
 };
 }

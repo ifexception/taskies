@@ -458,20 +458,21 @@ void ExportToCsvDialog::FillControls()
     pSaveToFileTextCtrl->ChangeValue(saveToFile);
     pSaveToFileTextCtrl->SetToolTip(saveToFile);
 
-    pDelimiterChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pDelimiterChoiceCtrl->Append("Please select", new ClientData<int>(-1));
     pDelimiterChoiceCtrl->SetSelection(0);
 
     auto delimiters = Common::Static::DelimiterList();
     for (auto i = 0; i < delimiters.size(); i++) {
-        pDelimiterChoiceCtrl->Append(delimiters[i].first, new ClientData<char>(delimiters[i].second));
+        pDelimiterChoiceCtrl->Append(delimiters[i].first, new ClientData<DelimiterType>(delimiters[i].second));
     }
 
-    pTextQualifierChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pTextQualifierChoiceCtrl->Append("Please select", new ClientData<int>(-1));
     pTextQualifierChoiceCtrl->SetSelection(0);
 
     auto textQualifiers = Common::Static::TextQualifierList();
     for (auto i = 0; i < textQualifiers.size(); i++) {
-        pTextQualifierChoiceCtrl->Append(textQualifiers[i], new ClientData<int>(i));
+        pTextQualifierChoiceCtrl->Append(
+            textQualifiers[i].first, new ClientData<TextQualifierType>(textQualifiers[i].second));
     }
 
     pEmptyValueHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
@@ -711,8 +712,8 @@ void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
     int delimiterIndex = pDelimiterChoiceCtrl->GetSelection();
-    ClientData<char>* delimiterData =
-        reinterpret_cast<ClientData<char>*>(pDelimiterChoiceCtrl->GetClientObject(delimiterIndex));
+    ClientData<DelimiterType>* delimiterData =
+        reinterpret_cast<ClientData<DelimiterType>*>(pDelimiterChoiceCtrl->GetClientObject(delimiterIndex));
 
     pLogger->info("ExportToCsvDialog::OnDelimiterChoiceSelection - Selected delimiter \"{0}\"", choice.ToStdString());
 
@@ -722,15 +723,14 @@ void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
 void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
+    int textQualifierIndex = pTextQualifierChoiceCtrl->GetSelection();
+    ClientData<TextQualifierType>* textQualifierData =
+        reinterpret_cast<ClientData<TextQualifierType>*>(pTextQualifierChoiceCtrl->GetClientObject(textQualifierIndex));
 
     pLogger->info(
         "ExportToCsvDialog::OnTextQualifierChoiceSelection - Selected text qualifier \"{0}\"", choice.ToStdString());
 
-    if (choice.ToStdString() != "(none)") {
-        mCsvOptions.TextQualifier = *choice.ToStdString().data();
-    } else {
-        mCsvOptions.TextQualifier = '\0';
-    }
+    mCsvOptions.TextQualifier = textQualifierData->GetValue();
 }
 
 void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event)
@@ -938,8 +938,8 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     }
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
     preset.IsDefault = pPresetIsDefaultCtrl->GetValue();
-    preset.Delimiter = MapValueToDelimiterEnum(std::string(1, mCsvOptions.Delimiter));
-    preset.TextQualifier = std::string(1, mCsvOptions.TextQualifier);
+    preset.Delimiter = mCsvOptions.Delimiter;
+    preset.TextQualifier = mCsvOptions.TextQualifier;
     preset.EmptyValuesHandler = mCsvOptions.EmptyValuesHandler;
     preset.NewLinesHandler = mCsvOptions.NewLinesHandler;
     preset.BooleanHandler = mCsvOptions.BooleanHandler;
@@ -1338,7 +1338,7 @@ void ExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetS
 
     // apply options
     pDelimiterChoiceCtrl->SetSelection(static_cast<int>(presetSettings.Delimiter));
-    pTextQualifierChoiceCtrl->SetStringSelection(presetSettings.TextQualifier);
+    pTextQualifierChoiceCtrl->SetSelection(static_cast<int>(presetSettings.TextQualifier));
     pEmptyValueHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.EmptyValuesHandler));
     pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.NewLinesHandler));
     pBooleanHanderChoiceCtrl->SetSelection(static_cast<int>(presetSettings.BooleanHandler));
@@ -1379,9 +1379,8 @@ void ExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetS
 
     pExcludeHeadersCheckBoxCtrl->SetValue(presetSettings.ExcludeHeaders);
 
-    auto value = MapDelimiterEnumToValue(presetSettings.Delimiter);
-    mCsvOptions.Delimiter = *&value[0];
-    mCsvOptions.TextQualifier = *&presetSettings.TextQualifier[0];
+    mCsvOptions.Delimiter = presetSettings.Delimiter;
+    mCsvOptions.TextQualifier = presetSettings.TextQualifier;
     mCsvOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
     mCsvOptions.NewLinesHandler = presetSettings.NewLinesHandler;
     mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
