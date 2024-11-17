@@ -22,8 +22,8 @@
 namespace tks::Services::Export
 {
 CsvExportOptions::CsvExportOptions()
-    : Delimiter(',')
-    , TextQualifier('"')
+    : Delimiter(DelimiterType::Comma)
+    , TextQualifier(TextQualifierType::DoubleQuotes)
     , EmptyValuesHandler(EmptyValues::Blank)
     , NewLinesHandler(NewLines::Merge)
     , BooleanHandler(BooleanHandler::OneZero)
@@ -33,8 +33,8 @@ CsvExportOptions::CsvExportOptions()
 
 void CsvExportOptions::Reset()
 {
-    Delimiter = ',';
-    TextQualifier = '"';
+    Delimiter = DelimiterType::Comma;
+    TextQualifier = TextQualifierType::DoubleQuotes;
     EmptyValuesHandler = EmptyValues::Blank;
     NewLinesHandler = NewLines::Merge;
     BooleanHandler = BooleanHandler::OneZero;

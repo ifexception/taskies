@@ -179,7 +179,7 @@ bool Configuration::Save()
                 { "name", preset.Name },
                 { "isDefault", preset.IsDefault },
                 { "delimiter", static_cast<int>(preset.Delimiter) },
-                { "textQualifier", preset.TextQualifier },
+                { "textQualifier", static_cast<int>(preset.TextQualifier) },
                 { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
                 { "newLines", static_cast<int>(preset.NewLinesHandler) },
                 { "booleans", static_cast<int>(preset.BooleanHandler) },
@@ -340,7 +340,7 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
             { "name", presetToSave.Name },
             { "isDefault", presetToSave.IsDefault },
             { "delimiter", static_cast<int>(presetToSave.Delimiter) },
-            { "textQualifier", presetToSave.TextQualifier },
+            { "textQualifier", static_cast<int>(presetToSave.TextQualifier) },
             { "emptyValues", static_cast<int>(presetToSave.EmptyValuesHandler) },
             { "newLines", static_cast<int>(presetToSave.NewLinesHandler) },
             { "booleans", static_cast<int>(presetToSave.BooleanHandler) },
@@ -416,7 +416,7 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
             preset["name"] = presetToUpdate.Name;
             preset["isDefault"] = presetToUpdate.IsDefault;
             preset["delimiter"] = static_cast<int>(presetToUpdate.Delimiter);
-            preset["textQualifier"] = presetToUpdate.TextQualifier;
+            preset["textQualifier"] = static_cast<int>(presetToUpdate.TextQualifier);
             preset["emptyValues"] = static_cast<int>(presetToUpdate.EmptyValuesHandler);
             preset["newLines"] = static_cast<int>(presetToUpdate.NewLinesHandler);
             preset["booleans"] = static_cast<int>(presetToUpdate.BooleanHandler);
@@ -751,7 +751,8 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
             preset.IsDefault = root.at(Sections::PresetsSection).at(i).at("isDefault").as_boolean();
             preset.Delimiter =
                 static_cast<DelimiterType>(root.at(Sections::PresetsSection).at(i).at("delimiter").as_integer());
-            preset.TextQualifier = root.at(Sections::PresetsSection).at(i).at("textQualifier").as_string();
+            preset.TextQualifier = static_cast<TextQualifierType>(
+                root.at(Sections::PresetsSection).at(i).at("textQualifier").as_integer());
             preset.EmptyValuesHandler =
                 static_cast<EmptyValues>(root.at(Sections::PresetsSection).at(i).at("emptyValues").as_integer());
             preset.NewLinesHandler =

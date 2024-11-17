@@ -88,20 +88,24 @@ std::string Wizard()
 } // namespace Resources
 namespace Static
 {
-std::vector<std::pair<std::string, char>> DelimiterList()
+std::vector<std::pair<std::string, DelimiterType>> DelimiterList()
 {
-    auto o1 = std::make_pair(",", ',');
-    auto o2 = std::make_pair(";", ';');
-    auto o3 = std::make_pair("|", '|');
-    auto o4 = std::make_pair("(tab)", '\t');
-    auto o5 = std::make_pair("(space)", ' ');
+    auto o1 = std::make_pair(",", DelimiterType::Comma);
+    auto o2 = std::make_pair(";", DelimiterType::Semicolon);
+    auto o3 = std::make_pair("|", DelimiterType::Pipe);
+    auto o4 = std::make_pair("(tab)", DelimiterType::Tab);
+    auto o5 = std::make_pair("(space)", DelimiterType::Space);
 
-    return std::vector<std::pair<std::string, char>>{ o1, o2, o3, o4, o5 };
+    return std::vector<std::pair<std::string, DelimiterType>>{ o1, o2, o3, o4, o5 };
 }
 
-std::vector<std::string> TextQualifierList()
+std::vector<std::pair<std::string, TextQualifierType>> TextQualifierList()
 {
-    return std::vector<std::string>{ "(none)", "\"", "'" };
+    auto o1 = std::make_pair("(none)", TextQualifierType::None);
+    auto o2 = std::make_pair("\"", TextQualifierType::DoubleQuotes);
+    auto o3 = std::make_pair("'", TextQualifierType::SingleQuotes);
+
+    return std::vector<std::pair<std::string, TextQualifierType>>{ o1, o2, o3 };
 }
 
 std::vector<std::string> EmptyValueHandlerList()

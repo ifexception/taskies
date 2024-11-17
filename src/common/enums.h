@@ -33,6 +33,8 @@ enum class NotificationType { Information = 1, Error };
 
 enum class DelimiterType : int { None = 0, Comma, Semicolon, Pipe, Tab, Space };
 
+enum class TextQualifierType : int { None = 1, DoubleQuotes, SingleQuotes };
+
 enum class EmptyValues : int { None = 0, Blank, Null };
 
 enum class NewLines : int { None = 0, Preserve, Merge };
@@ -51,9 +53,7 @@ std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);
 
-std::string MapDelimiterEnumToValue(DelimiterType delimiter);
-DelimiterType MapValueToDelimiterEnum(std::string delimiter);
+std::string MapTextQualifierEnumToValue(TextQualifierType textQualifier);
 
-std::string MapBooleanEnumToValue(BooleanHandler booleanHandler);
-BooleanHandler MapValueToBooleanHandlerEnum(std::string booleanHandler);
+std::string MapDelimiterEnumToValue(DelimiterType delimiter);
 } // namespace tks

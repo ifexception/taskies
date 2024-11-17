@@ -50,7 +50,7 @@ public:
         std::string Name;
         bool IsDefault;
         DelimiterType Delimiter;
-        std::string TextQualifier;
+        TextQualifierType TextQualifier;
         EmptyValues EmptyValuesHandler;
         NewLines NewLinesHandler;
         BooleanHandler BooleanHandler;

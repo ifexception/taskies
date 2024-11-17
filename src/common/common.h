@@ -54,7 +54,7 @@ struct Preset {
     std::string Name;
     bool IsDefault;
     DelimiterType Delimiter;
-    std::string TextQualifier;
+    TextQualifierType TextQualifier;
     EmptyValues EmptyValuesHandler;
     NewLines NewLinesHandler;
     BooleanHandler BooleanHandler;
@@ -74,8 +74,8 @@ std::string Wizard();
 
 namespace Static
 {
-std::vector<std::pair<std::string, char>> DelimiterList();
-std::vector<std::string> TextQualifierList();
+std::vector<std::pair<std::string, DelimiterType>> DelimiterList();
+std::vector<std::pair<std::string, TextQualifierType>> TextQualifierList();
 std::vector<std::string> EmptyValueHandlerList();
 std::vector<std::string> NewLinesHandlerList();
 std::vector<std::string> BooleanHandlerList();

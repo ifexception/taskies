@@ -24,8 +24,8 @@
 namespace tks::Services::Export
 {
 struct CsvExportOptions {
-    char Delimiter;
-    char TextQualifier;
+    DelimiterType Delimiter;
+    TextQualifierType TextQualifier;
     EmptyValues EmptyValuesHandler;
     NewLines NewLinesHandler;
     BooleanHandler BooleanHandler;

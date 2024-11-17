@@ -63,6 +63,20 @@ std::string NotificationTypeToString(NotificationType notificationType)
     }
 }
 
+std::string MapTextQualifierEnumToValue(TextQualifierType textQualifier)
+{
+    switch (textQualifier) {
+    case TextQualifierType::None:
+        return "";
+    case TextQualifierType::DoubleQuotes:
+        return "\"";
+    case TextQualifierType::SingleQuotes:
+        return "'";
+    default:
+        return "";
+    }
+}
+
 std::string MapDelimiterEnumToValue(DelimiterType delimiter)
 {
     switch (delimiter) {
@@ -80,52 +94,6 @@ std::string MapDelimiterEnumToValue(DelimiterType delimiter)
         return "(space)";
     default:
         return "";
-    }
-}
-
-DelimiterType MapValueToDelimiterEnum(std::string delimiter)
-{
-    if (delimiter.empty() || delimiter == "") {
-        return DelimiterType::None;
-    } else if (delimiter == ",") {
-        return DelimiterType::Comma;
-    } else if (delimiter == ";") {
-        return DelimiterType::Semicolon;
-    } else if (delimiter == "|") {
-        return DelimiterType::Pipe;
-    } else if (delimiter == "\t") {
-        return DelimiterType::Tab;
-    } else if (delimiter == " ") {
-        return DelimiterType::Space;
-    } else {
-        return DelimiterType::None;
-    }
-}
-
-std::string MapBooleanEnumToValue(BooleanHandler booleanHandler)
-{
-    switch (booleanHandler) {
-    case BooleanHandler::OneZero:
-        return "1|0";
-    case BooleanHandler::TrueFalse:
-        return "true|false";
-    case BooleanHandler::YesNo:
-        return "yes|no";
-    default:
-        return "";
-    }
-}
-
-BooleanHandler MapValueToBooleanHandlerEnum(std::string booleanHandler)
-{
-    if (booleanHandler.empty() || booleanHandler == "1|0") {
-        return BooleanHandler::OneZero;
-    } else if (booleanHandler == "true|false") {
-        return BooleanHandler::TrueFalse;
-    } else if (booleanHandler == "yes|no") {
-        return BooleanHandler::YesNo;
-    } else {
-        return BooleanHandler::OneZero;
     }
 }
 } // namespace tks
