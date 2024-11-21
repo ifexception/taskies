@@ -271,11 +271,11 @@ void MainFrame::CreateControls()
     if (!pCfg->BackupDatabase()) {
         fileTasksMenuItem->Enable(false);
     }
-    fileTasksMenu->Append(ID_TASKS_EXPORTTOCSV, "&Export to CSV", "Export selected data to CSV format");
+    fileTasksMenu->Append(ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV format");
     fileMenu->AppendSubMenu(fileTasksMenu, "Tasks");
     fileMenu->AppendSeparator();
 
-    auto exitMenuItem = fileMenu->Append(wxID_EXIT, "Exit\tAlt-F4", "Exit the program");
+    auto exitMenuItem = fileMenu->Append(wxID_EXIT, "Ex&it\tAlt-F4", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
@@ -308,7 +308,7 @@ void MainFrame::CreateControls()
     /* Menu bar */
     auto menuBar = new wxMenuBar();
     menuBar->Append(fileMenu, "&File");
-    menuBar->Append(editMenu, "&Edit");
+    menuBar->Append(editMenu, "E&dit");
     menuBar->Append(viewMenu, "&View");
     menuBar->Append(helpMenu, "&Help");
 
