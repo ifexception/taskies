@@ -67,7 +67,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          isEdit ? "Edit Task" : "Add Task",
+          isEdit ? "Edit Task" : "New Task",
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
