@@ -52,7 +52,7 @@ ClientDialog::ClientDialog(wxWindow* parent,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          isEdit ? "Edit Client" : "Add Client",
+          isEdit ? "Edit Client" : "New Client",
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,

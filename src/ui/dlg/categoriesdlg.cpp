@@ -54,7 +54,7 @@ CategoriesDialog::CategoriesDialog(wxWindow* parent,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          "Add Categories",
+          "New Categories",
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,

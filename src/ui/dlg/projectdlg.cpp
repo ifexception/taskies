@@ -55,7 +55,7 @@ ProjectDialog::ProjectDialog(wxWindow* parent,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          isEdit ? "Edit Project" : "Add Project",
+          isEdit ? "Edit Project" : "New Project",
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
