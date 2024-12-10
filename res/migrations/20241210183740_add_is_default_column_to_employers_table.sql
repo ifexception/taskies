@@ -1,0 +1,2 @@
+ALTER TABLE employers
+	ADD COLUMN is_default INTEGER NOT NULL DEFAULT (0)
