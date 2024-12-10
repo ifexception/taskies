@@ -26,6 +26,7 @@ namespace tks::Model
 EmployerModel::EmployerModel()
     : EmployerId(-1)
     , Name()
+    , IsDefault(false)
     , Description()
     , DateCreated(0)
     , DateModified(0)

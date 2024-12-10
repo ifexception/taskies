@@ -30,6 +30,7 @@ struct EmployerModel {
 
     std::int64_t EmployerId;
     std::string Name;
+    bool IsDefault;
     std::optional<std::string> Description;
     std::uint32_t DateCreated;
     std::uint32_t DateModified;
