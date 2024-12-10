@@ -29,8 +29,8 @@
 
 #include "../../core/environment.h"
 
-#include "../../dao/categorydao.h"
-#include "../../dao/projectdao.h"
+#include "../../persistence/projectpersistence.h"
+#include "../../persistence/categorypersistence.h"
 
 #include "../../models/projectmodel.h"
 
@@ -230,9 +230,9 @@ void CategoryDialog::FillControls()
 
     std::string defaultSearchTerm = "";
     std::vector<Model::ProjectModel> projects;
-    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectDao.Filter(defaultSearchTerm, projects);
+    int rc = projectPersistence.Filter(defaultSearchTerm, projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -283,10 +283,10 @@ void CategoryDialog::ConfigureEventBindings()
 void CategoryDialog::DataToControls()
 {
     Model::CategoryModel model;
-    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
     int rc = 0;
 
-    rc = categoryDao.GetById(mCategoryId, model);
+    rc = categoryPersistence.GetById(mCategoryId, model);
     if (rc != 0) {
         std::string message = "Failed to get category";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -306,9 +306,9 @@ void CategoryDialog::DataToControls()
 
         if (model.ProjectId.has_value()) {
             Model::ProjectModel project;
-            DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+            Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-            int rc = projectDao.GetById(model.ProjectId.value(), project);
+            int rc = projectPersistence.GetById(model.ProjectId.value(), project);
             if (rc != 0) {
                 std::string message = "Failed to get project";
                 wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -349,17 +349,17 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     if (TransferDataAndValidate()) {
-        DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+        Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
         int ret = 0;
         std::string message = "";
         if (pIsActiveCtrl->IsChecked()) {
-            ret = categoryDao.Update(mModel);
+            ret = categoryPersistence.Update(mModel);
 
             ret == -1 ? message = "Failed to update category" : message = "Successfully updated category";
         }
         if (!pIsActiveCtrl->IsChecked()) {
-            ret = categoryDao.Delete(mCategoryId);
+            ret = categoryPersistence.Delete(mCategoryId);
 
             ret == -1 ? message = "Failed to delete category" : message = "Successfully deleted category";
         }

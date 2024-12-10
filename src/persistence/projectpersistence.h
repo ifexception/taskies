@@ -24,32 +24,34 @@
 #include <vector>
 
 #include <spdlog/logger.h>
+
 #include <sqlite3.h>
 
-#include "../models/clientmodel.h"
+#include "../models/projectmodel.h"
 
 namespace tks
 {
-namespace DAO
+namespace Persistence
 {
-class ClientDao final
+class ProjectPersistence final
 {
 public:
-    ClientDao() = delete;
-    ClientDao(const ClientDao&) = delete;
-    ClientDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~ClientDao();
+    ProjectPersistence() = delete;
+    ProjectPersistence(const ProjectPersistence&) = delete;
+    ProjectPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~ProjectPersistence();
 
-    ClientDao& operator=(const ClientDao&) = delete;
+    ProjectPersistence& operator=(const ProjectPersistence&) = delete;
 
-    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ClientModel>& clients);
-    int FilterByEmployerId(const std::int64_t employerId, /*out*/ std::vector<Model::ClientModel>& clients);
-    int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& model);
-    std::int64_t Create(Model::ClientModel& client);
-    int Update(/*out*/ Model::ClientModel& client);
-    int Delete(const std::int64_t clientId);
-
-    std::int64_t GetLastInsertId() const;
+    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ProjectModel>& projects);
+    int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& model);
+    std::int64_t Create(Model::ProjectModel& client);
+    int Update(Model::ProjectModel& project);
+    int Delete(const std::int64_t projectId);
+    int UnmarkDefault();
+    int FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
+        std::optional<std::int64_t> clientId,
+        /*out*/ std::vector<Model::ProjectModel>& projects);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
@@ -60,7 +62,8 @@ private:
     static const std::string create;
     static const std::string update;
     static const std::string isActive;
-    static const std::string filterByEmployerId;
+    static const std::string unmarkDefault;
+    static const std::string filterByEmployerOrClientId;
 };
-} // namespace Data
+} // namespace Persistence
 } // namespace tks

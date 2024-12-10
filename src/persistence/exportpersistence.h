@@ -19,47 +19,32 @@
 
 #pragma once
 
-#include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <spdlog/logger.h>
 
 #include <sqlite3.h>
 
-#include "../models/categorymodel.h"
-
-namespace tks
+namespace tks::Persistence
 {
-namespace DAO
-{
-class CategoryDao final
+class ExportPersistence final
 {
 public:
-    CategoryDao() = delete;
-    CategoryDao(const CategoryDao&) = delete;
-    CategoryDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~CategoryDao();
+    ExportPersistence() = delete;
+    ExportPersistence(const ExportPersistence&) = delete;
+    explicit ExportPersistence(const std::string& databaseFilePath, const std::shared_ptr<spdlog::logger> logger);
+    ~ExportPersistence();
 
-    CategoryDao& operator=(const CategoryDao&) = delete;
+    const ExportPersistence& operator=(const ExportPersistence&) = delete;
 
-    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::CategoryModel>& categories);
-    int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& model);
-    std::int64_t Create(Model::CategoryModel& category);
-    int Update(Model::CategoryModel& model);
-    int Delete(const std::int64_t categoryId);
-
-    std::int64_t GetLastInsertId() const;
+    int FilterExportCsvData(const std::string& sql,
+        const std::vector<std::string>& projectionMap,
+        /*out*/ std::vector<std ::vector<std::pair<std::string, std::string>>>& projectionModel);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
-
-    static const std::string filter;
-    static const std::string getById;
-    static const std::string create;
-    static const std::string update;
-    static const std::string isActive;
 };
-} // namespace Data
-} // namespace tks
+}

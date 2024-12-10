@@ -19,32 +19,38 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
-#include <string>
-#include <vector>
 
 #include <spdlog/logger.h>
 
 #include <sqlite3.h>
 
-namespace tks::DAO
+#include "../models/workdaymodel.h"
+
+namespace tks::Persistence
 {
-class ExportDao final
+class WorkdayPersistence final
 {
 public:
-    ExportDao() = delete;
-    ExportDao(const ExportDao&) = delete;
-    explicit ExportDao(const std::string& databaseFilePath, const std::shared_ptr<spdlog::logger> logger);
-    ~ExportDao();
+    WorkdayPersistence() = delete;
+    WorkdayPersistence(const WorkdayPersistence&) = delete;
+    WorkdayPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~WorkdayPersistence();
 
-    const ExportDao& operator=(const ExportDao&) = delete;
+    WorkdayPersistence& operator=(const WorkdayPersistence&) = delete;
 
-    int FilterExportCsvData(const std::string& sql,
-        const std::vector<std::string>& projectionMap,
-        /*out*/ std::vector<std ::vector<std::pair<std::string, std::string>>>& projectionModel);
+    int FilterByDate(const std::string& date, Model::WorkdayModel model);
+    std::int64_t GetWorkdayIdByDate(const std::string& date);
 
 private:
+    std::int64_t Create(const std::string& date);
+
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
+
+    static const std::string getWorkdayIdByDate;
+    static const std::string filterByDate;
+    static const std::string create;
 };
-}
+} // namespace tks::Persistence

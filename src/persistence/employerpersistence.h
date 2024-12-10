@@ -32,13 +32,13 @@
 
 namespace tks
 {
-namespace DAO
+namespace Persistence
 {
-class EmployerDao final
+class EmployerPersistence final
 {
 public:
-    EmployerDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~EmployerDao();
+    EmployerPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~EmployerPersistence();
 
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employers);
     int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
@@ -58,5 +58,5 @@ private:
     static const std::string update;
     static const std::string isActive;
 };
-} // namespace DAO
+} // namespace Persistence
 } // namespace tks

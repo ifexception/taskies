@@ -30,7 +30,7 @@
 
 #include "../../core/environment.h"
 
-#include "../../dao/employerdao.h"
+#include "../../persistence/employerpersistence.h"
 
 #include "../../utils/utils.h"
 #include "../events.h"
@@ -215,9 +215,9 @@ void EmployerDialog::DataToControls()
     pOkButton->Disable();
 
     Model::EmployerModel employer;
-    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerDao.GetById(mEmployerId, employer);
+    int rc = employerPersistence.GetById(mEmployerId, employer);
     if (rc == -1) {
         std::string message = "Failed to get employer";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -243,12 +243,12 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     if (TransferDataAndValidate()) {
-        DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+        Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
         int ret = 0;
         std::string message = "";
         if (!bIsEdit) {
-            std::int64_t employerId = employerDao.Create(mEmployer);
+            std::int64_t employerId = employerPersistence.Create(mEmployer);
             ret = employerId > 0 ? 1 : -1;
 
             ret == -1
@@ -256,14 +256,14 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
                 : message = "Successfully created employer";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = employerDao.Update(mEmployer);
+            ret = employerPersistence.Update(mEmployer);
 
             ret == -1
                 ? message = "Failed to update employer"
                 : message = "Successfully updated employer";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = employerDao.Delete(mEmployerId);
+            ret = employerPersistence.Delete(mEmployerId);
 
             ret == -1
                 ? message = "Failed to delete employer"

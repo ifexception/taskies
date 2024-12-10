@@ -42,7 +42,7 @@
 #include "../core/environment.h"
 #include "../core/configuration.h"
 
-#include "../dao/taskdao.h"
+#include "../persistence/taskpersistence.h"
 
 #include "../repository/taskrepository.h"
 #include "../repository/taskrepositorymodel.h"
@@ -846,9 +846,9 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
     assert(mTaskIdToModify != -1);
 
     std::string description;
-    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = taskDao.GetDescriptionById(mTaskIdToModify, description);
+    int rc = taskPersistence.GetDescriptionById(mTaskIdToModify, description);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -873,8 +873,8 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 
     if (ret == wxID_OK) {
         bool isActive = false;
-        DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
-        int rc = taskDao.IsDeleted(mTaskIdToModify, isActive);
+        Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+        int rc = taskPersistence.IsDeleted(mTaskIdToModify, isActive);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
             return;
@@ -903,9 +903,9 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
 
-    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = taskDao.Delete(mTaskIdToModify);
+    int rc = taskPersistence.Delete(mTaskIdToModify);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {

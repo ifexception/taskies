@@ -29,10 +29,10 @@
 
 #include "../../core/environment.h"
 
-#include "../../dao/employerdao.h"
-#include "../../dao/clientdao.h"
-#include "../../dao/projectdao.h"
-#include "../../dao/categorydao.h"
+#include "../../persistence/employerpersistence.h"
+#include "../../persistence/clientpersistence.h"
+#include "../../persistence/projectpersistence.h"
+#include "../../persistence/categorypersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -257,9 +257,9 @@ void EditListDialog::EmployerDataToControls()
 {
     std::vector<Model::EmployerModel> employers;
     std::vector<ListCtrlData> entries;
-    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerDao.Filter(mSearchTerm, employers);
+    int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {
         std::string message = "Failed to filter employers";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -281,9 +281,9 @@ void EditListDialog::ClientDataToControls()
 {
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientDao.Filter(mSearchTerm, clients);
+    int rc = clientPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
         std::string message = "Failed to filter clients";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -305,9 +305,9 @@ void EditListDialog::ProjectDataToControls()
 {
     std::vector<Model::ProjectModel> projects;
     std::vector<ListCtrlData> entries;
-    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectDao.Filter(mSearchTerm, projects);
+    int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
         std::string message = "Failed to filter projects";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -329,9 +329,9 @@ void EditListDialog::CategoryDataToControls()
 {
     std::vector<Model::CategoryModel> categories;
     std::vector<ListCtrlData> entries;
-    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = categoryDao.Filter(mSearchTerm, categories);
+    int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
         std::string message = "Failed to filter categories";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -455,9 +455,9 @@ void EditListDialog::SearchEmployers()
 
     std::vector<Model::EmployerModel> employers;
     std::vector<ListCtrlData> entries;
-    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerDao.Filter(mSearchTerm, employers);
+    int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {
         std::string message = "Failed to filter employers";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -484,9 +484,9 @@ void EditListDialog::SearchClients()
 
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientDao.Filter(mSearchTerm, clients);
+    int rc = clientPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
         std::string message = "Failed to filter clients";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -513,9 +513,9 @@ void EditListDialog::SearchProjects()
 
     std::vector<Model::ProjectModel> projects;
     std::vector<ListCtrlData> entries;
-    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectDao.Filter(mSearchTerm, projects);
+    int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
         std::string message = "Failed to filter projects";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -542,9 +542,9 @@ void EditListDialog::SearchCategories()
 
     std::vector<Model::CategoryModel> categories;
     std::vector<ListCtrlData> entries;
-    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = categoryDao.Filter(mSearchTerm, categories);
+    int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
         std::string message = "Failed to filter categories";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);

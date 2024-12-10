@@ -29,8 +29,8 @@
 
 #include "../../core/environment.h"
 
-#include "../../dao/employerdao.h"
-#include "../../dao/clientdao.h"
+#include "../../persistence/employerpersistence.h"
+#include "../../persistence/clientpersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -217,9 +217,9 @@ void ClientDialog::FillControls()
 
     std::string defaultSearhTerm = "";
     std::vector<Model::EmployerModel> employers;
-    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerDao.Filter(defaultSearhTerm, employers);
+    int rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc == -1) {
         std::string message = "Failed to get employers";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -267,9 +267,9 @@ void ClientDialog::ConfigureEventBindings()
 void ClientDialog::DataToControls()
 {
     Model::ClientModel client;
-    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientDao.GetById(mClientId, client);
+    int rc = clientPersistence.GetById(mClientId, client);
     bool isSuccess = false;
     if (rc == -1) {
         std::string message = "Failed to get client";
@@ -291,9 +291,9 @@ void ClientDialog::DataToControls()
     }
 
     Model::EmployerModel employer;
-    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    rc = employerDao.GetById(client.EmployerId, employer);
+    rc = employerPersistence.GetById(client.EmployerId, employer);
     if (rc == -1) {
         std::string message = "Failed to get client linked employer";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -320,12 +320,12 @@ void ClientDialog::OnOK(wxCommandEvent& event)
     pCancelButton->Disable();
 
     if (TransferDataAndValidate()) {
-        DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+        Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
 
         int ret = 0;
         std::string message = "";
         if (!bIsEdit) {
-            std::int64_t clientId = clientDao.Create(mClientModel);
+            std::int64_t clientId = clientPersistence.Create(mClientModel);
             ret = clientId > 0 ? 1 : -1;
 
             ret == -1
@@ -333,7 +333,7 @@ void ClientDialog::OnOK(wxCommandEvent& event)
                 : message = "Successfully created client";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = clientDao.Update(mClientModel);
+            ret = clientPersistence.Update(mClientModel);
 
             ret == -1
                 ? message = "Failed to update client"
@@ -341,7 +341,7 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         }
 
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = clientDao.Delete(mClientId);
+            ret = clientPersistence.Delete(mClientId);
 
             ret == -1
                 ? message = "Failed to delete client"

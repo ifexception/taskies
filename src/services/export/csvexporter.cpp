@@ -19,7 +19,7 @@
 
 #include "csvexporter.h"
 
-#include "../../dao/exportdao.h"
+#include "../../persistence/exportpersistence.h"
 
 namespace tks::Services::Export
 {
@@ -90,8 +90,8 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 
     const auto& computedProjectionModel = ComputeProjectionModel(projections);
 
-    DAO::ExportDao exportDao(mDatabaseFilePath, pLogger);
-    int rc = exportDao.FilterExportCsvData(sql, computedProjectionModel, projectionModel);
+    Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
+    int rc = exportPersistence.FilterExportCsvData(sql, computedProjectionModel, projectionModel);
     if (rc != 0) {
         return false;
     }

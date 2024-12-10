@@ -34,12 +34,12 @@
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
 
-#include "../../dao/employerdao.h"
-#include "../../dao/clientdao.h"
-#include "../../dao/projectdao.h"
-#include "../../dao/categorydao.h"
-#include "../../dao/workdaydao.h"
-#include "../../dao/taskdao.h"
+#include "../../persistence/employerpersistence.h"
+#include "../../persistence/clientpersistence.h"
+#include "../../persistence/projectpersistence.h"
+#include "../../persistence/categorypersistence.h"
+#include "../../persistence/workdaypersistence.h"
+#include "../../persistence/taskpersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -366,9 +366,9 @@ void TaskDialog::FillControls()
     std::string defaultSearhTerm = "";
 
     std::vector<Model::EmployerModel> employers;
-    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerDao.Filter(defaultSearhTerm, employers);
+    int rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
         std::string message = "Failed to get employers";
         QueueErrorNotificationEventToParent(message);
@@ -467,10 +467,10 @@ void TaskDialog::DataToControls()
     // load task
     Model::TaskModel task;
     // FIXME: look into using task repo class to fetch all data in one go
-    DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
-    int rc = taskDao.GetById(mTaskId, task);
+    int rc = taskPersistence.GetById(mTaskId, task);
     if (rc != 0) {
         std::string message = "Failed to get task";
         QueueErrorNotificationEventToParent(message);
@@ -488,9 +488,9 @@ void TaskDialog::DataToControls()
 
     // load project
     Model::ProjectModel project;
-    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    rc = projectDao.GetById(task.ProjectId, project);
+    rc = projectPersistence.GetById(task.ProjectId, project);
     if (rc != 0) {
         std::string message = "Failed to get project";
         QueueErrorNotificationEventToParent(message);
@@ -499,7 +499,7 @@ void TaskDialog::DataToControls()
         // load projects
         std::vector<Model::ProjectModel> projects;
 
-        rc = projectDao.FilterByEmployerIdOrClientId(std::make_optional(project.EmployerId),
+        rc = projectPersistence.FilterByEmployerIdOrClientId(std::make_optional(project.EmployerId),
             project.ClientId.has_value() ? project.ClientId : std::nullopt,
             projects);
         if (rc != 0) {
@@ -523,9 +523,9 @@ void TaskDialog::DataToControls()
 
         // load employer
         Model::EmployerModel employer;
-        DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+        Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-        rc = employerDao.GetById(project.EmployerId, employer);
+        rc = employerPersistence.GetById(project.EmployerId, employer);
         if (rc == -1) {
             std::string message = "Failed to get employer";
             QueueErrorNotificationEventToParent(message);
@@ -538,10 +538,10 @@ void TaskDialog::DataToControls()
 
         // load clients
         std::vector<Model::ClientModel> clients;
-        DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+        Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
         std::string defaultSearchTerm = "";
 
-        rc = clientDao.FilterByEmployerId(project.EmployerId, clients);
+        rc = clientPersistence.FilterByEmployerId(project.EmployerId, clients);
         if (rc == -1) {
             std::string message = "Failed to get clients";
             QueueErrorNotificationEventToParent(message);
@@ -556,7 +556,7 @@ void TaskDialog::DataToControls()
 
                 if (project.ClientId.has_value()) {
                     Model::ClientModel client;
-                    rc = clientDao.GetById(project.ClientId.value(), client);
+                    rc = clientPersistence.GetById(project.ClientId.value(), client);
                     if (rc == -1) {
                         std::string message = "Failed to get client";
                         QueueErrorNotificationEventToParent(message);
@@ -647,9 +647,9 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     auto employerId = employerIdData->GetValue();
     mEmployerIndex = employerIndex;
     std::vector<Model::ClientModel> clients;
-    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientDao.FilterByEmployerId(employerId, clients);
+    int rc = clientPersistence.FilterByEmployerId(employerId, clients);
 
     if (rc != 0) {
         std::string message = "Failed to get clients";
@@ -669,9 +669,9 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     }
 
     std::vector<Model::ProjectModel> projects;
-    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    rc = projectDao.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::nullopt, projects);
+    rc = projectPersistence.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::nullopt, projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
         QueueErrorNotificationEventToParent(message);
@@ -747,10 +747,10 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     }
 
     std::vector<Model::ProjectModel> projects;
-    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc =
-        projectDao.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::make_optional(clientId), projects);
+        projectPersistence.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::make_optional(clientId), projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
         QueueErrorNotificationEventToParent(message);
@@ -887,10 +887,10 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     }
 
     Model::CategoryModel model;
-    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
     int rc = 0;
 
-    rc = categoryDao.GetById(categoryIdData->GetValue(), model);
+    rc = categoryPersistence.GetById(categoryIdData->GetValue(), model);
     if (rc == -1) {
         std::string message = "Failed to get category";
         QueueErrorNotificationEventToParent(message);
@@ -928,8 +928,8 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         int ret = 0;
         std::string message = "";
 
-        DAO::WorkdayDao workdayDao(pLogger, mDatabaseFilePath);
-        std::int64_t workdayId = workdayDao.GetWorkdayIdByDate(mDate);
+        Persistence::WorkdayPersistence workdayPersistence(pLogger, mDatabaseFilePath);
+        std::int64_t workdayId = workdayPersistence.GetWorkdayIdByDate(mDate);
         ret = workdayId > 0 ? 0 : -1;
 
         if (ret == -1) {
@@ -940,21 +940,21 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
         mTaskModel.WorkdayId = workdayId;
 
-        DAO::TaskDao taskDao(pLogger, mDatabaseFilePath);
+        Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
         if (!bIsEdit) {
-            std::int64_t taskId = taskDao.Create(mTaskModel);
+            std::int64_t taskId = taskPersistence.Create(mTaskModel);
             ret = taskId > 0 ? 0 : -1;
             mTaskId = taskId;
 
             ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = taskDao.Update(mTaskModel);
+            ret = taskPersistence.Update(mTaskModel);
 
             ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = taskDao.Delete(mTaskId);
+            ret = taskPersistence.Delete(mTaskId);
 
             ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
         }

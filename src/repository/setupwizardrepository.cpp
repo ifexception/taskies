@@ -532,7 +532,7 @@ int SetupWizardRepository::UpdateClient(const Model::ClientModel& client)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndUpdateEntity, "ClientDao", client.ClientId);
+    pLogger->info(LogMessage::InfoEndUpdateEntity, "SetupWizardRepository", client.ClientId);
 
     return 0;
 }
@@ -808,7 +808,7 @@ int SetupWizardRepository::UpdateProject(const Model::ProjectModel& project)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndUpdateEntity, "ProjectDao", project.ProjectId);
+    pLogger->info(LogMessage::InfoEndUpdateEntity, "SetupWizardRepository", project.ProjectId);
 
     return 0;
 }

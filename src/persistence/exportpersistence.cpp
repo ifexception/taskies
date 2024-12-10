@@ -17,79 +17,79 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "exportdao.h"
+#include "exportpersistence.h"
 
 #include "../common/constants.h"
 
 #include "../utils/utils.h"
 
-namespace tks::DAO
+namespace tks::Persistence
 {
-ExportDao::ExportDao(const std::string& databaseFilePath, const std::shared_ptr<spdlog::logger> logger)
+ExportPersistence::ExportPersistence(const std::string& databaseFilePath, const std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , pDb(nullptr)
 {
-    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "ExportDao", databaseFilePath);
+    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "ExportPersistence", databaseFilePath);
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate, "ExportDao", databaseFilePath, rc, std::string(err));
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "ExportPersistence", databaseFilePath, rc, std::string(err));
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportPersistence", Utils::sqlite::pragmas::ForeignKeys, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::JournalMode, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportPersistence", Utils::sqlite::pragmas::JournalMode, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::Synchronous, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportPersistence", Utils::sqlite::pragmas::Synchronous, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::TempStore, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportPersistence", Utils::sqlite::pragmas::TempStore, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "ExportDao", Utils::sqlite::pragmas::MmapSize, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "ExportPersistence", Utils::sqlite::pragmas::MmapSize, rc, err);
         return;
     }
 }
 
-ExportDao::~ExportDao()
+ExportPersistence::~ExportPersistence()
 {
     sqlite3_close(pDb);
-    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "ExportDao");
+    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "ExportPersistence");
 }
 
-int ExportDao::FilterExportCsvData(const std::string& sql,
+int ExportPersistence::FilterExportCsvData(const std::string& sql,
     const std::vector<std::string>& projectionMap,
     std::vector<std ::vector<std::pair<std::string, std::string>>>& projectionModel)
 {
-    pLogger->info(LogMessage::InfoBeginFilterEntities, "ExportDao", "<na>", "");
+    pLogger->info(LogMessage::InfoBeginFilterEntities, "ExportPersistence", "<na>", "");
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "ExportDao", sql, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "ExportPersistence", sql, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -126,14 +126,14 @@ int ExportDao::FilterExportCsvData(const std::string& sql,
 
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "ExportDao", sql, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "ExportPersistence", sql, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
 
-    pLogger->info(LogMessage::InfoEndFilterEntities, "ExportDao", projectionModel.size(), "");
+    pLogger->info(LogMessage::InfoEndFilterEntities, "ExportPersistence", projectionModel.size(), "");
     return 0;
 }
-} // namespace tks::DAO
+} // namespace tks::Persistence

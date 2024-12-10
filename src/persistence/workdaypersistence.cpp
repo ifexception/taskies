@@ -17,81 +17,81 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "workdaydao.h"
+#include "workdaypersistence.h"
 
 #include "../common/constants.h"
 
 #include "../utils/utils.h"
 
-namespace tks::DAO
+namespace tks::Persistence
 {
-WorkdayDao::WorkdayDao(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
+WorkdayPersistence::WorkdayPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
     : pLogger(logger)
     , pDb(nullptr)
 {
-    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "WorkdayDao", databaseFilePath);
+    pLogger->info(LogMessage::InfoOpenDatabaseConnection, "WorkdayPersistence", databaseFilePath);
 
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate, "WorkdayDao", databaseFilePath, rc, std::string(err));
+        pLogger->error(LogMessage::OpenDatabaseTemplate, "WorkdayPersistence", databaseFilePath, rc, std::string(err));
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayDao", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayPersistence", Utils::sqlite::pragmas::ForeignKeys, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayDao", Utils::sqlite::pragmas::JournalMode, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayPersistence", Utils::sqlite::pragmas::JournalMode, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayDao", Utils::sqlite::pragmas::Synchronous, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayPersistence", Utils::sqlite::pragmas::Synchronous, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayDao", Utils::sqlite::pragmas::TempStore, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayPersistence", Utils::sqlite::pragmas::TempStore, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayDao", Utils::sqlite::pragmas::MmapSize, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate, "WorkdayPersistence", Utils::sqlite::pragmas::MmapSize, rc, err);
         return;
     }
 }
 
-WorkdayDao::~WorkdayDao()
+WorkdayPersistence::~WorkdayPersistence()
 {
     sqlite3_close(pDb);
-    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "WorkdayDao");
+    pLogger->info(LogMessage::InfoCloseDatabaseConnection, "WorkdayPersistence");
 }
 
-int WorkdayDao::FilterByDate(const std::string& date, Model::WorkdayModel model)
+int WorkdayPersistence::FilterByDate(const std::string& date, Model::WorkdayModel model)
 {
-    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "WorkdayDao", "workday", date);
+    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "WorkdayPersistence", "workday", date);
 
     GetWorkdayIdByDate(date);
 
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, WorkdayDao::filterByDate.c_str(), static_cast<int>(WorkdayDao::filterByDate.size()), &stmt, nullptr);
+        pDb, WorkdayPersistence::filterByDate.c_str(), static_cast<int>(WorkdayPersistence::filterByDate.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "WorkdayDao", WorkdayDao::filterByDate, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "WorkdayPersistence", WorkdayPersistence::filterByDate, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -99,7 +99,7 @@ int WorkdayDao::FilterByDate(const std::string& date, Model::WorkdayModel model)
     rc = sqlite3_bind_text(stmt, 1, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "WorkdayDao", "date", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "WorkdayPersistence", "date", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -107,7 +107,7 @@ int WorkdayDao::FilterByDate(const std::string& date, Model::WorkdayModel model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "WorkdayDao", WorkdayDao::filterByDate, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "WorkdayPersistence", WorkdayPersistence::filterByDate, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -121,28 +121,28 @@ int WorkdayDao::FilterByDate(const std::string& date, Model::WorkdayModel model)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "WorkdayDao", rc, err);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "WorkdayPersistence", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndGetByIdEntity, "WorkdayDao", date);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "WorkdayPersistence", date);
 
     return 0;
 }
 
-std::int64_t WorkdayDao::GetWorkdayIdByDate(const std::string& date)
+std::int64_t WorkdayPersistence::GetWorkdayIdByDate(const std::string& date)
 {
     std::int64_t workdayId = 0;
 
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, WorkdayDao::getWorkdayIdByDate.c_str(), static_cast<int>(WorkdayDao::getWorkdayIdByDate.size()), &stmt, nullptr);
+        pDb, WorkdayPersistence::getWorkdayIdByDate.c_str(), static_cast<int>(WorkdayPersistence::getWorkdayIdByDate.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "WorkdayDao", WorkdayDao::getWorkdayIdByDate, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "WorkdayPersistence", WorkdayPersistence::getWorkdayIdByDate, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -150,7 +150,7 @@ std::int64_t WorkdayDao::GetWorkdayIdByDate(const std::string& date)
     rc = sqlite3_bind_text(stmt, 1, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "WorkdayDao", "date", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "WorkdayPersistence", "date", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -158,7 +158,7 @@ std::int64_t WorkdayDao::GetWorkdayIdByDate(const std::string& date)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_ROW && rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "WorkdayDao", WorkdayDao::getWorkdayIdByDate, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "WorkdayPersistence", WorkdayPersistence::getWorkdayIdByDate, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -171,7 +171,7 @@ std::int64_t WorkdayDao::GetWorkdayIdByDate(const std::string& date)
         }
         workdayId = res;
         sqlite3_finalize(stmt);
-        pLogger->info(LogMessage::InfoEndGetByIdEntity, "WorkdayDao", date);
+        pLogger->info(LogMessage::InfoEndGetByIdEntity, "WorkdayPersistence", date);
 
         return workdayId;
     } else {
@@ -181,27 +181,27 @@ std::int64_t WorkdayDao::GetWorkdayIdByDate(const std::string& date)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "WorkdayDao", rc, err);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "WorkdayPersistence", rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndGetByIdEntity, "WorkdayDao", date);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "WorkdayPersistence", date);
 
     return workdayId;
 }
 
-std::int64_t WorkdayDao::Create(const std::string& date)
+std::int64_t WorkdayPersistence::Create(const std::string& date)
 {
-    pLogger->info(LogMessage::InfoBeginCreateEntity, "WorkdayDao", "workday", date);
+    pLogger->info(LogMessage::InfoBeginCreateEntity, "WorkdayPersistence", "workday", date);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
-        pDb, WorkdayDao::create.c_str(), static_cast<int>(WorkdayDao::create.size()), &stmt, nullptr);
+        pDb, WorkdayPersistence::create.c_str(), static_cast<int>(WorkdayPersistence::create.size()), &stmt, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "WorkdayDao", WorkdayDao::create, rc, err);
+        pLogger->error(LogMessage::PrepareStatementTemplate, "WorkdayPersistence", WorkdayPersistence::create, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -209,7 +209,7 @@ std::int64_t WorkdayDao::Create(const std::string& date)
     rc = sqlite3_bind_text(stmt, 1, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "WorkdayDao", "date", 1, rc, err);
+        pLogger->error(LogMessage::BindParameterTemplate, "WorkdayPersistence", "date", 1, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -217,29 +217,29 @@ std::int64_t WorkdayDao::Create(const std::string& date)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "WorkdayDao", WorkdayDao::create, rc, err);
+        pLogger->error(LogMessage::ExecStepTemplate, "WorkdayPersistence", WorkdayPersistence::create, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
-    pLogger->info(LogMessage::InfoEndCreateEntity, "WorkdayDao", rowId);
+    pLogger->info(LogMessage::InfoEndCreateEntity, "WorkdayPersistence", rowId);
 
     return rowId;
 }
 
-const std::string WorkdayDao::create = "INSERT INTO "
+const std::string WorkdayPersistence::create = "INSERT INTO "
                                        "workdays (date) "
                                        "VALUES (?)";
 
-const std::string WorkdayDao::filterByDate = "SELECT workday_id, "
+const std::string WorkdayPersistence::filterByDate = "SELECT workday_id, "
                                             "date, "
                                             "date_created "
                                             "FROM workdays "
                                             "WHERE date = ?";
 
-const std::string WorkdayDao::getWorkdayIdByDate = "SELECT workday_id "
+const std::string WorkdayPersistence::getWorkdayIdByDate = "SELECT workday_id "
                                              "FROM workdays "
                                              "WHERE date = ?";
-} // namespace tks::DAO
+} // namespace tks::Persistence

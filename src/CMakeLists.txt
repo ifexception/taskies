@@ -30,14 +30,14 @@ set (SRC_MODELS
     "models/taskmodel.cpp"
 )
 
-set(SRC_DAO
-    "dao/employerdao.cpp"
-    "dao/clientdao.cpp"
-    "dao/projectdao.cpp"
-    "dao/categorydao.cpp"
-    "dao/workdaydao.cpp"
-    "dao/taskdao.cpp"
-    "dao/exportdao.cpp"
+set(SRC_PERSISTENCE
+    "persistence/employerpersistence.cpp"
+    "persistence/clientpersistence.cpp"
+    "persistence/projectpersistence.cpp"
+    "persistence/categorypersistence.cpp"
+    "persistence/workdaypersistence.cpp"
+    "persistence/taskpersistence.cpp"
+    "persistence/exportpersistence.cpp"
 )
 
 set(SRC_REPOS
@@ -111,7 +111,7 @@ set (SRC
     "services/export/csvexportmappedoptions.cpp"
     "services/taskduration/taskdurationservice.cpp"
     ${SRC_MODELS}
-    ${SRC_DAO}
+    ${SRC_PERSISTENCE}
     ${SRC_REPOS}
     ${SRC_DIALOGS}
 )

@@ -32,17 +32,17 @@
 
 #include "../models/taskmodel.h"
 
-namespace tks::DAO
+namespace tks::Persistence
 {
-class TaskDao final
+class TaskPersistence final
 {
 public:
-    TaskDao() = delete;
-    TaskDao(const TaskDao&) = delete;
-    TaskDao(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~TaskDao();
+    TaskPersistence() = delete;
+    TaskPersistence(const TaskPersistence&) = delete;
+    TaskPersistence(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~TaskPersistence();
 
-    TaskDao& operator=(const TaskDao&) = delete;
+    TaskPersistence& operator=(const TaskPersistence&) = delete;
 
     int GetById(const std::int64_t taskId, /*out*/ Model::TaskModel& model);
     std::int64_t Create(Model::TaskModel& model);
@@ -71,4 +71,4 @@ private:
     static const std::string getBillableHoursForDateRange;
     static const std::string getAllHoursForDate;
 };
-} // namespace tks::DAO
+} // namespace tks::Persistence

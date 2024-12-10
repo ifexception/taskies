@@ -31,9 +31,9 @@
 
 #include "../../core/environment.h"
 
-#include "../../dao/employerdao.h"
-#include "../../dao/clientdao.h"
-#include "../../dao/projectdao.h"
+#include "../../persistence/employerpersistence.h"
+#include "../../persistence/clientpersistence.h"
+#include "../../persistence/projectpersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -251,9 +251,9 @@ void ProjectDialog::FillControls()
 
     std::vector<Model::EmployerModel> employers;
     std::string defaultSearhTerm = "";
-    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerDao.Filter(defaultSearhTerm, employers);
+    int rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
         std::string message = "Failed to get employers";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -317,10 +317,10 @@ void ProjectDialog::ConfigureEventBindings()
 void ProjectDialog::DataToControls()
 {
     Model::ProjectModel project;
-    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
-    int rc = projectDao.GetById(mProjectId, project);
+    int rc = projectPersistence.GetById(mProjectId, project);
     if (rc != 0) {
         std::string message = "Failed to get project";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -342,9 +342,9 @@ void ProjectDialog::DataToControls()
     }
 
     Model::EmployerModel employer;
-    DAO::EmployerDao employerDao(pLogger, mDatabaseFilePath);
+    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    rc = employerDao.GetById(project.EmployerId, employer);
+    rc = employerPersistence.GetById(project.EmployerId, employer);
     if (rc == -1) {
         std::string message = "Failed to get employer";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -362,10 +362,10 @@ void ProjectDialog::DataToControls()
     }
 
     std::vector<Model::ClientModel> clients;
-    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
     std::string defaultSearchTerm = "";
 
-    rc = clientDao.FilterByEmployerId(project.EmployerId, clients);
+    rc = clientPersistence.FilterByEmployerId(project.EmployerId, clients);
     if (rc == -1) {
         std::string message = "Failed to get clients";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -385,7 +385,7 @@ void ProjectDialog::DataToControls()
 
             if (project.ClientId.has_value()) {
                 Model::ClientModel client;
-                rc = clientDao.GetById(project.ClientId.value(), client);
+                rc = clientPersistence.GetById(project.ClientId.value(), client);
                 if (rc == -1) {
                     std::string message = "Failed to get client";
                     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -445,9 +445,9 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 
     auto employerId = employerIdData->GetValue();
     std::vector<Model::ClientModel> clients;
-    DAO::ClientDao clientDao(pLogger, mDatabaseFilePath);
+    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientDao.FilterByEmployerId(employerId, clients);
+    int rc = clientPersistence.FilterByEmployerId(employerId, clients);
 
     if (rc != 0) {
         std::string message = "Failed to get clients";
@@ -482,15 +482,15 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     if (TransferDataAndValidate()) {
-        DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+        Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
         int ret = 0;
         std::string message = "";
         if (pIsDefaultCtrl->IsChecked()) {
-            ret = projectDao.UnmarkDefault();
+            ret = projectPersistence.UnmarkDefault();
         }
 
         if (!bIsEdit) {
-            std::int64_t projectId = projectDao.Create(mProjectModel);
+            std::int64_t projectId = projectPersistence.Create(mProjectModel);
             ret = projectId > 0 ? 0 : -1;
 
             ret == -1
@@ -498,14 +498,14 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
                 : message = "Successfully created project";
         }
         if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = projectDao.Update(mProjectModel);
+            ret = projectPersistence.Update(mProjectModel);
 
             ret == -1
                 ? message = "Failed to update project"
                 : message = "Successfully updated project";
         }
         if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = projectDao.Delete(mProjectId);
+            ret = projectPersistence.Delete(mProjectId);
 
             ret == -1
                 ? message = "Failed to delete project"

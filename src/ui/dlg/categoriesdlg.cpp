@@ -33,8 +33,8 @@
 
 #include "../../core/environment.h"
 
-#include "../../dao/projectdao.h"
-#include "../../dao/categorydao.h"
+#include "../../persistence/projectpersistence.h"
+#include "../../persistence/categorypersistence.h"
 
 #include "../../models/projectmodel.h"
 
@@ -243,9 +243,9 @@ void CategoriesDialog::FillControls()
 
     std::string defaultSearchTerm = "";
     std::vector<Model::ProjectModel> projects;
-    DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectDao.Filter(defaultSearchTerm, projects);
+    int rc = projectPersistence.Filter(defaultSearchTerm, projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -348,9 +348,9 @@ void CategoriesDialog::FillControls(const Model::CategoryModel& category)
 
     if (category.ProjectId.has_value()) {
         Model::ProjectModel project;
-        DAO::ProjectDao projectDao(pLogger, mDatabaseFilePath);
+        Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-        int rc = projectDao.GetById(category.ProjectId.value(), project);
+        int rc = projectPersistence.GetById(category.ProjectId.value(), project);
         if (rc != 0) {
             std::string message = "Failed to get project";
             wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -448,12 +448,12 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
-    DAO::CategoryDao categoryDao(pLogger, mDatabaseFilePath);
+    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
     std::string message = "";
     for (auto& category : mCategoriesToAdd) {
-        std::int64_t categoryId = categoryDao.Create(category);
+        std::int64_t categoryId = categoryPersistence.Create(category);
         ret = categoryId > 0 ? 1 : -1;
         if (ret == -1) {
             break;

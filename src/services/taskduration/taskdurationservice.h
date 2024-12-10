@@ -26,7 +26,7 @@
 
 #include "../../models/taskmodel.h"
 
-#include "../../dao/taskdao.h"
+#include "../../persistence/taskpersistence.h"
 
 namespace tks::Services::TaskDuration
 {
@@ -47,6 +47,6 @@ private:
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
-    DAO::TaskDao taskDao;
+    Persistence::TaskPersistence taskDao;
 };
 } // namespace tks::Services::TaskDuration
