@@ -516,7 +516,7 @@ const std::string EmployerPersistence::create = "INSERT INTO "
 const std::string EmployerPersistence::update = "UPDATE employers "
                                                 "SET "
                                                 "name = ?, "
-                                                "is_default, "
+                                                "is_default = ?, "
                                                 "description = ?, "
                                                 "date_modified = ? "
                                                 "WHERE employer_id = ?";
