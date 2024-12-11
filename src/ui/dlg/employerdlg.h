@@ -59,9 +59,9 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
+    void OnIsActiveCheck(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
-    void OnIsActiveCheck(wxCommandEvent& event);
 
     bool TransferDataAndValidate();
 
@@ -70,20 +70,27 @@ private:
     std::string mDatabaseFilePath;
 
     wxWindow* pParent;
+
     wxTextCtrl* pNameTextCtrl;
+    wxCheckBox* pIsDefaultCheckBoxCtrl;
+
     wxTextCtrl* pDescriptionTextCtrl;
+
     wxTextCtrl* pDateCreatedTextCtrl;
     wxTextCtrl* pDateModifiedTextCtrl;
-    wxCheckBox* pIsActiveCtrl;
+    wxCheckBox* pIsActiveCheckBoxCtrl;
+
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
     bool bIsEdit;
     std::int64_t mEmployerId;
-    Model::EmployerModel mEmployer;
+
+    Model::EmployerModel mEmployerModel;
 
     enum {
-        tksIDC_NAME = wxID_HIGHEST + 1,
+        tksIDC_NAME = wxID_HIGHEST + 1001,
+        tksIDC_ISDEFAULT,
         tksIDC_DESCRIPTION,
         tksIDC_ISACTIVE,
     };

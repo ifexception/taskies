@@ -58,12 +58,13 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , mEmployerId(employerId)
-    , mEmployer()
+    , mEmployerModel()
     , pNameTextCtrl(nullptr)
+    , pIsDefaultCheckBoxCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pDateCreatedTextCtrl(nullptr)
     , pDateModifiedTextCtrl(nullptr)
-    , pIsActiveCtrl(nullptr)
+    , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
 {
@@ -102,11 +103,16 @@ void EmployerDialog::CreateControls()
 
     pNameTextCtrl->SetValidator(NameValidator());
 
+    pIsDefaultCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULT, "Is Default");
+
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     detailsGridSizer->AddGrowableCol(1, 1);
 
     detailsGridSizer->Add(employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    detailsGridSizer->Add(0, 0);
+    detailsGridSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -157,9 +163,9 @@ void EmployerDialog::CreateControls()
         /* Is Active checkbox control */
         metadataFlexGridSizer->Add(0, 0);
 
-        pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
-        pIsActiveCtrl->SetToolTip("Indicates if this employer is being used");
-        metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
+        pIsActiveCheckBoxCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
+        pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this employer is being used");
+        metadataFlexGridSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
     }
 
     /* Horizontal Line */
@@ -186,6 +192,14 @@ void EmployerDialog::CreateControls()
 // clang-format off
 void EmployerDialog::ConfigureEventBindings()
 {
+    if (bIsEdit) {
+        pIsActiveCheckBoxCtrl->Bind(
+            wxEVT_CHECKBOX,
+            &EmployerDialog::OnIsActiveCheck,
+            this
+        );
+    }
+
     pOkButton->Bind(
         wxEVT_BUTTON,
         &EmployerDialog::OnOK,
@@ -199,14 +213,6 @@ void EmployerDialog::ConfigureEventBindings()
         this,
         wxID_CANCEL
     );
-
-    if (bIsEdit) {
-        pIsActiveCtrl->Bind(
-            wxEVT_CHECKBOX,
-            &EmployerDialog::OnIsActiveCheck,
-            this
-        );
-    }
 }
 // clang-format on
 
@@ -228,10 +234,11 @@ void EmployerDialog::DataToControls()
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         pNameTextCtrl->SetValue(employer.Name);
+        pIsDefaultCheckBoxCtrl->SetValue(employer.IsDefault);
         pDescriptionTextCtrl->SetValue(employer.Description.has_value() ? employer.Description.value() : "");
         pDateCreatedTextCtrl->SetValue(employer.GetDateCreatedString());
         pDateModifiedTextCtrl->SetValue(employer.GetDateModifiedString());
-        pIsActiveCtrl->SetValue(employer.IsActive);
+        pIsActiveCheckBoxCtrl->SetValue(employer.IsActive);
 
         pOkButton->Enable();
         pOkButton->SetFocus();
@@ -242,52 +249,59 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
-    if (TransferDataAndValidate()) {
-        Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    if (!TransferDataAndValidate()) {
+        return;
+    }
 
-        int ret = 0;
-        std::string message = "";
+    int ret = 0;
+    std::string message = "";
+
+    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+
+    if (pIsDefaultCheckBoxCtrl->IsChecked()) {
+        ret = employerPersistence.UnsetDefault();
+
+        if (ret == -1) {
+            message = "Failed to unset default employer";
+        }
+    }
+
+    if (ret != -1) {
         if (!bIsEdit) {
-            std::int64_t employerId = employerPersistence.Create(mEmployer);
+            std::int64_t employerId = employerPersistence.Create(mEmployerModel);
             ret = employerId > 0 ? 1 : -1;
 
-            ret == -1
-                ? message = "Failed to create employer"
-                : message = "Successfully created employer";
+            ret == -1 ? message = "Failed to create employer" : message = "Successfully created employer";
         }
-        if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = employerPersistence.Update(mEmployer);
+        if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+            ret = employerPersistence.Update(mEmployerModel);
 
-            ret == -1
-                ? message = "Failed to update employer"
-                : message = "Successfully updated employer";
+            ret == -1 ? message = "Failed to update employer" : message = "Successfully updated employer";
         }
-        if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
+        if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
             ret = employerPersistence.Delete(mEmployerId);
 
-            ret == -1
-                ? message = "Failed to delete employer"
-                : message = "Successfully deleted employer";
+            ret == -1 ? message = "Failed to delete employer" : message = "Successfully deleted employer";
         }
+    }
 
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        if (ret == -1) {
-            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    if (ret == -1) {
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
-            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
-            pOkButton->Enable();
-        } else {
-            NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
-            addNotificationEvent->SetClientObject(clientData);
+        pOkButton->Enable();
+    } else {
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
-            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
-            EndModal(wxID_OK);
-        }
+        EndModal(wxID_OK);
     }
 }
 
@@ -340,9 +354,10 @@ bool EmployerDialog::TransferDataAndValidate()
         return false;
     }
 
-    mEmployer.EmployerId = mEmployerId;
-    mEmployer.Name = Utils::TrimWhitespace(name);
-    mEmployer.Description = description.empty() ? std::nullopt : std::make_optional(description);
+    mEmployerModel.EmployerId = mEmployerId;
+    mEmployerModel.Name = Utils::TrimWhitespace(name);
+    mEmployerModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
+    mEmployerModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
 
     return true;
 }

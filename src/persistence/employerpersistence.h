@@ -45,6 +45,7 @@ public:
     std::int64_t Create(const Model::EmployerModel& employer);
     int Update(/*out*/ Model::EmployerModel employer);
     int Delete(const std::int64_t employerId);
+    int UnsetDefault();
 
     std::int64_t GetLastInsertId() const;
 
@@ -57,6 +58,7 @@ private:
     static const std::string create;
     static const std::string update;
     static const std::string isActive;
+    static const std::string unsetDefault;
 };
 } // namespace Persistence
 } // namespace tks

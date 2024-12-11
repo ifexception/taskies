@@ -39,28 +39,32 @@ EmployerPersistence::EmployerPersistence(std::shared_ptr<spdlog::logger> logger,
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "EmployerPersistence", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        pLogger->error(
+            LogMessage::ExecQueryTemplate, "EmployerPersistence", Utils::sqlite::pragmas::ForeignKeys, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "EmployerPersistence", Utils::sqlite::pragmas::JournalMode, rc, err);
+        pLogger->error(
+            LogMessage::ExecQueryTemplate, "EmployerPersistence", Utils::sqlite::pragmas::JournalMode, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "EmployerPersistence", Utils::sqlite::pragmas::Synchronous, rc, err);
+        pLogger->error(
+            LogMessage::ExecQueryTemplate, "EmployerPersistence", Utils::sqlite::pragmas::Synchronous, rc, err);
         return;
     }
 
     rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "EmployerPersistence", Utils::sqlite::pragmas::TempStore, rc, err);
+        pLogger->error(
+            LogMessage::ExecQueryTemplate, "EmployerPersistence", Utils::sqlite::pragmas::TempStore, rc, err);
         return;
     }
 
@@ -90,7 +94,8 @@ int EmployerPersistence::Filter(const std::string& searchTerm, std::vector<Model
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::filter, rc, err);
+        pLogger->error(
+            LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::filter, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -166,12 +171,16 @@ int EmployerPersistence::GetById(const std::int64_t employerId, Model::EmployerM
     pLogger->info(LogMessage::InfoBeginGetByIdEntity, "EmployerPersistence", "employer", employerId);
 
     sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(
-        pDb, EmployerPersistence::getById.c_str(), static_cast<int>(EmployerPersistence::getById.size()), &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(pDb,
+        EmployerPersistence::getById.c_str(),
+        static_cast<int>(EmployerPersistence::getById.size()),
+        &stmt,
+        nullptr);
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::getById, rc, err);
+        pLogger->error(
+            LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::getById, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -232,7 +241,8 @@ std::int64_t EmployerPersistence::Create(const Model::EmployerModel& employer)
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::create, rc, err);
+        pLogger->error(
+            LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::create, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -286,7 +296,8 @@ int EmployerPersistence::Update(Model::EmployerModel employer)
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::update, rc, err);
+        pLogger->error(
+            LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::update, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -350,12 +361,16 @@ int EmployerPersistence::Delete(const std::int64_t employerId)
     pLogger->info(LogMessage::InfoBeginDeleteEntity, "EmplyerDao", "employer", employerId);
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(
-        pDb, EmployerPersistence::isActive.c_str(), static_cast<int>(EmployerPersistence::isActive.size()), &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(pDb,
+        EmployerPersistence::isActive.c_str(),
+        static_cast<int>(EmployerPersistence::isActive.size()),
+        &stmt,
+        nullptr);
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::isActive, rc, err);
+        pLogger->error(
+            LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::isActive, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -390,51 +405,100 @@ int EmployerPersistence::Delete(const std::int64_t employerId)
     return 0;
 }
 
+int EmployerPersistence::UnsetDefault()
+{
+    pLogger->info("EmployerPersistence - Unset default employer (if any)");
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        EmployerPersistence::unsetDefault.c_str(),
+        static_cast<int>(EmployerPersistence::unsetDefault.size()),
+        &stmt,
+        nullptr);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::unsetDefault, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate, "EmployerPersistence", "date_modified", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "EmployerPersistence", EmployerPersistence::unsetDefault, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info("EmployerPersistence - Completed unsetting defaults (if any)");
+
+    return 0;
+}
+
 std::int64_t EmployerPersistence::GetLastInsertId() const
 {
     return sqlite3_last_insert_rowid(pDb);
 }
 
 const std::string EmployerPersistence::filter = "SELECT "
-                                        "employer_id, "
-                                        "name, "
-                                        "description, "
-                                        "date_created, "
-                                        "date_modified, "
-                                        "is_active "
-                                        "FROM employers "
-                                        "WHERE is_active = 1 "
-                                        "AND (name LIKE ? "
-                                        "OR description LIKE ?)";
+                                                "employer_id, "
+                                                "name, "
+                                                "is_default, "
+                                                "description, "
+                                                "date_created, "
+                                                "date_modified, "
+                                                "is_active "
+                                                "FROM employers "
+                                                "WHERE is_active = 1 "
+                                                "AND (name LIKE ? "
+                                                "OR description LIKE ?)";
 
 const std::string EmployerPersistence::getById = "SELECT "
-                                         "employer_id, "
-                                         "name, "
-                                         "description, "
-                                         "date_created, "
-                                         "date_modified, "
-                                         "is_active "
-                                         "FROM employers "
-                                         "WHERE employer_id = ?";
+                                                 "employer_id, "
+                                                 "name, "
+                                                 "is_default, "
+                                                 "description, "
+                                                 "date_created, "
+                                                 "date_modified, "
+                                                 "is_active "
+                                                 "FROM employers "
+                                                 "WHERE employer_id = ?";
 
 const std::string EmployerPersistence::create = "INSERT INTO "
-                                        "employers "
-                                        "("
-                                        "name, "
-                                        "description"
-                                        ") "
-                                        "VALUES (?, ?);";
+                                                "employers "
+                                                "("
+                                                "name, "
+                                                "is_default, "
+                                                "description"
+                                                ") "
+                                                "VALUES (?, ?, ?);";
 
 const std::string EmployerPersistence::update = "UPDATE employers "
-                                        "SET "
-                                        "name = ?, "
-                                        "description = ?, "
-                                        "date_modified = ? "
-                                        "WHERE employer_id = ?";
+                                                "SET "
+                                                "name = ?, "
+                                                "is_default, "
+                                                "description = ?, "
+                                                "date_modified = ? "
+                                                "WHERE employer_id = ?";
 
 const std::string EmployerPersistence::isActive = "UPDATE employers "
-                                          "SET "
-                                          "is_active = 0, "
-                                          "date_modified = ? "
-                                          "WHERE employer_id = ?";
+                                                  "SET "
+                                                  "is_active = 0, "
+                                                  "date_modified = ? "
+                                                  "WHERE employer_id = ?";
+
+const std::string EmployerPersistence::unsetDefault = "UPDATE employers "
+                                                      "SET "
+                                                      "is_default = 0, "
+                                                      "date_modified = ?";
 } // namespace tks::Persistence
