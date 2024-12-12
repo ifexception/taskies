@@ -104,6 +104,7 @@ void EmployerDialog::CreateControls()
     pNameTextCtrl->SetValidator(NameValidator());
 
     pIsDefaultCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULT, "Is Default");
+    pIsDefaultCheckBoxCtrl->SetToolTip("Enabling this option will auto-select it where applicable");
 
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     detailsGridSizer->AddGrowableCol(1, 1);
