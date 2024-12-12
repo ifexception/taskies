@@ -268,6 +268,22 @@ void ProjectDialog::FillControls()
         }
     }
 
+    Model::EmployerModel applicableDefaultEmployer;
+    rc = employerPersistence.TrySelectDefault(applicableDefaultEmployer);
+    if (rc == -1) {
+        std::string message = "Failed to get default employer";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+    } else {
+        if (applicableDefaultEmployer.IsDefault) {
+            pEmployerChoiceCtrl->SetStringSelection(applicableDefaultEmployer.Name);
+        }
+    }
+
     pOkButton->Enable();
 
     pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
