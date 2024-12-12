@@ -229,14 +229,14 @@ int EmployerPersistence::GetById(const std::int64_t employerId, Model::EmployerM
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndGetByIdEntity, "EmplyerDao", employerId);
+    pLogger->info(LogMessage::InfoEndGetByIdEntity, "EmployerPersistence", employerId);
 
     return 0;
 }
 
 std::int64_t EmployerPersistence::Create(const Model::EmployerModel& model)
 {
-    pLogger->info(LogMessage::InfoBeginCreateEntity, "EmplyerDao", "model", model.Name);
+    pLogger->info(LogMessage::InfoBeginCreateEntity, "EmployerPersistence", "model", model.Name);
 
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(
@@ -298,14 +298,14 @@ std::int64_t EmployerPersistence::Create(const Model::EmployerModel& model)
 
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
-    pLogger->info(LogMessage::InfoEndCreateEntity, "EmplyerDao", rowId);
+    pLogger->info(LogMessage::InfoEndCreateEntity, "EmployerPersistence", rowId);
 
     return rowId;
 }
 
 int EmployerPersistence::Update(Model::EmployerModel model)
 {
-    pLogger->info(LogMessage::InfoBeginUpdateEntity, "EmplyerDao", "model", model.EmployerId);
+    pLogger->info(LogMessage::InfoBeginUpdateEntity, "EmployerPersistence", "model", model.EmployerId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -381,14 +381,14 @@ int EmployerPersistence::Update(Model::EmployerModel model)
     }
 
     sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndUpdateEntity, "EmplyerDao", model.EmployerId);
+    pLogger->info(LogMessage::InfoEndUpdateEntity, "EmployerPersistence", model.EmployerId);
 
     return 0;
 }
 
 int EmployerPersistence::Delete(const std::int64_t employerId)
 {
-    pLogger->info(LogMessage::InfoBeginDeleteEntity, "EmplyerDao", "model", employerId);
+    pLogger->info(LogMessage::InfoBeginDeleteEntity, "EmployerPersistence", "model", employerId);
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -475,6 +475,65 @@ int EmployerPersistence::UnsetDefault()
     return 0;
 }
 
+int EmployerPersistence::TrySelectDefault(Model::EmployerModel& model)
+{
+    pLogger->info("{0} - Retrieve default \"{1}\"", "EmployerPersistence", "model");
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(pDb,
+        EmployerPersistence::selectDefault.c_str(),
+        static_cast<int>(EmployerPersistence::selectDefault.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessage::PrepareStatementTemplate, "EmployerPersistence", EmployerPersistence::selectDefault, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate, "EmployerPersistence", EmployerPersistence::selectDefault, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+    model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    model.Name = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    model.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
+
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        model.Description = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        model.Description = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+    }
+    columnIndex++;
+    model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    model.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    model.IsActive = sqlite3_column_int(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "EmployerPersistence", rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    pLogger->info("{0} - Retreived default entity (if any)", "EmployerPersistence");
+
+    return 0;
+}
+
 std::int64_t EmployerPersistence::GetLastInsertId() const
 {
     return sqlite3_last_insert_rowid(pDb);
@@ -531,4 +590,15 @@ const std::string EmployerPersistence::unsetDefault = "UPDATE employers "
                                                       "SET "
                                                       "is_default = 0, "
                                                       "date_modified = ?";
+
+const std::string EmployerPersistence::selectDefault = "SELECT "
+                                                 "employer_id, "
+                                                 "name, "
+                                                 "is_default, "
+                                                 "description, "
+                                                 "date_created, "
+                                                 "date_modified, "
+                                                 "is_active "
+                                                 "FROM employers "
+                                                 "WHERE is_default = 1";
 } // namespace tks::Persistence

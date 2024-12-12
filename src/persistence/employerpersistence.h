@@ -43,9 +43,10 @@ public:
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employers);
     int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
     std::int64_t Create(const Model::EmployerModel& employer);
-    int Update(/*out*/ Model::EmployerModel employer);
+    int Update(Model::EmployerModel employer);
     int Delete(const std::int64_t employerId);
     int UnsetDefault();
+    int TrySelectDefault(/*out*/ Model::EmployerModel& employer);
 
     std::int64_t GetLastInsertId() const;
 
@@ -59,6 +60,7 @@ private:
     static const std::string update;
     static const std::string isActive;
     static const std::string unsetDefault;
+    static const std::string selectDefault;
 };
 } // namespace Persistence
 } // namespace tks
