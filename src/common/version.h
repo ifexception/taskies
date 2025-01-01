@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2024 Szymon Welgus
+// Copyright (C) 2025 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 #define STRINGIFY(s) _STRINGIFY(s)
 
 #define COMPANY_NAME "Taskies"
-#define COPYRIGHT_STR "Copyright (C) 2024 Szymon Welgus"
+#define COPYRIGHT_STR "Copyright (C) 2025 Szymon Welgus"
 
 #define FILE_DESCRIPTION "Taskies"
 #define TASKIES_FILE_VERSION TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH

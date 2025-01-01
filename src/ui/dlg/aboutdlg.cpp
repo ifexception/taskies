@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2024 Szymon Welgus
+// Copyright (C) 2025 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -118,7 +118,7 @@ void AboutDialog::CreateControls()
     int columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "date");
-    softwaresListView->SetItem(listIndex, columnIndex++, "2024-05-14");
+    softwaresListView->SetItem(listIndex, columnIndex++, "2025-05-14");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "fmt");

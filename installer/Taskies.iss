@@ -7,7 +7,7 @@
 AppName=Taskies
 AppVersion={#TaskiesVersion}
 AppContact=szymonwelgus at gmail dot com
-AppCopyright=Copyright (C) 2024 Szymon Welgus
+AppCopyright=Copyright (C) 2025 Szymon Welgus
 AppPublisher=Szymon Welgus
 AppId={{f106cae9-8ca1-45e2-bbad-49caf39a7a2c}
 AppVerName=Taskies {#TaskiesVersion}-{#TaskiesLifeCycle}
