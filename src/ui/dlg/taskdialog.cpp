@@ -378,6 +378,124 @@ void TaskDialog::FillControls()
         }
     }
 
+    bool hasDefaultEmployer = false;
+
+    Model::EmployerModel applicableDefaultEmployer;
+    rc = employerPersistence.TrySelectDefault(applicableDefaultEmployer);
+    if (rc == -1) {
+        std::string message = "Failed to get default employer";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+    } else {
+        if (applicableDefaultEmployer.IsDefault) {
+            pEmployerChoiceCtrl->SetStringSelection(applicableDefaultEmployer.Name);
+            hasDefaultEmployer = true;
+
+            ConfigureClientChoiceData();
+
+            ConfigureProjectChoiceData();
+
+            int employerIndex = pEmployerChoiceCtrl->GetSelection();
+            ClientData<std::int64_t>* employerIdData =
+                reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+            if (employerIdData->GetValue() < 1) {
+                pClientChoiceCtrl->Disable();
+                pProjectChoiceCtrl->Disable();
+
+                if (pCfg->ShowProjectAssociatedCategories()) {
+                    ConfigureCategoryChoiceData(true);
+                }
+
+                mEmployerIndex = -1;
+
+                return;
+            }
+
+            auto employerId = employerIdData->GetValue();
+            mEmployerIndex = employerIndex;
+            std::vector<Model::ClientModel> clients;
+            Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+
+            int rc = clientPersistence.FilterByEmployerId(employerId, clients);
+
+            if (rc != 0) {
+                std::string message = "Failed to get clients";
+                QueueErrorNotificationEventToParent(message);
+            } else {
+                if (!clients.empty()) {
+                    if (!pClientChoiceCtrl->IsEnabled()) {
+                        pClientChoiceCtrl->Enable();
+                    }
+
+                    for (auto& client : clients) {
+                        pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
+                    }
+                } else {
+                    pClientChoiceCtrl->Disable();
+                }
+            }
+
+            std::vector<Model::ProjectModel> projects;
+            Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+
+            rc =
+                projectPersistence.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::nullopt, projects);
+            if (rc != 0) {
+                std::string message = "Failed to get projects";
+                QueueErrorNotificationEventToParent(message);
+            } else {
+                if (!projects.empty()) {
+                    if (!pProjectChoiceCtrl->IsEnabled()) {
+                        pProjectChoiceCtrl->Enable();
+                    }
+
+                    for (auto& project : projects) {
+                        pProjectChoiceCtrl->Append(
+                            project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                    }
+
+                    auto hasProjectDefaultIterator = std::find_if(projects.begin(),
+                        projects.end(),
+                        [](Model::ProjectModel project) { return project.IsDefault == true; });
+                    if (hasProjectDefaultIterator != projects.end()) {
+                        auto& defaultProject = *hasProjectDefaultIterator;
+                        pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
+
+                        if (pCfg->ShowProjectAssociatedCategories()) {
+                            std::vector<repos::CategoryRepositoryModel> categories;
+                            repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+
+                            int rc = categoryRepo.FilterByProjectId(defaultProject.ProjectId, categories);
+                            if (rc != 0) {
+                                std::string message = "Failed to get categories";
+                                QueueErrorNotificationEventToParent(message);
+                            } else {
+                                if (!categories.empty()) {
+                                    if (!pCategoryChoiceCtrl->IsEnabled()) {
+                                        pCategoryChoiceCtrl->Enable();
+                                    }
+
+                                    for (auto& category : categories) {
+                                        pCategoryChoiceCtrl->Append(category.GetFormattedName(),
+                                            new ClientData<std::int64_t>(category.CategoryId));
+                                    }
+                                } else {
+                                    ConfigureCategoryChoiceData(true);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    pProjectChoiceCtrl->Disable();
+                }
+            }
+        }
+    }
+
     if (!pCfg->ShowProjectAssociatedCategories()) {
         std::vector<repos::CategoryRepositoryModel> categories;
         repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
@@ -401,7 +519,9 @@ void TaskDialog::FillControls()
             }
         }
     } else {
-        pCategoryChoiceCtrl->Disable();
+        if (!hasDefaultEmployer) {
+            pCategoryChoiceCtrl->Disable();
+        }
     }
 
     pOkButton->Enable();
@@ -749,8 +869,8 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     std::vector<Model::ProjectModel> projects;
     Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc =
-        projectPersistence.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::make_optional(clientId), projects);
+    int rc = projectPersistence.FilterByEmployerIdOrClientId(
+        std::make_optional(employerId), std::make_optional(clientId), projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
         QueueErrorNotificationEventToParent(message);
