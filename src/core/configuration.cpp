@@ -148,6 +148,7 @@ bool Configuration::Save()
 
     root.at(Sections::TaskSection)["minutesIncrement"] = mSettings.TaskMinutesIncrement;
     root.at(Sections::TaskSection)["showProjectAssociatedCategories"] = mSettings.ShowProjectAssociatedCategories;
+    root.at(Sections::TaskSection)["useLegacyTaskDialog"] = mSettings.UseLegacyTaskDialog;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -241,6 +242,7 @@ bool Configuration::RestoreDefaults()
 
     SetMinutesIncrement(15);
     ShowProjectAssociatedCategories(false);
+    UseLegacyTaskDialog(false);
 
     SetExportPath(pEnv->GetExportPath().string());
 
@@ -270,7 +272,8 @@ bool Configuration::RestoreDefaults()
                 Sections::TaskSection,
                 toml::table {
                     { "minutesIncrement", 15 },
-                    { "showProjectAssociatedCategories", false }
+                    { "showProjectAssociatedCategories", false },
+                    { "useLegacyTaskDialog", false }
                 }
             },
             {
@@ -623,6 +626,16 @@ void Configuration::ShowProjectAssociatedCategories(const bool value)
     mSettings.ShowProjectAssociatedCategories = value;
 }
 
+bool Configuration::UseLegacyTaskDialog() const
+{
+    return mSettings.UseLegacyTaskDialog;
+}
+
+void Configuration::UseLegacyTaskDialog(const bool value)
+{
+    mSettings.UseLegacyTaskDialog = value;
+}
+
 bool Configuration::TodayAlwaysExpanded() const
 {
     return mSettings.TodayAlwaysExpanded;
@@ -718,6 +731,7 @@ void Configuration::GetTasksConfig(const toml::value& root)
 
     mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
     mSettings.ShowProjectAssociatedCategories = toml::find<bool>(taskSection, "showProjectAssociatedCategories");
+    mSettings.UseLegacyTaskDialog = toml::find<bool>(taskSection, "useLegacyTaskDialog");
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)

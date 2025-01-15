@@ -66,10 +66,12 @@ private:
 
     wxChoice* pMinutesIncrementChoiceCtrl;
     wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
+    wxCheckBox* pUseLegacyTaskDialogCheckBoxCtrl;
 
     enum {
         tksIDC_MINUTES_INCREMENT = wxID_HIGHEST + 100,
-        tksIDC_ASSOCIATEDCATEGORIES
+        tksIDC_ASSOCIATEDCATEGORIES,
+        tksIDC_USELEGACYTASKDIALOGCHECKBOXCTRL
     };
 };
 } // namespace dlg

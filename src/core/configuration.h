@@ -107,6 +107,9 @@ public:
     bool ShowProjectAssociatedCategories() const;
     void ShowProjectAssociatedCategories(const bool value);
 
+    bool UseLegacyTaskDialog() const;
+    void UseLegacyTaskDialog(const bool value);
+
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
@@ -153,6 +156,7 @@ private:
 
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;
+        bool UseLegacyTaskDialog;
 
         bool TodayAlwaysExpanded;
 

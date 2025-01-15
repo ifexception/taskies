@@ -35,6 +35,7 @@ PreferencesTasksPage::PreferencesTasksPage(wxWindow* parent,
     , pLogger(logger)
     , pMinutesIncrementChoiceCtrl(nullptr)
     , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
+    , pUseLegacyTaskDialogCheckBoxCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -64,11 +65,14 @@ void PreferencesTasksPage::Save()
 
     pCfg->SetMinutesIncrement(incrementData->GetValue());
     pCfg->ShowProjectAssociatedCategories(pShowProjectAssociatedCategoriesCheckBoxCtrl->GetValue());
+    pCfg->UseLegacyTaskDialog(pUseLegacyTaskDialogCheckBoxCtrl->GetValue());
 }
 
 void PreferencesTasksPage::Reset()
 {
     pMinutesIncrementChoiceCtrl->SetSelection(pCfg->GetMinutesIncrement());
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(false);
+    pUseLegacyTaskDialogCheckBoxCtrl->SetValue(false);
 }
 
 void PreferencesTasksPage::CreateControls()
@@ -98,6 +102,11 @@ void PreferencesTasksPage::CreateControls()
         new wxCheckBox(this, tksIDC_ASSOCIATEDCATEGORIES, "Show project associated categories");
     sizer->Add(pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
+    /* Use legacy task dialog */
+    pUseLegacyTaskDialogCheckBoxCtrl =
+        new wxCheckBox(this, tksIDC_USELEGACYTASKDIALOGCHECKBOXCTRL, "Use legacy task dialog");
+    sizer->Add(pUseLegacyTaskDialogCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
+
     SetSizerAndFit(sizer);
 }
 
@@ -119,5 +128,6 @@ void PreferencesTasksPage::DataToControls()
 {
     pMinutesIncrementChoiceCtrl->SetStringSelection(std::to_string(pCfg->GetMinutesIncrement()));
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
+    pUseLegacyTaskDialogCheckBoxCtrl->SetValue(pCfg->UseLegacyTaskDialog());
 }
 } // namespace tks::UI::dlg
