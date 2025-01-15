@@ -24,11 +24,14 @@
 
 #include "../common/common.h"
 #include "../common/constants.h"
+
 #include "../core/environment.h"
 #include "../core/configuration.h"
+
 #include "../utils/utils.h"
+
 #include "dlg/preferencesdlg.h"
-#include "dlg/taskdialog.h"
+#include "dlg/taskdlglegacy.h"
 
 namespace tks::UI
 {
@@ -111,7 +114,7 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 
 void TaskBarIcon::OnNewTask(wxCommandEvent & event)
 {
-    UI::dlg::TaskDialog newTaskDialog(pParent, pEnv, pCfg, pLogger, mDatabaseFilePath);
+    UI::dlg::TaskDialogLegacy newTaskDialog(pParent, pEnv, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
 }
 

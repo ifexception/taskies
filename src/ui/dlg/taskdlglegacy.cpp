@@ -17,7 +17,7 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "taskdialog.h"
+#include "taskdlglegacy.h"
 
 #include <algorithm>
 
@@ -56,7 +56,7 @@
 
 namespace tks::UI::dlg
 {
-TaskDialog::TaskDialog(wxWindow* parent,
+TaskDialogLegacy::TaskDialogLegacy(wxWindow* parent,
     std::shared_ptr<Core::Environment> env,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
@@ -124,7 +124,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     SetIcons(iconBundle);
 }
 
-void TaskDialog::Create()
+void TaskDialogLegacy::Create()
 {
     CreateControls();
     ConfigureEventBindings();
@@ -135,7 +135,7 @@ void TaskDialog::Create()
     }
 }
 
-void TaskDialog::CreateControls()
+void TaskDialogLegacy::CreateControls()
 {
     /* Base Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
@@ -337,7 +337,7 @@ void TaskDialog::CreateControls()
     sizer->SetSizeHints(this);
 }
 
-void TaskDialog::FillControls()
+void TaskDialogLegacy::FillControls()
 {
     auto bottomRangeDate = wxDateTime::GetCurrentYear() - 1;
     auto& bottomDateContext = wxDateTime::Now().SetYear(bottomRangeDate);
@@ -349,7 +349,7 @@ void TaskDialog::FillControls()
         pDateContextCtrl->SetValue(dateTaskContext);
     } else {
         pLogger->error(
-            "TaskDialog::FillControls - wxDateTime failed to parse date \"{0}\". Revert to default date", mDate);
+            "TaskDialogLegacy::FillControls - wxDateTime failed to parse date \"{0}\". Revert to default date", mDate);
     }
 
     pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -528,61 +528,61 @@ void TaskDialog::FillControls()
 }
 
 // clang-format off
-void TaskDialog::ConfigureEventBindings()
+void TaskDialogLegacy::ConfigureEventBindings()
 {
     pEmployerChoiceCtrl->Bind(
         wxEVT_CHOICE,
-        &TaskDialog::OnEmployerChoiceSelection,
+        &TaskDialogLegacy::OnEmployerChoiceSelection,
         this
     );
 
     pClientChoiceCtrl->Bind(
         wxEVT_CHOICE,
-        &TaskDialog::OnClientChoiceSelection,
+        &TaskDialogLegacy::OnClientChoiceSelection,
         this
     );
 
     pProjectChoiceCtrl->Bind(
         wxEVT_CHOICE,
-        &TaskDialog::OnProjectChoiceSelection,
+        &TaskDialogLegacy::OnProjectChoiceSelection,
         this
     );
 
     pShowProjectAssociatedCategoriesCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
-        &TaskDialog::OnShowProjectAssociatedCategoriesCheck,
+        &TaskDialogLegacy::OnShowProjectAssociatedCategoriesCheck,
         this
     );
 
     pCategoryChoiceCtrl->Bind(
         wxEVT_CHOICE,
-        &TaskDialog::OnCategoryChoiceSelection,
+        &TaskDialogLegacy::OnCategoryChoiceSelection,
         this
     );
 
     pDateContextCtrl->Bind(
         wxEVT_DATE_CHANGED,
-        &TaskDialog::OnDateChange,
+        &TaskDialogLegacy::OnDateChange,
         this
     );
 
     pOkButton->Bind(
         wxEVT_BUTTON,
-        &TaskDialog::OnOK,
+        &TaskDialogLegacy::OnOK,
         this,
         wxID_OK
     );
 
     pCancelButton->Bind(
         wxEVT_BUTTON,
-        &TaskDialog::OnCancel,
+        &TaskDialogLegacy::OnCancel,
         this,
         wxID_CANCEL
     );
 }
 // clang-format on
 
-void TaskDialog::DataToControls()
+void TaskDialogLegacy::DataToControls()
 {
     // load task
     Model::TaskModel task;
@@ -740,7 +740,7 @@ void TaskDialog::DataToControls()
     }
 }
 
-void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
+void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
@@ -844,7 +844,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     pOkButton->Enable();
 }
 
-void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
+void TaskDialogLegacy::OnClientChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
@@ -899,7 +899,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     pOkButton->Enable();
 }
 
-void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
+void TaskDialogLegacy::OnProjectChoiceSelection(wxCommandEvent& event)
 {
     if (!pCfg->ShowProjectAssociatedCategories()) {
         return;
@@ -941,7 +941,7 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
     }
 }
 
-void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
+void TaskDialogLegacy::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
 {
     int rc = -1;
     std::vector<repos::CategoryRepositoryModel> categories;
@@ -993,7 +993,7 @@ void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
     }
 }
 
-void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
+void TaskDialogLegacy::OnCategoryChoiceSelection(wxCommandEvent& event)
 {
     pBillableCheckBoxCtrl->SetValue(false);
     pBillableCheckBoxCtrl->SetToolTip("Indicates if a task is billable");
@@ -1022,10 +1022,10 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     }
 }
 
-void TaskDialog::OnDateChange(wxDateEvent& event)
+void TaskDialogLegacy::OnDateChange(wxDateEvent& event)
 {
     pLogger->info(
-        "TaskDialog::OnDateChange - Received date change event \"{0}\"", event.GetDate().FormatISODate().ToStdString());
+        "TaskDialogLegacy::OnDateChange - Received date change event \"{0}\"", event.GetDate().FormatISODate().ToStdString());
 
     // save old date in case further down the line we are editing a task and changing its date
     mOldDate = mDate;
@@ -1037,10 +1037,10 @@ void TaskDialog::OnDateChange(wxDateEvent& event)
 
     auto date = date::floor<date::days>(std::chrono::system_clock::from_time_t(dateTicks));
     mDate = date::format("%F", date);
-    pLogger->info("TaskDialog::OnDateChange - mDate is \"{0}\"", mDate);
+    pLogger->info("TaskDialogLegacy::OnDateChange - mDate is \"{0}\"", mDate);
 }
 
-void TaskDialog::OnOK(wxCommandEvent& event)
+void TaskDialogLegacy::OnOK(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
@@ -1134,12 +1134,12 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     pOkButton->Enable();
 }
 
-void TaskDialog::OnCancel(wxCommandEvent& event)
+void TaskDialogLegacy::OnCancel(wxCommandEvent& event)
 {
     EndModal(wxID_CANCEL);
 }
 
-bool TaskDialog::TransferDataAndValidate()
+bool TaskDialogLegacy::TransferDataAndValidate()
 {
     int employerIndex = pEmployerChoiceCtrl->GetSelection();
     ClientData<std::int64_t>* employerIdData =
@@ -1227,7 +1227,7 @@ bool TaskDialog::TransferDataAndValidate()
     return true;
 }
 
-void TaskDialog::ConfigureClientChoiceData(bool disable)
+void TaskDialogLegacy::ConfigureClientChoiceData(bool disable)
 {
     pClientChoiceCtrl->Clear();
     pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -1237,7 +1237,7 @@ void TaskDialog::ConfigureClientChoiceData(bool disable)
     }
 }
 
-void TaskDialog::ConfigureProjectChoiceData(bool disable)
+void TaskDialogLegacy::ConfigureProjectChoiceData(bool disable)
 {
     pProjectChoiceCtrl->Clear();
     pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -1247,7 +1247,7 @@ void TaskDialog::ConfigureProjectChoiceData(bool disable)
     }
 }
 
-void TaskDialog::ConfigureCategoryChoiceData(bool disable)
+void TaskDialogLegacy::ConfigureCategoryChoiceData(bool disable)
 {
     pCategoryChoiceCtrl->Clear();
     pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -1257,7 +1257,7 @@ void TaskDialog::ConfigureCategoryChoiceData(bool disable)
     }
 }
 
-void TaskDialog::QueueErrorNotificationEventToParent(const std::string& message)
+void TaskDialogLegacy::QueueErrorNotificationEventToParent(const std::string& message)
 {
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);

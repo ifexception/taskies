@@ -44,12 +44,12 @@ class Configuration;
 } // namespace Core
 namespace UI::dlg
 {
-class TaskDialog final : public wxDialog
+class TaskDialogLegacy final : public wxDialog
 {
 public:
-    TaskDialog() = delete;
-    TaskDialog(const TaskDialog&) = delete;
-    TaskDialog(wxWindow* parent,
+    TaskDialogLegacy() = delete;
+    TaskDialogLegacy(const TaskDialogLegacy&) = delete;
+    TaskDialogLegacy(wxWindow* parent,
         std::shared_ptr<Core::Environment> env,
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
@@ -57,10 +57,10 @@ public:
         bool isEdit = false,
         std::int64_t taskId = -1,
         const std::string& selectedDate = "",
-        const wxString& name = "taskdlg");
-    virtual ~TaskDialog() = default;
+        const wxString& name = "taskdlglegacy");
+    virtual ~TaskDialogLegacy() = default;
 
-    TaskDialog& operator=(const TaskDialog&) = delete;
+    TaskDialogLegacy& operator=(const TaskDialogLegacy&) = delete;
 
 private:
     void Create();

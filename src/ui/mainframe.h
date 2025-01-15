@@ -191,6 +191,8 @@ private:
     void OnContextMenu(wxDataViewEvent& event);
     void OnDataViewSelectionChanged(wxDataViewEvent& event);
 
+    void SetNewTaskMenubarTitle();
+
     void DoResetToCurrentWeekAndOrToday();
     void ResetDateRange();
     void ResetDatePickerValues();

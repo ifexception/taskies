@@ -57,7 +57,7 @@
 #include "../ui/dlg/categoriesdlg.h"
 #include "../ui/dlg/aboutdlg.h"
 #include "../ui/dlg/preferencesdlg.h"
-#include "../ui/dlg/taskdialog.h"
+#include "../ui/dlg/taskdlglegacy.h"
 #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exporttocsvdlg.h"
 
@@ -251,7 +251,11 @@ void MainFrame::CreateControls()
     /* Menubar */
     /* File */
     auto fileMenu = new wxMenu();
-    auto newTaskMenuItem = fileMenu->Append(ID_NEW_TASK, "&New Task\tCtrl-N", "Create new task");
+
+    auto newTaskMenuBarTitle = pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
+    auto newTaskMenuBarDescription = pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
+
+    auto newTaskMenuItem = fileMenu->Append(ID_NEW_TASK, newTaskMenuBarTitle, newTaskMenuBarDescription);
 
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
@@ -533,7 +537,7 @@ void MainFrame::OnNotificationClick(wxCommandEvent& event)
 
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::TaskDialog newTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
+    UI::dlg::TaskDialogLegacy newTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
 }
 
@@ -723,6 +727,8 @@ void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
         } else {
             GetMenuBar()->Enable(ID_TASKS_BACKUPDATABASE, false);
         }
+
+        SetNewTaskMenubarTitle();
     }
 }
 
@@ -736,7 +742,7 @@ void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
 
-    UI::dlg::TaskDialog popupNewTask(this, pEnv, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
+    UI::dlg::TaskDialogLegacy popupNewTask(this, pEnv, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
     popupNewTask.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -868,7 +874,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
 
-    UI::dlg::TaskDialog editTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
+    UI::dlg::TaskDialogLegacy editTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
     int ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {
@@ -1300,6 +1306,17 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
             pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
         }
     }
+}
+
+void MainFrame::SetNewTaskMenubarTitle()
+{
+    auto newTaskMenubarTitle = pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
+    auto newTaskMenubarHelp = pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
+
+    auto fileMenu = GetMenuBar()->GetMenu(0);
+    auto newTaskMenu = fileMenu->FindItemByPosition(0);
+    newTaskMenu->SetItemLabel(newTaskMenubarTitle);
+    newTaskMenu->SetHelp(newTaskMenubarHelp);
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()
