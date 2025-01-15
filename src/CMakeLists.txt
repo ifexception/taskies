@@ -63,6 +63,7 @@ set (SRC_DIALOGS
     "ui/dlg/preferencestaskspage.cpp"
     "ui/dlg/preferencestasksviewpage.cpp"
     "ui/dlg/taskdlglegacy.cpp"
+    "ui/dlg/taskdlg.cpp"
     "ui/dlg/daytaskviewdlg.cpp"
     "ui/wizards/setupwizard.cpp"
     "ui/dlg/exporttocsvdlg.cpp"
