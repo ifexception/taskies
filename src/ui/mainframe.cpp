@@ -60,6 +60,7 @@
 #include "../ui/dlg/taskdlglegacy.h"
 #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exporttocsvdlg.h"
+#include "../ui/dlg/taskdlg.h"
 
 #include "events.h"
 #include "notificationclientdata.h"
@@ -537,8 +538,13 @@ void MainFrame::OnNotificationClick(wxCommandEvent& event)
 
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::TaskDialogLegacy newTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
-    newTaskDialog.ShowModal();
+    if (pCfg->UseLegacyTaskDialog()) {
+        UI::dlg::TaskDialogLegacy newTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialog.ShowModal();
+    } else {
+        UI::dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialog.ShowModal();
+    }
 }
 
 void MainFrame::OnNewEmployer(wxCommandEvent& WXUNUSED(event))
@@ -742,8 +748,13 @@ void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
 
-    UI::dlg::TaskDialogLegacy popupNewTask(this, pEnv, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
-    popupNewTask.ShowModal();
+    if (pCfg->UseLegacyTaskDialog()) {
+        UI::dlg::TaskDialogLegacy popupNewTask(
+            this, pEnv, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
+        popupNewTask.ShowModal();
+    } else {
+        // TODO: call TaskDialog
+    }
 
     ResetTaskContextMenuVariables();
 }
@@ -874,8 +885,15 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
 
-    UI::dlg::TaskDialogLegacy editTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
-    int ret = editTaskDialog.ShowModal();
+    int ret = -1;
+
+    if (pCfg->UseLegacyTaskDialog()) {
+        UI::dlg::TaskDialogLegacy editTaskDialog(
+            this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
+        ret = editTaskDialog.ShowModal();
+    } else {
+        // TODO: Call TaskDialog
+    }
 
     if (ret == wxID_OK) {
         bool isActive = false;
