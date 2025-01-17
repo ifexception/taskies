@@ -66,8 +66,53 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
+    wxWindow* pParent;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
+
+    std::string mDatabaseFilePath;
+    bool bIsEdit;
+    std::int64_t mTaskId;
+    std::string mDate;
+    std::string mOldDate;
+
+    wxDatePickerCtrl* pDateContextDatePickerCtrl;
+    wxChoice* pEmployerChoiceCtrl;
+
+    wxChoice* pClientChoiceCtrl;
+    wxChoice* pProjectChoiceCtrl;
+    wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
+    wxChoice* pCategoryChoiceCtrl;
+
+    wxCheckBox* pBillableCheckBoxCtrl;
+    wxTextCtrl* pUniqueIdentiferTextCtrl;
+
+    wxSpinCtrl* pTimeHoursSpinCtrl;
+    wxSpinCtrl* pTimeMinutesSpinCtrl;
+
+    wxTextCtrl* pTaskDescriptionTextCtrl;
+
+    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
+    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
+    wxCheckBox* pIsActiveCheckBoxCtrl;
+
+    wxButton* pOkButton;
+    wxButton* pCancelButton;
+
+    enum {
+        tksIDC_DATECONTEXTDATEPICKERCTRL = wxID_HIGHEST + 100,
+        tksIDC_EMPLOYERCHOICECTRL,
+        tksIDC_CLIENTCHOICECTRL,
+        tksIDC_PROJECTCHOICECTRL,
+        tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
+        tksIDC_CATEGORYCHOICECTRL,
+        tksIDC_BILLABLECHECKBOXCTRL,
+        tksIDC_UNIQUEIDENTIFERTEXTCTRL,
+        tksIDC_TIMEHOURSSPINCTRL,
+        tksIDC_TIMEMINUTESSPINCTRL,
+        tksIDC_TASKDESCRIPTIONTEXTCTRL,
+        tksIDC_ISACTIVECHECKBOXCTRL
+    };
 };
 } // namespace UI::dlg
 } // namespace tks
