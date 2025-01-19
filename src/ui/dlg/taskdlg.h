@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include <wx/wxprec.h>
@@ -66,6 +67,31 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
+    void OnDateChange(wxDateEvent& event);
+    void OnEmployerChoiceSelection(wxCommandEvent& event);
+
+    void OnClientChoiceSelection(wxCommandEvent& event);
+    void OnProjectChoiceSelection(wxCommandEvent& event);
+    void OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event);
+    void OnCategoryChoiceSelection(wxCommandEvent& event);
+
+    void ResetClientChoiceControl(bool disable = false);
+    void ResetProjectChoiceControl(bool disable = false);
+    void ResetCategoryChoiceControl(bool disable = false);
+
+    void FetchEmployersAndAddDataToChoiceControl();
+    void TrySetDefaultEmployer(bool& hasDefaultEmployer);
+
+    void SetEmployerAssociatedDataAndControls();
+    void SetEmployerClientDataToChoiceControl(const std::int64_t employerId);
+    void SetEmployerAndOrClientProjectDataToChoiceControl(
+        const std::optional<std::int64_t> employerId,
+        const std::optional < std::int64_t> clientId);
+
+    void SetCategoryDataToChoiceControl(std::optional<std::int64_t> projectId);
+
+    void QueueErrorNotificationEventToParent(const std::string& message);
+
     wxWindow* pParent;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
@@ -75,6 +101,7 @@ private:
     std::int64_t mTaskId;
     std::string mDate;
     std::string mOldDate;
+    std::int64_t mEmployerId;
 
     wxDatePickerCtrl* pDateContextDatePickerCtrl;
     wxChoice* pEmployerChoiceCtrl;
