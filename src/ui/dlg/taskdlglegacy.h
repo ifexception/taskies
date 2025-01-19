@@ -81,9 +81,9 @@ private:
 
     bool TransferDataAndValidate();
 
-    void ConfigureClientChoiceData(bool disable = false);
-    void ConfigureProjectChoiceData(bool disable = false);
-    void ConfigureCategoryChoiceData(bool disable = false);
+    void ResetClientChoiceControl(bool disable = false);
+    void ResetProjectChoiceControl(bool disable = false);
+    void ResetCategoryChoiceControl(bool disable = false);
     void QueueErrorNotificationEventToParent(const std::string& message);
 
     std::shared_ptr<Core::Environment> pEnv;

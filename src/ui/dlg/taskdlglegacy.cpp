@@ -166,7 +166,8 @@ void TaskDialogLegacy::CreateControls()
 
     pShowProjectAssociatedCategoriesCheckBoxCtrl =
         new wxCheckBox(this, tksIDC_SHOWASSOCIATEDCATEGORIES, "Only show associated categories");
-    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetToolTip("Only show categories associated to selected project");
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetToolTip(
+        "Only show categories associated to selected project");
 
     auto categoryLabel = new wxStaticText(this, wxID_ANY, "Category");
     pCategoryChoiceCtrl = new wxChoice(this, tksIDC_CATEGORYCHOICE);
@@ -176,7 +177,8 @@ void TaskDialogLegacy::CreateControls()
     choiceFlexGridSizer->AddGrowableCol(1, 1);
 
     choiceFlexGridSizer->Add(employerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    choiceFlexGridSizer->Add(pEmployerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    choiceFlexGridSizer->Add(
+        pEmployerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     choiceFlexGridSizer->Add(clientLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     choiceFlexGridSizer->Add(pClientChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
@@ -185,10 +187,12 @@ void TaskDialogLegacy::CreateControls()
     choiceFlexGridSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     choiceFlexGridSizer->Add(0, 0);
-    choiceFlexGridSizer->Add(pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    choiceFlexGridSizer->Add(
+        pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     choiceFlexGridSizer->Add(categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    choiceFlexGridSizer->Add(pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    choiceFlexGridSizer->Add(
+        pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     leftSizer->AddSpacer(FromDIP(4));
     leftSizer->Add(choiceFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
@@ -218,8 +222,8 @@ void TaskDialogLegacy::CreateControls()
     auto uniqueIdLabel = new wxStaticText(taskDetailsBox, wxID_ANY, "Unique ID");
     pUniqueIdentiferTextCtrl = new wxTextCtrl(taskDetailsBox, tksIDC_UNIQUEIDENTIFIER);
     pUniqueIdentiferTextCtrl->SetHint("Unique identifier");
-    pUniqueIdentiferTextCtrl->SetToolTip(
-        "Enter a unique identifier, ticket number, work order, or other identifier to associate a task with");
+    pUniqueIdentiferTextCtrl->SetToolTip("Enter a unique identifier, ticket number, work order, or "
+                                         "other identifier to associate a task with");
 
     /* Time Controls */
     auto timeLabel = new wxStaticText(taskDetailsBox, wxID_STATIC, "Time");
@@ -253,7 +257,8 @@ void TaskDialogLegacy::CreateControls()
 
     taskDetailsBoxSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     uniqueIdSizer->Add(uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    uniqueIdSizer->Add(pUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    uniqueIdSizer->Add(
+        pUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
     taskDetailsBoxSizer->Add(uniqueIdSizer, wxSizerFlags().Expand());
 
     auto timeSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -269,13 +274,19 @@ void TaskDialogLegacy::CreateControls()
     auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Task Description");
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
 
-    pTaskDescriptionTextCtrl = new wxTextCtrl(
-        descriptionBox, tksIDC_DESCRIPTION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+    pTaskDescriptionTextCtrl = new wxTextCtrl(descriptionBox,
+        tksIDC_DESCRIPTION,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_MULTILINE);
     pTaskDescriptionTextCtrl->SetHint("Task description");
     pTaskDescriptionTextCtrl->SetToolTip("Enter the description of the task");
 
-    descriptionBoxSizer->Add(pTaskDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-    sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    descriptionBoxSizer->Add(
+        pTaskDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    sizer->Add(
+        descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     if (bIsEdit) {
         auto metadataLine = new wxStaticLine(this, wxID_ANY);
@@ -292,19 +303,23 @@ void TaskDialogLegacy::CreateControls()
 
         /* Date Created */
         auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
-        metadataFlexGridSizer->Add(dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        metadataFlexGridSizer->Add(
+            dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
         pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
         pDateCreatedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        metadataFlexGridSizer->Add(
+            pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
         /* Date Modified */
         auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
-        metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        metadataFlexGridSizer->Add(
+            dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
         pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
         pDateModifiedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        metadataFlexGridSizer->Add(
+            pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
         /* Is Active checkbox control */
         metadataFlexGridSizer->Add(0, 0);
@@ -348,20 +363,21 @@ void TaskDialogLegacy::FillControls()
     if (success) {
         pDateContextCtrl->SetValue(dateTaskContext);
     } else {
-        pLogger->error(
-            "TaskDialogLegacy::FillControls - wxDateTime failed to parse date \"{0}\". Revert to default date", mDate);
+        pLogger->error("TaskDialogLegacy::FillControls - wxDateTime failed to parse date \"{0}\". "
+                       "Revert to default date",
+            mDate);
     }
 
     pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);
 
-    ConfigureClientChoiceData(true);
+    ResetClientChoiceControl(true);
 
-    ConfigureProjectChoiceData(true);
+    ResetProjectChoiceControl(true);
 
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
 
-    ConfigureCategoryChoiceData();
+    ResetCategoryChoiceControl();
 
     std::string defaultSearhTerm = "";
 
@@ -374,7 +390,8 @@ void TaskDialogLegacy::FillControls()
         QueueErrorNotificationEventToParent(message);
     } else {
         for (auto& employer : employers) {
-            pEmployerChoiceCtrl->Append(employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
+            pEmployerChoiceCtrl->Append(
+                employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
         }
     }
 
@@ -385,29 +402,31 @@ void TaskDialogLegacy::FillControls()
     if (rc == -1) {
         std::string message = "Failed to get default employer";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         if (applicableDefaultEmployer.IsDefault) {
             pEmployerChoiceCtrl->SetStringSelection(applicableDefaultEmployer.Name);
             hasDefaultEmployer = true;
 
-            ConfigureClientChoiceData();
+            ResetClientChoiceControl();
 
-            ConfigureProjectChoiceData();
+            ResetProjectChoiceControl();
 
             int employerIndex = pEmployerChoiceCtrl->GetSelection();
-            ClientData<std::int64_t>* employerIdData =
-                reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+            ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+                pEmployerChoiceCtrl->GetClientObject(employerIndex));
             if (employerIdData->GetValue() < 1) {
                 pClientChoiceCtrl->Disable();
                 pProjectChoiceCtrl->Disable();
 
                 if (pCfg->ShowProjectAssociatedCategories()) {
-                    ConfigureCategoryChoiceData(true);
+                    ResetCategoryChoiceControl(true);
                 }
 
                 mEmployerIndex = -1;
@@ -432,7 +451,8 @@ void TaskDialogLegacy::FillControls()
                     }
 
                     for (auto& client : clients) {
-                        pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
+                        pClientChoiceCtrl->Append(
+                            client.Name, new ClientData<std::int64_t>(client.ClientId));
                     }
                 } else {
                     pClientChoiceCtrl->Disable();
@@ -442,8 +462,8 @@ void TaskDialogLegacy::FillControls()
             std::vector<Model::ProjectModel> projects;
             Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-            rc =
-                projectPersistence.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::nullopt, projects);
+            rc = projectPersistence.FilterByEmployerIdOrClientId(
+                std::make_optional(employerId), std::nullopt, projects);
             if (rc != 0) {
                 std::string message = "Failed to get projects";
                 QueueErrorNotificationEventToParent(message);
@@ -469,7 +489,8 @@ void TaskDialogLegacy::FillControls()
                             std::vector<repos::CategoryRepositoryModel> categories;
                             repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
 
-                            int rc = categoryRepo.FilterByProjectId(defaultProject.ProjectId, categories);
+                            int rc = categoryRepo.FilterByProjectId(
+                                defaultProject.ProjectId, categories);
                             if (rc != 0) {
                                 std::string message = "Failed to get categories";
                                 QueueErrorNotificationEventToParent(message);
@@ -484,7 +505,7 @@ void TaskDialogLegacy::FillControls()
                                             new ClientData<std::int64_t>(category.CategoryId));
                                     }
                                 } else {
-                                    ConfigureCategoryChoiceData(true);
+                                    ResetCategoryChoiceControl(true);
                                 }
                             }
                         }
@@ -511,11 +532,11 @@ void TaskDialogLegacy::FillControls()
                 }
 
                 for (auto& category : categories) {
-                    pCategoryChoiceCtrl->Append(
-                        category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+                    pCategoryChoiceCtrl->Append(category.GetFormattedName(),
+                        new ClientData<std::int64_t>(category.CategoryId));
                 }
             } else {
-                ConfigureCategoryChoiceData(true);
+                ResetCategoryChoiceControl(true);
             }
         }
     } else {
@@ -596,7 +617,8 @@ void TaskDialogLegacy::DataToControls()
         QueueErrorNotificationEventToParent(message);
     } else {
         pBillableCheckBoxCtrl->SetValue(task.Billable);
-        pUniqueIdentiferTextCtrl->ChangeValue(task.UniqueIdentifier.has_value() ? task.UniqueIdentifier.value() : "");
+        pUniqueIdentiferTextCtrl->ChangeValue(
+            task.UniqueIdentifier.has_value() ? task.UniqueIdentifier.value() : "");
         pTimeHoursCtrl->SetValue(task.Hours);
         pTimeMinutesCtrl->SetValue(task.Minutes);
         pTaskDescriptionTextCtrl->ChangeValue(task.Description);
@@ -633,7 +655,8 @@ void TaskDialogLegacy::DataToControls()
                 }
 
                 for (auto& project : projects) {
-                    pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                    pProjectChoiceCtrl->Append(
+                        project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
                 }
             }
         }
@@ -671,7 +694,8 @@ void TaskDialogLegacy::DataToControls()
             // load client
             if (!clients.empty()) {
                 for (const auto& client : clients) {
-                    pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
+                    pClientChoiceCtrl->Append(
+                        client.Name, new ClientData<std::int64_t>(client.ClientId));
                 }
 
                 if (project.ClientId.has_value()) {
@@ -709,15 +733,15 @@ void TaskDialogLegacy::DataToControls()
                 }
 
                 for (auto& category : categories) {
-                    pCategoryChoiceCtrl->Append(
-                        category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+                    pCategoryChoiceCtrl->Append(category.GetFormattedName(),
+                        new ClientData<std::int64_t>(category.CategoryId));
                 }
             } else if (categories.empty() && !pCfg->ShowProjectAssociatedCategories()) {
                 if (!pCategoryChoiceCtrl->IsEnabled()) {
                     pCategoryChoiceCtrl->Enable();
                 }
             } else {
-                ConfigureCategoryChoiceData(true);
+                ResetCategoryChoiceControl(true);
             }
         }
 
@@ -744,19 +768,19 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
-    ConfigureClientChoiceData();
+    ResetClientChoiceControl();
 
-    ConfigureProjectChoiceData();
+    ResetProjectChoiceControl();
 
     int employerIndex = event.GetSelection();
-    ClientData<std::int64_t>* employerIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pEmployerChoiceCtrl->GetClientObject(employerIndex));
     if (employerIdData->GetValue() < 1) {
         pClientChoiceCtrl->Disable();
         pProjectChoiceCtrl->Disable();
 
         if (pCfg->ShowProjectAssociatedCategories()) {
-            ConfigureCategoryChoiceData(true);
+            ResetCategoryChoiceControl(true);
         }
 
         mEmployerIndex = -1;
@@ -781,7 +805,8 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
             }
 
             for (auto& client : clients) {
-                pClientChoiceCtrl->Append(client.Name, new ClientData<std::int64_t>(client.ClientId));
+                pClientChoiceCtrl->Append(
+                    client.Name, new ClientData<std::int64_t>(client.ClientId));
             }
         } else {
             pClientChoiceCtrl->Disable();
@@ -791,7 +816,8 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
     std::vector<Model::ProjectModel> projects;
     Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    rc = projectPersistence.FilterByEmployerIdOrClientId(std::make_optional(employerId), std::nullopt, projects);
+    rc = projectPersistence.FilterByEmployerIdOrClientId(
+        std::make_optional(employerId), std::nullopt, projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
         QueueErrorNotificationEventToParent(message);
@@ -802,7 +828,8 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
             }
 
             for (auto& project : projects) {
-                pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                pProjectChoiceCtrl->Append(
+                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
             }
 
             auto hasProjectDefaultIterator = std::find_if(projects.begin(),
@@ -827,11 +854,11 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
                             }
 
                             for (auto& category : categories) {
-                                pCategoryChoiceCtrl->Append(
-                                    category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+                                pCategoryChoiceCtrl->Append(category.GetFormattedName(),
+                                    new ClientData<std::int64_t>(category.CategoryId));
                             }
                         } else {
-                            ConfigureCategoryChoiceData(true);
+                            ResetCategoryChoiceControl(true);
                         }
                     }
                 }
@@ -849,16 +876,16 @@ void TaskDialogLegacy::OnClientChoiceSelection(wxCommandEvent& event)
     pOkButton->Disable();
 
     int employerIndex = mEmployerIndex;
-    ClientData<std::int64_t>* employerIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pEmployerChoiceCtrl->GetClientObject(employerIndex));
     auto employerId = employerIdData->GetValue();
 
     int clientIndex = event.GetSelection();
-    ClientData<std::int64_t>* clientIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pClientChoiceCtrl->GetClientObject(clientIndex));
+    ClientData<std::int64_t>* clientIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pClientChoiceCtrl->GetClientObject(clientIndex));
     auto clientId = clientIdData->GetValue();
 
-    ConfigureProjectChoiceData();
+    ResetProjectChoiceControl();
 
     if (clientIdData->GetValue() < 1) {
         pProjectChoiceCtrl->Disable();
@@ -881,7 +908,8 @@ void TaskDialogLegacy::OnClientChoiceSelection(wxCommandEvent& event)
             }
 
             for (auto& project : projects) {
-                pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                pProjectChoiceCtrl->Append(
+                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
             }
 
             auto hasProjectDefaultIterator = std::find_if(projects.begin(),
@@ -892,7 +920,7 @@ void TaskDialogLegacy::OnClientChoiceSelection(wxCommandEvent& event)
                 pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
             }
         } else {
-            ConfigureProjectChoiceData(true);
+            ResetProjectChoiceControl(true);
         }
     }
 
@@ -905,11 +933,11 @@ void TaskDialogLegacy::OnProjectChoiceSelection(wxCommandEvent& event)
         return;
     }
 
-    ConfigureCategoryChoiceData();
+    ResetCategoryChoiceControl();
 
     int projectIndex = event.GetSelection();
-    ClientData<std::int64_t>* projectIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
+    ClientData<std::int64_t>* projectIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pProjectChoiceCtrl->GetClientObject(projectIndex));
     if (projectIdData->GetValue() < 1) {
         pCategoryChoiceCtrl->Disable();
 
@@ -936,7 +964,7 @@ void TaskDialogLegacy::OnProjectChoiceSelection(wxCommandEvent& event)
                     category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
             }
         } else {
-            ConfigureCategoryChoiceData(true);
+            ResetCategoryChoiceControl(true);
         }
     }
 }
@@ -956,8 +984,8 @@ void TaskDialogLegacy::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& ev
 
     if (event.IsChecked() && mEmployerIndex > 0) {
         int projectIndex = pProjectChoiceCtrl->GetSelection();
-        ClientData<std::int64_t>* projectIdData =
-            reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
+        ClientData<std::int64_t>* projectIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+            pProjectChoiceCtrl->GetClientObject(projectIndex));
         if (projectIdData->GetValue() < 1) {
             pCategoryChoiceCtrl->Disable();
             mEmployerIndex = -1;
@@ -988,7 +1016,7 @@ void TaskDialogLegacy::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& ev
                     category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
             }
         } else {
-            ConfigureCategoryChoiceData(true);
+            ResetCategoryChoiceControl(true);
         }
     }
 }
@@ -999,8 +1027,8 @@ void TaskDialogLegacy::OnCategoryChoiceSelection(wxCommandEvent& event)
     pBillableCheckBoxCtrl->SetToolTip("Indicates if a task is billable");
 
     int categoryIndex = event.GetSelection();
-    ClientData<std::int64_t>* categoryIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pCategoryChoiceCtrl->GetClientObject(categoryIndex));
+    ClientData<std::int64_t>* categoryIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pCategoryChoiceCtrl->GetClientObject(categoryIndex));
 
     if (categoryIdData->GetValue() < 1) {
         return;
@@ -1017,15 +1045,16 @@ void TaskDialogLegacy::OnCategoryChoiceSelection(wxCommandEvent& event)
     } else {
         if (model.Billable) {
             pBillableCheckBoxCtrl->SetValue(true);
-            pBillableCheckBoxCtrl->SetToolTip("Category selected is billable, thus task inherits billable attribute");
+            pBillableCheckBoxCtrl->SetToolTip(
+                "Category selected is billable, thus task inherits billable attribute");
         }
     }
 }
 
 void TaskDialogLegacy::OnDateChange(wxDateEvent& event)
 {
-    pLogger->info(
-        "TaskDialogLegacy::OnDateChange - Received date change event \"{0}\"", event.GetDate().FormatISODate().ToStdString());
+    pLogger->info("TaskDialogLegacy::OnDateChange - Received date change event \"{0}\"",
+        event.GetDate().FormatISODate().ToStdString());
 
     // save old date in case further down the line we are editing a task and changing its date
     mOldDate = mDate;
@@ -1081,14 +1110,16 @@ void TaskDialogLegacy::OnOK(wxCommandEvent& event)
 
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         if (ret == -1) {
-            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+            NotificationClientData* clientData =
+                new NotificationClientData(NotificationType::Error, message);
             addNotificationEvent->SetClientObject(clientData);
 
             wxQueueEvent(pParent, addNotificationEvent);
 
             pOkButton->Enable();
         } else {
-            NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+            NotificationClientData* clientData =
+                new NotificationClientData(NotificationType::Information, message);
             addNotificationEvent->SetClientObject(clientData);
 
             wxQueueEvent(pParent, addNotificationEvent);
@@ -1104,7 +1135,8 @@ void TaskDialogLegacy::OnOK(wxCommandEvent& event)
                 // FIXME: this is bug prone as mOldDate and mDate are std::string
                 if (mOldDate != mDate) {
                     // notify frame control of task date changed TO
-                    wxCommandEvent* taskDateChangedToEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
+                    wxCommandEvent* taskDateChangedToEvent =
+                        new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
 
                     taskDateChangedToEvent->SetString(mDate);
                     taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
@@ -1112,7 +1144,8 @@ void TaskDialogLegacy::OnOK(wxCommandEvent& event)
                     wxQueueEvent(pParent, taskDateChangedToEvent);
 
                     // notify frame control of task date changed FROM
-                    wxCommandEvent* taskDateChangedFromEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
+                    wxCommandEvent* taskDateChangedFromEvent =
+                        new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
 
                     taskDateChangedFromEvent->SetString(mOldDate);
                     taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
@@ -1142,8 +1175,8 @@ void TaskDialogLegacy::OnCancel(wxCommandEvent& event)
 bool TaskDialogLegacy::TransferDataAndValidate()
 {
     int employerIndex = pEmployerChoiceCtrl->GetSelection();
-    ClientData<std::int64_t>* employerIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pEmployerChoiceCtrl->GetClientObject(employerIndex));
     if (employerIdData->GetValue() < 1) {
         auto valMsg = "An employer selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
@@ -1153,11 +1186,12 @@ bool TaskDialogLegacy::TransferDataAndValidate()
     }
 
     auto uniqueIdentifier = pUniqueIdentiferTextCtrl->GetValue().ToStdString();
-    if (!uniqueIdentifier.empty() &&
-        (uniqueIdentifier.length() < MIN_CHARACTER_COUNT || uniqueIdentifier.length() > MAX_CHARACTER_COUNT_NAMES)) {
-        auto valMsg = fmt::format("Unique identifier must be at minimum {0} or maximum {1} characters long",
-            MIN_CHARACTER_COUNT,
-            MAX_CHARACTER_COUNT_NAMES);
+    if (!uniqueIdentifier.empty() && (uniqueIdentifier.length() < MIN_CHARACTER_COUNT ||
+                                         uniqueIdentifier.length() > MAX_CHARACTER_COUNT_NAMES)) {
+        auto valMsg =
+            fmt::format("Unique identifier must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_NAMES);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pUniqueIdentiferTextCtrl);
@@ -1165,8 +1199,8 @@ bool TaskDialogLegacy::TransferDataAndValidate()
     }
 
     int projectIndex = pProjectChoiceCtrl->GetSelection();
-    ClientData<std::int64_t>* projectIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
+    ClientData<std::int64_t>* projectIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pProjectChoiceCtrl->GetClientObject(projectIndex));
     if (projectIdData->GetValue() < 1) {
         auto valMsg = "A project selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
@@ -1176,8 +1210,8 @@ bool TaskDialogLegacy::TransferDataAndValidate()
     }
 
     int categoryIndex = pCategoryChoiceCtrl->GetSelection();
-    ClientData<std::int64_t>* categoryIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pCategoryChoiceCtrl->GetClientObject(categoryIndex));
+    ClientData<std::int64_t>* categoryIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pCategoryChoiceCtrl->GetClientObject(categoryIndex));
     if (categoryIdData->GetValue() < 1) {
         auto valMsg = "A category selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
@@ -1195,10 +1229,12 @@ bool TaskDialogLegacy::TransferDataAndValidate()
         return false;
     }
 
-    if (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS) {
-        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
-            MIN_CHARACTER_COUNT,
-            MAX_CHARACTER_COUNT_NAMES);
+    if (description.length() < MIN_CHARACTER_COUNT ||
+        description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS) {
+        auto valMsg =
+            fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_NAMES);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pTaskDescriptionTextCtrl);
@@ -1217,7 +1253,8 @@ bool TaskDialogLegacy::TransferDataAndValidate()
 
     mTaskModel.TaskId = mTaskId;
     mTaskModel.Billable = pBillableCheckBoxCtrl->GetValue();
-    mTaskModel.UniqueIdentifier = uniqueIdentifier.empty() ? std::nullopt : std::make_optional(uniqueIdentifier);
+    mTaskModel.UniqueIdentifier =
+        uniqueIdentifier.empty() ? std::nullopt : std::make_optional(uniqueIdentifier);
     mTaskModel.Hours = pTimeHoursCtrl->GetValue();
     mTaskModel.Minutes = pTimeMinutesCtrl->GetValue();
     mTaskModel.Description = description;
@@ -1227,7 +1264,7 @@ bool TaskDialogLegacy::TransferDataAndValidate()
     return true;
 }
 
-void TaskDialogLegacy::ConfigureClientChoiceData(bool disable)
+void TaskDialogLegacy::ResetClientChoiceControl(bool disable)
 {
     pClientChoiceCtrl->Clear();
     pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -1237,7 +1274,7 @@ void TaskDialogLegacy::ConfigureClientChoiceData(bool disable)
     }
 }
 
-void TaskDialogLegacy::ConfigureProjectChoiceData(bool disable)
+void TaskDialogLegacy::ResetProjectChoiceControl(bool disable)
 {
     pProjectChoiceCtrl->Clear();
     pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -1247,7 +1284,7 @@ void TaskDialogLegacy::ConfigureProjectChoiceData(bool disable)
     }
 }
 
-void TaskDialogLegacy::ConfigureCategoryChoiceData(bool disable)
+void TaskDialogLegacy::ResetCategoryChoiceControl(bool disable)
 {
     pCategoryChoiceCtrl->Clear();
     pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -1260,7 +1297,8 @@ void TaskDialogLegacy::ConfigureCategoryChoiceData(bool disable)
 void TaskDialogLegacy::QueueErrorNotificationEventToParent(const std::string& message)
 {
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);
 
     wxQueueEvent(pParent, addNotificationEvent);
