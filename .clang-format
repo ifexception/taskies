@@ -23,7 +23,7 @@ BreakBeforeBraces: Linux
 BreakBeforeInheritanceComma: 'true'
 BreakBeforeTernaryOperators: 'true'
 BreakConstructorInitializers: BeforeComma
-ColumnLimit: 120
+ColumnLimit: 100
 CompactNamespaces: 'false'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'false'
 ConstructorInitializerIndentWidth: 4
