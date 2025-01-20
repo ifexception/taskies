@@ -34,6 +34,8 @@
 
 #include <spdlog/logger.h>
 
+#include "../../models/taskmodel.h"
+
 namespace tks
 {
 namespace Core
@@ -75,6 +77,11 @@ private:
     void OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event);
     void OnCategoryChoiceSelection(wxCommandEvent& event);
 
+    void OnOK(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
+
+    bool TransferDataAndValidate();
+
     void ResetClientChoiceControl(bool disable = false);
     void ResetProjectChoiceControl(bool disable = false);
     void ResetCategoryChoiceControl(bool disable = false);
@@ -102,6 +109,8 @@ private:
     std::string mDate;
     std::string mOldDate;
     std::int64_t mEmployerId;
+
+    Model::TaskModel mTaskModel;
 
     wxDatePickerCtrl* pDateContextDatePickerCtrl;
     wxChoice* pEmployerChoiceCtrl;

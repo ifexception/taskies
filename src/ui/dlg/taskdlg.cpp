@@ -20,12 +20,15 @@
 #include "taskdlg.h"
 
 #include <date/date.h>
+#include <fmt/format.h>
 
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
 #include "../../common/common.h"
+#include "../../common/constants.h"
+#include "../../common/validator.h"
 
 #include "../../core/configuration.h"
 
@@ -38,6 +41,8 @@
 #include "../../persistence/clientpersistence.h"
 #include "../../persistence/projectpersistence.h"
 #include "../../persistence/categorypersistence.h"
+#include "../../persistence/workdaypersistence.h"
+#include "../../persistence/taskpersistence.h"
 
 #include "../../repository/categoryrepositorymodel.h"
 
@@ -492,10 +497,42 @@ void TaskDialog::ConfigureEventBindings()
         &TaskDialog::OnCategoryChoiceSelection,
         this
     );
+
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &TaskDialog::OnOK,
+        this,
+        wxID_OK
+    );
+
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &TaskDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
 }
 // clang-format on
 
 void TaskDialog::DataToControls() {}
+
+void TaskDialog::OnDateChange(wxDateEvent& event)
+{
+    pLogger->info("TaskDialog::OnDateChange - Received date change event \"{0}\"",
+        event.GetDate().FormatISODate().ToStdString());
+
+    // save old date in case further down the line we are editing a task and changing its date
+    mOldDate = mDate;
+
+    // get the newly selected date
+    wxDateTime eventDate = wxDateTime(event.GetDate());
+    auto& eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+    auto dateTicks = eventDateUtc.GetTicks();
+
+    auto date = date::floor<date::days>(std::chrono::system_clock::from_time_t(dateTicks));
+    mDate = date::format("%F", date);
+    pLogger->info("TaskDialog::OnDateChange - mDate is \"{0}\"", mDate);
+}
 
 void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
@@ -629,7 +666,6 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
         return;
     }
 
-
     Model::CategoryModel model;
     Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
     int rc = 0;
@@ -649,22 +685,205 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     pOkButton->Enable();
 }
 
-void TaskDialog::OnDateChange(wxDateEvent& event)
+void TaskDialog::OnOK(wxCommandEvent& event)
 {
-    pLogger->info("TaskDialog::OnDateChange - Received date change event \"{0}\"",
-        event.GetDate().FormatISODate().ToStdString());
+    pOkButton->Disable();
 
-    // save old date in case further down the line we are editing a task and changing its date
-    mOldDate = mDate;
+    if (!TransferDataAndValidate()) {
+        pOkButton->Enable();
+        return;
+    }
 
-    // get the newly selected date
-    wxDateTime eventDate = wxDateTime(event.GetDate());
-    auto& eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
-    auto dateTicks = eventDateUtc.GetTicks();
+    int ret = 0;
+    std::string message = "";
 
-    auto date = date::floor<date::days>(std::chrono::system_clock::from_time_t(dateTicks));
-    mDate = date::format("%F", date);
-    pLogger->info("TaskDialog::OnDateChange - mDate is \"{0}\"", mDate);
+    Persistence::WorkdayPersistence workdayPersistence(pLogger, mDatabaseFilePath);
+    std::int64_t workdayId = workdayPersistence.GetWorkdayIdByDate(mDate);
+    ret = workdayId > 0 ? 0 : -1;
+
+    if (ret == -1) {
+        std::string message = "Failed to get underlying workday for task";
+        QueueErrorNotificationEventToParent(message);
+        return;
+    }
+
+    mTaskModel.WorkdayId = workdayId;
+
+    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    if (!bIsEdit) {
+        std::int64_t taskId = taskPersistence.Create(mTaskModel);
+        ret = taskId > 0 ? 0 : -1;
+        mTaskId = taskId;
+
+        ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
+    }
+
+    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = taskPersistence.Update(mTaskModel);
+
+        ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
+    }
+
+    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = taskPersistence.Delete(mTaskId);
+
+        ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
+    }
+
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    if (ret == -1) {
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+
+        pOkButton->Enable();
+    } else {
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+
+        if (!bIsEdit) {
+            wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
+            taskAddedEvent->SetString(mDate);
+            taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+            wxQueueEvent(pParent, taskAddedEvent);
+        }
+
+        if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+            // FIXME: this is bug prone as mOldDate and mDate are std::string
+            // CONT: probably should date::date types and "escape" to std::string at the last possible moment
+            if (mOldDate != mDate) {
+                // notify frame control of task date changed TO
+                wxCommandEvent* taskDateChangedToEvent =
+                    new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
+
+                taskDateChangedToEvent->SetString(mDate);
+                taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+                wxQueueEvent(pParent, taskDateChangedToEvent);
+
+                // notify frame control of task date changed FROM
+                wxCommandEvent* taskDateChangedFromEvent =
+                    new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
+
+                taskDateChangedFromEvent->SetString(mOldDate);
+                taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+                wxQueueEvent(pParent, taskDateChangedFromEvent);
+            }
+        }
+        if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+            wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
+            taskDeletedEvent->SetString(mDate);
+            taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+            wxQueueEvent(pParent, taskDeletedEvent);
+        }
+
+        EndModal(wxID_OK);
+    }
+}
+
+void TaskDialog::OnCancel(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
+}
+
+bool TaskDialog::TransferDataAndValidate()
+{
+    int employerIndex = pEmployerChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    if (employerIdData->GetValue() < 1) {
+        auto valMsg = "An employer selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pEmployerChoiceCtrl);
+        return false;
+    }
+
+    auto uniqueIdentifier = pUniqueIdentiferTextCtrl->GetValue().ToStdString();
+    if (!uniqueIdentifier.empty() && (uniqueIdentifier.length() < MIN_CHARACTER_COUNT ||
+                                         uniqueIdentifier.length() > MAX_CHARACTER_COUNT_NAMES)) {
+        auto valMsg =
+            fmt::format("Unique identifier must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pUniqueIdentiferTextCtrl);
+        return false;
+    }
+
+    int projectIndex = pProjectChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* projectIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pProjectChoiceCtrl->GetClientObject(projectIndex));
+    if (projectIdData->GetValue() < 1) {
+        auto valMsg = "A project selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pProjectChoiceCtrl);
+        return false;
+    }
+
+    int categoryIndex = pCategoryChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* categoryIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pCategoryChoiceCtrl->GetClientObject(categoryIndex));
+    if (categoryIdData->GetValue() < 1) {
+        auto valMsg = "A category selection is required";
+        wxRichToolTip tooltip("Validation", valMsg);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pCategoryChoiceCtrl);
+        return false;
+    }
+
+    auto description = pTaskDescriptionTextCtrl->GetValue().ToStdString();
+    if (description.empty()) {
+        auto valMsg = "Description is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pTaskDescriptionTextCtrl);
+        return false;
+    }
+
+    if (description.length() < MIN_CHARACTER_COUNT ||
+        description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS) {
+        auto valMsg =
+            fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pTaskDescriptionTextCtrl);
+        return false;
+    }
+
+    auto hoursValue = pTimeHoursSpinCtrl->GetValue();
+    auto minutesValue = pTimeMinutesSpinCtrl->GetValue();
+    if (hoursValue == 0 && minutesValue < 5) {
+        auto valMsg = fmt::format("Task duration must have elasped more than \"00:05\"");
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pTimeMinutesSpinCtrl);
+        return false;
+    }
+
+    mTaskModel.TaskId = mTaskId;
+    mTaskModel.Billable = pBillableCheckBoxCtrl->GetValue();
+    mTaskModel.UniqueIdentifier =
+        uniqueIdentifier.empty() ? std::nullopt : std::make_optional(uniqueIdentifier);
+    mTaskModel.Hours = pTimeHoursSpinCtrl->GetValue();
+    mTaskModel.Minutes = pTimeMinutesSpinCtrl->GetValue();
+    mTaskModel.Description = description;
+    mTaskModel.ProjectId = projectIdData->GetValue();
+    mTaskModel.CategoryId = categoryIdData->GetValue();
+
+    return true;
 }
 
 void TaskDialog::ResetClientChoiceControl(bool disable)
