@@ -78,6 +78,7 @@ void EmployerDialog::Create()
 {
     CreateControls();
     ConfigureEventBindings();
+    FillControls();
 
     if (bIsEdit) {
         DataToControls();
@@ -109,8 +110,10 @@ void EmployerDialog::CreateControls()
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     detailsGridSizer->AddGrowableCol(1, 1);
 
-    detailsGridSizer->Add(employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    detailsGridSizer->Add(
+        employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    detailsGridSizer->Add(
+        pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     detailsGridSizer->Add(0, 0);
     detailsGridSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -120,7 +123,8 @@ void EmployerDialog::CreateControls()
     /* Employer Description */
     auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Description (optional)");
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
-    sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    sizer->Add(
+        descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     pDescriptionTextCtrl = new wxTextCtrl(descriptionBox,
         tksIDC_DESCRIPTION,
@@ -130,10 +134,12 @@ void EmployerDialog::CreateControls()
         wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for an employer");
-    descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    descriptionBoxSizer->Add(
+        pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     if (bIsEdit) {
-        auto metadataLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), FromDIP(3)));
+        auto metadataLine =
+            new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), FromDIP(3)));
         sizer->Add(metadataLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
         auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
@@ -147,19 +153,23 @@ void EmployerDialog::CreateControls()
 
         /* Date Created */
         auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
-        metadataFlexGridSizer->Add(dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+        metadataFlexGridSizer->Add(
+            dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
 
         pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
         pDateCreatedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+        metadataFlexGridSizer->Add(
+            pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
         /* Date Modified */
         auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
-        metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+        metadataFlexGridSizer->Add(
+            dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
 
         pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
         pDateModifiedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+        metadataFlexGridSizer->Add(
+            pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
         /* Is Active checkbox control */
         metadataFlexGridSizer->Add(0, 0);
@@ -188,6 +198,11 @@ void EmployerDialog::CreateControls()
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     SetSizerAndFit(sizer);
+}
+
+void EmployerDialog::FillControls()
+{
+    pIsDefaultCheckBoxCtrl->SetValue(true);
 }
 
 // clang-format off
@@ -228,15 +243,18 @@ void EmployerDialog::DataToControls()
     if (rc == -1) {
         std::string message = "Failed to get employer";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         pNameTextCtrl->SetValue(employer.Name);
         pIsDefaultCheckBoxCtrl->SetValue(employer.IsDefault);
-        pDescriptionTextCtrl->SetValue(employer.Description.has_value() ? employer.Description.value() : "");
+        pDescriptionTextCtrl->SetValue(
+            employer.Description.has_value() ? employer.Description.value() : "");
         pDateCreatedTextCtrl->SetValue(employer.GetDateCreatedString());
         pDateModifiedTextCtrl->SetValue(employer.GetDateModifiedString());
         pIsActiveCheckBoxCtrl->SetValue(employer.IsActive);
@@ -251,6 +269,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     if (!TransferDataAndValidate()) {
+        pOkButton->Enable();
         return;
     }
 
@@ -272,34 +291,41 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             std::int64_t employerId = employerPersistence.Create(mEmployerModel);
             ret = employerId > 0 ? 1 : -1;
 
-            ret == -1 ? message = "Failed to create employer" : message = "Successfully created employer";
+            ret == -1 ? message = "Failed to create employer"
+                      : message = "Successfully created employer";
         }
         if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
             ret = employerPersistence.Update(mEmployerModel);
 
-            ret == -1 ? message = "Failed to update employer" : message = "Successfully updated employer";
+            ret == -1 ? message = "Failed to update employer"
+                      : message = "Successfully updated employer";
         }
         if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
             ret = employerPersistence.Delete(mEmployerId);
 
-            ret == -1 ? message = "Failed to delete employer" : message = "Successfully deleted employer";
+            ret == -1 ? message = "Failed to delete employer"
+                      : message = "Successfully deleted employer";
         }
     }
 
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     if (ret == -1) {
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
         pOkButton->Enable();
     } else {
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
         EndModal(wxID_OK);
@@ -344,21 +370,49 @@ bool EmployerDialog::TransferDataAndValidate()
     }
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
-    if (!description.empty() &&
-        (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
-        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
-            MIN_CHARACTER_COUNT,
-            MAX_CHARACTER_COUNT_DESCRIPTIONS);
-        wxRichToolTip toolTip("Validation", valMsg);
+    if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
+                                    description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+        auto validationMessage =
+            fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_DESCRIPTIONS);
+        wxRichToolTip toolTip("Validation", validationMessage);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pDescriptionTextCtrl);
         return false;
     }
 
+    if (!pIsDefaultCheckBoxCtrl->GetValue()) {
+        Model::EmployerModel model;
+        Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+        int rc = employerPersistence.TrySelectDefault(model);
+
+        if (rc == -1) {
+            std::string message = "Failed to get default employer";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData =
+                new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
+            // we have wxFrame
+            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        } else {
+            if (!model.IsDefault) {
+                std::string validationMessage = "Required default employer not found";
+                wxRichToolTip toolTip("Validation", validationMessage);
+                toolTip.SetIcon(wxICON_WARNING);
+                toolTip.ShowFor(pIsDefaultCheckBoxCtrl);
+                return false;
+            }
+        }
+    }
+
     mEmployerModel.EmployerId = mEmployerId;
     mEmployerModel.Name = Utils::TrimWhitespace(name);
     mEmployerModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
-    mEmployerModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
+    mEmployerModel.Description =
+        description.empty() ? std::nullopt : std::make_optional(description);
 
     return true;
 }
