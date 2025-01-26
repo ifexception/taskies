@@ -245,8 +245,8 @@ void TaskDialog::CreateControls()
     pUniqueIdentiferTextCtrl =
         new wxTextCtrl(taskAttributesStaticBox, tksIDC_UNIQUEIDENTIFERTEXTCTRL);
     pUniqueIdentiferTextCtrl->SetHint("Unique identifier");
-    pUniqueIdentiferTextCtrl->SetToolTip(
-        "Enter a unique identifier, ticket number, or other identifier to associate a task with");
+    pUniqueIdentiferTextCtrl->SetToolTip("Enter a unique identifier, ticket number, or other "
+                                         "identifier to associate a task with");
 
     /* Task Attributes control flex grid sizer */
     auto taskAttributesControlFlexGridSizer = new wxFlexGridSizer(2, FromDIP(6), FromDIP(6));
@@ -326,7 +326,8 @@ void TaskDialog::CreateControls()
 
     ///* Is Active checkbox control */
     pIsActiveCheckBoxCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
-    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
+    pIsActiveCheckBoxCtrl->SetToolTip(
+        "Indicates if this task is actively used/still applicable");
     pIsActiveCheckBoxCtrl->Disable();
 
     /* Metadata flex grid sizer */
@@ -514,7 +515,197 @@ void TaskDialog::ConfigureEventBindings()
 }
 // clang-format on
 
-void TaskDialog::DataToControls() {}
+void TaskDialog::DataToControls()
+{
+    // load task
+    Model::TaskModel taskModel;
+    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    bool isSuccess = false;
+
+    int rc = taskPersistence.GetById(mTaskId, taskModel);
+    if (rc != 0) {
+        std::string message = "Failed to get taskModel";
+        QueueErrorNotificationEventToParent(message);
+    } else {
+        pBillableCheckBoxCtrl->SetValue(taskModel.Billable);
+        pUniqueIdentiferTextCtrl->ChangeValue(
+            taskModel.UniqueIdentifier.has_value() ? taskModel.UniqueIdentifier.value() : "");
+        pTimeHoursSpinCtrl->SetValue(taskModel.Hours);
+        pTimeMinutesSpinCtrl->SetValue(taskModel.Minutes);
+        pTaskDescriptionTextCtrl->ChangeValue(taskModel.Description);
+        pIsActiveCheckBoxCtrl->SetValue(taskModel.IsActive);
+        pDateCreatedReadonlyTextCtrl->SetValue(taskModel.GetDateCreatedString());
+        pDateModifiedReadonlyTextCtrl->SetValue(taskModel.GetDateModifiedString());
+
+        pIsActiveCheckBoxCtrl->Enable();
+
+        isSuccess = true;
+    }
+
+    // -- load related entities
+
+    bool employerSelected = mEmployerId != -1;
+
+    // load project
+    Model::ProjectModel projectModel;
+    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+
+    rc = projectPersistence.GetById(taskModel.ProjectId, projectModel);
+    if (rc != 0) {
+        std::string message = "Failed to get project";
+        QueueErrorNotificationEventToParent(message);
+
+        return;
+    }
+
+    if (!employerSelected) {
+        // load projects
+        std::vector<Model::ProjectModel> projects;
+        rc = projectPersistence.FilterByEmployerIdOrClientId(
+            std::make_optional(projectModel.EmployerId),
+            projectModel.ClientId.has_value() ? projectModel.ClientId : std::nullopt,
+            projects);
+        if (rc != 0) {
+            std::string message = "Failed to get projects";
+            QueueErrorNotificationEventToParent(message);
+            isSuccess = false;
+        } else {
+            if (!projects.empty()) {
+                if (!pProjectChoiceCtrl->IsEnabled()) {
+                    pProjectChoiceCtrl->Enable();
+                }
+
+                for (auto& project : projects) {
+                    pProjectChoiceCtrl->Append(
+                        project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                }
+            }
+        }
+    }
+
+    pProjectChoiceCtrl->SetStringSelection(projectModel.DisplayName);
+    isSuccess = true;
+
+    if (!employerSelected) {
+        // load employer
+        Model::EmployerModel employer;
+        Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+
+        rc = employerPersistence.GetById(projectModel.EmployerId, employer);
+        if (rc == -1) {
+            std::string message = "Failed to get employer";
+            QueueErrorNotificationEventToParent(message);
+
+            isSuccess = false;
+        } else {
+            pEmployerChoiceCtrl->SetStringSelection(employer.Name);
+            isSuccess = true;
+        }
+    }
+
+    // load clients
+    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+
+    if (!employerSelected) {
+        std::vector<Model::ClientModel> clients;
+        std::string defaultSearchTerm = "";
+        rc = clientPersistence.FilterByEmployerId(projectModel.EmployerId, clients);
+        if (rc == -1) {
+            std::string message = "Failed to get clients";
+            QueueErrorNotificationEventToParent(message);
+
+            isSuccess = false;
+        } else {
+            // load client
+            if (!clients.empty()) {
+                for (const auto& client : clients) {
+                    pClientChoiceCtrl->Append(
+                        client.Name, new ClientData<std::int64_t>(client.ClientId));
+                }
+
+                if (projectModel.ClientId.has_value()) {
+                    Model::ClientModel client;
+                    rc = clientPersistence.GetById(projectModel.ClientId.value(), client);
+                    if (rc == -1) {
+                        std::string message = "Failed to get client";
+                        QueueErrorNotificationEventToParent(message);
+
+                        isSuccess = false;
+                    } else {
+                        pClientChoiceCtrl->SetStringSelection(client.Name);
+                        isSuccess = true;
+                    }
+                }
+
+                pClientChoiceCtrl->Enable();
+            }
+        }
+    } else {
+        if (projectModel.ClientId.has_value()) {
+            Model::ClientModel client;
+            rc = clientPersistence.GetById(projectModel.ClientId.value(), client);
+            if (rc == -1) {
+                std::string message = "Failed to get client";
+                QueueErrorNotificationEventToParent(message);
+
+                isSuccess = false;
+            } else {
+                pClientChoiceCtrl->SetStringSelection(client.Name);
+                isSuccess = true;
+            }
+        }
+    }
+
+    // load categories
+    ResetCategoryChoiceControl();
+
+    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+    std::vector<repos::CategoryRepositoryModel> categories;
+
+    if (pCfg->ShowProjectAssociatedCategories()) {
+        rc = categoryRepo.FilterByProjectId(taskModel.ProjectId, categories);
+        if (rc == -1) {
+            std::string message = "Failed to get categories";
+            QueueErrorNotificationEventToParent(message);
+
+            isSuccess = false;
+        }
+    }
+
+    if (!categories.empty()) {
+        if (!pCategoryChoiceCtrl->IsEnabled()) {
+            pCategoryChoiceCtrl->Enable();
+        }
+
+        for (auto& category : categories) {
+            pCategoryChoiceCtrl->Append(
+                category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+        }
+    } else if (categories.empty() && !pCfg->ShowProjectAssociatedCategories()) {
+        if (!pCategoryChoiceCtrl->IsEnabled()) {
+            pCategoryChoiceCtrl->Enable();
+        }
+    } else {
+        ResetCategoryChoiceControl(true);
+    }
+
+    repos::CategoryRepositoryModel category;
+    rc = categoryRepo.GetById(taskModel.CategoryId, category);
+    if (rc != 0) {
+        std::string message = "Failed to get category";
+        QueueErrorNotificationEventToParent(message);
+        isSuccess = false;
+    } else {
+        pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
+        isSuccess = true;
+    }
+
+    if (isSuccess) {
+        pOkButton->Enable();
+        pOkButton->SetFocus();
+        pOkButton->SetDefault();
+    }
+}
 
 void TaskDialog::OnDateChange(wxDateEvent& event)
 {
@@ -715,19 +906,22 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         ret = taskId > 0 ? 0 : -1;
         mTaskId = taskId;
 
-        ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
+        ret == -1 ? message = "Failed to create task"
+                  : message = "Successfully created task";
     }
 
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
         ret = taskPersistence.Update(mTaskModel);
 
-        ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
+        ret == -1 ? message = "Failed to update task"
+                  : message = "Successfully updated task";
     }
 
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
         ret = taskPersistence.Delete(mTaskId);
 
-        ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
+        ret == -1 ? message = "Failed to delete task"
+                  : message = "Successfully deleted task";
     }
 
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -756,7 +950,8 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
         if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
             // FIXME: this is bug prone as mOldDate and mDate are std::string
-            // CONT: probably should date::date types and "escape" to std::string at the last possible moment
+            // CONT: probably should date::date types and "escape" to std::string at the last
+            // possible moment
             if (mOldDate != mDate) {
                 // notify frame control of task date changed TO
                 wxCommandEvent* taskDateChangedToEvent =
