@@ -77,6 +77,8 @@ private:
     void OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event);
     void OnCategoryChoiceSelection(wxCommandEvent& event);
 
+    void OnIsActiveCheck(wxCommandEvent& event);
+
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 

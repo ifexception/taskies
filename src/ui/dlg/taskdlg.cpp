@@ -326,8 +326,7 @@ void TaskDialog::CreateControls()
 
     ///* Is Active checkbox control */
     pIsActiveCheckBoxCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
-    pIsActiveCheckBoxCtrl->SetToolTip(
-        "Indicates if this task is actively used/still applicable");
+    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
     pIsActiveCheckBoxCtrl->Disable();
 
     /* Metadata flex grid sizer */
@@ -499,6 +498,12 @@ void TaskDialog::ConfigureEventBindings()
         this
     );
 
+    pIsActiveCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &TaskDialog::OnIsActiveCheck,
+        this
+    );
+
     pOkButton->Bind(
         wxEVT_BUTTON,
         &TaskDialog::OnOK,
@@ -522,8 +527,8 @@ void TaskDialog::DataToControls()
     Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
-    int rc = taskPersistence.GetById(mTaskId, taskModel);
-    if (rc != 0) {
+    int ret = taskPersistence.GetById(mTaskId, taskModel);
+    if (ret != 0) {
         std::string message = "Failed to get taskModel";
         QueueErrorNotificationEventToParent(message);
     } else {
@@ -550,8 +555,8 @@ void TaskDialog::DataToControls()
     Model::ProjectModel projectModel;
     Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    rc = projectPersistence.GetById(taskModel.ProjectId, projectModel);
-    if (rc != 0) {
+    ret = projectPersistence.GetById(taskModel.ProjectId, projectModel);
+    if (ret != 0) {
         std::string message = "Failed to get project";
         QueueErrorNotificationEventToParent(message);
 
@@ -561,11 +566,11 @@ void TaskDialog::DataToControls()
     if (!employerSelected) {
         // load projects
         std::vector<Model::ProjectModel> projects;
-        rc = projectPersistence.FilterByEmployerIdOrClientId(
+        ret = projectPersistence.FilterByEmployerIdOrClientId(
             std::make_optional(projectModel.EmployerId),
             projectModel.ClientId.has_value() ? projectModel.ClientId : std::nullopt,
             projects);
-        if (rc != 0) {
+        if (ret != 0) {
             std::string message = "Failed to get projects";
             QueueErrorNotificationEventToParent(message);
             isSuccess = false;
@@ -591,8 +596,8 @@ void TaskDialog::DataToControls()
         Model::EmployerModel employer;
         Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-        rc = employerPersistence.GetById(projectModel.EmployerId, employer);
-        if (rc == -1) {
+        ret = employerPersistence.GetById(projectModel.EmployerId, employer);
+        if (ret == -1) {
             std::string message = "Failed to get employer";
             QueueErrorNotificationEventToParent(message);
 
@@ -609,8 +614,8 @@ void TaskDialog::DataToControls()
     if (!employerSelected) {
         std::vector<Model::ClientModel> clients;
         std::string defaultSearchTerm = "";
-        rc = clientPersistence.FilterByEmployerId(projectModel.EmployerId, clients);
-        if (rc == -1) {
+        ret = clientPersistence.FilterByEmployerId(projectModel.EmployerId, clients);
+        if (ret == -1) {
             std::string message = "Failed to get clients";
             QueueErrorNotificationEventToParent(message);
 
@@ -625,8 +630,8 @@ void TaskDialog::DataToControls()
 
                 if (projectModel.ClientId.has_value()) {
                     Model::ClientModel client;
-                    rc = clientPersistence.GetById(projectModel.ClientId.value(), client);
-                    if (rc == -1) {
+                    ret = clientPersistence.GetById(projectModel.ClientId.value(), client);
+                    if (ret == -1) {
                         std::string message = "Failed to get client";
                         QueueErrorNotificationEventToParent(message);
 
@@ -643,8 +648,8 @@ void TaskDialog::DataToControls()
     } else {
         if (projectModel.ClientId.has_value()) {
             Model::ClientModel client;
-            rc = clientPersistence.GetById(projectModel.ClientId.value(), client);
-            if (rc == -1) {
+            ret = clientPersistence.GetById(projectModel.ClientId.value(), client);
+            if (ret == -1) {
                 std::string message = "Failed to get client";
                 QueueErrorNotificationEventToParent(message);
 
@@ -663,8 +668,8 @@ void TaskDialog::DataToControls()
     std::vector<repos::CategoryRepositoryModel> categories;
 
     if (pCfg->ShowProjectAssociatedCategories()) {
-        rc = categoryRepo.FilterByProjectId(taskModel.ProjectId, categories);
-        if (rc == -1) {
+        ret = categoryRepo.FilterByProjectId(taskModel.ProjectId, categories);
+        if (ret == -1) {
             std::string message = "Failed to get categories";
             QueueErrorNotificationEventToParent(message);
 
@@ -690,8 +695,8 @@ void TaskDialog::DataToControls()
     }
 
     repos::CategoryRepositoryModel category;
-    rc = categoryRepo.GetById(taskModel.CategoryId, category);
-    if (rc != 0) {
+    ret = categoryRepo.GetById(taskModel.CategoryId, category);
+    if (ret != 0) {
         std::string message = "Failed to get category";
         QueueErrorNotificationEventToParent(message);
         isSuccess = false;
@@ -859,10 +864,10 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 
     Model::CategoryModel model;
     Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
-    int rc = 0;
+    int ret = 0;
 
-    rc = categoryPersistence.GetById(categoryId, model);
-    if (rc == -1) {
+    ret = categoryPersistence.GetById(categoryId, model);
+    if (ret == -1) {
         std::string message = "Failed to get category";
         QueueErrorNotificationEventToParent(message);
     } else {
@@ -874,6 +879,35 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     }
 
     pOkButton->Enable();
+}
+
+void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)
+{
+    if (!event.IsChecked()) {
+        pDateContextDatePickerCtrl->Disable();
+        pEmployerChoiceCtrl->Disable();
+        pClientChoiceCtrl->Disable();
+        pProjectChoiceCtrl->Disable();
+        pShowProjectAssociatedCategoriesCheckBoxCtrl->Disable();
+        pCategoryChoiceCtrl->Disable();
+        pBillableCheckBoxCtrl->Disable();
+        pUniqueIdentiferTextCtrl->Disable();
+        pTimeHoursSpinCtrl->Disable();
+        pTimeMinutesSpinCtrl->Disable();
+        pTaskDescriptionTextCtrl->Disable();
+    } else {
+        pDateContextDatePickerCtrl->Enable();
+        pEmployerChoiceCtrl->Enable();
+        pClientChoiceCtrl->Enable();
+        pProjectChoiceCtrl->Enable();
+        pShowProjectAssociatedCategoriesCheckBoxCtrl->Enable();
+        pCategoryChoiceCtrl->Enable();
+        pBillableCheckBoxCtrl->Enable();
+        pUniqueIdentiferTextCtrl->Enable();
+        pTimeHoursSpinCtrl->Enable();
+        pTimeMinutesSpinCtrl->Enable();
+        pTaskDescriptionTextCtrl->Enable();
+    }
 }
 
 void TaskDialog::OnOK(wxCommandEvent& event)
@@ -906,22 +940,19 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         ret = taskId > 0 ? 0 : -1;
         mTaskId = taskId;
 
-        ret == -1 ? message = "Failed to create task"
-                  : message = "Successfully created task";
+        ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
     }
 
-    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+    if (bIsEdit && mTaskModel.IsActive) {
         ret = taskPersistence.Update(mTaskModel);
 
-        ret == -1 ? message = "Failed to update task"
-                  : message = "Successfully updated task";
+        ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
     }
 
-    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+    if (bIsEdit && !mTaskModel.IsActive) {
         ret = taskPersistence.Delete(mTaskId);
 
-        ret == -1 ? message = "Failed to delete task"
-                  : message = "Successfully deleted task";
+        ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
     }
 
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -948,9 +979,9 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             wxQueueEvent(pParent, taskAddedEvent);
         }
 
-        if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        if (bIsEdit && mTaskModel.IsActive) {
             // FIXME: this is bug prone as mOldDate and mDate are std::string
-            // CONT: probably should date::date types and "escape" to std::string at the last
+            // CONT: probably should use date::date types and "escape" to std::string at the last
             // possible moment
             if (mOldDate != mDate) {
                 // notify frame control of task date changed TO
@@ -972,7 +1003,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
                 wxQueueEvent(pParent, taskDateChangedFromEvent);
             }
         }
-        if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        if (bIsEdit && !mTaskModel.IsActive) {
             wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
             taskDeletedEvent->SetString(mDate);
             taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
@@ -1077,6 +1108,7 @@ bool TaskDialog::TransferDataAndValidate()
     mTaskModel.Description = description;
     mTaskModel.ProjectId = projectIdData->GetValue();
     mTaskModel.CategoryId = categoryIdData->GetValue();
+    mTaskModel.IsActive = pIsActiveCheckBoxCtrl->GetValue();
 
     return true;
 }
