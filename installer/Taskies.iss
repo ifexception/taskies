@@ -1,6 +1,6 @@
 ; -- Install Taskies --
 
-#define TaskiesVersion "0.1.9"
+#define TaskiesVersion "0.1.10"
 #define TaskiesLifeCycle "alpha"
 
 [Setup]
