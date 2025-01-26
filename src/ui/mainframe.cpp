@@ -539,8 +539,8 @@ void MainFrame::OnNotificationClick(wxCommandEvent& event)
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
     if (pCfg->UseLegacyTaskDialog()) {
-        UI::dlg::TaskDialogLegacy newTaskDialog(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
-        newTaskDialog.ShowModal();
+        UI::dlg::TaskDialogLegacy newTaskDialogLegacy(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialogLegacy.ShowModal();
     } else {
         UI::dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
         newTaskDialog.ShowModal();
@@ -749,11 +749,13 @@ void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
 
     if (pCfg->UseLegacyTaskDialog()) {
-        UI::dlg::TaskDialogLegacy popupNewTask(
+        UI::dlg::TaskDialogLegacy popupNewTaskLegacy(
             this, pEnv, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
-        popupNewTask.ShowModal();
+        popupNewTaskLegacy.ShowModal();
     } else {
-        // TODO: call TaskDialog
+        UI::dlg::TaskDialog popupNewTask(
+            this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
+        popupNewTask.ShowModal();
     }
 
     ResetTaskContextMenuVariables();
@@ -888,11 +890,13 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
     int ret = -1;
 
     if (pCfg->UseLegacyTaskDialog()) {
-        UI::dlg::TaskDialogLegacy editTaskDialog(
+        UI::dlg::TaskDialogLegacy editTaskDialogLegacy(
             this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
-        ret = editTaskDialog.ShowModal();
+        ret = editTaskDialogLegacy.ShowModal();
     } else {
-        // TODO: Call TaskDialog
+        UI::dlg::TaskDialog editTaskDialog(
+            this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
+        ret = editTaskDialog.ShowModal();
     }
 
     if (ret == wxID_OK) {
