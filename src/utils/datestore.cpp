@@ -1,4 +1,3 @@
-#include "datestore.h"
 // Productivity tool to help you track the time you spend on tasks
 // Copyright (C) 2025 Szymon Welgus
 //

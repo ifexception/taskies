@@ -85,7 +85,7 @@ void TaskBarIcon::ConfigureEventBindings()
         this
     );
 }
-//clang-format on
+// clang-format on
 
 wxMenu* TaskBarIcon::CreatePopupMenu()
 {
@@ -112,7 +112,7 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
     return menu;
 }
 
-void TaskBarIcon::OnNewTask(wxCommandEvent & event)
+void TaskBarIcon::OnNewTask(wxCommandEvent& event)
 {
     UI::dlg::TaskDialogLegacy newTaskDialog(pParent, pEnv, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
@@ -144,7 +144,13 @@ void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
     rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::ExecQueryTemplate, "TaskBarIcon::OnExit", Utils::sqlite::pragmas::Optimize, rc, err);
+        pLogger->error(LogMessage::ExecQueryTemplate,
+            "TaskBarIcon::OnExit",
+            Utils::sqlite::pragmas::Optimize,
+            rc,
+            err);
+
+        goto close;
     }
 
 close:
