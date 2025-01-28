@@ -52,7 +52,7 @@ TaskBarIcon::TaskBarIcon(wxFrame* parent,
 void TaskBarIcon::SetTaskBarIcon()
 {
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
-    SetIcon(iconBundle.GetIcon(wxDefaultSize), "Taskies is running from the system tray");
+    SetIcon(iconBundle.GetIcon(wxDefaultSize), "Taskies");
 }
 
 // clang-format off
