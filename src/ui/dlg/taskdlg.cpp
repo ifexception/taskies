@@ -111,11 +111,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     Create();
 
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
-        if (bIsEdit) {
-            SetSize(FromDIP(wxSize(420, 440)));
-        } else {
-            SetSize(FromDIP(wxSize(420, 320)));
-        }
+        SetSize(FromDIP(wxSize(420, 440)));
     }
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
