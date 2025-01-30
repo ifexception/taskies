@@ -63,7 +63,6 @@ wxDateTime MakeMaximumFromDate()
 
 // ISSUES:
 // Add wxTextCtrl with label: transform booleans
-// Allow hours and minutes as separate selectable columns
 
 namespace tks::UI::dlg
 {
@@ -499,6 +498,9 @@ void ExportToCsvDialog::FillControls()
         pBooleanHanderChoiceCtrl->Append(booleanHandlers[i], new ClientData<int>(i + 1));
     }
 
+    /* Dialog options */
+    pCloseDialogAfterExporting->SetValue(pCfg->CloseExportDialogAfterExporting());
+
     /* Date Controls */
     SetFromAndToDatePickerRanges();
 
@@ -792,6 +794,8 @@ void ExportToCsvDialog::OnCloseDialogAfterExportingCheck(wxCommandEvent& event)
     pLogger->info(
         "ExportToCsvDialog::OnCloseDialogAfterExportingCheck - Close dialog after exporting toggled to: \"{0}\"",
         event.IsChecked());
+
+    pCfg->CloseExportDialogAfterExporting(event.IsChecked());
 }
 
 void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
@@ -1256,22 +1260,24 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
             wxTheClipboard->Close();
         }
     } else {
-        std::ofstream configFile;
-        configFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
-        if (!configFile) {
+        std::ofstream exportFile;
+        exportFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
+        if (!exportFile) {
             pLogger->error("ExportToCsvDialog::OnExport - Failed to open export file at path {0}",
                 pSaveToFileTextCtrl->GetValue().ToStdString());
             return;
         }
 
-        configFile << exportedData;
+        exportFile << exportedData;
 
-        configFile.close();
+        exportFile.close();
     }
 
     std::string message =
         bExportToClipboard ? "Successfully exported data to clipboard" : "Successfully exported data to file";
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
+
+    pCfg->Save();
 
     if (bCloseDialogAfterExporting) {
         EndDialog(wxID_OK);
