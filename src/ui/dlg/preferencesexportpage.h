@@ -74,6 +74,7 @@ private:
 
     wxTextCtrl* pExportPathTextCtrl;
     wxButton* pBrowseExportPathButton;
+    wxCheckBox* pCloseDialogAfterExporting;
     wxListView* pPresetsListView;
     wxBitmapButton* pRemovePresetButton;
 
@@ -83,6 +84,7 @@ private:
     enum {
         tksIDC_EXPORT_PATH = wxID_HIGHEST + 100,
         tksIDC_EXPORT_PATH_BUTTON,
+        tksIDC_CLOSEDIALOGAFTEREXPORTING,
         tksIDC_PRESETS_LIST_VIEW,
         tksIDC_REMOVE_PRESET_BUTTON,
     };

@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2024 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -37,6 +37,9 @@ PreferencesExportPage::PreferencesExportPage(wxWindow* parent,
     , pLogger(logger)
     , pExportPathTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
+    , pCloseDialogAfterExporting(nullptr)
+    , pPresetsListView(nullptr)
+    , pRemovePresetButton(nullptr)
     , mSelectedItemIndexes()
     , mPresetSettings()
 {
@@ -63,12 +66,14 @@ bool PreferencesExportPage::IsValid()
 void PreferencesExportPage::Save()
 {
     pCfg->SetExportPath(pExportPathTextCtrl->GetValue().ToStdString());
+    pCfg->CloseExportDialogAfterExporting(pCloseDialogAfterExporting->GetValue());
     pCfg->SetPresets(mPresetSettings);
 }
 
 void PreferencesExportPage::Reset()
 {
     pExportPathTextCtrl->ChangeValue(pCfg->GetExportPath());
+    pCloseDialogAfterExporting->SetValue(false);
 
     pCfg->ClearPresets();
     pCfg->SetPresetCount(0);
@@ -99,11 +104,19 @@ void PreferencesExportPage::CreateControls()
         wxTE_LEFT | wxTE_READONLY);
     pBrowseExportPathButton = new wxButton(exportStaticBox, tksIDC_EXPORT_PATH_BUTTON, "Browse...");
     pBrowseExportPathButton->SetToolTip("Browse and select a directory to export data to");
-    exportPathSizer->Add(exportPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
     exportPathSizer->Add(
-        pExportPathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
-    exportPathSizer->Add(pBrowseExportPathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
-    exportStaticBoxSizer->Add(exportPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+        exportPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(4)).CenterVertical());
+    exportPathSizer->Add(pExportPathTextCtrl,
+        wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(4)).Expand().Proportion(1));
+    exportPathSizer->Add(pBrowseExportPathButton, wxSizerFlags().Border(wxLEFT, FromDIP(4)));
+    exportStaticBoxSizer->Add(
+        exportPathSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    pCloseDialogAfterExporting = new wxCheckBox(
+        exportStaticBox, tksIDC_CLOSEDIALOGAFTEREXPORTING, "Close dialog after exporting");
+    pCloseDialogAfterExporting->SetToolTip(
+        "Set whether to close dialog immediately after a successful export or keep it open");
+    exportStaticBoxSizer->Add(pCloseDialogAfterExporting, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Presets box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
@@ -126,7 +139,7 @@ void PreferencesExportPage::CreateControls()
         wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
     pPresetsListView->EnableCheckBoxes();
     pPresetsListView->SetToolTip("View and manage your export presets");
-    listViewSizer->Add(pPresetsListView, wxSizerFlags().Left().Border(wxALL, FromDIP(5)).Expand());
+    listViewSizer->Add(pPresetsListView, wxSizerFlags().Left().Border(wxALL, FromDIP(4)).Expand());
 
     int columnIndex = 0;
 
@@ -136,24 +149,27 @@ void PreferencesExportPage::CreateControls()
     presetNamesColumn.SetWidth(180);
     pPresetsListView->InsertColumn(columnIndex++, presetNamesColumn);
 
-    auto providedDeleteBitmap =
-        wxArtProvider::GetBitmapBundle(wxART_DELETE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    pRemovePresetButton = new wxBitmapButton(presetsStaticBox, tksIDC_REMOVE_PRESET_BUTTON, providedDeleteBitmap);
+    auto providedDeleteBitmap = wxArtProvider::GetBitmapBundle(
+        wxART_DELETE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    pRemovePresetButton =
+        new wxBitmapButton(presetsStaticBox, tksIDC_REMOVE_PRESET_BUTTON, providedDeleteBitmap);
     pRemovePresetButton->SetToolTip("Remove selected preset(s)");
-    buttonSizer->Add(pRemovePresetButton, wxSizerFlags().Right().Border(wxALL, FromDIP(5)));
+    buttonSizer->Add(pRemovePresetButton, wxSizerFlags().Right().Border(wxALL, FromDIP(4)));
 
     auto infoLabelSizer = new wxBoxSizer(wxHORIZONTAL);
     presetsStaticBoxSizer->Add(infoLabelSizer, wxSizerFlags().Expand());
 
-    auto providedInfoBitmap =
-        wxArtProvider::GetBitmapBundle(wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    auto providedInfoBitmap = wxArtProvider::GetBitmapBundle(
+        wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     auto infoStaticBitmap = new wxStaticBitmap(presetsStaticBox, wxID_ANY, providedInfoBitmap);
     infoLabelSizer->Add(infoStaticBitmap, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
-    auto presetManagementLabel = new wxStaticText(
-        presetsStaticBox, wxID_ANY, "Presets creation and management is done from the \"Export to CSV\" dialog");
-    presetManagementLabel->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
-    infoLabelSizer->Add(presetManagementLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    auto presetManagementLabel = new wxStaticText(presetsStaticBox,
+        wxID_ANY,
+        "Presets creation and management is done from the \"Export to CSV\" dialog");
+    presetManagementLabel->SetFont(
+        wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    infoLabelSizer->Add(presetManagementLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     SetSizerAndFit(sizer);
 }
@@ -201,6 +217,8 @@ void PreferencesExportPage::DataToControls()
     pExportPathTextCtrl->ChangeValue(pCfg->GetExportPath());
     pExportPathTextCtrl->SetToolTip(pCfg->GetExportPath());
 
+    pCloseDialogAfterExporting->SetValue(pCfg->CloseExportDialogAfterExporting());
+
     for (const auto& presetSetting : pCfg->GetPresets()) {
         pPresetsListView->InsertItem(0, presetSetting.Name);
     }
@@ -215,8 +233,8 @@ void PreferencesExportPage::OnOpenDirectoryForExportLocation(wxCommandEvent& eve
         directoryToOpen = pCfg->GetExportPath();
     }
 
-    auto openDirDialog =
-        new wxDirDialog(this, "Select an export directory", directoryToOpen, wxDD_DEFAULT_STYLE, wxDefaultPosition);
+    auto openDirDialog = new wxDirDialog(
+        this, "Select an export directory", directoryToOpen, wxDD_DEFAULT_STYLE, wxDefaultPosition);
     int res = openDirDialog->ShowModal();
 
     if (res == wxID_OK) {
@@ -250,7 +268,8 @@ void PreferencesExportPage::OnPresetItemUncheck(wxListEvent& event)
 {
     long index = event.GetIndex();
     mSelectedItemIndexes.erase(
-        std::remove(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), index), mSelectedItemIndexes.end());
+        std::remove(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), index),
+        mSelectedItemIndexes.end());
 
     std::string name;
 
@@ -262,13 +281,15 @@ void PreferencesExportPage::OnPresetItemUncheck(wxListEvent& event)
 
     name = item.GetText().ToStdString();
 
-    pLogger->info("PreferencesExportPage::OnPresetItemUncheck - Unselected preset name \"{0}\"", name);
+    pLogger->info(
+        "PreferencesExportPage::OnPresetItemUncheck - Unselected preset name \"{0}\"", name);
 }
 
 void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
 {
     if (mSelectedItemIndexes.size() == 0) {
-        pLogger->info("PreferencesExportPage::OnRemovePreset - No items (presets) selected to remove");
+        pLogger->info(
+            "PreferencesExportPage::OnRemovePreset - No items (presets) selected to remove");
         return;
     }
 
