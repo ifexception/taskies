@@ -21,6 +21,7 @@ todayAlwaysExpanded=false
 
 [export]
 exportPath=""
+closeExportDialogAfterExporting=false
 presetCount=0
 
 [[presets]]

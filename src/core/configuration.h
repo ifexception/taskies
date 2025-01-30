@@ -116,6 +116,9 @@ public:
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
 
+    bool CloseExportDialogAfterExporting() const;
+    void CloseExportDialogAfterExporting(const bool value);
+
     int GetPresetCount() const;
     void SetPresetCount(const int value);
 
@@ -161,6 +164,7 @@ private:
         bool TodayAlwaysExpanded;
 
         std::string ExportPath;
+        bool CloseExportDialogAfterExporting;
         int PresetCount;
 
         std::vector<PresetSettings> PresetSettings;

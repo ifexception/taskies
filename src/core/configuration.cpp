@@ -57,7 +57,8 @@ Configuration::PresetSettings::PresetSettings(Common::Preset preset)
     }
 }
 
-Configuration::Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger)
+Configuration::Configuration(std::shared_ptr<Environment> env,
+    std::shared_ptr<spdlog::logger> logger)
     : pEnv(env)
     , pLogger(logger)
 {
@@ -68,14 +69,17 @@ bool Configuration::Load()
     auto configPath = pEnv->GetConfigurationPath();
     bool exists = std::filesystem::exists(configPath);
 
-    pLogger->info("Configuration - Probing for configuration file at path {0}", configPath.string());
+    pLogger->info(
+        "Configuration - Probing for configuration file at path {0}", configPath.string());
 
     if (!exists) {
-        pLogger->error("Configuration - Failed to find configuration file at {0}", configPath.string());
+        pLogger->error(
+            "Configuration - Failed to find configuration file at {0}", configPath.string());
         return false;
     }
 
-    pLogger->info("Configuration - Successfully located configuration file at path {0}", configPath.string());
+    pLogger->info(
+        "Configuration - Successfully located configuration file at path {0}", configPath.string());
 
     try {
         auto root = toml::parse(configPath.string());
@@ -87,8 +91,9 @@ bool Configuration::Load()
         GetExportConfig(root);
         GetPresetsConfigEx(root);
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "Configuration - A TOML syntax/parse error occurred when parsing configuration file {0}", error.what());
+        pLogger->error("Configuration - A TOML syntax/parse error occurred when parsing "
+                       "configuration file {0}",
+            error.what());
         return false;
     }
 
@@ -147,7 +152,8 @@ bool Configuration::Save()
     root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
 
     root.at(Sections::TaskSection)["minutesIncrement"] = mSettings.TaskMinutesIncrement;
-    root.at(Sections::TaskSection)["showProjectAssociatedCategories"] = mSettings.ShowProjectAssociatedCategories;
+    root.at(Sections::TaskSection)["showProjectAssociatedCategories"] =
+        mSettings.ShowProjectAssociatedCategories;
     root.at(Sections::TaskSection)["useLegacyTaskDialog"] = mSettings.UseLegacyTaskDialog;
 
     // Tasks View section
@@ -157,6 +163,7 @@ bool Configuration::Save()
     // Export section
     root.at(Sections::ExportSection).as_table_fmt().fmt = toml::table_format::multiline;
     root.at(Sections::ExportSection)["exportPath"] = mSettings.ExportPath;
+    root.at(Sections::ExportSection)["closeExportDialogAfterExporting"] = mSettings.CloseExportDialogAfterExporting;
     root.at(Sections::ExportSection)["presetCount"] = mSettings.PresetCount;
 
     // Presets section
@@ -212,12 +219,14 @@ bool Configuration::Save()
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
-    pLogger->info("Configuration - Probing for configuration file for writing at path {0}", configFilePath);
+    pLogger->info(
+        "Configuration - Probing for configuration file for writing at path {0}", configFilePath);
 
     std::ofstream configFile;
     configFile.open(configFilePath, std::ios_base::out);
     if (!configFile) {
-        pLogger->error("Configuration - Failed to open configuration file at path {0}", configFilePath);
+        pLogger->error(
+            "Configuration - Failed to open configuration file at path {0}", configFilePath);
         return false;
     }
 
@@ -245,6 +254,8 @@ bool Configuration::RestoreDefaults()
     UseLegacyTaskDialog(false);
 
     SetExportPath(pEnv->GetExportPath().string());
+    CloseExportDialogAfterExporting(false);
+    SetPresetCount(0);
 
     // clang-format off
     toml::value root(
@@ -286,6 +297,7 @@ bool Configuration::RestoreDefaults()
                 Sections::ExportSection,
                 toml::table {
                     { "exportPath", pEnv->GetExportPath().string() },
+                    { "closeExportDialogAfterExporting", false },
                     { "presetCount", 0 }
                 }
             },
@@ -304,12 +316,14 @@ bool Configuration::RestoreDefaults()
 
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
-    pLogger->info("Configuration - Probing for configuration file for writing at path {0}", configFilePath);
+    pLogger->info(
+        "Configuration - Probing for configuration file for writing at path {0}", configFilePath);
 
     std::ofstream configFile;
     configFile.open(configFilePath, std::ios_base::out);
     if (!configFile) {
-        pLogger->error("Configuration - Failed to open configuration file at path {0}", configFilePath);
+        pLogger->error(
+            "Configuration - Failed to open configuration file at path {0}", configFilePath);
         return false;
     }
 
@@ -327,8 +341,8 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
     try {
         root = toml::parse(configPath);
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "Configuration::SaveExportPreset - A TOML syntax/parse error occurred when parsing configuration file {0}",
+        pLogger->error("Configuration::SaveExportPreset - A TOML syntax/parse error occurred when "
+                       "parsing configuration file {0}",
             error.what());
         return false;
     }
@@ -370,7 +384,8 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 
     presets.push_back(std::move(presetValue));
 
-    pLogger->info("Configuration::SaveExportPreset - Preset serialized to:\n{0}", toml::format(root));
+    pLogger->info(
+        "Configuration::SaveExportPreset - Preset serialized to:\n{0}", toml::format(root));
 
     // update/save ptr data
     PresetSettings newPreset(presetToSave);
@@ -379,7 +394,8 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
     // save settings to file
     const std::string presetConfigString = toml::format(root);
 
-    pLogger->info("Configuration - Probing for configuration file for appending preset at path {0}", configPath);
+    pLogger->info("Configuration - Probing for configuration file for appending preset at path {0}",
+        configPath);
 
     std::ofstream configFileStream;
     configFileStream.open(configPath, std::ios_base::out);
@@ -403,8 +419,9 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
     try {
         root = toml::parse(configPath);
     } catch (const toml::syntax_error& error) {
-        pLogger->error("Configuration::UpdateExportPreset - A TOML syntax/parse error occurred when parsing "
-                       "configuration file {0}",
+        pLogger->error(
+            "Configuration::UpdateExportPreset - A TOML syntax/parse error occurred when parsing "
+            "configuration file {0}",
             error.what());
         return false;
     }
@@ -445,7 +462,8 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
         }
     }
 
-    pLogger->info("Configuration::UpdateExportPreset - Preset serialized to:\n{0}", toml::format(root));
+    pLogger->info(
+        "Configuration::UpdateExportPreset - Preset serialized to:\n{0}", toml::format(root));
 
     // update ptr data
     PresetSettings updatedPresetSettings(presetToUpdate);
@@ -453,13 +471,16 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
 
     const std::string presetConfigString = toml::format(root);
 
-    pLogger->info("Configuration::UpdateExportPreset - Probing for configuration file for appending preset at path {0}",
+    pLogger->info("Configuration::UpdateExportPreset - Probing for configuration file for "
+                  "appending preset at path {0}",
         configPath);
 
     std::ofstream configFileStream;
     configFileStream.open(configPath, std::ios_base::out);
     if (!configFileStream) {
-        pLogger->error("Configuration::UpdateExportPreset - Failed to open configuration file at path {0}", configPath);
+        pLogger->error(
+            "Configuration::UpdateExportPreset - Failed to open configuration file at path {0}",
+            configPath);
         return false;
     }
 
@@ -478,8 +499,8 @@ bool Configuration::TryUnsetDefaultPreset()
     try {
         root = toml::parse(configPath);
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "Configuration::TryUnsetDefaultPreset - A TOML syntax/parse error occurred when parsing file {0}",
+        pLogger->error("Configuration::TryUnsetDefaultPreset - A TOML syntax/parse error occurred "
+                       "when parsing file {0}",
             error.what());
         return false;
     }
@@ -493,19 +514,21 @@ bool Configuration::TryUnsetDefaultPreset()
         preset["isDefault"] = false;
     }
 
-    pLogger->info("Configuration::TryUnsetDefaultPreset - Preset serialized to:\n{0}", toml::format(root));
+    pLogger->info(
+        "Configuration::TryUnsetDefaultPreset - Preset serialized to:\n{0}", toml::format(root));
 
     const std::string presetConfigString = toml::format(root);
 
-    pLogger->info(
-        "Configuration::TryUnsetDefaultPreset - Probing for configuration file for appending preset at path {0}",
+    pLogger->info("Configuration::TryUnsetDefaultPreset - Probing for configuration file for "
+                  "appending preset at path {0}",
         configPath);
 
     std::ofstream configFileStream;
     configFileStream.open(configPath, std::ios_base::out);
     if (!configFileStream) {
         pLogger->error(
-            "Configuration::TryUnsetDefaultPreset - Failed to open configuration file at path {0}", configPath);
+            "Configuration::TryUnsetDefaultPreset - Failed to open configuration file at path {0}",
+            configPath);
         return false;
     }
 
@@ -656,6 +679,16 @@ void Configuration::SetExportPath(const std::string& value)
     mSettings.ExportPath = value;
 }
 
+bool Configuration::CloseExportDialogAfterExporting() const
+{
+    return mSettings.CloseExportDialogAfterExporting;
+}
+
+void Configuration::CloseExportDialogAfterExporting(const bool value)
+{
+    mSettings.CloseExportDialogAfterExporting = value;
+}
+
 int Configuration::GetPresetCount() const
 {
     return mSettings.PresetCount;
@@ -730,7 +763,8 @@ void Configuration::GetTasksConfig(const toml::value& root)
     const auto& taskSection = toml::find(root, Sections::TaskSection);
 
     mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
-    mSettings.ShowProjectAssociatedCategories = toml::find<bool>(taskSection, "showProjectAssociatedCategories");
+    mSettings.ShowProjectAssociatedCategories =
+        toml::find<bool>(taskSection, "showProjectAssociatedCategories");
     mSettings.UseLegacyTaskDialog = toml::find<bool>(taskSection, "useLegacyTaskDialog");
 }
 
@@ -746,6 +780,8 @@ void Configuration::GetExportConfig(const toml::value& root)
     const auto& exportSection = toml::find(root, Sections::ExportSection);
 
     mSettings.ExportPath = toml::find<std::string>(exportSection, "exportPath");
+    mSettings.CloseExportDialogAfterExporting =
+        toml::find<bool>(exportSection, "closeExportDialogAfterExporting");
     mSettings.PresetCount = toml::find<int>(exportSection, "presetCount");
 }
 
@@ -763,27 +799,40 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
             preset.Uuid = root.at(Sections::PresetsSection).at(i).at("uuid").as_string();
             preset.Name = root.at(Sections::PresetsSection).at(i).at("name").as_string();
             preset.IsDefault = root.at(Sections::PresetsSection).at(i).at("isDefault").as_boolean();
-            preset.Delimiter =
-                static_cast<DelimiterType>(root.at(Sections::PresetsSection).at(i).at("delimiter").as_integer());
+            preset.Delimiter = static_cast<DelimiterType>(
+                root.at(Sections::PresetsSection).at(i).at("delimiter").as_integer());
             preset.TextQualifier = static_cast<TextQualifierType>(
                 root.at(Sections::PresetsSection).at(i).at("textQualifier").as_integer());
-            preset.EmptyValuesHandler =
-                static_cast<EmptyValues>(root.at(Sections::PresetsSection).at(i).at("emptyValues").as_integer());
-            preset.NewLinesHandler =
-                static_cast<NewLines>(root.at(Sections::PresetsSection).at(i).at("newLines").as_integer());
-            preset.BooleanHandler =
-                static_cast<BooleanHandler>(root.at(Sections::PresetsSection).at(i).at("booleans").as_integer());
-            preset.ExcludeHeaders = root.at(Sections::PresetsSection).at(i).at("excludeHeaders").as_boolean();
+            preset.EmptyValuesHandler = static_cast<EmptyValues>(
+                root.at(Sections::PresetsSection).at(i).at("emptyValues").as_integer());
+            preset.NewLinesHandler = static_cast<NewLines>(
+                root.at(Sections::PresetsSection).at(i).at("newLines").as_integer());
+            preset.BooleanHandler = static_cast<BooleanHandler>(
+                root.at(Sections::PresetsSection).at(i).at("booleans").as_integer());
+            preset.ExcludeHeaders =
+                root.at(Sections::PresetsSection).at(i).at("excludeHeaders").as_boolean();
 
             auto columnsSize = root.at(Sections::PresetsSection).at(i).at("columns").size();
             for (size_t j = 0; j < columnsSize; j++) {
                 PresetColumnSettings presetColumn;
-                presetColumn.Column =
-                    root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("column").as_string();
-                presetColumn.OriginalColumn =
-                    root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("originalColumn").as_string();
-                presetColumn.Order = static_cast<int>(
-                    root.at(Sections::PresetsSection).at(i).at("columns").at(j).at("order").as_integer());
+                presetColumn.Column = root.at(Sections::PresetsSection)
+                                          .at(i)
+                                          .at("columns")
+                                          .at(j)
+                                          .at("column")
+                                          .as_string();
+                presetColumn.OriginalColumn = root.at(Sections::PresetsSection)
+                                                  .at(i)
+                                                  .at("columns")
+                                                  .at(j)
+                                                  .at("originalColumn")
+                                                  .as_string();
+                presetColumn.Order = static_cast<int>(root.at(Sections::PresetsSection)
+                                                          .at(i)
+                                                          .at("columns")
+                                                          .at(j)
+                                                          .at("order")
+                                                          .as_integer());
 
                 preset.Columns.push_back(presetColumn);
             }
