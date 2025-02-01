@@ -68,6 +68,7 @@ set (SRC_DIALOGS
     "ui/wizards/setupwizard.cpp"
     "ui/dlg/exporttocsvdlg.cpp"
     "ui/dlg/preferencesexportpage.cpp"
+    "ui/dlg/quickexporttocsvdlg.cpp"
 )
 
 set (SRC
