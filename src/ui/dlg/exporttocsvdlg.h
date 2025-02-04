@@ -169,7 +169,6 @@ private:
     Services::Export::CsvExporter mCsvExporter;
 
     bool bExportToClipboard;
-    bool bCloseDialogAfterExporting;
 
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,

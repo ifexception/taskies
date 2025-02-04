@@ -115,7 +115,6 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , mCsvOptions()
     , mCsvExporter(pCfg->GetDatabasePath(), pLogger)
     , bExportToClipboard(false)
-    , bCloseDialogAfterExporting(false)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -790,12 +789,12 @@ void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnCloseDialogAfterExportingCheck(wxCommandEvent& event)
 {
-    bCloseDialogAfterExporting = event.IsChecked();
     pLogger->info(
         "ExportToCsvDialog::OnCloseDialogAfterExportingCheck - Close dialog after exporting toggled to: \"{0}\"",
         event.IsChecked());
 
     pCfg->CloseExportDialogAfterExporting(event.IsChecked());
+    pCfg->Save();
 }
 
 void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
@@ -1279,7 +1278,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     pCfg->Save();
 
-    if (bCloseDialogAfterExporting) {
+    if (pCfg->CloseExportDialogAfterExporting()) {
         EndDialog(wxID_OK);
     }
 }
