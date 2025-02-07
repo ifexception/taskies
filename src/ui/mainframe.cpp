@@ -61,6 +61,7 @@
 #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exporttocsvdlg.h"
 #include "../ui/dlg/taskdlg.h"
+#include "../ui/dlg/quickexporttocsvdlg.h"
 
 #include "events.h"
 #include "notificationclientdata.h"
@@ -95,6 +96,7 @@ EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
 EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnNewCategory)
 EVT_MENU(ID_TASKS_BACKUPDATABASE, MainFrame::OnTasksBackupDatabase)
 EVT_MENU(ID_TASKS_EXPORTTOCSV, MainFrame::OnTasksExportToCsv)
+EVT_MENU(ID_TASKS_QUICKEXPORTTOCSV, MainFrame::OnTasksQuickExportToCsv)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
@@ -277,6 +279,7 @@ void MainFrame::CreateControls()
         fileTasksMenuItem->Enable(false);
     }
     fileTasksMenu->Append(ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV format");
+    fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV, "Q&uick Export to CSV", "Export selected data to CSV format using preexisting options");
     fileMenu->AppendSubMenu(fileTasksMenu, "Tasks");
     fileMenu->AppendSeparator();
 
@@ -633,6 +636,12 @@ void MainFrame::OnTasksExportToCsv(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::ExportToCsvDialog exportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
     exportToCsv.ShowModal();
+}
+
+void MainFrame::OnTasksQuickExportToCsv(wxCommandEvent& event)
+{
+    UI::dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
+    quickExportToCsv.ShowModal();
 }
 
 void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
