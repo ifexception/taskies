@@ -72,6 +72,14 @@ private:
     void OnToDateSelection(wxDateEvent& event);
     void OnExportTodaysTasksOnlyCheck(wxCommandEvent& event);
 
+    void OnPresetChoiceSelection(wxCommandEvent& event);
+
+    void OnOK(wxCommandEvent& event);
+
+    void SetFromAndToDatePickerRanges();
+    void SetFromDateAndDatePicker();
+    void SetToDateAndDatePicker();
+
     wxWindow* pParent;
 
     std::shared_ptr<Core::Configuration> pCfg;
@@ -92,11 +100,15 @@ private:
     wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
 
+    wxChoice* pPresetsChoiceCtrl;
+
     wxButton* pOKButton;
     wxButton* pCancelButton;
 
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
+
+    bool bExportToClipboard;
 
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
@@ -104,7 +116,8 @@ private:
         tksIDC_BROWSE_EXPORT_PATH_CTRL,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
-        tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL
+        tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL,
+        tksIDC_PRESET_CHOICE_CTRL,
     };
 };
 } // namespace UI::dlg
