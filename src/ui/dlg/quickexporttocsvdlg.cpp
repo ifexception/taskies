@@ -82,6 +82,7 @@ QuickExportToCsvDialog::QuickExportToCsvDialog(wxWindow* parent,
     , mFromDate()
     , mToDate()
     , bExportToClipboard(false)
+    , bExportTodaysTasksOnly(false)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -236,7 +237,7 @@ void QuickExportToCsvDialog::FillControls()
         pLogger->info("ExportToCsvDialog::FillControls - No default preset found");
     } else {
         auto& selectedPresetToApply = *defaultPresetToApplyIterator;
-        //ApplyPreset(selectedPresetToApply);
+        // ApplyPreset(selectedPresetToApply);
 
         pPresetsChoiceCtrl->SetStringSelection(selectedPresetToApply.Name);
     }
@@ -271,6 +272,13 @@ void QuickExportToCsvDialog::ConfigureEventBindings()
         &QuickExportToCsvDialog::OnToDateSelection,
         this,
         tksIDC_DATE_TO_CTRL
+    );
+
+    pExportTodaysTasksOnlyCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &QuickExportToCsvDialog::OnExportTodaysTasksOnlyCheck,
+        this,
+        tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL
     );
 
     pPresetsChoiceCtrl->Bind(
@@ -385,7 +393,29 @@ void QuickExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     mToDate = newToDate;
 }
 
-void QuickExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event) {}
+void QuickExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
+{
+    bExportTodaysTasksOnly = event.IsChecked();
+
+    if (bExportTodaysTasksOnly) {
+        pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+        mFromCtrlDate = pDateStore->TodayDateSeconds;
+
+        pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+        mToCtrlDate = pDateStore->TodayDateSeconds;
+
+        pFromDatePickerCtrl->Disable();
+        pToDatePickerCtrl->Disable();
+    } else {
+        SetFromAndToDatePickerRanges();
+
+        SetFromDateAndDatePicker();
+        SetToDateAndDatePicker();
+
+        pFromDatePickerCtrl->Enable();
+        pToDatePickerCtrl->Enable();
+    }
+}
 
 void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event) {}
 

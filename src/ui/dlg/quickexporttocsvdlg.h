@@ -109,6 +109,7 @@ private:
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
 
     bool bExportToClipboard;
+    bool bExportTodaysTasksOnly;
 
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
