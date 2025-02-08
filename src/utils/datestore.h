@@ -39,6 +39,7 @@ struct DateStore {
     std::chrono::time_point<std::chrono::system_clock, date::days> MondayDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> SundayDate;
 
+    long long TodayDateSeconds;
     long long MondayDateSeconds;
     long long SundayDateSeconds;
 

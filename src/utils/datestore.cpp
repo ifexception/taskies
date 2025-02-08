@@ -109,6 +109,9 @@ void DateStore::Initialize()
     PrintLastDayOfMonth = date::format("%F", lastDayOfCurrentMonth);
     pLogger->info("DateStore::Initialize - Last day of the month: {0}", PrintLastDayOfMonth);
 
+    auto todayTimestamp = TodayDate.time_since_epoch();
+    TodayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(todayTimestamp).count();
+
     auto mondayTimestamp = MondayDate.time_since_epoch();
     MondayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
 
