@@ -26,7 +26,15 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
+#include "../../common/enums.h"
+
 #include "../../core/configuration.h"
+
+#include "../../services/export/availablecolumns.h"
+#include "../../services/export/columnexportmodel.h"
+#include "../../services/export/columnjoinprojection.h"
+#include "../../services/export/projection.h"
+#include "../../services/export/projectionbuilder.h"
 
 #include "../clientdata.h"
 #include "../events.h"
@@ -83,6 +91,8 @@ QuickExportToCsvDialog::QuickExportToCsvDialog(wxWindow* parent,
     , mToDate()
     , bExportToClipboard(false)
     , bExportTodaysTasksOnly(false)
+    , mCsvOptions()
+    , mCsvExporter(pCfg->GetDatabasePath(), pLogger)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -237,7 +247,7 @@ void QuickExportToCsvDialog::FillControls()
         pLogger->info("ExportToCsvDialog::FillControls - No default preset found");
     } else {
         auto& selectedPresetToApply = *defaultPresetToApplyIterator;
-        // ApplyPreset(selectedPresetToApply);
+        ApplyPreset(selectedPresetToApply);
 
         pPresetsChoiceCtrl->SetStringSelection(selectedPresetToApply.Name);
     }
@@ -417,9 +427,85 @@ void QuickExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
     }
 }
 
-void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event) {}
+void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event)
+{
+    const std::string TAG = "QuickExportToCsvDialog::OnPresetChoiceSelection";
+    pLogger->info("{0} - Begin to apply selected preset", TAG);
 
-void QuickExportToCsvDialog::OnOK(wxCommandEvent& event) {}
+    int presetIndex = pPresetsChoiceCtrl->GetSelection();
+    ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
+        pPresetsChoiceCtrl->GetClientObject(presetIndex));
+
+    if (presetData->GetValue().empty()) {
+        return;
+    }
+
+    auto presetUuid = presetData->GetValue();
+
+    pLogger->info("{0} - Applying selected preset uuid \"{1}\"", TAG, presetUuid);
+
+    auto presets = pCfg->GetPresets();
+    const auto& selectedPresetToApplyIterator = std::find_if(
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings& preset) {
+            return preset.Uuid == presetUuid;
+        });
+
+    if (selectedPresetToApplyIterator == presets.end()) {
+        pLogger->warn("{0} - Could not find preset uuid \"{1}\" in config", TAG, presetUuid);
+        return;
+    }
+
+    auto& selectedPresetToApply = *selectedPresetToApplyIterator;
+    ApplyPreset(selectedPresetToApply);
+}
+
+void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
+{
+    const std::string TAG = "QuickExportToCsvDialog::OnOK";
+    pLogger->info("{0} - Begin export", TAG);
+
+    int presetIndex = pPresetsChoiceCtrl->GetSelection();
+    ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
+        pPresetsChoiceCtrl->GetClientObject(presetIndex));
+
+    if (presetData->GetValue().empty()) {
+        return;
+    }
+
+    auto presetUuid = presetData->GetValue();
+
+    pLogger->info("{0} - Get selected preset uuid \"{1}\"", TAG, presetUuid);
+
+    auto presets = pCfg->GetPresets();
+    const auto& selectedPresetIterator = std::find_if(
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings& preset) {
+            return preset.Uuid == presetUuid;
+        });
+
+    auto& selectedPreset = *selectedPresetIterator;
+
+    const auto& columnsToExport = selectedPreset.Columns;
+    pLogger->info("{0} - Count of columns to export: \"{1}\"", TAG, columnsToExport.size());
+
+    if (columnsToExport.size() == 0) {
+        wxMessageBox("No columns to export in selected preset!",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_WARNING);
+        return;
+    }
+
+    auto columnExportModels = Services::Export::BuildFromPreset(columnsToExport);
+    Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+    std::vector<Services::Export::Projection> projections =
+        projectionBuilder.BuildProjections(columnExportModels);
+    std::vector<Services::Export::ColumnJoinProjection> joinProjections =
+        projectionBuilder.BuildJoinProjections(columnExportModels);
+
+    const std::string fromDate =
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
+    const std::string toDate =
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
+}
 
 void QuickExportToCsvDialog::SetFromAndToDatePickerRanges()
 {
@@ -474,5 +560,19 @@ void QuickExportToCsvDialog::SetToDateAndDatePicker()
 
     pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - Reset mToCtrlDate to: {0}",
         mToCtrlDate.FormatISODate().ToStdString());
+}
+
+void QuickExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetSettings)
+{
+    const std::string TAG = "QuickExportToCsvDialog::ApplyPreset";
+    pLogger->info("{0} - Begin to apply selected preset", TAG);
+
+    mCsvOptions.Delimiter = presetSettings.Delimiter;
+    mCsvOptions.TextQualifier = presetSettings.TextQualifier;
+    mCsvOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
+    mCsvOptions.NewLinesHandler = presetSettings.NewLinesHandler;
+    mCsvOptions.BooleanHandler = presetSettings.BooleanHandler;
+
+    mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
 }
 } // namespace tks::UI::dlg

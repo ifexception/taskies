@@ -35,15 +35,14 @@
 
 #include "../../common/common.h"
 
+#include "../../core/configuration.h"
+
+#include "../../services/export/csvexporter.h"
+#include "../../services/export/csvexportoptions.h"
+
 #include "../../utils/datestore.h"
 
-namespace tks
-{
-namespace Core
-{
-class Configuration;
-} // namespace Core
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 class QuickExportToCsvDialog : public wxDialog
 {
@@ -80,6 +79,8 @@ private:
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
 
+    void ApplyPreset(Core::Configuration::PresetSettings& presetSettings);
+
     wxWindow* pParent;
 
     std::shared_ptr<Core::Configuration> pCfg;
@@ -111,6 +112,9 @@ private:
     bool bExportToClipboard;
     bool bExportTodaysTasksOnly;
 
+    Services::Export::CsvExportOptions mCsvOptions;
+    Services::Export::CsvExporter mCsvExporter;
+
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
         tksIDC_SAVE_TO_FILE_CTRL,
@@ -121,5 +125,4 @@ private:
         tksIDC_PRESET_CHOICE_CTRL,
     };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg
