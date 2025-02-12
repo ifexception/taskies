@@ -111,6 +111,7 @@ set (SRC
     "services/export/csvexportprocessor.cpp"
     "services/export/csvexporter.cpp"
     "services/export/csvexportmappedoptions.cpp"
+    "services/export/columnexportmodel.cpp"
     "services/taskduration/taskdurationservice.cpp"
     ${SRC_MODELS}
     ${SRC_PERSISTENCE}
