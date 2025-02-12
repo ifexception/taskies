@@ -37,7 +37,7 @@ PreferencesExportPage::PreferencesExportPage(wxWindow* parent,
     , pLogger(logger)
     , pExportPathTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
-    , pCloseDialogAfterExporting(nullptr)
+    , pCloseDialogAfterExportingCheckBoxCtrl(nullptr)
     , pPresetsListView(nullptr)
     , pRemovePresetButton(nullptr)
     , mSelectedItemIndexes()
@@ -66,14 +66,14 @@ bool PreferencesExportPage::IsValid()
 void PreferencesExportPage::Save()
 {
     pCfg->SetExportPath(pExportPathTextCtrl->GetValue().ToStdString());
-    pCfg->CloseExportDialogAfterExporting(pCloseDialogAfterExporting->GetValue());
+    pCfg->CloseExportDialogAfterExporting(pCloseDialogAfterExportingCheckBoxCtrl->GetValue());
     pCfg->SetPresets(mPresetSettings);
 }
 
 void PreferencesExportPage::Reset()
 {
     pExportPathTextCtrl->ChangeValue(pCfg->GetExportPath());
-    pCloseDialogAfterExporting->SetValue(false);
+    pCloseDialogAfterExportingCheckBoxCtrl->SetValue(false);
 
     pCfg->ClearPresets();
     pCfg->SetPresetCount(0);
@@ -112,11 +112,11 @@ void PreferencesExportPage::CreateControls()
     exportStaticBoxSizer->Add(
         exportPathSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    pCloseDialogAfterExporting = new wxCheckBox(
+    pCloseDialogAfterExportingCheckBoxCtrl = new wxCheckBox(
         exportStaticBox, tksIDC_CLOSEDIALOGAFTEREXPORTING, "Close dialog after exporting");
-    pCloseDialogAfterExporting->SetToolTip(
+    pCloseDialogAfterExportingCheckBoxCtrl->SetToolTip(
         "Set whether to close dialog immediately after a successful export or keep it open");
-    exportStaticBoxSizer->Add(pCloseDialogAfterExporting, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    exportStaticBoxSizer->Add(pCloseDialogAfterExportingCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Presets box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
@@ -217,7 +217,7 @@ void PreferencesExportPage::DataToControls()
     pExportPathTextCtrl->ChangeValue(pCfg->GetExportPath());
     pExportPathTextCtrl->SetToolTip(pCfg->GetExportPath());
 
-    pCloseDialogAfterExporting->SetValue(pCfg->CloseExportDialogAfterExporting());
+    pCloseDialogAfterExportingCheckBoxCtrl->SetValue(pCfg->CloseExportDialogAfterExporting());
 
     for (const auto& presetSetting : pCfg->GetPresets()) {
         pPresetsListView->InsertItem(0, presetSetting.Name);

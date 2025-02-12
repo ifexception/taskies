@@ -233,8 +233,8 @@ private:
     StatusBar* pStatusBar;
 
     NotificationPopupWindow* pNotificationPopupWindow;
-    wxDatePickerCtrl* pFromDateCtrl;
-    wxDatePickerCtrl* pToDateCtrl;
+    wxDatePickerCtrl* pFromDatePickerCtrl;
+    wxDatePickerCtrl* pToDatePickerCtrl;
     wxBitmapButton* pNotificationButton;
     wxBitmap mBellBitmap;
     wxBitmap mBellNotificationBitmap;

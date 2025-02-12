@@ -74,7 +74,7 @@ private:
 
     wxTextCtrl* pExportPathTextCtrl;
     wxButton* pBrowseExportPathButton;
-    wxCheckBox* pCloseDialogAfterExporting;
+    wxCheckBox* pCloseDialogAfterExportingCheckBoxCtrl;
     wxListView* pPresetsListView;
     wxBitmapButton* pRemovePresetButton;
 

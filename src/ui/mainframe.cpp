@@ -152,8 +152,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pTaskBarIcon(nullptr)
     , pStatusBar(nullptr)
     , pNotificationPopupWindow(nullptr)
-    , pFromDateCtrl(nullptr)
-    , pToDateCtrl(nullptr)
+    , pFromDatePickerCtrl(nullptr)
+    , pToDatePickerCtrl(nullptr)
     , pNotificationButton(nullptr)
     , mBellBitmap(wxNullBitmap)
     , mBellNotificationBitmap(wxNullBitmap)
@@ -335,15 +335,15 @@ void MainFrame::CreateControls()
     auto topSizer = new wxBoxSizer(wxHORIZONTAL);
 
     auto fromDateLabel = new wxStaticText(framePanel, wxID_ANY, "From: ");
-    pFromDateCtrl = new wxDatePickerCtrl(framePanel, tksIDC_FROMDATE);
+    pFromDatePickerCtrl = new wxDatePickerCtrl(framePanel, tksIDC_FROMDATE);
 
     auto toDateLabel = new wxStaticText(framePanel, wxID_ANY, "To: ");
-    pToDateCtrl = new wxDatePickerCtrl(framePanel, tksIDC_TODATE);
+    pToDatePickerCtrl = new wxDatePickerCtrl(framePanel, tksIDC_TODATE);
 
     topSizer->Add(fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    topSizer->Add(pFromDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    topSizer->Add(pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     topSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    topSizer->Add(pToDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    topSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     topSizer->AddStretchSpacer();
 
@@ -1108,7 +1108,7 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         SetFromDateAndDatePicker();
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed to date");
         toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pFromDateCtrl);
+        toolTip.ShowFor(pFromDatePickerCtrl);
         return;
     }
 
@@ -1203,7 +1203,7 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         SetFromDateAndDatePicker();
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past from date");
         toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pToDateCtrl);
+        toolTip.ShowFor(pToDatePickerCtrl);
         return;
     }
 
@@ -1515,24 +1515,24 @@ void MainFrame::QueueFetchTasksErrorNotificationEvent()
 
 void MainFrame::SetFromAndToDatePickerRanges()
 {
-    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
+    pFromDatePickerCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
 
     wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
 
-    if (pFromDateCtrl->GetRange(&fromFromDate, &toFromDate)) {
-        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pFromDateCtrl range is [{0} - {1}]",
+    if (pFromDatePickerCtrl->GetRange(&fromFromDate, &toFromDate)) {
+        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pFromDatePickerCtrl range is [{0} - {1}]",
             fromFromDate.FormatISODate().ToStdString(),
             toFromDate.FormatISODate().ToStdString());
     }
 
     wxDateSpan oneDay(0, 0, 0, 1);
     auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
-    pToDateCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
+    pToDatePickerCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
 
     wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
 
-    if (pToDateCtrl->GetRange(&toFromDate2, &toToDate)) {
-        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pToDateCtrl range is [{0} - {1})",
+    if (pToDatePickerCtrl->GetRange(&toFromDate2, &toToDate)) {
+        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pToDatePickerCtrl range is [{0} - {1})",
             toFromDate2.FormatISODate().ToStdString(),
             toToDate.FormatISODate().ToStdString());
     }
@@ -1542,10 +1542,10 @@ void MainFrame::SetFromAndToDatePickerRanges()
 
 void MainFrame::SetFromDateAndDatePicker()
 {
-    pFromDateCtrl->SetValue(pDateStore->MondayDateSeconds);
+    pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
 
-    pLogger->info("MainFrame::SetFromDateAndDatePicker - Reset pFromDateCtrl to: {0}",
-        pFromDateCtrl->GetValue().FormatISODate().ToStdString());
+    pLogger->info("MainFrame::SetFromDateAndDatePicker - Reset pFromDatePickerCtrl to: {0}",
+        pFromDatePickerCtrl->GetValue().FormatISODate().ToStdString());
 
     mFromCtrlDate = pDateStore->MondayDateSeconds;
 
@@ -1555,14 +1555,14 @@ void MainFrame::SetFromDateAndDatePicker()
 
 void MainFrame::SetToDateAndDatePicker()
 {
-    pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
+    pToDatePickerCtrl->SetValue(pDateStore->SundayDateSeconds);
 
     pLogger->info("MainFrame::SetToDateAndDatePicker - \npToDateCtrl date = {0}\nSundayDateSeconds = {1}",
-        pToDateCtrl->GetValue().FormatISOCombined().ToStdString(),
+        pToDatePickerCtrl->GetValue().FormatISOCombined().ToStdString(),
         date::format("%Y-%m-%d %I:%M:%S %p", date::sys_seconds{ std::chrono::seconds(pDateStore->SundayDateSeconds) }));
 
-    pLogger->info("MainFrame::SetToDateAndDatePicker - Reset pToDateCtrl to: {0}",
-        pToDateCtrl->GetValue().FormatISODate().ToStdString());
+    pLogger->info("MainFrame::SetToDateAndDatePicker - Reset pToDatePickerCtrl to: {0}",
+        pToDatePickerCtrl->GetValue().FormatISODate().ToStdString());
 
     mToCtrlDate = pDateStore->SundayDateSeconds;
 
