@@ -28,6 +28,7 @@
 #include "availablecolumns.h"
 #include "projection.h"
 #include "columnjoinprojection.h"
+#include "columnexportmodel.h"
 
 namespace tks::Services::Export
 {
@@ -38,18 +39,20 @@ public:
     ProjectionBuilder(std::shared_ptr<spdlog::logger> logger);
     ~ProjectionBuilder() = default;
 
-    std::vector<Projection> BuildProjections(const std::vector<UI::ColumnListItemModel>& columns);
-    std::vector<ColumnJoinProjection> BuildJoinProjections(const std::vector<UI::ColumnListItemModel>& columns);
+    std::vector<Projection> BuildProjections(const std::vector<ColumnExportModel>& columns);
+    std::vector<ColumnJoinProjection> BuildJoinProjections(
+        const std::vector<ColumnExportModel>& columns);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
 
     std::vector<AvailableColumn> mAvailableColumns;
 
-    Projection BuildProjection(const UI::ColumnListItemModel& column, const AvailableColumn& availableColumn);
+    Projection BuildProjection(const ColumnExportModel& column,
+        const AvailableColumn& availableColumn);
     void SortProjectionsByOrderDescending(std::vector<Projection>& projections);
     ColumnJoinProjection BuildRequiredProjectTableJoinProjection();
-    ColumnJoinProjection BuildJoinProjection(const UI::ColumnListItemModel& column,
+    ColumnJoinProjection BuildJoinProjection(const ColumnExportModel& column,
         const AvailableColumn& availableColumn);
 };
 } // namespace tks::Services::Export

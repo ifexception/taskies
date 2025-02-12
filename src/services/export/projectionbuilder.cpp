@@ -29,7 +29,8 @@ ProjectionBuilder::ProjectionBuilder(std::shared_ptr<spdlog::logger> logger)
 {
 }
 
-std::vector<Projection> ProjectionBuilder::BuildProjections(const std::vector<UI::ColumnListItemModel>& columns)
+std::vector<Projection> ProjectionBuilder::BuildProjections(
+    const std::vector<ColumnExportModel>& columns)
 {
     std::vector<Projection> projections;
 
@@ -61,7 +62,7 @@ std::vector<Projection> ProjectionBuilder::BuildProjections(const std::vector<UI
 }
 
 std::vector<ColumnJoinProjection> ProjectionBuilder::BuildJoinProjections(
-    const std::vector<UI::ColumnListItemModel>& columns)
+    const std::vector<ColumnExportModel>& columns)
 {
     std::vector<ColumnJoinProjection> joinProjections;
 
@@ -94,7 +95,7 @@ std::vector<ColumnJoinProjection> ProjectionBuilder::BuildJoinProjections(
     return joinProjections;
 }
 
-Projection ProjectionBuilder::BuildProjection(const UI::ColumnListItemModel& column,
+Projection ProjectionBuilder::BuildProjection(const ColumnExportModel& column,
     const AvailableColumn& availableColumn)
 {
     SColumnProjection cp(availableColumn.DatabaseColumn,
@@ -149,7 +150,7 @@ ColumnJoinProjection ProjectionBuilder::BuildRequiredProjectTableJoinProjection(
     return ColumnJoinProjection();
 }
 
-ColumnJoinProjection ProjectionBuilder::BuildJoinProjection(const UI::ColumnListItemModel& column,
+ColumnJoinProjection ProjectionBuilder::BuildJoinProjection(const ColumnExportModel& column,
     const AvailableColumn& availableColumn)
 {
     if (availableColumn.TableName == "categories") {
