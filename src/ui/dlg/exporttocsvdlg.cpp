@@ -35,6 +35,7 @@
 #include "../../common/constants.h"
 #include "../../common/enums.h"
 #include "../../services/export/availablecolumns.h"
+#include "../../services/export/columnexportmodel.h"
 #include "../../services/export/columnjoinprojection.h"
 #include "../../services/export/projection.h"
 #include "../../services/export/projectionbuilder.h"
@@ -91,11 +92,11 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pExportToClipboardCheckBoxCtrl(nullptr)
     , pSaveToFileTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
-    , pFromDateCtrl(nullptr)
-    , pToDateCtrl(nullptr)
+    , pFromDatePickerCtrl(nullptr)
+    , pToDatePickerCtrl(nullptr)
     , pPresetResetButton(nullptr)
     , pPresetNameTextCtrl(nullptr)
-    , pPresetIsDefaultCtrl(nullptr)
+    , pPresetIsDefaultCheckBoxCtrl(nullptr)
     , pPresetsChoiceCtrl(nullptr)
     , pPresetSaveButton(nullptr)
     , pPresetApplyButton(nullptr)
@@ -115,6 +116,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , mCsvOptions()
     , mCsvExporter(pCfg->GetDatabasePath(), pLogger)
     , bExportToClipboard(false)
+    , bExportTodaysTasksOnly(false)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -160,9 +162,9 @@ void ExportToCsvDialog::CreateControls()
     pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
 
     /* Close dialog after export check box control */
-    pCloseDialogAfterExporting =
+    pCloseDialogAfterExportingCheckBoxCtrl =
         new wxCheckBox(outputStaticBox, tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL, "Close dialog after exporting");
-    pCloseDialogAfterExporting->SetToolTip(
+    pCloseDialogAfterExportingCheckBoxCtrl->SetToolTip(
         "If selected, the dialog will close automatically after a successful export");
 
     pBrowseExportPathButton = new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
@@ -177,7 +179,7 @@ void ExportToCsvDialog::CreateControls()
     outputFlexGridSizer->Add(0, 0);
     outputFlexGridSizer->Add(pBrowseExportPathButton, wxSizerFlags().Border(wxALL, FromDIP(2)).Right());
     outputFlexGridSizer->Add(0, 0);
-    outputFlexGridSizer->Add(pCloseDialogAfterExporting, wxSizerFlags().Border(wxALL, FromDIP(2)));
+    outputFlexGridSizer->Add(pCloseDialogAfterExportingCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)));
 
     /* Sizer for Options, Date Range and Presets controls */
     auto horizontalBoxSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -245,18 +247,18 @@ void ExportToCsvDialog::CreateControls()
 
     /* From date control */
     auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
-    pFromDateCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_FROM_CTRL);
-    pFromDateCtrl->SetToolTip("Set the earliest inclusive date to export the data from");
+    pFromDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_FROM_CTRL);
+    pFromDatePickerCtrl->SetToolTip("Set the earliest inclusive date to export the data from");
 
     /* To date control */
     auto toDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "To: ");
-    pToDateCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
-    pToDateCtrl->SetToolTip("Set the latest inclusive date to export the data from");
+    pToDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
+    pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data from");
 
     dateRangeStaticBoxSizer->Add(fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateRangeStaticBoxSizer->Add(pFromDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateRangeStaticBoxSizer->Add(pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     dateRangeStaticBoxSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateRangeStaticBoxSizer->Add(pToDateCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateRangeStaticBoxSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Sizer for Presets controls */
     auto rightSideVerticalSizer = new wxBoxSizer(wxVERTICAL);
@@ -276,15 +278,15 @@ void ExportToCsvDialog::CreateControls()
     auto presetNameLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Name");
     pPresetNameTextCtrl = new wxTextCtrl(presetsStaticBox, tksIDC_PRESET_NAME_TEXT_CTRL, "");
     pPresetNameTextCtrl->SetHint("Preset Name");
-    pPresetIsDefaultCtrl = new wxCheckBox(presetsStaticBox, tksIDC_PRESET_IS_DEFAULT_CTRL, "Is Default");
-    pPresetIsDefaultCtrl->SetToolTip(
+    pPresetIsDefaultCheckBoxCtrl = new wxCheckBox(presetsStaticBox, tksIDC_PRESET_IS_DEFAULT_CTRL, "Is Default");
+    pPresetIsDefaultCheckBoxCtrl->SetToolTip(
         "If selected, this preset will be selected and applied when the dialog gets launched");
     pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
 
     presetFlexGridSizer->Add(presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     presetFlexGridSizer->Add(pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
     presetFlexGridSizer->Add(0, 0);
-    presetFlexGridSizer->Add(pPresetIsDefaultCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    presetFlexGridSizer->Add(pPresetIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     presetFlexGridSizer->Add(0, 0);
     presetFlexGridSizer->Add(pPresetSaveButton, wxSizerFlags().Right().Border(wxALL, FromDIP(4)));
 
@@ -498,7 +500,7 @@ void ExportToCsvDialog::FillControls()
     }
 
     /* Dialog options */
-    pCloseDialogAfterExporting->SetValue(pCfg->CloseExportDialogAfterExporting());
+    pCloseDialogAfterExportingCheckBoxCtrl->SetValue(pCfg->CloseExportDialogAfterExporting());
 
     /* Date Controls */
     SetFromAndToDatePickerRanges();
@@ -544,7 +546,7 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_COPY_TO_CLIPBOARD_CTRL
     );
 
-    pCloseDialogAfterExporting->Bind(
+    pCloseDialogAfterExportingCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &ExportToCsvDialog::OnCloseDialogAfterExportingCheck,
         this,
@@ -588,18 +590,25 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_BROWSE_EXPORT_PATH_CTRL
     );
 
-    pFromDateCtrl->Bind(
+    pFromDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
         &ExportToCsvDialog::OnFromDateSelection,
         this,
         tksIDC_DATE_FROM_CTRL
     );
 
-    pToDateCtrl->Bind(
+    pToDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
         &ExportToCsvDialog::OnToDateSelection,
         this,
         tksIDC_DATE_TO_CTRL
+    );
+
+    pExportTodaysTasksOnlyCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &ExportToCsvDialog::OnExportTodaysTasksOnlyCheck,
+        this,
+        tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL
     );
 
     pPresetResetButton->Bind(
@@ -829,7 +838,7 @@ void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
         SetFromDateAndDatePicker();
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed \"to\" date");
         toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pFromDateCtrl);
+        toolTip.ShowFor(pFromDatePickerCtrl);
         return;
     }
 
@@ -859,7 +868,7 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
         SetToDateAndDatePicker();
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"from\" date");
         toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pToDateCtrl);
+        toolTip.ShowFor(pToDatePickerCtrl);
         return;
     }
 
@@ -869,6 +878,30 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
 
     mToCtrlDate = eventDateUtc;
     mToDate = newToDate;
+}
+
+void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
+{
+    bExportTodaysTasksOnly = event.IsChecked();
+
+    if (bExportTodaysTasksOnly) {
+        pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+        mFromCtrlDate = pDateStore->TodayDateSeconds;
+
+        pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+        mToCtrlDate = pDateStore->TodayDateSeconds;
+
+        pFromDatePickerCtrl->Disable();
+        pToDatePickerCtrl->Disable();
+    } else {
+        SetFromAndToDatePickerRanges();
+
+        SetFromDateAndDatePicker();
+        SetToDateAndDatePicker();
+
+        pFromDatePickerCtrl->Enable();
+        pToDatePickerCtrl->Enable();
+    }
 }
 
 void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
@@ -885,7 +918,7 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
     pNewLinesHandlerChoiceCtrl->SetSelection(0);
     pBooleanHanderChoiceCtrl->SetSelection(0);
 
-    pPresetIsDefaultCtrl->SetValue(false);
+    pPresetIsDefaultCheckBoxCtrl->SetValue(false);
     pPresetsChoiceCtrl->SetSelection(0);
     pPresetNameTextCtrl->ChangeValue("");
 
@@ -940,7 +973,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         preset.Uuid = presetData->GetValue();
     }
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
-    preset.IsDefault = pPresetIsDefaultCtrl->GetValue();
+    preset.IsDefault = pPresetIsDefaultCheckBoxCtrl->GetValue();
     preset.Delimiter = mCsvOptions.Delimiter;
     preset.TextQualifier = mCsvOptions.TextQualifier;
     preset.EmptyValuesHandler = mCsvOptions.EmptyValuesHandler;
@@ -1189,10 +1222,12 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
+    auto columnExportModels = Services::Export::BuildFromList(columnsToExport);
     Services::Export::ProjectionBuilder projectionBuilder(pLogger);
-    std::vector<Services::Export::Projection> projections = projectionBuilder.BuildProjections(columnsToExport);
+    std::vector<Services::Export::Projection> projections =
+        projectionBuilder.BuildProjections(columnExportModels);
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
-        projectionBuilder.BuildJoinProjections(columnsToExport);
+        projectionBuilder.BuildJoinProjections(columnExportModels);
 
     const std::string fromDate = date::format("%F", mFromDate);
     const std::string toDate = date::format("%F", mToDate);
@@ -1228,10 +1263,12 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
         return;
     }
 
+    auto columnExportModels = Services::Export::BuildFromList(columnsToExport);
     Services::Export::ProjectionBuilder projectionBuilder(pLogger);
-    std::vector<Services::Export::Projection> projections = projectionBuilder.BuildProjections(columnsToExport);
+    std::vector<Services::Export::Projection> projections =
+        projectionBuilder.BuildProjections(columnExportModels);
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
-        projectionBuilder.BuildJoinProjections(columnsToExport);
+        projectionBuilder.BuildJoinProjections(columnExportModels);
 
     const std::string fromDate = date::format("%F", mFromDate);
     const std::string toDate = date::format("%F", mToDate);
@@ -1285,24 +1322,24 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()
 {
-    pFromDateCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
+    pFromDatePickerCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
 
     wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
 
-    if (pFromDateCtrl->GetRange(&fromFromDate, &toFromDate)) {
-        pLogger->info("ExportToCsvDialog::SetFromAndToDatePickerRanges - pFromDateCtrl range is [{0} - {1}]",
+    if (pFromDatePickerCtrl->GetRange(&fromFromDate, &toFromDate)) {
+        pLogger->info("ExportToCsvDialog::SetFromAndToDatePickerRanges - pFromDatePickerCtrl range is [{0} - {1}]",
             fromFromDate.FormatISODate().ToStdString(),
             toFromDate.FormatISODate().ToStdString());
     }
 
     wxDateSpan oneDay(0, 0, 0, 1);
     auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
-    pToDateCtrl->SetRange(MakeMaximumFromDate(), latestPossibleDatePlusOneDay);
+    pToDatePickerCtrl->SetRange(MakeMaximumFromDate(), latestPossibleDatePlusOneDay);
 
     wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
 
-    if (pToDateCtrl->GetRange(&toFromDate2, &toToDate)) {
-        pLogger->info("ExportToCsvDialog::SetFromAndToDatePickerRanges - pToDateCtrl range is [{0} - {1})",
+    if (pToDatePickerCtrl->GetRange(&toFromDate2, &toToDate)) {
+        pLogger->info("ExportToCsvDialog::SetFromAndToDatePickerRanges - pToDatePickerCtrl range is [{0} - {1})",
             toFromDate2.FormatISODate().ToStdString(),
             toToDate.FormatISODate().ToStdString());
     }
@@ -1312,10 +1349,10 @@ void ExportToCsvDialog::SetFromAndToDatePickerRanges()
 
 void ExportToCsvDialog::SetFromDateAndDatePicker()
 {
-    pFromDateCtrl->SetValue(pDateStore->MondayDateSeconds);
+    pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
 
-    pLogger->info("ExportToCsvDialog::SetFromDateAndDatePicker - Reset pFromDateCtrl to: {0}",
-        pFromDateCtrl->GetValue().FormatISODate().ToStdString());
+    pLogger->info("ExportToCsvDialog::SetFromDateAndDatePicker - Reset pFromDatePickerCtrl to: {0}",
+        pFromDatePickerCtrl->GetValue().FormatISODate().ToStdString());
 
     mFromCtrlDate = pDateStore->MondayDateSeconds;
 
@@ -1325,10 +1362,10 @@ void ExportToCsvDialog::SetFromDateAndDatePicker()
 
 void ExportToCsvDialog::SetToDateAndDatePicker()
 {
-    pToDateCtrl->SetValue(pDateStore->SundayDateSeconds);
+    pToDatePickerCtrl->SetValue(pDateStore->SundayDateSeconds);
 
-    pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - Reset pToDateCtrl to: {0}",
-        pToDateCtrl->GetValue().FormatISODate().ToStdString());
+    pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - Reset pToDatePickerCtrl to: {0}",
+        pToDatePickerCtrl->GetValue().FormatISODate().ToStdString());
 
     mToCtrlDate = pDateStore->SundayDateSeconds;
 
@@ -1349,7 +1386,7 @@ void ExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetS
     pBooleanHanderChoiceCtrl->SetSelection(static_cast<int>(presetSettings.BooleanHandler));
 
     pPresetNameTextCtrl->ChangeValue(presetSettings.Name);
-    pPresetIsDefaultCtrl->SetValue(presetSettings.IsDefault);
+    pPresetIsDefaultCheckBoxCtrl->SetValue(presetSettings.IsDefault);
 
     // apply selected columns
     for (long i = (pAvailableColumnsListView->GetItemCount() - 1); 0 <= i; i--) {

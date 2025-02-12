@@ -81,6 +81,7 @@ private:
 
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
+    void OnExportTodaysTasksOnlyCheck(wxCommandEvent& event);
 
     void OnResetPreset(wxCommandEvent& event);
     void OnSavePreset(wxCommandEvent& event);
@@ -116,7 +117,7 @@ private:
 
     wxCheckBox* pExportToClipboardCheckBoxCtrl;
     wxTextCtrl* pSaveToFileTextCtrl;
-    wxCheckBox* pCloseDialogAfterExporting;
+    wxCheckBox* pCloseDialogAfterExportingCheckBoxCtrl;
     wxButton* pBrowseExportPathButton;
 
     wxChoice* pDelimiterChoiceCtrl;
@@ -124,10 +125,10 @@ private:
     wxChoice* pEmptyValueHandlerChoiceCtrl;
     wxChoice* pNewLinesHandlerChoiceCtrl;
     wxChoice* pBooleanHanderChoiceCtrl;
-    wxCheckBox* pRemoveCommasCheckBoxCtrl;
 
-    wxDatePickerCtrl* pFromDateCtrl;
-    wxDatePickerCtrl* pToDateCtrl;
+    wxDatePickerCtrl* pFromDatePickerCtrl;
+    wxDatePickerCtrl* pToDatePickerCtrl;
+    wxCheckBox* pExportTodaysTasksOnlyCheckBoxCtrl;
 
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
@@ -135,7 +136,7 @@ private:
 
     wxButton* pPresetResetButton;
     wxTextCtrl* pPresetNameTextCtrl;
-    wxCheckBox* pPresetIsDefaultCtrl;
+    wxCheckBox* pPresetIsDefaultCheckBoxCtrl;
     wxButton* pPresetSaveButton;
 
     wxChoice* pPresetsChoiceCtrl;
@@ -169,6 +170,7 @@ private:
     Services::Export::CsvExporter mCsvExporter;
 
     bool bExportToClipboard;
+    bool bExportTodaysTasksOnly;
 
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
@@ -183,6 +185,7 @@ private:
         tksIDC_BOOLEAN_HANDLER_CTRL,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
+        tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL,
         tksIDC_PRESET_RESET_BUTTON,
         tksIDC_PRESET_NAME_TEXT_CTRL,
         tksIDC_PRESET_SAVE_BUTTON,
