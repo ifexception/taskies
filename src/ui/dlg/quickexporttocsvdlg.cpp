@@ -206,6 +206,8 @@ void QuickExportToCsvDialog::CreateControls()
     buttonsSizer->AddStretchSpacer();
 
     pOKButton = new wxButton(this, wxID_OK, "OK");
+    pOKButton->SetDefault();
+    pOKButton->SetFocus();
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Close");
 
