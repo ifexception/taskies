@@ -69,7 +69,7 @@ QuickExportToCsvDialog::QuickExportToCsvDialog(wxWindow* parent,
           "Quick Export to CSV",
           wxDefaultPosition,
           wxDefaultSize,
-          wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
+          wxCAPTION | wxCLOSE_BOX,
           name)
     , pParent(parent)
     , pCfg(cfg)
@@ -100,6 +100,7 @@ QuickExportToCsvDialog::QuickExportToCsvDialog(wxWindow* parent,
     mToDate = pDateStore->SundayDate;
 
     Create();
+    SetSize(wxSize(FromDIP(640), -1));
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
@@ -470,7 +471,10 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
     ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
         pPresetsChoiceCtrl->GetClientObject(presetIndex));
 
-    if (presetData->GetValue().empty()) {
+    if (presetIndex < 1) {
+        wxMessageBox("A preset selection is required for quick export",
+            "Preset Required",
+            wxICON_WARNING | wxOK_DEFAULT);
         return;
     }
 
@@ -507,6 +511,58 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
         bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
     const std::string toDate =
         bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
+
+    pLogger->info("{0} - Export date range: [\"{1}\", \"{2}\"]", TAG, fromDate, toDate);
+
+    std::string exportedData = "";
+    bool success = mCsvExporter.Generate(
+        mCsvOptions, projections, joinProjections, fromDate, toDate, exportedData);
+
+    if (!success) {
+        std::string message = "Failed to export data";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+
+        return;
+    }
+
+    if (bExportToClipboard) {
+        auto canOpen = wxTheClipboard->Open();
+        if (canOpen) {
+            auto textData = new wxTextDataObject(exportedData);
+            wxTheClipboard->SetData(textData);
+            wxTheClipboard->Close();
+        }
+    } else {
+        std::ofstream exportFile;
+        exportFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
+        if (!exportFile) {
+            pLogger->error("ExportToCsvDialog::OnExport - Failed to open export file at path {0}",
+                pSaveToFileTextCtrl->GetValue().ToStdString());
+            return;
+        }
+
+        exportFile << exportedData;
+
+        exportFile.close();
+    }
+
+    std::string message = bExportToClipboard ? "Successfully exported data to clipboard"
+                                             : "Successfully exported data to file";
+    wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
+
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Information, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(pParent, addNotificationEvent);
+
+    EndModal(wxID_OK);
 }
 
 void QuickExportToCsvDialog::SetFromAndToDatePickerRanges()

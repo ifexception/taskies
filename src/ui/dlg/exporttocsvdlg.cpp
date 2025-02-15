@@ -1356,6 +1356,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     pLogger->info(
         "ExportToCsvDialog::OnExport - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
+
     std::string exportedData = "";
     bool success = mCsvExporter.Generate(
         mCsvOptions, projections, joinProjections, fromDate, toDate, exportedData);
@@ -1397,7 +1398,12 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
                                              : "Successfully exported data to file";
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
 
-    pCfg->Save();
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Information, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(pParent, addNotificationEvent);
 
     if (pCfg->CloseExportDialogAfterExporting()) {
         EndDialog(wxID_OK);
