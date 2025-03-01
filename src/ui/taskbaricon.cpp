@@ -99,24 +99,33 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 {
     auto menu = new wxMenu();
 
-    auto newTaskMenuItem = menu->Append(tksIDC_MENU_NEWTASK, "New Task", "");
+    auto newTaskMenuBarTitle =
+        pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
+    auto newTaskMenuBarDescription =
+        pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
+
+    auto newTaskMenuItem =
+        menu->Append(tksIDC_MENU_NEWTASK, newTaskMenuBarTitle, newTaskMenuBarDescription);
 
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
 
     menu->AppendSeparator();
 
-    menu->Append(tksIDC_MENU_QUICKEXPORTTOCSV, "Quick Export to CSV", "");
+    menu->Append(tksIDC_MENU_QUICKEXPORTTOCSV,
+        "Quick Export to CSV",
+        "Export selected data to CSV format using existing presets");
 
     menu->AppendSeparator();
 
-    auto preferencesMenuItem = menu->Append(tksIDC_MENU_PREFERENCES, "Preferences", "");
+    auto preferencesMenuItem =
+        menu->Append(tksIDC_MENU_PREFERENCES, "Preferences", "View and adjust program options");
 
     wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
 
     menu->AppendSeparator();
-    auto exitMenuItem = menu->Append(wxID_EXIT, "Exit");
+    auto exitMenuItem = menu->Append(wxID_EXIT, "Exit", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
