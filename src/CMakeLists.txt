@@ -48,6 +48,11 @@ set(SRC_REPOS
     "repository/setupwizardrepository.cpp"
 )
 
+set(SRC_EXPORTS
+    "ui/dlg/exports/exporttocsvdlg.cpp"
+    "ui/dlg/exports/quickexporttocsvdlg.cpp"
+)
+
 set (SRC_DIALOGS
     "ui/dlg/employerdlg.cpp"
     "ui/dlg/errordlg.cpp"
@@ -67,8 +72,6 @@ set (SRC_DIALOGS
     "ui/dlg/taskdlg.cpp"
     "ui/dlg/daytaskviewdlg.cpp"
     "ui/wizards/setupwizard.cpp"
-    "ui/dlg/exporttocsvdlg.cpp"
-    "ui/dlg/quickexporttocsvdlg.cpp"
 )
 
 set (SRC
@@ -117,6 +120,7 @@ set (SRC
     ${SRC_PERSISTENCE}
     ${SRC_REPOS}
     ${SRC_DIALOGS}
+    ${SRC_EXPORTS}
 )
 
 add_executable (

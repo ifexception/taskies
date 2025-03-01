@@ -33,14 +33,14 @@
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
 
-#include "../../common/common.h"
+#include "../../../common/common.h"
 
-#include "../../core/configuration.h"
+#include "../../../core/configuration.h"
 
-#include "../../services/export/csvexporter.h"
-#include "../../services/export/csvexportoptions.h"
+#include "../../../services/export/csvexporter.h"
+#include "../../../services/export/csvexportoptions.h"
 
-#include "../../utils/datestore.h"
+#include "../../../utils/datestore.h"
 
 namespace tks::UI::dlg
 {

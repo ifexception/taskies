@@ -26,19 +26,19 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../../common/enums.h"
+#include "../../../common/enums.h"
 
-#include "../../core/configuration.h"
+#include "../../../core/configuration.h"
 
-#include "../../services/export/availablecolumns.h"
-#include "../../services/export/columnexportmodel.h"
-#include "../../services/export/columnjoinprojection.h"
-#include "../../services/export/projection.h"
-#include "../../services/export/projectionbuilder.h"
+#include "../../../services/export/availablecolumns.h"
+#include "../../../services/export/columnexportmodel.h"
+#include "../../../services/export/columnjoinprojection.h"
+#include "../../../services/export/projection.h"
+#include "../../../services/export/projectionbuilder.h"
 
-#include "../clientdata.h"
-#include "../events.h"
-#include "../notificationclientdata.h"
+#include "../../clientdata.h"
+#include "../../events.h"
+#include "../../notificationclientdata.h"
 
 namespace
 {

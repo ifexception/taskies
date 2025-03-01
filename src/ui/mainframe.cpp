@@ -59,9 +59,9 @@
 #include "../ui/dlg/preferences/preferencesdlg.h"
 #include "../ui/dlg/taskdlglegacy.h"
 #include "../ui/dlg/daytaskviewdlg.h"
-#include "../ui/dlg/exporttocsvdlg.h"
+#include "../ui/dlg/exports/exporttocsvdlg.h"
+#include "../ui/dlg/exports/quickexporttocsvdlg.h"
 #include "../ui/dlg/taskdlg.h"
-#include "../ui/dlg/quickexporttocsvdlg.h"
 
 #include "events.h"
 #include "notificationclientdata.h"
@@ -290,7 +290,7 @@ void MainFrame::CreateControls()
         ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV format");
     fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
         "Q&uick Export to CSV",
-        "Export selected data to CSV format using preexisting options");
+        "Export selected data to CSV format using existing presets");
     fileMenu->AppendSubMenu(fileTasksMenu, "Tasks");
     fileMenu->AppendSeparator();
 

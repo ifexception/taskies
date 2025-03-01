@@ -30,7 +30,7 @@
 
 #include "../utils/utils.h"
 
-#include "dlg/preferencesdlg.h"
+#include "dlg/preferences/preferencesdlg.h"
 #include "dlg/taskdlglegacy.h"
 
 namespace tks::UI
