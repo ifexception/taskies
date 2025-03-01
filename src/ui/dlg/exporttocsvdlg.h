@@ -45,9 +45,7 @@
 #include "../../services/export/csvexporter.h"
 #include "../../services/export/csvexportoptions.h"
 
-namespace tks
-{
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 class ExportToCsvDialog final : public wxDialog
 {
@@ -204,5 +202,4 @@ private:
         tksIDC_EXPORT_BUTTON,
     };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg

@@ -139,6 +139,12 @@ void ExportToCsvDialog::Create()
     ConfigureEventBindings();
 }
 
+    /*
+ * TODO: Presets UX Enhancement
+ * Remove static box and all controls
+ * wxDialogs do not support menu bars
+ * Use _another_ wxDialog to manage presets from "exporttocsvdlg"
+ */
 void ExportToCsvDialog::CreateControls()
 {
     /* Main Window Sizer */
