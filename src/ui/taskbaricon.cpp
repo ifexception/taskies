@@ -31,6 +31,7 @@
 #include "../utils/utils.h"
 
 #include "dlg/preferences/preferencesdlg.h"
+#include "dlg/exports/quickexporttocsvdlg.h"
 #include "dlg/taskdlglegacy.h"
 
 namespace tks::UI
@@ -62,14 +63,21 @@ void TaskBarIcon::ConfigureEventBindings()
         wxEVT_MENU,
         &TaskBarIcon::OnNewTask,
         this,
-        tksIDC_NEWTASK
+        tksIDC_MENU_NEWTASK
+    );
+
+    Bind(
+        wxEVT_MENU,
+        &TaskBarIcon::OnQuickExportToCsv,
+        this,
+        tksIDC_MENU_QUICKEXPORTTOCSV
     );
 
     Bind(
         wxEVT_MENU,
         &TaskBarIcon::OnPreferences,
         this,
-        tksIDC_PREFERENCES
+        tksIDC_MENU_PREFERENCES
     );
 
     Bind(
@@ -91,14 +99,18 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 {
     auto menu = new wxMenu();
 
-    auto newTaskMenuItem = menu->Append(tksIDC_NEWTASK, "New Task");
+    auto newTaskMenuItem = menu->Append(tksIDC_MENU_NEWTASK, "New Task", "");
 
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
 
     menu->AppendSeparator();
 
-    auto preferencesMenuItem = menu->Append(tksIDC_PREFERENCES, "Preferences");
+    menu->Append(tksIDC_MENU_QUICKEXPORTTOCSV, "Quick Export to CSV", "");
+
+    menu->AppendSeparator();
+
+    auto preferencesMenuItem = menu->Append(tksIDC_MENU_PREFERENCES, "Preferences", "");
 
     wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
@@ -116,6 +128,13 @@ void TaskBarIcon::OnNewTask(wxCommandEvent& event)
 {
     UI::dlg::TaskDialogLegacy newTaskDialog(pParent, pEnv, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
+}
+
+void TaskBarIcon::OnQuickExportToCsv(wxCommandEvent& WXUNUSED(event))
+{
+    UI::dlg::QuickExportToCsvDialog quickExportToCsvDialog(
+        pParent, pCfg, pLogger, mDatabaseFilePath);
+    quickExportToCsvDialog.ShowModal();
 }
 
 void TaskBarIcon::OnPreferences(wxCommandEvent& WXUNUSED(event))
