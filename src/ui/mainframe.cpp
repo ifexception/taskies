@@ -174,7 +174,10 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     // Initialization setup
     SetMinSize(wxSize(FromDIP(320), FromDIP(320)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
-        pLogger->info("MainFrame::MainFrame - No persistent objects found. Set default size \"{0}\"x\"{1}\"", 800, 600);
+        pLogger->info(
+            "MainFrame::MainFrame - No persistent objects found. Set default size \"{0}\"x\"{1}\"",
+            800,
+            600);
         SetSize(FromDIP(wxSize(800, 600)));
     }
 
@@ -183,7 +186,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     wxImage::AddHandler(pngHandler);
 
     auto bellImagePath = pEnv->GetResourcesPath() / Common::Resources::Bell();
-    auto bellNotificationImagePath = pEnv->GetResourcesPath() / Common::Resources::BellNotification();
+    auto bellNotificationImagePath =
+        pEnv->GetResourcesPath() / Common::Resources::BellNotification();
 
     mBellBitmap.LoadFile(bellImagePath.string(), wxBITMAP_TYPE_PNG);
     mBellNotificationBitmap.LoadFile(bellNotificationImagePath.string(), wxBITMAP_TYPE_PNG);
@@ -199,7 +203,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     // Setup TaskBarIcon
     pTaskBarIcon = new TaskBarIcon(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
     if (pCfg->ShowInTray()) {
-        pLogger->info("MainFrame::MainFrame - TaskBarIcon \"ShowInTray\" is \"{0}\"", pCfg->ShowInTray());
+        pLogger->info(
+            "MainFrame::MainFrame - TaskBarIcon \"ShowInTray\" is \"{0}\"", pCfg->ShowInTray());
         pTaskBarIcon->SetTaskBarIcon();
     }
 
@@ -255,10 +260,13 @@ void MainFrame::CreateControls()
     /* File */
     auto fileMenu = new wxMenu();
 
-    auto newTaskMenuBarTitle = pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
-    auto newTaskMenuBarDescription = pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
+    auto newTaskMenuBarTitle =
+        pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
+    auto newTaskMenuBarDescription =
+        pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
 
-    auto newTaskMenuItem = fileMenu->Append(ID_NEW_TASK, newTaskMenuBarTitle, newTaskMenuBarDescription);
+    auto newTaskMenuItem =
+        fileMenu->Append(ID_NEW_TASK, newTaskMenuBarTitle, newTaskMenuBarDescription);
 
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
@@ -273,13 +281,16 @@ void MainFrame::CreateControls()
     fileMenu->AppendSeparator();
 
     auto fileTasksMenu = new wxMenu();
-    auto fileTasksMenuItem =
-        fileTasksMenu->Append(ID_TASKS_BACKUPDATABASE, "&Backup Database", "Backup a copy of the database");
+    auto fileTasksMenuItem = fileTasksMenu->Append(
+        ID_TASKS_BACKUPDATABASE, "&Backup Database", "Backup a copy of the database");
     if (!pCfg->BackupDatabase()) {
         fileTasksMenuItem->Enable(false);
     }
-    fileTasksMenu->Append(ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV format");
-    fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV, "Q&uick Export to CSV", "Export selected data to CSV format using preexisting options");
+    fileTasksMenu->Append(
+        ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV format");
+    fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
+        "Q&uick Export to CSV",
+        "Export selected data to CSV format using preexisting options");
     fileMenu->AppendSubMenu(fileTasksMenu, "Tasks");
     fileMenu->AppendSeparator();
 
@@ -301,7 +312,8 @@ void MainFrame::CreateControls()
     viewMenu->Append(ID_VIEW_EXPAND, "&Expand\tCtrl-E", "Expand date procedure");
     viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
     viewMenu->AppendSeparator();
-    auto preferencesMenuItem = viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
+    auto preferencesMenuItem =
+        viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
 
     wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
@@ -375,20 +387,28 @@ void MainFrame::CreateControls()
     pDataViewCtrl->AssociateModel(pTaskTreeModel.get());
 
     /* Project Column */
-    auto projectColumn = new wxDataViewColumn(
-        "Project", projectNameTextRenderer, TaskTreeModel::Col_Project, 80, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+    auto projectColumn = new wxDataViewColumn("Project",
+        projectNameTextRenderer,
+        TaskTreeModel::Col_Project,
+        80,
+        wxALIGN_LEFT,
+        wxDATAVIEW_COL_RESIZABLE);
     projectColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     pDataViewCtrl->AppendColumn(projectColumn);
 
     /* Category Column */
-    auto categoryColumn = new wxDataViewColumn(
-        "Category", categoryNameTextRenderer, TaskTreeModel::Col_Category, 80, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+    auto categoryColumn = new wxDataViewColumn("Category",
+        categoryNameTextRenderer,
+        TaskTreeModel::Col_Category,
+        80,
+        wxALIGN_LEFT,
+        wxDATAVIEW_COL_RESIZABLE);
     categoryColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     pDataViewCtrl->AppendColumn(categoryColumn);
 
     /* Duration Column */
-    auto durationColumn =
-        new wxDataViewColumn("Duration", durationTextRenderer, TaskTreeModel::Col_Duration, 80, wxALIGN_CENTER);
+    auto durationColumn = new wxDataViewColumn(
+        "Duration", durationTextRenderer, TaskTreeModel::Col_Duration, 80, wxALIGN_CENTER);
     durationColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     durationColumn->SetResizeable(false);
     pDataViewCtrl->AppendColumn(durationColumn);
@@ -403,8 +423,8 @@ void MainFrame::CreateControls()
     pDataViewCtrl->AppendColumn(descriptionColumn);
 
     /* ID Column */
-    auto idColumn =
-        new wxDataViewColumn("ID", idRenderer, TaskTreeModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+    auto idColumn = new wxDataViewColumn(
+        "ID", idRenderer, TaskTreeModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
     pDataViewCtrl->AppendColumn(idColumn);
 
     sizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
@@ -449,7 +469,8 @@ void MainFrame::DataToControls()
     std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+    int rc =
+        taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -477,25 +498,31 @@ void MainFrame::OnClose(wxCloseEvent& event)
         Hide();
 
         pLogger->info("MainFrame::OnClose - Optimize database on program exit");
-        pLogger->info("MainFrame::OnClose - Open database connection at \"{0}\"", mDatabaseFilePath);
+        pLogger->info(
+            "MainFrame::OnClose - Open database connection at \"{0}\"", mDatabaseFilePath);
 
         sqlite3* db = nullptr;
         int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(db);
-            pLogger->error(LogMessage::OpenDatabaseTemplate, "MainFrame::OnClose", mDatabaseFilePath, rc, err);
+            pLogger->error(
+                LogMessage::OpenDatabaseTemplate, "MainFrame::OnClose", mDatabaseFilePath, rc, err);
             goto cleanup;
         }
 
         rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(db);
-            pLogger->error(
-                LogMessage::ExecQueryTemplate, "MainFrame::OnClose", Utils::sqlite::pragmas::Optimize, rc, err);
+            pLogger->error(LogMessage::ExecQueryTemplate,
+                "MainFrame::OnClose",
+                Utils::sqlite::pragmas::Optimize,
+                rc,
+                err);
             goto cleanup;
         }
 
-        pLogger->info("MainFrame::OnClose - Optimizimation command successfully executed on database");
+        pLogger->info(
+            "MainFrame::OnClose - Optimizimation command successfully executed on database");
 
     cleanup:
         sqlite3_close(db);
@@ -577,7 +604,8 @@ void MainFrame::OnNewCategory(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
 {
     if (!pCfg->BackupDatabase()) {
-        wxMessageBox("Backups are toggled off!\nToggle backups in \"File\">\"Tasks\">\"Backup Database\"",
+        wxMessageBox(
+            "Backups are toggled off!\nToggle backups in \"File\">\"Tasks\">\"Backup Database\"",
             Common::GetProgramName(),
             wxOK_DEFAULT | wxICON_WARNING);
         return;
@@ -591,8 +619,11 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
     rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(
-            LogMessage::OpenDatabaseTemplate, "MainFrame::OnTasksBackupDatabase", mDatabaseFilePath, rc, err);
+        pLogger->error(LogMessage::OpenDatabaseTemplate,
+            "MainFrame::OnTasksBackupDatabase",
+            mDatabaseFilePath,
+            rc,
+            err);
         return;
     }
 
@@ -600,7 +631,11 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
     rc = sqlite3_open(backupFilePath.c_str(), &backupDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::OpenDatabaseTemplate, "MainFrame::OnTasksBackupDatabase", backupFilePath, rc, err);
+        pLogger->error(LogMessage::OpenDatabaseTemplate,
+            "MainFrame::OnTasksBackupDatabase",
+            backupFilePath,
+            rc,
+            err);
         return;
     }
 
@@ -626,7 +661,8 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
 
     std::string message = "Backup successful";
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);
 
     wxQueueEvent(this, addNotificationEvent);
@@ -653,25 +689,29 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnEditEmployer(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::EditListDialog editEmployer(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Employer);
+    UI::dlg::EditListDialog editEmployer(
+        this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Employer);
     editEmployer.ShowModal();
 }
 
 void MainFrame::OnEditClient(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::EditListDialog editClient(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Client);
+    UI::dlg::EditListDialog editClient(
+        this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Client);
     editClient.ShowModal();
 }
 
 void MainFrame::OnEditProject(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::EditListDialog editProject(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Project);
+    UI::dlg::EditListDialog editProject(
+        this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Project);
     editProject.ShowModal();
 }
 
 void MainFrame::OnEditCategory(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::EditListDialog editCategory(this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Category);
+    UI::dlg::EditListDialog editCategory(
+        this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Category);
     editCategory.ShowModal();
 }
 
@@ -720,8 +760,11 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::DayTaskViewDialog dayTaskView(
-        this, pLogger, pEnv, mDatabaseFilePath, mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
+    UI::dlg::DayTaskViewDialog dayTaskView(this,
+        pLogger,
+        pEnv,
+        mDatabaseFilePath,
+        mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
     dayTaskView.ShowModal();
 }
 
@@ -803,7 +846,8 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
             wxTheClipboard->SetData(textData);
             wxTheClipboard->Close();
 
-            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" tasks for date \"{1}\"",
+            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" "
+                          "tasks for date \"{1}\"",
                 taskModels.size(),
                 mTaskDate);
         }
@@ -859,7 +903,8 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
             wxTheClipboard->SetData(textData);
             wxTheClipboard->Close();
 
-            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" tasks for date \"{1}\"",
+            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" "
+                          "tasks for date \"{1}\"",
                 taskModels.size(),
                 mTaskDate);
         }
@@ -952,7 +997,8 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 
         auto message = "Successfully deleted task";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(this, addNotificationEvent);
@@ -973,9 +1019,11 @@ void MainFrame::OnAddNotification(wxCommandEvent& event)
 
     pNotificationButton->SetBitmap(mBellNotificationBitmap);
 
-    NotificationClientData* notificationClientData = reinterpret_cast<NotificationClientData*>(event.GetClientObject());
+    NotificationClientData* notificationClientData =
+        reinterpret_cast<NotificationClientData*>(event.GetClientObject());
 
-    pNotificationPopupWindow->AddNotification(notificationClientData->Message, notificationClientData->Type);
+    pNotificationPopupWindow->AddNotification(
+        notificationClientData->Message, notificationClientData->Type);
 
     if (notificationClientData) {
         delete notificationClientData;
@@ -987,7 +1035,8 @@ void MainFrame::OnTaskAddedOnDate(wxCommandEvent& event)
     // A task got inserted for a specific day
     auto eventTaskDateAdded = event.GetString().ToStdString();
     auto taskInsertedId = static_cast<std::int64_t>(event.GetExtraLong());
-    pLogger->info("MainFrame::OnTaskAddedOnDate - Received task added event with date \"{0}\" and ID \"{1}\"",
+    pLogger->info(
+        "MainFrame::OnTaskAddedOnDate - Received task added event with date \"{0}\" and ID \"{1}\"",
         eventTaskDateAdded,
         taskInsertedId);
 
@@ -996,8 +1045,9 @@ void MainFrame::OnTaskAddedOnDate(wxCommandEvent& event)
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Check if date that the task was inserted for is in the selected range of our wxDateTimeCtrl's
-    auto iterator =
-        std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateAdded; });
+    auto iterator = std::find_if(dates.begin(), dates.end(), [&](const std::string& date) {
+        return date == eventTaskDateAdded;
+    });
 
     // If we are in range, refetch the data for our particular date
     if (iterator != dates.end() && taskInsertedId != 0 && eventTaskDateAdded.size() != 0) {
@@ -1014,7 +1064,8 @@ void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
     auto eventTaskDateDeleted = event.GetString().ToStdString();
     auto taskDeletedId = static_cast<std::int64_t>(event.GetExtraLong());
 
-    pLogger->info("MainFrame::OnTaskDeletedOnDate - Received task added event with date \"{0}\" and ID \"{1}\"",
+    pLogger->info("MainFrame::OnTaskDeletedOnDate - Received task added event with date \"{0}\" "
+                  "and ID \"{1}\"",
         eventTaskDateDeleted,
         taskDeletedId);
 
@@ -1023,8 +1074,9 @@ void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Check if date that the task was deleted is in the selected range of our wxDateTimeCtrl's
-    auto iterator =
-        std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateDeleted; });
+    auto iterator = std::find_if(dates.begin(), dates.end(), [&](const std::string& date) {
+        return date == eventTaskDateDeleted;
+    });
 
     // If we are in range, remove the task data for our particular date
     if (iterator != dates.end() && taskDeletedId != 0 && eventTaskDateDeleted.size() != 0) {
@@ -1043,8 +1095,8 @@ void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
     auto eventTaskDateChanged = event.GetString().ToStdString();
     auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
 
-    pLogger->info(
-        "MainFrame::OnTaskDateChangedFrom - Received task date changed event with date \"{0}\" and ID \"{1}\"",
+    pLogger->info("MainFrame::OnTaskDateChangedFrom - Received task date changed event with date "
+                  "\"{0}\" and ID \"{1}\"",
         eventTaskDateChanged,
         taskChangedId);
 
@@ -1053,8 +1105,9 @@ void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Check if date that the task was changed to is in the selected range of our wxDateTimeCtrl's
-    auto iterator =
-        std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateChanged; });
+    auto iterator = std::find_if(dates.begin(), dates.end(), [&](const std::string& date) {
+        return date == eventTaskDateChanged;
+    });
 
     // If we are in range, remove the item data for our particular date
     if (iterator != dates.end() && taskChangedId != 0 && eventTaskDateChanged.size() != 0) {
@@ -1073,7 +1126,8 @@ void MainFrame::OnTaskDateChangedTo(wxCommandEvent& event)
     auto eventTaskDateChanged = event.GetString().ToStdString();
     auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
 
-    pLogger->info("MainFrame::OnTaskDateChangedTo - Received task date changed event with date \"{0}\" and ID \"{1}\"",
+    pLogger->info("MainFrame::OnTaskDateChangedTo - Received task date changed event with date "
+                  "\"{0}\" and ID \"{1}\"",
         eventTaskDateChanged,
         taskChangedId);
 
@@ -1082,8 +1136,9 @@ void MainFrame::OnTaskDateChangedTo(wxCommandEvent& event)
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Check if date that the task was changed to is in the selected range of our wxDateTimeCtrl's
-    auto iterator =
-        std::find_if(dates.begin(), dates.end(), [&](const std::string& date) { return date == eventTaskDateChanged; });
+    auto iterator = std::find_if(dates.begin(), dates.end(), [&](const std::string& date) {
+        return date == eventTaskDateChanged;
+    });
 
     // If we are in range, add the task for our particular date
     if (iterator != dates.end() && taskChangedId != 0 && eventTaskDateChanged.size() != 0) {
@@ -1115,13 +1170,18 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
 
     // Check if the selected date goes beyond six months from the current date
-    auto currentDate = date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::now()) };
+    auto currentDate =
+        date::year_month_day{ date::floor<date::days>(std::chrono::system_clock::now()) };
     auto sixMonthsPastDate = currentDate - date::months{ 6 };
-    auto newFromDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+    auto newFromDate =
+        date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
 
     if (newFromDate < sixMonthsPastDate) {
-        int ret = wxMessageBox(
-            "Are you sure you want to load tasks that are older than six (6) months?", "Confirmation", wxYES_NO, this);
+        int ret =
+            wxMessageBox("Are you sure you want to load tasks that are older than six (6) months?",
+                "Confirmation",
+                wxYES_NO,
+                this);
         if (ret == wxNO) {
             SetFromDateAndDatePicker();
             return;
@@ -1147,7 +1207,8 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         return;
     }
 
-    pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
+    pLogger->info("MainFrame::OnFromDateSelection - Calculate list of dates from date: \"{0}\" to "
+                  "date: \"{1}\"",
         date::format("%F", mFromDate),
         date::format("%F", mToDate));
 
@@ -1173,8 +1234,10 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     if (mFromDate != pDateStore->MondayDate) {
         // If so, we cannot display [Week] and [Month] as there is no guarantee where we have gone
         // Thus, switch to a [Range] format as a catch all for whatever the date selection is
-        pStatusBar->UpdateDefaultHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
-        pStatusBar->UpdateBillableHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
+        pStatusBar->UpdateDefaultHoursRange(
+            date::format("%F", mFromDate), date::format("%F", mToDate));
+        pStatusBar->UpdateBillableHoursRange(
+            date::format("%F", mFromDate), date::format("%F", mToDate));
 
         bDateRangeChanged = true;
     } else {
@@ -1186,7 +1249,8 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
 
 void MainFrame::OnToDateSelection(wxDateEvent& event)
 {
-    pLogger->info("MainFrame::OnToDateSelection - Received date (wxDateTime) event with value \"{0}\"",
+    pLogger->info(
+        "MainFrame::OnToDateSelection - Received date (wxDateTime) event with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
 
     auto eventDate = wxDateTime(event.GetDate());
@@ -1208,10 +1272,12 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     }
 
     mToCtrlDate = eventDateUtc;
-    auto newToDate = date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+    auto newToDate =
+        date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
     mToDate = newToDate;
 
-    pLogger->info("MainFrame::OnToDateSelection - Calculate list of dates from date: \"{0}\" to date: \"{1}\"",
+    pLogger->info("MainFrame::OnToDateSelection - Calculate list of dates from date: \"{0}\" to "
+                  "date: \"{1}\"",
         date::format("%F", mFromDate),
         date::format("%F", mToDate));
 
@@ -1253,8 +1319,10 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     if (mToDate != pDateStore->SundayDate) {
         // If so, we cannot display [Week] and [Month] as there is no guarantee where we have gone
         // Thus, switch to a [Range] format as a catch all for whatever the date selection is
-        pStatusBar->UpdateDefaultHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
-        pStatusBar->UpdateBillableHoursRange(date::format("%F", mFromDate), date::format("%F", mToDate));
+        pStatusBar->UpdateDefaultHoursRange(
+            date::format("%F", mFromDate), date::format("%F", mToDate));
+        pStatusBar->UpdateBillableHoursRange(
+            date::format("%F", mFromDate), date::format("%F", mToDate));
 
         bDateRangeChanged = true;
     } else {
@@ -1273,8 +1341,8 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         auto model = (TaskTreeModelNode*) item.GetID();
 
         if (model->IsContainer()) {
-            pLogger->info(
-                "MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"", model->GetProjectName());
+            pLogger->info("MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"",
+                model->GetProjectName());
             mTaskDate = model->GetProjectName();
 
             std::istringstream ssTaskDate{ mTaskDate };
@@ -1291,11 +1359,12 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, wxT("Copy with Headers"));
             PopupMenu(&menu);
         } else {
-            pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"", model->GetTaskId());
+            pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"",
+                model->GetTaskId());
             mTaskIdToModify = model->GetTaskId();
 
-            // This is confusing, but by calling `GetParent()` we are getting the container node pointer here
-            // `GetProjectName()` then returns the date of the container node value
+            // This is confusing, but by calling `GetParent()` we are getting the container node
+            // pointer here `GetProjectName()` then returns the date of the container node value
             mTaskDate = model->GetParent()->GetProjectName();
 
             wxMenu menu;
@@ -1334,15 +1403,18 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
 
         if (pCfg->TodayAlwaysExpanded()) {
             pLogger->info("MainFrame::OnSelectionChanged - Expand today's item node");
-            pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+            pDataViewCtrl->Expand(
+                pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
         }
     }
 }
 
 void MainFrame::SetNewTaskMenubarTitle()
 {
-    auto newTaskMenubarTitle = pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
-    auto newTaskMenubarHelp = pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
+    auto newTaskMenubarTitle =
+        pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
+    auto newTaskMenubarHelp =
+        pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
 
     auto fileMenu = GetMenuBar()->GetMenu(0);
     auto newTaskMenu = fileMenu->FindItemByPosition(0);
@@ -1409,7 +1481,8 @@ void MainFrame::RefetchTasksForDateRange()
     std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
     repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+    int rc =
+        taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -1446,26 +1519,30 @@ void MainFrame::CalculateDefaultTaskDurations()
 {
     pStatusBar->UpdateDefaultHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
     pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateDefaultHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateDefaultHoursMonth(
+        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
 }
 
 void MainFrame::CalculateBillableTaskDurations()
 {
     pStatusBar->UpdateBillableHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
     pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateBillableHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateBillableHoursMonth(
+        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
 }
 
 void MainFrame::UpdateDefaultWeekMonthTaskDurations()
 {
     pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateDefaultHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateDefaultHoursMonth(
+        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
 }
 
 void MainFrame::UpdateBillableWeekMonthTaskDurations()
 {
     pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateBillableHoursMonth(pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateBillableHoursMonth(
+        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
 }
 
 void MainFrame::UpdateDefaultRangeTaskDurations()
@@ -1507,7 +1584,8 @@ void MainFrame::QueueFetchTasksErrorNotificationEvent()
 {
     std::string message = "Failed to fetch tasks";
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);
 
     wxQueueEvent(this, addNotificationEvent);
@@ -1520,19 +1598,22 @@ void MainFrame::SetFromAndToDatePickerRanges()
     wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
 
     if (pFromDatePickerCtrl->GetRange(&fromFromDate, &toFromDate)) {
-        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pFromDatePickerCtrl range is [{0} - {1}]",
+        pLogger->info(
+            "MainFrame::SetFromAndToDatePickerRanges - pFromDatePickerCtrl range is [{0} - {1}]",
             fromFromDate.FormatISODate().ToStdString(),
             toFromDate.FormatISODate().ToStdString());
     }
 
     wxDateSpan oneDay(0, 0, 0, 1);
     auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
-    pToDatePickerCtrl->SetRange(wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
+    pToDatePickerCtrl->SetRange(
+        wxDateTime(pDateStore->MondayDateSeconds), latestPossibleDatePlusOneDay);
 
     wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
 
     if (pToDatePickerCtrl->GetRange(&toFromDate2, &toToDate)) {
-        pLogger->info("MainFrame::SetFromAndToDatePickerRanges - pToDatePickerCtrl range is [{0} - {1})",
+        pLogger->info(
+            "MainFrame::SetFromAndToDatePickerRanges - pToDatePickerCtrl range is [{0} - {1})",
             toFromDate2.FormatISODate().ToStdString(),
             toToDate.FormatISODate().ToStdString());
     }
@@ -1557,17 +1638,19 @@ void MainFrame::SetToDateAndDatePicker()
 {
     pToDatePickerCtrl->SetValue(pDateStore->SundayDateSeconds);
 
-    pLogger->info("MainFrame::SetToDateAndDatePicker - \npToDateCtrl date = {0}\nSundayDateSeconds = {1}",
+    pLogger->info(
+        "MainFrame::SetToDateAndDatePicker - \npToDateCtrl date = {0}\nSundayDateSeconds = {1}",
         pToDatePickerCtrl->GetValue().FormatISOCombined().ToStdString(),
-        date::format("%Y-%m-%d %I:%M:%S %p", date::sys_seconds{ std::chrono::seconds(pDateStore->SundayDateSeconds) }));
+        date::format("%Y-%m-%d %I:%M:%S %p",
+            date::sys_seconds{ std::chrono::seconds(pDateStore->SundayDateSeconds) }));
 
     pLogger->info("MainFrame::SetToDateAndDatePicker - Reset pToDatePickerCtrl to: {0}",
         pToDatePickerCtrl->GetValue().FormatISODate().ToStdString());
 
     mToCtrlDate = pDateStore->SundayDateSeconds;
 
-    pLogger->info(
-        "MainFrame::SetToDateAndDatePicker - Reset mToCtrlDate to: {0}", mToCtrlDate.FormatISODate().ToStdString());
+    pLogger->info("MainFrame::SetToDateAndDatePicker - Reset mToCtrlDate to: {0}",
+        mToCtrlDate.FormatISODate().ToStdString());
 }
 
 void MainFrame::ResetTaskContextMenuVariables()
