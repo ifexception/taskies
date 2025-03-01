@@ -188,7 +188,7 @@ void QuickExportToCsvDialog::CreateControls()
     auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxHORIZONTAL);
     mainSizer->Add(presetsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    auto presetsChoiceLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Presets");
+    auto presetsChoiceLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Preset");
     pPresetsChoiceCtrl = new wxChoice(presetsStaticBox, tksIDC_PRESET_CHOICE_CTRL);
 
     presetsStaticBoxSizer->Add(
