@@ -56,7 +56,7 @@
 #include "../ui/dlg/projectdlg.h"
 #include "../ui/dlg/categoriesdlg.h"
 #include "../ui/dlg/aboutdlg.h"
-#include "../ui/dlg/preferencesdlg.h"
+#include "../ui/dlg/preferences/preferencesdlg.h"
 #include "../ui/dlg/taskdlglegacy.h"
 #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exporttocsvdlg.h"
