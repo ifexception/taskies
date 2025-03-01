@@ -21,10 +21,10 @@
 
 #include <wx/persist/toplevel.h>
 
-#include "../../common/common.h"
-#include "../../core/configuration.h"
-#include "../events.h"
-#include "../notificationclientdata.h"
+#include "../../../common/common.h"
+#include "../../../core/configuration.h"
+#include "../../events.h"
+#include "../../notificationclientdata.h"
 
 #include "preferencesgeneralpage.h"
 #include "preferencesdatabasepage.h"

@@ -30,7 +30,7 @@
 
 #include <spdlog/logger.h>
 
-#include "../../core/configuration.h"
+#include "../../../core/configuration.h"
 
 namespace tks
 {

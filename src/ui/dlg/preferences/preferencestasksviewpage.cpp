@@ -21,9 +21,9 @@
 
 #include <wx/richtooltip.h>
 
-#include "../../common/common.h"
-#include "../../core/configuration.h"
-#include "../clientdata.h"
+#include "../../../common/common.h"
+#include "../../../core/configuration.h"
+#include "../../clientdata.h"
 
 namespace tks::UI::dlg
 {

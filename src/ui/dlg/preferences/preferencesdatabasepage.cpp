@@ -22,8 +22,8 @@
 #include <wx/filedlg.h>
 #include <wx/richtooltip.h>
 
-#include "../../core/environment.h"
-#include "../../core/configuration.h"
+#include "../../../core/environment.h"
+#include "../../../core/configuration.h"
 
 namespace tks::UI::dlg
 {

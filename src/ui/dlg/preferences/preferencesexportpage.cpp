@@ -23,7 +23,7 @@
 #include <wx/dirdlg.h>
 #include <wx/richtooltip.h>
 
-#include "../../core/environment.h"
+#include "../../../core/environment.h"
 
 namespace tks::UI::dlg
 {

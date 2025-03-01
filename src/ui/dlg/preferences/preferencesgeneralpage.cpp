@@ -23,9 +23,9 @@
 #include <wx/stdpaths.h>
 #include <wx/msw/registry.h>
 
-#include "../../common/common.h"
-#include "../../core/configuration.h"
-#include "../clientdata.h"
+#include "../../../common/common.h"
+#include "../../../core/configuration.h"
+#include "../../clientdata.h"
 
 #ifdef _WIN32
 namespace
