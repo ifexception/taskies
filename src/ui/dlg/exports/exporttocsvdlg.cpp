@@ -94,12 +94,11 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pBrowseExportPathButton(nullptr)
     , pFromDatePickerCtrl(nullptr)
     , pToDatePickerCtrl(nullptr)
-    , pPresetResetButton(nullptr)
     , pPresetNameTextCtrl(nullptr)
     , pPresetIsDefaultCheckBoxCtrl(nullptr)
-    , pPresetsChoiceCtrl(nullptr)
     , pPresetSaveButton(nullptr)
-    , pPresetApplyButton(nullptr)
+    , pPresetResetButton(nullptr)
+    , pPresetsChoiceCtrl(nullptr)
     , pAvailableColumnsListView(nullptr)
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
@@ -139,12 +138,6 @@ void ExportToCsvDialog::Create()
     ConfigureEventBindings();
 }
 
-    /*
- * TODO: Presets UX Enhancement
- * Remove static box and all controls
- * wxDialogs do not support menu bars
- * Use _another_ wxDialog to manage presets from "exporttocsvdlg"
- */
 void ExportToCsvDialog::CreateControls()
 {
     /* Main Window Sizer */
@@ -154,9 +147,6 @@ void ExportToCsvDialog::CreateControls()
     auto outputStaticBox = new wxStaticBox(this, wxID_ANY, "Output");
     auto outputStaticBoxSizer = new wxStaticBoxSizer(outputStaticBox, wxVERTICAL);
     sizer->Add(outputStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-    outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand());
 
     /* Export to clipboard checkbox control */
     pExportToClipboardCheckBoxCtrl =
@@ -178,6 +168,9 @@ void ExportToCsvDialog::CreateControls()
         new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
     pBrowseExportPathButton->SetToolTip("Set the path on where to the save the exported data to");
 
+    auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand());
+
     outputFlexGridSizer->AddGrowableCol(1, 1);
 
     outputFlexGridSizer->Add(0, 0);
@@ -194,19 +187,67 @@ void ExportToCsvDialog::CreateControls()
     outputFlexGridSizer->Add(
         pCloseDialogAfterExportingCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)));
 
-    /* Sizer for Options, Date Range and Presets controls */
-    auto horizontalBoxSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(horizontalBoxSizer, wxSizerFlags().Expand());
+    /* Presets static box */
+    auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
+    auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxVERTICAL);
+    sizer->Add(presetsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    /* Sizer for Options and Date Range controls */
-    auto leftSideVerticalSizer = new wxBoxSizer(wxVERTICAL);
-    horizontalBoxSizer->Add(leftSideVerticalSizer, wxSizerFlags().Expand());
+    /* Preset name static text control */
+    auto presetNameLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Name");
 
-    /* Options static box (left) */
+    /* Preset name text control */
+    pPresetNameTextCtrl = new wxTextCtrl(presetsStaticBox, tksIDC_PRESET_NAME_TEXT_CTRL, "");
+    pPresetNameTextCtrl->SetHint("Preset name");
+    pPresetNameTextCtrl->SetToolTip("Name of the preset");
+
+    /* Preset is default checkbox control */
+    pPresetIsDefaultCheckBoxCtrl =
+        new wxCheckBox(presetsStaticBox, tksIDC_PRESET_IS_DEFAULT_CTRL, "Is Default");
+    pPresetIsDefaultCheckBoxCtrl->SetToolTip(
+        "Preset will be selected automatically and applied when the dialog gets launched");
+
+    pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
+    pPresetSaveButton->SetToolTip("Create new or update existing preset");
+
+    pPresetResetButton = new wxButton(presetsStaticBox, tksIDC_PRESET_RESET_BUTTON, "Reset");
+    pPresetResetButton->SetToolTip("Resets all options to defaults");
+
+    /* Presets selection controls */
+    auto presetsChoiceLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Preset");
+    pPresetsChoiceCtrl = new wxChoice(presetsStaticBox, tksIDC_PRESET_CHOICE_CTRL);
+
+    /* Presets flex grid sizer */
+    auto presetFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    presetsStaticBoxSizer->Add(presetFlexGridSizer, wxSizerFlags().Expand());
+
+    presetFlexGridSizer->AddGrowableCol(1, 1);
+
+    presetFlexGridSizer->Add(
+        presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    presetFlexGridSizer->Add(
+        pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    presetFlexGridSizer->Add(0, 0);
+    presetFlexGridSizer->Add(
+        pPresetIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    presetFlexGridSizer->Add(0, 0);
+
+    auto presetButtonHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    presetButtonHorizontalSizer->AddStretchSpacer(1);
+    presetButtonHorizontalSizer->Add(
+        pPresetSaveButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    presetButtonHorizontalSizer->Add(
+        pPresetResetButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    presetFlexGridSizer->Add(presetButtonHorizontalSizer, wxSizerFlags().Expand());
+
+    presetFlexGridSizer->Add(
+        presetsChoiceLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    presetFlexGridSizer->Add(
+        pPresetsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    /* Options static box */
     auto optionsStaticBox = new wxStaticBox(this, wxID_ANY, "Options");
     auto optionsStaticBoxSizer = new wxStaticBoxSizer(optionsStaticBox, wxVERTICAL);
-    leftSideVerticalSizer->Add(
-        optionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    sizer->Add(optionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Flex grid sizer for option choices */
     auto optionsFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -267,8 +308,7 @@ void ExportToCsvDialog::CreateControls()
     /* Date range static box */
     auto dateRangeStaticBox = new wxStaticBox(this, wxID_ANY, "Date Range");
     auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxHORIZONTAL);
-    leftSideVerticalSizer->Add(
-        dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    sizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* From date control */
     auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
@@ -294,73 +334,6 @@ void ExportToCsvDialog::CreateControls()
     dateRangeStaticBoxSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     dateRangeStaticBoxSizer->Add(pExportTodaysTasksOnlyCheckBoxCtrl,
         wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-
-    /* Sizer for Presets controls */
-    auto rightSideVerticalSizer = new wxBoxSizer(wxVERTICAL);
-    horizontalBoxSizer->Add(rightSideVerticalSizer, wxSizerFlags().Expand().Proportion(1));
-
-    /* Presets static box */
-    auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
-    auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxVERTICAL);
-    rightSideVerticalSizer->Add(
-        presetsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    /* Presets management sizer */
-    auto presetFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-    presetsStaticBoxSizer->Add(presetFlexGridSizer, wxSizerFlags().Expand());
-
-    presetFlexGridSizer->AddGrowableCol(1, 1);
-
-    auto presetNameLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Name");
-    pPresetNameTextCtrl = new wxTextCtrl(presetsStaticBox, tksIDC_PRESET_NAME_TEXT_CTRL, "");
-    pPresetNameTextCtrl->SetHint("Preset Name");
-    pPresetIsDefaultCheckBoxCtrl =
-        new wxCheckBox(presetsStaticBox, tksIDC_PRESET_IS_DEFAULT_CTRL, "Is Default");
-    pPresetIsDefaultCheckBoxCtrl->SetToolTip(
-        "If selected, this preset will be selected and applied when the dialog gets launched");
-    pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
-
-    presetFlexGridSizer->Add(
-        presetNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    presetFlexGridSizer->Add(
-        pPresetNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-    presetFlexGridSizer->Add(0, 0);
-    presetFlexGridSizer->Add(
-        pPresetIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    presetFlexGridSizer->Add(0, 0);
-    presetFlexGridSizer->Add(pPresetSaveButton, wxSizerFlags().Right().Border(wxALL, FromDIP(4)));
-
-    /* Presets selection */
-    auto presetsSelectionStaticBox = new wxStaticBox(this, wxID_ANY, "Preset Selection");
-    auto presetsSelectionStaticBoxSizer =
-        new wxStaticBoxSizer(presetsSelectionStaticBox, wxVERTICAL);
-    rightSideVerticalSizer->Add(
-        presetsSelectionStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    /* Presets selection controls */
-    auto presetsChoiceLabel = new wxStaticText(presetsSelectionStaticBox, wxID_ANY, "Presets");
-    pPresetsChoiceCtrl = new wxChoice(presetsSelectionStaticBox, tksIDC_PRESET_CHOICE_CTRL);
-
-    pPresetApplyButton =
-        new wxButton(presetsSelectionStaticBox, tksIDC_PRESET_APPLY_BUTTON, "Apply");
-    pPresetResetButton =
-        new wxButton(presetsSelectionStaticBox, tksIDC_PRESET_RESET_BUTTON, "Reset");
-    pPresetResetButton->SetToolTip("Resets all options to default");
-
-    auto presetSelectionHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
-    presetsSelectionStaticBoxSizer->Add(presetSelectionHorizontalSizer, wxSizerFlags().Expand());
-
-    presetSelectionHorizontalSizer->Add(
-        presetsChoiceLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    presetSelectionHorizontalSizer->Add(
-        pPresetsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-
-    auto presetSelectionButtonSizer = new wxBoxSizer(wxHORIZONTAL);
-    presetsSelectionStaticBoxSizer->Add(presetSelectionButtonSizer, wxSizerFlags().Expand());
-
-    presetSelectionButtonSizer->AddStretchSpacer();
-    presetSelectionButtonSizer->Add(pPresetApplyButton, wxSizerFlags().Border(wxALL, FromDIP(2)));
-    presetSelectionButtonSizer->Add(pPresetResetButton, wxSizerFlags().Border(wxALL, FromDIP(2)));
 
     /* Header/Columns to Export Controls sizer */
     auto dataToExportStaticBox = new wxStaticBox(this, wxID_ANY, "Data to Export");
@@ -668,13 +641,6 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL
     );
 
-    pPresetResetButton->Bind(
-        wxEVT_BUTTON,
-        &ExportToCsvDialog::OnResetPreset,
-        this,
-        tksIDC_PRESET_RESET_BUTTON
-    );
-
     pPresetSaveButton->Bind(
         wxEVT_BUTTON,
         &ExportToCsvDialog::OnSavePreset,
@@ -682,11 +648,17 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_PRESET_SAVE_BUTTON
     );
 
-    pPresetApplyButton->Bind(
+    pPresetResetButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnApplyPreset,
+        &ExportToCsvDialog::OnResetPreset,
         this,
-        tksIDC_PRESET_APPLY_BUTTON
+        tksIDC_PRESET_RESET_BUTTON
+    );
+
+    pPresetsChoiceCtrl->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnPresetChoice,
+        this
     );
 
     pAvailableColumnsListView->Bind(
@@ -1087,12 +1059,12 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     }
 }
 
-void ExportToCsvDialog::OnApplyPreset(wxCommandEvent& WXUNUSED(event))
+void ExportToCsvDialog::OnPresetChoice(wxCommandEvent& event)
 {
-    const std::string TAG = "ExportToCsvDialog::OnApplyPreset";
+    const std::string TAG = "ExportToCsvDialog::OnPresetChoice";
     pLogger->info("{0} - Begin to apply selected preset", TAG);
 
-    int presetIndex = pPresetsChoiceCtrl->GetSelection();
+    int presetIndex = event.GetSelection();
     ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
         pPresetsChoiceCtrl->GetClientObject(presetIndex));
 

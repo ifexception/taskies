@@ -82,9 +82,9 @@ private:
     void OnToDateSelection(wxDateEvent& event);
     void OnExportTodaysTasksOnlyCheck(wxCommandEvent& event);
 
-    void OnResetPreset(wxCommandEvent& event);
     void OnSavePreset(wxCommandEvent& event);
-    void OnApplyPreset(wxCommandEvent& event);
+    void OnResetPreset(wxCommandEvent& event);
+    void OnPresetChoice(wxCommandEvent& event);
 
     void OnAvailableColumnItemCheck(wxListEvent& event);
     void OnAvailableColumnItemUncheck(wxListEvent& event);
@@ -133,13 +133,11 @@ private:
     wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
 
-    wxButton* pPresetResetButton;
     wxTextCtrl* pPresetNameTextCtrl;
     wxCheckBox* pPresetIsDefaultCheckBoxCtrl;
     wxButton* pPresetSaveButton;
-
+    wxButton* pPresetResetButton;
     wxChoice* pPresetsChoiceCtrl;
-    wxButton* pPresetApplyButton;
 
     wxListView* pAvailableColumnsListView;
     wxButton* pRightChevronButton;
