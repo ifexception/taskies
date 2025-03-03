@@ -143,10 +143,14 @@ void ExportToCsvDialog::CreateControls()
     /* Main Window Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
+    auto outputAndPresetHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(outputAndPresetHorizontalSizer, wxSizerFlags().Expand());
+
     /* Output static box (top) */
     auto outputStaticBox = new wxStaticBox(this, wxID_ANY, "Output");
     auto outputStaticBoxSizer = new wxStaticBoxSizer(outputStaticBox, wxVERTICAL);
-    sizer->Add(outputStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    outputAndPresetHorizontalSizer->Add(
+        outputStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Export to clipboard checkbox control */
     pExportToClipboardCheckBoxCtrl =
@@ -190,7 +194,8 @@ void ExportToCsvDialog::CreateControls()
     /* Presets static box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
     auto presetsStaticBoxSizer = new wxStaticBoxSizer(presetsStaticBox, wxVERTICAL);
-    sizer->Add(presetsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    outputAndPresetHorizontalSizer->Add(
+        presetsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Preset name static text control */
     auto presetNameLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Name");
@@ -472,8 +477,8 @@ void ExportToCsvDialog::CreateControls()
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Close");
 
-    buttonsSizer->Add(pExportButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pExportButton, wxSizerFlags().Border(wxALL, FromDIP(2)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(2)));
 
     SetSizerAndFit(sizer);
 }
