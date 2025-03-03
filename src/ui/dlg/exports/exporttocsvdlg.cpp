@@ -238,10 +238,8 @@ void ExportToCsvDialog::CreateControls()
 
     auto presetButtonHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     presetButtonHorizontalSizer->AddStretchSpacer(1);
-    presetButtonHorizontalSizer->Add(
-        pPresetSaveButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    presetButtonHorizontalSizer->Add(
-        pPresetResetButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    presetButtonHorizontalSizer->Add(pPresetSaveButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    presetButtonHorizontalSizer->Add(pPresetResetButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     presetFlexGridSizer->Add(presetButtonHorizontalSizer, wxSizerFlags().Expand());
 
     presetFlexGridSizer->Add(
@@ -249,10 +247,19 @@ void ExportToCsvDialog::CreateControls()
     presetFlexGridSizer->Add(
         pPresetsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
+    /* Horizontal Line */
+    auto line0 = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line0, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(4)).Expand());
+
+    /* Horizontal sizer for options and date range controls */
+    auto optionsAndDateRangeHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(optionsAndDateRangeHorizontalSizer, wxSizerFlags().Expand());
+
     /* Options static box */
     auto optionsStaticBox = new wxStaticBox(this, wxID_ANY, "Options");
     auto optionsStaticBoxSizer = new wxStaticBoxSizer(optionsStaticBox, wxVERTICAL);
-    sizer->Add(optionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    optionsAndDateRangeHorizontalSizer->Add(
+        optionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Flex grid sizer for option choices */
     auto optionsFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -312,8 +319,9 @@ void ExportToCsvDialog::CreateControls()
 
     /* Date range static box */
     auto dateRangeStaticBox = new wxStaticBox(this, wxID_ANY, "Date Range");
-    auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxHORIZONTAL);
-    sizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxVERTICAL);
+    optionsAndDateRangeHorizontalSizer->Add(
+        dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* From date control */
     auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
@@ -331,14 +339,19 @@ void ExportToCsvDialog::CreateControls()
     pExportTodaysTasksOnlyCheckBoxCtrl->SetToolTip(
         "If selected, only tasks logged for today's date will be exported");
 
-    dateRangeStaticBoxSizer->Add(
+    /* Date from and to controls horizontal sizer */
+    auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    dateRangeStaticBoxSizer->Add(dateControlsHorizontalSizer, wxSizerFlags().Expand());
+
+    dateControlsHorizontalSizer->Add(
         fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateRangeStaticBoxSizer->Add(pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    dateRangeStaticBoxSizer->Add(
+    dateControlsHorizontalSizer->Add(pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateControlsHorizontalSizer->Add(
         toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateRangeStaticBoxSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    dateRangeStaticBoxSizer->Add(pExportTodaysTasksOnlyCheckBoxCtrl,
-        wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    dateControlsHorizontalSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    dateRangeStaticBoxSizer->Add(
+        pExportTodaysTasksOnlyCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Header/Columns to Export Controls sizer */
     auto dataToExportStaticBox = new wxStaticBox(this, wxID_ANY, "Data to Export");
@@ -462,8 +475,8 @@ void ExportToCsvDialog::CreateControls()
         pShowPreviewButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
 
     /* Horizontal Line */
-    auto line = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    auto line1 = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line1, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(4)).Expand());
 
     /* Export|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
