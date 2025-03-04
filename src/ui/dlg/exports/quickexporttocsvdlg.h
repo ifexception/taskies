@@ -95,7 +95,7 @@ private:
 
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
-    wxCheckBox* pExportTodaysTasksOnlyCheckBoxCtrl;
+    wxCheckBox* pExportTodaysTasksCheckBoxCtrl;
 
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
@@ -121,7 +121,7 @@ private:
         tksIDC_BROWSE_EXPORT_PATH_CTRL,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
-        tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL,
+        tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
         tksIDC_PRESET_CHOICE_CTRL,
     };
 };

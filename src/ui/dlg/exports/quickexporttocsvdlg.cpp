@@ -169,9 +169,9 @@ void QuickExportToCsvDialog::CreateControls()
     pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data from");
 
     /* Export only todays tasks check box control */
-    pExportTodaysTasksOnlyCheckBoxCtrl = new wxCheckBox(
-        dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL, "Export today's tasks only");
-    pExportTodaysTasksOnlyCheckBoxCtrl->SetToolTip(
+    pExportTodaysTasksCheckBoxCtrl = new wxCheckBox(
+        dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks only");
+    pExportTodaysTasksCheckBoxCtrl->SetToolTip(
         "If selected, only tasks logged for today's date will be exported");
 
     dateRangeStaticBoxSizer->Add(
@@ -180,7 +180,7 @@ void QuickExportToCsvDialog::CreateControls()
     dateRangeStaticBoxSizer->Add(
         toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateRangeStaticBoxSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    dateRangeStaticBoxSizer->Add(pExportTodaysTasksOnlyCheckBoxCtrl,
+    dateRangeStaticBoxSizer->Add(pExportTodaysTasksCheckBoxCtrl,
         wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
     /* Presets static box */
@@ -287,11 +287,11 @@ void QuickExportToCsvDialog::ConfigureEventBindings()
         tksIDC_DATE_TO_CTRL
     );
 
-    pExportTodaysTasksOnlyCheckBoxCtrl->Bind(
+    pExportTodaysTasksCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &QuickExportToCsvDialog::OnExportTodaysTasksOnlyCheck,
         this,
-        tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL
+        tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL
     );
 
     pPresetsChoiceCtrl->Bind(
