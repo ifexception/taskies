@@ -128,7 +128,7 @@ private:
 
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
-    wxCheckBox* pExportTodaysTasksOnlyCheckBoxCtrl;
+    wxCheckBox* pExportTodaysTasksCheckBoxCtrl;
     wxCheckBox* pWorkWeekRangeCheckBoxCtrl;
 
     wxDateTime mFromCtrlDate;
@@ -184,7 +184,7 @@ private:
         tksIDC_BOOLEAN_HANDLER_CTRL,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
-        tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL,
+        tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
         tksIDC_WORKWEEKRANGECHECKBOXCTRL,
         tksIDC_PRESET_RESET_BUTTON,
         tksIDC_PRESET_NAME_TEXT_CTRL,
