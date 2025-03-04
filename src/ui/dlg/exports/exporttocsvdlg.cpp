@@ -336,7 +336,7 @@ void ExportToCsvDialog::CreateControls()
     /* Export todays tasks check box control */
     pExportTodaysTasksCheckBoxCtrl = new wxCheckBox(
         dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks");
-    pExportTodaysTasksCheckBoxCtrl->SetToolTip("Export only tasks logged during today's date");
+    pExportTodaysTasksCheckBoxCtrl->SetToolTip("Export tasks logged during today's date");
 
     /* Set date range to work week (i.e. Mon - Fri) */
     pWorkWeekRangeCheckBoxCtrl = new wxCheckBox(

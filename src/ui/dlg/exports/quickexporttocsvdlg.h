@@ -69,7 +69,8 @@ private:
 
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
-    void OnExportTodaysTasksOnlyCheck(wxCommandEvent& event);
+    void OnExportTodaysTasksCheck(wxCommandEvent& event);
+    void OnWorkWeekRangeCheck(wxCommandEvent& event);
 
     void OnPresetChoiceSelection(wxCommandEvent& event);
 
@@ -96,6 +97,7 @@ private:
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
     wxCheckBox* pExportTodaysTasksCheckBoxCtrl;
+    wxCheckBox* pWorkWeekRangeCheckBoxCtrl;
 
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
@@ -122,6 +124,7 @@ private:
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
+        tksIDC_WORKWEEKRANGECHECKBOXCTRL,
         tksIDC_PRESET_CHOICE_CTRL,
     };
 };
