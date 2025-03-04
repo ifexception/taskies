@@ -333,11 +333,16 @@ void ExportToCsvDialog::CreateControls()
     pToDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
     pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data from");
 
-    /* Export only todays tasks check box control */
-    pExportTodaysTasksOnlyCheckBoxCtrl = new wxCheckBox(
-        dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL, "Export today's tasks only");
-    pExportTodaysTasksOnlyCheckBoxCtrl->SetToolTip(
-        "If selected, only tasks logged for today's date will be exported");
+    /* Export todays tasks check box control */
+    pExportTodaysTasksCheckBoxCtrl = new wxCheckBox(
+        dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks");
+    pExportTodaysTasksCheckBoxCtrl->SetToolTip("Export only tasks logged during today's date");
+
+    /* Set date range to work week (i.e. Mon - Fri) */
+    pWorkWeekRangeCheckBoxCtrl = new wxCheckBox(
+        dateRangeStaticBox, tksIDC_WORKWEEKRANGECHECKBOXCTRL, "Export work week tasks");
+    pWorkWeekRangeCheckBoxCtrl->SetToolTip(
+        "Export only tasks logged during a work week (i.e. Mon - Fri)");
 
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -345,13 +350,19 @@ void ExportToCsvDialog::CreateControls()
 
     dateControlsHorizontalSizer->Add(
         fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateControlsHorizontalSizer->Add(pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateControlsHorizontalSizer->Add(pFromDatePickerCtrl,
+        wxSizerFlags() /*.Border(wxLEFT, FromDIP(1))*/.Border(
+            wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
     dateControlsHorizontalSizer->Add(
         toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateControlsHorizontalSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateControlsHorizontalSizer->Add(pToDatePickerCtrl,
+        wxSizerFlags() /*.Border(wxLEFT, FromDIP(1))*/.Border(
+            wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
 
     dateRangeStaticBoxSizer->Add(
-        pExportTodaysTasksOnlyCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+        pExportTodaysTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateRangeStaticBoxSizer->Add(
+        pWorkWeekRangeCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Header/Columns to Export Controls sizer */
     auto dataToExportStaticBox = new wxStaticBox(this, wxID_ANY, "Data to Export");
@@ -652,11 +663,18 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_DATE_TO_CTRL
     );
 
-    pExportTodaysTasksOnlyCheckBoxCtrl->Bind(
+    pExportTodaysTasksCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &ExportToCsvDialog::OnExportTodaysTasksOnlyCheck,
         this,
-        tksIDC_EXPORTTODAYSTASKSONLYCHECKBOXCTRL
+        tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL
+    );
+
+    pWorkWeekRangeCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &ExportToCsvDialog::OnWorkWeekRangeCheck,
+        this,
+        tksIDC_WORKWEEKRANGECHECKBOXCTRL
     );
 
     pPresetSaveButton->Bind(
@@ -952,6 +970,33 @@ void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
 
         pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
         mToCtrlDate = pDateStore->TodayDateSeconds;
+
+        pFromDatePickerCtrl->Disable();
+        pToDatePickerCtrl->Disable();
+    } else {
+        SetFromAndToDatePickerRanges();
+
+        SetFromDateAndDatePicker();
+        SetToDateAndDatePicker();
+
+        pFromDatePickerCtrl->Enable();
+        pToDatePickerCtrl->Enable();
+    }
+}
+
+void ExportToCsvDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        auto fridayDate = pDateStore->MondayDate + (date::Sunday - date::Friday);
+        auto fridayTimestamp = fridayDate.time_since_epoch();
+        auto fridaySeconds =
+            std::chrono::duration_cast<std::chrono::seconds>(fridayTimestamp).count();
+
+        pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
+        mFromCtrlDate = pDateStore->MondayDateSeconds;
+
+        pToDatePickerCtrl->SetValue(fridaySeconds);
+        mToCtrlDate = fridaySeconds;
 
         pFromDatePickerCtrl->Disable();
         pToDatePickerCtrl->Disable();
