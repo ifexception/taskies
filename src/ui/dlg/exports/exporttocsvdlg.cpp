@@ -115,6 +115,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , mCsvOptions()
     , mCsvExporter(pCfg->GetDatabasePath(), pLogger)
     , bExportToClipboard(false)
+    , bOpenExplorerInExportDirectory(false)
     , bExportTodaysTasksOnly(false)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
@@ -161,15 +162,22 @@ void ExportToCsvDialog::CreateControls()
     auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
     pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
 
+    pBrowseExportPathButton =
+        new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
+    pBrowseExportPathButton->SetToolTip("Set the directory to save the exported data to");
+
     /* Close dialog after export check box control */
     pCloseDialogAfterExportingCheckBoxCtrl = new wxCheckBox(
         outputStaticBox, tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL, "Close dialog after exporting");
     pCloseDialogAfterExportingCheckBoxCtrl->SetToolTip(
         "The dialog will close automatically after a successful export");
 
-    pBrowseExportPathButton =
-        new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
-    pBrowseExportPathButton->SetToolTip("Set the directory to save the exported data to");
+    /* Open explorer in export directory check box control */
+    pOpenExplorerInExportDirectoryCheckBoxCtrl = new wxCheckBox(outputStaticBox,
+        TKSIDC_OPENEXPLORERINEXPORTDIRECTORYCHECKBOXCTRL,
+        "Open File Explorer after exporting");
+    pOpenExplorerInExportDirectoryCheckBoxCtrl->SetToolTip(
+        "Open Explorer in export directory after successful export");
 
     auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand());
@@ -189,6 +197,9 @@ void ExportToCsvDialog::CreateControls()
     outputFlexGridSizer->Add(0, 0);
     outputFlexGridSizer->Add(
         pCloseDialogAfterExportingCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)));
+    outputFlexGridSizer->Add(0, 0);
+    outputFlexGridSizer->Add(
+        pOpenExplorerInExportDirectoryCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)));
 
     /* Presets static box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
@@ -612,6 +623,21 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL
     );
 
+    pOpenExplorerInExportDirectoryCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &ExportToCsvDialog::OnOpenExplorerInExportDirectoryCheck,
+        this,
+        TKSIDC_OPENEXPLORERINEXPORTDIRECTORYCHECKBOXCTRL
+    );
+
+    pBrowseExportPathButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation,
+        this,
+        tksIDC_BROWSE_EXPORT_PATH_CTRL
+    );
+
+
     pDelimiterChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ExportToCsvDialog::OnDelimiterChoiceSelection,
@@ -641,14 +667,6 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnBooleanHandlerChoiceSelection,
         this
     );
-
-    pBrowseExportPathButton->Bind(
-        wxEVT_BUTTON,
-        &ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation,
-        this,
-        tksIDC_BROWSE_EXPORT_PATH_CTRL
-    );
-
     pFromDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
         &ExportToCsvDialog::OnFromDateSelection,
@@ -867,16 +885,6 @@ void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
     bExportToClipboard = event.IsChecked();
 }
 
-void ExportToCsvDialog::OnCloseDialogAfterExportingCheck(wxCommandEvent& event)
-{
-    pLogger->info("ExportToCsvDialog::OnCloseDialogAfterExportingCheck - Close dialog after "
-                  "exporting toggled to: \"{0}\"",
-        event.IsChecked());
-
-    pCfg->CloseExportDialogAfterExporting(event.IsChecked());
-    pCfg->Save();
-}
-
 void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
 {
     std::string directoryToOpen = pCfg->GetExportPath();
@@ -898,6 +906,21 @@ void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& eve
     }
 
     openDirDialog->Destroy();
+}
+
+void ExportToCsvDialog::OnCloseDialogAfterExportingCheck(wxCommandEvent& event)
+{
+    pLogger->info("ExportToCsvDialog::OnCloseDialogAfterExportingCheck - Close dialog after "
+                  "exporting toggled to: \"{0}\"",
+        event.IsChecked());
+
+    pCfg->CloseExportDialogAfterExporting(event.IsChecked());
+    pCfg->Save();
+}
+
+void ExportToCsvDialog::OnOpenExplorerInExportDirectoryCheck(wxCommandEvent& event)
+{
+    bOpenExplorerInExportDirectory = event.IsChecked();
 }
 
 void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
