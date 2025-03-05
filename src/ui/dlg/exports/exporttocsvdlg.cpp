@@ -155,8 +155,7 @@ void ExportToCsvDialog::CreateControls()
     /* Export to clipboard checkbox control */
     pExportToClipboardCheckBoxCtrl =
         new wxCheckBox(outputStaticBox, tksIDC_COPY_TO_CLIPBOARD_CTRL, "Copy to clipboard");
-    pExportToClipboardCheckBoxCtrl->SetToolTip(
-        "If selected, the data will be copied to the clipboard");
+    pExportToClipboardCheckBoxCtrl->SetToolTip("Exported data will be copied to the clipboard");
 
     /* Save to file text control */
     auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
@@ -166,11 +165,11 @@ void ExportToCsvDialog::CreateControls()
     pCloseDialogAfterExportingCheckBoxCtrl = new wxCheckBox(
         outputStaticBox, tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL, "Close dialog after exporting");
     pCloseDialogAfterExportingCheckBoxCtrl->SetToolTip(
-        "If selected, the dialog will close automatically after a successful export");
+        "The dialog will close automatically after a successful export");
 
     pBrowseExportPathButton =
         new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
-    pBrowseExportPathButton->SetToolTip("Set the path on where to the save the exported data to");
+    pBrowseExportPathButton->SetToolTip("Set the directory to save the exported data to");
 
     auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand());
@@ -208,14 +207,14 @@ void ExportToCsvDialog::CreateControls()
     /* Preset is default checkbox control */
     pPresetIsDefaultCheckBoxCtrl =
         new wxCheckBox(presetsStaticBox, tksIDC_PRESET_IS_DEFAULT_CTRL, "Is Default");
-    pPresetIsDefaultCheckBoxCtrl->SetToolTip(
-        "Preset will be selected automatically and applied when the dialog gets launched");
+    pPresetIsDefaultCheckBoxCtrl->SetToolTip("A default preset will be selected and applied "
+                                             "automatically when the dialog gets launched");
 
     pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
     pPresetSaveButton->SetToolTip("Create new or update existing preset");
 
     pPresetResetButton = new wxButton(presetsStaticBox, tksIDC_PRESET_RESET_BUTTON, "Reset");
-    pPresetResetButton->SetToolTip("Resets all options to defaults");
+    pPresetResetButton->SetToolTip("Reset all options to defaults");
 
     /* Presets selection controls */
     auto presetsChoiceLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Preset");
@@ -275,7 +274,7 @@ void ExportToCsvDialog::CreateControls()
     /* Text qualifiers choice control */
     auto textQualifierLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Text Qualifier");
     pTextQualifierChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_TEXT_QUALIFIER_CTRL);
-    pTextQualifierChoiceCtrl->SetToolTip("Set the text qualifier for text values");
+    pTextQualifierChoiceCtrl->SetToolTip("Set the text qualifier for field values");
 
     /* Empty values choice control */
     auto emptyValuesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Empty Values");
@@ -290,7 +289,7 @@ void ExportToCsvDialog::CreateControls()
     /* Boolean handler control */
     auto booleanHandlerLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Booleans");
     pBooleanHanderChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_BOOLEAN_HANDLER_CTRL);
-    pBooleanHanderChoiceCtrl->SetToolTip("Set how to handle boolean values");
+    pBooleanHanderChoiceCtrl->SetToolTip("Set how to handle boolean field values");
 
     optionsFlexGridSizer->Add(
         delimiterLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
@@ -341,8 +340,7 @@ void ExportToCsvDialog::CreateControls()
     /* Set date range to work week (i.e. Mon - Fri) */
     pWorkWeekRangeCheckBoxCtrl = new wxCheckBox(
         dateRangeStaticBox, tksIDC_WORKWEEKRANGECHECKBOXCTRL, "Export work week tasks");
-    pWorkWeekRangeCheckBoxCtrl->SetToolTip(
-        "Export only tasks logged during a work week (i.e. Mon - Fri)");
+    pWorkWeekRangeCheckBoxCtrl->SetToolTip("Export only tasks logged during a work week");
 
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -381,7 +379,7 @@ void ExportToCsvDialog::CreateControls()
         wxDefaultSize,
         wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
     pAvailableColumnsListView->EnableCheckBoxes();
-    pAvailableColumnsListView->SetToolTip("Available headers (columns) that can be exported");
+    pAvailableColumnsListView->SetToolTip("Available headers that can be exported");
     headerControlsHorizontalSizer->Add(
         pAvailableColumnsListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
@@ -399,10 +397,10 @@ void ExportToCsvDialog::CreateControls()
 
     pRightChevronButton = new wxButton(
         dataToExportStaticBox, tksIDC_RIGHT_CHEV_CTRL, ">", wxDefaultPosition, wxSize(32, -1));
-    pRightChevronButton->SetToolTip("Select a header to be included in the export");
+    pRightChevronButton->SetToolTip("Select a header to include in the export");
     pLeftChevronButton = new wxButton(
         dataToExportStaticBox, tksIDC_LEFT_CHEV_CTRL, "<", wxDefaultPosition, wxSize(32, -1));
-    pLeftChevronButton->SetToolTip("Select a header to be excluded in the export (if any)");
+    pLeftChevronButton->SetToolTip("Select a header to exclude in the export (if any)");
 
     chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
@@ -413,7 +411,7 @@ void ExportToCsvDialog::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxDV_SINGLE | wxDV_ROW_LINES);
-    pDataViewCtrl->SetToolTip("Headers (columns) to be exported to file or clipboard");
+    pDataViewCtrl->SetToolTip("Headersto be exported to a file or clipboard");
     headerControlsHorizontalSizer->Add(
         pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
@@ -453,7 +451,9 @@ void ExportToCsvDialog::CreateControls()
 
     /* Up|Down Buttons */
     pUpButton = new wxButton(dataToExportStaticBox, tksIDC_UP_BUTTON, "Up");
+    pUpButton->SetToolTip("Move the selected header up");
     pDownButton = new wxButton(dataToExportStaticBox, tksIDC_DOWN_BUTTON, "Down");
+    pDownButton->SetToolTip("Move the selected header down");
 
     upDownButtonSizer->Add(pUpButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     upDownButtonSizer->Add(pDownButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());

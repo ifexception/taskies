@@ -129,8 +129,7 @@ void QuickExportToCsvDialog::CreateControls()
     /* Export to clipboard checkbox control */
     pExportToClipboardCheckBoxCtrl =
         new wxCheckBox(outputStaticBox, tksIDC_COPY_TO_CLIPBOARD_CTRL, "Copy to clipboard");
-    pExportToClipboardCheckBoxCtrl->SetToolTip(
-        "If selected, the data will be copied to the clipboard");
+    pExportToClipboardCheckBoxCtrl->SetToolTip("Exported data will be copied to the clipboard");
 
     /* Save to file text control */
     auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
@@ -138,7 +137,7 @@ void QuickExportToCsvDialog::CreateControls()
 
     pBrowseExportPathButton =
         new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
-    pBrowseExportPathButton->SetToolTip("Set the path on where to the save the exported data to");
+    pBrowseExportPathButton->SetToolTip("Set the directory to save the exported data to");
 
     outputFlexGridSizer->AddGrowableCol(1, 1);
 
@@ -156,16 +155,15 @@ void QuickExportToCsvDialog::CreateControls()
     /* Date range static box */
     auto dateRangeStaticBox = new wxStaticBox(this, wxID_ANY, "Date Range");
     auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxVERTICAL);
-    mainSizer->Add(
-        dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    mainSizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* From date control */
-    auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
+    auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From:");
     pFromDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_FROM_CTRL);
     pFromDatePickerCtrl->SetToolTip("Set the earliest inclusive date to export the data from");
 
     /* To date control */
-    auto toDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "To: ");
+    auto toDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "To:");
     pToDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
     pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data from");
 
@@ -177,8 +175,7 @@ void QuickExportToCsvDialog::CreateControls()
     /* Set date range to work week (i.e. Mon - Fri) */
     pWorkWeekRangeCheckBoxCtrl = new wxCheckBox(
         dateRangeStaticBox, tksIDC_WORKWEEKRANGECHECKBOXCTRL, "Export work week tasks");
-    pWorkWeekRangeCheckBoxCtrl->SetToolTip(
-        "Export only tasks logged during a work week (i.e. Mon - Fri)");
+    pWorkWeekRangeCheckBoxCtrl->SetToolTip("Export only tasks logged during a work week");
 
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
