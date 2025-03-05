@@ -5,8 +5,10 @@ charset = utf-8
 trim_trailing_whitespace = true
 end_of_line = lf
 insert_final_newline = true
+guidelines = 100
+guidelines_style = 1px dotted black
 
 [*.{c,h,cpp,hpp,cc,hh}]
 indent_size = 4
 indent_style = space
-max_line_length = 120
+max_line_length = 100
