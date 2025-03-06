@@ -1469,6 +1469,20 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     wxQueueEvent(pParent, addNotificationEvent);
 
+    if (bOpenExplorerInExportDirectory) {
+        {
+            SHELLEXECUTEINFO sei = { 0 };
+            sei.cbSize = sizeof(sei);
+            sei.fMask = SEE_MASK_DEFAULT;
+            sei.hwnd = GetHWND();
+            sei.lpVerb = L"open";
+            sei.lpDirectory = wxPathOnly(pSaveToFileTextCtrl->GetValue()).ToStdWstring().c_str();
+            sei.nShow = SW_SHOW;
+
+            ShellExecuteEx(&sei);
+        }
+    }
+
     if (pCfg->CloseExportDialogAfterExporting()) {
         EndDialog(wxID_OK);
     }
