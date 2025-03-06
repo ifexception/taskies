@@ -1010,7 +1010,7 @@ void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
 void ExportToCsvDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
-        auto fridayDate = pDateStore->MondayDate + (pDateStore->TodayDate - date::Friday);
+        auto fridayDate = pDateStore->MondayDate + (pDateStore->MondayDate - date::Thursday);
         auto fridayTimestamp = fridayDate.time_since_epoch();
         auto fridaySeconds =
             std::chrono::duration_cast<std::chrono::seconds>(fridayTimestamp).count();
