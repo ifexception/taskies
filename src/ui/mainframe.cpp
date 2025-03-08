@@ -286,6 +286,7 @@ void MainFrame::CreateControls()
     if (!pCfg->BackupDatabase()) {
         fileTasksMenuItem->Enable(false);
     }
+    fileTasksMenu->AppendSeparator();
     fileTasksMenu->Append(
         ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV format");
     fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
