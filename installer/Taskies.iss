@@ -1,7 +1,7 @@
 ; -- Install Taskies --
 
-#define TaskiesVersion "0.1.20"
-#define TaskiesLifeCycle "alpha"
+#define TaskiesVersion "0.1.0"
+#define TaskiesLifeCycle "beta"
 
 [Setup]
 AppName=Taskies
