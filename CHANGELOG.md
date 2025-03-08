@@ -1,0 +1,11 @@
+# Taskies Changelog
+
+## v0.1.0-beta
+* Officially promote Taskies to _beta_
+* Refactor "Export to CSV" controls layout for better look and feel
+    - "Preset" box moved to be inline with "Output" box
+    - "Date Range" box moved to be inline with "Options" box
+    - New option to open _File Explorer_ in export directory on successful export
+    - New option to only export data during work week
+* Update wording in "Export to CSV" and "Quick Export to CSV" dialogs controls and tooltips to be more concise and clear
+* Add menu separator on "Tasks" between "Backup to Database" and "Exports"
