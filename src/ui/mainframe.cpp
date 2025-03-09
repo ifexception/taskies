@@ -31,6 +31,7 @@
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/persist/toplevel.h>
+#include <wx/notifmsg.h>
 #include <wx/richtooltip.h>
 #include <wx/taskbarbutton.h>
 
@@ -222,6 +223,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     // Setup reminders (if enabled)
     if (pCfg->UseReminders()) {
         pTaskReminderTimer->Start(Utils::ConvertMinutesToMilliseconds(pCfg->ReminderInterval()));
+
+        wxNotificationMessage::UseTaskBarIcon(pTaskBarIcon);
     }
 
     // Create controls
@@ -568,7 +571,12 @@ void MainFrame::OnTaskReminder(wxTimerEvent& event)
     const std::string TAG = "MainFrame::OnTaskReminder";
     pLogger->info("{0} - Task reminder trigger notification");
 
-    // Create notification
+    wxNotificationMessage taskReminderNotification(
+        "Taskies Reminder", "Reminder to capture tasks and their duration", this);
+    taskReminderNotification.SetFlags(0);
+    taskReminderNotification.Show(wxNotificationMessage::Timeout_Auto);
+
+    pLogger->info("{0} - Task reminder notification finished");
 }
 
 void MainFrame::OnNotificationClick(wxCommandEvent& event)
