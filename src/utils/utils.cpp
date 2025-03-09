@@ -154,6 +154,13 @@ std::string Uuid()
     return res;
 }
 
+int ConvertMinutesToMilliseconds(const int valueInMinutes)
+{
+    const int multiplier = 60000;
+    int valueInMilliseconds = valueInMinutes * multiplier;
+    return valueInMilliseconds;
+}
+
 namespace sqlite
 {
 std::string FormatSearchTerm(const std::string& source)

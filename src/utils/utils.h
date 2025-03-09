@@ -48,6 +48,8 @@ std::string ReplaceAll(std::string value, const std::string& src, const std::str
 
 std::string Uuid();
 
+int ConvertMinutesToMilliseconds(const int valueInMinutes);
+
 namespace sqlite
 {
 // SQLite interprets single quotes as string and performs no parameterization.
