@@ -818,6 +818,10 @@ void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
         }
 
         SetNewTaskMenubarTitle();
+
+        if (!pCfg->UseReminders()) {
+            pTaskReminderTimer->Stop();
+        }
     }
 }
 
