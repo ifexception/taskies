@@ -31,7 +31,6 @@
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/persist/toplevel.h>
-#include <wx/notifmsg.h>
 #include <wx/richtooltip.h>
 #include <wx/taskbarbutton.h>
 
@@ -172,6 +171,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mExpandCounter(0)
     , bDateRangeChanged(false)
     , pTaskReminderTimer(std::make_unique<wxTimer>(this, tksIDC_TASKREMINDERTIMER))
+    , pTaskReminderNotification()
 // clang-format on
 {
     // Initialization setup
@@ -571,10 +571,17 @@ void MainFrame::OnTaskReminder(wxTimerEvent& event)
     const std::string TAG = "MainFrame::OnTaskReminder";
     pLogger->info("{0} - Task reminder trigger notification");
 
-    wxNotificationMessage taskReminderNotification(
-        "Taskies Reminder", "Reminder to capture tasks and their duration", this);
-    taskReminderNotification.SetFlags(0);
-    taskReminderNotification.Show(wxNotificationMessage::Timeout_Auto);
+    pTaskReminderNotification = std::make_shared<wxNotificationMessage>(
+        "Reminder", "Reminder to capture tasks and their duration", this);
+    pTaskReminderNotification->SetFlags(0);
+
+    if (pCfg->OpenTaskDialogOnReminderClick()) {
+        pTaskReminderNotification->Bind(
+            wxEVT_NOTIFICATION_MESSAGE_CLICK, &MainFrame::OnReminderNotificationClicked, this);
+    }
+
+    // Show the notification
+    pTaskReminderNotification->Show(wxNotificationMessage::Timeout_Auto);
 
     pLogger->info("{0} - Task reminder notification finished");
 }
@@ -1441,6 +1448,17 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
             pDataViewCtrl->Expand(
                 pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
         }
+    }
+}
+
+void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
+{
+    if (pCfg->UseLegacyTaskDialog()) {
+        UI::dlg::TaskDialogLegacy newTaskDialogLegacy(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialogLegacy.ShowModal();
+    } else {
+        UI::dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialog.ShowModal();
     }
 }
 

@@ -33,8 +33,9 @@
 #endif
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
-#include <wx/infobar.h>
 #include <wx/dataview.h>
+#include <wx/infobar.h>
+#include <wx/notifmsg.h>
 
 #include <spdlog/spdlog.h>
 
@@ -194,6 +195,8 @@ private:
     /* DataViewCtrl Event Handlers */
     void OnContextMenu(wxDataViewEvent& event);
     void OnDataViewSelectionChanged(wxDataViewEvent& event);
+    /* Notification Event Handlers */
+    void OnReminderNotificationClicked(wxCommandEvent& event);
 
     void SetNewTaskMenubarTitle();
 
@@ -260,6 +263,7 @@ private:
     bool bDateRangeChanged;
 
     std::unique_ptr<wxTimer> pTaskReminderTimer;
+    std::shared_ptr<wxNotificationMessage> pTaskReminderNotification;
 
     enum {
         tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 1000,
