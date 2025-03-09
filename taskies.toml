@@ -17,6 +17,7 @@ showProjectAssociatedCategories=false
 useLegacyTaskDialog=false
 useReminders=false
 reminderInterval=0
+openTaskDialogOnReminderClick=false
 
 [tasksView]
 todayAlwaysExpanded=false

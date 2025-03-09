@@ -157,6 +157,8 @@ bool Configuration::Save()
     root.at(Sections::TaskSection)["useLegacyTaskDialog"] = mSettings.UseLegacyTaskDialog;
     root.at(Sections::TaskSection)["useReminders"] = mSettings.UseReminders;
     root.at(Sections::TaskSection)["reminderInterval"] = mSettings.ReminderInterval;
+    root.at(Sections::TaskSection)["openTaskDialogOnReminderClick"] =
+        mSettings.OpenTaskDialogOnReminderClick;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -165,7 +167,8 @@ bool Configuration::Save()
     // Export section
     root.at(Sections::ExportSection).as_table_fmt().fmt = toml::table_format::multiline;
     root.at(Sections::ExportSection)["exportPath"] = mSettings.ExportPath;
-    root.at(Sections::ExportSection)["closeExportDialogAfterExporting"] = mSettings.CloseExportDialogAfterExporting;
+    root.at(Sections::ExportSection)["closeExportDialogAfterExporting"] =
+        mSettings.CloseExportDialogAfterExporting;
     root.at(Sections::ExportSection)["presetCount"] = mSettings.PresetCount;
 
     // Presets section
@@ -256,6 +259,7 @@ bool Configuration::RestoreDefaults()
     UseLegacyTaskDialog(false);
     UseReminders(false);
     SetReminderInterval(0);
+    OpenTaskDialogOnReminderClick(false);
 
     SetExportPath(pEnv->GetExportPath().string());
     CloseExportDialogAfterExporting(false);
@@ -290,7 +294,8 @@ bool Configuration::RestoreDefaults()
                     { "showProjectAssociatedCategories", false },
                     { "useLegacyTaskDialog", false },
                     { "useReminders", false },
-                    { "reminderInterval", 0 }
+                    { "reminderInterval", 0 },
+                    { "openTaskDialogOnReminderClick", false }
                 }
             },
             {
@@ -685,6 +690,16 @@ void Configuration::SetReminderInterval(const int value)
     mSettings.ReminderInterval = value;
 }
 
+bool Configuration::OpenTaskDialogOnReminderClick() const
+{
+    return mSettings.OpenTaskDialogOnReminderClick;
+}
+
+void Configuration::OpenTaskDialogOnReminderClick(const bool value)
+{
+    mSettings.OpenTaskDialogOnReminderClick = value;
+}
+
 bool Configuration::TodayAlwaysExpanded() const
 {
     return mSettings.TodayAlwaysExpanded;
@@ -789,11 +804,16 @@ void Configuration::GetTasksConfig(const toml::value& root)
     const auto& taskSection = toml::find(root, Sections::TaskSection);
 
     mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
+
     mSettings.ShowProjectAssociatedCategories =
         toml::find<bool>(taskSection, "showProjectAssociatedCategories");
+
     mSettings.UseLegacyTaskDialog = toml::find<bool>(taskSection, "useLegacyTaskDialog");
+
     mSettings.UseReminders = toml::find<bool>(taskSection, "useReminders");
     mSettings.ReminderInterval = toml::find<int>(taskSection, "reminderInterval");
+    mSettings.OpenTaskDialogOnReminderClick =
+        toml::find<bool>(taskSection, "openTaskDialogOnReminderClick");
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)
@@ -856,11 +876,11 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
                                                   .at("originalColumn")
                                                   .as_string();
                 presetColumn.Order = static_cast<int>(root.at(Sections::PresetsSection)
-                                                          .at(i)
-                                                          .at("columns")
-                                                          .at(j)
-                                                          .at("order")
-                                                          .as_integer());
+                        .at(i)
+                        .at("columns")
+                        .at(j)
+                        .at("order")
+                        .as_integer());
 
                 preset.Columns.push_back(presetColumn);
             }

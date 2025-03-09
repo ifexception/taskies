@@ -116,6 +116,9 @@ public:
     int ReminderInterval() const;
     void SetReminderInterval(const int value);
 
+    bool OpenTaskDialogOnReminderClick() const;
+    void OpenTaskDialogOnReminderClick(const bool value);
+
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
@@ -168,6 +171,7 @@ private:
         bool UseLegacyTaskDialog;
         bool UseReminders;
         int ReminderInterval;
+        bool OpenTaskDialogOnReminderClick;
 
         bool TodayAlwaysExpanded;
 
