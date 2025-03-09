@@ -61,17 +61,23 @@ private:
     void FillControls();
     void DataToControls();
 
+    void OnUseRemindersCheck(wxCommandEvent& event);
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxChoice* pMinutesIncrementChoiceCtrl;
     wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
     wxCheckBox* pUseLegacyTaskDialogCheckBoxCtrl;
+    wxCheckBox* pUseRemindersCheckBoxCtrl;
+    wxChoice* pReminderIntervalChoiceCtrl;
 
     enum {
         tksIDC_MINUTES_INCREMENT = wxID_HIGHEST + 100,
         tksIDC_ASSOCIATEDCATEGORIES,
-        tksIDC_USELEGACYTASKDIALOGCHECKBOXCTRL
+        tksIDC_USELEGACYTASKDIALOGCHECKBOXCTRL,
+        tksIDC_USEREMINDERSCHECKBOXCTRL,
+        tksIDC_REMINDERINTERVALCHOICECTRL
     };
 };
 } // namespace dlg

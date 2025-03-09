@@ -21,9 +21,10 @@
 
 #include <wx/richtooltip.h>
 
+#include "../../clientdata.h"
+
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
-#include "../../clientdata.h"
 
 namespace tks::UI::dlg
 {
@@ -36,6 +37,8 @@ PreferencesTasksPage::PreferencesTasksPage(wxWindow* parent,
     , pMinutesIncrementChoiceCtrl(nullptr)
     , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
     , pUseLegacyTaskDialogCheckBoxCtrl(nullptr)
+    , pUseRemindersCheckBoxCtrl(nullptr)
+    , pReminderIntervalChoiceCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -60,19 +63,36 @@ bool PreferencesTasksPage::IsValid()
 void PreferencesTasksPage::Save()
 {
     int choiceIndex = pMinutesIncrementChoiceCtrl->GetSelection();
-    ClientData<int>* incrementData =
-        reinterpret_cast<ClientData<int>*>(pMinutesIncrementChoiceCtrl->GetClientObject(choiceIndex));
+    ClientData<int>* incrementData = reinterpret_cast<ClientData<int>*>(
+        pMinutesIncrementChoiceCtrl->GetClientObject(choiceIndex));
+    // add error handling
 
     pCfg->SetMinutesIncrement(incrementData->GetValue());
     pCfg->ShowProjectAssociatedCategories(pShowProjectAssociatedCategoriesCheckBoxCtrl->GetValue());
     pCfg->UseLegacyTaskDialog(pUseLegacyTaskDialogCheckBoxCtrl->GetValue());
+
+    pCfg->UseReminders(pUseRemindersCheckBoxCtrl->GetValue());
+
+    int intervalIndex = pReminderIntervalChoiceCtrl->GetSelection();
+    ClientData<int>* intervalData = reinterpret_cast<ClientData<int>*>(
+        pReminderIntervalChoiceCtrl->GetClientObject(intervalIndex));
+
+    if (intervalIndex < 1) {
+        pCfg->SetReminderInterval(0);
+    } else {
+        pCfg->SetReminderInterval(intervalData->GetValue());
+    }
 }
 
 void PreferencesTasksPage::Reset()
 {
     pMinutesIncrementChoiceCtrl->SetSelection(pCfg->GetMinutesIncrement());
-    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(false);
-    pUseLegacyTaskDialogCheckBoxCtrl->SetValue(false);
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
+    pUseLegacyTaskDialogCheckBoxCtrl->SetValue(pCfg->UseLegacyTaskDialog());
+
+    pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
+    pReminderIntervalChoiceCtrl->SetSelection(0);
+    pReminderIntervalChoiceCtrl->Disable();
 }
 
 void PreferencesTasksPage::CreateControls()
@@ -81,8 +101,9 @@ void PreferencesTasksPage::CreateControls()
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     /* Time Increment box */
-    auto timeIncrementBox = new wxStaticBox(this, wxID_ANY, "Time Increment");
+    auto timeIncrementBox = new wxStaticBox(this, wxID_ANY, "Time Increment"); // Rename to Task
     auto timeIncrementBoxSizer = new wxStaticBoxSizer(timeIncrementBox, wxHORIZONTAL);
+    sizer->Add(timeIncrementBoxSizer, wxSizerFlags().Expand());
 
     /* Time Increment label */
     auto timeIncrementLabel = new wxStaticText(timeIncrementBox, wxID_ANY, "Minutes Increment");
@@ -90,38 +111,86 @@ void PreferencesTasksPage::CreateControls()
     pMinutesIncrementChoiceCtrl = new wxChoice(timeIncrementBox, tksIDC_MINUTES_INCREMENT);
     pMinutesIncrementChoiceCtrl->SetToolTip("Set task minutes incrementer value");
 
-    timeIncrementBoxSizer->Add(timeIncrementLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+    timeIncrementBoxSizer->Add(
+        timeIncrementLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     timeIncrementBoxSizer->AddStretchSpacer(1);
     timeIncrementBoxSizer->Add(
-        pMinutesIncrementChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
-
-    sizer->Add(timeIncrementBoxSizer, wxSizerFlags().Expand());
+        pMinutesIncrementChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Show project associated categories control */
     pShowProjectAssociatedCategoriesCheckBoxCtrl =
         new wxCheckBox(this, tksIDC_ASSOCIATEDCATEGORIES, "Show project associated categories");
-    sizer->Add(pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    sizer->Add(pShowProjectAssociatedCategoriesCheckBoxCtrl,
+        wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Use legacy task dialog */
     pUseLegacyTaskDialogCheckBoxCtrl =
         new wxCheckBox(this, tksIDC_USELEGACYTASKDIALOGCHECKBOXCTRL, "Use legacy task dialog");
-    sizer->Add(pUseLegacyTaskDialogCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(pUseLegacyTaskDialogCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* Reminders box */
+    auto remindersBox = new wxStaticBox(this, wxID_ANY, "Reminders");
+    auto remindersBoxSizer = new wxStaticBoxSizer(remindersBox, wxVERTICAL);
+    sizer->Add(remindersBoxSizer, wxSizerFlags().Expand());
+
+    /* Use Reminders control */
+    pUseRemindersCheckBoxCtrl =
+        new wxCheckBox(remindersBox, tksIDC_USEREMINDERSCHECKBOXCTRL, "Use Reminders");
+    pUseRemindersCheckBoxCtrl->SetToolTip("Toogle reminders");
+
+    /* Reminder Interval choice control */
+    auto reminderIntervalLabel = new wxStaticText(remindersBox, wxID_ANY, "Interval (in minutes)");
+    pReminderIntervalChoiceCtrl = new wxChoice(remindersBox, tksIDC_REMINDERINTERVALCHOICECTRL);
+    pReminderIntervalChoiceCtrl->SetToolTip("Set how often a reminder should pop up");
+    pReminderIntervalChoiceCtrl->Disable();
+
+    remindersBoxSizer->Add(pUseRemindersCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    auto reminderIntervalHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    remindersBoxSizer->Add(reminderIntervalHorizontalSizer,
+        wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    reminderIntervalHorizontalSizer->Add(
+        reminderIntervalLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(4)).CenterVertical());
+    reminderIntervalHorizontalSizer->AddStretchSpacer(1);
+    reminderIntervalHorizontalSizer->Add(
+        pReminderIntervalChoiceCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(4)).Expand());
 
     SetSizerAndFit(sizer);
 }
 
-void PreferencesTasksPage::ConfigureEventBindings() {}
+// clang-format off
+void PreferencesTasksPage::ConfigureEventBindings()
+{
+    pUseRemindersCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &PreferencesTasksPage::OnUseRemindersCheck,
+        this
+    );
+}
+// clang-format on
 
 void PreferencesTasksPage::FillControls()
 {
     pMinutesIncrementChoiceCtrl->Append("Please select");
-
     pMinutesIncrementChoiceCtrl->Append("1", new ClientData<int>(1));
     pMinutesIncrementChoiceCtrl->Append("5", new ClientData<int>(5));
     pMinutesIncrementChoiceCtrl->Append("15", new ClientData<int>(15));
     pMinutesIncrementChoiceCtrl->Append("30", new ClientData<int>(30));
 
     pMinutesIncrementChoiceCtrl->SetSelection(0);
+
+    pReminderIntervalChoiceCtrl->Append("Please select");
+
+#ifdef TKS_DEBUG
+    pReminderIntervalChoiceCtrl->Append("1", new ClientData<int>(1));
+#endif // TKS_DEBUG
+
+    pReminderIntervalChoiceCtrl->Append("10", new ClientData<int>(10));
+    pReminderIntervalChoiceCtrl->Append("15", new ClientData<int>(15));
+    pReminderIntervalChoiceCtrl->Append("30", new ClientData<int>(30));
+    pReminderIntervalChoiceCtrl->Append("45", new ClientData<int>(45));
+    pReminderIntervalChoiceCtrl->Append("60", new ClientData<int>(60));
+
+    pReminderIntervalChoiceCtrl->SetSelection(0);
 }
 
 void PreferencesTasksPage::DataToControls()
@@ -129,5 +198,25 @@ void PreferencesTasksPage::DataToControls()
     pMinutesIncrementChoiceCtrl->SetStringSelection(std::to_string(pCfg->GetMinutesIncrement()));
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
     pUseLegacyTaskDialogCheckBoxCtrl->SetValue(pCfg->UseLegacyTaskDialog());
+
+    pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
+    if (pCfg->UseReminders()) {
+        if (!pReminderIntervalChoiceCtrl->IsEnabled()) {
+            pReminderIntervalChoiceCtrl->Enable();
+            pReminderIntervalChoiceCtrl->SetStringSelection(
+                std::to_string(pCfg->ReminderInterval()));
+        }
+    }
+}
+
+void PreferencesTasksPage::OnUseRemindersCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pReminderIntervalChoiceCtrl->Enable();
+    } else {
+        pReminderIntervalChoiceCtrl->Disable();
+        pReminderIntervalChoiceCtrl->SetSelection(0);
+        pUseRemindersCheckBoxCtrl->SetValue(false);
+    }
 }
 } // namespace tks::UI::dlg
