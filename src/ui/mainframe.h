@@ -152,6 +152,7 @@ private:
     void OnClose(wxCloseEvent& event);
     void OnIconize(wxIconizeEvent& event);
     void OnResize(wxSizeEvent& event);
+    void OnTaskReminder(wxTimerEvent& event);
     /* Menu Event Handlers */
     void OnNewTask(wxCommandEvent& event);
     void OnNewEmployer(wxCommandEvent& event);
@@ -233,30 +234,40 @@ private:
     StatusBar* pStatusBar;
 
     NotificationPopupWindow* pNotificationPopupWindow;
+
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
+
     wxBitmapButton* pNotificationButton;
     wxBitmap mBellBitmap;
     wxBitmap mBellNotificationBitmap;
+
     std::unique_ptr<DateStore> pDateStore;
+
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
+
     wxDataViewCtrl* pDataViewCtrl;
     wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
+
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
+
     std::int64_t mTaskIdToModify;
     std::string mTaskDate;
     int mExpandCounter;
     bool bDateRangeChanged;
+
+    std::unique_ptr<wxTimer> pTaskReminderTimer;
 
     enum {
         tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 1000,
         tksIDC_FROMDATE,
         tksIDC_TODATE,
         tksIDC_TASKDATAVIEWCTRL,
-        tksIDC_DAY_TASKDATAVIEW
+        tksIDC_DAY_TASKDATAVIEW,
+        tksIDC_TASKREMINDERTIMER
     };
 };
 } // namespace UI

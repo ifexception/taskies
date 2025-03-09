@@ -88,6 +88,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
 EVT_SIZE(MainFrame::OnResize)
+EVT_TIMER(tksIDC_TASKREMINDERTIMER, MainFrame::OnTaskReminder)
 /* Menu Event Handlers */
 EVT_MENU(ID_NEW_TASK, MainFrame::OnNewTask)
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
@@ -169,6 +170,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mTaskDate()
     , mExpandCounter(0)
     , bDateRangeChanged(false)
+    , pTaskReminderTimer(std::make_unique<wxTimer>(this, tksIDC_TASKREMINDERTIMER))
 // clang-format on
 {
     // Initialization setup
@@ -217,6 +219,11 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     mFromDate = pDateStore->MondayDate;
     mToDate = pDateStore->SundayDate;
 
+    // Setup reminders (if enabled)
+    if (pCfg->UseReminders()) {
+        pTaskReminderTimer->Start(Utils::ConvertMinutesToMilliseconds(pCfg->ReminderInterval()));
+    }
+
     // Create controls
     Create();
 
@@ -226,24 +233,31 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
 MainFrame::~MainFrame()
 {
+    const std::string TAG = "MainFrame::~MainFrame";
     if (pTaskBarIcon) {
-        pLogger->info("MainFrame - Removing task bar icon");
+        pLogger->info("{0} - Removing task bar icon", TAG);
         pTaskBarIcon->RemoveIcon();
-        pLogger->info("MainFrame - Delete task bar icon pointer");
+        pLogger->info("{0} - Delete task bar icon pointer", TAG);
         delete pTaskBarIcon;
     }
 
-    if (pNotificationPopupWindow) {
-        pLogger->info("MainFrame - Delete notification popup window pointer");
-        delete pNotificationPopupWindow;
-    }
-
     if (pStatusBar) {
-        pLogger->info("MainFrame - Delete status bar pointer");
+        pLogger->info("{0} - Delete status bar pointer", TAG);
         delete pStatusBar;
     }
 
-    pLogger->info("MainFrame - Destructor");
+    if (pCfg->UseReminders() && pTaskReminderTimer->IsRunning()) {
+        pLogger->info("{0} - Reminders enabled and timer is running", TAG);
+        pTaskReminderTimer->Stop();
+        pLogger->info("{0} - Timer stopped", TAG);
+    }
+
+    if (pNotificationPopupWindow) {
+        pLogger->info("{0} - Delete notification popup window pointer", TAG);
+        delete pNotificationPopupWindow;
+    }
+
+    pLogger->info("{0} - Destructor complete", TAG);
 }
 
 void MainFrame::Create()
@@ -547,6 +561,14 @@ void MainFrame::OnResize(wxSizeEvent& event)
     }
 
     event.Skip();
+}
+
+void MainFrame::OnTaskReminder(wxTimerEvent& event)
+{
+    const std::string TAG = "MainFrame::OnTaskReminder";
+    pLogger->info("{0} - Task reminder trigger notification");
+
+    // Create notification
 }
 
 void MainFrame::OnNotificationClick(wxCommandEvent& event)
