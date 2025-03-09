@@ -110,6 +110,12 @@ public:
     bool UseLegacyTaskDialog() const;
     void UseLegacyTaskDialog(const bool value);
 
+    bool UseReminders() const;
+    void UseReminders(const bool value);
+
+    int ReminderInterval() const;
+    void SetReminderInterval(const int value);
+
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
@@ -160,6 +166,8 @@ private:
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;
         bool UseLegacyTaskDialog;
+        bool UseReminders;
+        int ReminderInterval;
 
         bool TodayAlwaysExpanded;
 
