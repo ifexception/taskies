@@ -71,13 +71,15 @@ private:
     wxCheckBox* pUseLegacyTaskDialogCheckBoxCtrl;
     wxCheckBox* pUseRemindersCheckBoxCtrl;
     wxChoice* pReminderIntervalChoiceCtrl;
+    wxCheckBox* pOpenTaskDialogOnReminderClickCheckBoxCtrl;
 
     enum {
         tksIDC_MINUTES_INCREMENT = wxID_HIGHEST + 100,
         tksIDC_ASSOCIATEDCATEGORIES,
         tksIDC_USELEGACYTASKDIALOGCHECKBOXCTRL,
         tksIDC_USEREMINDERSCHECKBOXCTRL,
-        tksIDC_REMINDERINTERVALCHOICECTRL
+        tksIDC_REMINDERINTERVALCHOICECTRL,
+        tksIDC_OPENTASKDIALOGONREMINDERCLICKCHECKBOXCTRL
     };
 };
 } // namespace dlg

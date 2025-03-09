@@ -39,6 +39,7 @@ PreferencesTasksPage::PreferencesTasksPage(wxWindow* parent,
     , pUseLegacyTaskDialogCheckBoxCtrl(nullptr)
     , pUseRemindersCheckBoxCtrl(nullptr)
     , pReminderIntervalChoiceCtrl(nullptr)
+    , pOpenTaskDialogOnReminderClickCheckBoxCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -92,6 +93,8 @@ void PreferencesTasksPage::Save()
     } else {
         pCfg->SetReminderInterval(intervalData->GetValue());
     }
+
+    pCfg->OpenTaskDialogOnReminderClick(pOpenTaskDialogOnReminderClickCheckBoxCtrl->GetValue());
 }
 
 void PreferencesTasksPage::Reset()
@@ -103,6 +106,8 @@ void PreferencesTasksPage::Reset()
     pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
     pReminderIntervalChoiceCtrl->SetSelection(0);
     pReminderIntervalChoiceCtrl->Disable();
+
+    pOpenTaskDialogOnReminderClickCheckBoxCtrl->SetValue(pCfg->OpenTaskDialogOnReminderClick());
 }
 
 void PreferencesTasksPage::CreateControls()
@@ -156,6 +161,12 @@ void PreferencesTasksPage::CreateControls()
     pReminderIntervalChoiceCtrl->SetToolTip("Set how often a reminder should pop up");
     pReminderIntervalChoiceCtrl->Disable();
 
+    pOpenTaskDialogOnReminderClickCheckBoxCtrl = new wxCheckBox(remindersBox,
+        tksIDC_OPENTASKDIALOGONREMINDERCLICKCHECKBOXCTRL,
+        "Open task dialog on reminder click");
+    pOpenTaskDialogOnReminderClickCheckBoxCtrl->SetToolTip(
+        "Opens the task dialog when the reminder window gets clicked");
+
     remindersBoxSizer->Add(pUseRemindersCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     auto reminderIntervalHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     remindersBoxSizer->Add(reminderIntervalHorizontalSizer,
@@ -165,6 +176,7 @@ void PreferencesTasksPage::CreateControls()
     reminderIntervalHorizontalSizer->AddStretchSpacer(1);
     reminderIntervalHorizontalSizer->Add(
         pReminderIntervalChoiceCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(4)).Expand());
+    remindersBoxSizer->Add(pOpenTaskDialogOnReminderClickCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
