@@ -50,11 +50,22 @@ bool PreferencesTasksPage::IsValid()
 {
     int choiceIndex = pMinutesIncrementChoiceCtrl->GetSelection();
     if (choiceIndex == 0) {
-        auto valMsg = "An increment selection is required";
+        auto valMsg = "A selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pMinutesIncrementChoiceCtrl);
         return false;
+    }
+
+    if (pUseRemindersCheckBoxCtrl->GetValue()) {
+        int reminderIntervalChoiceIndex = pReminderIntervalChoiceCtrl->GetSelection();
+        if (reminderIntervalChoiceIndex == 0) {
+            auto valMsg = "A reminder selection is required";
+            wxRichToolTip tooltip("Validation", valMsg);
+            tooltip.SetIcon(wxICON_WARNING);
+            tooltip.ShowFor(pReminderIntervalChoiceCtrl);
+            return false;
+        }
     }
 
     return true;
@@ -65,7 +76,6 @@ void PreferencesTasksPage::Save()
     int choiceIndex = pMinutesIncrementChoiceCtrl->GetSelection();
     ClientData<int>* incrementData = reinterpret_cast<ClientData<int>*>(
         pMinutesIncrementChoiceCtrl->GetClientObject(choiceIndex));
-    // add error handling
 
     pCfg->SetMinutesIncrement(incrementData->GetValue());
     pCfg->ShowProjectAssociatedCategories(pShowProjectAssociatedCategoriesCheckBoxCtrl->GetValue());
@@ -100,21 +110,22 @@ void PreferencesTasksPage::CreateControls()
     /* Base Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    /* Time Increment box */
-    auto timeIncrementBox = new wxStaticBox(this, wxID_ANY, "Time Increment"); // Rename to Task
-    auto timeIncrementBoxSizer = new wxStaticBoxSizer(timeIncrementBox, wxHORIZONTAL);
-    sizer->Add(timeIncrementBoxSizer, wxSizerFlags().Expand());
+    /* Task Increment box */
+    auto taskIncrementBox = new wxStaticBox(this, wxID_ANY, "Task Increment");
+    auto taskIncrementBoxSizer = new wxStaticBoxSizer(taskIncrementBox, wxHORIZONTAL);
+    sizer->Add(taskIncrementBoxSizer, wxSizerFlags().Expand());
 
     /* Time Increment label */
-    auto timeIncrementLabel = new wxStaticText(timeIncrementBox, wxID_ANY, "Minutes Increment");
+    auto timeIncrementLabel =
+        new wxStaticText(taskIncrementBox, wxID_ANY, "Task Time Increment (in minutes)");
 
-    pMinutesIncrementChoiceCtrl = new wxChoice(timeIncrementBox, tksIDC_MINUTES_INCREMENT);
+    pMinutesIncrementChoiceCtrl = new wxChoice(taskIncrementBox, tksIDC_MINUTES_INCREMENT);
     pMinutesIncrementChoiceCtrl->SetToolTip("Set task minutes incrementer value");
 
-    timeIncrementBoxSizer->Add(
+    taskIncrementBoxSizer->Add(
         timeIncrementLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    timeIncrementBoxSizer->AddStretchSpacer(1);
-    timeIncrementBoxSizer->Add(
+    taskIncrementBoxSizer->AddStretchSpacer(1);
+    taskIncrementBoxSizer->Add(
         pMinutesIncrementChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Show project associated categories control */
@@ -139,7 +150,8 @@ void PreferencesTasksPage::CreateControls()
     pUseRemindersCheckBoxCtrl->SetToolTip("Toogle reminders");
 
     /* Reminder Interval choice control */
-    auto reminderIntervalLabel = new wxStaticText(remindersBox, wxID_ANY, "Interval (in minutes)");
+    auto reminderIntervalLabel =
+        new wxStaticText(remindersBox, wxID_ANY, "Reminder Interval (in minutes)");
     pReminderIntervalChoiceCtrl = new wxChoice(remindersBox, tksIDC_REMINDERINTERVALCHOICECTRL);
     pReminderIntervalChoiceCtrl->SetToolTip("Set how often a reminder should pop up");
     pReminderIntervalChoiceCtrl->Disable();
