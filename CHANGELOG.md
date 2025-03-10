@@ -1,5 +1,8 @@
 # Taskies Changelog
 
+## v0.1.1-beta (release 10/03/2025)
+* Fix: No categories on task edit when "Only show associated categories" is not checked (#1)
+
 ## v0.1.0-beta (release 08/03/2025)
 * Officially promote Taskies to _beta_
 * Refactor "Export to CSV" controls layout for better look and feel
