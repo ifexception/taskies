@@ -665,12 +665,15 @@ void TaskDialog::DataToControls()
 
     if (pCfg->ShowProjectAssociatedCategories()) {
         ret = categoryRepo.FilterByProjectId(taskModel.ProjectId, categories);
-        if (ret == -1) {
-            std::string message = "Failed to get categories";
-            QueueErrorNotificationEventToParent(message);
+    } else {
+        ret = categoryRepo.Filter(categories);
+    }
 
-            isSuccess = false;
-        }
+    if (ret == -1) {
+        std::string message = "Failed to get categories";
+        QueueErrorNotificationEventToParent(message);
+
+        isSuccess = false;
     }
 
     if (!categories.empty()) {
@@ -682,23 +685,20 @@ void TaskDialog::DataToControls()
             pCategoryChoiceCtrl->Append(
                 category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
         }
-    } else if (categories.empty() && !pCfg->ShowProjectAssociatedCategories()) {
-        if (!pCategoryChoiceCtrl->IsEnabled()) {
-            pCategoryChoiceCtrl->Enable();
+
+        repos::CategoryRepositoryModel category;
+        ret = categoryRepo.GetById(taskModel.CategoryId, category);
+        if (ret != 0) {
+            std::string message = "Failed to get category";
+            QueueErrorNotificationEventToParent(message);
+
+            isSuccess = false;
+        } else {
+            pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
+            isSuccess = true;
         }
     } else {
         ResetCategoryChoiceControl(true);
-    }
-
-    repos::CategoryRepositoryModel category;
-    ret = categoryRepo.GetById(taskModel.CategoryId, category);
-    if (ret != 0) {
-        std::string message = "Failed to get category";
-        QueueErrorNotificationEventToParent(message);
-        isSuccess = false;
-    } else {
-        pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
-        isSuccess = true;
     }
 
     if (isSuccess) {
