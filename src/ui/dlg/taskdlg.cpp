@@ -671,6 +671,8 @@ void TaskDialog::DataToControls()
 
             isSuccess = false;
         }
+    } else {
+        ret = categoryRepo.Filter(categories);
     }
 
     if (!categories.empty()) {
