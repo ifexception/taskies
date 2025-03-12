@@ -156,6 +156,8 @@ bool Configuration::Save()
         mSettings.ShowProjectAssociatedCategories;
     root.at(Sections::TaskSection)["useLegacyTaskDialog"] = mSettings.UseLegacyTaskDialog;
     root.at(Sections::TaskSection)["useReminders"] = mSettings.UseReminders;
+    root.at(Sections::TaskSection)["useNoticiationBanners"] = mSettings.UseNotificationBanners;
+    root.at(Sections::TaskSection)["useTaskbarFlashing"] = mSettings.UseTaskbarFlashing;
     root.at(Sections::TaskSection)["reminderInterval"] = mSettings.ReminderInterval;
     root.at(Sections::TaskSection)["openTaskDialogOnReminderClick"] =
         mSettings.OpenTaskDialogOnReminderClick;
@@ -258,6 +260,8 @@ bool Configuration::RestoreDefaults()
     ShowProjectAssociatedCategories(false);
     UseLegacyTaskDialog(false);
     UseReminders(false);
+    UseNotificationBanners(false);
+    UseTaskbarFlashing(false);
     SetReminderInterval(0);
     OpenTaskDialogOnReminderClick(false);
 
@@ -294,6 +298,8 @@ bool Configuration::RestoreDefaults()
                     { "showProjectAssociatedCategories", false },
                     { "useLegacyTaskDialog", false },
                     { "useReminders", false },
+                    { "useNoticiationBanners", false },
+                    { "useTaskbarFlashing", false },
                     { "reminderInterval", 0 },
                     { "openTaskDialogOnReminderClick", false }
                 }
@@ -678,6 +684,26 @@ bool Configuration::UseReminders() const
 void Configuration::UseReminders(const bool value)
 {
     mSettings.UseReminders = value;
+}
+
+bool Configuration::UseNotificationBanners() const
+{
+    return mSettings.UseNotificationBanners;
+}
+
+void Configuration::UseNotificationBanners(const bool value)
+{
+    mSettings.UseNotificationBanners = value;
+}
+
+bool Configuration::UseTaskbarFlashing() const
+{
+    return mSettings.UseTaskbarFlashing;
+}
+
+void Configuration::UseTaskbarFlashing(const bool value)
+{
+    mSettings.UseTaskbarFlashing = value;
 }
 
 int Configuration::ReminderInterval() const

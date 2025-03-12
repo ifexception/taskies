@@ -113,6 +113,12 @@ public:
     bool UseReminders() const;
     void UseReminders(const bool value);
 
+    bool UseNotificationBanners() const;
+    void UseNotificationBanners(const bool value);
+
+    bool UseTaskbarFlashing() const;
+    void UseTaskbarFlashing(const bool value);
+
     int ReminderInterval() const;
     void SetReminderInterval(const int value);
 
@@ -170,6 +176,8 @@ private:
         bool ShowProjectAssociatedCategories;
         bool UseLegacyTaskDialog;
         bool UseReminders;
+        bool UseNotificationBanners;
+        bool UseTaskbarFlashing;
         int ReminderInterval;
         bool OpenTaskDialogOnReminderClick;
 

@@ -16,6 +16,8 @@ minutesIncrement=15
 showProjectAssociatedCategories=false
 useLegacyTaskDialog=false
 useReminders=false
+useNoticiationBanners=false
+useTaskbarFlashing=false
 reminderInterval=0
 openTaskDialogOnReminderClick=false
 
