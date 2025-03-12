@@ -149,34 +149,56 @@ void PreferencesTasksPage::CreateControls()
     auto remindersBoxSizer = new wxStaticBoxSizer(remindersBox, wxVERTICAL);
     sizer->Add(remindersBoxSizer, wxSizerFlags().Expand());
 
-    /* Use Reminders control */
+    /* Use Reminders checkbox control */
     pUseRemindersCheckBoxCtrl =
         new wxCheckBox(remindersBox, tksIDC_USEREMINDERSCHECKBOXCTRL, "Use Reminders");
     pUseRemindersCheckBoxCtrl->SetToolTip("Toogle reminders");
+
+    /* Use Notifications checkbox control */
+    pUseNotificationBanners =
+        new wxCheckBox(remindersBox, tksIDC_USENOTIFICATIONBANNERS, "Use Notifications");
+    pUseNotificationBanners->SetToolTip("Use notification banners for reminders");
+
+    /* Use Taskbar flashing checkbox control */
+    pUseTaskbarFlashing = new wxCheckBox(remindersBox, tksIDC_USETASKBARFLASHING, "Use Taskbar");
+    pUseTaskbarFlashing->SetToolTip("Use taskbar flashing for reminders");
 
     /* Reminder Interval choice control */
     auto reminderIntervalLabel =
         new wxStaticText(remindersBox, wxID_ANY, "Reminder Interval (in minutes)");
     pReminderIntervalChoiceCtrl = new wxChoice(remindersBox, tksIDC_REMINDERINTERVALCHOICECTRL);
-    pReminderIntervalChoiceCtrl->SetToolTip("Set how often a reminder should pop up");
+    pReminderIntervalChoiceCtrl->SetToolTip("Set how often a reminder should show");
     pReminderIntervalChoiceCtrl->Disable();
 
+    /* Open task dialog on reminder click checkbox control */
     pOpenTaskDialogOnReminderClickCheckBoxCtrl = new wxCheckBox(remindersBox,
         tksIDC_OPENTASKDIALOGONREMINDERCLICKCHECKBOXCTRL,
         "Open task dialog on reminder click");
     pOpenTaskDialogOnReminderClickCheckBoxCtrl->SetToolTip(
         "Opens the task dialog when the reminder window gets clicked");
 
-    remindersBoxSizer->Add(pUseRemindersCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    auto reminderOptionsFlexGridSizer = new wxFlexGridSizer(1, FromDIP(10), FromDIP(10));
+    remindersBoxSizer->Add(reminderOptionsFlexGridSizer,
+        wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    reminderOptionsFlexGridSizer->AddGrowableCol(0, 1);
+
+    reminderOptionsFlexGridSizer->Add(pUseRemindersCheckBoxCtrl);
+    reminderOptionsFlexGridSizer->Add(
+        pUseNotificationBanners, wxSizerFlags().Border(wxLEFT, FromDIP(16)));
+    reminderOptionsFlexGridSizer->Add(
+        pUseTaskbarFlashing, wxSizerFlags().Border(wxLEFT, FromDIP(16)));
+
     auto reminderIntervalHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     remindersBoxSizer->Add(reminderIntervalHorizontalSizer,
-        wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+        wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
     reminderIntervalHorizontalSizer->Add(
         reminderIntervalLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(4)).CenterVertical());
     reminderIntervalHorizontalSizer->AddStretchSpacer(1);
     reminderIntervalHorizontalSizer->Add(
         pReminderIntervalChoiceCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(4)).Expand());
-    remindersBoxSizer->Add(pOpenTaskDialogOnReminderClickCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    remindersBoxSizer->Add(
+        pOpenTaskDialogOnReminderClickCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }

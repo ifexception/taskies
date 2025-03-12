@@ -70,6 +70,8 @@ private:
     wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
     wxCheckBox* pUseLegacyTaskDialogCheckBoxCtrl;
     wxCheckBox* pUseRemindersCheckBoxCtrl;
+    wxCheckBox* pUseNotificationBanners;
+    wxCheckBox* pUseTaskbarFlashing;
     wxChoice* pReminderIntervalChoiceCtrl;
     wxCheckBox* pOpenTaskDialogOnReminderClickCheckBoxCtrl;
 
@@ -78,6 +80,8 @@ private:
         tksIDC_ASSOCIATEDCATEGORIES,
         tksIDC_USELEGACYTASKDIALOGCHECKBOXCTRL,
         tksIDC_USEREMINDERSCHECKBOXCTRL,
+        tksIDC_USENOTIFICATIONBANNERS,
+        tksIDC_USETASKBARFLASHING,
         tksIDC_REMINDERINTERVALCHOICECTRL,
         tksIDC_OPENTASKDIALOGONREMINDERCLICKCHECKBOXCTRL
     };
