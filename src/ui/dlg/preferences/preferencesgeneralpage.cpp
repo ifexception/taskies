@@ -41,7 +41,8 @@ struct StartWithWindowsRegKey {
     {
         auto executablePath = wxStandardPaths::Get().GetExecutablePath().ToStdString();
         if (!mKey.SetValue(tks::Common::GetProgramName(), executablePath)) {
-            pLogger->error("StartWithWindowsRegKey - Failed to set registry key of \"{0}\" with value \"{1}\"",
+            pLogger->error(
+                "StartWithWindowsRegKey - Failed to set registry key of \"{0}\" with value \"{1}\"",
                 tks::Common::GetProgramName(),
                 executablePath);
         }
@@ -50,12 +51,12 @@ struct StartWithWindowsRegKey {
     void Delete()
     {
         if (!mKey.DeleteValue(tks::Common::GetProgramName())) {
-            pLogger->error(
-                "StartWithWindowsRegKey - Failed to delete registry key of \"{0}\"", tks::Common::GetProgramName());
+            pLogger->error("StartWithWindowsRegKey - Failed to delete registry key of \"{0}\"",
+                tks::Common::GetProgramName());
         }
     }
 
-    bool Exists()
+    bool Exists() const
     {
         return mKey.Exists();
     }
@@ -112,12 +113,12 @@ bool PreferencesGeneralPage::IsValid()
 void PreferencesGeneralPage::Save()
 {
     int langIndex = pUserInterfaceLanguageCtrl->GetSelection();
-    ClientData<std::string>* langData =
-        reinterpret_cast<ClientData<std::string>*>(pUserInterfaceLanguageCtrl->GetClientObject(langIndex));
+    ClientData<std::string>* langData = reinterpret_cast<ClientData<std::string>*>(
+        pUserInterfaceLanguageCtrl->GetClientObject(langIndex));
 
     int startPosIndex = pWindowStartPositionCtrl->GetSelection();
-    ClientData<WindowState>* startPosData =
-        reinterpret_cast<ClientData<WindowState>*>(pWindowStartPositionCtrl->GetClientObject(startPosIndex));
+    ClientData<WindowState>* startPosData = reinterpret_cast<ClientData<WindowState>*>(
+        pWindowStartPositionCtrl->GetClientObject(startPosIndex));
 
     if (langData->GetValue() != pCfg->GetUserInterfaceLanguage()) {
         // program will need a restart
@@ -202,8 +203,10 @@ void PreferencesGeneralPage::CreateControls()
     pWindowStartPositionCtrl = new wxChoice(miscBox, tksIDC_START_POSITION);
     pWindowStartPositionCtrl->SetToolTip("Select the state of the program when launched");
     miscGridSizer->Add(startPositionLabel, wxSizerFlags().CenterVertical());
-    miscGridSizer->Add(pWindowStartPositionCtrl, wxSizerFlags().Right().CenterVertical().Proportion(1));
-    miscBoxSizer->Add(miscGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    miscGridSizer->Add(
+        pWindowStartPositionCtrl, wxSizerFlags().Right().CenterVertical().Proportion(1));
+    miscBoxSizer->Add(
+        miscGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* System Tray */
     auto systemTrayBox = new wxStaticBox(this, wxID_ANY, "System Tray");
@@ -212,14 +215,18 @@ void PreferencesGeneralPage::CreateControls()
     auto systemTrayFlexSizer = new wxFlexGridSizer(1, FromDIP(10), FromDIP(10));
     systemTrayFlexSizer->AddGrowableCol(0, 1);
 
-    pShowInTrayCtrl = new wxCheckBox(systemTrayBox, tksIDC_SHOW_IN_TRAY, "Show Taskies in the system tray area");
-    pMinimizeToTrayCtrl = new wxCheckBox(systemTrayBox, tksIDC_MINIMIZE_TO_TRAY, "Minimize to the system tray area");
-    pCloseToTrayCtrl = new wxCheckBox(systemTrayBox, tksIDC_CLOSE_TO_TRAY, "Close to the system tray area");
+    pShowInTrayCtrl =
+        new wxCheckBox(systemTrayBox, tksIDC_SHOW_IN_TRAY, "Show Taskies in the system tray area");
+    pMinimizeToTrayCtrl =
+        new wxCheckBox(systemTrayBox, tksIDC_MINIMIZE_TO_TRAY, "Minimize to the system tray area");
+    pCloseToTrayCtrl =
+        new wxCheckBox(systemTrayBox, tksIDC_CLOSE_TO_TRAY, "Close to the system tray area");
 
     systemTrayFlexSizer->Add(pShowInTrayCtrl);
     systemTrayFlexSizer->Add(pMinimizeToTrayCtrl, wxSizerFlags().Border(wxLEFT, FromDIP(15)));
     systemTrayFlexSizer->Add(pCloseToTrayCtrl, wxSizerFlags().Border(wxLEFT, FromDIP(15)));
-    systemTrayBoxSizer->Add(systemTrayFlexSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    systemTrayBoxSizer->Add(
+        systemTrayFlexSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     SetSizerAndFit(sizer);
 }
@@ -240,9 +247,11 @@ void PreferencesGeneralPage::FillControls()
     pUserInterfaceLanguageCtrl->Append("Please Select");
     pWindowStartPositionCtrl->Append("Please Select");
     pWindowStartPositionCtrl->Append("Normal", new ClientData<WindowState>(WindowState::Normal));
-    pWindowStartPositionCtrl->Append("Minimized", new ClientData<WindowState>(WindowState::Minimized));
+    pWindowStartPositionCtrl->Append(
+        "Minimized", new ClientData<WindowState>(WindowState::Minimized));
     pWindowStartPositionCtrl->Append("Hidden", new ClientData<WindowState>(WindowState::Hidden));
-    pWindowStartPositionCtrl->Append("Maximized", new ClientData<WindowState>(WindowState::Maximized));
+    pWindowStartPositionCtrl->Append(
+        "Maximized", new ClientData<WindowState>(WindowState::Maximized));
 
     pUserInterfaceLanguageCtrl->SetSelection(0);
     pWindowStartPositionCtrl->SetSelection(0);
