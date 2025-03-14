@@ -105,6 +105,8 @@ void PreferencesTasksPage::Save()
 
     pCfg->UseReminders(pUseRemindersCheckBoxCtrl->GetValue());
     pCfg->UseNotificationBanners(pUseNotificationBanners->GetValue());
+    pCfg->OpenTaskDialogOnReminderClick(pOpenTaskDialogOnReminderClickCheckBoxCtrl->GetValue());
+
     pCfg->UseTaskbarFlashing(pUseTaskbarFlashing->GetValue());
 
     int intervalIndex = pReminderIntervalChoiceCtrl->GetSelection();
@@ -116,8 +118,6 @@ void PreferencesTasksPage::Save()
     } else {
         pCfg->SetReminderInterval(intervalData->GetValue());
     }
-
-    pCfg->OpenTaskDialogOnReminderClick(pOpenTaskDialogOnReminderClickCheckBoxCtrl->GetValue());
 }
 
 void PreferencesTasksPage::Reset()
@@ -212,6 +212,8 @@ void PreferencesTasksPage::CreateControls()
     reminderOptionsFlexGridSizer->Add(
         pUseNotificationBanners, wxSizerFlags().Border(wxLEFT, FromDIP(16)));
     reminderOptionsFlexGridSizer->Add(
+        pOpenTaskDialogOnReminderClickCheckBoxCtrl, wxSizerFlags().Border(wxLEFT, FromDIP(32)));
+    reminderOptionsFlexGridSizer->Add(
         pUseTaskbarFlashing, wxSizerFlags().Border(wxLEFT, FromDIP(16)));
 
     auto reminderIntervalHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -222,9 +224,6 @@ void PreferencesTasksPage::CreateControls()
     reminderIntervalHorizontalSizer->AddStretchSpacer(1);
     reminderIntervalHorizontalSizer->Add(
         pReminderIntervalChoiceCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(4)).Expand());
-
-    remindersBoxSizer->Add(
-        pOpenTaskDialogOnReminderClickCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -286,15 +285,18 @@ void PreferencesTasksPage::DataToControls()
     pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
     if (pCfg->UseReminders()) {
         pUseNotificationBanners->SetValue(pCfg->UseNotificationBanners());
+        if (pCfg->UseNotificationBanners()) {
+            pOpenTaskDialogOnReminderClickCheckBoxCtrl->SetValue(
+                pCfg->OpenTaskDialogOnReminderClick());
+        } else {
+            pOpenTaskDialogOnReminderClickCheckBoxCtrl->Disable();
+        }
         pUseTaskbarFlashing->SetValue(pCfg->UseTaskbarFlashing());
 
-        if (!pReminderIntervalChoiceCtrl->IsEnabled()) {
-            pReminderIntervalChoiceCtrl->Enable();
-            pReminderIntervalChoiceCtrl->SetStringSelection(
-                std::to_string(pCfg->ReminderInterval()));
-        }
+        pReminderIntervalChoiceCtrl->SetStringSelection(std::to_string(pCfg->ReminderInterval()));
     } else {
         pUseNotificationBanners->Disable();
+        pOpenTaskDialogOnReminderClickCheckBoxCtrl->Disable();
         pUseTaskbarFlashing->Disable();
         pReminderIntervalChoiceCtrl->Disable();
     }
@@ -307,11 +309,16 @@ void PreferencesTasksPage::OnUseRemindersCheck(wxCommandEvent& event)
         pUseTaskbarFlashing->Enable();
         pReminderIntervalChoiceCtrl->Enable();
     } else {
+        pUseNotificationBanners->SetValue(false);
+        pUseNotificationBanners->Disable();
+        pOpenTaskDialogOnReminderClickCheckBoxCtrl->SetValue(false);
+        pOpenTaskDialogOnReminderClickCheckBoxCtrl->Disable();
+
+        pUseTaskbarFlashing->SetValue(false);
+        pUseTaskbarFlashing->Disable();
+
         pReminderIntervalChoiceCtrl->Disable();
         pReminderIntervalChoiceCtrl->SetSelection(0);
-        pUseRemindersCheckBoxCtrl->SetValue(false);
-        pUseNotificationBanners->SetValue(false);
-        pUseTaskbarFlashing->SetValue(false);
     }
 }
 
@@ -319,6 +326,7 @@ void PreferencesTasksPage::OnUseNotificationBannersCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         pUseTaskbarFlashing->SetValue(false);
+        pOpenTaskDialogOnReminderClickCheckBoxCtrl->Enable();
     }
 }
 
@@ -326,6 +334,8 @@ void PreferencesTasksPage::OnUseTaskbarFlashingCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         pUseNotificationBanners->SetValue(false);
+        pOpenTaskDialogOnReminderClickCheckBoxCtrl->SetValue(false);
+        pOpenTaskDialogOnReminderClickCheckBoxCtrl->Disable();
     }
 }
 } // namespace tks::UI::dlg
