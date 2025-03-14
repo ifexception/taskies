@@ -62,6 +62,8 @@ private:
     void DataToControls();
 
     void OnUseRemindersCheck(wxCommandEvent& event);
+    void OnUseNotificationBannersCheck(wxCommandEvent& event);
+    void OnUseTaskbarFlashingCheck(wxCommandEvent& event);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;

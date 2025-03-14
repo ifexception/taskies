@@ -69,6 +69,27 @@ bool PreferencesTasksPage::IsValid()
         }
     }
 
+    if (pUseRemindersCheckBoxCtrl->GetValue()) {
+        bool hasNotification = pUseNotificationBanners->GetValue();
+        bool hasTaskbarFlashing = pUseTaskbarFlashing->GetValue();
+
+        if (hasNotification && hasTaskbarFlashing) {
+            auto valMsg = "Only one reminder option can be selected";
+            wxRichToolTip tooltip("Validation", valMsg);
+            tooltip.SetIcon(wxICON_WARNING);
+            tooltip.ShowFor(pUseRemindersCheckBoxCtrl);
+            return false;
+        }
+
+        if (!hasNotification && !hasTaskbarFlashing) {
+            auto valMsg = "A reminder option must be selected if reminders are enabled";
+            wxRichToolTip tooltip("Validation", valMsg);
+            tooltip.SetIcon(wxICON_WARNING);
+            tooltip.ShowFor(pUseRemindersCheckBoxCtrl);
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -83,6 +104,8 @@ void PreferencesTasksPage::Save()
     pCfg->UseLegacyTaskDialog(pUseLegacyTaskDialogCheckBoxCtrl->GetValue());
 
     pCfg->UseReminders(pUseRemindersCheckBoxCtrl->GetValue());
+    pCfg->UseNotificationBanners(pUseNotificationBanners->GetValue());
+    pCfg->UseTaskbarFlashing(pUseTaskbarFlashing->GetValue());
 
     int intervalIndex = pReminderIntervalChoiceCtrl->GetSelection();
     ClientData<int>* intervalData = reinterpret_cast<ClientData<int>*>(
@@ -104,6 +127,10 @@ void PreferencesTasksPage::Reset()
     pUseLegacyTaskDialogCheckBoxCtrl->SetValue(pCfg->UseLegacyTaskDialog());
 
     pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
+    pUseNotificationBanners->SetValue(pCfg->UseNotificationBanners());
+    pUseNotificationBanners->Disable();
+    pUseTaskbarFlashing->SetValue(pCfg->UseTaskbarFlashing());
+    pUseTaskbarFlashing->Disable();
     pReminderIntervalChoiceCtrl->SetSelection(0);
     pReminderIntervalChoiceCtrl->Disable();
 
@@ -152,7 +179,7 @@ void PreferencesTasksPage::CreateControls()
     /* Use Reminders checkbox control */
     pUseRemindersCheckBoxCtrl =
         new wxCheckBox(remindersBox, tksIDC_USEREMINDERSCHECKBOXCTRL, "Use Reminders");
-    pUseRemindersCheckBoxCtrl->SetToolTip("Toogle reminders");
+    pUseRemindersCheckBoxCtrl->SetToolTip("Toggle reminders");
 
     /* Use Notifications checkbox control */
     pUseNotificationBanners =
@@ -168,7 +195,6 @@ void PreferencesTasksPage::CreateControls()
         new wxStaticText(remindersBox, wxID_ANY, "Reminder Interval (in minutes)");
     pReminderIntervalChoiceCtrl = new wxChoice(remindersBox, tksIDC_REMINDERINTERVALCHOICECTRL);
     pReminderIntervalChoiceCtrl->SetToolTip("Set how often a reminder should show");
-    pReminderIntervalChoiceCtrl->Disable();
 
     /* Open task dialog on reminder click checkbox control */
     pOpenTaskDialogOnReminderClickCheckBoxCtrl = new wxCheckBox(remindersBox,
@@ -189,8 +215,8 @@ void PreferencesTasksPage::CreateControls()
         pUseTaskbarFlashing, wxSizerFlags().Border(wxLEFT, FromDIP(16)));
 
     auto reminderIntervalHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
-    remindersBoxSizer->Add(reminderIntervalHorizontalSizer,
-        wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    remindersBoxSizer->Add(
+        reminderIntervalHorizontalSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
     reminderIntervalHorizontalSizer->Add(
         reminderIntervalLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(4)).CenterVertical());
     reminderIntervalHorizontalSizer->AddStretchSpacer(1);
@@ -209,6 +235,18 @@ void PreferencesTasksPage::ConfigureEventBindings()
     pUseRemindersCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &PreferencesTasksPage::OnUseRemindersCheck,
+        this
+    );
+
+    pUseNotificationBanners->Bind(
+        wxEVT_CHECKBOX,
+        &PreferencesTasksPage::OnUseNotificationBannersCheck,
+        this
+    );
+
+    pUseTaskbarFlashing->Bind(
+        wxEVT_CHECKBOX,
+        &PreferencesTasksPage::OnUseTaskbarFlashingCheck,
         this
     );
 }
@@ -247,22 +285,47 @@ void PreferencesTasksPage::DataToControls()
 
     pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
     if (pCfg->UseReminders()) {
+        pUseNotificationBanners->SetValue(pCfg->UseNotificationBanners());
+        pUseTaskbarFlashing->SetValue(pCfg->UseTaskbarFlashing());
+
         if (!pReminderIntervalChoiceCtrl->IsEnabled()) {
             pReminderIntervalChoiceCtrl->Enable();
             pReminderIntervalChoiceCtrl->SetStringSelection(
                 std::to_string(pCfg->ReminderInterval()));
         }
+    } else {
+        pUseNotificationBanners->Disable();
+        pUseTaskbarFlashing->Disable();
+        pReminderIntervalChoiceCtrl->Disable();
     }
 }
 
 void PreferencesTasksPage::OnUseRemindersCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
+        pUseNotificationBanners->Enable();
+        pUseTaskbarFlashing->Enable();
         pReminderIntervalChoiceCtrl->Enable();
     } else {
         pReminderIntervalChoiceCtrl->Disable();
         pReminderIntervalChoiceCtrl->SetSelection(0);
         pUseRemindersCheckBoxCtrl->SetValue(false);
+        pUseNotificationBanners->SetValue(false);
+        pUseTaskbarFlashing->SetValue(false);
+    }
+}
+
+void PreferencesTasksPage::OnUseNotificationBannersCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pUseTaskbarFlashing->SetValue(false);
+    }
+}
+
+void PreferencesTasksPage::OnUseTaskbarFlashingCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pUseNotificationBanners->SetValue(false);
     }
 }
 } // namespace tks::UI::dlg
