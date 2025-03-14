@@ -156,11 +156,11 @@ bool Configuration::Save()
         mSettings.ShowProjectAssociatedCategories;
     root.at(Sections::TaskSection)["useLegacyTaskDialog"] = mSettings.UseLegacyTaskDialog;
     root.at(Sections::TaskSection)["useReminders"] = mSettings.UseReminders;
-    root.at(Sections::TaskSection)["useNoticiationBanners"] = mSettings.UseNotificationBanners;
-    root.at(Sections::TaskSection)["useTaskbarFlashing"] = mSettings.UseTaskbarFlashing;
-    root.at(Sections::TaskSection)["reminderInterval"] = mSettings.ReminderInterval;
+    root.at(Sections::TaskSection)["useNotificationBanners"] = mSettings.UseNotificationBanners;
     root.at(Sections::TaskSection)["openTaskDialogOnReminderClick"] =
         mSettings.OpenTaskDialogOnReminderClick;
+    root.at(Sections::TaskSection)["useTaskbarFlashing"] = mSettings.UseTaskbarFlashing;
+    root.at(Sections::TaskSection)["reminderInterval"] = mSettings.ReminderInterval;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -298,7 +298,7 @@ bool Configuration::RestoreDefaults()
                     { "showProjectAssociatedCategories", false },
                     { "useLegacyTaskDialog", false },
                     { "useReminders", false },
-                    { "useNoticiationBanners", false },
+                    { "useNotificationBanners", false },
                     { "useTaskbarFlashing", false },
                     { "reminderInterval", 0 },
                     { "openTaskDialogOnReminderClick", false }
@@ -837,9 +837,12 @@ void Configuration::GetTasksConfig(const toml::value& root)
     mSettings.UseLegacyTaskDialog = toml::find<bool>(taskSection, "useLegacyTaskDialog");
 
     mSettings.UseReminders = toml::find<bool>(taskSection, "useReminders");
-    mSettings.ReminderInterval = toml::find<int>(taskSection, "reminderInterval");
+    mSettings.UseNotificationBanners = toml::find<bool>(taskSection, "useNotificationBanners");
     mSettings.OpenTaskDialogOnReminderClick =
         toml::find<bool>(taskSection, "openTaskDialogOnReminderClick");
+    mSettings.UseTaskbarFlashing = toml::find<bool>(taskSection, "useTaskbarFlashing");
+
+    mSettings.ReminderInterval = toml::find<int>(taskSection, "reminderInterval");
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)
