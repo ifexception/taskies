@@ -569,21 +569,29 @@ void MainFrame::OnResize(wxSizeEvent& event)
 void MainFrame::OnTaskReminder(wxTimerEvent& event)
 {
     const std::string TAG = "MainFrame::OnTaskReminder";
-    pLogger->info("{0} - Task reminder trigger notification");
+    pLogger->info("{0} - Task reminder trigger notification", TAG);
 
-    pTaskReminderNotification = std::make_shared<wxNotificationMessage>(
-        "Reminder", "Reminder to capture tasks and their duration", this);
-    pTaskReminderNotification->SetFlags(0);
+    if (pCfg->UseNotificationBanners()) {
+        pLogger->info("{0} - Display task reminder as notification", TAG);
+        pTaskReminderNotification = std::make_shared<wxNotificationMessage>(
+            "Reminder", "Reminder to capture tasks and their duration", this);
+        pTaskReminderNotification->SetFlags(0);
 
-    if (pCfg->OpenTaskDialogOnReminderClick()) {
-        pTaskReminderNotification->Bind(
-            wxEVT_NOTIFICATION_MESSAGE_CLICK, &MainFrame::OnReminderNotificationClicked, this);
+        if (pCfg->OpenTaskDialogOnReminderClick()) {
+            pLogger->info("{0} - Open task dialog on reminder is enabled", TAG);
+            pTaskReminderNotification->Bind(
+                wxEVT_NOTIFICATION_MESSAGE_CLICK, &MainFrame::OnReminderNotificationClicked, this);
+        }
+
+        pTaskReminderNotification->Show(wxNotificationMessage::Timeout_Auto);
     }
-
-    // Show the notification
-    pTaskReminderNotification->Show(wxNotificationMessage::Timeout_Auto);
-
-    pLogger->info("{0} - Task reminder notification finished");
+    if (pCfg->UseTaskbarFlashing()) {
+        pLogger->info("{0} - Display task reminder as taskbar flashing", TAG);
+        if (!IsActive() || IsIconized()) { // check if window is in background or minimized
+            RequestUserAttention(wxUSER_ATTENTION_INFO);
+        }
+    }
+    pLogger->info("{0} - Task reminder notification finished", TAG);
 }
 
 void MainFrame::OnNotificationClick(wxCommandEvent& event)
@@ -826,8 +834,15 @@ void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 
         SetNewTaskMenubarTitle();
 
-        if (!pCfg->UseReminders()) {
-            pTaskReminderTimer->Stop();
+        if (pCfg->UseReminders()) {
+            if (!pTaskReminderTimer->IsRunning()) {
+                pTaskReminderTimer->Start(
+                    Utils::ConvertMinutesToMilliseconds(pCfg->ReminderInterval()));
+            }
+        } else {
+            if (pTaskReminderTimer->IsRunning()) {
+                pTaskReminderTimer->Stop();
+            }
         }
     }
 }
