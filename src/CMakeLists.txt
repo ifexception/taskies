@@ -71,6 +71,7 @@ set (SRC_DIALOGS
     "ui/dlg/taskdlglegacy.cpp"
     "ui/dlg/taskdlg.cpp"
     "ui/dlg/daytaskviewdlg.cpp"
+    "ui/dlg/attributesdlg.cpp"
     "ui/wizards/setupwizard.cpp"
 )
 
