@@ -21,6 +21,9 @@ message (STATUS "toml11 found: ${toml11_FOUND}")
 message (STATUS "nlohmann_json found: ${nlohmann_json_FOUND}")
 message (STATUS "fmt found: ${fmt_FOUND}")
 
+add_subdirectory("ui")
+message (STATUS "add subdirectory ui.dlg ${SRC_UI}")
+
 set (SRC_MODELS
     "models/employermodel.cpp"
     "models/clientmodel.cpp"
@@ -122,6 +125,7 @@ set (SRC
     ${SRC_REPOS}
     ${SRC_DIALOGS}
     ${SRC_EXPORTS}
+    ${SRC_UI}
 )
 
 add_executable (
