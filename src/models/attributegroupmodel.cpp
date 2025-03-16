@@ -44,5 +44,6 @@ const std::string AttributeGroupModel::GetDateModifiedString() const
 {
     date::sys_seconds dateTime{ std::chrono::seconds{ DateModified } };
     std::string dateString = date::format("%Y-%m-%d %I:%M:%S %p", dateTime);
+    return dateString;
 }
 } // namespace tks::Model

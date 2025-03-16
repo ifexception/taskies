@@ -17,7 +17,7 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "attributegroupsdlg.h"
+#include "attributegroupdlg.h"
 
 #include <wx/statline.h>
 
