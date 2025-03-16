@@ -24,7 +24,10 @@ message (STATUS "fmt found: ${fmt_FOUND}")
 add_subdirectory("ui")
 message (STATUS "add subdirectory ui.dlg ${SRC_UI}")
 
-set (SRC_MODELS
+add_subdirectory("models")
+message (STATUS "add subdirectory models ${SRC_MODELS}")
+
+set (SRC_CMODELS
     "models/employermodel.cpp"
     "models/clientmodel.cpp"
     "models/projectmodel.cpp"
@@ -121,6 +124,7 @@ set (SRC
     "services/export/columnexportmodel.cpp"
     "services/taskduration/taskdurationservice.cpp"
     ${SRC_MODELS}
+    ${SRC_CMODELS}
     ${SRC_PERSISTENCE}
     ${SRC_REPOS}
     ${SRC_DIALOGS}
