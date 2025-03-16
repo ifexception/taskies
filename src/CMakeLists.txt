@@ -27,6 +27,9 @@ message (STATUS "add subdirectory ui.dlg ${SRC_UI}")
 add_subdirectory("models")
 message (STATUS "add subdirectory models ${SRC_MODELS}")
 
+add_subdirectory("persistence")
+message (STATUS "add subdirectory models ${SRC_PERSISTENCE}")
+
 set (SRC_CMODELS
     "models/employermodel.cpp"
     "models/clientmodel.cpp"
@@ -36,7 +39,7 @@ set (SRC_CMODELS
     "models/taskmodel.cpp"
 )
 
-set(SRC_PERSISTENCE
+set(SRC_CPERSISTENCE
     "persistence/employerpersistence.cpp"
     "persistence/clientpersistence.cpp"
     "persistence/projectpersistence.cpp"
@@ -77,7 +80,6 @@ set (SRC_DIALOGS
     "ui/dlg/taskdlglegacy.cpp"
     "ui/dlg/taskdlg.cpp"
     "ui/dlg/daytaskviewdlg.cpp"
-    "ui/dlg/attributesdlg.cpp"
     "ui/wizards/setupwizard.cpp"
 )
 
@@ -126,6 +128,7 @@ set (SRC
     ${SRC_MODELS}
     ${SRC_CMODELS}
     ${SRC_PERSISTENCE}
+    ${SRC_CPERSISTENCE}
     ${SRC_REPOS}
     ${SRC_DIALOGS}
     ${SRC_EXPORTS}
