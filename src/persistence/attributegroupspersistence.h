@@ -24,9 +24,12 @@
 #include <string>
 #include <vector>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include <sqlite3.h>
+
+#include "../models/attributegroupmodel.h"
 
 namespace tks::Persistence
 {
@@ -37,8 +40,22 @@ public:
         const std::string& databaseFilePath);
     ~AttributeGroupsPersistence();
 
+    int Filter(const std::string& searchTerm,
+        /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels);
+    int GetById(const std::int64_t employerId,
+        /*out*/ Model::AttributeGroupModel& attributeGroupModel);
+    std::int64_t Create(const Model::AttributeGroupModel& attributeGroupModel);
+    int Update(Model::AttributeGroupModel attributeGroupModel);
+    int Delete(const std::int64_t attributeGroupId);
+
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
+
+    static const std::string filter;
+    static const std::string getById;
+    static const std::string create;
+    static const std::string update;
+    static const std::string isActive;
 };
 } // namespace tks::Persistence
