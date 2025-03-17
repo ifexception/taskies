@@ -129,7 +129,7 @@ void EditListDialog::CreateControls()
 
     /* Search Text Control */
     pSearchTextCtrl = new wxTextCtrl(searchBox,
-        tksIDC_SEARCHTEXT,
+        tksIDC_SEARCHTEXTCTRL,
         wxEmptyString,
         wxDefaultPosition,
         wxDefaultSize,
@@ -141,14 +141,14 @@ void EditListDialog::CreateControls()
     /* Search Button */
     auto providedFindBitmap =
         wxArtProvider::GetBitmapBundle(wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    pSearchButton = new wxBitmapButton(searchBox, tksIDC_SEARCHBTN, providedFindBitmap);
-    pSearchButton->SetToolTip("Search for an entity based on the search term");
+    pSearchButton = new wxBitmapButton(searchBox, tksIDC_SEARCHBUTTON, providedFindBitmap);
+    pSearchButton->SetToolTip("Search for an entity by entered criteria");
     searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     /* Reset Button */
     auto providedCloseBitmap =
         wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    pResetButton = new wxBitmapButton(searchBox, tksIDC_RESETBTN, providedCloseBitmap);
+    pResetButton = new wxBitmapButton(searchBox, tksIDC_RESETBUTTON, providedCloseBitmap);
     pResetButton->SetToolTip("Reset search term");
     searchBoxSizer->Add(pResetButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
@@ -198,14 +198,14 @@ void EditListDialog::ConfigureEventBindings()
         wxEVT_BUTTON,
         &EditListDialog::OnSearch,
         this,
-        tksIDC_SEARCHBTN
+        tksIDC_SEARCHBUTTON
     );
 
     pResetButton->Bind(
         wxEVT_BUTTON,
         &EditListDialog::OnReset,
         this,
-        tksIDC_RESETBTN
+        tksIDC_RESETBUTTON
     );
 
     pListCtrl->Bind(

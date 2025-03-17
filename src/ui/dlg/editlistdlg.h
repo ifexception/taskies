@@ -99,17 +99,25 @@ private:
     EditListEntityType mType;
 
     wxWindow* pParent;
+
     wxTextCtrl* pSearchTextCtrl;
     wxBitmapButton* pSearchButton;
     wxBitmapButton* pResetButton;
+
     wxListCtrl* pListCtrl;
+
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
     std::string mSearchTerm;
     std::int64_t mEntityId;
 
-    enum { tksIDC_LISTRESULTS = wxID_HIGHEST + 100, tksIDC_SEARCHTEXT, tksIDC_SEARCHBTN, tksIDC_RESETBTN };
+    enum {
+        tksIDC_LISTRESULTS = wxID_HIGHEST + 100,
+        tksIDC_SEARCHTEXTCTRL,
+        tksIDC_SEARCHBUTTON,
+        tksIDC_RESETBUTTON
+    };
 };
 } // namespace UI::dlg
 } // namespace tks
