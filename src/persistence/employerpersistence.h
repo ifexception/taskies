@@ -37,7 +37,8 @@ namespace Persistence
 class EmployerPersistence final
 {
 public:
-    EmployerPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    EmployerPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     ~EmployerPersistence();
 
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employers);
