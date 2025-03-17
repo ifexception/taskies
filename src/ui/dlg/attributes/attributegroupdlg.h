@@ -30,6 +30,8 @@
 #include <wx/wx.h>
 #endif
 
+#include "../../../models/attributegroupmodel.h"
+
 namespace tks::UI::dlg
 {
 class AttributeGroupDialog : public wxDialog
@@ -40,7 +42,7 @@ public:
     AttributeGroupDialog(wxWindow* parent,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
-        std::int64_t attributeGroupId,
+        std::int64_t attributeGroupId = -1,
         bool isEdit = false,
         const wxString& name = "attributegroupdlg");
     virtual ~AttributeGroupDialog() = default;
@@ -51,7 +53,6 @@ private:
     void Create();
 
     void CreateControls();
-    void FillControls();
     void ConfigureEventBindings();
 
     void OnIsActiveCheck(wxCommandEvent& event);
@@ -79,6 +80,8 @@ private:
     std::string mDatabaseFilePath;
     std::int64_t mAttributeGroupId;
     bool bIsEdit;
+
+    Model::AttributeGroupModel mAttributeGroupModel;
 
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
