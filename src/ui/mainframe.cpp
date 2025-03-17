@@ -28,6 +28,8 @@
 
 #include <sqlite3.h>
 
+#include <spdlog/spdlog.h>
+
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/persist/toplevel.h>
@@ -62,6 +64,7 @@
 #include "../ui/dlg/exports/exporttocsvdlg.h"
 #include "../ui/dlg/exports/quickexporttocsvdlg.h"
 #include "../ui/dlg/taskdlg.h"
+#include "../ui/dlg/attributes/attributegroupdlg.h"
 
 #include "events.h"
 #include "notificationclientdata.h"
@@ -95,6 +98,7 @@ EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
 EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnNewCategory)
+EVT_MENU(ID_NEW_ATTRIBUTEGROUP, MainFrame::OnNewAttributeGroup)
 EVT_MENU(ID_TASKS_BACKUPDATABASE, MainFrame::OnTasksBackupDatabase)
 EVT_MENU(ID_TASKS_EXPORTTOCSV, MainFrame::OnTasksExportToCsv)
 EVT_MENU(ID_TASKS_QUICKEXPORTTOCSV, MainFrame::OnTasksQuickExportToCsv)
@@ -174,6 +178,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pTaskReminderNotification()
 // clang-format on
 {
+    SPDLOG_LOGGER_TRACE(pLogger, "Initialization of MainFrame");
     // Initialization setup
     SetMinSize(wxSize(FromDIP(320), FromDIP(320)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
@@ -294,6 +299,8 @@ void MainFrame::CreateControls()
     fileNewMenu->Append(ID_NEW_CLIENT, "New Client", "Create new client");
     fileNewMenu->Append(ID_NEW_PROJECT, "New Project", "Create new project");
     fileNewMenu->Append(ID_NEW_CATEGORY, "New Category", "Create new category");
+    fileNewMenu->AppendSeparator();
+    fileNewMenu->Append(ID_NEW_ATTRIBUTEGROUP, "New Attribute Group", "Create new attribute group");
     fileMenu->AppendSubMenu(fileNewMenu, "New");
     fileMenu->AppendSeparator();
 
@@ -645,6 +652,12 @@ void MainFrame::OnNewCategory(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger, mDatabaseFilePath);
     addCategories.ShowModal();
+}
+
+void MainFrame::OnNewAttributeGroup(wxCommandEvent& event)
+{
+    UI::dlg::AttributeGroupDialog newAttributeGroupDialog(this, pLogger, mDatabaseFilePath);
+    newAttributeGroupDialog.ShowModal();
 }
 
 void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
