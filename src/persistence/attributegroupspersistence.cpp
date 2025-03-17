@@ -31,7 +31,9 @@ AttributeGroupsPersistence::AttributeGroupsPersistence(std::shared_ptr<spdlog::l
     , pDb(nullptr)
 {
     SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoOpenDatabaseConnection, "AttributeGroupsPersistence", databaseFilePath);
+        LogMessage::InfoOpenDatabaseConnection,
+        "AttributeGroupsPersistence",
+        databaseFilePath);
 
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
     if (rc != SQLITE_OK) {
@@ -115,9 +117,92 @@ int AttributeGroupsPersistence::Filter(const std::string& searchTerm,
     return 0;
 }
 
-int AttributeGroupsPersistence::GetById(const std::int64_t employerId,
+int AttributeGroupsPersistence::GetById(const std::int64_t attributeGroupId,
     Model::AttributeGroupModel& attributeGroupModel)
 {
+    SPDLOG_LOGGER_TRACE(pLogger,
+        LogMessage::InfoBeginGetByIdEntity,
+        "AttributeGroupsPersistence",
+        "attribute group",
+        attributeGroupId);
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributeGroupsPersistence::getById.c_str(),
+        static_cast<int>(AttributeGroupsPersistence::getById.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate,
+            "AttributeGroupsPersistence",
+            AttributeGroupsPersistence::getById,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, 1, attributeGroupId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "AttributeGroupsPersistence",
+            "attribute_group_id",
+            1,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate,
+            "AttributeGroupsPersistence",
+            AttributeGroupsPersistence::getById,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+    attributeGroupModel.AttributeGroupId = sqlite3_column_int64(stmt, columnIndex++);
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    attributeGroupModel.Name =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        attributeGroupModel.Description = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        attributeGroupModel.Description = std::string(
+            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+    }
+    columnIndex++;
+    attributeGroupModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    attributeGroupModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    attributeGroupModel.IsActive = sqlite3_column_int(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate,
+            "AttributeGroupsPersistence",
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessage::InfoEndGetByIdEntity, "AttributeGroupsPersistence", attributeGroupId);
+
     return 0;
 }
 

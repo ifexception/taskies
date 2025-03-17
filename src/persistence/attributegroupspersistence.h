@@ -42,7 +42,7 @@ public:
 
     int Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels);
-    int GetById(const std::int64_t employerId,
+    int GetById(const std::int64_t attributeGroupId,
         /*out*/ Model::AttributeGroupModel& attributeGroupModel);
     std::int64_t Create(const Model::AttributeGroupModel& attributeGroupModel);
     int Update(Model::AttributeGroupModel attributeGroupModel);
