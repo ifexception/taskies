@@ -70,6 +70,7 @@ enum class MenuIds : int {
     Edit_Client,
     Edit_Project,
     Edit_Category,
+    Edit_AttributeGroup,
     View_Reset,
     View_Expand,
     View_Day,
@@ -102,6 +103,7 @@ static const int ID_EDIT_EMPLOYER = static_cast<int>(MenuIds::Edit_Employer);
 static const int ID_EDIT_CLIENT = static_cast<int>(MenuIds::Edit_Client);
 static const int ID_EDIT_PROJECT = static_cast<int>(MenuIds::Edit_Project);
 static const int ID_EDIT_CATEGORY = static_cast<int>(MenuIds::Edit_Category);
+static const int ID_EDIT_ATTRIBUTE_GROUP = static_cast<int>(MenuIds::Edit_AttributeGroup);
 
 /* View */
 static const int ID_VIEW_RESET = static_cast<int>(MenuIds::View_Reset);
@@ -171,6 +173,7 @@ private:
     void OnEditClient(wxCommandEvent& event);
     void OnEditProject(wxCommandEvent& event);
     void OnEditCategory(wxCommandEvent& event);
+    void OnEditAttributeGroup(wxCommandEvent& event);
     void OnViewReset(wxCommandEvent& event);
     void OnViewExpand(wxCommandEvent& event);
     void OnViewDay(wxCommandEvent& event);
