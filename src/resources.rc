@@ -25,12 +25,13 @@ PREFERENCES_ICO ICON "..\\res\\preferences.ico"
 20230722190512_create_workdays_table MIGRATION "..\\res\\migrations\\20230722190512_create_workdays_table.sql"
 20230730153709_create_tasks_table MIGRATION "..\\res\\migrations\\20230730153709_create_tasks_table.sql"
 20241210183740_add_is_default_column_to_employers_table MIGRATION "..\\res\\migrations\\20241210183740_add_is_default_column_to_employers_table.sql"
+20250316124112_create_attribute_groups_table.sql MIGRATION "..\\res\\migrations\\20250316124112_create_attribute_groups_table.sql"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION        TASKIES_FILE_VERSION
  PRODUCTVERSION     PRODUCT_VERSION
  FILEFLAGSMASK      VS_FFI_FILEFLAGSMASK
-#ifdef TK_DEBUG
+#ifdef TKS_DEBUG
  FILEFLAGS VS_FF_DEBUG
 #else
  FILEFLAGS 0
