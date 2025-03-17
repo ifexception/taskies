@@ -41,8 +41,8 @@ namespace tks::UI::dlg
 AttributeGroupDialog::AttributeGroupDialog(wxWindow* parent,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
-    std::int64_t attributeGroupId,
     bool isEdit,
+    std::int64_t attributeGroupId,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
@@ -54,8 +54,8 @@ AttributeGroupDialog::AttributeGroupDialog(wxWindow* parent,
     , pParent(parent)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
-    , mAttributeGroupId(attributeGroupId)
     , bIsEdit(isEdit)
+    , mAttributeGroupId(attributeGroupId)
     , mAttributeGroupModel()
     , pNameTextCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)

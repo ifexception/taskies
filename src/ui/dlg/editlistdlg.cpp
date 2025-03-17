@@ -449,7 +449,7 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
         break;
     }
     case EditListEntityType::AttributeGroup: {
-        AttributeGroupDialog attributeGroupDlg(this, pLogger, mDatabaseFilePath, mEntityId, true);
+        AttributeGroupDialog attributeGroupDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         attributeGroupDlg.ShowModal();
         break;
     }

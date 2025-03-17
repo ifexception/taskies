@@ -42,8 +42,8 @@ public:
     AttributeGroupDialog(wxWindow* parent,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
-        std::int64_t attributeGroupId = -1,
         bool isEdit = false,
+        std::int64_t attributeGroupId = -1,
         const wxString& name = "attributegroupdlg");
     virtual ~AttributeGroupDialog() = default;
 
