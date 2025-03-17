@@ -4,7 +4,13 @@ project ("Taskies")
 add_subdirectory("attributes")
 
 set (
+    SRC_DIALOGS
+    "${CMAKE_CURRENT_SOURCE_DIR}/editlistdlg.cpp"
+)
+
+set (
     SRC_DLG
     ${SRC_ATTR_DLG}
+    ${SRC_DIALOGS}
     PARENT_SCOPE
 )
