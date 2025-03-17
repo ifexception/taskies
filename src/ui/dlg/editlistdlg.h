@@ -75,6 +75,8 @@ private:
     void ClientDataToControls();
     void ProjectDataToControls();
     void CategoryDataToControls();
+    void AttributeGroupDataToControls();
+
     void SetDataToControls(const std::vector<ListCtrlData>& entries);
 
     void OnSearchTextChange(wxCommandEvent& event);
@@ -89,6 +91,7 @@ private:
     void SearchClients();
     void SearchProjects();
     void SearchCategories();
+    void SearchAttributeGroups();
 
     std::string GetSearchHintText();
 
