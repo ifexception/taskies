@@ -489,6 +489,9 @@ void EditListDialog::Search()
     case EditListEntityType::Category:
         SearchCategories();
         break;
+    case EditListEntityType::AttributeGroup:
+        SearchAttributeGroups();
+        break;
     default:
         break;
     }
