@@ -284,6 +284,12 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
         message = attributeGroupId == -1 ? "Failed to create attribute group"
                                          : "Successfully created attribute group";
     }
+    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = attributeGroupsPersistence.Update(mAttributeGroupModel);
+
+        ret == -1 ? message = "Failed to update attribute group"
+                  : message = "Successfully updated attribute group";
+    }
 
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     if (ret == -1) {

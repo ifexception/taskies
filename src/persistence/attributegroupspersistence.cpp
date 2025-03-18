@@ -407,6 +407,112 @@ std::int64_t AttributeGroupsPersistence::Create(
 
 int AttributeGroupsPersistence::Update(Model::AttributeGroupModel attributeGroupModel)
 {
+    SPDLOG_LOGGER_TRACE(pLogger,
+        LogMessage::InfoBeginUpdateEntity,
+        "AttributeGroupsPersistence",
+        "attributeGroupModel",
+        attributeGroupModel.AttributeGroupId);
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributeGroupsPersistence::update.c_str(),
+        static_cast<int>(AttributeGroupsPersistence::update.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate,
+            "AttributeGroupsPersistence",
+            AttributeGroupsPersistence::update,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_text(stmt,
+        bindIndex++,
+        attributeGroupModel.Name.c_str(),
+        static_cast<int>(attributeGroupModel.Name.size()),
+        SQLITE_TRANSIENT);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessage::BindParameterTemplate, "AttributeGroupsPersistence", "name", 1, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    if (attributeGroupModel.Description.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            attributeGroupModel.Description.value().c_str(),
+            static_cast<int>(attributeGroupModel.Description.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+    bindIndex++;
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "AttributeGroupsPersistence",
+            "description",
+            2,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, bindIndex++, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "AttributeGroupsPersistence",
+            "date_modified",
+            3,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_bind_int64(stmt, bindIndex++, attributeGroupModel.AttributeGroupId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "AttributeGroupsPersistence",
+            "attribute_group_id",
+            4,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate,
+            "AttributeGroupsPersistence",
+            AttributeGroupsPersistence::update,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(pLogger,
+        LogMessage::InfoEndUpdateEntity,
+        "AttributeGroupsPersistence",
+        attributeGroupModel.AttributeGroupId);
+
     return 0;
 }
 
@@ -448,7 +554,6 @@ const std::string AttributeGroupsPersistence::create = "INSERT INTO "
 const std::string AttributeGroupsPersistence::update = "UPDATE attribute_groups "
                                                        "SET "
                                                        "name = ?, "
-                                                       "is_default = ?, "
                                                        "description = ?, "
                                                        "date_modified = ? "
                                                        "WHERE attribute_group_id = ?";
