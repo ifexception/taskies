@@ -54,6 +54,7 @@ private:
 
     void CreateControls();
     void ConfigureEventBindings();
+    void DataToControls();
 
     void OnIsActiveCheck(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);

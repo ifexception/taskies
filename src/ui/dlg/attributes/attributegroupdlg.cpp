@@ -78,7 +78,9 @@ void AttributeGroupDialog::Create()
     CreateControls();
     ConfigureEventBindings();
 
-    // do edit
+    if (bIsEdit) {
+        DataToControls();
+    }
 }
 
 void AttributeGroupDialog::CreateControls()
@@ -217,6 +219,38 @@ void AttributeGroupDialog::ConfigureEventBindings()
     );
 }
 // clang-format on
+
+void AttributeGroupDialog::DataToControls()
+{
+    pOkButton->Disable();
+
+    Model::AttributeGroupModel attributeGroupModel;
+    Persistence::AttributeGroupsPersistence attributeGroupPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributeGroupPersistence.GetById(mAttributeGroupId, attributeGroupModel);
+    if (rc == -1) {
+        std::string message = "Failed to get attribute group";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+    } else {
+        pNameTextCtrl->SetValue(attributeGroupModel.Name);
+        pDescriptionTextCtrl->SetValue(attributeGroupModel.Description.has_value()
+                                           ? attributeGroupModel.Description.value()
+                                           : "");
+        pDateCreatedReadonlyTextCtrl->SetValue(attributeGroupModel.GetDateCreatedString());
+        pDateModifiedReadonlyTextCtrl->SetValue(attributeGroupModel.GetDateModifiedString());
+        pIsActiveCheckBoxCtrl->SetValue(attributeGroupModel.IsActive);
+
+        pOkButton->Enable();
+        pOkButton->SetFocus();
+    }
+}
 
 void AttributeGroupDialog::OnIsActiveCheck(wxCommandEvent& event)
 {
