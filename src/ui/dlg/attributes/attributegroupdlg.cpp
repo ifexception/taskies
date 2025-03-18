@@ -240,12 +240,15 @@ void AttributeGroupDialog::DataToControls()
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         pNameTextCtrl->SetValue(attributeGroupModel.Name);
-        pDescriptionTextCtrl->SetValue(attributeGroupModel.Description.has_value()
-                                           ? attributeGroupModel.Description.value()
-                                           : "");
+        std::string descriptionValue = attributeGroupModel.Description.has_value()
+            ? attributeGroupModel.Description.value()
+            : "";
+        pDescriptionTextCtrl->SetValue(descriptionValue);
         pDateCreatedReadonlyTextCtrl->SetValue(attributeGroupModel.GetDateCreatedString());
         pDateModifiedReadonlyTextCtrl->SetValue(attributeGroupModel.GetDateModifiedString());
         pIsActiveCheckBoxCtrl->SetValue(attributeGroupModel.IsActive);
+
+        pIsActiveCheckBoxCtrl->Enable();
 
         pOkButton->Enable();
         pOkButton->SetFocus();
@@ -289,6 +292,12 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
 
         ret == -1 ? message = "Failed to update attribute group"
                   : message = "Successfully updated attribute group";
+    }
+    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = attributeGroupsPersistence.Delete(mAttributeGroupId);
+
+        ret == -1 ? message = "Failed to delete attribute group"
+                  : message = "Successfully deleted attribute group";
     }
 
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -342,8 +351,10 @@ bool AttributeGroupDialog::Validate()
     }
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
-    if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
-                                    description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+    if (!description.empty() &&
+        (description.length() < MIN_CHARACTER_COUNT ||
+            description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)
+    ) {
         auto validationMessage =
             fmt::format("Description must be at minimum {0} or maximum {1} characters long",
                 MIN_CHARACTER_COUNT,
