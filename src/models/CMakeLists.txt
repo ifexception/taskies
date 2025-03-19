@@ -5,5 +5,6 @@ set(
     SRC_MODELS
     "${CMAKE_CURRENT_SOURCE_DIR}/attributegroupmodel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributetypemodel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/attributemodel.cpp"
     PARENT_SCOPE
 )
