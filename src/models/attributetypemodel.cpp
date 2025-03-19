@@ -17,26 +17,13 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#pragma once
-
-#include <cstdint>
-#include <optional>
-#include <string>
+#include "attributetypemodel.h"
 
 namespace tks::Model
 {
-struct AttributeGroupModel {
-    AttributeGroupModel();
-    ~AttributeGroupModel() = default;
-
-    std::int64_t AttributeGroupId;
-    std::string Name;
-    std::optional<std::string> Description;
-    std::uint32_t DateCreated;
-    std::uint32_t DateModified;
-    bool IsActive;
-
-    const std::string GetDateCreatedString() const;
-    const std::string GetDateModifiedString() const;
-};
+AttributeTypeModel::AttributeTypeModel()
+    : AttributeTypeId(-1)
+    , Name()
+{
+}
 } // namespace tks::Model

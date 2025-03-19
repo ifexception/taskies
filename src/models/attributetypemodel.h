@@ -20,23 +20,15 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
 #include <string>
 
 namespace tks::Model
 {
-struct AttributeGroupModel {
-    AttributeGroupModel();
-    ~AttributeGroupModel() = default;
+struct AttributeTypeModel {
+    AttributeTypeModel();
+    ~AttributeTypeModel() = default;
 
-    std::int64_t AttributeGroupId;
+    std::int64_t AttributeTypeId;
     std::string Name;
-    std::optional<std::string> Description;
-    std::uint32_t DateCreated;
-    std::uint32_t DateModified;
-    bool IsActive;
-
-    const std::string GetDateCreatedString() const;
-    const std::string GetDateModifiedString() const;
 };
 } // namespace tks::Model
