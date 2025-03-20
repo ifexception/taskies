@@ -32,5 +32,68 @@
 
 namespace tks::UI::dlg
 {
+class AttributeDialog final : public wxDialog
+{
+public:
+    AttributeDialog() = delete;
+    AttributeDialog(const AttributeDialog&) = delete;
+    AttributeDialog(wxWindow* parent,
+        std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath,
+        bool isEdit = false,
+        std::int64_t attributeId = -1,
+        const wxString& name = "attributedlg");
+    virtual ~AttributeDialog() = default;
 
+    AttributeDialog& operator=(const AttributeDialog&) = delete;
+
+private:
+    void Create();
+
+    void CreateControls();
+    void ConfigureEventBindings();
+    void FillControls();
+    void DataToControls();
+
+    void OnIsActiveCheck(wxCommandEvent& event);
+    void OnOK(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
+
+    bool Validate();
+    void TransferData();
+
+    std::shared_ptr<spdlog::logger> pLogger;
+
+    wxWindow* pParent;
+
+    wxTextCtrl* pNameTextCtrl;
+    wxCheckBox* pIsRequiredCheckBoxCtrl;
+
+    wxTextCtrl* pDescriptionTextCtrl;
+
+    wxChoice* pAttributeGroupChoiceCtrl;
+    wxChoice* pAttributeTypeChoiceCtrl;
+
+    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
+    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
+    wxCheckBox* pIsActiveCheckBoxCtrl;
+
+    wxButton* pSaveAndAddAnotherButton;
+    wxButton* pOkButton;
+    wxButton* pCancelButton;
+
+    std::string mDatabaseFilePath;
+    std::int64_t mAttributeId;
+    bool bIsEdit;
+
+    enum {
+        tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
+        tksIDC_DESCRIPTIONTEXTCTRL,
+        tksIDC_ISREQUIREDCHECKBOXCTRL,
+        tksIDC_ATTRIBUTEGROUPCHOICECTRL,
+        tksIDC_ATTRIBUTETYPECHOICECTRL,
+        tksIDC_ISACTIVECHECKBOXCTRL,
+        tksIDC_SAVEANDADDANOTHERBUTTON
+    };
+};
 }
