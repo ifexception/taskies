@@ -65,6 +65,7 @@
 #include "../ui/dlg/exports/quickexporttocsvdlg.h"
 #include "../ui/dlg/taskdlg.h"
 #include "../ui/dlg/attributes/attributegroupdlg.h"
+#include "../ui/dlg/attributes/attributedlg.h"
 
 #include "events.h"
 #include "notificationclientdata.h"
@@ -99,6 +100,7 @@ EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
 EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnNewCategory)
 EVT_MENU(ID_NEW_ATTRIBUTEGROUP, MainFrame::OnNewAttributeGroup)
+EVT_MENU(ID_NEW_ATTRIBUTE, MainFrame::OnNewAttribute)
 EVT_MENU(ID_TASKS_BACKUPDATABASE, MainFrame::OnTasksBackupDatabase)
 EVT_MENU(ID_TASKS_EXPORTTOCSV, MainFrame::OnTasksExportToCsv)
 EVT_MENU(ID_TASKS_QUICKEXPORTTOCSV, MainFrame::OnTasksQuickExportToCsv)
@@ -302,6 +304,7 @@ void MainFrame::CreateControls()
     fileNewMenu->Append(ID_NEW_CATEGORY, "New Category", "Create new category");
     fileNewMenu->AppendSeparator();
     fileNewMenu->Append(ID_NEW_ATTRIBUTEGROUP, "New Attribute Group", "Create new attribute group");
+    fileNewMenu->Append(ID_NEW_ATTRIBUTE, "New Attribute", "Create new attribute");
     fileMenu->AppendSubMenu(fileNewMenu, "New");
     fileMenu->AppendSeparator();
 
@@ -661,6 +664,12 @@ void MainFrame::OnNewAttributeGroup(wxCommandEvent& event)
 {
     UI::dlg::AttributeGroupDialog newAttributeGroupDialog(this, pLogger, mDatabaseFilePath);
     newAttributeGroupDialog.ShowModal();
+}
+
+void MainFrame::OnNewAttribute(wxCommandEvent& event)
+{
+    dlg::AttributeDialog newAttributeDialog(this, pLogger, mDatabaseFilePath);
+    newAttributeDialog.ShowModal();
 }
 
 void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
