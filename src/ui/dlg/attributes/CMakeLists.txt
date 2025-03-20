@@ -4,5 +4,6 @@ project ("Taskies")
 set(
     SRC_ATTR_DLG
     "${CMAKE_CURRENT_SOURCE_DIR}/attributegroupdlg.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/attributedlg.cpp"
     PARENT_SCOPE
 )
