@@ -19,11 +19,19 @@
 
 #include "attributedlg.h"
 
+#include <vector>
+
 #include <wx/statline.h>
 
+#include "../../events.h"
 #include "../../clientdata.h"
+#include "../../notificationclientdata.h"
 
 #include "../../../common/common.h"
+
+#include "../../../persistence/attributegroupspersistence.h"
+
+#include "../../../models/attributegroupmodel.h"
 
 namespace tks::UI::dlg
 {
@@ -231,12 +239,38 @@ void AttributeDialog::ConfigureEventBindings()
 
 void AttributeDialog::FillControls()
 {
+    // Add default prompt
     pAttributeGroupChoiceCtrl->Append(
         "Select an attribute group", new ClientData<std::int64_t>(-1));
     pAttributeGroupChoiceCtrl->SetSelection(0);
 
+    // Add default prompt
     pAttributeTypeChoiceCtrl->Append("Select a field type", new ClientData<std::int64_t>(-1));
     pAttributeTypeChoiceCtrl->SetSelection(0);
+
+    // filter attribute groups
+    std::vector<Model::AttributeGroupModel> attributeGroups;
+    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributeGroupsPersistence.Filter("", attributeGroups);
+    if (rc == -1) {
+        std::string message = "Failed to get employers";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+    } else {
+        for (const auto& attributeGroup : attributeGroups) {
+            pAttributeGroupChoiceCtrl->Append(
+                attributeGroup.Name, new ClientData<std::int64_t>(attributeGroup.AttributeGroupId));
+        }
+    }
+
+    // filter attribute types
 }
 
 void AttributeDialog::DataToControls() {}
