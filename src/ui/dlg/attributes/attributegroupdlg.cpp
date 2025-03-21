@@ -133,6 +133,10 @@ void AttributeGroupDialog::CreateControls()
 
     /* Begin edit metadata controls */
 
+    /* Horizontal Line */
+    auto line1 = new wxStaticLine(this, wxID_ANY);
+    mainSizer->Add(line1, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(4)).Expand());
+
     /*auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
     auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
     mainSizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());*/

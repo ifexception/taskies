@@ -153,6 +153,10 @@ void AttributeDialog::CreateControls()
 
     /* Begin edit metadata controls */
 
+    /* Horizontal Line */
+    auto line1 = new wxStaticLine(this, wxID_ANY);
+    mainSizer->Add(line1, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(4)).Expand());
+
     /*auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
     auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
     mainSizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());*/
@@ -195,8 +199,8 @@ void AttributeDialog::CreateControls()
     /* End of edit metadata controls */
 
     /* Horizontal Line */
-    auto line = new wxStaticLine(this, wxID_ANY);
-    mainSizer->Add(line, wxSizerFlags().Expand());
+    auto line2 = new wxStaticLine(this, wxID_ANY);
+    mainSizer->Add(line2, wxSizerFlags().Expand());
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
