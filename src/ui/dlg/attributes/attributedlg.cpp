@@ -21,6 +21,8 @@
 
 #include <wx/statline.h>
 
+#include "../../clientdata.h"
+
 #include "../../../common/common.h"
 
 namespace tks::UI::dlg
@@ -216,9 +218,22 @@ void AttributeDialog::CreateControls()
     SetSizerAndFit(mainSizer);
 }
 
-void AttributeDialog::ConfigureEventBindings() {}
+// clang-format off
+void AttributeDialog::ConfigureEventBindings()
+{
 
-void AttributeDialog::FillControls() {}
+}
+// clang-format on
+
+void AttributeDialog::FillControls()
+{
+    pAttributeGroupChoiceCtrl->Append(
+        "Select an attribute group", new ClientData<std::int64_t>(-1));
+    pAttributeGroupChoiceCtrl->SetSelection(0);
+
+    pAttributeTypeChoiceCtrl->Append("Select a field type", new ClientData<std::int64_t>(-1));
+    pAttributeTypeChoiceCtrl->SetSelection(0);
+}
 
 void AttributeDialog::DataToControls() {}
 
