@@ -187,7 +187,7 @@ std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attribut
     bindIndex++;
 
     // attribute group id
-    rc = sqlite3_bind_int(stmt, bindIndex, attributeModel.AttributeGroupId);
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeModel.AttributeGroupId);
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate,
@@ -203,7 +203,7 @@ std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attribut
     bindIndex++;
 
     // attribute type id
-    rc = sqlite3_bind_int(stmt, bindIndex, attributeModel.AttributeTypeId);
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeModel.AttributeTypeId);
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate,
@@ -228,7 +228,7 @@ std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attribut
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
 
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndCreateEntity, mClassName, "attribute", rowId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndCreateEntity, mClassName, rowId);
 
     return rowId;
 }
