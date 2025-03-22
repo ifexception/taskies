@@ -58,6 +58,7 @@ private:
     void DataToControls();
 
     void OnIsActiveCheck(wxCommandEvent& event);
+    void OnAddAnotherCheck(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
@@ -80,7 +81,7 @@ private:
     wxTextCtrl* pDateModifiedReadonlyTextCtrl;
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
-    wxButton* pSaveAndAddAnotherButton;
+    wxCheckBox* pAddAnotherCheckBoxCtrl;
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
@@ -89,6 +90,7 @@ private:
     bool bIsEdit;
 
     Model::AttributeModel mAttributeModel;
+    bool bAddAnotherAttribute;
 
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
@@ -97,7 +99,7 @@ private:
         tksIDC_ATTRIBUTEGROUPCHOICECTRL,
         tksIDC_ATTRIBUTETYPECHOICECTRL,
         tksIDC_ISACTIVECHECKBOXCTRL,
-        tksIDC_SAVEANDADDANOTHERBUTTON
+        tksIDC_ADDANOTHERCHECKBOXCTRL
     };
 };
 }

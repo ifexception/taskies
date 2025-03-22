@@ -70,9 +70,11 @@ AttributeDialog::AttributeDialog(wxWindow* parent,
     , pDateCreatedReadonlyTextCtrl(nullptr)
     , pDateModifiedReadonlyTextCtrl(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
-    , pSaveAndAddAnotherButton(nullptr)
+    , pAddAnotherCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mAttributeModel()
+    , bAddAnotherAttribute(false)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -223,15 +225,15 @@ void AttributeDialog::CreateControls()
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
     mainSizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    pSaveAndAddAnotherButton =
-        new wxButton(this, tksIDC_SAVEANDADDANOTHERBUTTON, "Save + Add Another");
+    pAddAnotherCheckBoxCtrl =
+        new wxCheckBox(this, tksIDC_ADDANOTHERCHECKBOXCTRL, "Add Another");
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
-    buttonsSizer->Add(pSaveAndAddAnotherButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pAddAnotherCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->AddStretchSpacer();
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -245,6 +247,12 @@ void AttributeDialog::ConfigureEventBindings()
     pIsActiveCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &AttributeDialog::OnIsActiveCheck,
+        this
+    );
+
+    pAddAnotherCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &AttributeDialog::OnAddAnotherCheck,
         this
     );
 
@@ -324,6 +332,11 @@ void AttributeDialog::DataToControls() {}
 
 void AttributeDialog::OnIsActiveCheck(wxCommandEvent& event) {}
 
+void AttributeDialog::OnAddAnotherCheck(wxCommandEvent& event)
+{
+    bAddAnotherAttribute = event.IsChecked();
+}
+
 void AttributeDialog::OnOK(wxCommandEvent& event)
 {
     if (!Validate()) {
@@ -366,7 +379,9 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         // have wxFrame
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
-        EndModal(wxID_OK);
+        if (!bAddAnotherAttribute) {
+            EndModal(wxID_OK);
+        }
     }
 }
 
