@@ -278,7 +278,7 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
 
     pOkButton->Disable();
 
-    TransferData();
+    TransferDataFromControls();
 
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
@@ -371,7 +371,7 @@ bool AttributeGroupDialog::Validate()
     return true;
 }
 
-void AttributeGroupDialog::TransferData()
+void AttributeGroupDialog::TransferDataFromControls()
 {
     mAttributeGroupModel.AttributeGroupId = mAttributeGroupId;
 

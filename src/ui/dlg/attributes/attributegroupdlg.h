@@ -61,7 +61,7 @@ private:
     void OnCancel(wxCommandEvent& event);
 
     bool Validate();
-    void TransferData();
+    void TransferDataFromControls();
 
     std::shared_ptr<spdlog::logger> pLogger;
 
