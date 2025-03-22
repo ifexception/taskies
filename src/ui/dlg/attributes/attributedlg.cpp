@@ -225,8 +225,7 @@ void AttributeDialog::CreateControls()
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
     mainSizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    pAddAnotherCheckBoxCtrl =
-        new wxCheckBox(this, tksIDC_ADDANOTHERCHECKBOXCTRL, "Add Another");
+    pAddAnotherCheckBoxCtrl = new wxCheckBox(this, tksIDC_ADDANOTHERCHECKBOXCTRL, "Add Another");
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
@@ -385,7 +384,10 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
     }
 }
 
-void AttributeDialog::OnCancel(wxCommandEvent& event) {}
+void AttributeDialog::OnCancel(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
+}
 
 bool AttributeDialog::Validate()
 {
