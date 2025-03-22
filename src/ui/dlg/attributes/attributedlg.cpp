@@ -242,7 +242,25 @@ void AttributeDialog::CreateControls()
 // clang-format off
 void AttributeDialog::ConfigureEventBindings()
 {
+    pIsActiveCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &AttributeDialog::OnIsActiveCheck,
+        this
+    );
 
+    pOkButton->Bind(
+        wxEVT_BUTTON,
+        &AttributeDialog::OnOK,
+        this,
+        wxID_OK
+    );
+
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &AttributeDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
 }
 // clang-format on
 
@@ -315,6 +333,41 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
     pOkButton->Disable();
 
     TransferDataFromControls();
+
+    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
+
+    int ret = 0;
+    std::string message = "";
+    if (!bIsEdit) {
+        std::int64_t attributeGroupId = attributesPersistence.Create(mAttributeModel);
+        ret = attributeGroupId > 0 ? 1 : -1;
+
+        message = attributeGroupId == -1 ? "Failed to create attribute"
+                                         : "Successfully created attribute";
+    }
+
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    if (ret == -1) {
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+
+        pOkButton->Enable();
+    } else {
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+
+        EndModal(wxID_OK);
+    }
 }
 
 void AttributeDialog::OnCancel(wxCommandEvent& event) {}
