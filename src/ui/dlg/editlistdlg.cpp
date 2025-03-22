@@ -34,12 +34,14 @@
 #include "../../persistence/projectpersistence.h"
 #include "../../persistence/categorypersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
+#include "../../persistence/attributespersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
 #include "../../models/projectmodel.h"
 #include "../../models/categorymodel.h"
 #include "../../models/attributegroupmodel.h"
+#include "../../models/attributemodel.h"
 
 #include "../../utils/utils.h"
 
@@ -53,6 +55,7 @@
 #include "categorydlg.h"
 
 #include "attributes/attributegroupdlg.h"
+#include "attributes/attributedlg.h"
 
 namespace tks::UI::dlg
 {
@@ -109,6 +112,8 @@ std::string EditListDialog::GetEditTitle()
         return "Find Category";
     case EditListEntityType::AttributeGroup:
         return "Find Attribute Group";
+    case EditListEntityType::Attribute:
+        return "Find Attribute";
     default:
         return "Find [Not Found]";
     }
@@ -257,6 +262,9 @@ void EditListDialog::DataToControls()
     case EditListEntityType::AttributeGroup:
         AttributeGroupDataToControls();
         break;
+    case EditListEntityType::Attribute:
+        AttributeDataToControls();
+        break;
     default:
         break;
     }
@@ -373,7 +381,7 @@ void EditListDialog::AttributeGroupDataToControls()
 
     int rc = attributeGroupPersistence.Filter(mSearchTerm, attributeGroups);
     if (rc == -1) {
-        std::string message = "Failed to filter attribute group";
+        std::string message = "Failed to filter attribute groups";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
@@ -383,6 +391,32 @@ void EditListDialog::AttributeGroupDataToControls()
     } else {
         for (auto& attributeGroup : attributeGroups) {
             ListCtrlData data(attributeGroup.AttributeGroupId, attributeGroup.Name);
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+}
+
+void EditListDialog::AttributeDataToControls()
+{
+    std::vector<Model::AttributeModel> attributes;
+    std::vector<ListCtrlData> entries;
+
+    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributesPersistence.Filter(mSearchTerm, attributes);
+    if (rc == -1) {
+        std::string message = "Failed to filter attributes";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& attribute : attributes) {
+            ListCtrlData data(attribute.AttributeId, attribute.Name);
             entries.push_back(data);
         }
 
@@ -453,6 +487,11 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
         attributeGroupDlg.ShowModal();
         break;
     }
+    case EditListEntityType::Attribute: {
+        AttributeDialog attributeDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
+        attributeDlg.ShowModal();
+        break;
+    }
     default:
         break;
     }
@@ -492,6 +531,8 @@ void EditListDialog::Search()
     case EditListEntityType::AttributeGroup:
         SearchAttributeGroups();
         break;
+    case EditListEntityType::Attribute:
+        SearchAttributes();
     default:
         break;
     }
@@ -647,6 +688,36 @@ void EditListDialog::SearchAttributeGroups()
     pOkButton->Enable();
 }
 
+void EditListDialog::SearchAttributes()
+{
+    pOkButton->Disable();
+    pListCtrl->DeleteAllItems();
+
+    std::vector<Model::AttributeModel> attributes;
+    std::vector<ListCtrlData> entries;
+    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributesPersistence.Filter(mSearchTerm, attributes);
+    if (rc == -1) {
+        std::string message = "Failed to filter attributes";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& attribute : attributes) {
+            ListCtrlData data(attribute.AttributeId, attribute.Name);
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+
+    pOkButton->Enable();
+}
+
 std::string EditListDialog::GetSearchHintText()
 {
     switch (mType) {
@@ -660,6 +731,8 @@ std::string EditListDialog::GetSearchHintText()
         return "Search categories...";
     case EditListEntityType::AttributeGroup:
         return "Search attribute groups...";
+    case EditListEntityType::Attribute:
+        return "Search attributes...";
     default:
         return "";
     }

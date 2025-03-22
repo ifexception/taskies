@@ -76,6 +76,7 @@ private:
     void ProjectDataToControls();
     void CategoryDataToControls();
     void AttributeGroupDataToControls();
+    void AttributeDataToControls();
 
     void SetDataToControls(const std::vector<ListCtrlData>& entries);
 
@@ -92,6 +93,7 @@ private:
     void SearchProjects();
     void SearchCategories();
     void SearchAttributeGroups();
+    void SearchAttributes();
 
     std::string GetSearchHintText();
 

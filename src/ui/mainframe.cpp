@@ -110,6 +110,7 @@ EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
 EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
 EVT_MENU(ID_EDIT_ATTRIBUTE_GROUP, MainFrame::OnEditAttributeGroup)
+EVT_MENU(ID_EDIT_ATTRIBUTE, MainFrame::OnEditAttribute)
 EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_EXPAND, MainFrame::OnViewExpand)
 EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
@@ -336,6 +337,7 @@ void MainFrame::CreateControls()
     editMenu->Append(ID_EDIT_CATEGORY, "Edit Category", "Edit a category");
     editMenu->AppendSeparator();
     editMenu->Append(ID_EDIT_ATTRIBUTE_GROUP, "Edit Attribute Group", "Edit an attribute group");
+    editMenu->Append(ID_EDIT_ATTRIBUTE, "Edit Attribute", "Edit an attribute");
 
     /* View */
     auto viewMenu = new wxMenu();
@@ -788,9 +790,16 @@ void MainFrame::OnEditCategory(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnEditAttributeGroup(wxCommandEvent& event)
 {
-    UI::dlg::EditListDialog editCategory(
+    UI::dlg::EditListDialog editAttributeGroup(
         this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::AttributeGroup);
-    editCategory.ShowModal();
+    editAttributeGroup.ShowModal();
+}
+
+void MainFrame::OnEditAttribute(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editAttribute(
+        this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Attribute);
+    editAttribute.ShowModal();
 }
 
 void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
