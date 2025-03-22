@@ -21,9 +21,11 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include <sqlite3.h>
 
@@ -34,6 +36,28 @@ namespace tks::Persistence
 class AttributesPersistence final
 {
 public:
+    AttributesPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
+    ~AttributesPersistence();
+
+    int Filter(const std::string& searchTerm,
+        /*out*/ std::vector<Model::AttributeModel>& attributeModels);
+    int GetById(const std::int64_t attributeId,
+        /*out*/ Model::AttributeModel& attributeModel);
+    std::int64_t Create(const Model::AttributeModel& attributeModel);
+    int Update(Model::AttributeModel attributeModel);
+    int Delete(const std::int64_t attributeId);
+
 private:
+    std::shared_ptr<spdlog::logger> pLogger;
+    sqlite3* pDb;
+
+    std::string mClassName;
+
+    static const std::string filter;
+    static const std::string getById;
+    static const std::string create;
+    static const std::string update;
+    static const std::string isActive;
 };
 }
