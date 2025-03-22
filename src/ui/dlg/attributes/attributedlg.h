@@ -30,6 +30,8 @@
 #include <wx/wx.h>
 #endif
 
+#include "../../../models/attributemodel.h"
+
 namespace tks::UI::dlg
 {
 class AttributeDialog final : public wxDialog
@@ -60,7 +62,7 @@ private:
     void OnCancel(wxCommandEvent& event);
 
     bool Validate();
-    void TransferData();
+    void TransferDataFromControls();
 
     std::shared_ptr<spdlog::logger> pLogger;
 
@@ -85,6 +87,8 @@ private:
     std::string mDatabaseFilePath;
     std::int64_t mAttributeId;
     bool bIsEdit;
+
+    Model::AttributeModel mAttributeModel;
 
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,

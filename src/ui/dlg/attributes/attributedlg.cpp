@@ -21,19 +21,26 @@
 
 #include <vector>
 
+#include <fmt/format.h>
+
 #include <wx/statline.h>
+#include <wx/richtooltip.h>
 
 #include "../../events.h"
 #include "../../clientdata.h"
 #include "../../notificationclientdata.h"
 
 #include "../../../common/common.h"
+#include "../../../common/constants.h"
 
+#include "../../../persistence/attributespersistence.h"
 #include "../../../persistence/attributegroupspersistence.h"
 #include "../../../persistence/attributetypespersistence.h"
 
 #include "../../../models/attributegroupmodel.h"
 #include "../../../models/attributetypemodel.h"
+
+#include "../../../utils/utils.h"
 
 namespace tks::UI::dlg
 {
@@ -299,14 +306,98 @@ void AttributeDialog::DataToControls() {}
 
 void AttributeDialog::OnIsActiveCheck(wxCommandEvent& event) {}
 
-void AttributeDialog::OnOK(wxCommandEvent& event) {}
+void AttributeDialog::OnOK(wxCommandEvent& event)
+{
+    if (!Validate()) {
+        return;
+    }
+
+    pOkButton->Disable();
+
+    TransferDataFromControls();
+}
 
 void AttributeDialog::OnCancel(wxCommandEvent& event) {}
 
 bool AttributeDialog::Validate()
 {
-    return false;
+    auto name = pNameTextCtrl->GetValue().ToStdString();
+    if (name.empty()) {
+        auto valMsg = "Name is required";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    if (name.length() < MIN_CHARACTER_COUNT || name.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
+            MIN_CHARACTER_COUNT,
+            MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
+    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
+                                    description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+        auto validationMessage =
+            fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_DESCRIPTIONS);
+        wxRichToolTip toolTip("Validation", validationMessage);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pDescriptionTextCtrl);
+        return false;
+    }
+
+    int attributeGroupIndex = pAttributeGroupChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* attributeGroupData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pAttributeGroupChoiceCtrl->GetClientObject(attributeGroupIndex));
+    if (attributeGroupData->GetValue() < 1) {
+        auto validationMessage = "An attribute group selection is required";
+        wxRichToolTip toolTip("Validation", validationMessage);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pAttributeGroupChoiceCtrl);
+        return false;
+    }
+
+    int attributeTypeIndex = pAttributeTypeChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* attributeTypeData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pAttributeTypeChoiceCtrl->GetClientObject(attributeTypeIndex));
+    if (attributeTypeData->GetValue() < 1) {
+        auto validationMessage = "A field type selection is required";
+        wxRichToolTip toolTip("Validation", validationMessage);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pAttributeTypeChoiceCtrl);
+        return false;
+    }
+
+    return true;
 }
 
-void AttributeDialog::TransferData() {}
+void AttributeDialog::TransferDataFromControls()
+{
+    mAttributeModel.AttributeId = mAttributeId;
+
+    auto name = pNameTextCtrl->GetValue().ToStdString();
+    mAttributeModel.Name = Utils::TrimWhitespace(name);
+    mAttributeModel.IsRequired = pIsRequiredCheckBoxCtrl->GetValue();
+
+    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    mAttributeModel.Description =
+        description.empty() ? std::nullopt : std::make_optional(description);
+
+    int attributeGroupIndex = pAttributeGroupChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* attributeGroupData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pAttributeGroupChoiceCtrl->GetClientObject(attributeGroupIndex));
+    mAttributeModel.AttributeGroupId = attributeGroupData->GetValue();
+
+    int attributeTypeIndex = pAttributeTypeChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* attributeTypeData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pAttributeTypeChoiceCtrl->GetClientObject(attributeTypeIndex));
+    mAttributeModel.AttributeTypeId = attributeTypeData->GetValue();
+}
 } // namespace tks::UI::dlg
