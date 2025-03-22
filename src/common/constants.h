@@ -183,7 +183,7 @@ extern const char* InfoBeginCreateEntity;
 /// <example>
 /// <para>Usage:</para>
 /// <code>
-/// "{ClassName} - Created "{Entity}" with ID "{ID}""
+/// "{ClassName} - Created with ID "{ID}""
 /// </code>
 /// </example>
 /// </summary>
