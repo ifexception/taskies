@@ -7,6 +7,8 @@ set (
     SRC_DIALOGS
     "${CMAKE_CURRENT_SOURCE_DIR}/employerdlg.cpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/clientdlg.cpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/editlistdlg.cpp"
 )
 
