@@ -31,7 +31,7 @@
 
 #include "../../core/environment.h"
 
-#include "../../persistence/employerpersistence.h"
+#include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientpersistence.h"
 #include "../../persistence/projectpersistence.h"
 
@@ -251,7 +251,7 @@ void ProjectDialog::FillControls()
 
     std::vector<Model::EmployerModel> employers;
     std::string defaultSearhTerm = "";
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
@@ -358,7 +358,7 @@ void ProjectDialog::DataToControls()
     }
 
     Model::EmployerModel employer;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     rc = employerPersistence.GetById(project.EmployerId, employer);
     if (rc == -1) {

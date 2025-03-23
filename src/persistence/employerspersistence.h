@@ -35,12 +35,12 @@ namespace tks
 {
 namespace Persistence
 {
-class EmployerPersistence final
+class EmployersPersistence final
 {
 public:
-    EmployerPersistence(std::shared_ptr<spdlog::logger> logger,
+    EmployersPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~EmployerPersistence();
+    ~EmployersPersistence();
 
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employers);
     int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);

@@ -40,7 +40,6 @@ set (SRC_CMODELS
 )
 
 set(SRC_CPERSISTENCE
-    "persistence/employerpersistence.cpp"
     "persistence/clientpersistence.cpp"
     "persistence/projectpersistence.cpp"
     "persistence/categorypersistence.cpp"

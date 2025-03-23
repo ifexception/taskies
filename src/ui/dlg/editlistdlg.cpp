@@ -29,7 +29,7 @@
 
 #include "../../core/environment.h"
 
-#include "../../persistence/employerpersistence.h"
+#include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientpersistence.h"
 #include "../../persistence/projectpersistence.h"
 #include "../../persistence/categorypersistence.h"
@@ -276,7 +276,7 @@ void EditListDialog::EmployerDataToControls()
 {
     std::vector<Model::EmployerModel> employers;
     std::vector<ListCtrlData> entries;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {
@@ -468,7 +468,7 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
         break;
     }
     case EditListEntityType::Client: {
-        ClientDialog clientDlg(this, pEnv, pLogger, mDatabaseFilePath, true, mEntityId);
+        ClientDialog clientDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         clientDlg.ShowModal();
         break;
     }
@@ -545,7 +545,7 @@ void EditListDialog::SearchEmployers()
 
     std::vector<Model::EmployerModel> employers;
     std::vector<ListCtrlData> entries;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {

@@ -31,7 +31,7 @@
 #include "../../common/constants.h"
 #include "../../common/validator.h"
 
-#include "../../persistence/employerpersistence.h"
+#include "../../persistence/employerspersistence.h"
 
 #include "../../utils/utils.h"
 
@@ -233,7 +233,7 @@ void EmployerDialog::DataToControls()
     pOkButton->Disable();
 
     Model::EmployerModel employer;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.GetById(mEmployerId, employer);
     if (rc == -1) {
@@ -272,7 +272,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     int ret = 0;
     std::string message = "";
 
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
         ret = employerPersistence.UnsetDefault();
@@ -382,7 +382,7 @@ bool EmployerDialog::Validate()
 
     if (!pIsDefaultCheckBoxCtrl->IsChecked()) {
         Model::EmployerModel model;
-        Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+        Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
         int rc = employerPersistence.TrySelectDefault(model);
 
         if (rc == -1) {

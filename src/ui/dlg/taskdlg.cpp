@@ -37,7 +37,7 @@
 #include "../../models/projectmodel.h"
 #include "../../models/categorymodel.h"
 
-#include "../../persistence/employerpersistence.h"
+#include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientpersistence.h"
 #include "../../persistence/projectpersistence.h"
 #include "../../persistence/categorypersistence.h"
@@ -590,7 +590,7 @@ void TaskDialog::DataToControls()
     if (!employerSelected) {
         // load employer
         Model::EmployerModel employer;
-        Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+        Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
         ret = employerPersistence.GetById(projectModel.EmployerId, employer);
         if (ret == -1) {
@@ -1144,7 +1144,7 @@ void TaskDialog::FetchEmployersAndAddDataToChoiceControl()
     std::string defaultSearhTerm = "";
 
     std::vector<Model::EmployerModel> employers;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
@@ -1161,7 +1161,7 @@ void TaskDialog::FetchEmployersAndAddDataToChoiceControl()
 void TaskDialog::TrySetDefaultEmployer(bool& hasDefaultEmployer)
 {
     Model::EmployerModel applicableDefaultEmployer;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.TrySelectDefault(applicableDefaultEmployer);
     if (rc == -1) {

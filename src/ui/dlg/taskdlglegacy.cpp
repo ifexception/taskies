@@ -34,7 +34,7 @@
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
 
-#include "../../persistence/employerpersistence.h"
+#include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientpersistence.h"
 #include "../../persistence/projectpersistence.h"
 #include "../../persistence/categorypersistence.h"
@@ -382,7 +382,7 @@ void TaskDialogLegacy::FillControls()
     std::string defaultSearhTerm = "";
 
     std::vector<Model::EmployerModel> employers;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
@@ -666,7 +666,7 @@ void TaskDialogLegacy::DataToControls()
 
         // load employer
         Model::EmployerModel employer;
-        Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+        Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
         rc = employerPersistence.GetById(project.EmployerId, employer);
         if (rc == -1) {
