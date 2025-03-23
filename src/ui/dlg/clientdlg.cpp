@@ -27,9 +27,7 @@
 #include "../../common/common.h"
 #include "../../common/validator.h"
 
-#include "../../core/environment.h"
-
-#include "../../persistence/employerpersistence.h"
+#include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientpersistence.h"
 
 #include "../../models/employermodel.h"
@@ -44,7 +42,6 @@
 namespace tks::UI::dlg
 {
 ClientDialog::ClientDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool isEdit,
@@ -58,7 +55,6 @@ ClientDialog::ClientDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
@@ -217,7 +213,7 @@ void ClientDialog::FillControls()
 
     std::string defaultSearhTerm = "";
     std::vector<Model::EmployerModel> employers;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc == -1) {
@@ -307,7 +303,7 @@ void ClientDialog::DataToControls()
     }
 
     Model::EmployerModel employer;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     rc = employerPersistence.GetById(client.EmployerId, employer);
     if (rc == -1) {

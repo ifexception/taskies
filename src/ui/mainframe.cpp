@@ -646,7 +646,7 @@ void MainFrame::OnNewEmployer(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnNewClient(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::ClientDialog newClientDialog(this, pEnv, pLogger, mDatabaseFilePath);
+    UI::dlg::ClientDialog newClientDialog(this, pLogger, mDatabaseFilePath);
     newClientDialog.ShowModal();
 }
 
