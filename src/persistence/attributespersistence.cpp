@@ -531,12 +531,8 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel)
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "AttributeGroupsPersistence",
-            "date_modified",
-            bindIndex,
-            rc,
-            err);
+        pLogger->error(
+            LogMessage::BindParameterTemplate, mClassName, "date_modified", bindIndex, rc, err);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -572,6 +568,71 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel)
 
 int AttributesPersistence::Delete(const std::int64_t attributeId)
 {
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessage::InfoBeginDeleteEntity, mClassName, "attributes", attributeId);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributesPersistence::isActive.c_str(),
+        static_cast<int>(AttributesPersistence::isActive.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::PrepareStatementTemplate,
+            mClassName,
+            AttributesPersistence::isActive,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+
+        pLogger->error(
+            LogMessage::BindParameterTemplate, mClassName, "date_modified", bindIndex, rc, err);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeId);
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(
+            LogMessage::BindParameterTemplate, mClassName, "attribute_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(
+            LogMessage::ExecStepTemplate, mClassName, AttributesPersistence::isActive, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndDeleteEntity, mClassName, attributeId);
+
     return 0;
 }
 

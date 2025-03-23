@@ -523,6 +523,7 @@ int AttributeGroupsPersistence::Delete(const std::int64_t attributeGroupId)
         "AttributeGroupsPersistence",
         "attribute group",
         attributeGroupId);
+
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
