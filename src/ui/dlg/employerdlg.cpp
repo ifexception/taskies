@@ -107,7 +107,7 @@ void EmployerDialog::CreateControls()
     detailsBoxSizer->Add(
         employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     detailsBoxSizer->Add(
-        pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+        pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     detailsBoxSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
