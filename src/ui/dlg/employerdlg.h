@@ -32,19 +32,12 @@
 
 #include "../../models/employermodel.h"
 
-namespace tks
-{
-namespace Core
-{
-class Environment;
-} // namespace Core
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 class EmployerDialog final : public wxDialog
 {
 public:
     EmployerDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isEdit = false,
@@ -96,5 +89,4 @@ private:
         tksIDC_ISACTIVE,
     };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg

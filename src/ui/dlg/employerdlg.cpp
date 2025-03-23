@@ -28,8 +28,6 @@
 #include "../../common/constants.h"
 #include "../../common/validator.h"
 
-#include "../../core/environment.h"
-
 #include "../../persistence/employerpersistence.h"
 
 #include "../../utils/utils.h"
@@ -39,7 +37,6 @@
 namespace tks::UI::dlg
 {
 EmployerDialog::EmployerDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool isEdit,
@@ -53,7 +50,6 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
