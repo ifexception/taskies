@@ -104,10 +104,8 @@ void EmployerDialog::CreateControls()
     pIsDefaultCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULT, "Is Default");
     pIsDefaultCheckBoxCtrl->SetToolTip("Enabling this option will auto-select it where applicable");
 
-    detailsBoxSizer->Add(
-        employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    detailsBoxSizer->Add(
-        pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    detailsBoxSizer->Add(employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    detailsBoxSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     detailsBoxSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
@@ -252,7 +250,6 @@ void EmployerDialog::DataToControls()
         pIsActiveCheckBoxCtrl->SetValue(employer.IsActive);
 
         pOkButton->Enable();
-        pOkButton->SetFocus();
     }
 }
 
