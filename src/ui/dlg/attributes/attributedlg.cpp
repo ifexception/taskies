@@ -379,7 +379,26 @@ void AttributeDialog::DataToControls()
     }
 }
 
-void AttributeDialog::OnIsActiveCheck(wxCommandEvent& event) {}
+void AttributeDialog::OnIsActiveCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pNameTextCtrl->Enable();
+        pIsRequiredCheckBoxCtrl->Enable();
+        pDescriptionTextCtrl->Enable();
+        pAttributeGroupChoiceCtrl->Enable();
+        pAttributeTypeChoiceCtrl->Enable();
+
+        pAddAnotherCheckBoxCtrl->Enable();
+    } else {
+        pNameTextCtrl->Disable();
+        pIsRequiredCheckBoxCtrl->Disable();
+        pDescriptionTextCtrl->Disable();
+        pAttributeGroupChoiceCtrl->Disable();
+        pAttributeTypeChoiceCtrl->Disable();
+
+        pAddAnotherCheckBoxCtrl->Disable();
+    }
+}
 
 void AttributeDialog::OnAddAnotherCheck(wxCommandEvent& event)
 {
@@ -411,6 +430,11 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         ret = attributesPersistence.Update(mAttributeModel);
 
         message = ret == -1 ? "Failed to update attribute" : "Successfully updated attribute";
+    }
+    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = attributesPersistence.Delete(mAttributeId);
+
+        message = ret == -1 ? "Failed to delete attribute" : "Successfully deleted attribute";
     }
 
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
