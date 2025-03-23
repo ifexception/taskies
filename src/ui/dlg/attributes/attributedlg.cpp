@@ -327,7 +327,57 @@ void AttributeDialog::FillControls()
     }
 }
 
-void AttributeDialog::DataToControls() {}
+void AttributeDialog::DataToControls()
+{
+    assert(mAttributeId != -1);
+
+    pOkButton->Disable();
+
+    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributesPersistence.GetById(mAttributeId, mAttributeModel);
+    if (rc == -1) {
+        std::string message = "Failed to get attribute group";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+    } else {
+        pNameTextCtrl->ChangeValue(mAttributeModel.Name);
+        pIsRequiredCheckBoxCtrl->SetValue(mAttributeModel.IsRequired);
+        pDescriptionTextCtrl->ChangeValue(
+            mAttributeModel.Description.has_value() ? mAttributeModel.Description.value() : "");
+
+        for (unsigned int i = 0; i < pAttributeGroupChoiceCtrl->GetCount(); i++) {
+            ClientData<std::int64_t>* data = reinterpret_cast<ClientData<std::int64_t>*>(
+                pAttributeGroupChoiceCtrl->GetClientObject(i));
+            if (mAttributeModel.AttributeGroupId == data->GetValue()) {
+                pAttributeGroupChoiceCtrl->SetSelection(i);
+                break;
+            }
+        }
+
+        for (unsigned int i = 0; i < pAttributeTypeChoiceCtrl->GetCount(); i++) {
+            ClientData<std::int64_t>* data = reinterpret_cast<ClientData<std::int64_t>*>(
+                pAttributeTypeChoiceCtrl->GetClientObject(i));
+            if (mAttributeModel.AttributeTypeId == data->GetValue()) {
+                pAttributeTypeChoiceCtrl->SetSelection(i);
+                break;
+            }
+        }
+
+        pDateCreatedReadonlyTextCtrl->SetValue(mAttributeModel.GetDateCreatedString());
+        pDateModifiedReadonlyTextCtrl->SetValue(mAttributeModel.GetDateModifiedString());
+        pIsActiveCheckBoxCtrl->SetValue(mAttributeModel.IsActive);
+
+        pIsActiveCheckBoxCtrl->Enable();
+        pOkButton->Enable();
+    }
+}
 
 void AttributeDialog::OnIsActiveCheck(wxCommandEvent& event) {}
 
