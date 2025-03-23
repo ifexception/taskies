@@ -61,17 +61,23 @@ private:
     void OnCancel(wxCommandEvent& event);
     void OnIsActiveCheck(wxCommandEvent& event);
 
-    bool TransferDataAndValidate();
+    bool Validate();
+    void TransferDataFromControls();
 
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
+
     wxTextCtrl* pNameTextCtrl;
+
     wxTextCtrl* pDescriptionTextCtrl;
+
     wxChoice* pEmployerChoiceCtrl;
-    wxTextCtrl* pDateCreatedTextCtrl;
-    wxTextCtrl* pDateModifiedTextCtrl;
-    wxCheckBox* pIsActiveCtrl;
+
+    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
+    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
+    wxCheckBox* pIsActiveCheckBoxCtrl;
+
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
@@ -82,10 +88,10 @@ private:
     Model::ClientModel mClientModel;
 
     enum {
-        tksIDC_NAME = wxID_HIGHEST + 1,
-        tksIDC_DESCRIPTION,
-        tksIDC_CHOICE,
-        tksIDC_ISACTIVE,
+        tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
+        tksIDC_DESCRIPTIONTEXTCTRL,
+        tksIDC_EMPLOYERCHOICECTRL,
+        tksIDC_ISACTIVECHECKBOXCTRL,
     };
 };
 } // namespace tks::UI::dlg

@@ -23,6 +23,10 @@
 #include <wx/statline.h>
 #include <fmt/format.h>
 
+#include "../clientdata.h"
+#include "../events.h"
+#include "../notificationclientdata.h"
+
 #include "../../common/constants.h"
 #include "../../common/common.h"
 #include "../../common/validator.h"
@@ -34,10 +38,6 @@
 #include "../../models/clientmodel.h"
 
 #include "../../utils/utils.h"
-
-#include "../clientdata.h"
-#include "../events.h"
-#include "../notificationclientdata.h"
 
 namespace tks::UI::dlg
 {
@@ -62,9 +62,9 @@ ClientDialog::ClientDialog(wxWindow* parent,
     , pNameTextCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pEmployerChoiceCtrl(nullptr)
-    , pDateCreatedTextCtrl(nullptr)
-    , pDateModifiedTextCtrl(nullptr)
-    , pIsActiveCtrl(nullptr)
+    , pDateCreatedReadonlyTextCtrl(nullptr)
+    , pDateModifiedReadonlyTextCtrl(nullptr)
+    , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mClientModel()
@@ -99,90 +99,90 @@ void ClientDialog::CreateControls()
     /* Client Name control */
     auto clientNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Name");
 
-    pNameTextCtrl = new wxTextCtrl(detailsBox, tksIDC_NAME);
+    pNameTextCtrl = new wxTextCtrl(detailsBox, tksIDC_NAMETEXTCTRL);
     pNameTextCtrl->SetHint("Client name");
     pNameTextCtrl->SetToolTip("Enter a name for a client");
 
     pNameTextCtrl->SetValidator(NameValidator());
 
-    auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     detailsGridSizer->AddGrowableCol(1, 1);
 
-    detailsGridSizer->Add(clientNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    detailsGridSizer->Add(
+        clientNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    detailsGridSizer->Add(
+        pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
     /* Client Description control */
-    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Description (optional)");
+    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Description");
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
-    sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    sizer->Add(
+        descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     pDescriptionTextCtrl = new wxTextCtrl(descriptionBox,
-        tksIDC_DESCRIPTION,
+        tksIDC_DESCRIPTIONTEXTCTRL,
         wxEmptyString,
         wxDefaultPosition,
         wxDefaultSize,
         wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for a client");
-    descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
-
-    /* Employer selection */
-    auto employerChoiceBox = new wxStaticBox(this, wxID_ANY, "Employer selection");
-    auto employerChoiceBoxSizer = new wxStaticBoxSizer(employerChoiceBox, wxVERTICAL);
-    sizer->Add(employerChoiceBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    descriptionBoxSizer->Add(
+        pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* Employer choice control */
-    auto employerLabel = new wxStaticText(employerChoiceBox, wxID_ANY, "Employer");
+    auto employerLabel = new wxStaticText(this, wxID_ANY, "Employer");
 
-    pEmployerChoiceCtrl = new wxChoice(employerChoiceBox, tksIDC_CHOICE);
+    pEmployerChoiceCtrl = new wxChoice(this, tksIDC_EMPLOYERCHOICECTRL);
     pEmployerChoiceCtrl->SetToolTip("Select an employer to associate this client with");
 
-    auto employerChoiceGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
-    employerChoiceGridSizer->AddGrowableCol(1, 1);
+    sizer->Add(employerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    sizer->Add(pEmployerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    employerChoiceGridSizer->Add(employerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    employerChoiceGridSizer->Add(pEmployerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    /* Begin edit metadata controls */
 
-    employerChoiceBoxSizer->Add(employerChoiceGridSizer, wxSizerFlags().Expand().Proportion(1));
+    /* Horizontal Line */
+    auto line1 = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line1, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(4)).Expand());
 
-    if (bIsEdit) {
-        auto metadataLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), FromDIP(3)));
-        sizer->Add(metadataLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    /* Date Created text control */
+    auto dateCreatedLabel = new wxStaticText(this, wxID_ANY, "Date Created");
 
-        auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
-        auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
-        sizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    pDateCreatedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
+    pDateCreatedReadonlyTextCtrl->Disable();
 
-        /* FlexGrid sizer */
-        auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-        metadataBoxSizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
-        metadataFlexGridSizer->AddGrowableCol(1, 1);
+    /* Date Modified text control */
+    auto dateModifiedLabel = new wxStaticText(this, wxID_ANY, "Date Modified");
 
-        /* Date Created */
-        auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
-        metadataFlexGridSizer->Add(dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+    pDateModifiedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
+    pDateModifiedReadonlyTextCtrl->Disable();
 
-        pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
-        pDateCreatedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    /* Is Active checkbox control */
+    pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
+    pIsActiveCheckBoxCtrl->SetToolTip("Toggle the deleted state of an employer");
+    pIsActiveCheckBoxCtrl->Disable();
 
-        /* Date Modified */
-        auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
-        metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+    /* Metadata flex grid sizer */
+    auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    sizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand());
+    metadataFlexGridSizer->AddGrowableCol(1, 1);
 
-        pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
-        pDateModifiedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    metadataFlexGridSizer->Add(
+        dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    metadataFlexGridSizer->Add(
+        pDateCreatedReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-        /* Is Active checkbox control */
-        metadataFlexGridSizer->Add(0, 0);
+    metadataFlexGridSizer->Add(
+        dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    metadataFlexGridSizer->Add(
+        pDateModifiedReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-        pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
-        pIsActiveCtrl->SetToolTip("Indicates if this client is being used");
-        metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
-    }
+    metadataFlexGridSizer->Add(0, 0);
+    metadataFlexGridSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* End of edit metadata controls */
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
@@ -208,10 +208,11 @@ void ClientDialog::CreateControls()
 
 void ClientDialog::FillControls()
 {
-    pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pEmployerChoiceCtrl->Append("Select an employer", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);
 
     std::string defaultSearhTerm = "";
+
     std::vector<Model::EmployerModel> employers;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
@@ -219,30 +220,21 @@ void ClientDialog::FillControls()
     if (rc == -1) {
         std::string message = "Failed to get employers";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         for (auto& employer : employers) {
-            pEmployerChoiceCtrl->Append(employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
-        }
-    }
+            pEmployerChoiceCtrl->Append(
+                employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
 
-    Model::EmployerModel applicableDefaultEmployer;
-    rc = employerPersistence.TrySelectDefault(applicableDefaultEmployer);
-    if (rc == -1) {
-        std::string message = "Failed to get default employer";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-    } else {
-        if (applicableDefaultEmployer.IsDefault) {
-            pEmployerChoiceCtrl->SetStringSelection(applicableDefaultEmployer.Name);
+            if (employer.IsDefault) {
+                pEmployerChoiceCtrl->SetStringSelection(employer.Name);
+            }
         }
     }
 
@@ -267,7 +259,7 @@ void ClientDialog::ConfigureEventBindings()
     );
 
     if (bIsEdit) {
-        pIsActiveCtrl->Bind(
+        pIsActiveCheckBoxCtrl->Bind(
             wxEVT_CHECKBOX,
             &ClientDialog::OnIsActiveCheck,
             this
@@ -282,104 +274,96 @@ void ClientDialog::DataToControls()
     Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
 
     int rc = clientPersistence.GetById(mClientId, client);
-    bool isSuccess = false;
+
     if (rc == -1) {
         std::string message = "Failed to get client";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
-        pNameTextCtrl->SetValue(client.Name);
+        pNameTextCtrl->ChangeValue(client.Name);
         if (client.Description.has_value()) {
-            pDescriptionTextCtrl->SetValue(client.Description.value());
+            pDescriptionTextCtrl->ChangeValue(client.Description.value());
         }
-        pDateCreatedTextCtrl->SetValue(client.GetDateCreatedString());
-        pDateModifiedTextCtrl->SetValue(client.GetDateModifiedString());
-        pIsActiveCtrl->SetValue(client.IsActive);
-        isSuccess = true;
+
+        for (unsigned int i = 0; i < pEmployerChoiceCtrl->GetCount(); i++) {
+            ClientData<std::int64_t>* data = reinterpret_cast<ClientData<std::int64_t>*>(
+                pEmployerChoiceCtrl->GetClientObject(i));
+            if (client.EmployerId == data->GetValue()) {
+                pEmployerChoiceCtrl->SetSelection(i);
+                break;
+            }
+        }
+
+        pDateCreatedReadonlyTextCtrl->SetValue(client.GetDateCreatedString());
+        pDateModifiedReadonlyTextCtrl->SetValue(client.GetDateModifiedString());
+        pIsActiveCheckBoxCtrl->SetValue(client.IsActive);
+
+        pIsActiveCheckBoxCtrl->Enable();
     }
 
-    Model::EmployerModel employer;
-    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-
-    rc = employerPersistence.GetById(client.EmployerId, employer);
-    if (rc == -1) {
-        std::string message = "Failed to get client linked employer";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-        isSuccess = false;
-    } else {
-        pEmployerChoiceCtrl->SetStringSelection(employer.Name);
-        isSuccess = true;
-    }
-
-    if (isSuccess) {
-        pOkButton->Enable();
-        pOkButton->SetFocus();
-    }
+    pOkButton->Enable();
 }
 
 void ClientDialog::OnOK(wxCommandEvent& event)
 {
+    if (!Validate()) {
+        return;
+    }
+
     pOkButton->Disable();
-    pCancelButton->Disable();
 
-    if (TransferDataAndValidate()) {
-        Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    TransferDataFromControls();
 
-        int ret = 0;
-        std::string message = "";
-        if (!bIsEdit) {
-            std::int64_t clientId = clientPersistence.Create(mClientModel);
-            ret = clientId > 0 ? 1 : -1;
+    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
 
-            ret == -1
-                ? message = "Failed to create client"
-                : message = "Successfully created client";
-        }
-        if (bIsEdit && pIsActiveCtrl->IsChecked()) {
-            ret = clientPersistence.Update(mClientModel);
+    int ret = 0;
+    std::string message = "";
 
-            ret == -1
-                ? message = "Failed to update client"
-                : message = "Successfully updated client";
-        }
+    if (!bIsEdit) {
+        std::int64_t clientId = clientPersistence.Create(mClientModel);
+        ret = clientId > 0 ? 1 : -1;
 
-        if (bIsEdit && !pIsActiveCtrl->IsChecked()) {
-            ret = clientPersistence.Delete(mClientId);
+        ret == -1 ? message = "Failed to create client" : message = "Successfully created client";
+    }
+    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = clientPersistence.Update(mClientModel);
 
-            ret == -1
-                ? message = "Failed to delete client"
-                : message = "Successfully deleted client";
-        }
+        ret == -1 ? message = "Failed to update client" : message = "Successfully updated client";
+    }
 
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        if (ret == -1) {
-            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
+    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = clientPersistence.Delete(mClientId);
 
-            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
-            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        ret == -1 ? message = "Failed to delete client" : message = "Successfully deleted client";
+    }
 
-            pOkButton->Enable();
-        } else {
-            NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
-            addNotificationEvent->SetClientObject(clientData);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    if (ret == -1) {
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
-            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
+        // we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
-            EndModal(wxID_OK);
-        }
-    } else {
         pOkButton->Enable();
+    } else {
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
+        // we have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+
+        EndModal(wxID_OK);
     }
 }
 
@@ -401,7 +385,7 @@ void ClientDialog::OnIsActiveCheck(wxCommandEvent& event)
     }
 }
 
-bool ClientDialog::TransferDataAndValidate()
+bool ClientDialog::Validate()
 {
     auto name = pNameTextCtrl->GetValue().ToStdString();
     if (name.empty()) {
@@ -423,11 +407,12 @@ bool ClientDialog::TransferDataAndValidate()
     }
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
-    if (!description.empty() &&
-        (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
-        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
-            MIN_CHARACTER_COUNT,
-            MAX_CHARACTER_COUNT_DESCRIPTIONS);
+    if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
+                                    description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+        auto valMsg =
+            fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_DESCRIPTIONS);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pDescriptionTextCtrl);
@@ -435,8 +420,8 @@ bool ClientDialog::TransferDataAndValidate()
     }
 
     int employerIndex = pEmployerChoiceCtrl->GetSelection();
-    ClientData<std::int64_t>* employerIdData =
-        reinterpret_cast<ClientData<std::int64_t>*>(pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pEmployerChoiceCtrl->GetClientObject(employerIndex));
     if (employerIdData->GetValue() < 1) {
         auto valMsg = "An employer selection is required";
         wxRichToolTip tooltip("Validation", valMsg);
@@ -445,11 +430,22 @@ bool ClientDialog::TransferDataAndValidate()
         return false;
     }
 
-    mClientModel.Name = Utils::TrimWhitespace(name);
-    mClientModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
-    mClientModel.EmployerId = employerIdData->GetValue();
+    return true;
+}
+
+void ClientDialog::TransferDataFromControls()
+{
     mClientModel.ClientId = mClientId;
 
-    return true;
+    auto name = pNameTextCtrl->GetValue().ToStdString();
+    mClientModel.Name = Utils::TrimWhitespace(name);
+
+    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    mClientModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
+
+    int employerIndex = pEmployerChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pEmployerChoiceCtrl->GetClientObject(employerIndex));
+    mClientModel.EmployerId = employerIdData->GetValue();
 }
 } // namespace tks::UI::dlg
