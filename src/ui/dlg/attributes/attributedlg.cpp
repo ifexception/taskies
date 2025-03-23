@@ -401,11 +401,16 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
     int ret = 0;
     std::string message = "";
     if (!bIsEdit) {
-        std::int64_t attributeGroupId = attributesPersistence.Create(mAttributeModel);
-        ret = attributeGroupId > 0 ? 1 : -1;
+        std::int64_t attributeId = attributesPersistence.Create(mAttributeModel);
+        ret = attributeId > 0 ? 1 : -1;
 
-        message = attributeGroupId == -1 ? "Failed to create attribute"
-                                         : "Successfully created attribute";
+        message =
+            attributeId == -1 ? "Failed to create attribute" : "Successfully created attribute";
+    }
+    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = attributesPersistence.Update(mAttributeModel);
+
+        message = ret == -1 ? "Failed to update attribute" : "Successfully updated attribute";
     }
 
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
