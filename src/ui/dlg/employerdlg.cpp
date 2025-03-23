@@ -24,6 +24,9 @@
 
 #include <fmt/format.h>
 
+#include "../events.h"
+#include "../notificationclientdata.h"
+
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
@@ -31,8 +34,6 @@
 #include "../../persistence/employerpersistence.h"
 
 #include "../../utils/utils.h"
-#include "../events.h"
-#include "../notificationclientdata.h"
 
 namespace tks::UI::dlg
 {
@@ -58,8 +59,8 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
     , pNameTextCtrl(nullptr)
     , pIsDefaultCheckBoxCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
-    , pDateCreatedTextCtrl(nullptr)
-    , pDateModifiedTextCtrl(nullptr)
+    , pDateCreatedReadonlyTextCtrl(nullptr)
+    , pDateModifiedReadonlyTextCtrl(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
@@ -103,21 +104,15 @@ void EmployerDialog::CreateControls()
     pIsDefaultCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULT, "Is Default");
     pIsDefaultCheckBoxCtrl->SetToolTip("Enabling this option will auto-select it where applicable");
 
-    auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
-    detailsGridSizer->AddGrowableCol(1, 1);
-
-    detailsGridSizer->Add(
-        employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    detailsGridSizer->Add(
+    detailsBoxSizer->Add(
+        employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    detailsBoxSizer->Add(
         pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    detailsGridSizer->Add(0, 0);
-    detailsGridSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    detailsBoxSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
-
-    /* Employer Description */
-    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Description (optional)");
+    /* Description controls */
+    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Description");
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
     sizer->Add(
         descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
@@ -133,47 +128,48 @@ void EmployerDialog::CreateControls()
     descriptionBoxSizer->Add(
         pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
-    if (bIsEdit) {
-        auto metadataLine =
-            new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), FromDIP(3)));
-        sizer->Add(metadataLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    /* Begin edit metadata controls */
 
-        auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
-        auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
-        sizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    /* Horizontal Line */
+    auto line1 = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line1, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(4)).Expand());
 
-        /* FlexGrid sizer */
-        auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-        metadataBoxSizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
-        metadataFlexGridSizer->AddGrowableCol(1, 1);
+    /* Date Created text control */
+    auto dateCreatedLabel = new wxStaticText(this, wxID_ANY, "Date Created");
 
-        /* Date Created */
-        auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
-        metadataFlexGridSizer->Add(
-            dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+    pDateCreatedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
+    pDateCreatedReadonlyTextCtrl->Disable();
 
-        pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
-        pDateCreatedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(
-            pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    /* Date Modified text control */
+    auto dateModifiedLabel = new wxStaticText(this, wxID_ANY, "Date Modified");
 
-        /* Date Modified */
-        auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
-        metadataFlexGridSizer->Add(
-            dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
+    pDateModifiedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
+    pDateModifiedReadonlyTextCtrl->Disable();
 
-        pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
-        pDateModifiedTextCtrl->Disable();
-        metadataFlexGridSizer->Add(
-            pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    /* Is Active checkbox control */
+    pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
+    pIsActiveCheckBoxCtrl->SetToolTip("Toggle the deleted state of an employer");
+    pIsActiveCheckBoxCtrl->Disable();
 
-        /* Is Active checkbox control */
-        metadataFlexGridSizer->Add(0, 0);
+    /* Metadata flex grid sizer */
+    auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    sizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand());
+    metadataFlexGridSizer->AddGrowableCol(1, 1);
 
-        pIsActiveCheckBoxCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
-        pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this employer is being used");
-        metadataFlexGridSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
-    }
+    metadataFlexGridSizer->Add(
+        dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    metadataFlexGridSizer->Add(
+        pDateCreatedReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    metadataFlexGridSizer->Add(
+        dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    metadataFlexGridSizer->Add(
+        pDateModifiedReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    metadataFlexGridSizer->Add(0, 0);
+    metadataFlexGridSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* End of edit metadata controls */
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
@@ -190,8 +186,8 @@ void EmployerDialog::CreateControls()
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
-    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
-    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -251,8 +247,8 @@ void EmployerDialog::DataToControls()
         pIsDefaultCheckBoxCtrl->SetValue(employer.IsDefault);
         pDescriptionTextCtrl->SetValue(
             employer.Description.has_value() ? employer.Description.value() : "");
-        pDateCreatedTextCtrl->SetValue(employer.GetDateCreatedString());
-        pDateModifiedTextCtrl->SetValue(employer.GetDateModifiedString());
+        pDateCreatedReadonlyTextCtrl->SetValue(employer.GetDateCreatedString());
+        pDateModifiedReadonlyTextCtrl->SetValue(employer.GetDateModifiedString());
         pIsActiveCheckBoxCtrl->SetValue(employer.IsActive);
 
         pOkButton->Enable();
@@ -262,12 +258,13 @@ void EmployerDialog::DataToControls()
 
 void EmployerDialog::OnOK(wxCommandEvent& event)
 {
-    pOkButton->Disable();
-
-    if (!TransferDataAndValidate()) {
-        pOkButton->Enable();
+    if (!Validate()) {
         return;
     }
+
+    pOkButton->Disable();
+
+    TransferDataFromControls();
 
     int ret = 0;
     std::string message = "";
@@ -337,14 +334,16 @@ void EmployerDialog::OnIsActiveCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         pNameTextCtrl->Enable();
+        pIsDefaultCheckBoxCtrl->Enable();
         pDescriptionTextCtrl->Enable();
     } else {
         pNameTextCtrl->Disable();
+        pIsDefaultCheckBoxCtrl->Disable();
         pDescriptionTextCtrl->Disable();
     }
 }
 
-bool EmployerDialog::TransferDataAndValidate()
+bool EmployerDialog::Validate()
 {
     auto name = pNameTextCtrl->GetValue().ToStdString();
     if (name.empty()) {
@@ -378,7 +377,7 @@ bool EmployerDialog::TransferDataAndValidate()
         return false;
     }
 
-    if (!pIsDefaultCheckBoxCtrl->GetValue()) {
+    if (!pIsDefaultCheckBoxCtrl->IsChecked()) {
         Model::EmployerModel model;
         Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
         int rc = employerPersistence.TrySelectDefault(model);
@@ -404,12 +403,20 @@ bool EmployerDialog::TransferDataAndValidate()
         }
     }
 
+    return true;
+}
+
+void EmployerDialog::TransferDataFromControls()
+{
     mEmployerModel.EmployerId = mEmployerId;
+
+    auto name = pNameTextCtrl->GetValue().ToStdString();
     mEmployerModel.Name = Utils::TrimWhitespace(name);
+
     mEmployerModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
+
+    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mEmployerModel.Description =
         description.empty() ? std::nullopt : std::make_optional(description);
-
-    return true;
 }
 } // namespace tks::UI::dlg

@@ -640,7 +640,7 @@ void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnNewEmployer(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::EmployerDialog newEmployerDialog(this, pEnv, pLogger, mDatabaseFilePath);
+    UI::dlg::EmployerDialog newEmployerDialog(this, pLogger, mDatabaseFilePath);
     newEmployerDialog.ShowModal();
 }
 

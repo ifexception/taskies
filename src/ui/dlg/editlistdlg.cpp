@@ -463,7 +463,7 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
     mEntityId = static_cast<std::int64_t>(event.GetData());
     switch (mType) {
     case EditListEntityType::Employer: {
-        EmployerDialog employerDlg(this, pEnv, pLogger, mDatabaseFilePath, true, mEntityId);
+        EmployerDialog employerDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         employerDlg.ShowModal();
         break;
     }

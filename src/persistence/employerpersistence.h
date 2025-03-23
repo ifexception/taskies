@@ -24,6 +24,7 @@
 #include <string>
 #include <vector>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include <sqlite3.h>

@@ -57,9 +57,10 @@ private:
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
-    bool TransferDataAndValidate();
+    bool Validate();
 
-    std::shared_ptr<Core::Environment> pEnv;
+    void TransferDataFromControls();
+
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 
@@ -70,8 +71,8 @@ private:
 
     wxTextCtrl* pDescriptionTextCtrl;
 
-    wxTextCtrl* pDateCreatedTextCtrl;
-    wxTextCtrl* pDateModifiedTextCtrl;
+    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
+    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxButton* pOkButton;
@@ -86,7 +87,7 @@ private:
         tksIDC_NAME = wxID_HIGHEST + 1001,
         tksIDC_ISDEFAULT,
         tksIDC_DESCRIPTION,
-        tksIDC_ISACTIVE,
+        tksIDC_ISACTIVECHECKBOXCTRL,
     };
 };
 } // namespace tks::UI::dlg
