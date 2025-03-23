@@ -92,6 +92,11 @@ void EmployerDialog::CreateControls()
     auto detailsBoxSizer = new wxStaticBoxSizer(detailsBox, wxVERTICAL);
     sizer->Add(detailsBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+    auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    detailsGridSizer->AddGrowableCol(1, 1);
+
+    detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
+
     /* Employer Name Control */
     auto employerNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Name");
 
@@ -104,10 +109,11 @@ void EmployerDialog::CreateControls()
     pIsDefaultCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULT, "Is Default");
     pIsDefaultCheckBoxCtrl->SetToolTip("Enabling this option will auto-select it where applicable");
 
-    detailsBoxSizer->Add(employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    detailsBoxSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    detailsGridSizer->Add(employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    detailsBoxSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    detailsGridSizer->Add(0, 0);
+    detailsGridSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Description controls */
     auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Description");
