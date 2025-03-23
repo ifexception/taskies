@@ -162,26 +162,32 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
         switch (sqlite3_step(stmt)) {
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
-            Model::AttributeModel model;
+            Model::AttributeModel attributeModel;
 
             int columnIndex = 0;
-            model.AttributeGroupId = sqlite3_column_int64(stmt, columnIndex++);
+            attributeModel.AttributeId = sqlite3_column_int64(stmt, columnIndex++);
             const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            model.Name = std::string(
+            attributeModel.Name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attributeModel.IsRequired = sqlite3_column_int(stmt, columnIndex++);
+
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.Description = std::nullopt;
+                attributeModel.Description = std::nullopt;
             } else {
                 const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                model.Description = std::string(
+                attributeModel.Description = std::string(
                     reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
             }
             columnIndex++;
-            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
-            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-            attributeModels.push_back(model);
+            attributeModel.AttributeGroupId = sqlite3_column_int64(stmt, columnIndex++);
+            attributeModel.AttributeTypeId = sqlite3_column_int64(stmt, columnIndex++);
+
+            attributeModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            attributeModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            attributeModel.IsActive = sqlite3_column_int(stmt, columnIndex++);
+
+            attributeModels.push_back(attributeModel);
             break;
         }
         case SQLITE_DONE:
@@ -203,11 +209,8 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoEndFilterEntities,
-        mClassName,
-        attributeModels.size(),
-        searchTerm);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessage::InfoEndFilterEntities, mClassName, attributeModels.size(), searchTerm);
 
     return 0;
 }
@@ -215,6 +218,82 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
 int AttributesPersistence::GetById(const std::int64_t attributeId,
     Model::AttributeModel& attributeModel)
 {
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessage::InfoBeginGetByIdEntity, mClassName, "attribute", attributeId);
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributesPersistence::getById.c_str(),
+        static_cast<int>(AttributesPersistence::getById.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate,
+            mClassName,
+            AttributesPersistence::getById,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessage::BindParameterTemplate, mClassName, "attribute_id", bindIndex, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_ROW) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessage::ExecStepTemplate, mClassName, AttributesPersistence::getById, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+    attributeModel.AttributeId = sqlite3_column_int64(stmt, columnIndex++);
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    attributeModel.Name =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    attributeModel.IsRequired = sqlite3_column_int(stmt, columnIndex++);
+
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        attributeModel.Description = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        attributeModel.Description = std::string(
+            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+    }
+    columnIndex++;
+
+    attributeModel.AttributeGroupId = sqlite3_column_int64(stmt, columnIndex++);
+    attributeModel.AttributeTypeId = sqlite3_column_int64(stmt, columnIndex++);
+
+    attributeModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    attributeModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    attributeModel.IsActive = sqlite3_column_int(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, mClassName, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndGetByIdEntity, mClassName, attributeId);
+
     return 0;
 }
 
