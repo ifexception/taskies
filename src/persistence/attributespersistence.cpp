@@ -90,7 +90,7 @@ AttributesPersistence::AttributesPersistence(std::shared_ptr<spdlog::logger> log
         return;
     }
 
-    SPDLOG_LOGGER_TRACE(pLogger, "SQLite instance initialized successfully \"{0}\"", mClassName);
+    SPDLOG_LOGGER_TRACE(pLogger, "\"{0}\" - SQLite instance initialized successfully", mClassName);
 }
 
 AttributesPersistence::~AttributesPersistence()
