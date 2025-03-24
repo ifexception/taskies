@@ -32,13 +32,7 @@
 
 #include "../../models/projectmodel.h"
 
-namespace tks
-{
-namespace Core
-{
-class Environment;
-} // namespace Core
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 class ProjectDialog : public wxDialog
 {
@@ -46,7 +40,6 @@ public:
     ProjectDialog() = delete;
     ProjectDialog(const ProjectDialog&) = delete;
     explicit ProjectDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isEdit = false,
@@ -73,36 +66,40 @@ private:
 
     bool TransferDataAndValidate();
 
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
+
     wxTextCtrl* pNameTextCtrl;
     wxTextCtrl* pDisplayNameCtrl;
-    wxCheckBox* pIsDefaultCtrl;
+    wxCheckBox* pIsDefaultCheckBoxCtrl;
+
     wxTextCtrl* pDescriptionTextCtrl;
+
     wxChoice* pEmployerChoiceCtrl;
     wxChoice* pClientChoiceCtrl;
-    wxTextCtrl* pDateCreatedTextCtrl;
-    wxTextCtrl* pDateModifiedTextCtrl;
-    wxCheckBox* pIsActiveCtrl;
+
+    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
+    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
+    wxCheckBox* pIsActiveCheckBoxCtrl;
+
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
     std::string mDatabaseFilePath;
-    Model::ProjectModel mProjectModel;
     std::int64_t mProjectId;
     bool bIsEdit;
 
+    Model::ProjectModel mProjectModel;
+
     enum {
-        tksIDC_NAME = wxID_HIGHEST + 1,
-        tksIDC_DISPLAYNAME,
-        tksIDC_ISDEFAULT,
-        tksIDC_DESCRIPTION,
-        tksIDC_EMPLOYERCHOICE,
-        tksIDC_CLIENTCHOICE,
-        tksIDC_ISACTIVE
+        tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
+        tksIDC_DISPLAYNAMETEXTCTRL,
+        tksIDC_ISDEFAULTCHECKBOXCTRL,
+        tksIDC_DESCRIPTIONTEXTCTRL,
+        tksIDC_EMPLOYERCHOICECTRL,
+        tksIDC_CLIENTCHOICECTRL,
+        tksIDC_ISACTIVECHECKBOXCTRL
     };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg

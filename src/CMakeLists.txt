@@ -63,7 +63,6 @@ set(SRC_EXPORTS
 set (SRC_DIALOGS
     "ui/dlg/employerdlg.cpp"
     "ui/dlg/errordlg.cpp"
-    "ui/dlg/projectdlg.cpp"
     "ui/dlg/categoriesdlg.cpp"
     "ui/dlg/categorydlg.cpp"
     "ui/dlg/aboutdlg.cpp"

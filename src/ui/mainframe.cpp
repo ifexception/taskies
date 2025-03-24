@@ -652,7 +652,7 @@ void MainFrame::OnNewClient(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnNewProject(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::ProjectDialog newProjectDialog(this, pEnv, pLogger, mDatabaseFilePath);
+    UI::dlg::ProjectDialog newProjectDialog(this, pLogger, mDatabaseFilePath);
     newProjectDialog.ShowModal();
 }
 
