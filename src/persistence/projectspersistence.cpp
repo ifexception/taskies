@@ -719,7 +719,7 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
     bindIndex++;
 
     // employer id
-    rc = sqlite3_bind_int64(stmt, bindIndex++, projectModel.EmployerId);
+    rc = sqlite3_bind_int64(stmt, bindIndex, projectModel.EmployerId);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);

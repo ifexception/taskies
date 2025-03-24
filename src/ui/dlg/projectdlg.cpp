@@ -285,7 +285,7 @@ void ProjectDialog::FillControls()
     pClientChoiceCtrl->SetSelection(0);
     pClientChoiceCtrl->Disable();
 
-    if (hasDefaultEmployer) {
+    if (!bIsEdit && hasDefaultEmployer) {
         FillClientChoiceControl(defaultEmployerId);
     }
 }
