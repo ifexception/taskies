@@ -255,6 +255,8 @@ void EmployerDialog::DataToControls()
         pDateModifiedReadonlyTextCtrl->SetValue(employer.GetDateModifiedString());
         pIsActiveCheckBoxCtrl->SetValue(employer.IsActive);
 
+        pIsActiveCheckBoxCtrl->Enable();
+
         pOkButton->Enable();
     }
 }

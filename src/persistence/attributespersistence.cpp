@@ -595,6 +595,7 @@ int AttributesPersistence::Delete(const std::int64_t attributeId)
     int bindIndex = 1;
 
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
+
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
 
@@ -608,6 +609,7 @@ int AttributesPersistence::Delete(const std::int64_t attributeId)
     bindIndex++;
 
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeId);
+
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
 
@@ -619,6 +621,7 @@ int AttributesPersistence::Delete(const std::int64_t attributeId)
     }
 
     rc = sqlite3_step(stmt);
+
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
 
