@@ -1163,7 +1163,7 @@ void TaskDialog::TrySetDefaultEmployer(bool& hasDefaultEmployer)
     Model::EmployerModel applicableDefaultEmployer;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.TrySelectDefault(applicableDefaultEmployer);
+    int rc = employerPersistence.SelectDefault(applicableDefaultEmployer);
     if (rc == -1) {
         std::string message = "Failed to get default employer";
         QueueErrorNotificationEventToParent(message);

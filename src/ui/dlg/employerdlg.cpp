@@ -385,7 +385,7 @@ bool EmployerDialog::Validate()
     if (!pIsDefaultCheckBoxCtrl->IsChecked()) {
         Model::EmployerModel model;
         Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-        int rc = employerPersistence.TrySelectDefault(model);
+        int rc = employerPersistence.SelectDefault(model);
 
         if (rc == -1) {
             std::string message = "Failed to get default employer";

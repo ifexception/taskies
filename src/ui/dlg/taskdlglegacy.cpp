@@ -398,7 +398,7 @@ void TaskDialogLegacy::FillControls()
     bool hasDefaultEmployer = false;
 
     Model::EmployerModel applicableDefaultEmployer;
-    rc = employerPersistence.TrySelectDefault(applicableDefaultEmployer);
+    rc = employerPersistence.SelectDefault(applicableDefaultEmployer);
     if (rc == -1) {
         std::string message = "Failed to get default employer";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);

@@ -430,7 +430,7 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
     std::string message = "";
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
-        ret = projectPersistence.UnmarkDefault();
+        ret = projectPersistence.UnsetDefault();
     }
 
     if (!bIsEdit) {
