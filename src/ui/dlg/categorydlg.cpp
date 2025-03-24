@@ -29,7 +29,7 @@
 
 #include "../../core/environment.h"
 
-#include "../../persistence/projectpersistence.h"
+#include "../../persistence/projectspersistence.h"
 #include "../../persistence/categorypersistence.h"
 
 #include "../../models/projectmodel.h"
@@ -230,7 +230,7 @@ void CategoryDialog::FillControls()
 
     std::string defaultSearchTerm = "";
     std::vector<Model::ProjectModel> projects;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc = projectPersistence.Filter(defaultSearchTerm, projects);
     if (rc != 0) {
@@ -306,7 +306,7 @@ void CategoryDialog::DataToControls()
 
         if (model.ProjectId.has_value()) {
             Model::ProjectModel project;
-            Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+            Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
             int rc = projectPersistence.GetById(model.ProjectId.value(), project);
             if (rc != 0) {

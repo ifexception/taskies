@@ -21,8 +21,10 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include <sqlite3.h>
@@ -33,15 +35,16 @@ namespace tks
 {
 namespace Persistence
 {
-class ProjectPersistence final
+class ProjectsPersistence final
 {
 public:
-    ProjectPersistence() = delete;
-    ProjectPersistence(const ProjectPersistence&) = delete;
-    ProjectPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~ProjectPersistence();
+    ProjectsPersistence() = delete;
+    ProjectsPersistence(const ProjectsPersistence&) = delete;
+    ProjectsPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
+    ~ProjectsPersistence();
 
-    ProjectPersistence& operator=(const ProjectPersistence&) = delete;
+    ProjectsPersistence& operator=(const ProjectsPersistence&) = delete;
 
     int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ProjectModel>& projects);
     int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& model);

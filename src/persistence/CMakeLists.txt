@@ -5,6 +5,7 @@ set(
     SRC_PERSISTENCE
     "${CMAKE_CURRENT_SOURCE_DIR}/employerspersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/clientspersistence.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/projectspersistence.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/attributegroupspersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributetypespersistence.cpp"

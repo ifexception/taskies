@@ -39,7 +39,7 @@
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/ClientsPersistence.h"
-#include "../../persistence/projectpersistence.h"
+#include "../../persistence/projectspersistence.h"
 #include "../../persistence/categorypersistence.h"
 #include "../../persistence/workdaypersistence.h"
 #include "../../persistence/taskpersistence.h"
@@ -549,7 +549,7 @@ void TaskDialog::DataToControls()
 
     // load project
     Model::ProjectModel projectModel;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     ret = projectPersistence.GetById(taskModel.ProjectId, projectModel);
     if (ret != 0) {
@@ -1218,7 +1218,7 @@ void TaskDialog::SetEmployerAndOrClientProjectDataToChoiceControl(
     const std::optional<std::int64_t> clientId)
 {
     std::vector<Model::ProjectModel> projects;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc = projectPersistence.FilterByEmployerIdOrClientId(employerId, clientId, projects);
     if (rc != 0) {

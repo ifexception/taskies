@@ -415,7 +415,7 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& model)
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectPersistence",
+            "ProjectsPersistence",
             "is_default",
             bindIndex,
             rc,
@@ -526,7 +526,7 @@ int EmployersPersistence::Update(Model::EmployerModel model)
         const char* error = sqlite3_errmsg(pDb);
 
         pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectPersistence",
+            "ProjectsPersistence",
             "is_default",
             bindIndex,
             rc,

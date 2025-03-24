@@ -36,7 +36,7 @@
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/ClientsPersistence.h"
-#include "../../persistence/projectpersistence.h"
+#include "../../persistence/projectspersistence.h"
 #include "../../persistence/categorypersistence.h"
 #include "../../persistence/workdaypersistence.h"
 #include "../../persistence/taskpersistence.h"
@@ -460,7 +460,7 @@ void TaskDialogLegacy::FillControls()
             }
 
             std::vector<Model::ProjectModel> projects;
-            Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+            Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
             rc = projectPersistence.FilterByEmployerIdOrClientId(
                 std::make_optional(employerId), std::nullopt, projects);
@@ -630,7 +630,7 @@ void TaskDialogLegacy::DataToControls()
 
     // load project
     Model::ProjectModel project;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     rc = projectPersistence.GetById(task.ProjectId, project);
     if (rc != 0) {
@@ -814,7 +814,7 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
     }
 
     std::vector<Model::ProjectModel> projects;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     rc = projectPersistence.FilterByEmployerIdOrClientId(
         std::make_optional(employerId), std::nullopt, projects);
@@ -894,7 +894,7 @@ void TaskDialogLegacy::OnClientChoiceSelection(wxCommandEvent& event)
     }
 
     std::vector<Model::ProjectModel> projects;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc = projectPersistence.FilterByEmployerIdOrClientId(
         std::make_optional(employerId), std::make_optional(clientId), projects);

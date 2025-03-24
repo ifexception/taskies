@@ -31,7 +31,7 @@
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/ClientsPersistence.h"
-#include "../../persistence/projectpersistence.h"
+#include "../../persistence/projectspersistence.h"
 #include "../../persistence/categorypersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
@@ -326,7 +326,7 @@ void EditListDialog::ProjectDataToControls()
 {
     std::vector<Model::ProjectModel> projects;
     std::vector<ListCtrlData> entries;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
@@ -605,7 +605,7 @@ void EditListDialog::SearchProjects()
 
     std::vector<Model::ProjectModel> projects;
     std::vector<ListCtrlData> entries;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
