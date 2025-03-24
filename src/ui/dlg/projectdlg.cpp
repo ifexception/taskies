@@ -32,7 +32,7 @@
 #include "../../core/environment.h"
 
 #include "../../persistence/employerspersistence.h"
-#include "../../persistence/clientpersistence.h"
+#include "../../persistence/ClientsPersistence.h"
 #include "../../persistence/projectpersistence.h"
 
 #include "../../models/employermodel.h"
@@ -378,10 +378,10 @@ void ProjectDialog::DataToControls()
     }
 
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
     std::string defaultSearchTerm = "";
 
-    rc = clientPersistence.FilterByEmployerId(project.EmployerId, clients);
+    rc = ClientsPersistence.FilterByEmployerId(project.EmployerId, clients);
     if (rc == -1) {
         std::string message = "Failed to get clients";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -401,7 +401,7 @@ void ProjectDialog::DataToControls()
 
             if (project.ClientId.has_value()) {
                 Model::ClientModel client;
-                rc = clientPersistence.GetById(project.ClientId.value(), client);
+                rc = ClientsPersistence.GetById(project.ClientId.value(), client);
                 if (rc == -1) {
                     std::string message = "Failed to get client";
                     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -461,9 +461,9 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 
     auto employerId = employerIdData->GetValue();
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientPersistence.FilterByEmployerId(employerId, clients);
+    int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
 
     if (rc != 0) {
         std::string message = "Failed to get clients";

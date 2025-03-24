@@ -32,7 +32,7 @@
 #include "../../common/validator.h"
 
 #include "../../persistence/employerspersistence.h"
-#include "../../persistence/clientpersistence.h"
+#include "../../persistence/ClientsPersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -271,9 +271,9 @@ void ClientDialog::ConfigureEventBindings()
 void ClientDialog::DataToControls()
 {
     Model::ClientModel client;
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientPersistence.GetById(mClientId, client);
+    int rc = ClientsPersistence.GetById(mClientId, client);
 
     if (rc == -1) {
         std::string message = "Failed to get client";
@@ -320,25 +320,25 @@ void ClientDialog::OnOK(wxCommandEvent& event)
 
     TransferDataFromControls();
 
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
     std::string message = "";
 
     if (!bIsEdit) {
-        std::int64_t clientId = clientPersistence.Create(mClientModel);
+        std::int64_t clientId = ClientsPersistence.Create(mClientModel);
         ret = clientId > 0 ? 1 : -1;
 
         ret == -1 ? message = "Failed to create client" : message = "Successfully created client";
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = clientPersistence.Update(mClientModel);
+        ret = ClientsPersistence.Update(mClientModel);
 
         ret == -1 ? message = "Failed to update client" : message = "Successfully updated client";
     }
 
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = clientPersistence.Delete(mClientId);
+        ret = ClientsPersistence.Delete(mClientId);
 
         ret == -1 ? message = "Failed to delete client" : message = "Successfully deleted client";
     }

@@ -38,7 +38,7 @@
 #include "../../models/categorymodel.h"
 
 #include "../../persistence/employerspersistence.h"
-#include "../../persistence/clientpersistence.h"
+#include "../../persistence/ClientsPersistence.h"
 #include "../../persistence/projectpersistence.h"
 #include "../../persistence/categorypersistence.h"
 #include "../../persistence/workdaypersistence.h"
@@ -605,12 +605,12 @@ void TaskDialog::DataToControls()
     }
 
     // load clients
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
     if (!employerSelected) {
         std::vector<Model::ClientModel> clients;
         std::string defaultSearchTerm = "";
-        ret = clientPersistence.FilterByEmployerId(projectModel.EmployerId, clients);
+        ret = ClientsPersistence.FilterByEmployerId(projectModel.EmployerId, clients);
         if (ret == -1) {
             std::string message = "Failed to get clients";
             QueueErrorNotificationEventToParent(message);
@@ -626,7 +626,7 @@ void TaskDialog::DataToControls()
 
                 if (projectModel.ClientId.has_value()) {
                     Model::ClientModel client;
-                    ret = clientPersistence.GetById(projectModel.ClientId.value(), client);
+                    ret = ClientsPersistence.GetById(projectModel.ClientId.value(), client);
                     if (ret == -1) {
                         std::string message = "Failed to get client";
                         QueueErrorNotificationEventToParent(message);
@@ -644,7 +644,7 @@ void TaskDialog::DataToControls()
     } else {
         if (projectModel.ClientId.has_value()) {
             Model::ClientModel client;
-            ret = clientPersistence.GetById(projectModel.ClientId.value(), client);
+            ret = ClientsPersistence.GetById(projectModel.ClientId.value(), client);
             if (ret == -1) {
                 std::string message = "Failed to get client";
                 QueueErrorNotificationEventToParent(message);
@@ -1190,9 +1190,9 @@ void TaskDialog::SetEmployerAssociatedDataAndControls()
 void TaskDialog::SetEmployerClientDataToChoiceControl(const std::int64_t employerId)
 {
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientPersistence.FilterByEmployerId(employerId, clients);
+    int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
 
     if (rc != 0) {
         std::string message = "Failed to get clients";

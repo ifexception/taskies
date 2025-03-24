@@ -30,7 +30,7 @@
 #include "../../core/environment.h"
 
 #include "../../persistence/employerspersistence.h"
-#include "../../persistence/clientpersistence.h"
+#include "../../persistence/ClientsPersistence.h"
 #include "../../persistence/projectpersistence.h"
 #include "../../persistence/categorypersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
@@ -301,9 +301,9 @@ void EditListDialog::ClientDataToControls()
 {
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientPersistence.Filter(mSearchTerm, clients);
+    int rc = ClientsPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
         std::string message = "Failed to filter clients";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -575,9 +575,9 @@ void EditListDialog::SearchClients()
 
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientPersistence.Filter(mSearchTerm, clients);
+    int rc = ClientsPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
         std::string message = "Failed to filter clients";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
