@@ -64,7 +64,10 @@ private:
     void OnCancel(wxCommandEvent& event);
     void OnIsActiveCheck(wxCommandEvent& event);
 
-    bool TransferDataAndValidate();
+    bool Validate();
+    void TransferDataFromControls();
+
+    void FillClientChoiceControl(const std::int64_t employerId);
 
     std::shared_ptr<spdlog::logger> pLogger;
 
