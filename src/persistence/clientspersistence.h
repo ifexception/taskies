@@ -44,12 +44,12 @@ public:
 
     ClientsPersistence& operator=(const ClientsPersistence&) = delete;
 
-    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ClientModel>& clients);
+    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ClientModel>& clientModels);
     int FilterByEmployerId(const std::int64_t employerId,
-        /*out*/ std::vector<Model::ClientModel>& clients);
-    int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& model);
-    std::int64_t Create(Model::ClientModel& client);
-    int Update(/*out*/ Model::ClientModel& client);
+        /*out*/ std::vector<Model::ClientModel>& clientModels);
+    int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel);
+    std::int64_t Create(Model::ClientModel& clientModel);
+    int Update(/*out*/ Model::ClientModel& clientModel);
     int Delete(const std::int64_t clientId);
 
     std::int64_t GetLastInsertId() const;

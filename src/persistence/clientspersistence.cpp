@@ -120,7 +120,7 @@ ClientsPersistence::~ClientsPersistence()
 }
 
 int ClientsPersistence::Filter(const std::string& searchTerm,
-    std::vector<Model::ClientModel>& clients)
+    std::vector<Model::ClientModel>& clientModels)
 {
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessage::InfoBeginFilterEntities, "ClientsPersistence", "clients", searchTerm);
@@ -215,32 +215,32 @@ int ClientsPersistence::Filter(const std::string& searchTerm,
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
 
-            Model::ClientModel model;
+            Model::ClientModel clientModel;
             int columnIndex = 0;
 
-            model.ClientId = sqlite3_column_int64(stmt, columnIndex++);
+            clientModel.ClientId = sqlite3_column_int64(stmt, columnIndex++);
 
             const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            model.Name = std::string(
+            clientModel.Name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.Description = std::nullopt;
+                clientModel.Description = std::nullopt;
             } else {
                 const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                model.Description = std::string(
+                clientModel.Description = std::string(
                     reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
             }
 
             columnIndex++;
 
-            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
-            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            clientModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            clientModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            clientModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-            model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+            clientModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
-            clients.push_back(model);
+            clientModels.push_back(clientModel);
             break;
         }
         case SQLITE_DONE:
@@ -270,14 +270,14 @@ int ClientsPersistence::Filter(const std::string& searchTerm,
     SPDLOG_LOGGER_TRACE(pLogger,
         LogMessage::InfoEndFilterEntities,
         "ClientsPersistence",
-        clients.size(),
+        clientModels.size(),
         searchTerm);
 
     return 0;
 }
 
 int ClientsPersistence::FilterByEmployerId(const std::int64_t employerId,
-    std::vector<Model::ClientModel>& clients)
+    std::vector<Model::ClientModel>& clientModels)
 {
     SPDLOG_LOGGER_TRACE(pLogger,
         LogMessage::InfoBeginFilterEntities,
@@ -331,32 +331,32 @@ int ClientsPersistence::FilterByEmployerId(const std::int64_t employerId,
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
 
-            Model::ClientModel model;
+            Model::ClientModel clientModel;
             int columnIndex = 0;
 
-            model.ClientId = sqlite3_column_int64(stmt, columnIndex++);
+            clientModel.ClientId = sqlite3_column_int64(stmt, columnIndex++);
 
             const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            model.Name = std::string(
+            clientModel.Name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.Description = std::nullopt;
+                clientModel.Description = std::nullopt;
             } else {
                 const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                model.Description = std::string(
+                clientModel.Description = std::string(
                     reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
             }
 
             columnIndex++;
 
-            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
-            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            clientModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            clientModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            clientModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-            model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+            clientModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
-            clients.push_back(model);
+            clientModels.push_back(clientModel);
             break;
         }
         case SQLITE_DONE:
@@ -386,13 +386,13 @@ int ClientsPersistence::FilterByEmployerId(const std::int64_t employerId,
     SPDLOG_LOGGER_TRACE(pLogger,
         LogMessage::InfoEndFilterEntities,
         "ClientsPersistence",
-        clients.size(),
+        clientModels.size(),
         employerId);
 
     return 0;
 }
 
-int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel& model)
+int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel& clientModel)
 {
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessage::InfoBeginGetByIdEntity, "ClientsPersistence", "client", clientId);
@@ -451,27 +451,27 @@ int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel&
 
     int columnIndex = 0;
 
-    model.ClientId = sqlite3_column_int64(stmt, columnIndex++);
+    clientModel.ClientId = sqlite3_column_int64(stmt, columnIndex++);
 
     const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    model.Name =
+    clientModel.Name =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
     if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        model.Description = std::nullopt;
+        clientModel.Description = std::nullopt;
     } else {
         const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        model.Description = std::string(
+        clientModel.Description = std::string(
             reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
     }
 
     columnIndex++;
 
-    model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-    model.DateModified = sqlite3_column_int(stmt, columnIndex++);
-    model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+    clientModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    clientModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    clientModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-    model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
+    clientModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
     rc = sqlite3_step(stmt);
 
@@ -491,10 +491,13 @@ int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel&
     return 0;
 }
 
-std::int64_t ClientsPersistence::Create(Model::ClientModel& model)
+std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel)
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoBeginCreateEntity, "ClientsPersistence", "client", model.Name);
+    SPDLOG_LOGGER_TRACE(pLogger,
+        LogMessage::InfoBeginCreateEntity,
+        "ClientsPersistence",
+        "client",
+        clientModel.Name);
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -519,8 +522,11 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& model)
 
     int bindIndex = 1;
 
-    rc = sqlite3_bind_text(
-        stmt, bindIndex, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt,
+        bindIndex,
+        clientModel.Name.c_str(),
+        static_cast<int>(clientModel.Name.size()),
+        SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
@@ -534,11 +540,11 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& model)
 
     bindIndex++;
 
-    if (model.Description.has_value()) {
+    if (clientModel.Description.has_value()) {
         rc = sqlite3_bind_text(stmt,
             bindIndex,
-            model.Description.value().c_str(),
-            static_cast<int>(model.Description.value().size()),
+            clientModel.Description.value().c_str(),
+            static_cast<int>(clientModel.Description.value().size()),
             SQLITE_TRANSIENT);
     } else {
         rc = sqlite3_bind_null(stmt, bindIndex);
@@ -558,7 +564,7 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& model)
 
     bindIndex++;
 
-    rc = sqlite3_bind_int64(stmt, bindIndex, model.EmployerId);
+    rc = sqlite3_bind_int64(stmt, bindIndex, clientModel.EmployerId);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
@@ -597,10 +603,13 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& model)
     return rowId;
 }
 
-int ClientsPersistence::Update(Model::ClientModel& model)
+int ClientsPersistence::Update(Model::ClientModel& clientModel)
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoBeginUpdateEntity, "ClientsPersistence", "client", model.ClientId);
+    SPDLOG_LOGGER_TRACE(pLogger,
+        LogMessage::InfoBeginUpdateEntity,
+        "ClientsPersistence",
+        "client",
+        clientModel.ClientId);
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -625,8 +634,11 @@ int ClientsPersistence::Update(Model::ClientModel& model)
 
     int bindIndex = 1;
 
-    rc = sqlite3_bind_text(
-        stmt, bindIndex, model.Name.c_str(), static_cast<int>(model.Name.size()), SQLITE_TRANSIENT);
+    rc = sqlite3_bind_text(stmt,
+        bindIndex,
+        clientModel.Name.c_str(),
+        static_cast<int>(clientModel.Name.size()),
+        SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
@@ -638,11 +650,11 @@ int ClientsPersistence::Update(Model::ClientModel& model)
         return -1;
     }
 
-    if (model.Description.has_value()) {
+    if (clientModel.Description.has_value()) {
         rc = sqlite3_bind_text(stmt,
             bindIndex,
-            model.Description.value().c_str(),
-            static_cast<int>(model.Description.value().size()),
+            clientModel.Description.value().c_str(),
+            static_cast<int>(clientModel.Description.value().size()),
             SQLITE_TRANSIENT);
     } else {
         rc = sqlite3_bind_null(stmt, bindIndex);
@@ -682,7 +694,7 @@ int ClientsPersistence::Update(Model::ClientModel& model)
 
     bindIndex++;
 
-    rc = sqlite3_bind_int64(stmt, bindIndex, model.EmployerId);
+    rc = sqlite3_bind_int64(stmt, bindIndex, clientModel.EmployerId);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
@@ -700,7 +712,7 @@ int ClientsPersistence::Update(Model::ClientModel& model)
 
     bindIndex++;
 
-    rc = sqlite3_bind_int64(stmt, bindIndex, model.ClientId);
+    rc = sqlite3_bind_int64(stmt, bindIndex, clientModel.ClientId);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
@@ -733,7 +745,7 @@ int ClientsPersistence::Update(Model::ClientModel& model)
     sqlite3_finalize(stmt);
 
     SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoEndUpdateEntity, "ClientsPersistence", model.ClientId);
+        pLogger, LogMessage::InfoEndUpdateEntity, "ClientsPersistence", clientModel.ClientId);
 
     return 0;
 }

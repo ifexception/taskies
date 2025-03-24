@@ -42,13 +42,13 @@ public:
         const std::string& databaseFilePath);
     ~EmployersPersistence();
 
-    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employers);
-    int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
-    std::int64_t Create(const Model::EmployerModel& employer);
-    int Update(Model::EmployerModel employer);
+    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employerModels);
+    int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employerModel);
+    std::int64_t Create(const Model::EmployerModel& employerModel);
+    int Update(Model::EmployerModel employerModel);
     int Delete(const std::int64_t employerId);
     int UnsetDefault();
-    int TrySelectDefault(/*out*/ Model::EmployerModel& employer);
+    int SelectDefault(/*out*/ Model::EmployerModel& employerModel);
 
     std::int64_t GetLastInsertId() const;
 
