@@ -853,7 +853,8 @@ const std::string ClientsPersistence::filterByEmployerId = "SELECT "
                                                            "clients.is_active, "
                                                            "clients.employer_id "
                                                            "FROM clients "
-                                                           "WHERE employer_id = ?";
+                                                           "WHERE clients.is_active = 1 "
+                                                           "AND employer_id = ?";
 
 const std::string ClientsPersistence::getById = "SELECT "
                                                 "clients.client_id, "
