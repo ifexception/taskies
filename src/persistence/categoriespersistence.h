@@ -21,8 +21,10 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include <sqlite3.h>
@@ -33,20 +35,22 @@ namespace tks
 {
 namespace Persistence
 {
-class CategoryPersistence final
+class CategoriesPersistence final
 {
 public:
-    CategoryPersistence() = delete;
-    CategoryPersistence(const CategoryPersistence&) = delete;
-    CategoryPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~CategoryPersistence();
+    CategoriesPersistence() = delete;
+    CategoriesPersistence(const CategoriesPersistence&) = delete;
+    CategoriesPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
+    ~CategoriesPersistence();
 
-    CategoryPersistence& operator=(const CategoryPersistence&) = delete;
+    CategoriesPersistence& operator=(const CategoriesPersistence&) = delete;
 
-    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::CategoryModel>& categories);
-    int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& model);
-    std::int64_t Create(Model::CategoryModel& category);
-    int Update(Model::CategoryModel& model);
+    int Filter(const std::string& searchTerm,
+        /*out*/ std::vector<Model::CategoryModel>& categoryModels);
+    int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& categoryModel);
+    std::int64_t Create(Model::CategoryModel& categoryModel);
+    int Update(Model::CategoryModel& categoryModel);
     int Delete(const std::int64_t categoryId);
 
     std::int64_t GetLastInsertId() const;
@@ -61,5 +65,5 @@ private:
     static const std::string update;
     static const std::string isActive;
 };
-} // namespace Data
+} // namespace Persistence
 } // namespace tks

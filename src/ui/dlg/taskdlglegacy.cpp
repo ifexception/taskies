@@ -37,7 +37,7 @@
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/ClientsPersistence.h"
 #include "../../persistence/projectspersistence.h"
-#include "../../persistence/categorypersistence.h"
+#include "../../persistence/categoriespersistence.h"
 #include "../../persistence/workdaypersistence.h"
 #include "../../persistence/taskpersistence.h"
 
@@ -1035,7 +1035,7 @@ void TaskDialogLegacy::OnCategoryChoiceSelection(wxCommandEvent& event)
     }
 
     Model::CategoryModel model;
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
     int rc = 0;
 
     rc = categoryPersistence.GetById(categoryIdData->GetValue(), model);

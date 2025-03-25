@@ -32,7 +32,7 @@
 #include "../../common/validator.h"
 
 #include "../../persistence/projectspersistence.h"
-#include "../../persistence/categorypersistence.h"
+#include "../../persistence/categoriespersistence.h"
 
 #include "../../models/projectmodel.h"
 
@@ -283,7 +283,7 @@ void CategoryDialog::ConfigureEventBindings()
 void CategoryDialog::DataToControls()
 {
     Model::CategoryModel model;
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
     int rc = 0;
 
     rc = categoryPersistence.GetById(mCategoryId, model);
@@ -356,7 +356,7 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
 
     TransferDataFromControls();
 
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
     std::string message = "";

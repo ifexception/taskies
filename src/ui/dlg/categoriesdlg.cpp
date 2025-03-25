@@ -35,7 +35,7 @@
 #include "../../common/validator.h"
 
 #include "../../persistence/projectspersistence.h"
-#include "../../persistence/categorypersistence.h"
+#include "../../persistence/categoriespersistence.h"
 
 #include "../../models/projectmodel.h"
 
@@ -443,7 +443,7 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
     std::string message = "";

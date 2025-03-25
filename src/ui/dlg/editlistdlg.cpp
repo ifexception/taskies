@@ -44,7 +44,7 @@
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/ClientsPersistence.h"
 #include "../../persistence/projectspersistence.h"
-#include "../../persistence/categorypersistence.h"
+#include "../../persistence/categoriespersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
 
@@ -351,7 +351,7 @@ void EditListDialog::CategoryDataToControls()
 {
     std::vector<Model::CategoryModel> categories;
     std::vector<ListCtrlData> entries;
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
@@ -635,7 +635,7 @@ void EditListDialog::SearchCategories()
 
     std::vector<Model::CategoryModel> categories;
     std::vector<ListCtrlData> entries;
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
