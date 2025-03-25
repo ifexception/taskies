@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <wx/wxprec.h>
@@ -33,13 +34,7 @@
 
 #include "../../models/categorymodel.h"
 
-namespace tks
-{
-namespace Core
-{
-class Environment;
-} // namespace Core
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 class CategoryDialog final : public wxDialog
 {
@@ -47,7 +42,6 @@ public:
     CategoryDialog() = delete;
     CategoryDialog(const CategoryDialog&) = delete;
     CategoryDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         std::int64_t categoryId,
@@ -69,35 +63,41 @@ private:
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
-    bool TransferDataAndValidate();
+    bool Validate();
 
-    std::shared_ptr<Core::Environment> pEnv;
+    void TransferDataFromControls();
+
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
+
     wxTextCtrl* pNameTextCtrl;
+
     wxColourPickerCtrl* pColorPickerCtrl;
-    wxCheckBox* pBillableCtrl;
-    wxChoice* pProjectChoiceCtrl;
+    wxCheckBox* pBillableCheckBoxCtrl;
+
     wxTextCtrl* pDescriptionTextCtrl;
-    wxTextCtrl* pDateCreatedTextCtrl;
-    wxTextCtrl* pDateModifiedTextCtrl;
-    wxCheckBox* pIsActiveCtrl;
+
+    wxChoice* pProjectChoiceCtrl;
+
+    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
+    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
+    wxCheckBox* pIsActiveCheckBoxCtrl;
+
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
     std::string mDatabaseFilePath;
     std::int64_t mCategoryId;
-    Model::CategoryModel mModel;
+    Model::CategoryModel mCategoryModel;
 
     enum {
-        tksIDC_NAME = wxID_HIGHEST + 100,
-        tksIDC_COLORPICKER,
-        tksIDC_BILLABLE,
-        tksIDC_PROJECTCHOICE,
-        tksIDC_DESCRIPTION,
-        tksIDC_ISACTIVE
+        tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
+        tksIDC_COLORPICKERCTRL,
+        tksIDC_BILLABLECHECKBOXCTRL,
+        tksIDC_PROJECTCHOICECTRL,
+        tksIDC_DESCRIPTIONTEXTCTRL,
+        tksIDC_ISACTIVECHECKBOXCTRL
     };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg

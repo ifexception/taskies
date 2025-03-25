@@ -86,7 +86,7 @@ private:
     wxTextCtrl* pNameTextCtrl;
 
     wxColourPickerCtrl* pColorPickerCtrl;
-    wxCheckBox* pBillableCtrl;
+    wxCheckBox* pBillableCheckBoxCtrl;
 
     wxTextCtrl* pDescriptionTextCtrl;
 

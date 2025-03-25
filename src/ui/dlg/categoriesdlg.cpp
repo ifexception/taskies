@@ -61,7 +61,7 @@ CategoriesDialog::CategoriesDialog(wxWindow* parent,
     , mDatabaseFilePath(databaseFilePath)
     , pNameTextCtrl(nullptr)
     , pColorPickerCtrl(nullptr)
-    , pBillableCtrl(nullptr)
+    , pBillableCheckBoxCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pProjectChoiceCtrl(nullptr)
     , pListCtrl(nullptr)
@@ -123,8 +123,8 @@ void CategoriesDialog::CreateControls()
     pColorPickerCtrl = new wxColourPickerCtrl(detailsBox, tksIDC_COLORPICKERCTRL);
     pColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
 
-    pBillableCtrl = new wxCheckBox(detailsBox, tksIDC_BILLABLECHECKBOXCTRL, "Billable");
-    pBillableCtrl->SetToolTip("Indicates if a task captured with this category is billable");
+    pBillableCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_BILLABLECHECKBOXCTRL, "Billable");
+    pBillableCheckBoxCtrl->SetToolTip("Indicates if a task captured with this category is billable");
 
     /* Details Grid Sizer */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -139,7 +139,7 @@ void CategoriesDialog::CreateControls()
     detailsGridSizer->Add(pColorPickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsGridSizer->Add(0, 0);
-    detailsGridSizer->Add(pBillableCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    detailsGridSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -167,8 +167,8 @@ void CategoriesDialog::CreateControls()
     pProjectChoiceCtrl = new wxChoice(this, tksIDC_PROJECTCHOICECTRL);
     pProjectChoiceCtrl->SetToolTip("Select an (optional) project to associate this category with");
 
-    sizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    sizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    leftSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    leftSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Center Sizer */
     auto centerSizer = new wxBoxSizer(wxVERTICAL);
@@ -336,7 +336,7 @@ void CategoriesDialog::FillControls(const Model::CategoryModel& category)
 {
     pNameTextCtrl->ChangeValue(category.Name);
     pColorPickerCtrl->SetColour(category.Color);
-    pBillableCtrl->SetValue(category.Billable);
+    pBillableCheckBoxCtrl->SetValue(category.Billable);
     pDescriptionTextCtrl->SetValue(
         category.Description.has_value() ? category.Description.value() : "");
     if (!category.Description.has_value()) {
@@ -520,7 +520,7 @@ void CategoriesDialog::ResetControlValues()
 {
     pNameTextCtrl->ChangeValue(wxEmptyString);
     pColorPickerCtrl->SetColour(*wxBLACK);
-    pBillableCtrl->SetValue(false);
+    pBillableCheckBoxCtrl->SetValue(false);
     pDescriptionTextCtrl->ChangeValue(wxEmptyString);
     pDescriptionTextCtrl->SetHint("Description (optional)");
 
@@ -600,7 +600,7 @@ void CategoriesDialog::TransferDataFromControls()
     mCategoryToAdd.Name = Utils::TrimWhitespace(name);
 
     mCategoryToAdd.Color = pColorPickerCtrl->GetColour().GetRGB();
-    mCategoryToAdd.Billable = pBillableCtrl->IsChecked();
+    mCategoryToAdd.Billable = pBillableCheckBoxCtrl->IsChecked();
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mCategoryToAdd.Description =

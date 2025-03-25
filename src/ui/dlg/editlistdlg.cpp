@@ -25,6 +25,18 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
+#include "errordlg.h"
+#include "employerdlg.h"
+#include "clientdlg.h"
+#include "projectdlg.h"
+#include "categorydlg.h"
+
+#include "attributes/attributegroupdlg.h"
+#include "attributes/attributedlg.h"
+
+#include "../events.h"
+#include "../notificationclientdata.h"
+
 #include "../../common/common.h"
 
 #include "../../core/environment.h"
@@ -44,18 +56,6 @@
 #include "../../models/attributemodel.h"
 
 #include "../../utils/utils.h"
-
-#include "../events.h"
-#include "../notificationclientdata.h"
-
-#include "errordlg.h"
-#include "employerdlg.h"
-#include "clientdlg.h"
-#include "projectdlg.h"
-#include "categorydlg.h"
-
-#include "attributes/attributegroupdlg.h"
-#include "attributes/attributedlg.h"
 
 namespace tks::UI::dlg
 {
@@ -478,7 +478,7 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
         break;
     }
     case EditListEntityType::Category: {
-        CategoryDialog categoryDlg(this, pEnv, pLogger, mDatabaseFilePath, mEntityId);
+        CategoryDialog categoryDlg(this, pLogger, mDatabaseFilePath, mEntityId);
         categoryDlg.ShowModal();
         break;
     }
