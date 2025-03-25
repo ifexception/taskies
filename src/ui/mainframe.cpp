@@ -658,7 +658,7 @@ void MainFrame::OnNewProject(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnNewCategory(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger, mDatabaseFilePath);
+    UI::dlg::CategoriesDialog addCategories(this, pLogger, mDatabaseFilePath);
     addCategories.ShowModal();
 }
 

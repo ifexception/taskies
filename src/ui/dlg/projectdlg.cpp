@@ -392,6 +392,7 @@ void ProjectDialog::OnNameChange(wxCommandEvent& event)
 void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
+
     pClientChoiceCtrl->Clear();
     pClientChoiceCtrl->Append("Select client", new ClientData<std::int64_t>(-1));
     pClientChoiceCtrl->SetSelection(0);
