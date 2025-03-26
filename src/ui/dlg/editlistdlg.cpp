@@ -25,7 +25,6 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "errordlg.h"
 #include "employerdlg.h"
 #include "clientdlg.h"
 #include "projectdlg.h"

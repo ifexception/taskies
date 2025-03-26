@@ -83,10 +83,6 @@ enum class MenuIds : int {
     Pop_NewTask,
     Pop_ContainerCopyTasks,
     Pop_ContainerCopyTasksWithHeaders,
-
-    /* Keyboard shortcuts */
-    Kyb_LeftArrow,
-    Kyb_RightArrow,
 };
 
 /* File */
@@ -193,8 +189,6 @@ private:
     void OnCopyTaskToClipboard(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
-    /* Error Event Handlers */ /*TODO(SW): Is this still relevant?*/
-    void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
     void OnAddNotification(wxCommandEvent& event);
     void OnTaskAddedOnDate(wxCommandEvent& event);

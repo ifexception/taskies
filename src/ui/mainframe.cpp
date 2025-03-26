@@ -51,7 +51,6 @@
 
 #include "../utils/utils.h"
 
-#include "../ui/dlg/errordlg.h"
 #include "../ui/dlg/employerdlg.h"
 #include "../ui/dlg/editlistdlg.h"
 #include "../ui/dlg/clientdlg.h"
@@ -123,8 +122,6 @@ EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTas
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
-/* Error Event Handlers */
-EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
@@ -1103,12 +1100,6 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     }
 
     ResetTaskContextMenuVariables();
-}
-
-void MainFrame::OnError(wxCommandEvent& event)
-{
-    UI::dlg::ErrorDialog errDialog(this, pEnv, pLogger, event.GetString().ToStdString());
-    errDialog.ShowModal();
 }
 
 void MainFrame::OnAddNotification(wxCommandEvent& event)
