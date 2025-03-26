@@ -39,8 +39,6 @@
 
 #include "../../common/common.h"
 
-#include "../../core/environment.h"
-
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/ClientsPersistence.h"
 #include "../../persistence/projectspersistence.h"
@@ -66,7 +64,6 @@ ListCtrlData::ListCtrlData(std::int64_t entityId, std::string entityName)
 }
 
 EditListDialog::EditListDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     EditListEntityType editListEntityType,
@@ -79,7 +76,6 @@ EditListDialog::EditListDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , mType(editListEntityType)
@@ -146,21 +142,21 @@ void EditListDialog::CreateControls()
     pSearchTextCtrl->SetHint(GetSearchHintText());
     pSearchTextCtrl->SetToolTip("Enter a search term");
     searchBoxSizer->Add(
-        pSearchTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+        pSearchTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Search Button */
     auto providedFindBitmap = wxArtProvider::GetBitmapBundle(
         wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pSearchButton = new wxBitmapButton(searchBox, tksIDC_SEARCHBUTTON, providedFindBitmap);
     pSearchButton->SetToolTip("Search for an entity by entered criteria");
-    searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Reset Button */
     auto providedCloseBitmap = wxArtProvider::GetBitmapBundle(
         wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pResetButton = new wxBitmapButton(searchBox, tksIDC_RESETBUTTON, providedCloseBitmap);
     pResetButton->SetToolTip("Reset search term");
-    searchBoxSizer->Add(pResetButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    searchBoxSizer->Add(pResetButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* List Control */
     pListCtrl = new wxListCtrl(this,
@@ -168,7 +164,7 @@ void EditListDialog::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
-    sizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    sizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     wxListItem nameColumn;
     nameColumn.SetId(0);
@@ -192,8 +188,8 @@ void EditListDialog::CreateControls()
 
     pOkButton->Disable();
 
-    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
-    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -533,6 +529,7 @@ void EditListDialog::Search()
         break;
     case EditListEntityType::Attribute:
         SearchAttributes();
+        break;
     default:
         break;
     }

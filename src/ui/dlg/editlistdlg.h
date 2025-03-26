@@ -33,13 +33,7 @@
 
 #include "../../common/enums.h"
 
-namespace tks
-{
-namespace Core
-{
-class Environment;
-} // namespace Core
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 struct ListCtrlData {
     std::int64_t EntityId;
@@ -54,7 +48,6 @@ public:
     EditListDialog() = delete;
     EditListDialog(const EditListDialog&) = delete;
     EditListDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         EditListEntityType editListEntityType,
@@ -97,7 +90,6 @@ private:
 
     std::string GetSearchHintText();
 
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 
     std::string mDatabaseFilePath;
@@ -124,5 +116,4 @@ private:
         tksIDC_RESETBUTTON
     };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg
