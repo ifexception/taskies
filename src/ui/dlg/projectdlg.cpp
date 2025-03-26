@@ -258,14 +258,8 @@ void ProjectDialog::FillControls()
     int rc = employerPersistence.Filter(defaultSearchTerm, employers);
     if (rc != 0) {
         std::string message = "Failed to get employers";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
     } else {
         for (auto& employer : employers) {
             pEmployerChoiceCtrl->Append(
@@ -334,21 +328,16 @@ void ProjectDialog::DataToControls()
     int rc = projectPersistence.GetById(mProjectId, mProjectModel);
     if (rc != 0) {
         std::string message = "Failed to get project";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
     } else {
         pNameTextCtrl->ChangeValue(mProjectModel.Name);
         pDisplayNameCtrl->ChangeValue(mProjectModel.DisplayName);
         pIsDefaultCheckBoxCtrl->SetValue(mProjectModel.IsDefault);
 
-        pDescriptionTextCtrl->SetValue(
-            mProjectModel.Description.has_value() ? mProjectModel.Description.value() : "");
+        if (mProjectModel.Description.has_value()) {
+            pDescriptionTextCtrl->SetValue(mProjectModel.Description.value());
+        }
 
         pDateCreatedReadonlyTextCtrl->SetValue(mProjectModel.GetDateCreatedString());
         pDateModifiedReadonlyTextCtrl->SetValue(mProjectModel.GetDateModifiedString());
@@ -451,18 +440,12 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
         ret == -1 ? message = "Failed to delete project" : message = "Successfully deleted project";
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
-        // we have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
 
         pOkButton->Enable();
     } else {
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -615,16 +598,7 @@ void ProjectDialog::FillClientChoiceControl(const std::int64_t employerId)
     int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
     if (rc == -1) {
         std::string message = "Failed to get clients";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
-        return;
+        QueueErrorNotificationEvent(message);
     } else {
         if (!clients.empty()) {
             pClientChoiceCtrl->Enable();
@@ -635,5 +609,17 @@ void ProjectDialog::FillClientChoiceControl(const std::int64_t employerId)
             }
         }
     }
+}
+
+void ProjectDialog::QueueErrorNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+    // have wxFrame
+    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

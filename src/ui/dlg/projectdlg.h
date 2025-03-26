@@ -69,6 +69,8 @@ private:
 
     void FillClientChoiceControl(const std::int64_t employerId);
 
+    void QueueErrorNotificationEvent(const std::string& message);
+
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
