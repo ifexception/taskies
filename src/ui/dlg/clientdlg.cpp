@@ -219,14 +219,7 @@ void ClientDialog::FillControls()
     int rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc == -1) {
         std::string message = "Failed to get employers";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         for (auto& employer : employers) {
             pEmployerChoiceCtrl->Append(
@@ -270,39 +263,32 @@ void ClientDialog::ConfigureEventBindings()
 
 void ClientDialog::DataToControls()
 {
-    Model::ClientModel client;
     Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = ClientsPersistence.GetById(mClientId, client);
+    int rc = ClientsPersistence.GetById(mClientId, mClientModel);
 
     if (rc == -1) {
         std::string message = "Failed to get client";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
     } else {
-        pNameTextCtrl->ChangeValue(client.Name);
-        if (client.Description.has_value()) {
-            pDescriptionTextCtrl->ChangeValue(client.Description.value());
+        pNameTextCtrl->ChangeValue(mClientModel.Name);
+
+        if (mClientModel.Description.has_value()) {
+            pDescriptionTextCtrl->ChangeValue(mClientModel.Description.value());
         }
 
         for (unsigned int i = 0; i < pEmployerChoiceCtrl->GetCount(); i++) {
             ClientData<std::int64_t>* data = reinterpret_cast<ClientData<std::int64_t>*>(
                 pEmployerChoiceCtrl->GetClientObject(i));
-            if (client.EmployerId == data->GetValue()) {
+            if (mClientModel.EmployerId == data->GetValue()) {
                 pEmployerChoiceCtrl->SetSelection(i);
                 break;
             }
         }
 
-        pDateCreatedReadonlyTextCtrl->SetValue(client.GetDateCreatedString());
-        pDateModifiedReadonlyTextCtrl->SetValue(client.GetDateModifiedString());
-        pIsActiveCheckBoxCtrl->SetValue(client.IsActive);
+        pDateCreatedReadonlyTextCtrl->SetValue(mClientModel.GetDateCreatedString());
+        pDateModifiedReadonlyTextCtrl->SetValue(mClientModel.GetDateModifiedString());
+        pIsActiveCheckBoxCtrl->SetValue(mClientModel.IsActive);
 
         pIsActiveCheckBoxCtrl->Enable();
     }
@@ -343,18 +329,12 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         ret == -1 ? message = "Failed to delete client" : message = "Successfully deleted client";
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
-        // we have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
 
         pOkButton->Enable();
     } else {
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -447,5 +427,17 @@ void ClientDialog::TransferDataFromControls()
     ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
         pEmployerChoiceCtrl->GetClientObject(employerIndex));
     mClientModel.EmployerId = employerIdData->GetValue();
+}
+
+void ClientDialog::QueueErrorNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+    // have wxFrame
+    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg
