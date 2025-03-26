@@ -204,13 +204,11 @@ void EmployerDialog::FillControls()
 // clang-format off
 void EmployerDialog::ConfigureEventBindings()
 {
-    if (bIsEdit) {
-        pIsActiveCheckBoxCtrl->Bind(
-            wxEVT_CHECKBOX,
-            &EmployerDialog::OnIsActiveCheck,
-            this
-        );
-    }
+    pIsActiveCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &EmployerDialog::OnIsActiveCheck,
+        this
+    );
 
     pOkButton->Bind(
         wxEVT_BUTTON,
@@ -232,28 +230,23 @@ void EmployerDialog::DataToControls()
 {
     pOkButton->Disable();
 
-    Model::EmployerModel employer;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.GetById(mEmployerId, employer);
+    int rc = employerPersistence.GetById(mEmployerId, mEmployerModel);
     if (rc == -1) {
         std::string message = "Failed to get employer";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
     } else {
-        pNameTextCtrl->SetValue(employer.Name);
-        pIsDefaultCheckBoxCtrl->SetValue(employer.IsDefault);
-        pDescriptionTextCtrl->SetValue(
-            employer.Description.has_value() ? employer.Description.value() : "");
-        pDateCreatedReadonlyTextCtrl->SetValue(employer.GetDateCreatedString());
-        pDateModifiedReadonlyTextCtrl->SetValue(employer.GetDateModifiedString());
-        pIsActiveCheckBoxCtrl->SetValue(employer.IsActive);
+        pNameTextCtrl->SetValue(mEmployerModel.Name);
+        pIsDefaultCheckBoxCtrl->SetValue(mEmployerModel.IsDefault);
+
+        if (mEmployerModel.Description.has_value()) {
+            pDescriptionTextCtrl->SetValue(mEmployerModel.Description.value());
+        }
+
+        pDateCreatedReadonlyTextCtrl->SetValue(mEmployerModel.GetDateCreatedString());
+        pDateModifiedReadonlyTextCtrl->SetValue(mEmployerModel.GetDateModifiedString());
+        pIsActiveCheckBoxCtrl->SetValue(mEmployerModel.IsActive);
 
         pIsActiveCheckBoxCtrl->Enable();
 
@@ -306,18 +299,12 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         }
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
 
         pOkButton->Enable();
     } else {
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -389,14 +376,7 @@ bool EmployerDialog::Validate()
 
         if (rc == -1) {
             std::string message = "Failed to get default employer";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-            NotificationClientData* clientData =
-                new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
-
-            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
-            // we have wxFrame
-            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+            QueueErrorNotificationEvent(message);
         } else {
             if (!model.IsDefault) {
                 std::string validationMessage = "Required default employer not found";
@@ -423,5 +403,17 @@ void EmployerDialog::TransferDataFromControls()
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mEmployerModel.Description =
         description.empty() ? std::nullopt : std::make_optional(description);
+}
+
+void EmployerDialog::QueueErrorNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
+    // we have wxFrame
+    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg
