@@ -235,12 +235,7 @@ void CategoryDialog::FillControls()
     int rc = projectPersistence.Filter(defaultSearchTerm, projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
     } else {
         if (!projects.empty()) {
             if (!pProjectChoiceCtrl->IsEnabled()) {
@@ -282,40 +277,33 @@ void CategoryDialog::ConfigureEventBindings()
 
 void CategoryDialog::DataToControls()
 {
-    Model::CategoryModel model;
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
     int rc = 0;
 
-    rc = categoryPersistence.GetById(mCategoryId, model);
+    rc = categoryPersistence.GetById(mCategoryId, mCategoryModel);
     if (rc != 0) {
         std::string message = "Failed to get category";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(pParent->GetParent(), addNotificationEvent);
+        QueueErrorNotificationEvent(message);
     } else {
-        pNameTextCtrl->ChangeValue(model.Name);
+        pNameTextCtrl->ChangeValue(mCategoryModel.Name);
 
-        pColorPickerCtrl->SetColour(model.Color);
-        pBillableCheckBoxCtrl->SetValue(model.Billable);
+        pColorPickerCtrl->SetColour(mCategoryModel.Color);
+        pBillableCheckBoxCtrl->SetValue(mCategoryModel.Billable);
 
-        pDescriptionTextCtrl->SetValue(
-            model.Description.has_value() ? model.Description.value() : "");
+        if (mCategoryModel.Description.has_value()) {
+            pDescriptionTextCtrl->SetValue(mCategoryModel.Description.value());
+        }
 
-        pDateCreatedReadonlyTextCtrl->SetValue(model.GetDateCreatedString());
-        pDateModifiedReadonlyTextCtrl->SetValue(model.GetDateModifiedString());
-        pIsActiveCheckBoxCtrl->SetValue(model.IsActive);
+        pDateCreatedReadonlyTextCtrl->SetValue(mCategoryModel.GetDateCreatedString());
+        pDateModifiedReadonlyTextCtrl->SetValue(mCategoryModel.GetDateModifiedString());
+        pIsActiveCheckBoxCtrl->SetValue(mCategoryModel.IsActive);
         pIsActiveCheckBoxCtrl->Enable();
 
-        if (model.ProjectId.has_value()) {
+        if (mCategoryModel.ProjectId.has_value()) {
             for (unsigned int i = 0; i < pProjectChoiceCtrl->GetCount(); i++) {
                 auto* data = reinterpret_cast<ClientData<std::int64_t>*>(
                     pProjectChoiceCtrl->GetClientObject(i));
-                if (model.ProjectId.value() == data->GetValue()) {
+                if (mCategoryModel.ProjectId.value() == data->GetValue()) {
                     pProjectChoiceCtrl->SetSelection(i);
                     break;
                 }
@@ -334,7 +322,6 @@ void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)
         pBillableCheckBoxCtrl->Enable();
         pDescriptionTextCtrl->Enable();
         pProjectChoiceCtrl->Enable();
-
     } else {
         pNameTextCtrl->Disable();
         pColorPickerCtrl->Disable();
@@ -373,18 +360,12 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
                   : message = "Successfully deleted category";
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then
-        // we have wxFrame
-        wxQueueEvent(pParent->GetParent(), addNotificationEvent);
+        QueueErrorNotificationEvent(message);
 
         pOkButton->Enable();
     } else {
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -465,5 +446,14 @@ void CategoryDialog::TransferDataFromControls()
             mCategoryModel.ProjectId = std::nullopt;
         }
     }
+}
+void CategoryDialog::QueueErrorNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg
