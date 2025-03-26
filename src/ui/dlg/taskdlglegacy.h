@@ -44,6 +44,10 @@ class Configuration;
 } // namespace Core
 namespace UI::dlg
 {
+/*
+ * NOTE this dialog is deprecated
+ * No further enhancements nor bug fixes will be provided
+ */
 class TaskDialogLegacy final : public wxDialog
 {
 public:
