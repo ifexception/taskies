@@ -26,6 +26,10 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
+#include "../clientdata.h"
+#include "../events.h"
+#include "../notificationclientdata.h"
+
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
@@ -50,10 +54,6 @@
 
 #include "../../utils/utils.h"
 
-#include "../clientdata.h"
-#include "../events.h"
-#include "../notificationclientdata.h"
-
 namespace tks::UI::dlg
 {
 TaskDialog::TaskDialog(wxWindow* parent,
@@ -77,9 +77,6 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , mTaskId(taskId)
-    , mDate()
-    , mOldDate()
-    , mEmployerId(-1)
     , pDateContextDatePickerCtrl(nullptr)
     , pEmployerChoiceCtrl(nullptr)
     , pClientChoiceCtrl(nullptr)
@@ -96,6 +93,10 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mDate()
+    , mOldDate()
+    , mEmployerId(-1)
+    , mTaskModel()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -143,7 +144,7 @@ void TaskDialog::CreateControls()
 
     /* Begin of Left Aligned Controls */
 
-    ///* Defaults Box */
+    /* Defaults Box */
     auto defaultsStaticBox = new wxStaticBox(this, wxID_ANY, "Defaults");
     auto defaultsStaticBoxSizer = new wxStaticBoxSizer(defaultsStaticBox, wxVERTICAL);
     leftSizer->Add(defaultsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
@@ -424,7 +425,7 @@ void TaskDialog::FillControls()
             mDate);
     }
 
-    pEmployerChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pEmployerChoiceCtrl->Append("Select employer", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);
 
     ResetClientChoiceControl(true);

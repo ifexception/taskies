@@ -59,8 +59,6 @@ set(SRC_EXPORTS
 )
 
 set (SRC_DIALOGS
-    "ui/dlg/employerdlg.cpp"
-    "ui/dlg/errordlg.cpp"
     "ui/dlg/aboutdlg.cpp"
     "ui/dlg/preferences/preferencesdlg.cpp"
     "ui/dlg/preferences/preferencesgeneralpage.cpp"
@@ -68,8 +66,6 @@ set (SRC_DIALOGS
     "ui/dlg/preferences/preferencestaskspage.cpp"
     "ui/dlg/preferences/preferencestasksviewpage.cpp"
     "ui/dlg/preferences/preferencesexportpage.cpp"
-    "ui/dlg/taskdlglegacy.cpp"
-    "ui/dlg/taskdlg.cpp"
     "ui/dlg/daytaskviewdlg.cpp"
     "ui/wizards/setupwizard.cpp"
 )

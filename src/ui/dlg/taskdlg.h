@@ -101,18 +101,10 @@ private:
 
     void QueueErrorNotificationEventToParent(const std::string& message);
 
-    wxWindow* pParent;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
-    std::string mDatabaseFilePath;
-    bool bIsEdit;
-    std::int64_t mTaskId;
-    std::string mDate;
-    std::string mOldDate;
-    std::int64_t mEmployerId;
-
-    Model::TaskModel mTaskModel;
+    wxWindow* pParent;
 
     wxDatePickerCtrl* pDateContextDatePickerCtrl;
     wxChoice* pEmployerChoiceCtrl;
@@ -136,6 +128,15 @@ private:
 
     wxButton* pOkButton;
     wxButton* pCancelButton;
+
+    std::string mDatabaseFilePath;
+    bool bIsEdit;
+    std::int64_t mTaskId;
+    std::string mDate;
+    std::string mOldDate;
+    std::int64_t mEmployerId;
+
+    Model::TaskModel mTaskModel;
 
     enum {
         tksIDC_DATECONTEXTDATEPICKERCTRL = wxID_HIGHEST + 100,
