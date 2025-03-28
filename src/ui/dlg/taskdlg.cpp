@@ -410,8 +410,6 @@ void TaskDialog::CreateControls()
 
 void TaskDialog::FillControls()
 {
-    pOkButton->Disable();
-
     auto bottomRangeDate = wxDateTime::GetCurrentYear() - 1;
     auto& bottomDateContext = wxDateTime::Now().SetYear(bottomRangeDate);
     pDateContextDatePickerCtrl->SetRange(bottomDateContext, wxDateTime::Now());
