@@ -485,8 +485,6 @@ void TaskDialog::FillControls()
 
     FetchProjectEntitiesByEmployerOrClient(
         std::make_optional<std::int64_t>(mEmployerId), std::nullopt);
-
-    pOkButton->Enable();
 }
 
 // clang-format off
@@ -762,8 +760,6 @@ void TaskDialog::OnDateChange(wxDateEvent& event)
 
 void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
-    pOkButton->Disable();
-
     ResetClientChoiceControl();
     ResetProjectChoiceControl();
     ResetCategoryChoiceControl();
@@ -794,14 +790,10 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 
     FetchProjectEntitiesByEmployerOrClient(
         std::make_optional<std::int64_t>(mEmployerId), std::nullopt);
-
-    pOkButton->Enable();
 }
 
 void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
 {
-    pOkButton->Disable();
-
     ResetProjectChoiceControl();
     ResetCategoryChoiceControl();
 
@@ -817,14 +809,10 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
         FetchProjectEntitiesByEmployerOrClient(std::make_optional<std::int64_t>(mEmployerId),
             std::make_optional<std::int64_t>(clientId));
     }
-
-    pOkButton->Enable();
 }
 
 void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
 {
-    pOkButton->Disable();
-
     ResetCategoryChoiceControl();
 
     int projectIndex = event.GetSelection();
@@ -839,14 +827,10 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
     }
 
     FetchCategoryEntities(std::make_optional<std::int64_t>(projectId));
-
-    pOkButton->Enable();
 }
 
 void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
 {
-    pOkButton->Disable();
-
     ResetCategoryChoiceControl();
 
     std::optional<std::int64_t> projectId = std::nullopt;
@@ -872,14 +856,10 @@ void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
 
     pCfg->ShowProjectAssociatedCategories(event.IsChecked());
     pCfg->Save();
-
-    pOkButton->Enable();
 }
 
 void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 {
-    pOkButton->Disable();
-
     pBillableCheckBoxCtrl->SetValue(false);
     pBillableCheckBoxCtrl->SetToolTip("Indicates if a task is billable");
 
@@ -906,8 +886,6 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
             pBillableCheckBoxCtrl->SetToolTip("Task is billable since category is billable");
         }
     }
-
-    pOkButton->Enable();
 }
 
 void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)

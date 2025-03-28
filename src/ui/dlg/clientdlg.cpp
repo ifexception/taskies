@@ -196,7 +196,6 @@ void ClientDialog::CreateControls()
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
-    pOkButton->Disable();
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
@@ -230,8 +229,6 @@ void ClientDialog::FillControls()
             }
         }
     }
-
-    pOkButton->Enable();
 }
 
 // clang-format off
@@ -292,8 +289,6 @@ void ClientDialog::DataToControls()
 
         pIsActiveCheckBoxCtrl->Enable();
     }
-
-    pOkButton->Enable();
 }
 
 void ClientDialog::OnOK(wxCommandEvent& event)

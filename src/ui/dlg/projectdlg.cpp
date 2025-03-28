@@ -233,7 +233,6 @@ void ProjectDialog::CreateControls()
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
-    pOkButton->Disable();
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
@@ -272,8 +271,6 @@ void ProjectDialog::FillControls()
             }
         }
     }
-
-    pOkButton->Enable();
 
     pClientChoiceCtrl->Append("Select client", new ClientData<std::int64_t>(-1));
     pClientChoiceCtrl->SetSelection(0);
@@ -368,8 +365,6 @@ void ProjectDialog::DataToControls()
             }
         }
     }
-
-    pOkButton->Enable();
 }
 
 void ProjectDialog::OnNameChange(wxCommandEvent& event)
@@ -380,8 +375,6 @@ void ProjectDialog::OnNameChange(wxCommandEvent& event)
 
 void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
-    pOkButton->Disable();
-
     pClientChoiceCtrl->Clear();
     pClientChoiceCtrl->Append("Select client", new ClientData<std::int64_t>(-1));
     pClientChoiceCtrl->SetSelection(0);
@@ -392,7 +385,6 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 
     if (employerIdData->GetValue() < 1) {
         pClientChoiceCtrl->Disable();
-        pOkButton->Enable();
 
         return;
     }
@@ -400,8 +392,6 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     std::int64_t employerId = employerIdData->GetValue();
 
     FillClientChoiceControl(employerId);
-
-    pOkButton->Enable();
 }
 
 void ProjectDialog::OnOK(wxCommandEvent& event)

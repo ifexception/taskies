@@ -228,8 +228,6 @@ void EmployerDialog::ConfigureEventBindings()
 
 void EmployerDialog::DataToControls()
 {
-    pOkButton->Disable();
-
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.GetById(mEmployerId, mEmployerModel);
@@ -249,8 +247,6 @@ void EmployerDialog::DataToControls()
         pIsActiveCheckBoxCtrl->SetValue(mEmployerModel.IsActive);
 
         pIsActiveCheckBoxCtrl->Enable();
-
-        pOkButton->Enable();
     }
 }
 
