@@ -395,7 +395,6 @@ void TaskDialog::CreateControls()
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
-    pOkButton->Disable();
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
@@ -411,6 +410,8 @@ void TaskDialog::CreateControls()
 
 void TaskDialog::FillControls()
 {
+    pOkButton->Disable();
+
     auto bottomRangeDate = wxDateTime::GetCurrentYear() - 1;
     auto& bottomDateContext = wxDateTime::Now().SetYear(bottomRangeDate);
     pDateContextDatePickerCtrl->SetRange(bottomDateContext, wxDateTime::Now());
@@ -436,21 +437,59 @@ void TaskDialog::FillControls()
 
     ResetCategoryChoiceControl();
 
-    FetchEmployersAndAddDataToChoiceControl();
+    // Fill controls with data
 
-    bool hasDefaultEmployer = false;
-    TrySetDefaultEmployer(hasDefaultEmployer);
+    std::string defaultSearhTerm = "";
 
-    if (hasDefaultEmployer) {
-        SetEmployerAssociatedDataAndControls();
+    std::vector<Model::EmployerModel> employers;
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = employerPersistence.Filter(defaultSearhTerm, employers);
+    if (rc != 0) {
+        std::string message = "Failed to get employers";
+        QueueErrorNotificationEvent(message);
+    } else {
+        for (auto& employer : employers) {
+            pEmployerChoiceCtrl->Append(
+                employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
+
+            if (employer.IsDefault) {
+                mEmployerId = employer.EmployerId;
+                pEmployerChoiceCtrl->SetStringSelection(employer.Name);
+            }
+        }
     }
 
-    if (!pCfg->ShowProjectAssociatedCategories()) {
-        SetCategoryDataToChoiceControl(std::nullopt);
+    std::vector<Model::ClientModel> clients;
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+
+    rc = ClientsPersistence.FilterByEmployerId(mEmployerId, clients);
+
+    if (rc != 0) {
+        std::string message = "Failed to get clients";
+        QueueErrorNotificationEvent(message);
     } else {
-        if (!hasDefaultEmployer) {
-            pCategoryChoiceCtrl->Disable();
+        if (!clients.empty()) {
+            if (!pClientChoiceCtrl->IsEnabled()) {
+                pClientChoiceCtrl->Enable();
+            }
+
+            for (auto& client : clients) {
+                pClientChoiceCtrl->Append(
+                    client.Name, new ClientData<std::int64_t>(client.ClientId));
+            }
+        } else {
+            pClientChoiceCtrl->Disable();
         }
+    }
+
+    FetchProjectEntitiesByEmployerOrClient(
+        std::make_optional<std::int64_t>(mEmployerId), std::nullopt);
+
+    if (!pCfg->ShowProjectAssociatedCategories()) {
+        FetchCategoryEntities(std::nullopt);
+    } else {
+        pCategoryChoiceCtrl->Disable();
     }
 
     pOkButton->Enable();
@@ -527,7 +566,7 @@ void TaskDialog::DataToControls()
     int ret = taskPersistence.GetById(mTaskId, taskModel);
     if (ret != 0) {
         std::string message = "Failed to get taskModel";
-        QueueErrorNotificationEventToParent(message);
+        QueueErrorNotificationEvent(message);
     } else {
         pBillableCheckBoxCtrl->SetValue(taskModel.Billable);
         pUniqueIdentiferTextCtrl->ChangeValue(
@@ -555,7 +594,7 @@ void TaskDialog::DataToControls()
     ret = projectPersistence.GetById(taskModel.ProjectId, projectModel);
     if (ret != 0) {
         std::string message = "Failed to get project";
-        QueueErrorNotificationEventToParent(message);
+        QueueErrorNotificationEvent(message);
 
         return;
     }
@@ -569,7 +608,7 @@ void TaskDialog::DataToControls()
             projects);
         if (ret != 0) {
             std::string message = "Failed to get projects";
-            QueueErrorNotificationEventToParent(message);
+            QueueErrorNotificationEvent(message);
             isSuccess = false;
         } else {
             if (!projects.empty()) {
@@ -596,7 +635,7 @@ void TaskDialog::DataToControls()
         ret = employerPersistence.GetById(projectModel.EmployerId, employer);
         if (ret == -1) {
             std::string message = "Failed to get employer";
-            QueueErrorNotificationEventToParent(message);
+            QueueErrorNotificationEvent(message);
 
             isSuccess = false;
         } else {
@@ -614,7 +653,7 @@ void TaskDialog::DataToControls()
         ret = ClientsPersistence.FilterByEmployerId(projectModel.EmployerId, clients);
         if (ret == -1) {
             std::string message = "Failed to get clients";
-            QueueErrorNotificationEventToParent(message);
+            QueueErrorNotificationEvent(message);
 
             isSuccess = false;
         } else {
@@ -630,7 +669,7 @@ void TaskDialog::DataToControls()
                     ret = ClientsPersistence.GetById(projectModel.ClientId.value(), client);
                     if (ret == -1) {
                         std::string message = "Failed to get client";
-                        QueueErrorNotificationEventToParent(message);
+                        QueueErrorNotificationEvent(message);
 
                         isSuccess = false;
                     } else {
@@ -648,7 +687,7 @@ void TaskDialog::DataToControls()
             ret = ClientsPersistence.GetById(projectModel.ClientId.value(), client);
             if (ret == -1) {
                 std::string message = "Failed to get client";
-                QueueErrorNotificationEventToParent(message);
+                QueueErrorNotificationEvent(message);
 
                 isSuccess = false;
             } else {
@@ -672,7 +711,7 @@ void TaskDialog::DataToControls()
 
     if (ret == -1) {
         std::string message = "Failed to get categories";
-        QueueErrorNotificationEventToParent(message);
+        QueueErrorNotificationEvent(message);
 
         isSuccess = false;
     }
@@ -691,7 +730,7 @@ void TaskDialog::DataToControls()
         ret = categoryRepo.GetById(taskModel.CategoryId, category);
         if (ret != 0) {
             std::string message = "Failed to get category";
-            QueueErrorNotificationEventToParent(message);
+            QueueErrorNotificationEvent(message);
 
             isSuccess = false;
         } else {
@@ -731,8 +770,6 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
 
-    // logic
-
     ResetClientChoiceControl();
     ResetProjectChoiceControl();
 
@@ -755,7 +792,13 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 
     mEmployerId = employerIdData->GetValue();
 
-    SetEmployerAssociatedDataAndControls();
+    ResetClientChoiceControl();
+    ResetProjectChoiceControl();
+
+    FetchClientEntitiesByEmployer(mEmployerId);
+
+    FetchProjectEntitiesByEmployerOrClient(
+        std::make_optional<std::int64_t>(mEmployerId), std::nullopt);
 
     pOkButton->Enable();
 }
@@ -765,6 +808,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     pOkButton->Disable();
 
     ResetProjectChoiceControl();
+    ResetCategoryChoiceControl();
 
     int clientIndex = event.GetSelection();
     ClientData<std::int64_t>* clientIdData = reinterpret_cast<ClientData<std::int64_t>*>(
@@ -772,13 +816,12 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
     std::int64_t clientId = clientIdData->GetValue();
 
     if (clientId < 1) {
-        pProjectChoiceCtrl->Disable();
-
-        return;
+        FetchProjectEntitiesByEmployerOrClient(
+            std::make_optional<std::int64_t>(mEmployerId), std::nullopt);
+    } else {
+        FetchProjectEntitiesByEmployerOrClient(std::make_optional<std::int64_t>(mEmployerId),
+            std::make_optional<std::int64_t>(clientId));
     }
-
-    SetEmployerAndOrClientProjectDataToChoiceControl(
-        std::make_optional<std::int64_t>(mEmployerId), std::make_optional<std::int64_t>(clientId));
 
     pOkButton->Enable();
 }
@@ -797,7 +840,7 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
     int projectIndex = event.GetSelection();
     ClientData<std::int64_t>* projectIdData = reinterpret_cast<ClientData<std::int64_t>*>(
         pProjectChoiceCtrl->GetClientObject(projectIndex));
-    auto projectId = projectIdData->GetValue();
+    std::int64_t projectId = projectIdData->GetValue();
 
     if (projectId < 1) {
         pCategoryChoiceCtrl->Disable();
@@ -805,7 +848,7 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
         return;
     }
 
-    SetCategoryDataToChoiceControl(std::make_optional<std::int64_t>(projectId));
+    FetchCategoryEntities(std::make_optional<std::int64_t>(projectId));
 
     pOkButton->Enable();
 }
@@ -835,7 +878,7 @@ void TaskDialog::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
         return;
     }
 
-    SetCategoryDataToChoiceControl(projectId);
+    FetchCategoryEntities(projectId);
 
     pCfg->ShowProjectAssociatedCategories(event.IsChecked());
     pCfg->Save();
@@ -866,12 +909,11 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     ret = categoryPersistence.GetById(categoryId, model);
     if (ret == -1) {
         std::string message = "Failed to get category";
-        QueueErrorNotificationEventToParent(message);
+        QueueErrorNotificationEvent(message);
     } else {
         if (model.Billable) {
             pBillableCheckBoxCtrl->SetValue(true);
-            pBillableCheckBoxCtrl->SetToolTip(
-                "Category selected is billable, thus task inherits billable attribute");
+            pBillableCheckBoxCtrl->SetToolTip("Task is billable since category is billable");
         }
     }
 
@@ -925,7 +967,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
     if (ret == -1) {
         std::string message = "Failed to get underlying workday for task";
-        QueueErrorNotificationEventToParent(message);
+        QueueErrorNotificationEvent(message);
         return;
     }
 
@@ -1140,55 +1182,7 @@ void TaskDialog::ResetCategoryChoiceControl(bool disable)
     }
 }
 
-void TaskDialog::FetchEmployersAndAddDataToChoiceControl()
-{
-    std::string defaultSearhTerm = "";
-
-    std::vector<Model::EmployerModel> employers;
-    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-
-    int rc = employerPersistence.Filter(defaultSearhTerm, employers);
-    if (rc != 0) {
-        std::string message = "Failed to get employers";
-        QueueErrorNotificationEventToParent(message);
-    } else {
-        for (auto& employer : employers) {
-            pEmployerChoiceCtrl->Append(
-                employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
-        }
-    }
-}
-
-void TaskDialog::TrySetDefaultEmployer(bool& hasDefaultEmployer)
-{
-    Model::EmployerModel applicableDefaultEmployer;
-    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-
-    int rc = employerPersistence.SelectDefault(applicableDefaultEmployer);
-    if (rc == -1) {
-        std::string message = "Failed to get default employer";
-        QueueErrorNotificationEventToParent(message);
-    } else {
-        hasDefaultEmployer = applicableDefaultEmployer.IsDefault;
-        if (hasDefaultEmployer) {
-            mEmployerId = applicableDefaultEmployer.EmployerId;
-            pEmployerChoiceCtrl->SetStringSelection(applicableDefaultEmployer.Name);
-        }
-    }
-}
-
-void TaskDialog::SetEmployerAssociatedDataAndControls()
-{
-    ResetClientChoiceControl();
-
-    ResetProjectChoiceControl();
-
-    SetEmployerClientDataToChoiceControl(mEmployerId);
-    SetEmployerAndOrClientProjectDataToChoiceControl(
-        std::make_optional<std::int64_t>(mEmployerId), std::nullopt);
-}
-
-void TaskDialog::SetEmployerClientDataToChoiceControl(const std::int64_t employerId)
+void TaskDialog::FetchClientEntitiesByEmployer(const std::int64_t employerId)
 {
     std::vector<Model::ClientModel> clients;
     Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
@@ -1197,7 +1191,7 @@ void TaskDialog::SetEmployerClientDataToChoiceControl(const std::int64_t employe
 
     if (rc != 0) {
         std::string message = "Failed to get clients";
-        QueueErrorNotificationEventToParent(message);
+        QueueErrorNotificationEvent(message);
     } else {
         if (!clients.empty()) {
             if (!pClientChoiceCtrl->IsEnabled()) {
@@ -1214,7 +1208,7 @@ void TaskDialog::SetEmployerClientDataToChoiceControl(const std::int64_t employe
     }
 }
 
-void TaskDialog::SetEmployerAndOrClientProjectDataToChoiceControl(
+void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
     const std::optional<std::int64_t> employerId,
     const std::optional<std::int64_t> clientId)
 {
@@ -1224,31 +1218,33 @@ void TaskDialog::SetEmployerAndOrClientProjectDataToChoiceControl(
     int rc = projectPersistence.FilterByEmployerIdOrClientId(employerId, clientId, projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
-        QueueErrorNotificationEventToParent(message);
+        QueueErrorNotificationEvent(message);
     } else {
         if (!projects.empty()) {
             if (!pProjectChoiceCtrl->IsEnabled()) {
                 pProjectChoiceCtrl->Enable();
             }
 
+            bool hasDefaultProject = false;
+
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(
                     project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+
+                if (project.IsDefault) {
+                    hasDefaultProject = true;
+                    pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+
+                    if (pCfg->ShowProjectAssociatedCategories()) {
+                        FetchCategoryEntities(std::make_optional<std::int64_t>(project.ProjectId));
+                    } else {
+                        FetchCategoryEntities(std::nullopt);
+                    }
+                }
             }
 
-            auto hasProjectDefaultIterator = std::find_if(projects.begin(),
-                projects.end(),
-                [](Model::ProjectModel project) { return project.IsDefault == true; });
-
-            if (hasProjectDefaultIterator != projects.end()) {
-                auto& defaultProject = *hasProjectDefaultIterator;
-
-                pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
-
-                if (pCfg->ShowProjectAssociatedCategories()) {
-                    SetCategoryDataToChoiceControl(
-                        std::make_optional<std::int64_t>(defaultProject.ProjectId));
-                }
+            if (!hasDefaultProject) {
+                pCategoryChoiceCtrl->Disable();
             }
         } else {
             pProjectChoiceCtrl->Disable();
@@ -1256,7 +1252,7 @@ void TaskDialog::SetEmployerAndOrClientProjectDataToChoiceControl(
     }
 }
 
-void TaskDialog::SetCategoryDataToChoiceControl(std::optional<std::int64_t> projectId)
+void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> projectId)
 {
     std::vector<repos::CategoryRepositoryModel> categories;
     repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
@@ -1270,7 +1266,7 @@ void TaskDialog::SetCategoryDataToChoiceControl(std::optional<std::int64_t> proj
 
     if (rc != 0) {
         std::string message = "Failed to get categories";
-        QueueErrorNotificationEventToParent(message);
+        QueueErrorNotificationEvent(message);
     } else {
         if (!categories.empty()) {
             if (!pCategoryChoiceCtrl->IsEnabled()) {
@@ -1287,7 +1283,7 @@ void TaskDialog::SetCategoryDataToChoiceControl(std::optional<std::int64_t> proj
     }
 }
 
-void TaskDialog::QueueErrorNotificationEventToParent(const std::string& message)
+void TaskDialog::QueueErrorNotificationEvent(const std::string& message)
 {
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     NotificationClientData* clientData =

@@ -88,18 +88,12 @@ private:
     void ResetProjectChoiceControl(bool disable = false);
     void ResetCategoryChoiceControl(bool disable = false);
 
-    void FetchEmployersAndAddDataToChoiceControl();
-    void TrySetDefaultEmployer(bool& hasDefaultEmployer);
+    void FetchClientEntitiesByEmployer(const std::int64_t employerId);
+    void FetchProjectEntitiesByEmployerOrClient(const std::optional<std::int64_t> employerId,
+        const std::optional<std::int64_t> clientId);
+    void FetchCategoryEntities(const std::optional<std::int64_t> projectId);
 
-    void SetEmployerAssociatedDataAndControls();
-    void SetEmployerClientDataToChoiceControl(const std::int64_t employerId);
-    void SetEmployerAndOrClientProjectDataToChoiceControl(
-        const std::optional<std::int64_t> employerId,
-        const std::optional < std::int64_t> clientId);
-
-    void SetCategoryDataToChoiceControl(std::optional<std::int64_t> projectId);
-
-    void QueueErrorNotificationEventToParent(const std::string& message);
+    void QueueErrorNotificationEvent(const std::string& message);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
