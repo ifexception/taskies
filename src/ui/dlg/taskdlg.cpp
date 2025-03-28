@@ -1243,8 +1243,10 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
                 }
             }
 
-            if (!hasDefaultProject) {
+            if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
                 pCategoryChoiceCtrl->Disable();
+            } else {
+                FetchCategoryEntities(std::nullopt);
             }
         } else {
             pProjectChoiceCtrl->Disable();
