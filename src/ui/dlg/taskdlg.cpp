@@ -486,12 +486,6 @@ void TaskDialog::FillControls()
     FetchProjectEntitiesByEmployerOrClient(
         std::make_optional<std::int64_t>(mEmployerId), std::nullopt);
 
-    if (!pCfg->ShowProjectAssociatedCategories()) {
-        FetchCategoryEntities(std::nullopt);
-    } else {
-        pCategoryChoiceCtrl->Disable();
-    }
-
     pOkButton->Enable();
 }
 
@@ -772,6 +766,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 
     ResetClientChoiceControl();
     ResetProjectChoiceControl();
+    ResetCategoryChoiceControl();
 
     int employerIndex = event.GetSelection();
     ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
@@ -829,11 +824,6 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
 void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
 {
     pOkButton->Disable();
-
-    if (!pCfg->ShowProjectAssociatedCategories()) {
-        pOkButton->Enable();
-        return;
-    }
 
     ResetCategoryChoiceControl();
 
@@ -1226,6 +1216,7 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
             }
 
             bool hasDefaultProject = false;
+            std::int64_t defaultProjectId = -1;
 
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(
@@ -1233,17 +1224,14 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
 
                 if (project.IsDefault) {
                     hasDefaultProject = true;
+                    defaultProjectId = project.ProjectId;
                     pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
-
-                    if (pCfg->ShowProjectAssociatedCategories()) {
-                        FetchCategoryEntities(std::make_optional<std::int64_t>(project.ProjectId));
-                    } else {
-                        FetchCategoryEntities(std::nullopt);
-                    }
                 }
             }
 
-            if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+            if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+                FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
+            } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
                 pCategoryChoiceCtrl->Disable();
             } else {
                 FetchCategoryEntities(std::nullopt);
