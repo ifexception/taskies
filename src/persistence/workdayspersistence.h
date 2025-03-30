@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <memory>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include <sqlite3.h>
@@ -30,15 +31,15 @@
 
 namespace tks::Persistence
 {
-class WorkdayPersistence final
+class WorkdaysPersistence final
 {
 public:
-    WorkdayPersistence() = delete;
-    WorkdayPersistence(const WorkdayPersistence&) = delete;
-    WorkdayPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~WorkdayPersistence();
+    WorkdaysPersistence() = delete;
+    WorkdaysPersistence(const WorkdaysPersistence&) = delete;
+    WorkdaysPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~WorkdaysPersistence();
 
-    WorkdayPersistence& operator=(const WorkdayPersistence&) = delete;
+    WorkdaysPersistence& operator=(const WorkdaysPersistence&) = delete;
 
     int FilterByDate(const std::string& date, Model::WorkdayModel model);
     std::int64_t GetWorkdayIdByDate(const std::string& date);

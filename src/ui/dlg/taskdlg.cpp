@@ -45,7 +45,7 @@
 #include "../../persistence/ClientsPersistence.h"
 #include "../../persistence/projectspersistence.h"
 #include "../../persistence/categoriespersistence.h"
-#include "../../persistence/workdaypersistence.h"
+#include "../../persistence/workdayspersistence.h"
 #include "../../persistence/taskpersistence.h"
 
 #include "../../repository/categoryrepositorymodel.h"
@@ -905,7 +905,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     int ret = 0;
     std::string message = "";
 
-    Persistence::WorkdayPersistence workdayPersistence(pLogger, mDatabaseFilePath);
+    Persistence::WorkdaysPersistence workdayPersistence(pLogger, mDatabaseFilePath);
     std::int64_t workdayId = workdayPersistence.GetWorkdayIdByDate(mDate);
     ret = workdayId > 0 ? 0 : -1;
 
