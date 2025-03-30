@@ -909,12 +909,13 @@ void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)
 
 void TaskDialog::OnOK(wxCommandEvent& event)
 {
-    pOkButton->Disable();
 
-    if (!TransferDataAndValidate()) {
-        pOkButton->Enable();
+    if (!Validate()) {
         return;
     }
+    pOkButton->Disable();
+
+    TransferDataFromControls();
 
     int ret = 0;
     std::string message = "";
@@ -924,7 +925,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     ret = workdayId > 0 ? 0 : -1;
 
     if (ret == -1) {
-        std::string message = "Failed to get underlying workday for task";
+        std::string message = "Failed to create/get workday for task";
         QueueErrorNotificationEvent(message);
         return;
     }
@@ -952,16 +953,12 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
 
         pOkButton->Enable();
     } else {
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -1000,6 +997,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
                 wxQueueEvent(pParent, taskDateChangedFromEvent);
             }
         }
+
         if (bIsEdit && !mTaskModel.IsActive) {
             wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
             taskDeletedEvent->SetString(mDate);
@@ -1017,7 +1015,7 @@ void TaskDialog::OnCancel(wxCommandEvent& event)
     EndModal(wxID_CANCEL);
 }
 
-bool TaskDialog::TransferDataAndValidate()
+bool TaskDialog::Validate()
 {
     int employerIndex = pEmployerChoiceCtrl->GetSelection();
     ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
@@ -1027,19 +1025,6 @@ bool TaskDialog::TransferDataAndValidate()
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pEmployerChoiceCtrl);
-        return false;
-    }
-
-    auto uniqueIdentifier = pUniqueIdentiferTextCtrl->GetValue().ToStdString();
-    if (!uniqueIdentifier.empty() && (uniqueIdentifier.length() < MIN_CHARACTER_COUNT ||
-                                         uniqueIdentifier.length() > MAX_CHARACTER_COUNT_NAMES)) {
-        auto valMsg =
-            fmt::format("Unique identifier must be at minimum {0} or maximum {1} characters long",
-                MIN_CHARACTER_COUNT,
-                MAX_CHARACTER_COUNT_NAMES);
-        wxRichToolTip toolTip("Validation", valMsg);
-        toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pUniqueIdentiferTextCtrl);
         return false;
     }
 
@@ -1096,18 +1081,47 @@ bool TaskDialog::TransferDataAndValidate()
         return false;
     }
 
-    mTaskModel.TaskId = mTaskId;
-    mTaskModel.Billable = pBillableCheckBoxCtrl->GetValue();
-    mTaskModel.UniqueIdentifier =
-        uniqueIdentifier.empty() ? std::nullopt : std::make_optional(uniqueIdentifier);
-    mTaskModel.Hours = pTimeHoursSpinCtrl->GetValue();
-    mTaskModel.Minutes = pTimeMinutesSpinCtrl->GetValue();
-    mTaskModel.Description = description;
-    mTaskModel.ProjectId = projectIdData->GetValue();
-    mTaskModel.CategoryId = categoryIdData->GetValue();
-    mTaskModel.IsActive = pIsActiveCheckBoxCtrl->GetValue();
+    auto uniqueIdentifier = pUniqueIdentiferTextCtrl->GetValue().ToStdString();
+    if (!uniqueIdentifier.empty() && (uniqueIdentifier.length() < MIN_CHARACTER_COUNT ||
+                                         uniqueIdentifier.length() > MAX_CHARACTER_COUNT_NAMES)) {
+        auto valMsg =
+            fmt::format("Unique identifier must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_NAMES);
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pUniqueIdentiferTextCtrl);
+        return false;
+    }
 
     return true;
+}
+
+void TaskDialog::TransferDataFromControls()
+{
+    mTaskModel.TaskId = mTaskId;
+    mTaskModel.Billable = pBillableCheckBoxCtrl->GetValue();
+
+    auto uniqueIdentifier = pUniqueIdentiferTextCtrl->GetValue().ToStdString();
+    mTaskModel.UniqueIdentifier =
+        uniqueIdentifier.empty() ? std::nullopt : std::make_optional(uniqueIdentifier);
+
+    mTaskModel.Hours = pTimeHoursSpinCtrl->GetValue();
+    mTaskModel.Minutes = pTimeMinutesSpinCtrl->GetValue();
+
+    auto description = pTaskDescriptionTextCtrl->GetValue().ToStdString();
+    mTaskModel.Description = description;
+
+    int projectIndex = pProjectChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* projectIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pProjectChoiceCtrl->GetClientObject(projectIndex));
+    mTaskModel.ProjectId = projectIdData->GetValue();
+
+    int categoryIndex = pCategoryChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* categoryIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pCategoryChoiceCtrl->GetClientObject(categoryIndex));
+    mTaskModel.CategoryId = categoryIdData->GetValue();
+    mTaskModel.IsActive = pIsActiveCheckBoxCtrl->GetValue();
 }
 
 void TaskDialog::ResetClientChoiceControl(bool disable)

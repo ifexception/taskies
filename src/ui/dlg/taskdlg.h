@@ -82,7 +82,8 @@ private:
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
-    bool TransferDataAndValidate();
+    bool Validate();
+    void TransferDataFromControls();
 
     void ResetClientChoiceControl(bool disable = false);
     void ResetProjectChoiceControl(bool disable = false);
