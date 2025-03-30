@@ -177,89 +177,6 @@ void TaskDialog::CreateControls()
     defaultsStaticBoxSizer->Add(
         defaultsFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 
-    /* Selections box */
-    auto selectionsStaticBox = new wxStaticBox(this, wxID_ANY, "Selections");
-    auto selectionsBoxSizer = new wxStaticBoxSizer(selectionsStaticBox, wxVERTICAL);
-    leftSizer->Add(selectionsBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    /* Client choice control */
-    auto clientLabel = new wxStaticText(selectionsStaticBox, wxID_ANY, "Client");
-    pClientChoiceCtrl = new wxChoice(selectionsStaticBox, tksIDC_CLIENTCHOICECTRL);
-    pClientChoiceCtrl->SetToolTip("Select client to associate task with");
-
-    /* Project choice control */
-    auto projectLabel = new wxStaticText(selectionsStaticBox, wxID_ANY, "Project");
-    pProjectChoiceCtrl = new wxChoice(selectionsStaticBox, tksIDC_PROJECTCHOICECTRL);
-    pProjectChoiceCtrl->SetToolTip("Select project to associate task with");
-
-    /* Associated categories control */
-    pShowProjectAssociatedCategoriesCheckBoxCtrl = new wxCheckBox(selectionsStaticBox,
-        tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
-        "Only show associated categories");
-    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetToolTip(
-        "Only show categories associated to selected project");
-
-    /* Category choice control*/
-    auto categoryLabel = new wxStaticText(selectionsStaticBox, wxID_ANY, "Category");
-    pCategoryChoiceCtrl = new wxChoice(selectionsStaticBox, tksIDC_CATEGORYCHOICECTRL);
-    pCategoryChoiceCtrl->SetToolTip("Select project to associate task with");
-
-    /* Choices flex grid sizer */
-    auto choiceFlexGridSizer = new wxFlexGridSizer(2, FromDIP(6), FromDIP(18));
-    choiceFlexGridSizer->AddGrowableCol(1, 1);
-
-    choiceFlexGridSizer->Add(
-        clientLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    choiceFlexGridSizer->Add(pClientChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    choiceFlexGridSizer->Add(
-        projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    choiceFlexGridSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    choiceFlexGridSizer->Add(0, 0);
-    choiceFlexGridSizer->Add(
-        pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    choiceFlexGridSizer->Add(
-        categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    choiceFlexGridSizer->Add(
-        pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    selectionsBoxSizer->Add(choiceFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
-
-    /* Task Attributes box */
-    auto taskAttributesStaticBox = new wxStaticBox(this, wxID_ANY, "Attributes");
-    auto taskAttributesStaticBoxSizer = new wxStaticBoxSizer(taskAttributesStaticBox, wxVERTICAL);
-    leftSizer->Add(taskAttributesStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    /* Billable Check Box Control */
-    pBillableCheckBoxCtrl =
-        new wxCheckBox(taskAttributesStaticBox, tksIDC_BILLABLECHECKBOXCTRL, "Billable");
-    pBillableCheckBoxCtrl->SetToolTip("Indicates if a task is billable");
-
-    /* Unique Identifier Text Control */
-    auto uniqueIdLabel = new wxStaticText(taskAttributesStaticBox, wxID_ANY, "Unique ID");
-    pUniqueIdentiferTextCtrl =
-        new wxTextCtrl(taskAttributesStaticBox, tksIDC_UNIQUEIDENTIFERTEXTCTRL);
-    pUniqueIdentiferTextCtrl->SetHint("Unique identifier");
-    pUniqueIdentiferTextCtrl->SetToolTip("Enter a unique identifier, ticket number, or other "
-                                         "identifier to associate a task with");
-
-    /* Task Attributes control flex grid sizer */
-    auto taskAttributesControlFlexGridSizer = new wxFlexGridSizer(2, FromDIP(6), FromDIP(6));
-    taskAttributesControlFlexGridSizer->AddGrowableCol(1, 1);
-    taskAttributesStaticBoxSizer->Add(
-        taskAttributesControlFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
-
-    taskAttributesControlFlexGridSizer->Add(0, 0);
-    taskAttributesControlFlexGridSizer->Add(
-        pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    taskAttributesControlFlexGridSizer->Add(
-        uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CentreVertical());
-    taskAttributesControlFlexGridSizer->Add(
-        pUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
     /* Time static box */
     auto timeStaticBox = new wxStaticBox(this, wxID_ANY, "Time");
     auto timeStaticBoxSizer = new wxStaticBoxSizer(timeStaticBox, wxVERTICAL);
@@ -297,34 +214,103 @@ void TaskDialog::CreateControls()
     timeSizer->AddStretchSpacer(1);
     timeSizer->Add(pTimeHoursSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     timeSizer->Add(pTimeMinutesSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    timeStaticBoxSizer->Add(timeSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    timeStaticBoxSizer->Add(
+        timeSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand()); /* Task Attributes box */
+    auto taskAttributesStaticBox = new wxStaticBox(this, wxID_ANY, "Attributes");
+    auto taskAttributesStaticBoxSizer = new wxStaticBoxSizer(taskAttributesStaticBox, wxVERTICAL);
+    leftSizer->Add(taskAttributesStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    /* Begin Edit Metadata Controls */
+    /* Billable Check Box Control */
+    pBillableCheckBoxCtrl =
+        new wxCheckBox(taskAttributesStaticBox, tksIDC_BILLABLECHECKBOXCTRL, "Billable");
+    pBillableCheckBoxCtrl->SetToolTip("Indicates if a task is billable");
 
-    auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
-    auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
-    leftSizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    /* Unique Identifier Text Control */
+    auto uniqueIdLabel = new wxStaticText(taskAttributesStaticBox, wxID_ANY, "Unique ID");
+    pUniqueIdentiferTextCtrl =
+        new wxTextCtrl(taskAttributesStaticBox, tksIDC_UNIQUEIDENTIFERTEXTCTRL);
+    pUniqueIdentiferTextCtrl->SetHint("Unique identifier");
+    pUniqueIdentiferTextCtrl->SetToolTip("Enter a unique identifier, ticket number, or other "
+                                         "identifier to associate a task with");
+
+    /* Task Attributes control flex grid sizer */
+    auto taskAttributesControlFlexGridSizer = new wxFlexGridSizer(2, FromDIP(6), FromDIP(6));
+    taskAttributesControlFlexGridSizer->AddGrowableCol(1, 1);
+    taskAttributesStaticBoxSizer->Add(
+        taskAttributesControlFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
+    taskAttributesControlFlexGridSizer->Add(0, 0);
+    taskAttributesControlFlexGridSizer->Add(
+        pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    taskAttributesControlFlexGridSizer->Add(
+        uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CentreVertical());
+    taskAttributesControlFlexGridSizer->Add(
+        pUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    // CHOICES
+
+    /* Client choice control */
+    auto clientLabel = new wxStaticText(this, wxID_ANY, "Client");
+    pClientChoiceCtrl = new wxChoice(this, tksIDC_CLIENTCHOICECTRL);
+    pClientChoiceCtrl->SetToolTip("Select client to associate task with");
+
+    /* Project choice control */
+    auto projectLabel = new wxStaticText(this, wxID_ANY, "Project");
+    pProjectChoiceCtrl = new wxChoice(this, tksIDC_PROJECTCHOICECTRL);
+    pProjectChoiceCtrl->SetToolTip("Select project to associate task with");
+
+    /* Associated categories control */
+    pShowProjectAssociatedCategoriesCheckBoxCtrl = new wxCheckBox(this,
+        tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
+        "Only show associated categories");
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetToolTip(
+        "Only show categories associated to selected project");
+
+    /* Category choice control*/
+    auto categoryLabel = new wxStaticText(this, wxID_ANY, "Category");
+    pCategoryChoiceCtrl = new wxChoice(this, tksIDC_CATEGORYCHOICECTRL);
+    pCategoryChoiceCtrl->SetToolTip("Select project to associate task with");
+
+    leftSizer->Add(clientLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    leftSizer->Add(pClientChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    leftSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    leftSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    leftSizer->Add(0, 0);
+    leftSizer->Add(
+        pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    leftSizer->Add(categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    leftSizer->Add(pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Begin edit metadata controls */
+
+    /* Horizontal Line */
+    auto line1 = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line1, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(4)).Expand());
 
     /* Date Created text control */
-    auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
+    auto dateCreatedLabel = new wxStaticText(this, wxID_ANY, "Date Created");
 
-    pDateCreatedReadonlyTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, "-");
+    pDateCreatedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
     pDateCreatedReadonlyTextCtrl->Disable();
 
     /* Date Modified text control */
-    auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
+    auto dateModifiedLabel = new wxStaticText(this, wxID_ANY, "Date Modified");
 
-    pDateModifiedReadonlyTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, "-");
+    pDateModifiedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
     pDateModifiedReadonlyTextCtrl->Disable();
 
-    ///* Is Active checkbox control */
-    pIsActiveCheckBoxCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
-    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
+    /* Is Active checkbox control */
+    pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
+    pIsActiveCheckBoxCtrl->SetToolTip("Toggle the deleted state of an employer");
     pIsActiveCheckBoxCtrl->Disable();
 
     /* Metadata flex grid sizer */
-    auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(6), FromDIP(8));
-    metadataBoxSizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand());
+    auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    leftSizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand());
     metadataFlexGridSizer->AddGrowableCol(1, 1);
 
     metadataFlexGridSizer->Add(
@@ -340,7 +326,7 @@ void TaskDialog::CreateControls()
     metadataFlexGridSizer->Add(0, 0);
     metadataFlexGridSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    /* End of Edit Metadata Controls */
+    /* End of edit metadata controls */
 
     /* End of Left Aligned Controls */
 
@@ -909,7 +895,6 @@ void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)
 
 void TaskDialog::OnOK(wxCommandEvent& event)
 {
-
     if (!Validate()) {
         return;
     }
@@ -958,7 +943,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
         pOkButton->Enable();
     } else {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
