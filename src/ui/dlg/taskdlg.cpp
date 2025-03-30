@@ -159,7 +159,7 @@ void TaskDialog::CreateControls()
     /* Employer Choice Controls */
     auto employerLabel = new wxStaticText(defaultsStaticBox, wxID_ANY, "Employer");
     pEmployerChoiceCtrl = new wxChoice(defaultsStaticBox, tksIDC_EMPLOYERCHOICECTRL);
-    pEmployerChoiceCtrl->SetToolTip("Select an employer to get list of associated projects");
+    pEmployerChoiceCtrl->SetToolTip("Select employer to associate task with");
 
     auto defaultsFlexGridSizer = new wxFlexGridSizer(2, FromDIP(6), FromDIP(8));
     defaultsFlexGridSizer->AddGrowableCol(1, 1);
@@ -185,12 +185,12 @@ void TaskDialog::CreateControls()
     /* Client choice control */
     auto clientLabel = new wxStaticText(selectionsStaticBox, wxID_ANY, "Client");
     pClientChoiceCtrl = new wxChoice(selectionsStaticBox, tksIDC_CLIENTCHOICECTRL);
-    pClientChoiceCtrl->SetToolTip("Select client to refine list of associated projects");
+    pClientChoiceCtrl->SetToolTip("Select client to associate task with");
 
     /* Project choice control */
     auto projectLabel = new wxStaticText(selectionsStaticBox, wxID_ANY, "Project");
     pProjectChoiceCtrl = new wxChoice(selectionsStaticBox, tksIDC_PROJECTCHOICECTRL);
-    pProjectChoiceCtrl->SetToolTip("Task to associate project with");
+    pProjectChoiceCtrl->SetToolTip("Select project to associate task with");
 
     /* Associated categories control */
     pShowProjectAssociatedCategoriesCheckBoxCtrl = new wxCheckBox(selectionsStaticBox,
@@ -202,7 +202,7 @@ void TaskDialog::CreateControls()
     /* Category choice control*/
     auto categoryLabel = new wxStaticText(selectionsStaticBox, wxID_ANY, "Category");
     pCategoryChoiceCtrl = new wxChoice(selectionsStaticBox, tksIDC_CATEGORYCHOICECTRL);
-    pCategoryChoiceCtrl->SetToolTip("Task to associate category with");
+    pCategoryChoiceCtrl->SetToolTip("Select project to associate task with");
 
     /* Choices flex grid sizer */
     auto choiceFlexGridSizer = new wxFlexGridSizer(2, FromDIP(6), FromDIP(18));
@@ -301,10 +301,6 @@ void TaskDialog::CreateControls()
 
     /* Begin Edit Metadata Controls */
 
-    // if (bIsEdit) {
-    //     auto metadataLine = new wxStaticLine(this, wxID_ANY);
-    //     sizer->Add(metadataLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
-
     auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
     auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
     leftSizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
@@ -343,7 +339,6 @@ void TaskDialog::CreateControls()
 
     metadataFlexGridSizer->Add(0, 0);
     metadataFlexGridSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    //}
 
     /* End of Edit Metadata Controls */
 
@@ -420,7 +415,7 @@ void TaskDialog::FillControls()
         pDateContextDatePickerCtrl->SetValue(dateTaskContext);
     } else {
         pLogger->error("TaskDialog::FillControls - wxDateTime failed to parse date \"{0}\". "
-                       "Revert to default date",
+                       "Keep default date",
             mDate);
     }
 
@@ -771,7 +766,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
         pProjectChoiceCtrl->Disable();
 
         if (pCfg->ShowProjectAssociatedCategories()) {
-            ResetCategoryChoiceControl(true);
+            pCategoryChoiceCtrl->Disable();
         }
 
         mEmployerId = -1;
@@ -780,9 +775,6 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     }
 
     mEmployerId = employerIdData->GetValue();
-
-    ResetClientChoiceControl();
-    ResetProjectChoiceControl();
 
     FetchClientEntitiesByEmployer(mEmployerId);
 
@@ -1121,7 +1113,7 @@ bool TaskDialog::TransferDataAndValidate()
 void TaskDialog::ResetClientChoiceControl(bool disable)
 {
     pClientChoiceCtrl->Clear();
-    pClientChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pClientChoiceCtrl->Append("Select client", new ClientData<std::int64_t>(-1));
     pClientChoiceCtrl->SetSelection(0);
     if (disable) {
         pClientChoiceCtrl->Disable();
@@ -1131,7 +1123,7 @@ void TaskDialog::ResetClientChoiceControl(bool disable)
 void TaskDialog::ResetProjectChoiceControl(bool disable)
 {
     pProjectChoiceCtrl->Clear();
-    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pProjectChoiceCtrl->Append("Select project", new ClientData<std::int64_t>(-1));
     pProjectChoiceCtrl->SetSelection(0);
     if (disable) {
         pProjectChoiceCtrl->Disable();
@@ -1141,7 +1133,7 @@ void TaskDialog::ResetProjectChoiceControl(bool disable)
 void TaskDialog::ResetCategoryChoiceControl(bool disable)
 {
     pCategoryChoiceCtrl->Clear();
-    pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pCategoryChoiceCtrl->Append("Select category", new ClientData<std::int64_t>(-1));
     pCategoryChoiceCtrl->SetSelection(0);
     if (disable) {
         pCategoryChoiceCtrl->Disable();
@@ -1185,36 +1177,37 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
     if (rc != 0) {
         std::string message = "Failed to get projects";
         QueueErrorNotificationEvent(message);
-    } else {
-        if (!projects.empty()) {
-            if (!pProjectChoiceCtrl->IsEnabled()) {
-                pProjectChoiceCtrl->Enable();
-            }
+        return;
+    }
 
-            bool hasDefaultProject = false;
-            std::int64_t defaultProjectId = -1;
-
-            for (auto& project : projects) {
-                pProjectChoiceCtrl->Append(
-                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
-
-                if (project.IsDefault) {
-                    hasDefaultProject = true;
-                    defaultProjectId = project.ProjectId;
-                    pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
-                }
-            }
-
-            if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
-                FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
-            } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
-                pCategoryChoiceCtrl->Disable();
-            } else {
-                FetchCategoryEntities(std::nullopt);
-            }
-        } else {
-            pProjectChoiceCtrl->Disable();
+    if (!projects.empty()) {
+        if (!pProjectChoiceCtrl->IsEnabled()) {
+            pProjectChoiceCtrl->Enable();
         }
+
+        bool hasDefaultProject = false;
+        std::int64_t defaultProjectId = -1;
+
+        for (auto& project : projects) {
+            pProjectChoiceCtrl->Append(
+                project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+
+            if (project.IsDefault) {
+                hasDefaultProject = true;
+                defaultProjectId = project.ProjectId;
+                pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+            }
+        }
+
+        if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+            FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
+        } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+            pCategoryChoiceCtrl->Disable();
+        } else {
+            FetchCategoryEntities(std::nullopt);
+        }
+    } else {
+        pProjectChoiceCtrl->Disable();
     }
 }
 
@@ -1233,19 +1226,20 @@ void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> project
     if (rc != 0) {
         std::string message = "Failed to get categories";
         QueueErrorNotificationEvent(message);
-    } else {
-        if (!categories.empty()) {
-            if (!pCategoryChoiceCtrl->IsEnabled()) {
-                pCategoryChoiceCtrl->Enable();
-            }
+        return;
+    }
 
-            for (auto& category : categories) {
-                pCategoryChoiceCtrl->Append(
-                    category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
-            }
-        } else {
-            ResetCategoryChoiceControl(true);
+    if (!categories.empty()) {
+        if (!pCategoryChoiceCtrl->IsEnabled()) {
+            pCategoryChoiceCtrl->Enable();
         }
+
+        for (auto& category : categories) {
+            pCategoryChoiceCtrl->Append(
+                category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
+        }
+    } else {
+        pCategoryChoiceCtrl->Disable();
     }
 }
 
