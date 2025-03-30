@@ -39,10 +39,6 @@ set (SRC_CMODELS
     "models/taskmodel.cpp"
 )
 
-set(SRC_CPERSISTENCE
-    "persistence/exportpersistence.cpp"
-)
-
 set(SRC_REPOS
     "repository/taskrepository.cpp"
     "repository/taskrepositorymodel.cpp"
@@ -113,7 +109,6 @@ set (SRC
     ${SRC_MODELS}
     ${SRC_CMODELS}
     ${SRC_PERSISTENCE}
-    ${SRC_CPERSISTENCE}
     ${SRC_REPOS}
     ${SRC_DIALOGS}
     ${SRC_EXPORTS}

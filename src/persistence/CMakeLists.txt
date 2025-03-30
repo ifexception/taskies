@@ -9,7 +9,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/categoriespersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/workdayspersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/taskspersistence.cpp"
-
+    "${CMAKE_CURRENT_SOURCE_DIR}/exportpersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributegroupspersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributetypespersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributespersistence.cpp"
