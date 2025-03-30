@@ -46,7 +46,7 @@
 #include "../../persistence/projectspersistence.h"
 #include "../../persistence/categoriespersistence.h"
 #include "../../persistence/workdayspersistence.h"
-#include "../../persistence/taskpersistence.h"
+#include "../../persistence/taskspersistence.h"
 
 #include "../../repository/categoryrepositorymodel.h"
 
@@ -289,7 +289,7 @@ void TaskDialog::CreateControls()
 
     /* Horizontal Line */
     auto line1 = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line1, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(4)).Expand());
+    leftSizer->Add(line1, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(4)).Expand());
 
     /* Date Created text control */
     auto dateCreatedLabel = new wxStaticText(this, wxID_ANY, "Date Created");
@@ -531,7 +531,7 @@ void TaskDialog::DataToControls()
 {
     // load task
     Model::TaskModel taskModel;
-    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
     int ret = taskPersistence.GetById(mTaskId, taskModel);
@@ -917,7 +917,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
     mTaskModel.WorkdayId = workdayId;
 
-    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     if (!bIsEdit) {
         std::int64_t taskId = taskPersistence.Create(mTaskModel);
         ret = taskId > 0 ? 0 : -1;

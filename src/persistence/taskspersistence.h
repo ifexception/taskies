@@ -20,10 +20,11 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include <sqlite3.h>
@@ -34,15 +35,16 @@
 
 namespace tks::Persistence
 {
-class TaskPersistence final
+class TasksPersistence final
 {
 public:
-    TaskPersistence() = delete;
-    TaskPersistence(const TaskPersistence&) = delete;
-    TaskPersistence(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~TaskPersistence();
+    TasksPersistence() = delete;
+    TasksPersistence(const TasksPersistence&) = delete;
+    TasksPersistence(const std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
+    ~TasksPersistence();
 
-    TaskPersistence& operator=(const TaskPersistence&) = delete;
+    TasksPersistence& operator=(const TasksPersistence&) = delete;
 
     int GetById(const std::int64_t taskId, /*out*/ Model::TaskModel& model);
     std::int64_t Create(Model::TaskModel& model);
@@ -55,7 +57,8 @@ public:
         TaskDurationType type,
         /*out*/ std::vector<Model::TaskDurationModel>& models);
     int GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
-        /*out*/ std::map<std::string, std::vector<Model::TaskDurationModel>>& durationsGroupedByDate);
+        /*out*/ std::map<std::string, std::vector<Model::TaskDurationModel>>&
+            durationsGroupedByDate);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;

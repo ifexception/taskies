@@ -39,7 +39,7 @@
 #include "../../persistence/projectspersistence.h"
 #include "../../persistence/categoriespersistence.h"
 #include "../../persistence/workdayspersistence.h"
-#include "../../persistence/taskpersistence.h"
+#include "../../persistence/taskspersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -608,7 +608,7 @@ void TaskDialogLegacy::DataToControls()
     // load task
     Model::TaskModel task;
     // FIXME: look into using task repo class to fetch all data in one go
-    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
     int rc = taskPersistence.GetById(mTaskId, task);
@@ -1089,7 +1089,7 @@ void TaskDialogLegacy::OnOK(wxCommandEvent& event)
 
         mTaskModel.WorkdayId = workdayId;
 
-        Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+        Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
         if (!bIsEdit) {
             std::int64_t taskId = taskPersistence.Create(mTaskModel);
             ret = taskId > 0 ? 0 : -1;

@@ -40,7 +40,6 @@ set (SRC_CMODELS
 )
 
 set(SRC_CPERSISTENCE
-    "persistence/taskpersistence.cpp"
     "persistence/exportpersistence.cpp"
 )
 

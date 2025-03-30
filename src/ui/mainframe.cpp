@@ -44,7 +44,7 @@
 #include "../core/environment.h"
 #include "../core/configuration.h"
 
-#include "../persistence/taskpersistence.h"
+#include "../persistence/taskspersistence.h"
 
 #include "../repository/taskrepository.h"
 #include "../repository/taskrepositorymodel.h"
@@ -1014,7 +1014,7 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
     assert(mTaskIdToModify != -1);
 
     std::string description;
-    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
     int rc = taskPersistence.GetDescriptionById(mTaskIdToModify, description);
     if (rc != 0) {
@@ -1050,7 +1050,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 
     if (ret == wxID_OK) {
         bool isActive = false;
-        Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+        Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
         int rc = taskPersistence.IsDeleted(mTaskIdToModify, isActive);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
@@ -1080,7 +1080,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
 
-    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
     int rc = taskPersistence.Delete(mTaskIdToModify);
     if (rc != 0) {
