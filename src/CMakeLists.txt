@@ -30,14 +30,6 @@ message (STATUS "add subdirectory models ${SRC_MODELS}")
 add_subdirectory("persistence")
 message (STATUS "add subdirectory models ${SRC_PERSISTENCE}")
 
-set (SRC_CMODELS
-    "models/employermodel.cpp"
-    "models/clientmodel.cpp"
-    "models/projectmodel.cpp"
-    "models/categorymodel.cpp"
-    "models/workdaymodel.cpp"
-    "models/taskmodel.cpp"
-)
 
 set(SRC_REPOS
     "repository/taskrepository.cpp"
@@ -107,7 +99,6 @@ set (SRC
     "services/export/columnexportmodel.cpp"
     "services/taskduration/taskdurationservice.cpp"
     ${SRC_MODELS}
-    ${SRC_CMODELS}
     ${SRC_PERSISTENCE}
     ${SRC_REPOS}
     ${SRC_DIALOGS}
