@@ -35,6 +35,7 @@
 
 #include "../dataview/tasklistmodel.h"
 
+/* This dialog is deprecated */
 namespace tks
 {
 namespace Core

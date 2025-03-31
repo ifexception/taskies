@@ -75,7 +75,7 @@ enum class MenuIds : int {
     Edit_Attribute,
     View_Reset,
     View_Expand,
-    View_Day,
+    // View_Day,
     View_Preferences,
     Help_About,
 
@@ -109,7 +109,7 @@ static const int ID_EDIT_ATTRIBUTE = static_cast<int>(MenuIds::Edit_Attribute);
 /* View */
 static const int ID_VIEW_RESET = static_cast<int>(MenuIds::View_Reset);
 static const int ID_VIEW_EXPAND = static_cast<int>(MenuIds::View_Expand);
-static const int ID_VIEW_DAY = static_cast<int>(MenuIds::View_Day);
+// static const int ID_VIEW_DAY = static_cast<int>(MenuIds::View_Day);
 static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preferences);
 
 /* Help */
@@ -179,7 +179,7 @@ private:
     void OnEditAttribute(wxCommandEvent& event);
     void OnViewReset(wxCommandEvent& event);
     void OnViewExpand(wxCommandEvent& event);
-    void OnViewDay(wxCommandEvent& event);
+    // void OnViewDay(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     /* Popup Menu Event Handlers */

@@ -112,7 +112,7 @@ EVT_MENU(ID_EDIT_ATTRIBUTE_GROUP, MainFrame::OnEditAttributeGroup)
 EVT_MENU(ID_EDIT_ATTRIBUTE, MainFrame::OnEditAttribute)
 EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_EXPAND, MainFrame::OnViewExpand)
-EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
+// EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Popup Menu Event Handlers */
@@ -340,7 +340,7 @@ void MainFrame::CreateControls()
     auto viewMenu = new wxMenu();
     viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current week");
     viewMenu->Append(ID_VIEW_EXPAND, "&Expand\tCtrl-E", "Expand date procedure");
-    viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
+    // viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
     viewMenu->AppendSeparator();
     auto preferencesMenuItem =
         viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
@@ -842,15 +842,15 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
     TryUpdateSelectedDateAndAllTaskDurations(pDateStore->PrintTodayDate);
 }
 
-void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
-{
-    UI::dlg::DayTaskViewDialog dayTaskView(this,
-        pLogger,
-        pEnv,
-        mDatabaseFilePath,
-        mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
-    dayTaskView.ShowModal();
-}
+// void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
+//{
+//     UI::dlg::DayTaskViewDialog dayTaskView(this,
+//         pLogger,
+//         pEnv,
+//         mDatabaseFilePath,
+//         mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
+//     dayTaskView.ShowModal();
+// }
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
