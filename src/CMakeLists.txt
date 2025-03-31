@@ -21,14 +21,17 @@ message (STATUS "toml11 found: ${toml11_FOUND}")
 message (STATUS "nlohmann_json found: ${nlohmann_json_FOUND}")
 message (STATUS "fmt found: ${fmt_FOUND}")
 
+add_subdirectory("common")
+message (STATUS "add subdirectory common")
+
 add_subdirectory("ui")
-message (STATUS "add subdirectory ui ${SRC_UI}")
+message (STATUS "add subdirectory ui")
 
 add_subdirectory("models")
-message (STATUS "add subdirectory models ${SRC_MODELS}")
+message (STATUS "add subdirectory models")
 
 add_subdirectory("persistence")
-message (STATUS "add subdirectory models ${SRC_PERSISTENCE}")
+message (STATUS "add subdirectory persistence")
 
 
 set(SRC_REPOS
@@ -68,10 +71,6 @@ set (SRC
     "ui/statusbar.cpp"
     "resources.rc"
     "application.manifest"
-    "common/common.cpp"
-    "common/enums.cpp"
-    "common/constants.cpp"
-    "common/validator.cpp"
     "ipc/applicationoptionsconnection.cpp"
     "ipc/server.cpp"
     "services/export/projectionbuilder.cpp"
@@ -86,6 +85,7 @@ set (SRC
     "services/export/csvexportmappedoptions.cpp"
     "services/export/columnexportmodel.cpp"
     "services/taskduration/taskdurationservice.cpp"
+    ${SRC_COMMON}
     ${SRC_MODELS}
     ${SRC_PERSISTENCE}
     ${SRC_REPOS}
