@@ -2,9 +2,11 @@ cmake_minimum_required (VERSION 3.22)
 project ("Taskies")
 
 add_subdirectory("attributes")
+add_subdirectory("preferences")
 
 set (
     SRC_DIALOGS
+    "${CMAKE_CURRENT_SOURCE_DIR}/aboutdlg.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/employerdlg.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/clientdlg.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/projectdlg.cpp"
@@ -20,6 +22,7 @@ set (
 set (
     SRC_DLG
     ${SRC_ATTR_DLG}
+    ${SRC_PREFERENCES_DLG}
     ${SRC_DIALOGS}
     PARENT_SCOPE
 )

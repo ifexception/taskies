@@ -22,7 +22,7 @@ message (STATUS "nlohmann_json found: ${nlohmann_json_FOUND}")
 message (STATUS "fmt found: ${fmt_FOUND}")
 
 add_subdirectory("ui")
-message (STATUS "add subdirectory ui.dlg ${SRC_UI}")
+message (STATUS "add subdirectory ui ${SRC_UI}")
 
 add_subdirectory("models")
 message (STATUS "add subdirectory models ${SRC_MODELS}")
@@ -45,13 +45,6 @@ set(SRC_EXPORTS
 )
 
 set (SRC_DIALOGS
-    "ui/dlg/aboutdlg.cpp"
-    "ui/dlg/preferences/preferencesdlg.cpp"
-    "ui/dlg/preferences/preferencesgeneralpage.cpp"
-    "ui/dlg/preferences/preferencesdatabasepage.cpp"
-    "ui/dlg/preferences/preferencestaskspage.cpp"
-    "ui/dlg/preferences/preferencestasksviewpage.cpp"
-    "ui/dlg/preferences/preferencesexportpage.cpp"
     "ui/dlg/daytaskviewdlg.cpp"
     "ui/wizards/setupwizard.cpp"
 )
