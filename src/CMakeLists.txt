@@ -44,11 +44,6 @@ set(SRC_EXPORTS
     "ui/dlg/exports/quickexporttocsvdlg.cpp"
 )
 
-set (SRC_DIALOGS
-    "ui/dlg/daytaskviewdlg.cpp"
-    "ui/wizards/setupwizard.cpp"
-)
-
 set (SRC
     "main.cpp"
     "application.cpp"

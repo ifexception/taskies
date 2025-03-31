@@ -59,7 +59,7 @@
 #include "../ui/dlg/aboutdlg.h"
 #include "../ui/dlg/preferences/preferencesdlg.h"
 #include "../ui/dlg/taskdlglegacy.h"
-#include "../ui/dlg/daytaskviewdlg.h"
+// #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exports/exporttocsvdlg.h"
 #include "../ui/dlg/exports/quickexporttocsvdlg.h"
 #include "../ui/dlg/taskdlg.h"
