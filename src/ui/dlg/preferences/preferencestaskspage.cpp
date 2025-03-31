@@ -147,12 +147,12 @@ void PreferencesTasksPage::CreateControls()
     auto taskIncrementBoxSizer = new wxStaticBoxSizer(taskIncrementBox, wxHORIZONTAL);
     sizer->Add(taskIncrementBoxSizer, wxSizerFlags().Expand());
 
-    /* Time Increment label */
+    /* Time Duration label */
     auto timeIncrementLabel =
-        new wxStaticText(taskIncrementBox, wxID_ANY, "Task Time Increment (in minutes)");
+        new wxStaticText(taskIncrementBox, wxID_ANY, "Task Duration (in minutes)");
 
     pMinutesIncrementChoiceCtrl = new wxChoice(taskIncrementBox, tksIDC_MINUTES_INCREMENT);
-    pMinutesIncrementChoiceCtrl->SetToolTip("Set task minutes incrementer value");
+    pMinutesIncrementChoiceCtrl->SetToolTip("Set task duration increment value");
 
     taskIncrementBoxSizer->Add(
         timeIncrementLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
@@ -253,7 +253,7 @@ void PreferencesTasksPage::ConfigureEventBindings()
 
 void PreferencesTasksPage::FillControls()
 {
-    pMinutesIncrementChoiceCtrl->Append("Please select");
+    pMinutesIncrementChoiceCtrl->Append("Select duration");
     pMinutesIncrementChoiceCtrl->Append("1", new ClientData<int>(1));
     pMinutesIncrementChoiceCtrl->Append("5", new ClientData<int>(5));
     pMinutesIncrementChoiceCtrl->Append("15", new ClientData<int>(15));
@@ -261,7 +261,7 @@ void PreferencesTasksPage::FillControls()
 
     pMinutesIncrementChoiceCtrl->SetSelection(0);
 
-    pReminderIntervalChoiceCtrl->Append("Please select");
+    pReminderIntervalChoiceCtrl->Append("Select reminder");
 
 #ifdef TKS_DEBUG
     pReminderIntervalChoiceCtrl->Append("1", new ClientData<int>(1));
