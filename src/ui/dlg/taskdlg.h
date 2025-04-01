@@ -104,20 +104,21 @@ private:
     wxDatePickerCtrl* pDateContextDatePickerCtrl;
     wxChoice* pEmployerChoiceCtrl;
 
+    wxSpinCtrl* pTimeHoursSpinCtrl;
+    wxSpinCtrl* pTimeMinutesSpinCtrl;
+
+    wxCheckBox* pBillableCheckBoxCtrl;
+    wxTextCtrl* pUniqueIdentiferTextCtrl;
+    wxChoice* pAttributeGroupChoiceCtrl;
+
     wxChoice* pClientChoiceCtrl;
     wxChoice* pProjectChoiceCtrl;
     wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
     wxChoice* pCategoryChoiceCtrl;
 
-    wxCheckBox* pBillableCheckBoxCtrl;
-    wxTextCtrl* pUniqueIdentiferTextCtrl;
-
-    wxSpinCtrl* pTimeHoursSpinCtrl;
-    wxSpinCtrl* pTimeMinutesSpinCtrl;
+    wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxTextCtrl* pTaskDescriptionTextCtrl;
-
-    wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxButton* pOkButton;
     wxButton* pCancelButton;
@@ -140,6 +141,7 @@ private:
         tksIDC_CATEGORYCHOICECTRL,
         tksIDC_BILLABLECHECKBOXCTRL,
         tksIDC_UNIQUEIDENTIFERTEXTCTRL,
+        tksIDC_ATTRIBUTEGROUPCHOICECTRL,
         tksIDC_TIMEHOURSSPINCTRL,
         tksIDC_TIMEMINUTESSPINCTRL,
         tksIDC_TASKDESCRIPTIONTEXTCTRL,
