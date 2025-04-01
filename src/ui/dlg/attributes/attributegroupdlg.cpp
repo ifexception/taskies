@@ -59,8 +59,6 @@ AttributeGroupDialog::AttributeGroupDialog(wxWindow* parent,
     , mAttributeGroupModel()
     , pNameTextCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
-    , pDateCreatedReadonlyTextCtrl(nullptr)
-    , pDateModifiedReadonlyTextCtrl(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
@@ -131,52 +129,12 @@ void AttributeGroupDialog::CreateControls()
     descriptionBoxSizer->Add(
         pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    /* Begin edit metadata controls */
-
-    /* Horizontal Line */
-    auto line1 = new wxStaticLine(this, wxID_ANY);
-    mainSizer->Add(line1, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(4)).Expand());
-
-    /*auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
-    auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
-    mainSizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());*/
-
-    /* Date Created text control */
-    auto dateCreatedLabel = new wxStaticText(this, wxID_ANY, "Date Created");
-
-    pDateCreatedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
-    pDateCreatedReadonlyTextCtrl->Disable();
-
-    /* Date Modified text control */
-    auto dateModifiedLabel = new wxStaticText(this, wxID_ANY, "Date Modified");
-
-    pDateModifiedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
-    pDateModifiedReadonlyTextCtrl->Disable();
-
     /* Is Active checkbox control */
     pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
     pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
     pIsActiveCheckBoxCtrl->Disable();
 
-    /* Metadata flex grid sizer */
-    auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-    mainSizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand());
-    metadataFlexGridSizer->AddGrowableCol(1, 1);
-
-    metadataFlexGridSizer->Add(
-        dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    metadataFlexGridSizer->Add(
-        pDateCreatedReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    metadataFlexGridSizer->Add(
-        dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    metadataFlexGridSizer->Add(
-        pDateModifiedReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    metadataFlexGridSizer->Add(0, 0);
-    metadataFlexGridSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    /* End of edit metadata controls */
+    mainSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
@@ -244,12 +202,10 @@ void AttributeGroupDialog::DataToControls()
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         pNameTextCtrl->SetValue(attributeGroupModel.Name);
-        std::string descriptionValue = attributeGroupModel.Description.has_value()
-            ? attributeGroupModel.Description.value()
-            : "";
-        pDescriptionTextCtrl->SetValue(descriptionValue);
-        pDateCreatedReadonlyTextCtrl->SetValue(attributeGroupModel.GetDateCreatedString());
-        pDateModifiedReadonlyTextCtrl->SetValue(attributeGroupModel.GetDateModifiedString());
+
+        if (attributeGroupModel.Description.has_value()) {
+            pDescriptionTextCtrl->SetValue(attributeGroupModel.Description.value());
+        }
         pIsActiveCheckBoxCtrl->SetValue(attributeGroupModel.IsActive);
 
         pIsActiveCheckBoxCtrl->Enable();
@@ -355,10 +311,8 @@ bool AttributeGroupDialog::Validate()
     }
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
-    if (!description.empty() &&
-        (description.length() < MIN_CHARACTER_COUNT ||
-            description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)
-    ) {
+    if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
+                                    description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
         auto validationMessage =
             fmt::format("Description must be at minimum {0} or maximum {1} characters long",
                 MIN_CHARACTER_COUNT,

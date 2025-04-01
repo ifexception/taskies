@@ -67,8 +67,6 @@ AttributeDialog::AttributeDialog(wxWindow* parent,
     , pDescriptionTextCtrl(nullptr)
     , pAttributeGroupChoiceCtrl(nullptr)
     , pAttributeTypeChoiceCtrl(nullptr)
-    , pDateCreatedReadonlyTextCtrl(nullptr)
-    , pDateModifiedReadonlyTextCtrl(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
     , pAddAnotherCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
@@ -170,52 +168,12 @@ void AttributeDialog::CreateControls()
     mainSizer->Add(fieldTypeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     mainSizer->Add(pAttributeTypeChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    /* Begin edit metadata controls */
-
-    /* Horizontal Line */
-    auto line1 = new wxStaticLine(this, wxID_ANY);
-    mainSizer->Add(line1, wxSizerFlags().Border(wxTOP | wxBOTTOM, FromDIP(4)).Expand());
-
-    /*auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
-    auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
-    mainSizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());*/
-
-    /* Date Created text control */
-    auto dateCreatedLabel = new wxStaticText(this, wxID_ANY, "Date Created");
-
-    pDateCreatedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
-    pDateCreatedReadonlyTextCtrl->Disable();
-
-    /* Date Modified text control */
-    auto dateModifiedLabel = new wxStaticText(this, wxID_ANY, "Date Modified");
-
-    pDateModifiedReadonlyTextCtrl = new wxTextCtrl(this, wxID_ANY, "-");
-    pDateModifiedReadonlyTextCtrl->Disable();
-
     /* Is Active checkbox control */
     pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
     pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
     pIsActiveCheckBoxCtrl->Disable();
 
-    /* Metadata flex grid sizer */
-    auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-    mainSizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand());
-    metadataFlexGridSizer->AddGrowableCol(1, 1);
-
-    metadataFlexGridSizer->Add(
-        dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    metadataFlexGridSizer->Add(
-        pDateCreatedReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    metadataFlexGridSizer->Add(
-        dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    metadataFlexGridSizer->Add(
-        pDateModifiedReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    metadataFlexGridSizer->Add(0, 0);
-    metadataFlexGridSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    /* End of edit metadata controls */
+    mainSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
@@ -232,7 +190,7 @@ void AttributeDialog::CreateControls()
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
-    buttonsSizer->Add(pAddAnotherCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pAddAnotherCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     buttonsSizer->AddStretchSpacer();
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -370,8 +328,6 @@ void AttributeDialog::DataToControls()
             }
         }
 
-        pDateCreatedReadonlyTextCtrl->SetValue(mAttributeModel.GetDateCreatedString());
-        pDateModifiedReadonlyTextCtrl->SetValue(mAttributeModel.GetDateModifiedString());
         pIsActiveCheckBoxCtrl->SetValue(mAttributeModel.IsActive);
 
         pIsActiveCheckBoxCtrl->Enable();

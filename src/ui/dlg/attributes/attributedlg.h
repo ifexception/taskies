@@ -77,8 +77,6 @@ private:
     wxChoice* pAttributeGroupChoiceCtrl;
     wxChoice* pAttributeTypeChoiceCtrl;
 
-    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
-    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxCheckBox* pAddAnotherCheckBoxCtrl;

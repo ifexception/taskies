@@ -76,8 +76,6 @@ private:
 
     wxChoice* pEmployerChoiceCtrl;
 
-    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
-    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxButton* pOkButton;

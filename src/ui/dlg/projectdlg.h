@@ -84,8 +84,6 @@ private:
     wxChoice* pEmployerChoiceCtrl;
     wxChoice* pClientChoiceCtrl;
 
-    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
-    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxButton* pOkButton;

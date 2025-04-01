@@ -73,8 +73,6 @@ private:
 
     wxTextCtrl* pDescriptionTextCtrl;
 
-    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
-    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxButton* pOkButton;

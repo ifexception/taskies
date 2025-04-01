@@ -117,8 +117,6 @@ private:
 
     wxTextCtrl* pTaskDescriptionTextCtrl;
 
-    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
-    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxButton* pOkButton;
