@@ -40,6 +40,7 @@
 #include "../../models/clientmodel.h"
 #include "../../models/projectmodel.h"
 #include "../../models/categorymodel.h"
+#include "../../models/attributegroupmodel.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/ClientsPersistence.h"
@@ -47,6 +48,7 @@
 #include "../../persistence/categoriespersistence.h"
 #include "../../persistence/workdayspersistence.h"
 #include "../../persistence/taskspersistence.h"
+#include "../../persistence/attributegroupspersistence.h"
 
 #include "../../repository/categoryrepositorymodel.h"
 
@@ -213,8 +215,9 @@ void TaskDialog::CreateControls()
     timeSizer->AddStretchSpacer(1);
     timeSizer->Add(pTimeHoursSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     timeSizer->Add(pTimeMinutesSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    timeStaticBoxSizer->Add(
-        timeSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand()); /* Task Attributes box */
+    timeStaticBoxSizer->Add(timeSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Task Attributes box */
     auto taskAttributesStaticBox = new wxStaticBox(this, wxID_ANY, "Attributes");
     auto taskAttributesStaticBoxSizer = new wxStaticBoxSizer(taskAttributesStaticBox, wxVERTICAL);
     leftSizer->Add(taskAttributesStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
@@ -246,6 +249,17 @@ void TaskDialog::CreateControls()
         uniqueIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CentreVertical());
     taskAttributesControlFlexGridSizer->Add(
         pUniqueIdentiferTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Attrbute Group choice control */
+    auto attributeGroupLabel =
+        new wxStaticText(taskAttributesStaticBox, wxID_ANY, "Attribute Group");
+    pAttributeGroupChoiceCtrl =
+        new wxChoice(taskAttributesStaticBox, tksIDC_ATTRIBUTEGROUPCHOICECTRL);
+
+    taskAttributesStaticBoxSizer->Add(
+        attributeGroupLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    taskAttributesStaticBoxSizer->Add(
+        pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     // CHOICES
 
@@ -368,6 +382,26 @@ void TaskDialog::FillControls()
             mDate);
     }
 
+    std::string defaultSearhTerm = "";
+
+    pAttributeGroupChoiceCtrl->Append("Select attribute group", new ClientData<std::int64_t>(-1));
+    pAttributeGroupChoiceCtrl->SetSelection(0);
+
+    // Fill Attribute Group choice control with data
+    std::vector<Model::AttributeGroupModel> attributeGroups;
+    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributeGroupsPersistence.Filter(defaultSearhTerm, attributeGroups);
+    if (rc != 0) {
+        std::string message = "Failed to get employers";
+        QueueErrorNotificationEvent(message);
+    } else {
+        for (const auto& attributeGroup : attributeGroups) {
+            pAttributeGroupChoiceCtrl->Append(
+                attributeGroup.Name, new ClientData<std::int64_t>(attributeGroup.AttributeGroupId));
+        }
+    }
+
     pEmployerChoiceCtrl->Append("Select employer", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);
 
@@ -381,12 +415,10 @@ void TaskDialog::FillControls()
 
     // Fill controls with data
 
-    std::string defaultSearhTerm = "";
-
     std::vector<Model::EmployerModel> employers;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.Filter(defaultSearhTerm, employers);
+    rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
         std::string message = "Failed to get employers";
         QueueErrorNotificationEvent(message);
