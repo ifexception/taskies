@@ -85,6 +85,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pBillableCheckBoxCtrl(nullptr)
     , pUniqueIdentiferTextCtrl(nullptr)
     , pAttributeGroupChoiceCtrl(nullptr)
+    , pManageAttributesButton(nullptr)
     , pEmployerChoiceCtrl(nullptr)
     , pClientChoiceCtrl(nullptr)
     , pProjectChoiceCtrl(nullptr)
@@ -261,6 +262,19 @@ void TaskDialog::CreateControls()
         attributeGroupLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     taskAttributesStaticBoxSizer->Add(
         pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Manage attributes button */
+    pManageAttributesButton = new wxButton(
+        taskAttributesStaticBox, tksIDC_MANAGEATTRIBUTESBUTTON, "Manage Attributes...");
+    pManageAttributesButton->SetToolTip("Manage attributes to associate with task");
+    pManageAttributesButton->Disable();
+
+    auto manageAttributesHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    taskAttributesStaticBoxSizer->Add(manageAttributesHorizontalSizer, wxSizerFlags().Expand());
+
+    manageAttributesHorizontalSizer->AddStretchSpacer(1);
+    manageAttributesHorizontalSizer->Add(
+        pManageAttributesButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     // CHOICES
 
@@ -776,9 +790,11 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
     std::int64_t attributeGroupId = attributeGroupIdData->GetValue();
 
     if (attributeGroupId < 1) {
+        pManageAttributesButton->Disable();
         return;
     }
 
+    pManageAttributesButton->Enable();
     mAttributeGroupId = attributeGroupId;
 }
 

@@ -112,6 +112,7 @@ private:
     wxCheckBox* pBillableCheckBoxCtrl;
     wxTextCtrl* pUniqueIdentiferTextCtrl;
     wxChoice* pAttributeGroupChoiceCtrl;
+    wxButton* pManageAttributesButton;
 
     wxChoice* pClientChoiceCtrl;
     wxChoice* pProjectChoiceCtrl;
@@ -145,6 +146,7 @@ private:
         tksIDC_BILLABLECHECKBOXCTRL,
         tksIDC_UNIQUEIDENTIFERTEXTCTRL,
         tksIDC_ATTRIBUTEGROUPCHOICECTRL,
+        tksIDC_MANAGEATTRIBUTESBUTTON,
         tksIDC_TIMEHOURSSPINCTRL,
         tksIDC_TIMEMINUTESSPINCTRL,
         tksIDC_TASKDESCRIPTIONTEXTCTRL,
