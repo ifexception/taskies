@@ -97,6 +97,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mDate()
     , mOldDate()
     , mEmployerId(-1)
+    , mAttributeGroupId(-1)
     , mTaskModel()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
@@ -387,6 +388,19 @@ void TaskDialog::FillControls()
     pAttributeGroupChoiceCtrl->Append("Select attribute group", new ClientData<std::int64_t>(-1));
     pAttributeGroupChoiceCtrl->SetSelection(0);
 
+    pEmployerChoiceCtrl->Append("Select employer", new ClientData<std::int64_t>(-1));
+    pEmployerChoiceCtrl->SetSelection(0);
+
+    ResetClientChoiceControl(true);
+
+    ResetProjectChoiceControl(true);
+
+    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
+
+    ResetCategoryChoiceControl();
+
+    // Fill controls with data
+
     // Fill Attribute Group choice control with data
     std::vector<Model::AttributeGroupModel> attributeGroups;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
@@ -401,19 +415,6 @@ void TaskDialog::FillControls()
                 attributeGroup.Name, new ClientData<std::int64_t>(attributeGroup.AttributeGroupId));
         }
     }
-
-    pEmployerChoiceCtrl->Append("Select employer", new ClientData<std::int64_t>(-1));
-    pEmployerChoiceCtrl->SetSelection(0);
-
-    ResetClientChoiceControl(true);
-
-    ResetProjectChoiceControl(true);
-
-    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
-
-    ResetCategoryChoiceControl();
-
-    // Fill controls with data
 
     std::vector<Model::EmployerModel> employers;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
@@ -473,6 +474,12 @@ void TaskDialog::ConfigureEventBindings()
     pEmployerChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &TaskDialog::OnEmployerChoiceSelection,
+        this
+    );
+
+    pAttributeGroupChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &TaskDialog::OnAttributeGroupChoiceSelection,
         this
     );
 
@@ -759,6 +766,20 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 
     FetchProjectEntitiesByEmployerOrClient(
         std::make_optional<std::int64_t>(mEmployerId), std::nullopt);
+}
+
+void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
+{
+    int index = event.GetSelection();
+    ClientData<std::int64_t>* attributeGroupIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pAttributeGroupChoiceCtrl->GetClientObject(index));
+    std::int64_t attributeGroupId = attributeGroupIdData->GetValue();
+
+    if (attributeGroupId < 1) {
+        return;
+    }
+
+    mAttributeGroupId = attributeGroupId;
 }
 
 void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)

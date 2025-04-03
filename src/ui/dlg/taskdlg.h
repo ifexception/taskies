@@ -72,6 +72,8 @@ private:
     void OnDateChange(wxDateEvent& event);
     void OnEmployerChoiceSelection(wxCommandEvent& event);
 
+    void OnAttributeGroupChoiceSelection(wxCommandEvent& event);
+
     void OnClientChoiceSelection(wxCommandEvent& event);
     void OnProjectChoiceSelection(wxCommandEvent& event);
     void OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event);
@@ -129,6 +131,7 @@ private:
     std::string mDate;
     std::string mOldDate;
     std::int64_t mEmployerId;
+    std::int64_t mAttributeGroupId;
 
     Model::TaskModel mTaskModel;
 
