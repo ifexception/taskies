@@ -14,6 +14,7 @@ set (
     "${CMAKE_CURRENT_SOURCE_DIR}/categorydlg.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/taskdlg.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/taskdlglegacy.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/taskmanageattributesdlg.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/editlistdlg.cpp"
 )
 
