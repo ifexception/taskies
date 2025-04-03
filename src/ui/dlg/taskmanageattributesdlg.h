@@ -33,5 +33,44 @@
 
 namespace tks::UI::dlg
 {
+class TaskManageAttributesDialog final : public wxDialog
+{
+public:
+    TaskManageAttributesDialog() = delete;
+    TaskManageAttributesDialog(const TaskManageAttributesDialog&) = delete;
+    TaskManageAttributesDialog(wxWindow* parent,
+        std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath,
+        std::int64_t attributeGroupId,
+        bool isEdit = false,
+        std::int64_t taskId = -1,
+        const wxString& name = "taskmanageattributedlg");
+    virtual ~TaskManageAttributesDialog() = default;
 
-}
+    TaskManageAttributesDialog& operator=(const TaskManageAttributesDialog&) = delete;
+
+private:
+    void Create();
+
+    void CreateControls();
+    void FillControls();
+    void ConfigureEventBindings();
+    void DataToControls();
+
+    void QueueErrorNotificationEvent(const std::string& message);
+
+    wxWindow* pParent;
+
+    wxTextCtrl* pAttributeGroupNameTextCtrl;
+
+    wxButton* pOKButton;
+    wxButton* pCancelButton;
+
+    std::shared_ptr<spdlog::logger> pLogger;
+
+    std::string mDatabaseFilePath;
+    std::int64_t mAttributeGroupId;
+    bool bIsEdit;
+    std::int64_t mTaskId;
+};
+} // namespace tks::UI::dlg
