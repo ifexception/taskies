@@ -26,6 +26,8 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
+#include "taskmanageattributesdlg.h"
+
 #include "../clientdata.h"
 #include "../events.h"
 #include "../notificationclientdata.h"
@@ -313,12 +315,17 @@ void TaskDialog::CreateControls()
     leftSizer->Add(categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     leftSizer->Add(pCategoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+    /* Is Active static box control */
+    auto isActiveStaticBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    auto isActiveStaticBoxSizer = new wxStaticBoxSizer(isActiveStaticBox, wxHORIZONTAL);
+    leftSizer->Add(isActiveStaticBoxSizer, wxSizerFlags().Expand());
+
     /* Is Active checkbox control */
     pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
     pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
     pIsActiveCheckBoxCtrl->Disable();
 
-    leftSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    isActiveStaticBoxSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* End of Left Aligned Controls */
 
@@ -495,6 +502,13 @@ void TaskDialog::ConfigureEventBindings()
         wxEVT_CHOICE,
         &TaskDialog::OnAttributeGroupChoiceSelection,
         this
+    );
+
+    pManageAttributesButton->Bind(
+        wxEVT_BUTTON,
+        &TaskDialog::OnManageAttributes,
+        this,
+        tksIDC_MANAGEATTRIBUTESBUTTON
     );
 
     pClientChoiceCtrl->Bind(
@@ -796,6 +810,19 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
 
     pManageAttributesButton->Enable();
     mAttributeGroupId = attributeGroupId;
+}
+
+void TaskDialog::OnManageAttributes(wxCommandEvent& WXUNUSED(event))
+{
+    const std::string TAG = "TaskDialog::OnManageAttributes";
+
+    dlg::TaskManageAttributesDialog taskManageAttributes(
+        this, pLogger, mDatabaseFilePath, mAttributeGroupId);
+    int ret = taskManageAttributes.ShowModal();
+
+    if (ret == wxID_OK) {
+        pLogger->info("{0} - Manage Attribute dialog returned OK", TAG);
+    }
 }
 
 void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)

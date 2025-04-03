@@ -73,6 +73,7 @@ private:
     void OnEmployerChoiceSelection(wxCommandEvent& event);
 
     void OnAttributeGroupChoiceSelection(wxCommandEvent& event);
+    void OnManageAttributes(wxCommandEvent& event);
 
     void OnClientChoiceSelection(wxCommandEvent& event);
     void OnProjectChoiceSelection(wxCommandEvent& event);

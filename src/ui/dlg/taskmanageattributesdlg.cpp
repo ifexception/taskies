@@ -92,7 +92,7 @@ void TaskManageAttributesDialog::CreateControls()
     attributeGroupNameHorizontalSizer->Add(
         attributeGroupNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     attributeGroupNameHorizontalSizer->Add(
-        pAttributeGroupNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        pAttributeGroupNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Proportion(1));
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
