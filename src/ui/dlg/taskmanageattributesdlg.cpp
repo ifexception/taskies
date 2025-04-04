@@ -58,6 +58,7 @@ TaskManageAttributesDialog::TaskManageAttributesDialog(wxWindow* parent,
     , pAttributesPanel(nullptr)
     , pOKButton(nullptr)
     , pCancelButton(nullptr)
+    , mAttributeControlCounter(0)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -151,6 +152,7 @@ void TaskManageAttributesDialog::FillControls()
     if (rc != 0) {
         std::string message = "Failed to fetch attribute group";
         QueueErrorNotificationEvent(message);
+        return;
     } else {
         pAttributeGroupNameTextCtrl->ChangeValue(attributeGroupModel.Name);
     }
@@ -159,6 +161,8 @@ void TaskManageAttributesDialog::FillControls()
 void TaskManageAttributesDialog::ConfigureEventBindings() {}
 
 void TaskManageAttributesDialog::DataToControls() {}
+
+void TaskManageAttributesDialog::AppendAttributeControl() {}
 
 void TaskManageAttributesDialog::QueueErrorNotificationEvent(const std::string& message)
 {

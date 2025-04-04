@@ -79,5 +79,10 @@ private:
     std::int64_t mAttributeGroupId;
     bool bIsEdit;
     std::int64_t mTaskId;
+    int mAttributeControlCounter;
+
+    enum {
+        tksIDC_ATTRIBUTECONTROLBASE = wxID_HIGHEST + 101
+    };
 };
 } // namespace tks::UI::dlg
