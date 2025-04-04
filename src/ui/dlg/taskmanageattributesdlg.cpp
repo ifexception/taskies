@@ -52,7 +52,10 @@ TaskManageAttributesDialog::TaskManageAttributesDialog(wxWindow* parent,
     , mAttributeGroupId(attributeGroupId)
     , bIsEdit(isEdit)
     , mTaskId(taskId)
+    , pMainSizer(nullptr)
     , pAttributeGroupNameTextCtrl(nullptr)
+    , pNoAttributesPanel(nullptr)
+    , pAttributesPanel(nullptr)
     , pOKButton(nullptr)
     , pCancelButton(nullptr)
 {
@@ -78,11 +81,11 @@ void TaskManageAttributesDialog::Create()
 void TaskManageAttributesDialog::CreateControls()
 {
     /* Main Sizer */
-    auto mainSizer = new wxBoxSizer(wxVERTICAL);
+    pMainSizer = new wxBoxSizer(wxVERTICAL);
 
     /* Attribute group name horizontal sizer */
     auto attributeGroupNameHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
-    mainSizer->Add(attributeGroupNameHorizontalSizer, wxSizerFlags().Expand());
+    pMainSizer->Add(attributeGroupNameHorizontalSizer, wxSizerFlags().Expand());
 
     /* Attribute group name text control */
     auto attributeGroupNameLabel = new wxStaticText(this, wxID_ANY, "Attribute Group Name");
@@ -94,9 +97,28 @@ void TaskManageAttributesDialog::CreateControls()
     attributeGroupNameHorizontalSizer->Add(
         pAttributeGroupNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Proportion(1));
 
+    /* Static Line */
+    auto line1 = new wxStaticLine(this, wxID_ANY);
+    pMainSizer->Add(line1, wxSizerFlags().Expand());
+
+    /* No attributes panel */
+    pNoAttributesPanel = new wxPanel(this, wxID_ANY);
+
+    auto noAttributesPanelSizer = new wxBoxSizer(wxVERTICAL);
+    pNoAttributesPanel->SetSizer(noAttributesPanelSizer);
+
+    auto noAttributesLabel = new wxStaticText(pNoAttributesPanel, wxID_ANY, "No attributes found");
+    noAttributesLabel->SetFont(
+        wxFont(9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
+
+    noAttributesPanelSizer->Add(
+        noAttributesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
+
+    pMainSizer->Add(pNoAttributesPanel, wxSizerFlags().Expand());
+
     /* Horizontal Line */
-    auto line = new wxStaticLine(this, wxID_ANY);
-    mainSizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    auto line2 = new wxStaticLine(this, wxID_ANY);
+    pMainSizer->Add(line2, wxSizerFlags().Expand());
 
     /* Begin Button Controls */
 
@@ -112,12 +134,12 @@ void TaskManageAttributesDialog::CreateControls()
 
     buttonsSizer->Add(pOKButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    mainSizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    pMainSizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
     /* End of Button Controls */
 
-    SetSizerAndFit(mainSizer);
-    mainSizer->SetSizeHints(this);
+    SetSizerAndFit(pMainSizer);
+    pMainSizer->SetSizeHints(this);
 }
 
 void TaskManageAttributesDialog::FillControls()

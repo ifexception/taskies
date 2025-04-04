@@ -57,11 +57,18 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
+    void AppendAttributeControl();
+
     void QueueErrorNotificationEvent(const std::string& message);
 
     wxWindow* pParent;
 
+    wxSizer* pMainSizer;
+
     wxTextCtrl* pAttributeGroupNameTextCtrl;
+
+    wxPanel* pNoAttributesPanel;
+    wxPanel* pAttributesPanel;
 
     wxButton* pOKButton;
     wxButton* pCancelButton;
