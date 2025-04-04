@@ -19,6 +19,8 @@
 
 #include "taskmanageattributesdlg.h"
 
+#include <vector>
+
 #include <wx/statline.h>
 
 #include "../events.h"
@@ -27,8 +29,10 @@
 #include "../../common/common.h"
 
 #include "../../persistence/attributegroupspersistence.h"
+#include "../../persistence/attributespersistence.h"
 
 #include "../../models/attributegroupmodel.h"
+#include "../../models/attributemodel.h"
 
 namespace tks::UI::dlg
 {
@@ -145,6 +149,8 @@ void TaskManageAttributesDialog::CreateControls()
 
 void TaskManageAttributesDialog::FillControls()
 {
+    std::string TAG = "TaskManageAttributesDialog::FillControls";
+
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
@@ -153,8 +159,32 @@ void TaskManageAttributesDialog::FillControls()
         std::string message = "Failed to fetch attribute group";
         QueueErrorNotificationEvent(message);
         return;
-    } else {
-        pAttributeGroupNameTextCtrl->ChangeValue(attributeGroupModel.Name);
+    }
+
+    pAttributeGroupNameTextCtrl->ChangeValue(attributeGroupModel.Name);
+
+    std::vector<Model::AttributeModel> attributeModels;
+    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
+
+    rc = attributesPersistence.FilterByAttributeGroupId(mAttributeGroupId, attributeModels);
+    if (rc != 0) {
+        std::string message = "Failed to fetch attributes";
+        QueueErrorNotificationEvent(message);
+        return;
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "{0} - Got \"{1}\" attributes from attribute group id \"{2}\"",
+        TAG,
+        attributeModels.size(),
+        mAttributeGroupId);
+
+    for (size_t i = 0; i < attributeModels.size(); i++) {
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "{0} - Attribute - ID: \"{1}\" - Name: \"{2}\"",
+            TAG,
+            attributeModels[i].AttributeId,
+            attributeModels[i].Name);
     }
 }
 
