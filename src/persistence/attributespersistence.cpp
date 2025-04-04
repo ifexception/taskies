@@ -149,6 +149,7 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
         formatedSearchTerm.c_str(),
         static_cast<int>(formatedSearchTerm.size()),
         SQLITE_TRANSIENT);
+
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(
@@ -211,6 +212,108 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
 
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessage::InfoEndFilterEntities, mClassName, attributeModels.size(), searchTerm);
+
+    return 0;
+}
+
+int AttributesPersistence::FilterByAttributeGroupId(const std::int64_t attributeGroupId,
+    std::vector<Model::AttributeModel>& attributeModels)
+{
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessage::InfoBeginGetByIdEntity, mClassName, "attributes", attributeGroupId);
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributesPersistence::filterByAttributeGroupId.c_str(),
+        static_cast<int>(AttributesPersistence::filterByAttributeGroupId.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::PrepareStatementTemplate,
+            mClassName,
+            AttributesPersistence::filterByAttributeGroupId,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeGroupId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::BindParameterTemplate,
+            mClassName,
+            "attribute_group_id",
+            bindIndex,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            Model::AttributeModel attributeModel;
+
+            int columnIndex = 0;
+
+            attributeModel.AttributeId = sqlite3_column_int64(stmt, columnIndex++);
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            attributeModel.Name = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            attributeModel.IsRequired = sqlite3_column_int(stmt, columnIndex++);
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                attributeModel.Description = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                attributeModel.Description = std::string(
+                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+            }
+
+            columnIndex++;
+
+            attributeModel.AttributeGroupId = sqlite3_column_int64(stmt, columnIndex++);
+            attributeModel.AttributeTypeId = sqlite3_column_int64(stmt, columnIndex++);
+
+            attributeModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            attributeModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            attributeModel.IsActive = sqlite3_column_int(stmt, columnIndex++);
+
+            attributeModels.push_back(attributeModel);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessage::ExecStepTemplate,
+            mClassName,
+            AttributesPersistence::filterByAttributeGroupId,
+            rc,
+            err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndGetByIdEntity, mClassName, attributeGroupId);
 
     return 0;
 }
@@ -653,6 +756,20 @@ const std::string AttributesPersistence::filter = "SELECT "
                                                   "WHERE is_active = 1 "
                                                   "AND (name LIKE ? "
                                                   "OR description LIKE ?)";
+
+const std::string AttributesPersistence::filterByAttributeGroupId = "SELECT "
+                                                                    "attribute_id, "
+                                                                    "name, "
+                                                                    "is_required, "
+                                                                    "description, "
+                                                                    "attribute_group_id, "
+                                                                    "attribute_type_id, "
+                                                                    "date_created, "
+                                                                    "date_modified, "
+                                                                    "is_active "
+                                                                    "FROM attributes "
+                                                                    "WHERE is_active = 1 "
+                                                                    "AND attribute_group_id = ?";
 
 const std::string AttributesPersistence::getById = "SELECT "
                                                    "attribute_id, "
