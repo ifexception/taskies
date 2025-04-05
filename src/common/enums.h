@@ -49,6 +49,8 @@ enum class TaskDurationType { Default = 1, Billable };
 
 enum class TaskDurationField { Day = 1, Week, Month, Range = 10 };
 
+enum class AttributeTypes { Text = 1, Boolean, Numeric };
+
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);

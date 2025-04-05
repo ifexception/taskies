@@ -31,6 +31,8 @@
 #include <wx/wx.h>
 #endif
 
+#include "../../models/attributemodel.h"
+
 namespace tks::UI::dlg
 {
 class TaskManageAttributesDialog final : public wxDialog
@@ -57,7 +59,7 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
-    void AppendAttributeControl();
+    void AppendAttributeControl(const Model::AttributeModel& model);
 
     void QueueErrorNotificationEvent(const std::string& message);
 
@@ -69,6 +71,7 @@ private:
 
     wxPanel* pNoAttributesPanel;
     wxPanel* pAttributesPanel;
+    wxSizer* pAttributesPanelSizer;
 
     wxButton* pOKButton;
     wxButton* pCancelButton;
