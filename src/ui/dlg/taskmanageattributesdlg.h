@@ -69,6 +69,10 @@ private:
 
     wxTextCtrl* pAttributeGroupNameTextCtrl;
 
+    wxStaticBox* pAttributesBox;
+    wxStaticBoxSizer* pAttributesBoxSizer;
+    wxFlexGridSizer* pAttributesControlFlexGridSizer;
+
     wxButton* pOKButton;
     wxButton* pCancelButton;
 

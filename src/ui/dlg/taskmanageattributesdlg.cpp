@@ -58,6 +58,9 @@ TaskManageAttributesDialog::TaskManageAttributesDialog(wxWindow* parent,
     , mTaskId(taskId)
     , pMainSizer(nullptr)
     , pAttributeGroupNameTextCtrl(nullptr)
+    , pAttributesBox(nullptr)
+    , pAttributesBoxSizer(nullptr)
+    , pAttributesControlFlexGridSizer(nullptr)
     , pOKButton(nullptr)
     , pCancelButton(nullptr)
     , mAttributeControlCounter(1)
@@ -100,9 +103,15 @@ void TaskManageAttributesDialog::CreateControls()
     attributeGroupNameHorizontalSizer->Add(
         pAttributeGroupNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Proportion(1));
 
-    /* Static Line */
-    auto line1 = new wxStaticLine(this, wxID_ANY);
-    pMainSizer->Add(line1, wxSizerFlags().Expand());
+    /* Initial controls and sizers for attributes */
+    pAttributesBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    pAttributesBoxSizer = new wxStaticBoxSizer(pAttributesBox, wxVERTICAL);
+    pMainSizer->Add(pAttributesBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    pAttributesControlFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    pAttributesControlFlexGridSizer->AddGrowableCol(1, 1);
+    pAttributesBoxSizer->Add(
+        pAttributesControlFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
@@ -132,8 +141,6 @@ void TaskManageAttributesDialog::CreateControls()
 
 void TaskManageAttributesDialog::FillControls()
 {
-    std::string TAG = "TaskManageAttributesDialog::FillControls";
-
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
@@ -157,11 +164,25 @@ void TaskManageAttributesDialog::FillControls()
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
-        "{0} - Got \"{1}\" attributes from attribute group id \"{2}\"",
-        TAG,
+        "Got \"{0}\" attributes from attribute group id \"{1}\"",
         attributeModels.size(),
         mAttributeGroupId);
 
+    if (attributeModels.size() < 1) {
+        auto noAttributesLabel = new wxStaticText(pAttributesBox, wxID_ANY, "No attributes found");
+        pAttributesBoxSizer->Add(
+            noAttributesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+        pMainSizer->Layout();
+    }
+
+    for (size_t i = 0; i < attributeModels.size(); i++) {
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Build attribute control name \"{0}\" with type \"{1}\"",
+            attributeModels[i].Name,
+            AttributeTypeToString((AttributeTypes) attributeModels[i].AttributeTypeId));
+    }
+
+    Fit();
 }
 
 void TaskManageAttributesDialog::ConfigureEventBindings() {}
