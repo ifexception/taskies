@@ -180,7 +180,27 @@ void TaskManageAttributesDialog::FillControls()
             "Build attribute control name \"{0}\" with type \"{1}\"",
             attributeModels[i].Name,
             AttributeTypeToString((AttributeTypes) attributeModels[i].AttributeTypeId));
+
+        auto controlId = tksIDC_ATTRIBUTECONTROLBASE + mAttributeControlCounter;
+
+        switch ((AttributeTypes) attributeModels[i].AttributeTypeId) {
+        case AttributeTypes::Text: {
+            auto attributeLabel =
+                new wxStaticText(pAttributesBox, wxID_ANY, attributeModels[i].Name);
+            auto attributeTextControl = new wxTextCtrl(pAttributesBox, controlId);
+
+            pAttributesControlFlexGridSizer->Add(
+                attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+            pAttributesControlFlexGridSizer->Add(
+                attributeTextControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+            break;
+        }
+        default:
+            break;
+        }
     }
+
+    pMainSizer->Layout();
 
     Fit();
 }
