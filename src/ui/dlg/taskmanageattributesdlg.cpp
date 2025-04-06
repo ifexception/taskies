@@ -22,6 +22,7 @@
 #include <vector>
 
 #include <wx/statline.h>
+#include <wx/spinctrl.h>
 
 #include "../events.h"
 #include "../notificationclientdata.h"
@@ -193,11 +194,36 @@ void TaskManageAttributesDialog::FillControls()
                 attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
             pAttributesControlFlexGridSizer->Add(
                 attributeTextControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+            break;
+        }
+        case AttributeTypes::Boolean: {
+            auto attributeBooleanControl =
+                new wxCheckBox(pAttributesBox, controlId, attributeModels[i].Name);
+
+            pAttributesControlFlexGridSizer->Add(0, 0);
+            pAttributesControlFlexGridSizer->Add(
+                attributeBooleanControl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+            break;
+        }
+        case AttributeTypes::Numeric: {
+            auto attributeLabel =
+                new wxStaticText(pAttributesBox, wxID_ANY, attributeModels[i].Name);
+            auto attributeNumericControl = new wxSpinCtrl(pAttributesBox, controlId);
+
+            pAttributesControlFlexGridSizer->Add(
+                attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+            pAttributesControlFlexGridSizer->Add(
+                attributeNumericControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
             break;
         }
         default:
             break;
         }
+
+        mAttributeControlCounter++;
     }
 
     pMainSizer->Layout();
