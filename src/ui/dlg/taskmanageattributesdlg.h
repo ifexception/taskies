@@ -69,10 +69,6 @@ private:
 
     wxTextCtrl* pAttributeGroupNameTextCtrl;
 
-    wxPanel* pNoAttributesPanel;
-    wxPanel* pAttributesPanel;
-    wxSizer* pAttributesPanelSizer;
-
     wxButton* pOKButton;
     wxButton* pCancelButton;
 
@@ -84,8 +80,6 @@ private:
     std::int64_t mTaskId;
     int mAttributeControlCounter;
 
-    enum {
-        tksIDC_ATTRIBUTECONTROLBASE = wxID_HIGHEST + 101
-    };
+    enum { tksIDC_ATTRIBUTECONTROLBASE = wxID_HIGHEST + 101 };
 };
 } // namespace tks::UI::dlg

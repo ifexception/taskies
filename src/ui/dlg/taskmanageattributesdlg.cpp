@@ -58,9 +58,6 @@ TaskManageAttributesDialog::TaskManageAttributesDialog(wxWindow* parent,
     , mTaskId(taskId)
     , pMainSizer(nullptr)
     , pAttributeGroupNameTextCtrl(nullptr)
-    , pNoAttributesPanel(nullptr)
-    , pAttributesPanel(nullptr)
-    , pAttributesPanelSizer(nullptr)
     , pOKButton(nullptr)
     , pCancelButton(nullptr)
     , mAttributeControlCounter(1)
@@ -106,33 +103,6 @@ void TaskManageAttributesDialog::CreateControls()
     /* Static Line */
     auto line1 = new wxStaticLine(this, wxID_ANY);
     pMainSizer->Add(line1, wxSizerFlags().Expand());
-
-    /* No attributes panel */
-    pNoAttributesPanel = new wxPanel(this, wxID_ANY);
-
-    auto noAttributesPanelSizer = new wxBoxSizer(wxVERTICAL);
-    pNoAttributesPanel->SetSizer(noAttributesPanelSizer);
-
-    auto noAttributesLabel = new wxStaticText(pNoAttributesPanel, wxID_ANY, "No attributes found");
-    noAttributesLabel->SetFont(
-        wxFont(9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
-
-    noAttributesPanelSizer->Add(
-        noAttributesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
-
-    pMainSizer->Add(pNoAttributesPanel, wxSizerFlags().Expand());
-
-    /* Attributes panel */
-    pAttributesPanel = new wxPanel(this, wxID_ANY);
-
-    pAttributesPanelSizer = new wxBoxSizer(wxVERTICAL);
-    pAttributesPanel->SetSizer(pAttributesPanelSizer);
-
-    pMainSizer->Add(pAttributesPanel, wxSizerFlags().Expand().Proportion(1));
-
-    // There are no attributes when the window gets constructed, so we hide the panel
-    pAttributesPanel->Disable();
-    pAttributesPanel->Hide();
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
@@ -192,76 +162,13 @@ void TaskManageAttributesDialog::FillControls()
         attributeModels.size(),
         mAttributeGroupId);
 
-    if (attributeModels.size() >= 1) {
-        if (pNoAttributesPanel->IsEnabled()) {
-            pNoAttributesPanel->HideWithEffect(wxShowEffect::wxSHOW_EFFECT_SLIDE_TO_BOTTOM);
-            pNoAttributesPanel->Disable();
-
-            pMainSizer->Layout();
-        }
-
-        if (!pAttributesPanel->IsEnabled()) {
-            pAttributesPanel->Enable();
-            pAttributesPanel->Show();
-        }
-    }
-
-    for (size_t i = 0; i < attributeModels.size(); i++) {
-        SPDLOG_LOGGER_TRACE(pLogger,
-            "{0} - Attribute - ID: \"{1}\" - Name: \"{2}\"",
-            TAG,
-            attributeModels[i].AttributeId,
-            attributeModels[i].Name);
-
-        AppendAttributeControl(attributeModels[i]);
-    }
-
-    Fit();
 }
 
 void TaskManageAttributesDialog::ConfigureEventBindings() {}
 
 void TaskManageAttributesDialog::DataToControls() {}
 
-void TaskManageAttributesDialog::AppendAttributeControl(const Model::AttributeModel& model)
-{
-    /* Panel Sizer */
-    auto panelSizer = new wxBoxSizer(wxVERTICAL);
-
-    /* Panel */
-    auto panel = new wxPanel(pAttributesPanel, wxID_ANY);
-    panel->SetSizer(panelSizer);
-
-    auto attributeBox = new wxStaticBox(panel, wxID_ANY, wxEmptyString);
-    auto attributeBoxSizer = new wxStaticBoxSizer(attributeBox, wxHORIZONTAL);
-    panelSizer->Add(attributeBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    auto controlId = tksIDC_ATTRIBUTECONTROLBASE + mAttributeControlCounter;
-
-    switch ((AttributeTypes)model.AttributeTypeId) {
-    case AttributeTypes::Text: {
-        auto attributeTextLabel = new wxStaticText(attributeBox, wxID_ANY, model.Name);
-        auto attributeTextCtrl = new wxTextCtrl(attributeBox, controlId);
-        attributeBoxSizer->Add(
-            attributeTextLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-        attributeBoxSizer->Add(
-            attributeTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Proportion(1));
-        break;
-    }
-    case AttributeTypes::Boolean:
-        break;
-    case AttributeTypes::Numeric:
-        break;
-    default:
-        break;
-    }
-
-    pAttributesPanelSizer->Add(panel, wxSizerFlags().Expand());
-    pAttributesPanelSizer->Layout();
-    pMainSizer->Layout();
-
-    mAttributeControlCounter++;
-}
+void TaskManageAttributesDialog::AppendAttributeControl(const Model::AttributeModel& model) {}
 
 void TaskManageAttributesDialog::QueueErrorNotificationEvent(const std::string& message)
 {
