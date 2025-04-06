@@ -63,6 +63,20 @@ std::string NotificationTypeToString(NotificationType notificationType)
     }
 }
 
+std::string AttributeTypeToString(AttributeTypes attributeType)
+{
+    switch (attributeType) {
+    case tks::AttributeTypes::Text:
+        return "Text";
+    case tks::AttributeTypes::Boolean:
+        return "Boolean";
+    case tks::AttributeTypes::Numeric:
+        return "Numeric";
+    default:
+        return "";
+    }
+}
+
 std::string MapTextQualifierEnumToValue(TextQualifierType textQualifier)
 {
     switch (textQualifier) {

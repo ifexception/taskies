@@ -54,6 +54,7 @@ enum class AttributeTypes { Text = 1, Boolean, Numeric };
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);
+std::string AttributeTypeToString(AttributeTypes attributeType);
 
 std::string MapTextQualifierEnumToValue(TextQualifierType textQualifier);
 
