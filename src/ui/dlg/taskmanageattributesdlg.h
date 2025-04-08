@@ -31,6 +31,8 @@
 #include <wx/wx.h>
 #endif
 
+#include "../../common/enums.h"
+
 #include "../../models/attributemodel.h"
 
 namespace tks::UI::dlg
@@ -59,6 +61,11 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
+    void OnOK(wxCommandEvent& event);
+    void OnCancel(wxCommandEvent& event);
+
+    bool Validate();
+
     void AppendAttributeControl(const Model::AttributeModel& model);
 
     void QueueErrorNotificationEvent(const std::string& message);
@@ -84,6 +91,30 @@ private:
     std::int64_t mTaskId;
     int mAttributeControlCounter;
 
-    enum { tksIDC_ATTRIBUTECONTROLBASE = wxID_HIGHEST + 101 };
+    struct AttributeControlData {
+        int ControlId;
+        AttributeTypes AttributeType;
+        bool IsRequired;
+        std::string Name;
+
+        wxTextCtrl* TextControl;
+        wxCheckBox* BooleanControl;
+        wxSpinCtrl* NumericControl;
+
+        AttributeControlData()
+            : ControlId(-1)
+            , AttributeType()
+            , IsRequired(false)
+            , Name()
+            , TextControl(nullptr)
+            , BooleanControl(nullptr)
+            , NumericControl(nullptr)
+        {
+        }
+    };
+
+    std::vector<AttributeControlData> mAttributeControls;
+
+    enum { tksIDC_ATTRIBUTECONTROLBASE = wxID_HIGHEST + 1001 };
 };
 } // namespace tks::UI::dlg

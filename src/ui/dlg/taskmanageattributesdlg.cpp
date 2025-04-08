@@ -21,6 +21,7 @@
 
 #include <vector>
 
+#include <wx/richtooltip.h>
 #include <wx/statline.h>
 #include <wx/spinctrl.h>
 
@@ -28,7 +29,6 @@
 #include "../notificationclientdata.h"
 
 #include "../../common/common.h"
-#include "../../common/enums.h"
 
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
@@ -65,6 +65,7 @@ TaskManageAttributesDialog::TaskManageAttributesDialog(wxWindow* parent,
     , pOKButton(nullptr)
     , pCancelButton(nullptr)
     , mAttributeControlCounter(1)
+    , mAttributeControls()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -174,6 +175,7 @@ void TaskManageAttributesDialog::FillControls()
         pAttributesBoxSizer->Add(
             noAttributesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
         pMainSizer->Layout();
+        return;
     }
 
     for (size_t i = 0; i < attributeModels.size(); i++) {
@@ -183,6 +185,11 @@ void TaskManageAttributesDialog::FillControls()
             AttributeTypeToString((AttributeTypes) attributeModels[i].AttributeTypeId));
 
         auto controlId = tksIDC_ATTRIBUTECONTROLBASE + mAttributeControlCounter;
+
+        AttributeControlData attributeControlData;
+        attributeControlData.ControlId = controlId;
+        attributeControlData.IsRequired = attributeModels[i].IsRequired;
+        attributeControlData.Name = attributeModels[i].Name;
 
         switch ((AttributeTypes) attributeModels[i].AttributeTypeId) {
         case AttributeTypes::Text: {
@@ -195,6 +202,8 @@ void TaskManageAttributesDialog::FillControls()
             pAttributesControlFlexGridSizer->Add(
                 attributeTextControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+            attributeControlData.TextControl = attributeTextControl;
+
             break;
         }
         case AttributeTypes::Boolean: {
@@ -204,6 +213,8 @@ void TaskManageAttributesDialog::FillControls()
             pAttributesControlFlexGridSizer->Add(0, 0);
             pAttributesControlFlexGridSizer->Add(
                 attributeBooleanControl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+            attributeControlData.BooleanControl = attributeBooleanControl;
 
             break;
         }
@@ -217,15 +228,22 @@ void TaskManageAttributesDialog::FillControls()
             pAttributesControlFlexGridSizer->Add(
                 attributeNumericControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+            attributeControlData.NumericControl = attributeNumericControl;
+
             break;
         }
         default:
             break;
         }
 
+        attributeControlData.AttributeType = (AttributeTypes) attributeModels[i].AttributeTypeId;
         mAttributeControlCounter++;
+
+        mAttributeControls.push_back(attributeControlData);
     }
 
+    pAttributesControlFlexGridSizer->Layout();
+    pAttributesBoxSizer->Layout();
     pMainSizer->Layout();
 
     Fit();
@@ -234,6 +252,47 @@ void TaskManageAttributesDialog::FillControls()
 void TaskManageAttributesDialog::ConfigureEventBindings() {}
 
 void TaskManageAttributesDialog::DataToControls() {}
+
+void TaskManageAttributesDialog::OnOK(wxCommandEvent& event)
+{
+    if (!Validate()) {
+        return;
+    }
+}
+
+void TaskManageAttributesDialog::OnCancel(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
+}
+
+bool TaskManageAttributesDialog::Validate()
+{
+    for (const auto& attributeControl : mAttributeControls) {
+        if (attributeControl.IsRequired) {
+            switch (attributeControl.AttributeType) {
+            case AttributeTypes::Text: {
+                std::string value = attributeControl.TextControl->GetValue().ToStdString();
+                if (value.empty()) {
+                    std::string validation =
+                        fmt::format("A value is required for \"{0}\"", attributeControl.Name);
+                    wxRichToolTip toolTip("Validation", validation);
+                    toolTip.SetIcon(wxICON_WARNING);
+                    toolTip.ShowFor(attributeControl.TextControl);
+                    return false;
+                }
+            }
+            case AttributeTypes::Boolean:
+                [[fallthrough]];
+            case AttributeTypes::Numeric:
+                [[fallthrough]];
+            default:
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
 
 void TaskManageAttributesDialog::AppendAttributeControl(const Model::AttributeModel& model) {}
 
