@@ -60,9 +60,10 @@ private:
     void OnNameChange(wxCommandEvent& event);
     void OnEmployerChoiceSelection(wxCommandEvent& event);
 
+    void OnIsActiveCheck(wxCommandEvent& event);
+
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
-    void OnIsActiveCheck(wxCommandEvent& event);
 
     bool Validate();
     void TransferDataFromControls();
