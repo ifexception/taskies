@@ -12,5 +12,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/attributegroupmodel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributetypemodel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributemodel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/taskattributevaluemodel.cpp"
     PARENT_SCOPE
 )
