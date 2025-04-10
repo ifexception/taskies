@@ -29,16 +29,17 @@ struct TaskAttributeValueModel {
     TaskAttributeValueModel();
 
     std::int64_t TaskAttributeValueId;
+
     std::optional<std::string> TextValue;
     std::optional<bool> BooleanValue;
     std::optional<int> NumericValue;
+
     std::uint32_t DateCreated;
     std::uint32_t DateModified;
     bool IsActive;
 
     std::int64_t TaskId;
     std::int64_t AttributeId;
-    std::int64_t AttributeTypeId;
 
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;

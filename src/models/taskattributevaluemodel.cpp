@@ -33,7 +33,6 @@ TaskAttributeValueModel::TaskAttributeValueModel()
     , IsActive(false)
     , TaskId(-1)
     , AttributeId(-1)
-    , AttributeTypeId(-1)
 {
 }
 
