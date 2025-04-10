@@ -21,8 +21,6 @@
 
 #include "../common/constants.h"
 
-#include "../models/projectmodel.h"
-
 #include "../utils/utils.h"
 
 namespace tks::Persistence
