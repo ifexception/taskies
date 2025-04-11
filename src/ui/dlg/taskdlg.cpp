@@ -1016,11 +1016,16 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
         ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
 
-        if (ret != -1 && mTaskAttributeValueModels.size() > 0) {
+        if (ret == 0 && mTaskAttributeValueModels.size() > 0) {
+            for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
+                mTaskAttributeValueModels[i].TaskId = taskId;
+            }
+
             Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
                 pLogger, mDatabaseFilePath);
 
             ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
+
             ret == -1 ? message = "Failed to create task attribute values"
                       : message = "Successfully created task attribute values";
         }
