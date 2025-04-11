@@ -101,6 +101,7 @@ private:
     void FetchCategoryEntities(const std::optional<std::int64_t> projectId);
 
     void QueueErrorNotificationEvent(const std::string& message);
+    void QueueInformationNotificationEvent(const std::string& message);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;

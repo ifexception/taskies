@@ -826,8 +826,9 @@ void TaskDialog::OnManageAttributes(wxCommandEvent& WXUNUSED(event))
 {
     const std::string TAG = "TaskDialog::OnManageAttributes";
 
-    dlg::TaskManageAttributesDialog taskManageAttributes(
+    TaskManageAttributesDialog taskManageAttributes(
         this, pLogger, mDatabaseFilePath, mAttributeGroupId);
+
     int ret = taskManageAttributes.ShowModal();
 
     if (ret == wxID_OK) {
@@ -1009,12 +1010,14 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     mTaskModel.WorkdayId = workdayId;
 
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
+
     if (!bIsEdit) {
         std::int64_t taskId = taskPersistence.Create(mTaskModel);
         ret = taskId > 0 ? 0 : -1;
         mTaskId = taskId;
 
         ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
+        QueueInformationNotificationEvent(message);
 
         if (ret == 0 && mTaskAttributeValueModels.size() > 0) {
             for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
@@ -1028,6 +1031,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
             ret == -1 ? message = "Failed to create task attribute values"
                       : message = "Successfully created task attribute values";
+            QueueInformationNotificationEvent(message);
         }
     }
 
@@ -1035,12 +1039,14 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         ret = taskPersistence.Update(mTaskModel);
 
         ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
+        QueueInformationNotificationEvent(message);
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
         ret = taskPersistence.Delete(mTaskId);
 
         ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
+        QueueInformationNotificationEvent(message);
     }
 
     if (ret == -1) {
@@ -1048,13 +1054,6 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
         pOkButton->Enable();
     } else {
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
         if (!bIsEdit) {
             wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
             taskAddedEvent->SetString(mDate);
@@ -1352,6 +1351,16 @@ void TaskDialog::QueueErrorNotificationEvent(const std::string& message)
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(pParent, addNotificationEvent);
+}
+
+void TaskDialog::QueueInformationNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);
 
     wxQueueEvent(pParent, addNotificationEvent);
