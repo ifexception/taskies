@@ -300,7 +300,18 @@ int TaskAttributeValuesPersistence::CreateMany(
 
 const std::string TaskAttributeValuesPersistence::filter = "SELECT ";
 
-const std::string TaskAttributeValuesPersistence::getByIds = "SELECT ";
+const std::string TaskAttributeValuesPersistence::getByTaskId = "SELECT "
+                                                                "text_value, "
+                                                                "boolean_value, "
+                                                                "numeric_value, "
+                                                                "date_created, "
+                                                                "date_modified, "
+                                                                "is_active, "
+                                                                "task_id, "
+                                                                "attribute_id "
+                                                                "FROM task_attribute_values "
+                                                                "WHERE task_id = ? "
+                                                                "AND is_active = 1";
 
 const std::string TaskAttributeValuesPersistence::create = "INSERT INTO "
                                                            "task_attribute_values "

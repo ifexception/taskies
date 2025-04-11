@@ -46,13 +46,15 @@ public:
 
     std::int64_t Create(Model::TaskAttributeValueModel& taskAttributeValueModel);
     int CreateMany(std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels);
+    int GetByTaskId(const std::int64_t taskId,
+        /*out*/ std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels);
 
 private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
     static const std::string filter;
-    static const std::string getByIds;
+    static const std::string getByTaskId;
     static const std::string create;
     static const std::string update;
     static const std::string isActive;

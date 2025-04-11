@@ -293,7 +293,6 @@ void TaskManageAttributesDialog::OnOK(wxCommandEvent& event)
     }
 
     TransferDataFromControls();
-    return;
 
     if (mTaskAttributeValueModels.size() >= 1) {
         wxCommandEvent* taskAttributeValuesAddedEvent =
