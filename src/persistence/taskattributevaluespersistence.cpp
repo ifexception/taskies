@@ -298,6 +298,135 @@ int TaskAttributeValuesPersistence::CreateMany(
     return 0;
 }
 
+int TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t taskId,
+    std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels)
+{
+    SPDLOG_LOGGER_TRACE(pLogger,
+        LogMessage::InfoBeginGetByIdEntity,
+        "TaskAttributeValuesPersistence",
+        "task_attribute_values",
+        taskId);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        TaskAttributeValuesPersistence::getByTaskId.c_str(),
+        static_cast<int>(TaskAttributeValuesPersistence::getByTaskId.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::PrepareStatementTemplate,
+            "TaskAttributeValuesPersistence",
+            TaskAttributeValuesPersistence::getByTaskId,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "TaskAttributeValuesPersistence",
+            "task_id",
+            bindIndex,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            Model::TaskAttributeValueModel taskAttributeValueModel;
+
+            int columnIndex = 0;
+
+            taskAttributeValueModel.TaskAttributeValueId =
+                sqlite3_column_int64(stmt, columnIndex++);
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                taskAttributeValueModel.TextValue = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                taskAttributeValueModel.TextValue = std::make_optional<std::string>(std::string(
+                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+            }
+
+            columnIndex++;
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                taskAttributeValueModel.BooleanValue = std::nullopt;
+            } else {
+                taskAttributeValueModel.BooleanValue =
+                    std::make_optional<bool>(sqlite3_column_int(stmt, columnIndex));
+            }
+
+            columnIndex++;
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                taskAttributeValueModel.NumericValue = std::nullopt;
+            } else {
+                taskAttributeValueModel.NumericValue =
+                    std::make_optional<int>(sqlite3_column_int(stmt, columnIndex));
+            }
+
+            columnIndex++;
+
+            taskAttributeValueModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            taskAttributeValueModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            taskAttributeValueModel.IsActive = sqlite3_column_int(stmt, columnIndex++);
+
+            taskAttributeValueModel.TaskId = sqlite3_column_int64(stmt, columnIndex++);
+            taskAttributeValueModel.AttributeId = sqlite3_column_int64(stmt, columnIndex++);
+
+            taskAttributeValueModels.push_back(taskAttributeValueModel);
+            break;
+        }
+        case SQLITE_DONE: {
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::ExecStepTemplate,
+            "TaskAttributeValuesPersistence",
+            TaskAttributeValuesPersistence::getByTaskId,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessage::InfoEndGetByIdEntity, "TaskAttributeValuesPersistence", taskId);
+
+    return 0;
+}
+
 const std::string TaskAttributeValuesPersistence::filter = "SELECT ";
 
 const std::string TaskAttributeValuesPersistence::getByTaskId = "SELECT "
