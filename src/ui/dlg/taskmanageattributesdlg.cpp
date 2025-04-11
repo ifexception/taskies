@@ -390,10 +390,30 @@ bool TaskManageAttributesDialog::Validate()
                 }
                 break;
             }
-            case AttributeTypes::Boolean:
-                [[fallthrough]];
-            case AttributeTypes::Numeric:
-                [[fallthrough]];
+            case AttributeTypes::Boolean: {
+                int isUndeterminedState = attributeControl.BooleanControl->Get3StateValue();
+                if (isUndeterminedState == wxCHK_UNDETERMINED) {
+                    std::string validation =
+                        fmt::format("A value is required for \"{0}\"", attributeControl.Name);
+                    wxRichToolTip toolTip("Validation", validation);
+                    toolTip.SetIcon(wxICON_WARNING);
+                    toolTip.ShowFor(attributeControl.BooleanControl);
+                    return false;
+                }
+                break;
+            }
+            case AttributeTypes::Numeric: {
+                std::string value = attributeControl.NumericControl->GetValue().ToStdString();
+                if (value.empty()) {
+                    std::string validation =
+                        fmt::format("A value is required for \"{0}\"", attributeControl.Name);
+                    wxRichToolTip toolTip("Validation", validation);
+                    toolTip.SetIcon(wxICON_WARNING);
+                    toolTip.ShowFor(attributeControl.NumericControl);
+                    return false;
+                }
+                break;
+            }
             default:
                 return false;
             }
