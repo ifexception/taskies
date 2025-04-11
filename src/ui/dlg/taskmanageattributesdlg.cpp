@@ -24,6 +24,7 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 #include <wx/spinctrl.h>
+#include <wx/valtext.h>
 
 #include "../events.h"
 #include "../notificationclientdata.h"
@@ -199,6 +200,7 @@ void TaskManageAttributesDialog::FillControls()
             auto attributeLabel =
                 new wxStaticText(pAttributesBox, wxID_ANY, attributeModels[i].Name);
             auto attributeTextControl = new wxTextCtrl(pAttributesBox, controlId);
+            attributeTextControl->SetHint(attributeModels[i].Name);
 
             pAttributesControlFlexGridSizer->Add(
                 attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
@@ -224,7 +226,14 @@ void TaskManageAttributesDialog::FillControls()
         case AttributeTypes::Numeric: {
             auto attributeLabel =
                 new wxStaticText(pAttributesBox, wxID_ANY, attributeModels[i].Name);
-            auto attributeNumericControl = new wxSpinCtrl(pAttributesBox, controlId);
+            auto attributeNumericControl = new wxTextCtrl(pAttributesBox,
+                controlId,
+                wxEmptyString,
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxTE_LEFT,
+                wxTextValidator(wxFILTER_NUMERIC));
+            attributeNumericControl->SetHint(attributeModels[i].Name);
 
             pAttributesControlFlexGridSizer->Add(
                 attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
@@ -354,7 +363,7 @@ void TaskManageAttributesDialog::TransferDataFromControls()
             break;
         }
         case AttributeTypes::Numeric: {
-            int value = attributeControl.NumericControl->GetValue();
+            int value = std::stoi(attributeControl.NumericControl->GetValue().ToStdString());
             taskAttributeModel.NumericValue = std::make_optional<int>(value);
             break;
         }

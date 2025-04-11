@@ -102,7 +102,7 @@ private:
 
         wxTextCtrl* TextControl;
         wxCheckBox* BooleanControl;
-        wxSpinCtrl* NumericControl;
+        wxTextCtrl* NumericControl;
 
         std::int64_t AttributeId;
 
