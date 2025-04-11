@@ -829,6 +829,10 @@ void TaskDialog::OnManageAttributes(wxCommandEvent& WXUNUSED(event))
     TaskManageAttributesDialog taskManageAttributes(
         this, pLogger, mDatabaseFilePath, mAttributeGroupId);
 
+    if (!bIsEdit) {
+        taskManageAttributes.SetTaskAttributeValues(mTaskAttributeValueModels);
+    }
+
     int ret = taskManageAttributes.ShowModal();
 
     if (ret == wxID_OK) {

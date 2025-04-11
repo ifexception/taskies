@@ -19,6 +19,7 @@
 
 #include "taskmanageattributesdlg.h"
 
+#include <algorithm>
 #include <vector>
 
 #include <wx/richtooltip.h>
@@ -35,6 +36,7 @@
 
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
+#include "../../persistence/taskattributevaluespersistence.h"
 
 #include "../../models/attributegroupmodel.h"
 
@@ -79,6 +81,19 @@ TaskManageAttributesDialog::TaskManageAttributesDialog(wxWindow* parent,
     SetIcons(iconBundle);
 }
 
+void TaskManageAttributesDialog::SetTaskAttributeValues(
+    std::vector<Model::TaskAttributeValueModel> taskAttributeValueModels)
+{
+    SPDLOG_LOGGER_TRACE(pLogger, "Set models with count \"{0}\"", taskAttributeValueModels.size());
+
+    mTaskAttributeValueModels = taskAttributeValueModels;
+
+    if (!bIsEdit && mTaskAttributeValueModels.size() > 0) {
+        SetAttributeControls();
+    }
+}
+
+// -- PRIVATE
 void TaskManageAttributesDialog::Create()
 {
     CreateControls();
@@ -284,7 +299,52 @@ void TaskManageAttributesDialog::ConfigureEventBindings()
 }
 // clang-format on
 
-void TaskManageAttributesDialog::DataToControls() {}
+void TaskManageAttributesDialog::DataToControls()
+{
+    Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+        pLogger, mDatabaseFilePath);
+
+    // get
+}
+
+void TaskManageAttributesDialog::SetAttributeControls()
+{
+    assert(mAttributeControls.size() == mTaskAttributeValueModels.size());
+
+    for (size_t i = 0; i < mAttributeControls.size(); i++) {
+        switch (mAttributeControls[i].AttributeType) {
+        case AttributeTypes::Text: {
+            if (mTaskAttributeValueModels[i].TextValue.has_value()) {
+                mAttributeControls[i].TextControl->ChangeValue(
+                    mTaskAttributeValueModels[i].TextValue.value());
+            }
+            break;
+        }
+        case AttributeTypes::Boolean: {
+            if (mTaskAttributeValueModels[i].BooleanValue.has_value()) {
+                if (mTaskAttributeValueModels[i].BooleanValue.value()) {
+                    mAttributeControls[i].BooleanControl->Set3StateValue(wxCHK_CHECKED);
+                } else {
+                    mAttributeControls[i].BooleanControl->Set3StateValue(wxCHK_UNCHECKED);
+                }
+            } else {
+                mAttributeControls[i].BooleanControl->Set3StateValue(wxCHK_UNDETERMINED);
+            }
+            break;
+        }
+        case AttributeTypes::Numeric: {
+            if (mTaskAttributeValueModels[i].NumericValue.has_value()) {
+                mAttributeControls[i].NumericControl->ChangeValue(
+                    std::to_string(mTaskAttributeValueModels[i].NumericValue.value()));
+            }
+            break;
+        }
+        default:
+            pLogger->warn("Unmatched attribute type, cannot set control values");
+            break;
+        }
+    }
+}
 
 void TaskManageAttributesDialog::OnOK(wxCommandEvent& event)
 {

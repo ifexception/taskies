@@ -54,6 +54,9 @@ public:
 
     TaskManageAttributesDialog& operator=(const TaskManageAttributesDialog&) = delete;
 
+    void SetTaskAttributeValues(
+        std::vector<Model::TaskAttributeValueModel> taskAttributeValueModels);
+
 private:
     void Create();
 
@@ -61,6 +64,7 @@ private:
     void FillControls();
     void ConfigureEventBindings();
     void DataToControls();
+    void SetAttributeControls();
 
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
