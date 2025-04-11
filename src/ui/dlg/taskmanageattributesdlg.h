@@ -34,6 +34,7 @@
 #include "../../common/enums.h"
 
 #include "../../models/attributemodel.h"
+#include "../../models/taskattributevaluemodel.h"
 
 namespace tks::UI::dlg
 {
@@ -65,6 +66,8 @@ private:
     void OnCancel(wxCommandEvent& event);
 
     bool Validate();
+
+    void TransferDataFromControls();
 
     void AppendAttributeControl(const Model::AttributeModel& model);
 
@@ -101,6 +104,8 @@ private:
         wxCheckBox* BooleanControl;
         wxSpinCtrl* NumericControl;
 
+        std::int64_t AttributeId;
+
         AttributeControlData()
             : ControlId(-1)
             , AttributeType()
@@ -109,11 +114,13 @@ private:
             , TextControl(nullptr)
             , BooleanControl(nullptr)
             , NumericControl(nullptr)
+            , AttributeId(-1)
         {
         }
     };
 
     std::vector<AttributeControlData> mAttributeControls;
+    std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
     enum { tksIDC_ATTRIBUTECONTROLBASE = wxID_HIGHEST + 1001 };
 };

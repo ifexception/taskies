@@ -28,6 +28,8 @@
 #include "../events.h"
 #include "../notificationclientdata.h"
 
+#include "../common/taskattributevalueclientdata.h"
+
 #include "../../common/common.h"
 
 #include "../../persistence/attributegroupspersistence.h"
@@ -66,12 +68,13 @@ TaskManageAttributesDialog::TaskManageAttributesDialog(wxWindow* parent,
     , pCancelButton(nullptr)
     , mAttributeControlCounter(1)
     , mAttributeControls()
+    , mTaskAttributeValueModels()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
     Create();
 
-    wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
+    wxIconBundle iconBundle(tks::Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 }
 
@@ -237,6 +240,7 @@ void TaskManageAttributesDialog::FillControls()
         }
 
         attributeControlData.AttributeType = (AttributeTypes) attributeModels[i].AttributeTypeId;
+        attributeControlData.AttributeId = attributeModels[i].AttributeId;
         mAttributeControlCounter++;
 
         mAttributeControls.push_back(attributeControlData);
@@ -246,7 +250,7 @@ void TaskManageAttributesDialog::FillControls()
     pAttributesBoxSizer->Layout();
     pMainSizer->Layout();
 
-    Fit();
+    SetSizerAndFit(pMainSizer);
 }
 
 void TaskManageAttributesDialog::ConfigureEventBindings() {}
@@ -258,6 +262,21 @@ void TaskManageAttributesDialog::OnOK(wxCommandEvent& event)
     if (!Validate()) {
         return;
     }
+
+    TransferDataFromControls();
+
+    if (mTaskAttributeValueModels.size() >= 1) {
+        wxCommandEvent* taskAttributeValuesAddedEvent =
+            new wxCommandEvent(tksEVT_TASKDLGATTRIBUTESADDED);
+
+        Common::TaskAttributeValueClientData* clientData =
+            new Common::TaskAttributeValueClientData(mTaskAttributeValueModels);
+        taskAttributeValuesAddedEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, taskAttributeValuesAddedEvent);
+    }
+
+    EndModal(wxID_OK);
 }
 
 void TaskManageAttributesDialog::OnCancel(wxCommandEvent& event)
@@ -292,6 +311,42 @@ bool TaskManageAttributesDialog::Validate()
     }
 
     return true;
+}
+
+void TaskManageAttributesDialog::TransferDataFromControls()
+{
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Begin transferring of controls (count of controls: {0})",
+        mAttributeControls.size());
+
+    for (const auto& attributeControl : mAttributeControls) {
+        Model::TaskAttributeValueModel taskAttributeModel;
+        taskAttributeModel.AttributeId = attributeControl.AttributeId;
+
+        switch (attributeControl.AttributeType) {
+        case AttributeTypes::Text: {
+            std::string value = attributeControl.TextControl->GetValue().ToStdString();
+            if (!value.empty()) {
+                taskAttributeModel.TextValue = std::make_optional<std::string>(value);
+            }
+            break;
+        }
+        case AttributeTypes::Boolean: {
+            bool value = attributeControl.BooleanControl->GetValue();
+            taskAttributeModel.BooleanValue = std::make_optional<bool>(value);
+            break;
+        }
+        case AttributeTypes::Numeric: {
+            int value = attributeControl.NumericControl->GetValue();
+            taskAttributeModel.NumericValue = std::make_optional<int>(value);
+            break;
+        }
+        default:
+            break;
+        }
+
+        mTaskAttributeValueModels.push_back(taskAttributeModel);
+    }
 }
 
 void TaskManageAttributesDialog::AppendAttributeControl(const Model::AttributeModel& model) {}
