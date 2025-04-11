@@ -315,6 +315,7 @@ bool TaskManageAttributesDialog::Validate()
                     toolTip.ShowFor(attributeControl.TextControl);
                     return false;
                 }
+                break;
             }
             case AttributeTypes::Boolean:
                 [[fallthrough]];
