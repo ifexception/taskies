@@ -321,7 +321,7 @@ void TaskDialog::CreateControls()
     /* Is Active static box control */
     auto isActiveStaticBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
     auto isActiveStaticBoxSizer = new wxStaticBoxSizer(isActiveStaticBox, wxHORIZONTAL);
-    leftSizer->Add(isActiveStaticBoxSizer, wxSizerFlags().Expand());
+    leftSizer->Add(isActiveStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Is Active checkbox control */
     pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
