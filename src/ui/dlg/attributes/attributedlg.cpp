@@ -90,6 +90,8 @@ void AttributeDialog::Create()
 
     if (bIsEdit) {
         DataToControls();
+
+        pAddAnotherCheckBoxCtrl->Disable();
     }
 }
 
