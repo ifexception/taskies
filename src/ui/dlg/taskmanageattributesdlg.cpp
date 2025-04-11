@@ -212,8 +212,12 @@ void TaskManageAttributesDialog::FillControls()
             break;
         }
         case AttributeTypes::Boolean: {
-            auto attributeBooleanControl =
-                new wxCheckBox(pAttributesBox, controlId, attributeModels[i].Name);
+            auto attributeBooleanControl = new wxCheckBox(pAttributesBox,
+                controlId,
+                attributeModels[i].Name,
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxCHK_3STATE | wxCHK_ALLOW_3RD_STATE_FOR_USER);
 
             pAttributesControlFlexGridSizer->Add(0, 0);
             pAttributesControlFlexGridSizer->Add(
@@ -289,6 +293,7 @@ void TaskManageAttributesDialog::OnOK(wxCommandEvent& event)
     }
 
     TransferDataFromControls();
+    return;
 
     if (mTaskAttributeValueModels.size() >= 1) {
         wxCommandEvent* taskAttributeValuesAddedEvent =
@@ -358,16 +363,34 @@ void TaskManageAttributesDialog::TransferDataFromControls()
             break;
         }
         case AttributeTypes::Boolean: {
-            bool value = attributeControl.BooleanControl->GetValue();
-            taskAttributeModel.BooleanValue = std::make_optional<bool>(value);
+            auto threeStateValue = attributeControl.BooleanControl->Get3StateValue();
+            std::optional<bool> boolValue;
+            switch (threeStateValue) {
+            case wxCHK_UNCHECKED:
+                boolValue = std::make_optional<bool>(false);
+                break;
+            case wxCHK_CHECKED:
+                boolValue = std::make_optional<bool>(true);
+                break;
+            case wxCHK_UNDETERMINED:
+                boolValue = std::nullopt;
+                break;
+            default:
+                break;
+            }
+            taskAttributeModel.BooleanValue = boolValue;
             break;
         }
         case AttributeTypes::Numeric: {
-            int value = std::stoi(attributeControl.NumericControl->GetValue().ToStdString());
-            taskAttributeModel.NumericValue = std::make_optional<int>(value);
+            auto intValue = attributeControl.NumericControl->GetValue().ToStdString();
+            if (!intValue.empty()) {
+                int value = std::stoi(attributeControl.NumericControl->GetValue().ToStdString());
+                taskAttributeModel.NumericValue = std::make_optional<int>(value);
+            }
             break;
         }
         default:
+            pLogger->warn("No matching attribute type found");
             break;
         }
 
