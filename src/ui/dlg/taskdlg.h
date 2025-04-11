@@ -23,6 +23,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -35,6 +36,7 @@
 #include <spdlog/logger.h>
 
 #include "../../models/taskmodel.h"
+#include "../../models/taskattributevaluemodel.h"
 
 namespace tks
 {
@@ -74,6 +76,7 @@ private:
 
     void OnAttributeGroupChoiceSelection(wxCommandEvent& event);
     void OnManageAttributes(wxCommandEvent& event);
+    void OnTaskAttributesAdded(wxCommandEvent& event);
 
     void OnClientChoiceSelection(wxCommandEvent& event);
     void OnProjectChoiceSelection(wxCommandEvent& event);
@@ -136,6 +139,7 @@ private:
     std::int64_t mAttributeGroupId;
 
     Model::TaskModel mTaskModel;
+    std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
     enum {
         tksIDC_DATECONTEXTDATEPICKERCTRL = wxID_HIGHEST + 100,

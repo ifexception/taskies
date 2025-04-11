@@ -31,6 +31,7 @@
 #include "../clientdata.h"
 #include "../events.h"
 #include "../notificationclientdata.h"
+#include "../common/taskattributevalueclientdata.h"
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
@@ -51,6 +52,7 @@
 #include "../../persistence/workdayspersistence.h"
 #include "../../persistence/taskspersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
+#include "../../persistence/taskattributevaluespersistence.h"
 
 #include "../../repository/categoryrepositorymodel.h"
 
@@ -102,6 +104,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mEmployerId(-1)
     , mAttributeGroupId(-1)
     , mTaskModel()
+    , mTaskAttributeValueModels()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -120,7 +123,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
         SetSize(FromDIP(wxSize(420, 440)));
     }
 
-    wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
+    wxIconBundle iconBundle(tks::Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 }
 
@@ -511,6 +514,13 @@ void TaskDialog::ConfigureEventBindings()
         tksIDC_MANAGEATTRIBUTESBUTTON
     );
 
+    Bind(
+        tksEVT_TASKDLGATTRIBUTESADDED,
+        &TaskDialog::OnTaskAttributesAdded,
+        this,
+        wxID_ANY
+    );
+
     pClientChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &TaskDialog::OnClientChoiceSelection,
@@ -825,6 +835,24 @@ void TaskDialog::OnManageAttributes(wxCommandEvent& WXUNUSED(event))
     }
 }
 
+void TaskDialog::OnTaskAttributesAdded(wxCommandEvent& event)
+{
+    SPDLOG_LOGGER_TRACE(pLogger, "\"tksEVT_TASKDLGATTRIBUTESADDED\" event received");
+
+    Common::TaskAttributeValueClientData* taskAttributeValueClientData =
+        reinterpret_cast<Common::TaskAttributeValueClientData*>(event.GetClientObject());
+
+    mTaskAttributeValueModels = taskAttributeValueClientData->TaskAttributeValueModels;
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Received \"{0}\" captured task attribute values",
+        mTaskAttributeValueModels.size());
+
+    if (taskAttributeValueClientData) {
+        delete taskAttributeValueClientData;
+    }
+}
+
 void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
 {
     ResetProjectChoiceControl();
@@ -934,6 +962,8 @@ void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)
         pUniqueIdentiferTextCtrl->Disable();
         pTimeHoursSpinCtrl->Disable();
         pTimeMinutesSpinCtrl->Disable();
+        pAttributeGroupChoiceCtrl->Disable();
+        pManageAttributesButton->Disable();
         pTaskDescriptionTextCtrl->Disable();
     } else {
         pDateContextDatePickerCtrl->Enable();
@@ -946,6 +976,10 @@ void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)
         pUniqueIdentiferTextCtrl->Enable();
         pTimeHoursSpinCtrl->Enable();
         pTimeMinutesSpinCtrl->Enable();
+        pAttributeGroupChoiceCtrl->Enable();
+        if (pAttributeGroupChoiceCtrl->GetSelection() > 0) {
+            pManageAttributesButton->Enable();
+        }
         pTaskDescriptionTextCtrl->Enable();
     }
 }
@@ -981,6 +1015,15 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         mTaskId = taskId;
 
         ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
+
+        if (ret != -1 && mTaskAttributeValueModels.size() > 0) {
+            Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+                pLogger, mDatabaseFilePath);
+
+            ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
+            ret == -1 ? message = "Failed to create task attribute values"
+                      : message = "Successfully created task attribute values";
+        }
     }
 
     if (bIsEdit && mTaskModel.IsActive) {
