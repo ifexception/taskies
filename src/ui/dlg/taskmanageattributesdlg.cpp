@@ -169,7 +169,7 @@ void TaskManageAttributesDialog::FillControls()
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
-        "Got \"{0}\" attributes from attribute group id \"{1}\"",
+        "Build \"{0}\" control attributes from attribute group id \"{1}\"",
         attributeModels.size(),
         mAttributeGroupId);
 
@@ -246,14 +246,30 @@ void TaskManageAttributesDialog::FillControls()
         mAttributeControls.push_back(attributeControlData);
     }
 
-    pAttributesControlFlexGridSizer->Layout();
     pAttributesBoxSizer->Layout();
     pMainSizer->Layout();
 
     SetSizerAndFit(pMainSizer);
 }
 
-void TaskManageAttributesDialog::ConfigureEventBindings() {}
+// clang-format off
+void TaskManageAttributesDialog::ConfigureEventBindings()
+{
+    pOKButton->Bind(
+        wxEVT_BUTTON,
+        &TaskManageAttributesDialog::OnOK,
+        this,
+        wxID_OK
+    );
+
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &TaskManageAttributesDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
+}
+// clang-format on
 
 void TaskManageAttributesDialog::DataToControls() {}
 
