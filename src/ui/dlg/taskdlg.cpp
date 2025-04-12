@@ -827,9 +827,10 @@ void TaskDialog::OnManageAttributes(wxCommandEvent& WXUNUSED(event))
     const std::string TAG = "TaskDialog::OnManageAttributes";
 
     TaskManageAttributesDialog taskManageAttributes(
-        this, pLogger, mDatabaseFilePath, mAttributeGroupId);
+        this, pLogger, mDatabaseFilePath, mAttributeGroupId, bIsEdit, mTaskId);
 
     if (!bIsEdit && mTaskAttributeValueModels.size() > 0) {
+        pLogger->info("{0} - Task is still being created, but attribute values to be edited", TAG);
         taskManageAttributes.SetTaskAttributeValues(mTaskAttributeValueModels);
     }
 
