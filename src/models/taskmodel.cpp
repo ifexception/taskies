@@ -36,6 +36,7 @@ TaskModel::TaskModel()
     , ProjectId(-1)
     , CategoryId(-1)
     , WorkdayId(-1)
+    , AttributeGroupId()
 {}
 
 const std::string TaskModel::GetDateCreatedString() const
