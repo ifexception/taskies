@@ -191,9 +191,15 @@ void TaskManageAttributesDialog::FillControls()
 
     if (attributeModels.size() < 1) {
         auto noAttributesLabel = new wxStaticText(pAttributesBox, wxID_ANY, "No attributes found");
+        auto noAttributesLabelFont =
+            wxFont(9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
+        noAttributesLabel->SetFont(noAttributesLabelFont);
         pAttributesBoxSizer->Add(
             noAttributesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+
+        pAttributesBoxSizer->Layout();
         pMainSizer->Layout();
+        SetSizerAndFit(pMainSizer);
         return;
     }
 
