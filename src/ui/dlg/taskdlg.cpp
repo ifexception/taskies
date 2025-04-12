@@ -750,6 +750,23 @@ void TaskDialog::DataToControls()
         ResetCategoryChoiceControl(true);
     }
 
+    // set attribute group choice
+    if (mTaskModel.AttributeGroupId.has_value()) {
+        for (unsigned int i = 0; i < pAttributeGroupChoiceCtrl->GetCount(); i++) {
+            auto* data = reinterpret_cast<ClientData<std::int64_t>*>(
+                pAttributeGroupChoiceCtrl->GetClientObject(i));
+
+            if (mTaskModel.AttributeGroupId.value() == data->GetValue()) {
+                pAttributeGroupChoiceCtrl->SetSelection(i);
+
+                pManageAttributesButton->Enable();
+                mAttributeGroupId = mTaskModel.AttributeGroupId.value();
+
+                break;
+            }
+        }
+    }
+
     if (isSuccess) {
         pOkButton->Enable();
         pOkButton->SetFocus();
