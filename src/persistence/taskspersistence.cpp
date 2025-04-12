@@ -202,6 +202,15 @@ int TasksPersistence::GetById(const std::int64_t taskId, Model::TaskModel& model
     model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
     model.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        model.AttributeGroupId = std::nullopt;
+    } else {
+        model.AttributeGroupId =
+            std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
+    }
+
+    columnIndex++;
+
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
@@ -250,8 +259,12 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& model)
     rc = sqlite3_bind_int(stmt, bindIndex, model.Billable);
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "TasksPersistence", "billable", bindIndex, rc, error);
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "TasksPersistence",
+            "billable",
+            bindIndex,
+            rc,
+            error);
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -393,6 +406,29 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& model)
         return -1;
     }
 
+    bindIndex++;
+
+    // attribute_group_id
+    if (model.AttributeGroupId.has_value()) {
+        rc = sqlite3_bind_int64(stmt, bindIndex, model.AttributeGroupId.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "TasksPersistence",
+            "attribute_group_id",
+            bindIndex,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
@@ -445,12 +481,18 @@ int TasksPersistence::Update(Model::TaskModel& task)
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
 
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "TasksPersistence", "billable", bindIndex, rc, error);
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "TasksPersistence",
+            "billable",
+            bindIndex,
+            rc,
+            error);
 
         sqlite3_finalize(stmt);
         return -1;
     }
+
+    bindIndex++;
 
     // unique identifier
     if (task.UniqueIdentifier.has_value()) {
@@ -588,6 +630,29 @@ int TasksPersistence::Update(Model::TaskModel& task)
 
     bindIndex++;
 
+    // attribute_group_id
+    if (task.AttributeGroupId.has_value()) {
+        rc = sqlite3_bind_int64(stmt, bindIndex, task.AttributeGroupId.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "TasksPersistence",
+            "attribute_group_id",
+            bindIndex,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
     // date modified
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
@@ -701,8 +766,11 @@ int TasksPersistence::Delete(const std::int64_t taskId)
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
 
-        pLogger->error(
-            LogMessage::ExecStepTemplate, "TasksPersistence", TasksPersistence::isActive, rc, error);
+        pLogger->error(LogMessage::ExecStepTemplate,
+            "TasksPersistence",
+            TasksPersistence::isActive,
+            rc,
+            error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -835,8 +903,11 @@ int TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
     if (rc != SQLITE_ROW) {
         const char* error = sqlite3_errmsg(pDb);
 
-        pLogger->error(
-            LogMessage::ExecStepTemplate, "TasksPersistence", TasksPersistence::isDeleted, rc, error);
+        pLogger->error(LogMessage::ExecStepTemplate,
+            "TasksPersistence",
+            TasksPersistence::isDeleted,
+            rc,
+            error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -1002,8 +1073,12 @@ int TasksPersistence::GetHoursForDateRangeGroupedByDate(const std::vector<std::s
         if (rc != SQLITE_OK) {
             const char* error = sqlite3_errmsg(pDb);
 
-            pLogger->error(
-                LogMessage::BindParameterTemplate, "TasksPersistence", "date", bindIndex, rc, error);
+            pLogger->error(LogMessage::BindParameterTemplate,
+                "TasksPersistence",
+                "date",
+                bindIndex,
+                rc,
+                error);
 
             sqlite3_finalize(stmt);
             return -1;
@@ -1056,63 +1131,66 @@ int TasksPersistence::GetHoursForDateRangeGroupedByDate(const std::vector<std::s
 }
 
 const std::string TasksPersistence::getById = "SELECT "
-                                             "task_id, "
+                                              "task_id, "
+                                              "billable, "
+                                              "unique_identifier, "
+                                              "hours, "
+                                              "minutes, "
+                                              "description, "
+                                              "date_created, "
+                                              "date_modified, "
+                                              "is_active, "
+                                              "project_id, "
+                                              "category_id, "
+                                              "workday_id, "
+                                              "attribute_group_id "
+                                              "FROM tasks "
+                                              "WHERE task_id = ?;";
+
+const std::string TasksPersistence::create = "INSERT INTO "
+                                             "tasks "
+                                             "("
                                              "billable, "
                                              "unique_identifier, "
                                              "hours, "
                                              "minutes, "
                                              "description, "
-                                             "date_created, "
-                                             "date_modified, "
-                                             "is_active, "
                                              "project_id, "
                                              "category_id, "
-                                             "workday_id "
-                                             "FROM tasks "
-                                             "WHERE task_id = ?;";
-
-const std::string TasksPersistence::create = "INSERT INTO "
-                                            "tasks "
-                                            "("
-                                            "billable, "
-                                            "unique_identifier, "
-                                            "hours, "
-                                            "minutes, "
-                                            "description, "
-                                            "project_id, "
-                                            "category_id, "
-                                            "workday_id "
-                                            ") "
-                                            "VALUES (?,?,?,?,?,?,?,?)";
+                                             "workday_id, "
+                                             "attribute_group_id "
+                                             ") "
+                                             "VALUES (?,?,?,?,?,?,?,?,?)";
 
 const std::string TasksPersistence::update = "UPDATE tasks "
-                                            "SET "
-                                            "billable = ?, "
-                                            "unique_identifier = ?, "
-                                            "hours = ?, "
-                                            "minutes = ?, "
-                                            "description = ?, "
-                                            "project_id = ?, "
-                                            "category_id = ?, "
-                                            "workday_id = ?, "
-                                            "date_modified = ? "
-                                            "WHERE task_id = ?;";
+                                             "SET "
+                                             "billable = ?, "
+                                             "unique_identifier = ?, "
+                                             "hours = ?, "
+                                             "minutes = ?, "
+                                             "description = ?, "
+                                             "project_id = ?, "
+                                             "category_id = ?, "
+                                             "workday_id = ?, "
+                                             "workday_id = ?, "
+                                             "attribute_group_id = ? "
+                                             "WHERE task_id = ?;";
 
 const std::string TasksPersistence::isActive = "UPDATE tasks "
-                                              "SET "
-                                              "is_active = 0, "
-                                              "date_modified = ? "
-                                              "WHERE task_id = ?;";
+                                               "SET "
+                                               "is_active = 0, "
+                                               "date_modified = ? "
+                                               "WHERE task_id = ?;";
 
 const std::string TasksPersistence::getDescriptionById = "SELECT "
-                                                        "description "
-                                                        "FROM tasks "
-                                                        "WHERE task_id = ?;";
+                                                         "description "
+                                                         "FROM tasks "
+                                                         "WHERE task_id = ?;";
 
 const std::string TasksPersistence::isDeleted = "SELECT "
-                                               "is_active "
-                                               "FROM tasks "
-                                               "WHERE task_id = ?;";
+                                                "is_active "
+                                                "FROM tasks "
+                                                "WHERE task_id = ?;";
 
 const std::string TasksPersistence::getAllHoursForDateRange =
     "SELECT "
@@ -1137,12 +1215,13 @@ const std::string TasksPersistence::getBillableHoursForDateRange =
     "AND tasks.billable = 1 "
     "AND tasks.is_active = 1";
 
-const std::string TasksPersistence::getAllHoursForDate = "SELECT "
-                                                        "hours, "
-                                                        "minutes "
-                                                        "FROM tasks "
-                                                        "INNER JOIN workdays "
-                                                        "ON tasks.workday_id = workdays.workday_id "
-                                                        "WHERE workdays.date = ? "
-                                                        "AND tasks.is_active = 1";
+const std::string TasksPersistence::getAllHoursForDate =
+    "SELECT "
+    "hours, "
+    "minutes "
+    "FROM tasks "
+    "INNER JOIN workdays "
+    "ON tasks.workday_id = workdays.workday_id "
+    "WHERE workdays.date = ? "
+    "AND tasks.is_active = 1";
 } // namespace tks::Persistence
