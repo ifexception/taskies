@@ -64,7 +64,7 @@ private:
     void FillControls();
     void ConfigureEventBindings();
     void DataToControls();
-    void SetAttributeControls();
+    void SetAttributeControlsWithData();
 
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);

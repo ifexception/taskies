@@ -89,7 +89,7 @@ void TaskManageAttributesDialog::SetTaskAttributeValues(
     mTaskAttributeValueModels = taskAttributeValueModels;
 
     if (!bIsEdit && mTaskAttributeValueModels.size() > 0) {
-        SetAttributeControls();
+        SetAttributeControlsWithData();
     }
 }
 
@@ -310,10 +310,17 @@ void TaskManageAttributesDialog::DataToControls()
     Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
 
-    // get
+    int rc = taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
+    if (rc != 0) {
+        std::string message = "Failed to fetch attribute values";
+        QueueErrorNotificationEvent(message);
+        return;
+    }
+
+    SetAttributeControlsWithData();
 }
 
-void TaskManageAttributesDialog::SetAttributeControls()
+void TaskManageAttributesDialog::SetAttributeControlsWithData()
 {
     assert(mAttributeControls.size() == mTaskAttributeValueModels.size());
 
