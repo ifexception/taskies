@@ -39,8 +39,16 @@ static BOOL CALLBACK EnumMigrations(HMODULE hModule,
         reinterpret_cast<std::vector<tks::Core::Migration>*>(lParam);
 
     HRSRC rc = FindResource(hModule, lpszName, lpszType);
+    if (rc == nullptr) {
+        return FALSE;
+    }
+
     DWORD size = SizeofResource(hModule, rc);
     HGLOBAL data = LoadResource(hModule, rc);
+    if (data == nullptr) {
+        return false;
+    }
+
     const char* buffer = reinterpret_cast<const char*>(LockResource(data));
 
     tks::Core::Migration m;

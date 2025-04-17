@@ -63,6 +63,15 @@ private:
         wxPanel* Panel;
         int Order;
         int CloseButtonIndex;
+
+        Notification()
+            : Message()
+            , ControlMessage(nullptr)
+            , Panel(nullptr)
+            , Order(-1)
+            , CloseButtonIndex(-1)
+        {
+        }
     };
 
     void CreateControls();
@@ -86,6 +95,10 @@ private:
     std::vector<Notification> mNotifications;
     int mNotificationCounter;
 
-    enum { tksIDC_MARKASREADBASE = wxID_HIGHEST + 101, tksIDC_CLOSEBTN, tksIDC_CLEARALLNOTIFICATIONS };
+    enum {
+        tksIDC_MARKASREADBASE = wxID_HIGHEST + 101,
+        tksIDC_CLOSEBTN,
+        tksIDC_CLEARALLNOTIFICATIONS
+    };
 };
 } // namespace tks::UI

@@ -40,7 +40,12 @@ public:
         std::string OriginalColumn;
         int Order;
 
-        PresetColumnSettings() = default;
+        PresetColumnSettings()
+            : Column()
+            , OriginalColumn()
+            , Order(-1)
+        {
+        }
         PresetColumnSettings(Common::PresetColumn presetColumn);
         ~PresetColumnSettings() = default;
     };
@@ -57,7 +62,19 @@ public:
         bool ExcludeHeaders;
         std::vector<PresetColumnSettings> Columns;
 
-        PresetSettings() = default;
+        PresetSettings()
+            : Uuid()
+            , Name()
+            , IsDefault(false)
+            , Delimiter(DelimiterType::None)
+            , TextQualifier(TextQualifierType::None)
+            , EmptyValuesHandler(EmptyValues::None)
+            , NewLinesHandler(NewLines::None)
+            , BooleanHandler(BooleanHandler::None)
+            , ExcludeHeaders(false)
+            , Columns()
+        {
+        }
         PresetSettings(Common::Preset preset);
         ~PresetSettings() = default;
     };
