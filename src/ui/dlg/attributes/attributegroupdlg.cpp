@@ -99,6 +99,12 @@ void AttributeGroupDialog::CreateControls()
     pNameTextCtrl->SetHint("Attribute group name");
     pNameTextCtrl->SetToolTip("Set a name for the attribute group");
 
+    /* Attribute group is static group check box control */
+    pIsStaticGroupCheckBoxCtrl =
+        new wxCheckBox(detailsBox, tksIDC_ISSTATICGROUPCHECKBOXCTRL, "Is Static Group");
+    pIsStaticGroupCheckBoxCtrl->SetToolTip(
+        "Attributes captured if this is enabled will use the provided static values");
+
     /* Grid sizer for attribute group name controls */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     detailsGridSizer->AddGrowableCol(1, 1);
@@ -107,11 +113,13 @@ void AttributeGroupDialog::CreateControls()
         attributeGroupNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     detailsGridSizer->Add(
         pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    detailsGridSizer->Add(0, 0);
+    detailsGridSizer->Add(pIsStaticGroupCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
     /* Attribute group description static box */
-    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Decription (optional)");
+    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Decription");
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
     mainSizer->Add(
         descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
@@ -129,12 +137,17 @@ void AttributeGroupDialog::CreateControls()
     descriptionBoxSizer->Add(
         pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
+    /* Is Active static box control */
+    auto isActiveStaticBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    auto isActiveStaticBoxSizer = new wxStaticBoxSizer(isActiveStaticBox, wxHORIZONTAL);
+    mainSizer->Add(isActiveStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
     /* Is Active checkbox control */
     pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
     pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
     pIsActiveCheckBoxCtrl->Disable();
 
-    mainSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    isActiveStaticBoxSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
@@ -202,6 +215,7 @@ void AttributeGroupDialog::DataToControls()
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
     } else {
         pNameTextCtrl->SetValue(attributeGroupModel.Name);
+        pIsStaticGroupCheckBoxCtrl->SetValue(attributeGroupModel.IsStaticGroup);
 
         if (attributeGroupModel.Description.has_value()) {
             pDescriptionTextCtrl->SetValue(attributeGroupModel.Description.value());
@@ -219,9 +233,11 @@ void AttributeGroupDialog::OnIsActiveCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         pNameTextCtrl->Enable();
+        pIsStaticGroupCheckBoxCtrl->Enable();
         pDescriptionTextCtrl->Enable();
     } else {
         pNameTextCtrl->Disable();
+        pIsStaticGroupCheckBoxCtrl->Disable();
         pDescriptionTextCtrl->Disable();
     }
 }
@@ -331,6 +347,8 @@ void AttributeGroupDialog::TransferDataFromControls()
 
     auto name = pNameTextCtrl->GetValue().ToStdString();
     mAttributeGroupModel.Name = Utils::TrimWhitespace(name);
+
+    mAttributeGroupModel.IsStaticGroup = pIsStaticGroupCheckBoxCtrl->GetValue();
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mAttributeGroupModel.Description =

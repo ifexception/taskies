@@ -224,6 +224,8 @@ int AttributeGroupsPersistence::Filter(const std::string& searchTerm,
             model.Name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
+            model.IsStaticGroup = sqlite3_column_int(stmt, columnIndex++);
+
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
                 model.Description = std::nullopt;
             } else {
@@ -344,6 +346,8 @@ int AttributeGroupsPersistence::GetById(const std::int64_t attributeGroupId,
     attributeGroupModel.Name =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
+    attributeGroupModel.IsStaticGroup = sqlite3_column_int(stmt, columnIndex++);
+
     if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
         attributeGroupModel.Description = std::nullopt;
     } else {
@@ -435,6 +439,25 @@ std::int64_t AttributeGroupsPersistence::Create(
 
     bindIndex++;
 
+    // is_static_group
+    rc = sqlite3_bind_int(stmt, bindIndex, attributeGroupModel.IsStaticGroup);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "AttributeGroupsPersistence",
+            "is_static_group",
+            bindIndex,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
     if (attributeGroupModel.Description.has_value()) {
         rc = sqlite3_bind_text(stmt,
             bindIndex,
@@ -516,6 +539,7 @@ int AttributeGroupsPersistence::Update(Model::AttributeGroupModel attributeGroup
 
     int bindIndex = 1;
 
+    // name
     rc = sqlite3_bind_text(stmt,
         bindIndex,
         attributeGroupModel.Name.c_str(),
@@ -528,6 +552,25 @@ int AttributeGroupsPersistence::Update(Model::AttributeGroupModel attributeGroup
         pLogger->error(LogMessage::BindParameterTemplate,
             "AttributeGroupsPersistence",
             "name",
+            bindIndex,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // is_static_group
+    rc = sqlite3_bind_int(stmt, bindIndex, attributeGroupModel.IsStaticGroup);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::BindParameterTemplate,
+            "AttributeGroupsPersistence",
+            "is_static_group",
             bindIndex,
             rc,
             error);
@@ -716,6 +759,7 @@ const std::string AttributeGroupsPersistence::filter = "SELECT "
                                                        "name, "
                                                        "description, "
                                                        "date_created, "
+                                                       "is_static_group, "
                                                        "date_modified, "
                                                        "is_active "
                                                        "FROM attribute_groups "
@@ -727,6 +771,7 @@ const std::string AttributeGroupsPersistence::getById = "SELECT "
                                                         "attribute_group_id, "
                                                         "name, "
                                                         "description, "
+                                                        "is_static_group, "
                                                         "date_created, "
                                                         "date_modified, "
                                                         "is_active "
@@ -737,14 +782,16 @@ const std::string AttributeGroupsPersistence::create = "INSERT INTO "
                                                        "attribute_groups "
                                                        "("
                                                        "name, "
-                                                       "description"
+                                                       "description, "
+                                                       "is_static_group "
                                                        ") "
-                                                       "VALUES (?, ?);";
+                                                       "VALUES (?,?,?);";
 
 const std::string AttributeGroupsPersistence::update = "UPDATE attribute_groups "
                                                        "SET "
                                                        "name = ?, "
                                                        "description = ?, "
+                                                       "is_static_group = ?, "
                                                        "date_modified = ? "
                                                        "WHERE attribute_group_id = ?";
 

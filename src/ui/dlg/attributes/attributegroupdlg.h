@@ -68,6 +68,7 @@ private:
     wxWindow* pParent;
 
     wxTextCtrl* pNameTextCtrl;
+    wxCheckBox* pIsStaticGroupCheckBoxCtrl;
 
     wxTextCtrl* pDescriptionTextCtrl;
 
@@ -84,6 +85,7 @@ private:
 
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
+        tksIDC_ISSTATICGROUPCHECKBOXCTRL,
         tksIDC_DESCRIPTIONTEXTCTRL,
         tksIDC_ISACTIVECHECKBOXCTRL
     };

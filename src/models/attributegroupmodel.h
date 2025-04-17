@@ -30,8 +30,11 @@ struct AttributeGroupModel {
     ~AttributeGroupModel() = default;
 
     std::int64_t AttributeGroupId;
+
     std::string Name;
     std::optional<std::string> Description;
+    bool IsStaticGroup;
+
     std::uint32_t DateCreated;
     std::uint32_t DateModified;
     bool IsActive;
