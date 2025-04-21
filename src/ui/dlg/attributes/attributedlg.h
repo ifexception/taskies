@@ -57,13 +57,18 @@ private:
     void FillControls();
     void DataToControls();
 
+    void OnAttributeGroupSelection(wxCommandEvent& event);
+
     void OnIsActiveCheck(wxCommandEvent& event);
     void OnAddAnotherCheck(wxCommandEvent& event);
+
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
     bool Validate();
     void TransferDataFromControls();
+
+    void QueueErrorNotificationEvent(const std::string& message);
 
     std::shared_ptr<spdlog::logger> pLogger;
 
@@ -76,6 +81,8 @@ private:
 
     wxChoice* pAttributeGroupChoiceCtrl;
     wxChoice* pAttributeTypeChoiceCtrl;
+
+    wxCheckBox* pIsStaticCheckBoxCtrl;
 
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
@@ -96,6 +103,7 @@ private:
         tksIDC_ISREQUIREDCHECKBOXCTRL,
         tksIDC_ATTRIBUTEGROUPCHOICECTRL,
         tksIDC_ATTRIBUTETYPECHOICECTRL,
+        tksIDC_ISSTATICCHECKBOXCTRL,
         tksIDC_ISACTIVECHECKBOXCTRL,
         tksIDC_ADDANOTHERCHECKBOXCTRL
     };

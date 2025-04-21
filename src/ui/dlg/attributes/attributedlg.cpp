@@ -170,12 +170,24 @@ void AttributeDialog::CreateControls()
     mainSizer->Add(fieldTypeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     mainSizer->Add(pAttributeTypeChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+    pIsStaticCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISSTATICCHECKBOXCTRL, "Is Static");
+    pIsStaticCheckBoxCtrl->SetToolTip(
+        "Set from the attribute group and values captured will be static");
+    pIsStaticCheckBoxCtrl->Disable();
+    mainSizer->Add(pIsStaticCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* Is Active static box control */
+    auto isActiveStaticBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    auto isActiveStaticBoxSizer = new wxStaticBoxSizer(isActiveStaticBox, wxHORIZONTAL);
+    mainSizer->Add(isActiveStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
     /* Is Active checkbox control */
-    pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
+    pIsActiveCheckBoxCtrl =
+        new wxCheckBox(isActiveStaticBox, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
     pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
     pIsActiveCheckBoxCtrl->Disable();
 
-    mainSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    isActiveStaticBoxSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
@@ -192,7 +204,8 @@ void AttributeDialog::CreateControls()
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
-    buttonsSizer->Add(pAddAnotherCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    buttonsSizer->Add(
+        pAddAnotherCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     buttonsSizer->AddStretchSpacer();
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -203,6 +216,12 @@ void AttributeDialog::CreateControls()
 // clang-format off
 void AttributeDialog::ConfigureEventBindings()
 {
+    pAttributeGroupChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &AttributeDialog::OnAttributeGroupSelection,
+        this
+    );
+
     pIsActiveCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &AttributeDialog::OnIsActiveCheck,
@@ -334,6 +353,35 @@ void AttributeDialog::DataToControls()
 
         pIsActiveCheckBoxCtrl->Enable();
         pOkButton->Enable();
+    }
+}
+
+void AttributeDialog::OnAttributeGroupSelection(wxCommandEvent& event)
+{
+    if (event.GetSelection() < 1) {
+        pIsStaticCheckBoxCtrl->SetValue(false);
+        return;
+    }
+
+    ClientData<std::int64_t>* data = reinterpret_cast<ClientData<std::int64_t>*>(
+        pAttributeTypeChoiceCtrl->GetClientObject(event.GetSelection()));
+
+    std::int64_t attributeGroupId = data->GetValue();
+
+    Model::AttributeGroupModel attributeGroupModel;
+    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributeGroupsPersistence.GetById(attributeGroupId, attributeGroupModel);
+    if (rc != 0) {
+        std::string message = "Failed to get attribute group";
+        QueueErrorNotificationEvent(message);
+        return;
+    }
+
+    if (attributeGroupModel.IsStaticGroup) {
+        pIsStaticCheckBoxCtrl->SetValue(true);
+    } else {
+        pIsStaticCheckBoxCtrl->SetValue(true);
     }
 }
 
@@ -506,5 +554,15 @@ void AttributeDialog::TransferDataFromControls()
     ClientData<std::int64_t>* attributeTypeData = reinterpret_cast<ClientData<std::int64_t>*>(
         pAttributeTypeChoiceCtrl->GetClientObject(attributeTypeIndex));
     mAttributeModel.AttributeTypeId = attributeTypeData->GetValue();
+}
+
+void AttributeDialog::QueueErrorNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg
