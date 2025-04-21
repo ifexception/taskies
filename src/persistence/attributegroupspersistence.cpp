@@ -346,8 +346,6 @@ int AttributeGroupsPersistence::GetById(const std::int64_t attributeGroupId,
     attributeGroupModel.Name =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-    attributeGroupModel.IsStaticGroup = sqlite3_column_int(stmt, columnIndex++);
-
     if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
         attributeGroupModel.Description = std::nullopt;
     } else {
@@ -357,6 +355,8 @@ int AttributeGroupsPersistence::GetById(const std::int64_t attributeGroupId,
     }
 
     columnIndex++;
+
+    attributeGroupModel.IsStaticGroup = sqlite3_column_int(stmt, columnIndex++);
 
     attributeGroupModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     attributeGroupModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -439,6 +439,18 @@ std::int64_t AttributeGroupsPersistence::Create(
 
     bindIndex++;
 
+    if (attributeGroupModel.Description.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            attributeGroupModel.Description.value().c_str(),
+            static_cast<int>(attributeGroupModel.Description.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    bindIndex++;
+
     // is_static_group
     rc = sqlite3_bind_int(stmt, bindIndex, attributeGroupModel.IsStaticGroup);
 
@@ -454,18 +466,6 @@ std::int64_t AttributeGroupsPersistence::Create(
 
         sqlite3_finalize(stmt);
         return -1;
-    }
-
-    bindIndex++;
-
-    if (attributeGroupModel.Description.has_value()) {
-        rc = sqlite3_bind_text(stmt,
-            bindIndex,
-            attributeGroupModel.Description.value().c_str(),
-            static_cast<int>(attributeGroupModel.Description.value().size()),
-            SQLITE_TRANSIENT);
-    } else {
-        rc = sqlite3_bind_null(stmt, bindIndex);
     }
 
     if (rc != SQLITE_OK) {
