@@ -30,27 +30,30 @@
 #include <wx/wx.h>
 #endif
 
+#include "../../../models/attributemodel.h"
+
 namespace tks::UI::dlg
 {
-class StaticAttributesDialog final : public wxDialog
+class StaticAttributeValuesDialog final : public wxDialog
 {
 public:
-    StaticAttributesDialog() = delete;
-    StaticAttributesDialog(const StaticAttributesDialog&) = delete;
-    StaticAttributesDialog(wxWindow* parent,
+    StaticAttributeValuesDialog() = delete;
+    StaticAttributeValuesDialog(const StaticAttributeValuesDialog&) = delete;
+    StaticAttributeValuesDialog(wxWindow* parent,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isEdit = false,
         std::int64_t attributeGroupId = -1,
-        const wxString& name = "attributegroupdlg");
-    virtual ~StaticAttributesDialog() = default;
+        const wxString& name = "staticattributevaluesdlg");
+    virtual ~StaticAttributeValuesDialog() = default;
 
-    StaticAttributesDialog& operator=(const StaticAttributesDialog&) = delete;
+    StaticAttributeValuesDialog& operator=(const StaticAttributeValuesDialog&) = delete;
 
 private:
     void Create();
 
     void CreateControls();
+    void FillControls();
     void ConfigureEventBindings();
     void DataToControls();
 
@@ -65,8 +68,21 @@ private:
 
     wxWindow* pParent;
 
+    wxSizer* pMainSizer;
+
+    wxChoice* pAttributeGroupChoiceCtrl;
+
+    wxStaticBox* pAttributesBox;
+    wxStaticBoxSizer* pAttributesBoxSizer;
+    wxFlexGridSizer* pAttributesControlFlexGridSizer;
+
+    wxButton* pOKButton;
+    wxButton* pCancelButton;
+
     std::string mDatabaseFilePath;
     std::int64_t mAttributeGroupId;
     bool bIsEdit;
+
+    enum { tksIDC_ATTRIBUTEGROUPCHOICECTRL = wxID_HIGHEST + 1001, tksIDC_ATTRIBUTECONTROLBASE };
 };
 } // namespace tks::UI::dlg

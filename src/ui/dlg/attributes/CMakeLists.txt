@@ -5,6 +5,6 @@ set(
     SRC_ATTR_DLG
     "${CMAKE_CURRENT_SOURCE_DIR}/attributegroupdlg.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributedlg.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/staticattributesdlg.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/staticattributevaluesdlg.cpp"
     PARENT_SCOPE
 )
