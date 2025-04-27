@@ -31,6 +31,7 @@ PREFERENCES_ICO ICON "..\\res\\preferences.ico"
 20250319204504_create_attributes_table MIGRATION "..\\res\\migrations\\20250319204504_create_attributes_table.sql"
 20250409190324_create_task_attribute_values_table MIGRATION "..\\res\\migrations\\20250409190324_create_task_attribute_values_table.sql"
 20250412112647_add_attribute_group_id_column_to_tasks_table MIGRATION "..\\res\\migrations\\20250412112647_add_attribute_group_id_column_to_tasks_table.sql"
+20250427164010_create_static_attribute_values_table MIGRATION "..\\res\\migrations\\20250427164010_create_static_attribute_values_table.sql"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION        TASKIES_FILE_VERSION
