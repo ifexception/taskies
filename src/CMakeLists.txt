@@ -33,7 +33,6 @@ message (STATUS "add subdirectory models")
 add_subdirectory("persistence")
 message (STATUS "add subdirectory persistence")
 
-
 set(SRC_REPOS
     "repository/taskrepository.cpp"
     "repository/taskrepositorymodel.cpp"

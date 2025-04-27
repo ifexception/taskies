@@ -13,5 +13,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/attributetypemodel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributemodel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/taskattributevaluemodel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/staticattributevaluemodel.cpp"
     PARENT_SCOPE
 )
