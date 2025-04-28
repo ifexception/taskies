@@ -84,20 +84,16 @@ void StaticAttributeValuesDialog::Create()
 }
 
 void StaticAttributeValuesDialog::CreateControls()
-{ /* Main Sizer */
+{
+    /* Main Sizer */
     pMainSizer = new wxBoxSizer(wxVERTICAL);
 
-    /* Attribute group name horizontal sizer */
-    auto attributeGroupNameHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
-    pMainSizer->Add(attributeGroupNameHorizontalSizer, wxSizerFlags().Expand());
-
-    /* Attribute group name text control */
+    /* Attribute group choice control */
     auto attributeGroupNameLabel = new wxStaticText(this, wxID_ANY, "Attribute Group");
     pAttributeGroupChoiceCtrl = new wxChoice(this, tksIDC_ATTRIBUTEGROUPCHOICECTRL);
 
-    attributeGroupNameHorizontalSizer->Add(
-        attributeGroupNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    attributeGroupNameHorizontalSizer->Add(
+    pMainSizer->Add(attributeGroupNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    pMainSizer->Add(
         pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Proportion(1));
 
     /* Initial controls and sizers for attributes */
@@ -136,13 +132,36 @@ void StaticAttributeValuesDialog::CreateControls()
     pMainSizer->SetSizeHints(this);
 }
 
-void StaticAttributeValuesDialog::FillControls() {}
+void StaticAttributeValuesDialog::FillControls()
+{
+    pAttributeGroupChoiceCtrl->Append("Select an attribute group", new ClientData<std::int64_t>(-1));
+    pAttributeGroupChoiceCtrl->SetSelection(0);
 
-void StaticAttributeValuesDialog::ConfigureEventBindings() {}
+    std::vector<Model::AttributeGroupModel> attributeGroups;
+    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributeGroupsPersistence.FilterByStaticFlag(attributeGroups);
+    if (rc != 0) {
+        std::string message = "Failed to get static attribute groups";
+        QueueErrorNotificationEvent(message);
+
+        return;
+    }
+
+    for (auto& attributeGroupModel : attributeGroups) {
+        pAttributeGroupChoiceCtrl->Append(attributeGroupModel.Name,
+            new ClientData<std::int64_t>(attributeGroupModel.AttributeGroupId));
+    }
+}
+
+// clang-format off
+void StaticAttributeValuesDialog::ConfigureEventBindings()
+{
+
+}
+// clang-format on
 
 void StaticAttributeValuesDialog::DataToControls() {}
-
-void StaticAttributeValuesDialog::OnIsActiveCheck(wxCommandEvent& event) {}
 
 void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event) {}
 
@@ -150,8 +169,18 @@ void StaticAttributeValuesDialog::OnCancel(wxCommandEvent& event) {}
 
 bool StaticAttributeValuesDialog::Validate()
 {
-    return false;
+    return true;
 }
 
 void StaticAttributeValuesDialog::TransferDataFromControls() {}
+
+void StaticAttributeValuesDialog::QueueErrorNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(pParent, addNotificationEvent);
+}
 } // namespace tks::UI::dlg
