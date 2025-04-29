@@ -64,6 +64,7 @@ enum class MenuIds : int {
     File_NewCategory,
     File_NewAttributeGroup,
     File_NewAttribute,
+    File_NewStaticAttributes,
     File_TasksDatabaseBackup,
     File_TasksExportToCsv,
     File_TasksQuickExportToCsv,
@@ -93,6 +94,7 @@ static const int ID_NEW_PROJECT = static_cast<int>(MenuIds::File_NewProject);
 static const int ID_NEW_CATEGORY = static_cast<int>(MenuIds::File_NewCategory);
 static const int ID_NEW_ATTRIBUTEGROUP = static_cast<int>(MenuIds::File_NewAttributeGroup);
 static const int ID_NEW_ATTRIBUTE = static_cast<int>(MenuIds::File_NewAttribute);
+static const int ID_NEW_STATIC_ATTRIBUTES = static_cast<int>(MenuIds::File_NewStaticAttributes);
 
 static const int ID_TASKS_BACKUPDATABASE = static_cast<int>(MenuIds::File_TasksDatabaseBackup);
 static const int ID_TASKS_EXPORTTOCSV = static_cast<int>(MenuIds::File_TasksExportToCsv);
@@ -167,6 +169,7 @@ private:
     void OnNewCategory(wxCommandEvent& event);
     void OnNewAttributeGroup(wxCommandEvent& event);
     void OnNewAttribute(wxCommandEvent& event);
+    void OnNewStaticAttributes(wxCommandEvent& event);
     void OnTasksBackupDatabase(wxCommandEvent& event);
     void OnTasksExportToCsv(wxCommandEvent& event);
     void OnTasksQuickExportToCsv(wxCommandEvent& event);
