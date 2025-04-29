@@ -94,7 +94,7 @@ void StaticAttributeValuesDialog::CreateControls()
 
     pMainSizer->Add(attributeGroupNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     pMainSizer->Add(
-        pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Proportion(1));
+        pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Initial controls and sizers for attributes */
     pAttributesBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
@@ -157,15 +157,33 @@ void StaticAttributeValuesDialog::FillControls()
 // clang-format off
 void StaticAttributeValuesDialog::ConfigureEventBindings()
 {
+    pOKButton->Bind(
+        wxEVT_BUTTON,
+        &StaticAttributeValuesDialog::OnOK,
+        this,
+        wxID_OK
+    );
 
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &StaticAttributeValuesDialog::OnCancel,
+        this,
+        wxID_CANCEL
+    );
 }
 // clang-format on
 
 void StaticAttributeValuesDialog::DataToControls() {}
 
-void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event) {}
+void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
+{
+    EndModal(wxID_OK);
+}
 
-void StaticAttributeValuesDialog::OnCancel(wxCommandEvent& event) {}
+void StaticAttributeValuesDialog::OnCancel(wxCommandEvent& event)
+{
+    EndModal(wxID_CANCEL);
+}
 
 bool StaticAttributeValuesDialog::Validate()
 {
