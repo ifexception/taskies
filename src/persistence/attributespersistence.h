@@ -44,6 +44,8 @@ public:
         /*out*/ std::vector<Model::AttributeModel>& attributeModels);
     int FilterByAttributeGroupId(const std::int64_t attributeGroupId,
         /*out*/ std::vector<Model::AttributeModel>& attributeModels);
+    int FilterByAttributeGroupIdAndIsStatic(const std::int64_t attributeGroupId,
+        /*out*/ std::vector<Model::AttributeModel>& attributeModels);
     int GetById(const std::int64_t attributeId,
         /*out*/ Model::AttributeModel& attributeModel);
     std::int64_t Create(const Model::AttributeModel& attributeModel);
@@ -58,9 +60,10 @@ private:
 
     static const std::string filter;
     static const std::string filterByAttributeGroupId;
+    static const std::string filterByAttributeGroupIdAndIsStatic;
     static const std::string getById;
     static const std::string create;
     static const std::string update;
     static const std::string isActive;
 };
-}
+} // namespace tks::Persistence

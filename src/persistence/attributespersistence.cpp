@@ -223,6 +223,7 @@ int AttributesPersistence::FilterByAttributeGroupId(const std::int64_t attribute
         pLogger, LogMessage::InfoBeginGetByIdEntity, mClassName, "attributes", attributeGroupId);
 
     sqlite3_stmt* stmt = nullptr;
+
     int rc = sqlite3_prepare_v2(pDb,
         AttributesPersistence::filterByAttributeGroupId.c_str(),
         static_cast<int>(AttributesPersistence::filterByAttributeGroupId.size()),
@@ -308,6 +309,116 @@ int AttributesPersistence::FilterByAttributeGroupId(const std::int64_t attribute
             AttributesPersistence::filterByAttributeGroupId,
             rc,
             err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndGetByIdEntity, mClassName, attributeGroupId);
+
+    return 0;
+}
+
+int AttributesPersistence::FilterByAttributeGroupIdAndIsStatic(const std::int64_t attributeGroupId,
+    std::vector<Model::AttributeModel>& attributeModels)
+{
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessage::InfoBeginGetByIdEntity, mClassName, "attributes", attributeGroupId);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributesPersistence::filterByAttributeGroupIdAndIsStatic.c_str(),
+        static_cast<int>(AttributesPersistence::filterByAttributeGroupIdAndIsStatic.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::PrepareStatementTemplate,
+            mClassName,
+            AttributesPersistence::filterByAttributeGroupIdAndIsStatic,
+            rc,
+            err);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeGroupId);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::BindParameterTemplate,
+            mClassName,
+            "attribute_group_id",
+            bindIndex,
+            rc,
+            err);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            Model::AttributeModel attributeModel;
+
+            int columnIndex = 0;
+
+            attributeModel.AttributeId = sqlite3_column_int64(stmt, columnIndex++);
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            attributeModel.Name = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            attributeModel.IsRequired = sqlite3_column_int(stmt, columnIndex++);
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                attributeModel.Description = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                attributeModel.Description = std::string(
+                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+            }
+
+            columnIndex++;
+
+            attributeModel.AttributeGroupId = sqlite3_column_int64(stmt, columnIndex++);
+            attributeModel.AttributeTypeId = sqlite3_column_int64(stmt, columnIndex++);
+
+            attributeModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            attributeModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            attributeModel.IsActive = sqlite3_column_int(stmt, columnIndex++);
+
+            attributeModels.push_back(attributeModel);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessage::ExecStepTemplate,
+            mClassName,
+            AttributesPersistence::filterByAttributeGroupIdAndIsStatic,
+            rc,
+            err);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -770,6 +881,24 @@ const std::string AttributesPersistence::filterByAttributeGroupId = "SELECT "
                                                                     "FROM attributes "
                                                                     "WHERE is_active = 1 "
                                                                     "AND attribute_group_id = ?";
+
+const std::string AttributesPersistence::filterByAttributeGroupIdAndIsStatic =
+    "SELECT "
+    "attributes.attribute_id, "
+    "attributes.name, "
+    "attributes.is_required, "
+    "attributes.description, "
+    "attributes.attribute_group_id, "
+    "attributes.attribute_type_id, "
+    "attributes.date_created, "
+    "attributes.date_modified, "
+    "attributes.is_active "
+    "FROM attributes "
+    "INNER JOIN attribute_groups "
+    "ON attributes.attribute_group_id = attribute_groups.attribute_id "
+    "WHERE attributes.is_active = 1 "
+    "AND attribute_groups.is_static_group = 1 "
+    "AND attribute_group_id = ?";
 
 const std::string AttributesPersistence::getById = "SELECT "
                                                    "attribute_id, "
