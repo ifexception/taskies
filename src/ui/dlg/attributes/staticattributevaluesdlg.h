@@ -30,6 +30,8 @@
 #include <wx/wx.h>
 #endif
 
+#include "../../../common/enums.h"
+
 #include "../../../models/attributemodel.h"
 
 namespace tks::UI::dlg
@@ -57,6 +59,7 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
+    void AttributeGroupChoiceSelection(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
@@ -83,7 +86,44 @@ private:
     std::string mDatabaseFilePath;
     std::int64_t mAttributeGroupId;
     bool bIsEdit;
+    int mAttributeControlCounter;
 
     enum { tksIDC_ATTRIBUTEGROUPCHOICECTRL = wxID_HIGHEST + 1001, tksIDC_ATTRIBUTECONTROLBASE };
+
+    struct AttributeControl {
+        int ControlId;
+        wxTextCtrl* TextControl;
+        wxCheckBox* BooleanControl;
+        wxTextCtrl* NumericControl;
+
+        AttributeControl()
+            : ControlId(-1)
+            , TextControl(nullptr)
+            , BooleanControl(nullptr)
+            , NumericControl(nullptr)
+        {
+        }
+    };
+
+    struct AttributeMetadata {
+        AttributeTypes AttributeType;
+        bool IsRequired;
+        std::string Name;
+
+        AttributeControl Control;
+
+        std::int64_t AttributeId;
+
+        AttributeMetadata()
+            : AttributeType()
+            , IsRequired(false)
+            , Name()
+            , Control()
+            , AttributeId(-1)
+        {
+        }
+    };
+
+    std::vector<AttributeMetadata> mAttributesMetadata;
 };
 } // namespace tks::UI::dlg

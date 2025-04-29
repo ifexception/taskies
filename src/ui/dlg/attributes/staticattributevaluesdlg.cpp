@@ -33,8 +33,10 @@
 #include "../../../common/validator.h"
 
 #include "../../../persistence/attributegroupspersistence.h"
+#include "../../../persistence/attributespersistence.h"
 
 #include "../../../models/attributegroupmodel.h"
+#include "../../../models/attributemodel.h"
 
 namespace tks::UI::dlg
 {
@@ -63,6 +65,8 @@ StaticAttributeValuesDialog::StaticAttributeValuesDialog(wxWindow* parent,
     , pAttributesControlFlexGridSizer(nullptr)
     , pOKButton(nullptr)
     , pCancelButton(nullptr)
+    , mAttributesMetadata()
+    , mAttributeControlCounter(1)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -93,8 +97,7 @@ void StaticAttributeValuesDialog::CreateControls()
     pAttributeGroupChoiceCtrl = new wxChoice(this, tksIDC_ATTRIBUTEGROUPCHOICECTRL);
 
     pMainSizer->Add(attributeGroupNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    pMainSizer->Add(
-        pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    pMainSizer->Add(pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Initial controls and sizers for attributes */
     pAttributesBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
@@ -134,7 +137,8 @@ void StaticAttributeValuesDialog::CreateControls()
 
 void StaticAttributeValuesDialog::FillControls()
 {
-    pAttributeGroupChoiceCtrl->Append("Select an attribute group", new ClientData<std::int64_t>(-1));
+    pAttributeGroupChoiceCtrl->Append(
+        "Select an attribute group", new ClientData<std::int64_t>(-1));
     pAttributeGroupChoiceCtrl->SetSelection(0);
 
     std::vector<Model::AttributeGroupModel> attributeGroups;
@@ -174,6 +178,134 @@ void StaticAttributeValuesDialog::ConfigureEventBindings()
 // clang-format on
 
 void StaticAttributeValuesDialog::DataToControls() {}
+
+void StaticAttributeValuesDialog::AttributeGroupChoiceSelection(wxCommandEvent& event)
+{
+    auto selection = event.GetSelection();
+    if (selection < 1) {
+        return;
+    }
+
+    auto data = reinterpret_cast<ClientData<std::int64_t>*>(
+        pAttributeGroupChoiceCtrl->GetClientObject(selection));
+    std::int64_t attributeGroupId = data->GetValue();
+
+    std::vector<Model::AttributeModel> attributeModels;
+    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
+        mAttributeGroupId, attributeModels);
+
+    if (rc != 0) {
+        std::string message = "Failed to fetch attributes";
+        QueueErrorNotificationEvent(message);
+        return;
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Build \"{0}\" control attributes from attribute group id \"{1}\"",
+        attributeModels.size(),
+        mAttributeGroupId);
+
+    if (attributeModels.size() < 1) {
+        auto noAttributesLabel = new wxStaticText(pAttributesBox, wxID_ANY, "No attributes found");
+        auto noAttributesLabelFont =
+            wxFont(9, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL);
+        noAttributesLabel->SetFont(noAttributesLabelFont);
+        pAttributesBoxSizer->Add(
+            noAttributesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+
+        pAttributesBoxSizer->Layout();
+        pMainSizer->Layout();
+        SetSizerAndFit(pMainSizer);
+        return;
+    }
+
+    for (size_t i = 0; i < attributeModels.size(); i++) {
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Build attribute control name \"{0}\" with type \"{1}\"",
+            attributeModels[i].Name,
+            AttributeTypeToString((AttributeTypes) attributeModels[i].AttributeTypeId));
+
+        auto controlId = tksIDC_ATTRIBUTECONTROLBASE + mAttributeControlCounter;
+
+        AttributeMetadata attributeMetadata;
+        attributeMetadata.IsRequired = attributeModels[i].IsRequired;
+        attributeMetadata.Name = attributeModels[i].Name;
+
+        AttributeControl attributeControl;
+        attributeControl.ControlId = controlId;
+
+        switch ((AttributeTypes) attributeModels[i].AttributeTypeId) {
+        case AttributeTypes::Text: {
+            auto attributeLabel =
+                new wxStaticText(pAttributesBox, wxID_ANY, attributeModels[i].Name);
+            auto attributeTextControl = new wxTextCtrl(pAttributesBox, controlId);
+            attributeTextControl->SetHint(attributeModels[i].Name);
+
+            pAttributesControlFlexGridSizer->Add(
+                attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+            pAttributesControlFlexGridSizer->Add(
+                attributeTextControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+            attributeControl.TextControl = attributeTextControl;
+
+            break;
+        }
+        case AttributeTypes::Boolean: {
+            auto attributeBooleanControl = new wxCheckBox(pAttributesBox,
+                controlId,
+                attributeModels[i].Name,
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxCHK_3STATE | wxCHK_ALLOW_3RD_STATE_FOR_USER);
+
+            pAttributesControlFlexGridSizer->Add(0, 0);
+            pAttributesControlFlexGridSizer->Add(
+                attributeBooleanControl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+            attributeControl.BooleanControl = attributeBooleanControl;
+
+            break;
+        }
+        case AttributeTypes::Numeric: {
+            auto attributeLabel =
+                new wxStaticText(pAttributesBox, wxID_ANY, attributeModels[i].Name);
+            auto attributeNumericControl = new wxTextCtrl(pAttributesBox,
+                controlId,
+                wxEmptyString,
+                wxDefaultPosition,
+                wxDefaultSize,
+                wxTE_LEFT,
+                wxTextValidator(wxFILTER_NUMERIC));
+            attributeNumericControl->SetHint(attributeModels[i].Name);
+
+            pAttributesControlFlexGridSizer->Add(
+                attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+            pAttributesControlFlexGridSizer->Add(
+                attributeNumericControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+            attributeControl.NumericControl = attributeNumericControl;
+
+            break;
+        }
+        default:
+            break;
+        }
+
+        attributeMetadata.AttributeType = (AttributeTypes) attributeModels[i].AttributeTypeId;
+        attributeMetadata.AttributeId = attributeModels[i].AttributeId;
+        attributeMetadata.Control = attributeControl;
+        mAttributeControlCounter++;
+
+        mAttributesMetadata.push_back(attributeMetadata);
+    }
+
+    pAttributesBoxSizer->Layout();
+    pMainSizer->Layout();
+
+    SetSizerAndFit(pMainSizer);
+}
 
 void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
 {
