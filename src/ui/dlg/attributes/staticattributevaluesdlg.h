@@ -59,7 +59,7 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
-    void AttributeGroupChoiceSelection(wxCommandEvent& event);
+    void OnAttributeGroupChoiceSelection(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 

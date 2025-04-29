@@ -161,6 +161,12 @@ void StaticAttributeValuesDialog::FillControls()
 // clang-format off
 void StaticAttributeValuesDialog::ConfigureEventBindings()
 {
+    pAttributeGroupChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection,
+        this
+    );
+
     pOKButton->Bind(
         wxEVT_BUTTON,
         &StaticAttributeValuesDialog::OnOK,
@@ -179,7 +185,7 @@ void StaticAttributeValuesDialog::ConfigureEventBindings()
 
 void StaticAttributeValuesDialog::DataToControls() {}
 
-void StaticAttributeValuesDialog::AttributeGroupChoiceSelection(wxCommandEvent& event)
+void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
 {
     auto selection = event.GetSelection();
     if (selection < 1) {
