@@ -21,6 +21,8 @@
 
 #include <optional>
 
+#include <fmt/format.h>
+
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -301,7 +303,9 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
 
         attributeMetadata.AttributeType = (AttributeTypes) attributeModels[i].AttributeTypeId;
         attributeMetadata.AttributeId = attributeModels[i].AttributeId;
+
         attributeMetadata.Control = attributeControl;
+
         mAttributeControlCounter++;
 
         mAttributesMetadata.push_back(attributeMetadata);
@@ -325,6 +329,52 @@ void StaticAttributeValuesDialog::OnCancel(wxCommandEvent& event)
 
 bool StaticAttributeValuesDialog::Validate()
 {
+    for (const auto& attributeMetadata : mAttributesMetadata) {
+        if (attributeMetadata.IsRequired) {
+            switch (attributeMetadata.AttributeType) {
+            case AttributeTypes::Text: {
+                std::string value = attributeMetadata.Control.TextControl->GetValue().ToStdString();
+                if (value.empty()) {
+                    std::string validation =
+                        fmt::format("A value is required for \"{0}\"", attributeMetadata.Name);
+                    wxRichToolTip toolTip("Validation", validation);
+                    toolTip.SetIcon(wxICON_WARNING);
+                    toolTip.ShowFor(attributeMetadata.Control.TextControl);
+                    return false;
+                }
+                break;
+            }
+            case AttributeTypes::Boolean: {
+                int isUndeterminedState = attributeMetadata.Control.BooleanControl->Get3StateValue();
+                if (isUndeterminedState == wxCHK_UNDETERMINED) {
+                    std::string validation =
+                        fmt::format("A value is required for \"{0}\"", attributeMetadata.Name);
+                    wxRichToolTip toolTip("Validation", validation);
+                    toolTip.SetIcon(wxICON_WARNING);
+                    toolTip.ShowFor(attributeMetadata.Control.BooleanControl);
+                    return false;
+                }
+                break;
+            }
+            case AttributeTypes::Numeric: {
+                std::string value =
+                    attributeMetadata.Control.NumericControl->GetValue().ToStdString();
+                if (value.empty()) {
+                    std::string validation =
+                        fmt::format("A value is required for \"{0}\"", attributeMetadata.Name);
+                    wxRichToolTip toolTip("Validation", validation);
+                    toolTip.SetIcon(wxICON_WARNING);
+                    toolTip.ShowFor(attributeMetadata.Control.NumericControl);
+                    return false;
+                }
+                break;
+            }
+            default:
+                return false;
+            }
+        }
+    }
+
     return true;
 }
 
