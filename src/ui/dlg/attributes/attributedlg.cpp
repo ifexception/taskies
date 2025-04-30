@@ -466,8 +466,11 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
             pNameTextCtrl->ChangeValue("");
             pIsRequiredCheckBoxCtrl->SetValue(false);
             pDescriptionTextCtrl->ChangeValue("");
+            pDescriptionTextCtrl->SetHint("Attribute description");
             pAttributeGroupChoiceCtrl->SetSelection(0);
             pAttributeTypeChoiceCtrl->SetSelection(0);
+
+            pIsStaticCheckBoxCtrl->SetValue(false);
         }
     }
 }
