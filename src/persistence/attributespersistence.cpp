@@ -895,10 +895,10 @@ const std::string AttributesPersistence::filterByAttributeGroupIdAndIsStatic =
     "attributes.is_active "
     "FROM attributes "
     "INNER JOIN attribute_groups "
-    "ON attributes.attribute_group_id = attribute_groups.attribute_id "
+    "ON attributes.attribute_group_id = attribute_groups.attribute_group_id "
     "WHERE attributes.is_active = 1 "
     "AND attribute_groups.is_static_group = 1 "
-    "AND attribute_group_id = ?";
+    "AND attributes.attribute_group_id = ?";
 
 const std::string AttributesPersistence::getById = "SELECT "
                                                    "attribute_id, "
