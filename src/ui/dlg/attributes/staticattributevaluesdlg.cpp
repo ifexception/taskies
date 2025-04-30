@@ -99,7 +99,7 @@ void StaticAttributeValuesDialog::CreateControls()
     pAttributeGroupChoiceCtrl = new wxChoice(this, tksIDC_ATTRIBUTEGROUPCHOICECTRL);
 
     pMainSizer->Add(attributeGroupNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    pMainSizer->Add(pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    pMainSizer->Add(pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Initial controls and sizers for attributes */
     pAttributesBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
@@ -202,7 +202,7 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
     int rc = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
-        mAttributeGroupId, attributeModels);
+        attributeGroupId, attributeModels);
 
     if (rc != 0) {
         std::string message = "Failed to fetch attributes";
@@ -213,7 +213,7 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
     SPDLOG_LOGGER_TRACE(pLogger,
         "Build \"{0}\" control attributes from attribute group id \"{1}\"",
         attributeModels.size(),
-        mAttributeGroupId);
+        attributeGroupId);
 
     if (attributeModels.size() < 1) {
         auto noAttributesLabel = new wxStaticText(pAttributesBox, wxID_ANY, "No attributes found");
