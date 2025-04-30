@@ -381,7 +381,7 @@ void AttributeDialog::OnAttributeGroupSelection(wxCommandEvent& event)
     if (attributeGroupModel.IsStaticGroup) {
         pIsStaticCheckBoxCtrl->SetValue(true);
     } else {
-        pIsStaticCheckBoxCtrl->SetValue(true);
+        pIsStaticCheckBoxCtrl->SetValue(false);
     }
 }
 
@@ -417,8 +417,6 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
-    pOkButton->Disable();
-
     TransferDataFromControls();
 
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
@@ -453,7 +451,6 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         // have wxFrame
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 
-        pOkButton->Enable();
     } else {
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
@@ -465,6 +462,12 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
 
         if (!bAddAnotherAttribute) {
             EndModal(wxID_OK);
+        } else {
+            pNameTextCtrl->ChangeValue("");
+            pIsRequiredCheckBoxCtrl->SetValue(false);
+            pDescriptionTextCtrl->ChangeValue("");
+            pAttributeGroupChoiceCtrl->SetSelection(0);
+            pAttributeTypeChoiceCtrl->SetSelection(0);
         }
     }
 }
