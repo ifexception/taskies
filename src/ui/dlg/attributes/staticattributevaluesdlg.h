@@ -88,7 +88,11 @@ private:
     bool bIsEdit;
     int mAttributeControlCounter;
 
-    enum { tksIDC_ATTRIBUTEGROUPCHOICECTRL = wxID_HIGHEST + 1001, tksIDC_ATTRIBUTECONTROLBASE };
+    enum {
+        tksIDC_ATTRIBUTEGROUPCHOICECTRL = wxID_HIGHEST + 1001,
+        tksIDC_ATTRIBUTECONTROLBASE,
+        tksIDC_ATTRIBUTECONTROLISACTIVEBASE
+    };
 
     struct AttributeControl {
         int ControlId;

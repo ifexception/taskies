@@ -106,7 +106,7 @@ void StaticAttributeValuesDialog::CreateControls()
     pAttributesBoxSizer = new wxStaticBoxSizer(pAttributesBox, wxVERTICAL);
     pMainSizer->Add(pAttributesBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    pAttributesControlFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    pAttributesControlFlexGridSizer = new wxFlexGridSizer(3, FromDIP(4), FromDIP(4));
     pAttributesControlFlexGridSizer->AddGrowableCol(1, 1);
     pAttributesBoxSizer->Add(
         pAttributesControlFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
@@ -236,6 +236,7 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
             AttributeTypeToString((AttributeTypes) attributeModels[i].AttributeTypeId));
 
         auto controlId = tksIDC_ATTRIBUTECONTROLBASE + mAttributeControlCounter;
+        auto isActiveControlId = tksIDC_ATTRIBUTECONTROLISACTIVEBASE + mAttributeControlCounter;
 
         AttributeMetadata attributeMetadata;
         attributeMetadata.IsRequired = attributeModels[i].IsRequired;
@@ -250,11 +251,15 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
                 new wxStaticText(pAttributesBox, wxID_ANY, attributeModels[i].Name);
             auto attributeTextControl = new wxTextCtrl(pAttributesBox, controlId);
             attributeTextControl->SetHint(attributeModels[i].Name);
+            auto attributeTextControlIsActive =
+                new wxCheckBox(pAttributesBox, isActiveControlId, "Is Active");
 
             pAttributesControlFlexGridSizer->Add(
                 attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
             pAttributesControlFlexGridSizer->Add(
                 attributeTextControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+            pAttributesControlFlexGridSizer->Add(attributeTextControlIsActive,
+                wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
             attributeControl.TextControl = attributeTextControl;
 
@@ -267,10 +272,14 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxCHK_3STATE | wxCHK_ALLOW_3RD_STATE_FOR_USER);
+            auto attributeTextControlIsActive =
+                new wxCheckBox(pAttributesBox, isActiveControlId, "Is Active");
 
             pAttributesControlFlexGridSizer->Add(0, 0);
             pAttributesControlFlexGridSizer->Add(
                 attributeBooleanControl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+            pAttributesControlFlexGridSizer->Add(attributeTextControlIsActive,
+                wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
             attributeControl.BooleanControl = attributeBooleanControl;
 
@@ -287,11 +296,15 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
                 wxTE_LEFT,
                 wxTextValidator(wxFILTER_NUMERIC));
             attributeNumericControl->SetHint(attributeModels[i].Name);
+            auto attributeTextControlIsActive =
+                new wxCheckBox(pAttributesBox, isActiveControlId, "Is Active");
 
             pAttributesControlFlexGridSizer->Add(
                 attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
             pAttributesControlFlexGridSizer->Add(
                 attributeNumericControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+            pAttributesControlFlexGridSizer->Add(attributeTextControlIsActive,
+                wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
             attributeControl.NumericControl = attributeNumericControl;
 
@@ -319,6 +332,10 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
 
 void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
 {
+    if (!Validate()) {
+        return;
+    }
+
     EndModal(wxID_OK);
 }
 
@@ -345,7 +362,8 @@ bool StaticAttributeValuesDialog::Validate()
                 break;
             }
             case AttributeTypes::Boolean: {
-                int isUndeterminedState = attributeMetadata.Control.BooleanControl->Get3StateValue();
+                int isUndeterminedState =
+                    attributeMetadata.Control.BooleanControl->Get3StateValue();
                 if (isUndeterminedState == wxCHK_UNDETERMINED) {
                     std::string validation =
                         fmt::format("A value is required for \"{0}\"", attributeMetadata.Name);
