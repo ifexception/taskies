@@ -14,5 +14,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/attributetypespersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/attributespersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/taskattributevaluespersistence.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/staticattributevaluespersistence.cpp"
     PARENT_SCOPE
 )
