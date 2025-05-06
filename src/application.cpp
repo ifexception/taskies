@@ -158,24 +158,33 @@ void Application::InitializeLogger()
 {
     auto logDirectory = pEnv->GetLogFilePath().string();
 
+#ifdef TKS_DEBUG
     auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_st>();
     msvcSink->set_level(spdlog::level::trace);
     msvcSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%@:%!:%#] [%^%l%$] %v");
 
     auto dailyFileSink =
         std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 5, 0, false, 5);
-    dailyFileSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%s:%#] [%^%l%$] %v");
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        dailyFileSink->set_level(spdlog::level::info);
-    } else {
-        dailyFileSink->set_level(spdlog::level::warn);
-    }
+    dailyFileSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+
+    dailyFileSink->set_level(spdlog::level::info);
 
     std::vector<spdlog::sink_ptr> sinks{ msvcSink, dailyFileSink };
 
     pLogger = std::make_shared<spdlog::logger>(LOGGER_NAME, sinks.begin(), sinks.end());
     pLogger->set_level(spdlog::level::trace);
+    //pLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+#else
+    auto dailyFileSink =
+        std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 5, 0, false, 5);
+    dailyFileSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%s:%#] [%^%l%$] %v");
+
+    std::vector<spdlog::sink_ptr> sinks{ dailyFileSink };
+
+    pLogger = std::make_shared<spdlog::logger>(LOGGER_NAME, sinks.begin(), sinks.end());
+    pLogger->set_level(spdlog::level::warn);
     pLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%s:%#] [%^%l%$] %v");
+#endif // TKS_DEBUG
 
     SPDLOG_LOGGER_TRACE(pLogger, "{0} has been initialized", LOGGER_NAME);
 }
@@ -215,13 +224,6 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
     }
     pLogger->error(
         "Application::FirstStartupProcedure - Wizard canceled or unexpected error occured");
-
-    /*bool result = pEnv->SetIsSetup();
-    if (result) {
-        return true;
-    }
-    pLogger->error("Application::FirstStartupProcedure - Error occured when setting 'IsSetup'
-    Windows registry key.");*/
 
     return false;
 }
