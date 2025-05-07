@@ -50,23 +50,8 @@ std::string Uuid();
 
 int ConvertMinutesToMilliseconds(const int valueInMinutes);
 
-namespace sqlite
-{
 // SQLite interprets single quotes as string and performs no parameterization.
 // If a parameter is in single quotes, then this function handles adding the LIKE operator '%'
 // to the string so the parameterization takes effect
-std::string FormatSearchTerm(const std::string& source);
-
-namespace pragmas
-{
-// https://phiresky.github.io/blog/2020/sqlite-performance-tuning/
-extern const char* ForeignKeys;
-extern const char* JournalMode;
-extern const char* Synchronous;
-extern const char* TempStore;
-extern const char* MmapSize;
-
-extern const char* Optimize;
-} // namespace pragmas
-} // namespace sqlite
+std::string FormatSqlSearchTerm(const std::string& source);
 } // namespace tks::Utils

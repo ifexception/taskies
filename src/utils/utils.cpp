@@ -34,7 +34,8 @@ namespace tks::Utils
 #ifdef _WIN32
 std::string ToStdString(const std::wstring& input)
 {
-    int size = WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.size()), NULL, 0, NULL, NULL);
+    int size = WideCharToMultiByte(
+        CP_UTF8, 0, input.data(), static_cast<int>(input.size()), NULL, 0, NULL, NULL);
     std::string result(size, 0);
     WideCharToMultiByte(CP_UTF8, 0, &input[0], (int) input.size(), &result[0], size, NULL, NULL);
     return result;
@@ -161,22 +162,8 @@ int ConvertMinutesToMilliseconds(const int valueInMinutes)
     return valueInMilliseconds;
 }
 
-namespace sqlite
-{
-std::string FormatSearchTerm(const std::string& source)
+std::string FormatSqlSearchTerm(const std::string& source)
 {
     return "%" + source + "%";
 }
-
-namespace pragmas
-{
-const char* ForeignKeys = "PRAGMA foreign_keys = ON;";
-const char* JournalMode = "PRAGMA journal_mode = WAL;";
-const char* Synchronous = "PRAGMA synchronous = normal;";
-const char* TempStore = "PRAGMA temp_store = memory;";
-const char* MmapSize = "PRAGMA mmap_size = 30000000000;";
-
-const char* Optimize = "PRAGMA optimize;";
-} // namespace pragmas
-} // namespace sqlite
 } // namespace tks::Utils

@@ -35,34 +35,30 @@ namespace tks
 {
 namespace Persistence
 {
-class EmployersPersistence final
-{
-public:
+struct EmployersPersistence final {
     EmployersPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
     ~EmployersPersistence();
 
-    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::EmployerModel>& employerModels);
-    int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employerModel);
-    std::int64_t Create(const Model::EmployerModel& employerModel);
-    int Update(Model::EmployerModel employerModel);
+    int Filter(const std::string& searchTerm,
+        /*out*/ std::vector<Model::EmployerModel>& employerModels) const;
+    int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employerModel) const;
+    std::int64_t Create(const Model::EmployerModel& employerModel) const;
+    int Update(Model::EmployerModel employerModel) const;
     int Delete(const std::int64_t employerId);
-    int UnsetDefault();
-    int SelectDefault(/*out*/ Model::EmployerModel& employerModel);
+    int UnsetDefault() const;
+    int SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
 
-    std::int64_t GetLastInsertId() const;
-
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filter;
-    static const std::string getById;
-    static const std::string create;
-    static const std::string update;
-    static const std::string isActive;
-    static const std::string unsetDefault;
-    static const std::string selectDefault;
+    static std::string filter;
+    static std::string getById;
+    static std::string create;
+    static std::string update;
+    static std::string isActive;
+    static std::string unsetDefault;
+    static std::string selectDefault;
 };
 } // namespace Persistence
 } // namespace tks

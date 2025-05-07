@@ -30,6 +30,9 @@ const char* OpenDatabaseTemplate =
 
 const char* ExecQueryTemplate = "Failed to execute \"{0}\" statement. Error {1}: \"{2}\"";
 
+const char* ExecQueryDidNotReturnOneResultTemplate =
+    "Returned more than one (1) result when expected one (1) result. Error {0}: \"{1}\"";
+
 const char* PrepareStatementTemplate = "Failed to prepare statment \"{0}\". Error {1}: \"{2}\"";
 
 const char* BindParameterTemplate =
@@ -38,4 +41,12 @@ const char* BindParameterTemplate =
 const char* ExecStepTemplate = "Failed to step through statement \"{0}\". Error {1}: \"{2}\"";
 
 const char* EntityCreated = "Created \"{0}\" with ID \"{1}\"";
+
+const char* FilterEntities = "Filtered \"{0}\" entities with search term \"{1}\"";
+
+const char* EntityGetById = "Retreived \"{0}\" with ID \"{1}\"";
+
+const char* EntityUpdated = "Updated \"{0}\" with ID \"{1}\"";
+
+const char* EntityDeleted = "Deleted \"{0}\" with ID \"{1}\"";
 } // namespace tks::LogMessages

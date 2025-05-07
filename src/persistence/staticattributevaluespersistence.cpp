@@ -137,7 +137,6 @@ std::int64_t StaticAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(LogMessages::BindParameterTemplate, "text_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -154,7 +153,6 @@ std::int64_t StaticAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(LogMessages::BindParameterTemplate, "boolean_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -171,7 +169,6 @@ std::int64_t StaticAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(LogMessages::BindParameterTemplate, "numeric_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -184,7 +181,6 @@ std::int64_t StaticAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
 
@@ -198,7 +194,6 @@ std::int64_t StaticAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -211,7 +206,6 @@ std::int64_t StaticAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(
             LogMessages::ExecStepTemplate, StaticAttributeValuesPersistence::create, rc, error);
 
@@ -223,7 +217,7 @@ std::int64_t StaticAttributeValuesPersistence::Create(
 
     std::int64_t rowId = sqlite3_last_insert_rowid(pDb);
 
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "Static Attribute Values", rowId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "static_attribute_value", rowId);
 
     return rowId;
 }

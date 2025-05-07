@@ -44,6 +44,19 @@ extern const char* OpenDatabaseConnection;
 extern const char* CloseDatabaseConnection;
 
 /// <summary>
+/// Use this template when a statement that should have returned one (1) result, but returned more
+/// than one (1) result
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "Failed step execute, returned more than one (1) result when expected one (1)
+/// result". Error {Code}: "{Message}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* ExecQueryDidNotReturnOneResultTemplate;
+
+/// <summary>
 /// Use this template when we could not open a connection to the data
 /// <example>
 /// <para>Usage:</para>
@@ -105,7 +118,7 @@ extern const char* BindParameterTemplate;
 extern const char* ExecStepTemplate;
 
 /// <summary>
-/// Use this template to log Information when ending the "Create" method
+/// Use this template to log Information when creating an entity
 /// <example>
 /// <para>Usage:</para>
 /// <code>
@@ -114,4 +127,48 @@ extern const char* ExecStepTemplate;
 /// </example>
 /// </summary>
 extern const char* EntityCreated;
+
+/// <summary>
+/// Use this template to log Information when filtering entities
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "Filtered "{Count}" entities with search term "{SearchTerm}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* FilterEntities;
+
+/// <summary>
+/// Use this template to log Information when getting an entity by id
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "Retreived {Entity} with ID "{EntityId}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* EntityGetById;
+
+/// <summary>
+/// Use this template to log Information when updating an entity
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "Updated "{Entity}" with ID "{ID}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* EntityUpdated;
+
+/// <summary>
+/// Use this template to log Information when an entity is deleted
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// "Deleted "{Entity}" with ID "{ID}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* EntityDeleted;
 } // namespace tks::LogMessages
