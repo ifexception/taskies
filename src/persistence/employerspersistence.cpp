@@ -73,11 +73,7 @@ EmployersPersistence::EmployersPersistence(std::shared_ptr<spdlog::logger> logge
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate,
-            "StaticAttributeValuesPersistence",
-            QueryHelper::TempStore,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
 
         return;
     }
@@ -86,11 +82,7 @@ EmployersPersistence::EmployersPersistence(std::shared_ptr<spdlog::logger> logge
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate,
-            "StaticAttributeValuesPersistence",
-            QueryHelper::MmapSize,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
 
         return;
     }
@@ -509,7 +501,7 @@ int EmployersPersistence::Update(Model::EmployerModel employerModel) const
     return 0;
 }
 
-int EmployersPersistence::Delete(const std::int64_t employerId)
+int EmployersPersistence::Delete(const std::int64_t employerId) const
 {
     sqlite3_stmt* stmt = nullptr;
 

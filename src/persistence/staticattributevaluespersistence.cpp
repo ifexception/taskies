@@ -72,11 +72,7 @@ StaticAttributeValuesPersistence::StaticAttributeValuesPersistence(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate,
-            "StaticAttributeValuesPersistence",
-            QueryHelper::TempStore,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
 
         return;
     }
@@ -85,11 +81,7 @@ StaticAttributeValuesPersistence::StaticAttributeValuesPersistence(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate,
-            "StaticAttributeValuesPersistence",
-            QueryHelper::MmapSize,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
 
         return;
     }

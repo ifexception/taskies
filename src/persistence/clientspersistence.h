@@ -30,40 +30,29 @@
 
 #include "../models/clientmodel.h"
 
-namespace tks
+namespace tks::Persistence
 {
-namespace Persistence
-{
-class ClientsPersistence final
-{
-public:
-    ClientsPersistence() = delete;
-    ClientsPersistence(const ClientsPersistence&) = delete;
+struct ClientsPersistence final {
     ClientsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~ClientsPersistence();
 
-    ClientsPersistence& operator=(const ClientsPersistence&) = delete;
-
-    int Filter(const std::string& searchTerm, /*out*/ std::vector<Model::ClientModel>& clientModels);
+    int Filter(const std::string& searchTerm,
+        /*out*/ std::vector<Model::ClientModel>& clientModels) const;
     int FilterByEmployerId(const std::int64_t employerId,
-        /*out*/ std::vector<Model::ClientModel>& clientModels);
-    int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel);
-    std::int64_t Create(Model::ClientModel& clientModel);
-    int Update(/*out*/ Model::ClientModel& clientModel);
-    int Delete(const std::int64_t clientId);
+        /*out*/ std::vector<Model::ClientModel>& clientModels) const;
+    int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel) const;
+    std::int64_t Create(Model::ClientModel& clientModel) const;
+    int Update(/*out*/ Model::ClientModel& clientModel) const;
+    int Delete(const std::int64_t clientId) const;
 
-    std::int64_t GetLastInsertId() const;
-
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filter;
-    static const std::string filterByEmployerId;
-    static const std::string getById;
-    static const std::string create;
-    static const std::string update;
-    static const std::string isActive;
+    static std::string filter;
+    static std::string filterByEmployerId;
+    static std::string getById;
+    static std::string create;
+    static std::string update;
+    static std::string isActive;
 };
-} // namespace Persistence
-} // namespace tks
+} // namespace tks::Persistence

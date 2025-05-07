@@ -19,9 +19,8 @@
 
 #include "clientspersistence.h"
 
-#include "../common/constants.h"
-
-#include "../models/employermodel.h"
+#include "../common/logmessages.h"
+#include "../common/queryhelper.h"
 
 #include "../utils/utils.h"
 
@@ -32,102 +31,75 @@ ClientsPersistence::ClientsPersistence(std::shared_ptr<spdlog::logger> logger,
     : pLogger(logger)
     , pDb(nullptr)
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoOpenDatabaseConnection, "ClientsPersistence", databaseFilePath);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
 
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
 
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "ClientsPersistence",
-            databaseFilePath,
-            rc,
-            std::string(error));
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ClientsPersistence",
-            Utils::sqlite::pragmas::ForeignKeys,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
+
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ClientsPersistence",
-            Utils::sqlite::pragmas::JournalMode,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
+
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ClientsPersistence",
-            Utils::sqlite::pragmas::Synchronous,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
+
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ClientsPersistence",
-            Utils::sqlite::pragmas::TempStore,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
+
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ClientsPersistence",
-            Utils::sqlite::pragmas::MmapSize,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
+
         return;
     }
-
-    SPDLOG_LOGGER_TRACE(
-        pLogger, "\"{0}\" - SQLite instance initialized successfully", "ClientsPersistence");
 }
 
 ClientsPersistence::~ClientsPersistence()
 {
     sqlite3_close(pDb);
-
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoCloseDatabaseConnection, "ClientsPersistence");
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
 int ClientsPersistence::Filter(const std::string& searchTerm,
-    std::vector<Model::ClientModel>& clientModels)
+    std::vector<Model::ClientModel>& clientModels) const
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoBeginFilterEntities, "ClientsPersistence", "clients", searchTerm);
-
     sqlite3_stmt* stmt = nullptr;
 
-    auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
+    auto formattedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
 
     int rc = sqlite3_prepare_v2(pDb,
         ClientsPersistence::filter.c_str(),
@@ -137,12 +109,8 @@ int ClientsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::filter,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ClientsPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -159,8 +127,8 @@ int ClientsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "ClientsPersistence", "name", bindIndex, rc, error);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -176,12 +144,8 @@ int ClientsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "description",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -198,12 +162,7 @@ int ClientsPersistence::Filter(const std::string& searchTerm,
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
 
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "employer_name",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "employer_name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -254,12 +213,7 @@ int ClientsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::filter,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ClientsPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -267,24 +221,14 @@ int ClientsPersistence::Filter(const std::string& searchTerm,
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoEndFilterEntities,
-        "ClientsPersistence",
-        clientModels.size(),
-        searchTerm);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, clientModels.size(), searchTerm);
 
     return 0;
 }
 
 int ClientsPersistence::FilterByEmployerId(const std::int64_t employerId,
-    std::vector<Model::ClientModel>& clientModels)
+    std::vector<Model::ClientModel>& clientModels) const
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoBeginFilterEntities,
-        "ClientsPersistence",
-        "clients by employer ID",
-        employerId);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -295,9 +239,7 @@ int ClientsPersistence::FilterByEmployerId(const std::int64_t employerId,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ClientsPersistence",
+        pLogger->error(LogMessages::PrepareStatementTemplate,
             ClientsPersistence::filterByEmployerId,
             rc,
             error);
@@ -313,13 +255,7 @@ int ClientsPersistence::FilterByEmployerId(const std::int64_t employerId,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "employer_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -371,11 +307,8 @@ int ClientsPersistence::FilterByEmployerId(const std::int64_t employerId,
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
 
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::filterByEmployerId,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, ClientsPersistence::filterByEmployerId, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -383,20 +316,13 @@ int ClientsPersistence::FilterByEmployerId(const std::int64_t employerId,
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoEndFilterEntities,
-        "ClientsPersistence",
-        clientModels.size(),
-        employerId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, clientModels.size(), "employer_id");
 
     return 0;
 }
 
-int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel& clientModel)
+int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel& clientModel) const
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoBeginGetByIdEntity, "ClientsPersistence", "client", clientId);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -407,12 +333,8 @@ int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel&
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::getById,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ClientsPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -424,12 +346,8 @@ int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel&
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "client_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "client_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -438,12 +356,7 @@ int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel&
 
     if (rc != SQLITE_ROW) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::getById,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ClientsPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -477,28 +390,20 @@ int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel&
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->warn(
-            LogMessage::ExecStepMoreResultsThanExpectedTemplate, "ClientsPersistence", rc, error);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndGetByIdEntity, "ClientsPersistence", clientId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "clients", clientId);
 
     return 0;
 }
 
-std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel)
+std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel) const
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoBeginCreateEntity,
-        "ClientsPersistence",
-        "client",
-        clientModel.Name);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -509,12 +414,8 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::create,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ClientsPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -530,9 +431,7 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "ClientsPersistence", "name", bindIndex, rc, error);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -552,12 +451,8 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "description",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -568,13 +463,7 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "employer_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -584,12 +473,7 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::create,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ClientsPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -598,19 +482,13 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel)
     sqlite3_finalize(stmt);
     auto rowId = sqlite3_last_insert_rowid(pDb);
 
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndCreateEntity, "ClientsPersistence", rowId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "client", rowId);
 
     return rowId;
 }
 
-int ClientsPersistence::Update(Model::ClientModel& clientModel)
+int ClientsPersistence::Update(Model::ClientModel& clientModel) const
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoBeginUpdateEntity,
-        "ClientsPersistence",
-        "client",
-        clientModel.ClientId);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -621,12 +499,8 @@ int ClientsPersistence::Update(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::update,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ClientsPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -642,9 +516,7 @@ int ClientsPersistence::Update(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "ClientsPersistence", "name", bindIndex, rc, error);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -662,13 +534,7 @@ int ClientsPersistence::Update(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "description",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -680,13 +546,7 @@ int ClientsPersistence::Update(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "date_modified",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -698,13 +558,7 @@ int ClientsPersistence::Update(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "employer_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -716,13 +570,7 @@ int ClientsPersistence::Update(Model::ClientModel& clientModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "client_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "client_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -731,12 +579,7 @@ int ClientsPersistence::Update(Model::ClientModel& clientModel)
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::update,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ClientsPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -744,17 +587,13 @@ int ClientsPersistence::Update(Model::ClientModel& clientModel)
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoEndUpdateEntity, "ClientsPersistence", clientModel.ClientId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityUpdated, "client", clientModel.ClientId);
 
     return 0;
 }
 
-int ClientsPersistence::Delete(const std::int64_t clientId)
+int ClientsPersistence::Delete(const std::int64_t clientId) const
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoBeginDeleteEntity, "ClientsPersistence", "client", clientId);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -765,12 +604,8 @@ int ClientsPersistence::Delete(const std::int64_t clientId)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::isActive,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ClientsPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -782,13 +617,7 @@ int ClientsPersistence::Delete(const std::int64_t clientId)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "date_modified",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -800,13 +629,7 @@ int ClientsPersistence::Delete(const std::int64_t clientId)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ClientsPersistence",
-            "client_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "client_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -816,12 +639,7 @@ int ClientsPersistence::Delete(const std::int64_t clientId)
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ClientsPersistence",
-            ClientsPersistence::isActive,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ClientsPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -829,76 +647,71 @@ int ClientsPersistence::Delete(const std::int64_t clientId)
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndDeleteEntity, "ClientsPersistence", clientId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityDeleted, "client", clientId);
 
     return 0;
 }
 
-std::int64_t ClientsPersistence::GetLastInsertId() const
-{
-    return sqlite3_last_insert_rowid(pDb);
-}
+std::string ClientsPersistence::filter = "SELECT "
+                                         "clients.client_id, "
+                                         "clients.name AS client_name, "
+                                         "clients.description AS client_description, "
+                                         "clients.date_created, "
+                                         "clients.date_modified, "
+                                         "clients.is_active, "
+                                         "clients.employer_id, "
+                                         "employers.name AS employer_name "
+                                         "FROM clients "
+                                         "INNER JOIN employers "
+                                         "ON clients.employer_id = employers.employer_id "
+                                         "WHERE clients.is_active = 1 "
+                                         "AND (client_name LIKE ? "
+                                         "OR client_description LIKE ? "
+                                         "OR employer_name LIKE ?); ";
 
-const std::string ClientsPersistence::filter = "SELECT "
-                                               "clients.client_id, "
-                                               "clients.name AS client_name, "
-                                               "clients.description AS client_description, "
-                                               "clients.date_created, "
-                                               "clients.date_modified, "
-                                               "clients.is_active, "
-                                               "clients.employer_id, "
-                                               "employers.name AS employer_name "
-                                               "FROM clients "
-                                               "INNER JOIN employers "
-                                               "ON clients.employer_id = employers.employer_id "
-                                               "WHERE clients.is_active = 1 "
-                                               "AND (client_name LIKE ? "
-                                               "OR client_description LIKE ? "
-                                               "OR employer_name LIKE ?); ";
+std::string ClientsPersistence::filterByEmployerId = "SELECT "
+                                                     "clients.client_id, "
+                                                     "clients.name, "
+                                                     "clients.description, "
+                                                     "clients.date_created, "
+                                                     "clients.date_modified, "
+                                                     "clients.is_active, "
+                                                     "clients.employer_id "
+                                                     "FROM clients "
+                                                     "WHERE clients.is_active = 1 "
+                                                     "AND employer_id = ?";
 
-const std::string ClientsPersistence::filterByEmployerId = "SELECT "
-                                                           "clients.client_id, "
-                                                           "clients.name, "
-                                                           "clients.description, "
-                                                           "clients.date_created, "
-                                                           "clients.date_modified, "
-                                                           "clients.is_active, "
-                                                           "clients.employer_id "
-                                                           "FROM clients "
-                                                           "WHERE clients.is_active = 1 "
-                                                           "AND employer_id = ?";
+std::string ClientsPersistence::getById = "SELECT "
+                                          "clients.client_id, "
+                                          "clients.name, "
+                                          "clients.description, "
+                                          "clients.date_created, "
+                                          "clients.date_modified, "
+                                          "clients.is_active, "
+                                          "clients.employer_id "
+                                          "FROM clients "
+                                          "WHERE clients.client_id = ?";
 
-const std::string ClientsPersistence::getById = "SELECT "
-                                                "clients.client_id, "
-                                                "clients.name, "
-                                                "clients.description, "
-                                                "clients.date_created, "
-                                                "clients.date_modified, "
-                                                "clients.is_active, "
-                                                "clients.employer_id "
-                                                "FROM clients "
-                                                "WHERE clients.client_id = ?";
+std::string ClientsPersistence::create = "INSERT INTO "
+                                         "clients "
+                                         "("
+                                         "name, "
+                                         "description, "
+                                         "employer_id"
+                                         ") "
+                                         "VALUES (?, ?, ?)";
 
-const std::string ClientsPersistence::create = "INSERT INTO "
-                                               "clients "
-                                               "("
-                                               "name, "
-                                               "description, "
-                                               "employer_id"
-                                               ") "
-                                               "VALUES (?, ?, ?)";
+std::string ClientsPersistence::update = "UPDATE clients "
+                                         "SET "
+                                         "name = ?, "
+                                         "description = ?, "
+                                         "date_modified = ?, "
+                                         "employer_id = ? "
+                                         "WHERE client_id = ?";
 
-const std::string ClientsPersistence::update = "UPDATE clients "
-                                               "SET "
-                                               "name = ?, "
-                                               "description = ?, "
-                                               "date_modified = ?, "
-                                               "employer_id = ? "
-                                               "WHERE client_id = ?";
-
-const std::string ClientsPersistence::isActive = "UPDATE clients "
-                                                 "SET "
-                                                 "is_active = 0, "
-                                                 "date_modified = ? "
-                                                 "WHERE client_id = ?";
+std::string ClientsPersistence::isActive = "UPDATE clients "
+                                           "SET "
+                                           "is_active = 0, "
+                                           "date_modified = ? "
+                                           "WHERE client_id = ?";
 } // namespace tks::Persistence
