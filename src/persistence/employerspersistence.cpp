@@ -285,7 +285,6 @@ int EmployersPersistence::GetById(const std::int64_t employerId,
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
@@ -362,7 +361,6 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerMo
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -387,7 +385,6 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerMo
     sqlite3_finalize(stmt);
 
     auto rowId = sqlite3_last_insert_rowid(pDb);
-
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "employer", rowId);
 
     return rowId;
@@ -495,7 +492,6 @@ int EmployersPersistence::Update(Model::EmployerModel employerModel) const
     }
 
     sqlite3_finalize(stmt);
-
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityUpdated, "employer", employerModel.EmployerId);
 
     return 0;
@@ -555,7 +551,6 @@ int EmployersPersistence::Delete(const std::int64_t employerId) const
     }
 
     sqlite3_finalize(stmt);
-
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityDeleted, "employer", employerId);
 
     return 0;

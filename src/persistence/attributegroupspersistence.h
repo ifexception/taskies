@@ -33,32 +33,29 @@
 
 namespace tks::Persistence
 {
-class AttributeGroupsPersistence final
-{
-public:
+struct AttributeGroupsPersistence final {
     AttributeGroupsPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
     ~AttributeGroupsPersistence();
 
     int Filter(const std::string& searchTerm,
-        /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels);
+        /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels) const;
     int FilterByStaticFlag(
-        /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels);
+        /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels) const;
     int GetById(const std::int64_t attributeGroupId,
-        /*out*/ Model::AttributeGroupModel& attributeGroupModel);
-    std::int64_t Create(const Model::AttributeGroupModel& attributeGroupModel);
-    int Update(Model::AttributeGroupModel attributeGroupModel);
-    int Delete(const std::int64_t attributeGroupId);
+        /*out*/ Model::AttributeGroupModel& attributeGroupModel) const;
+    std::int64_t Create(const Model::AttributeGroupModel& attributeGroupModel) const;
+    int Update(Model::AttributeGroupModel attributeGroupModel) const;
+    int Delete(const std::int64_t attributeGroupId) const;
 
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filter;
-    static const std::string filterStatic;
-    static const std::string getById;
-    static const std::string create;
-    static const std::string update;
-    static const std::string isActive;
+    static std::string filter;
+    static std::string filterStatic;
+    static std::string getById;
+    static std::string create;
+    static std::string update;
+    static std::string isActive;
 };
 } // namespace tks::Persistence
