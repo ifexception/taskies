@@ -45,7 +45,7 @@ struct EmployersPersistence final {
     int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employerModel) const;
     std::int64_t Create(const Model::EmployerModel& employerModel) const;
     int Update(Model::EmployerModel employerModel) const;
-    int Delete(const std::int64_t employerId);
+    int Delete(const std::int64_t employerId) const;
     int UnsetDefault() const;
     int SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
 
