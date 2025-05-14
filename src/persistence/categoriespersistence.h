@@ -31,15 +31,9 @@
 
 #include "../models/categorymodel.h"
 
-namespace tks
+namespace tks::Persistence
 {
-namespace Persistence
-{
-class CategoriesPersistence final
-{
-public:
-    CategoriesPersistence() = delete;
-    CategoriesPersistence(const CategoriesPersistence&) = delete;
+struct CategoriesPersistence final {
     CategoriesPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
     ~CategoriesPersistence();
@@ -47,23 +41,19 @@ public:
     CategoriesPersistence& operator=(const CategoriesPersistence&) = delete;
 
     int Filter(const std::string& searchTerm,
-        /*out*/ std::vector<Model::CategoryModel>& categoryModels);
-    int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& categoryModel);
-    std::int64_t Create(Model::CategoryModel& categoryModel);
-    int Update(Model::CategoryModel& categoryModel);
-    int Delete(const std::int64_t categoryId);
+        /*out*/ std::vector<Model::CategoryModel>& categoryModels) const;
+    int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& categoryModel) const;
+    std::int64_t Create(Model::CategoryModel& categoryModel) const;
+    int Update(Model::CategoryModel& categoryModel) const;
+    int Delete(const std::int64_t categoryId) const;
 
-    std::int64_t GetLastInsertId() const;
-
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filter;
-    static const std::string getById;
-    static const std::string create;
-    static const std::string update;
-    static const std::string isActive;
+    static std::string filter;
+    static std::string getById;
+    static std::string create;
+    static std::string update;
+    static std::string isActive;
 };
-} // namespace Persistence
-} // namespace tks
+} // namespace tks::Persistence

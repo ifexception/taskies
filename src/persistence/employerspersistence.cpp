@@ -371,7 +371,6 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerMo
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(LogMessages::ExecStepTemplate,
             "EmployersPersistence",
             EmployersPersistence::create,
