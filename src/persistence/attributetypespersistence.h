@@ -33,23 +33,18 @@
 
 namespace tks::Persistence
 {
-class AttributeTypesPersistence final
-{
-public:
+struct AttributeTypesPersistence final {
     AttributeTypesPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
     ~AttributeTypesPersistence();
 
     int Filter(const std::string& searchTerm,
-        /*out*/ std::vector<Model::AttributeTypeModel>& attributeTypeModels);
-    int GetById(const std::int64_t attributeTypepId,
-        /*out*/ Model::AttributeTypeModel& attributeTypeModel);
+        /*out*/ std::vector<Model::AttributeTypeModel>& attributeTypeModels) const;
 
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filter;
-    static const std::string getById;
+    static std::string filter;
+    static std::string getById;
 };
 } // namespace tks::Persistence

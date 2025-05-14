@@ -19,7 +19,8 @@
 
 #include "attributetypespersistence.h"
 
-#include "../common/constants.h"
+#include "../common/logmessages.h"
+#include "../common/queryhelper.h"
 
 #include "../utils/utils.h"
 
@@ -30,117 +31,73 @@ AttributeTypesPersistence::AttributeTypesPersistence(std::shared_ptr<spdlog::log
     : pLogger(logger)
     , pDb(nullptr)
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoOpenDatabaseConnection,
-        "AttributeTypesPersistence",
-        databaseFilePath);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
 
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "AttributeTypesPersistence",
-            databaseFilePath,
-            rc,
-            std::string(error));
+        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
 
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "AttributeTypesPersistence",
-            Utils::sqlite::pragmas::ForeignKeys,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
 
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "AttributeTypesPersistence",
-            Utils::sqlite::pragmas::JournalMode,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
 
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "AttributeTypesPersistence",
-            Utils::sqlite::pragmas::Synchronous,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
 
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "AttributeTypesPersistence",
-            Utils::sqlite::pragmas::TempStore,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
 
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "AttributeTypesPersistence",
-            Utils::sqlite::pragmas::MmapSize,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
 
         return;
     }
-
-    SPDLOG_LOGGER_TRACE(
-        pLogger, "\"{0}\" - SQLite instance initialized successfully", "AttributeTypesPersistence");
 }
 
 AttributeTypesPersistence::~AttributeTypesPersistence()
 {
     sqlite3_close(pDb);
-
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoCloseDatabaseConnection, "AttributeTypesPersistence");
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
 int AttributeTypesPersistence::Filter(const std::string& searchTerm,
-    std::vector<Model::AttributeTypeModel>& attributeTypeModels)
+    std::vector<Model::AttributeTypeModel>& attributeTypeModels) const
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoBeginFilterEntities,
-        "AttributeGroupsPersistence",
-        "attribute groups",
-        searchTerm);
-
-    auto formatedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
+    auto formatedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -152,18 +109,15 @@ int AttributeTypesPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "AttributeTypesPersistence",
-            AttributeTypesPersistence::filter,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, AttributeTypesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
     }
 
     int bindIndex = 1;
+
     rc = sqlite3_bind_text(stmt,
         bindIndex,
         formatedSearchTerm.c_str(),
@@ -172,13 +126,7 @@ int AttributeTypesPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "AttributeTypesPersistence",
-            "name",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -212,12 +160,7 @@ int AttributeTypesPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "AttributeTypesPersistence",
-            AttributeTypesPersistence::filter,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, AttributeTypesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -225,30 +168,15 @@ int AttributeTypesPersistence::Filter(const std::string& searchTerm,
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoEndFilterEntities,
-        "AttributeTypesPersistence",
-        attributeTypeModels.size(),
-        searchTerm);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::FilterEntities, attributeTypeModels.size(), searchTerm);
 
     return 0;
 }
 
-int AttributeTypesPersistence::GetById(const std::int64_t attributeTypepId,
-    Model::AttributeTypeModel& attributeTypeModel)
-{
-    return 0;
-}
-
-const std::string AttributeTypesPersistence::filter = "SELECT "
-                                                      "attribute_type_id, "
-                                                      "name "
-                                                      "FROM attribute_types "
-                                                      "WHERE name LIKE ?";
-
-const std::string AttributeTypesPersistence::getById = "SELECT "
-                                                       "attribute_type_id, "
-                                                       "name "
-                                                       "FROM attribute_types "
-                                                       "WHERE attribute_type_id = ?";
+std::string AttributeTypesPersistence::filter = "SELECT "
+                                                "attribute_type_id, "
+                                                "name "
+                                                "FROM attribute_types "
+                                                "WHERE name LIKE ?";
 } // namespace tks::Persistence
