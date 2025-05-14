@@ -19,7 +19,8 @@
 
 #include "exportpersistence.h"
 
-#include "../common/constants.h"
+#include "../common/logmessages.h"
+#include "../common/queryhelper.h"
 
 #include "../utils/utils.h"
 
@@ -30,84 +31,59 @@ ExportPersistence::ExportPersistence(const std::string& databaseFilePath,
     : pLogger(logger)
     , pDb(nullptr)
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoOpenDatabaseConnection, "ExportPersistence", databaseFilePath);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
 
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
 
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "ExportPersistence",
-            databaseFilePath,
-            rc,
-            std::string(error));
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ExportPersistence",
-            Utils::sqlite::pragmas::ForeignKeys,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ExportPersistence",
-            Utils::sqlite::pragmas::JournalMode,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ExportPersistence",
-            Utils::sqlite::pragmas::Synchronous,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ExportPersistence",
-            Utils::sqlite::pragmas::TempStore,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ExportPersistence",
-            Utils::sqlite::pragmas::MmapSize,
-            rc,
-            error);
         return;
     }
 }
@@ -115,24 +91,20 @@ ExportPersistence::ExportPersistence(const std::string& databaseFilePath,
 ExportPersistence::~ExportPersistence()
 {
     sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoCloseDatabaseConnection, "ExportPersistence");
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
 int ExportPersistence::FilterExportCsvData(const std::string& sql,
     const std::vector<std::string>& projectionMap,
-    std::vector<std::vector<std::pair<std::string, std::string>>>& projectionModel)
+    std::vector<std::vector<std::pair<std::string, std::string>>>& projectionModels) const
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoBeginFilterEntities, "ExportPersistence", "<na>", "");
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate, "ExportPersistence", sql, rc, error);
+        pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -158,7 +130,7 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
                 rowProjectionModel.push_back(std::make_pair(key, value));
             }
 
-            projectionModel.push_back(rowProjectionModel);
+            projectionModels.push_back(rowProjectionModel);
             break;
         }
         case SQLITE_DONE:
@@ -172,8 +144,7 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate, "ExportPersistence", sql, rc, error);
+        pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -181,11 +152,8 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoEndFilterEntities,
-        "ExportPersistence",
-        projectionModel.size(),
-        "");
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::FilterEntities, projectionModels.size(), "<csv_export>");
 
     return 0;
 }

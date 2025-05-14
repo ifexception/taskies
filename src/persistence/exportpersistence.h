@@ -30,22 +30,17 @@
 
 namespace tks::Persistence
 {
-class ExportPersistence final
-{
+struct ExportPersistence final {
 public:
-    ExportPersistence() = delete;
-    ExportPersistence(const ExportPersistence&) = delete;
     explicit ExportPersistence(const std::string& databaseFilePath,
         const std::shared_ptr<spdlog::logger> logger);
     ~ExportPersistence();
 
-    const ExportPersistence& operator=(const ExportPersistence&) = delete;
-
     int FilterExportCsvData(const std::string& sql,
         const std::vector<std::string>& projectionMap,
-        /*out*/ std::vector<std::vector<std::pair<std::string, std::string>>>& projectionModel);
+        /*out*/ std::vector<std::vector<std::pair<std::string, std::string>>>& projectionModels)
+        const;
 
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 };
