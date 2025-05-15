@@ -19,7 +19,8 @@
 
 #include "taskattributevaluespersistence.h"
 
-#include "../common/constants.h"
+#include "../common/logmessages.h"
+#include "../common/queryhelper.h"
 
 #include "../utils/utils.h"
 
@@ -31,86 +32,59 @@ TaskAttributeValuesPersistence::TaskAttributeValuesPersistence(
     : pLogger(logger)
     , pDb(nullptr)
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoOpenDatabaseConnection,
-        "TaskAttributeValuesPersistence",
-        databaseFilePath);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
 
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
 
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "TaskAttributeValuesPersistence",
-            databaseFilePath,
-            rc,
-            std::string(error));
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "TaskAttributeValuesPersistence",
-            Utils::sqlite::pragmas::ForeignKeys,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "TaskAttributeValuesPersistence",
-            Utils::sqlite::pragmas::JournalMode,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "TaskAttributeValuesPersistence",
-            Utils::sqlite::pragmas::Synchronous,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "TaskAttributeValuesPersistence",
-            Utils::sqlite::pragmas::TempStore,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "TaskAttributeValuesPersistence",
-            Utils::sqlite::pragmas::MmapSize,
-            rc,
-            error);
         return;
     }
 }
@@ -118,19 +92,12 @@ TaskAttributeValuesPersistence::TaskAttributeValuesPersistence(
 TaskAttributeValuesPersistence::~TaskAttributeValuesPersistence()
 {
     sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoCloseDatabaseConnection, "TaskAttributeValuesPersistence");
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
 std::int64_t TaskAttributeValuesPersistence::Create(
-    Model::TaskAttributeValueModel& taskAttributeValueModel)
+    Model::TaskAttributeValueModel& taskAttributeValueModel) const
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoBeginCreateEntity,
-        "TaskAttributeValuesPersistence",
-        "task_attribute_value",
-        "<blank>");
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -141,9 +108,7 @@ std::int64_t TaskAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "TaskAttributeValuesPersistence",
+        pLogger->error(LogMessages::PrepareStatementTemplate,
             TaskAttributeValuesPersistence::create,
             rc,
             error);
@@ -166,13 +131,7 @@ std::int64_t TaskAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "TaskAttributeValuesPersistence",
-            "text_value",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "text_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -188,13 +147,7 @@ std::int64_t TaskAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "TaskAttributeValuesPersistence",
-            "boolean_value",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "boolean_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -210,13 +163,7 @@ std::int64_t TaskAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "TaskAttributeValuesPersistence",
-            "numeric_value",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "numeric_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -228,13 +175,7 @@ std::int64_t TaskAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "TaskAttributeValuesPersistence",
-            "task_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -246,13 +187,7 @@ std::int64_t TaskAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "TaskAttributeValuesPersistence",
-            "attribute_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -264,12 +199,8 @@ std::int64_t TaskAttributeValuesPersistence::Create(
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "TaskAttributeValuesPersistence",
-            TaskAttributeValuesPersistence::create,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, TaskAttributeValuesPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -278,15 +209,13 @@ std::int64_t TaskAttributeValuesPersistence::Create(
     sqlite3_finalize(stmt);
 
     std::int64_t rowId = sqlite3_last_insert_rowid(pDb);
-
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoEndCreateEntity, "TaskAttributeValuesPersistence", rowId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "task_value_attribute", rowId);
 
     return rowId;
 }
 
 int TaskAttributeValuesPersistence::CreateMany(
-    std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels)
+    std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const
 {
     for (auto& taskAttributeValueModel : taskAttributeValueModels) {
         auto rc = Create(taskAttributeValueModel);
@@ -301,12 +230,6 @@ int TaskAttributeValuesPersistence::CreateMany(
 int TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t taskId,
     std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels)
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoBeginGetByIdEntity,
-        "TaskAttributeValuesPersistence",
-        "task_attribute_values",
-        taskId);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -317,9 +240,7 @@ int TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t taskId,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "TaskAttributeValuesPersistence",
+        pLogger->error(LogMessages::PrepareStatementTemplate,
             TaskAttributeValuesPersistence::getByTaskId,
             rc,
             error);
@@ -334,13 +255,7 @@ int TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t taskId,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "TaskAttributeValuesPersistence",
-            "task_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -408,53 +323,41 @@ int TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t taskId,
     }
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "TaskAttributeValuesPersistence",
-            TaskAttributeValuesPersistence::getByTaskId,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, TaskAttributeValuesPersistence::getByTaskId, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
-
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoEndGetByIdEntity, "TaskAttributeValuesPersistence", taskId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "task_value_attributes", taskId);
 
     return 0;
 }
 
-const std::string TaskAttributeValuesPersistence::filter = "SELECT ";
+std::string TaskAttributeValuesPersistence::getByTaskId = "SELECT "
+                                                          "text_value, "
+                                                          "boolean_value, "
+                                                          "numeric_value, "
+                                                          "date_created, "
+                                                          "date_modified, "
+                                                          "is_active, "
+                                                          "task_id, "
+                                                          "attribute_id "
+                                                          "FROM task_attribute_values "
+                                                          "WHERE task_id = ? "
+                                                          "AND is_active = 1";
 
-const std::string TaskAttributeValuesPersistence::getByTaskId = "SELECT "
-                                                                "text_value, "
-                                                                "boolean_value, "
-                                                                "numeric_value, "
-                                                                "date_created, "
-                                                                "date_modified, "
-                                                                "is_active, "
-                                                                "task_id, "
-                                                                "attribute_id "
-                                                                "FROM task_attribute_values "
-                                                                "WHERE task_id = ? "
-                                                                "AND is_active = 1";
-
-const std::string TaskAttributeValuesPersistence::create = "INSERT INTO "
-                                                           "task_attribute_values "
-                                                           "("
-                                                           "text_value, "
-                                                           "boolean_value, "
-                                                           "numeric_value, "
-                                                           "task_id, "
-                                                           "attribute_id "
-                                                           ")"
-                                                           " VALUES "
-                                                           "(?, ?, ?, ?, ?)";
-
-const std::string TaskAttributeValuesPersistence::update = "UPDATE ";
-
-const std::string TaskAttributeValuesPersistence::isActive = "UPDATE ";
+std::string TaskAttributeValuesPersistence::create = "INSERT INTO "
+                                                     "task_attribute_values "
+                                                     "("
+                                                     "text_value, "
+                                                     "boolean_value, "
+                                                     "numeric_value, "
+                                                     "task_id, "
+                                                     "attribute_id "
+                                                     ")"
+                                                     " VALUES "
+                                                     "(?, ?, ?, ?, ?)";
 } // namespace tks::Persistence

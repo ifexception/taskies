@@ -33,30 +33,20 @@
 
 namespace tks::Persistence
 {
-class TaskAttributeValuesPersistence final
-{
-public:
-    TaskAttributeValuesPersistence() = delete;
-    TaskAttributeValuesPersistence(const TaskAttributeValuesPersistence&) = delete;
+struct TaskAttributeValuesPersistence final {
     TaskAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
     ~TaskAttributeValuesPersistence();
 
-    TaskAttributeValuesPersistence& operator=(const TaskAttributeValuesPersistence&) = delete;
-
-    std::int64_t Create(Model::TaskAttributeValueModel& taskAttributeValueModel);
-    int CreateMany(std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels);
+    std::int64_t Create(Model::TaskAttributeValueModel& taskAttributeValueModel) const;
+    int CreateMany(std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
     int GetByTaskId(const std::int64_t taskId,
         /*out*/ std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels);
 
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filter;
-    static const std::string getByTaskId;
-    static const std::string create;
-    static const std::string update;
-    static const std::string isActive;
+    static std::string getByTaskId;
+    static std::string create;
 };
 } // namespace tks::Persistence
