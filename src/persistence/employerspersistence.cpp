@@ -206,7 +206,6 @@ int EmployersPersistence::Filter(const std::string& searchTerm,
     }
 
     sqlite3_finalize(stmt);
-
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, employerModels.size(), searchTerm);
 
     return 0;
@@ -292,7 +291,6 @@ int EmployersPersistence::GetById(const std::int64_t employerId,
     }
 
     sqlite3_finalize(stmt);
-
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "employers", employerId);
 
     return 0;

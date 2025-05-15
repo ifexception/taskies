@@ -19,7 +19,8 @@
 
 #include "projectspersistence.h"
 
-#include "../common/constants.h"
+#include "../common/logmessages.h"
+#include "../common/queryhelper.h"
 
 #include "../utils/utils.h"
 
@@ -30,84 +31,59 @@ ProjectsPersistence::ProjectsPersistence(std::shared_ptr<spdlog::logger> logger,
     : pLogger(logger)
     , pDb(nullptr)
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoOpenDatabaseConnection, "ProjectsPersistence", databaseFilePath);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
 
     int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
 
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "ProjectsPersistence",
-            databaseFilePath,
-            rc,
-            std::string(error));
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ProjectsPersistence",
-            Utils::sqlite::pragmas::ForeignKeys,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ProjectsPersistence",
-            Utils::sqlite::pragmas::JournalMode,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ProjectsPersistence",
-            Utils::sqlite::pragmas::Synchronous,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ProjectsPersistence",
-            Utils::sqlite::pragmas::TempStore,
-            rc,
-            error);
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
 
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "ProjectsPersistence",
-            Utils::sqlite::pragmas::MmapSize,
-            rc,
-            error);
         return;
     }
 }
@@ -115,21 +91,15 @@ ProjectsPersistence::ProjectsPersistence(std::shared_ptr<spdlog::logger> logger,
 ProjectsPersistence::~ProjectsPersistence()
 {
     sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoCloseDatabaseConnection, "ProjectsPersistence");
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
 int ProjectsPersistence::Filter(const std::string& searchTerm,
-    std::vector<Model::ProjectModel>& projectModels)
+    std::vector<Model::ProjectModel>& projectModels) const
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoBeginFilterEntities,
-        "ProjectsPersistence",
-        "projects",
-        searchTerm);
-
     sqlite3_stmt* stmt = nullptr;
 
-    auto formattedSearchTerm = Utils::sqlite::FormatSearchTerm(searchTerm);
+    auto formattedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
 
     int rc = sqlite3_prepare_v2(pDb,
         ProjectsPersistence::filter.c_str(),
@@ -139,12 +109,8 @@ int ProjectsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::filter,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ProjectsPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -161,9 +127,7 @@ int ProjectsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "ProjectsPersistence", "name", bindIndex, rc, error);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -180,13 +144,7 @@ int ProjectsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "display_name",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "display_name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -204,12 +162,7 @@ int ProjectsPersistence::Filter(const std::string& searchTerm,
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
 
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "description",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -226,13 +179,7 @@ int ProjectsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "employer_name",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "employer_name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -249,12 +196,8 @@ int ProjectsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "client_name",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "client_name", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -316,35 +259,22 @@ int ProjectsPersistence::Filter(const std::string& searchTerm,
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::filter,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ProjectsPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
-
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoEndFilterEntities,
-        "ProjectsPersistence",
-        projectModels.size(),
-        searchTerm);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, projectModels.size(), searchTerm);
 
     return 0;
 }
 
 int ProjectsPersistence::FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
     std::optional<std::int64_t> clientId,
-    std::vector<Model::ProjectModel>& projectModels)
+    std::vector<Model::ProjectModel>& projectModels) const
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoBeginFilterEntities, "ProjectsPersistence", "projects", "");
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -355,8 +285,7 @@ int ProjectsPersistence::FilterByEmployerIdOrClientId(std::optional<std::int64_t
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ProjectsPersistence",
+        pLogger->error(LogMessages::PrepareStatementTemplate,
             ProjectsPersistence::filterByEmployerOrClientId,
             rc,
             error);
@@ -376,13 +305,7 @@ int ProjectsPersistence::FilterByEmployerIdOrClientId(std::optional<std::int64_t
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "employer_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -399,13 +322,7 @@ int ProjectsPersistence::FilterByEmployerIdOrClientId(std::optional<std::int64_t
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "client_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "client_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -468,33 +385,23 @@ int ProjectsPersistence::FilterByEmployerIdOrClientId(std::optional<std::int64_t
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::filter,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ProjectsPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
-
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoEndFilterEntities,
-        "ProjectsPersistence",
-        projectModels.size(),
-        "");
+    std::string searched =
+        fmt::format("{0} - {1}", employerId, clientId.has_value() ? clientId.value() : -1);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, projectModels.size(), searched);
 
     return 0;
 }
 
-int ProjectsPersistence::GetById(const std::int64_t projectId, Model::ProjectModel& projectModel)
+int ProjectsPersistence::GetById(const std::int64_t projectId,
+    Model::ProjectModel& projectModel) const
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoBeginGetByIdEntity, "ProjectsPersistence", "project", projectId);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -505,12 +412,8 @@ int ProjectsPersistence::GetById(const std::int64_t projectId, Model::ProjectMod
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::getById,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ProjectsPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -522,13 +425,7 @@ int ProjectsPersistence::GetById(const std::int64_t projectId, Model::ProjectMod
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "project_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -538,12 +435,7 @@ int ProjectsPersistence::GetById(const std::int64_t projectId, Model::ProjectMod
 
     if (rc != SQLITE_ROW) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::getById,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ProjectsPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -588,28 +480,20 @@ int ProjectsPersistence::GetById(const std::int64_t projectId, Model::ProjectMod
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->warn(
-            LogMessage::ExecStepMoreResultsThanExpectedTemplate, "ProjectsPersistence", rc, error);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
-
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoEndGetByIdEntity, "ProjectsPersistence", projectId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "projects", projectId);
 
     return 0;
 }
 
 std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoBeginCreateEntity,
-        "ProjectsPersistence",
-        "project",
-        projectModel.Name);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -620,12 +504,8 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::create,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ProjectsPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -642,8 +522,8 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "ProjectsPersistence", "name", bindIndex, rc, error);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -659,12 +539,7 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "display_name",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "display_name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -677,13 +552,7 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "is_default",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -704,12 +573,8 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "description",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -721,13 +586,7 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "employer_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -744,12 +603,8 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "client_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "client_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -758,12 +613,7 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::create,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ProjectsPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -772,20 +622,13 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
     sqlite3_finalize(stmt);
 
     auto rowId = sqlite3_last_insert_rowid(pDb);
-
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndCreateEntity, "ProjectsPersistence", rowId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "project", rowId);
 
     return rowId;
 }
 
-int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
+int ProjectsPersistence::Update(Model::ProjectModel& projectModel) const
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessage::InfoBeginUpdateEntity,
-        "ProjectsPersistence",
-        "project",
-        projectModel.ProjectId);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -796,12 +639,8 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::update,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ProjectsPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -818,8 +657,8 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "ProjectsPersistence", "name", bindIndex, rc, error);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -835,13 +674,7 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "display_name",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "display_name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -854,13 +687,7 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "is_default",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -881,13 +708,7 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "description",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -901,12 +722,7 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
 
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "date_modified",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -919,13 +735,7 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "employer_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -942,12 +752,8 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "client_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "client_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
         return -1;
     }
@@ -958,13 +764,7 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "project_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -974,8 +774,7 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
+        pLogger->error(LogMessages::ExecStepTemplate,
             "ProjectsPersistence",
             ProjectsPersistence::update,
             rc,
@@ -986,17 +785,13 @@ int ProjectsPersistence::Update(Model::ProjectModel& projectModel)
     }
 
     sqlite3_finalize(stmt);
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoEndUpdateEntity, "ProjectsPersistence", projectModel.ProjectId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityUpdated, "project", projectModel.ProjectId);
 
     return 0;
 }
 
-int ProjectsPersistence::Delete(const std::int64_t projectId)
+int ProjectsPersistence::Delete(const std::int64_t projectId) const
 {
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessage::InfoBeginDeleteEntity, "ProjectsPersistence", "project", projectId);
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -1007,12 +802,8 @@ int ProjectsPersistence::Delete(const std::int64_t projectId)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::isActive,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ProjectsPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -1024,13 +815,7 @@ int ProjectsPersistence::Delete(const std::int64_t projectId)
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "date_modified",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -1039,15 +824,10 @@ int ProjectsPersistence::Delete(const std::int64_t projectId)
     bindIndex++;
 
     rc = sqlite3_bind_int64(stmt, bindIndex, projectId);
+
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "project_id",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -1057,28 +837,20 @@ int ProjectsPersistence::Delete(const std::int64_t projectId)
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::isActive,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ProjectsPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
-
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessage::InfoEndDeleteEntity, "ProjectsPersistence", projectId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityDeleted, "project", projectId);
 
     return 0;
 }
 
-int ProjectsPersistence::UnsetDefault()
+int ProjectsPersistence::UnsetDefault() const
 {
-    SPDLOG_LOGGER_TRACE(pLogger, "ProjectsPersistence - Unset default project");
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -1089,12 +861,8 @@ int ProjectsPersistence::UnsetDefault()
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::unsetDefault,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, ProjectsPersistence::unsetDefault, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -1106,13 +874,7 @@ int ProjectsPersistence::UnsetDefault()
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "ProjectsPersistence",
-            "date_modified",
-            bindIndex,
-            rc,
-            error);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -1124,24 +886,19 @@ int ProjectsPersistence::UnsetDefault()
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "ProjectsPersistence",
-            ProjectsPersistence::unsetDefault,
-            rc,
-            error);
+        pLogger->error(LogMessages::ExecStepTemplate, ProjectsPersistence::unsetDefault, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
     }
 
     sqlite3_finalize(stmt);
-    SPDLOG_LOGGER_TRACE(pLogger, "ProjectsPersistence - Completed unsetting default project");
+    SPDLOG_LOGGER_TRACE(pLogger, "Unset default project");
 
     return 0;
 }
 
-const std::string ProjectsPersistence::filter =
+std::string ProjectsPersistence::filter =
     "SELECT "
     "projects.project_id, "
     "projects.name AS project_name, "
@@ -1165,67 +922,67 @@ const std::string ProjectsPersistence::filter =
     "OR employer_name LIKE ? "
     "OR client_name LIKE ?);";
 
-const std::string ProjectsPersistence::getById = "SELECT "
-                                                 "projects.project_id, "
-                                                 "projects.name, "
-                                                 "projects.display_name, "
-                                                 "projects.is_default, "
-                                                 "projects.description, "
-                                                 "projects.date_created, "
-                                                 "projects.date_modified, "
-                                                 "projects.is_active, "
-                                                 "projects.employer_id, "
-                                                 "projects.client_id "
-                                                 "FROM projects "
-                                                 "WHERE projects.project_id = ?;";
+std::string ProjectsPersistence::getById = "SELECT "
+                                           "projects.project_id, "
+                                           "projects.name, "
+                                           "projects.display_name, "
+                                           "projects.is_default, "
+                                           "projects.description, "
+                                           "projects.date_created, "
+                                           "projects.date_modified, "
+                                           "projects.is_active, "
+                                           "projects.employer_id, "
+                                           "projects.client_id "
+                                           "FROM projects "
+                                           "WHERE projects.project_id = ?;";
 
-const std::string ProjectsPersistence::create = "INSERT INTO "
-                                                "projects"
-                                                "("
-                                                "name, "
-                                                "display_name, "
-                                                "is_default, "
-                                                "description, "
-                                                "employer_id, "
-                                                "client_id"
-                                                ") "
-                                                "VALUES(?, ?, ?, ?, ?, ?)";
+std::string ProjectsPersistence::create = "INSERT INTO "
+                                          "projects"
+                                          "("
+                                          "name, "
+                                          "display_name, "
+                                          "is_default, "
+                                          "description, "
+                                          "employer_id, "
+                                          "client_id"
+                                          ") "
+                                          "VALUES(?, ?, ?, ?, ?, ?)";
 
-const std::string ProjectsPersistence::update = "UPDATE projects "
+std::string ProjectsPersistence::update = "UPDATE projects "
+                                          "SET "
+                                          "name = ?,"
+                                          "display_name = ?,"
+                                          "is_default = ?,"
+                                          "description = ?,"
+                                          "date_modified = ?,"
+                                          "employer_id = ?,"
+                                          "client_id = ? "
+                                          "WHERE project_id = ?";
+
+std::string ProjectsPersistence::isActive = "UPDATE projects "
+                                            "SET "
+                                            "is_active = 0, "
+                                            "date_modified = ? "
+                                            "WHERE project_id = ?";
+
+std::string ProjectsPersistence::unsetDefault = "UPDATE projects "
                                                 "SET "
-                                                "name = ?,"
-                                                "display_name = ?,"
-                                                "is_default = ?,"
-                                                "description = ?,"
-                                                "date_modified = ?,"
-                                                "employer_id = ?,"
-                                                "client_id = ? "
-                                                "WHERE project_id = ?";
+                                                "is_default = 0, "
+                                                "date_modified = ?";
 
-const std::string ProjectsPersistence::isActive = "UPDATE projects "
-                                                  "SET "
-                                                  "is_active = 0, "
-                                                  "date_modified = ? "
-                                                  "WHERE project_id = ?";
-
-const std::string ProjectsPersistence::unsetDefault = "UPDATE projects "
-                                                      "SET "
-                                                      "is_default = 0, "
-                                                      "date_modified = ?";
-
-const std::string ProjectsPersistence::filterByEmployerOrClientId = "SELECT "
-                                                                    "projects.project_id, "
-                                                                    "projects.name, "
-                                                                    "projects.display_name, "
-                                                                    "projects.is_default, "
-                                                                    "projects.description, "
-                                                                    "projects.date_created, "
-                                                                    "projects.date_modified, "
-                                                                    "projects.is_active, "
-                                                                    "projects.employer_id, "
-                                                                    "projects.client_id "
-                                                                    "FROM projects "
-                                                                    "WHERE projects.is_active = 1 "
-                                                                    "AND employer_id IS ? "
-                                                                    "AND client_id IS ?;";
+std::string ProjectsPersistence::filterByEmployerOrClientId = "SELECT "
+                                                              "projects.project_id, "
+                                                              "projects.name, "
+                                                              "projects.display_name, "
+                                                              "projects.is_default, "
+                                                              "projects.description, "
+                                                              "projects.date_created, "
+                                                              "projects.date_modified, "
+                                                              "projects.is_active, "
+                                                              "projects.employer_id, "
+                                                              "projects.client_id "
+                                                              "FROM projects "
+                                                              "WHERE projects.is_active = 1 "
+                                                              "AND employer_id IS ? "
+                                                              "AND client_id IS ?;";
 } // namespace tks::Persistence

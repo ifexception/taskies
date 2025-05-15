@@ -33,38 +33,31 @@
 
 namespace tks::Persistence
 {
-class ProjectsPersistence final
-{
-public:
-    ProjectsPersistence() = delete;
-    ProjectsPersistence(const ProjectsPersistence&) = delete;
+struct ProjectsPersistence final {
     ProjectsPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
     ~ProjectsPersistence();
 
-    ProjectsPersistence& operator=(const ProjectsPersistence&) = delete;
-
     int Filter(const std::string& searchTerm,
-        /*out*/ std::vector<Model::ProjectModel>& projectModels);
+        /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
     int FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
         std::optional<std::int64_t> clientId,
-        /*out*/ std::vector<Model::ProjectModel>& projectModels);
-    int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& projectModel);
+        /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
+    int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& projectModel) const;
     std::int64_t Create(Model::ProjectModel& projectModel);
-    int Update(Model::ProjectModel& projectModel);
-    int Delete(const std::int64_t projectId);
-    int UnsetDefault();
+    int Update(Model::ProjectModel& projectModel) const;
+    int Delete(const std::int64_t projectId) const;
+    int UnsetDefault() const;
 
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filter;
-    static const std::string getById;
-    static const std::string create;
-    static const std::string update;
-    static const std::string isActive;
-    static const std::string unsetDefault;
-    static const std::string filterByEmployerOrClientId;
+    static std::string filter;
+    static std::string getById;
+    static std::string create;
+    static std::string update;
+    static std::string isActive;
+    static std::string unsetDefault;
+    static std::string filterByEmployerOrClientId;
 };
 } // namespace tks::Persistence
