@@ -31,27 +31,20 @@
 
 namespace tks::Persistence
 {
-class WorkdaysPersistence final
-{
-public:
-    WorkdaysPersistence() = delete;
-    WorkdaysPersistence(const WorkdaysPersistence&) = delete;
-    WorkdaysPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+struct WorkdaysPersistence final {
+    WorkdaysPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     ~WorkdaysPersistence();
 
-    WorkdaysPersistence& operator=(const WorkdaysPersistence&) = delete;
-
-    int FilterByDate(const std::string& date, Model::WorkdayModel model);
-    std::int64_t GetWorkdayIdByDate(const std::string& date);
-
-private:
-    std::int64_t Create(const std::string& date);
+    int FilterByDate(const std::string& date, Model::WorkdayModel model) const;
+    std::int64_t GetWorkdayIdByDate(const std::string& date) const;
+    std::int64_t Create(const std::string& date) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string getWorkdayIdByDate;
-    static const std::string filterByDate;
-    static const std::string create;
+    static std::string getWorkdayIdByDate;
+    static std::string filterByDate;
+    static std::string create;
 };
 } // namespace tks::Persistence
