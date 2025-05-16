@@ -35,43 +35,36 @@
 
 namespace tks::Persistence
 {
-class TasksPersistence final
-{
-public:
-    TasksPersistence() = delete;
-    TasksPersistence(const TasksPersistence&) = delete;
+struct TasksPersistence final {
     TasksPersistence(const std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
     ~TasksPersistence();
 
-    TasksPersistence& operator=(const TasksPersistence&) = delete;
-
-    int GetById(const std::int64_t taskId, /*out*/ Model::TaskModel& model);
-    std::int64_t Create(Model::TaskModel& model);
-    int Update(Model::TaskModel& task);
+    int GetById(const std::int64_t taskId, /*out*/ Model::TaskModel& taskModel) const;
+    std::int64_t Create(Model::TaskModel& taskModel) const;
+    int Update(Model::TaskModel& taskModel) const;
     int Delete(const std::int64_t taskId);
-    int GetDescriptionById(const std::int64_t taskId, std::string& description);
+    int GetDescriptionById(const std::int64_t taskId, std::string& description) const;
     int IsDeleted(const std::int64_t taskId, bool& value);
     int GetTaskDurationsForDateRange(const std::string& startDate,
         const std::string& endDate,
         TaskDurationType type,
-        /*out*/ std::vector<Model::TaskDurationModel>& models);
+        /*out*/ std::vector<Model::TaskDurationModel>& taskModels) const;
     int GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
         /*out*/ std::map<std::string, std::vector<Model::TaskDurationModel>>&
-            durationsGroupedByDate);
+            taskDurationsGroupedByDateModels) const;
 
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string getById;
-    static const std::string create;
-    static const std::string update;
-    static const std::string isActive;
-    static const std::string getDescriptionById;
-    static const std::string isDeleted;
-    static const std::string getAllHoursForDateRange;
-    static const std::string getBillableHoursForDateRange;
-    static const std::string getAllHoursForDate;
+    static std::string getById;
+    static std::string create;
+    static std::string update;
+    static std::string isActive;
+    static std::string getDescriptionById;
+    static std::string isDeleted;
+    static std::string getAllHoursForDateRange;
+    static std::string getBillableHoursForDateRange;
+    static std::string getAllHoursForDate;
 };
 } // namespace tks::Persistence

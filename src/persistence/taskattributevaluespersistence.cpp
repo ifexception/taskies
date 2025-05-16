@@ -209,7 +209,7 @@ std::int64_t TaskAttributeValuesPersistence::Create(
     sqlite3_finalize(stmt);
 
     std::int64_t rowId = sqlite3_last_insert_rowid(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "task_value_attribute", rowId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "task_attribute_value", rowId);
 
     return rowId;
 }
@@ -331,7 +331,7 @@ int TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t taskId,
     }
 
     sqlite3_finalize(stmt);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "task_value_attributes", taskId);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "task_attribute_values", taskId);
 
     return 0;
 }
