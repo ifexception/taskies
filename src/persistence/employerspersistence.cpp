@@ -387,7 +387,7 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerMo
     return rowId;
 }
 
-int EmployersPersistence::Update(Model::EmployerModel employerModel) const
+int EmployersPersistence::Update(const Model::EmployerModel& employerModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 

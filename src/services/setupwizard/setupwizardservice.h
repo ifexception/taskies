@@ -44,13 +44,14 @@ struct SetupWizardService final {
     int CommitTransaction();
     int RollbackTransaction();
 
-    std::int64_t CreateEmployer(const Model::EmployerModel& employer);
-    int GetByEmployerId(const std::int64_t employerId, /*out*/ Model::EmployerModel& employer);
-    int UpdateEmployer(const Model::EmployerModel& employer);
+    std::int64_t CreateEmployer(const Model::EmployerModel& employerModel) const;
+    int GetByEmployerId(const std::int64_t employerId,
+        /*out*/ Model::EmployerModel& employerModel) const;
+    int UpdateEmployer(const Model::EmployerModel& employerModel) const;
 
-    std::int64_t CreateClient(const Model::ClientModel& client);
-    int GetByClientId(const std::int64_t clientId, /*out*/ Model::ClientModel& model);
-    int UpdateClient(const Model::ClientModel& client);
+    std::int64_t CreateClient(const Model::ClientModel& clientModel) const;
+    int GetByClientId(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel) const;
+    int UpdateClient(const Model::ClientModel& clientModel) const;
 
     std::int64_t CreateProject(const Model::ProjectModel& project);
     int GetByProjectId(const std::int64_t projectId, /*out*/ Model::ProjectModel& model);
@@ -64,7 +65,7 @@ struct SetupWizardService final {
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
-
+    std::string mDatabaseFilePath;
     int mTransactionCounter;
 
     static std::string beginTransaction;

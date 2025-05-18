@@ -402,7 +402,7 @@ int ClientsPersistence::GetById(const std::int64_t clientId, Model::ClientModel&
     return 0;
 }
 
-std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel) const
+std::int64_t ClientsPersistence::Create(const Model::ClientModel& clientModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -487,7 +487,7 @@ std::int64_t ClientsPersistence::Create(Model::ClientModel& clientModel) const
     return rowId;
 }
 
-int ClientsPersistence::Update(Model::ClientModel& clientModel) const
+int ClientsPersistence::Update(const Model::ClientModel& clientModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 

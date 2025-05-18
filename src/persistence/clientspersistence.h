@@ -41,8 +41,8 @@ struct ClientsPersistence final {
     int FilterByEmployerId(const std::int64_t employerId,
         /*out*/ std::vector<Model::ClientModel>& clientModels) const;
     int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel) const;
-    std::int64_t Create(Model::ClientModel& clientModel) const;
-    int Update(/*out*/ Model::ClientModel& clientModel) const;
+    std::int64_t Create(const Model::ClientModel& clientModel) const;
+    int Update(const Model::ClientModel& clientModel) const;
     int Delete(const std::int64_t clientId) const;
 
     std::shared_ptr<spdlog::logger> pLogger;

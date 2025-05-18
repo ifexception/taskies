@@ -35,6 +35,7 @@ SetupWizardService::SetupWizardService(const std::shared_ptr<spdlog::logger> log
     const std::string& databaseFilePath)
     : pLogger(logger)
     , pDb(nullptr)
+    , mDatabaseFilePath(databaseFilePath)
     , mTransactionCounter(0)
 {
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
@@ -115,10 +116,8 @@ int SetupWizardService::BeginTransaction()
 
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate,
-            SetupWizardService::beginTransaction,
-            rc,
-            err);
+        pLogger->error(
+            LogMessages::ExecQueryTemplate, SetupWizardService::beginTransaction, rc, err);
     }
     return rc;
 }
@@ -163,459 +162,47 @@ int SetupWizardService::RollbackTransaction()
     return rc;
 }
 
-std::int64_t SetupWizardService::CreateEmployer(const Model::EmployerModel& employer)
+std::int64_t SetupWizardService::CreateEmployer(const Model::EmployerModel& employerModel) const
 {
-    pLogger->info(
-        LogMessage::InfoBeginCreateEntity, "SetupWizardRepository", "employer", employer.Name);
-
-    sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(pDb,
-        SetupWizardService::createEmployer.c_str(),
-        static_cast<int>(SetupWizardService::createEmployer.size()),
-        &stmt,
-        nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::createEmployer,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_text(
-        stmt, 1, employer.Name.c_str(), static_cast<int>(employer.Name.size()), SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "name", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::createEmployer,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    auto rowId = sqlite3_last_insert_rowid(pDb);
-    pLogger->info(LogMessage::InfoEndCreateEntity, "SetupWizardRepository", rowId);
-
+    Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
+    std::int64_t rowId = employersPersistence.Create(employerModel);
     return rowId;
 }
 
 int SetupWizardService::GetByEmployerId(const std::int64_t employerId,
-    Model::EmployerModel& employer)
+    Model::EmployerModel& employerModel) const
 {
-    pLogger->info(
-        LogMessage::InfoBeginGetByIdEntity, "SetupWizardRepository", "employer", employerId);
-
-    sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(pDb,
-        SetupWizardService::getByEmployerId.c_str(),
-        static_cast<int>(SetupWizardService::getByEmployerId.size()),
-        &stmt,
-        nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::getByEmployerId,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_int64(stmt, 1, employerId);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "employer_id", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::getByEmployerId,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    int columnIndex = 0;
-    employer.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    employer.Name =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        employer.Description = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        employer.Description = std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-    }
-    columnIndex++;
-    employer.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-    employer.DateModified = sqlite3_column_int(stmt, columnIndex++);
-    employer.IsActive = sqlite3_column_int(stmt, columnIndex++);
-
-    rc = sqlite3_step(stmt);
-
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(
-            LogMessage::ExecStepMoreResultsThanExpectedTemplate, "SetupWizardRepository", rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndGetByIdEntity, "SetupWizardRepository", employerId);
-
-    return 0;
+    Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
+    int rc = employersPersistence.GetById(employerId, employerModel);
+    return rc;
 }
 
-int SetupWizardService::UpdateEmployer(const Model::EmployerModel& employer)
+int SetupWizardService::UpdateEmployer(const Model::EmployerModel& employerModel) const
 {
-    pLogger->info(LogMessage::InfoBeginUpdateEntity,
-        "SetupWizardRepository",
-        "employer",
-        employer.EmployerId);
-    sqlite3_stmt* stmt = nullptr;
-
-    int rc = sqlite3_prepare_v2(pDb,
-        SetupWizardService::updateEmployer.c_str(),
-        static_cast<int>(SetupWizardService::updateEmployer.size()),
-        &stmt,
-        nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::updateEmployer,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    int bindIndex = 1;
-
-    rc = sqlite3_bind_text(stmt,
-        bindIndex++,
-        employer.Name.c_str(),
-        static_cast<int>(employer.Name.size()),
-        SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "name", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_int64(stmt, bindIndex++, Utils::UnixTimestamp());
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "SetupWizardRepository",
-            "date_modified",
-            2,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_int64(stmt, bindIndex++, employer.EmployerId);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "employer_id", 3, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::updateEmployer,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndUpdateEntity, "EmplyerDao", employer.EmployerId);
-
-    return 0;
+    Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
+    int rc = employersPersistence.Update(employerModel);
+    return rc;
 }
 
-std::int64_t SetupWizardService::CreateClient(const Model::ClientModel& client)
+std::int64_t SetupWizardService::CreateClient(const Model::ClientModel& clientModel) const
 {
-    pLogger->info(
-        LogMessage::InfoBeginCreateEntity, "SetupWizardRepository", "client", client.Name);
-    sqlite3_stmt* stmt = nullptr;
-
-    int rc = sqlite3_prepare_v2(pDb,
-        SetupWizardService::createClient.c_str(),
-        static_cast<int>(SetupWizardService::createClient.size()),
-        &stmt,
-        nullptr);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::createClient,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    int bindIndex = 1;
-    rc = sqlite3_bind_text(stmt,
-        bindIndex++,
-        client.Name.c_str(),
-        static_cast<int>(client.Name.size()),
-        SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "name", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    if (client.Description.has_value()) {
-        rc = sqlite3_bind_text(stmt,
-            bindIndex,
-            client.Description.value().c_str(),
-            static_cast<int>(client.Description.value().size()),
-            SQLITE_TRANSIENT);
-    } else {
-        rc = sqlite3_bind_null(stmt, bindIndex);
-    }
-
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "description", 2, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    bindIndex++;
-    rc = sqlite3_bind_int64(stmt, bindIndex++, client.EmployerId);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "employer_id", 3, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::createClient,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    auto rowId = sqlite3_last_insert_rowid(pDb);
-    pLogger->info(LogMessage::InfoEndCreateEntity, "SetupWizardRepository", rowId);
-
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
+    std::int64_t rowId = clientsPersistence.Create(clientModel);
     return rowId;
 }
 
-int SetupWizardService::GetByClientId(const std::int64_t clientId, Model::ClientModel& model)
+int SetupWizardService::GetByClientId(const std::int64_t clientId, Model::ClientModel& clientModel) const
 {
-    pLogger->info(LogMessage::InfoBeginGetByIdEntity, "SetupWizardRepository", "client", clientId);
-
-    sqlite3_stmt* stmt = nullptr;
-
-    int rc = sqlite3_prepare_v2(pDb,
-        SetupWizardService::getByClientId.c_str(),
-        static_cast<int>(SetupWizardService::getByClientId.size()),
-        &stmt,
-        nullptr);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::getByClientId,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_int64(stmt, 1, clientId);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "client_id", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_ROW) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::getByClientId,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    int columnIndex = 0;
-    model.ClientId = sqlite3_column_int64(stmt, columnIndex++);
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    model.Name =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        model.Description = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        model.Description = std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-    }
-    columnIndex++;
-    model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-    model.DateModified = sqlite3_column_int(stmt, columnIndex++);
-    model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
-    model.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(
-            LogMessage::ExecStepMoreResultsThanExpectedTemplate, "SetupWizardRepository", rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndGetByIdEntity, "SetupWizardRepository", clientId);
-
-    return 0;
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
+    int rc = clientsPersistence.GetById(clientId, clientModel);
+    return rc;
 }
 
-int SetupWizardService::UpdateClient(const Model::ClientModel& client)
+int SetupWizardService::UpdateClient(const Model::ClientModel& clientModel) const
 {
-    pLogger->info(
-        LogMessage::InfoBeginUpdateEntity, "SetupWizardRepository", "client", client.ClientId);
-    sqlite3_stmt* stmt = nullptr;
-
-    int rc = sqlite3_prepare_v2(pDb,
-        SetupWizardService::updateClient.c_str(),
-        static_cast<int>(SetupWizardService::updateClient.size()),
-        &stmt,
-        nullptr);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::updateClient,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    int bindIndex = 1;
-    rc = sqlite3_bind_text(stmt,
-        bindIndex++,
-        client.Name.c_str(),
-        static_cast<int>(client.Name.size()),
-        SQLITE_TRANSIENT);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "name", 1, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    bindIndex++;
-    rc = sqlite3_bind_int64(stmt, bindIndex++, Utils::UnixTimestamp());
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate,
-            "SetupWizardRepository",
-            "date_modified",
-            3,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_int64(stmt, bindIndex++, client.EmployerId);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "employer_id", 4, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_bind_int64(stmt, bindIndex++, client.ClientId);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::BindParameterTemplate, "SetupWizardRepository", "client_id", 5, rc, err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate,
-            "SetupWizardRepository",
-            SetupWizardService::updateClient,
-            rc,
-            err);
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    pLogger->info(LogMessage::InfoEndUpdateEntity, "SetupWizardRepository", client.ClientId);
-
-    return 0;
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
+    int rc = clientsPersistence.Update(clientModel);
+    return rc;
 }
 
 std::int64_t SetupWizardService::CreateProject(const Model::ProjectModel& project)
