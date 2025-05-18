@@ -42,13 +42,14 @@ namespace UI
 class PersistenceManager : public wxPersistenceManager
 {
 public:
-    PersistenceManager(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFile);
+    PersistenceManager(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     virtual ~PersistenceManager();
 
     bool RestoreValue(const wxPersistentObject& who, const wxString& name, bool* value) override;
     bool RestoreValue(const wxPersistentObject& who, const wxString& name, int* value) override;
     bool RestoreValue(const wxPersistentObject& who, const wxString& name, long* value) override;
-    bool RestoreValue(const wxPersistentObject& who, const wxString& name, wxString* value) override;
+    bool
+        RestoreValue(const wxPersistentObject& who, const wxString& name, wxString* value) override;
 
     bool SaveValue(const wxPersistentObject& who, const wxString& name, bool value) override;
     bool SaveValue(const wxPersistentObject& who, const wxString& name, int value) override;
@@ -63,8 +64,8 @@ private:
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 
-    static const std::string PersistenceSelectQuery;
-    static const std::string PersistenceInsertQuery;
+    static std::string PersistenceSelectQuery;
+    static std::string PersistenceInsertQuery;
 };
 } // namespace UI
 } // namespace tks

@@ -20,63 +20,77 @@
 #include "persistencemanager.h"
 
 #include "../core/environment.h"
-#include "../common/constants.h"
+
+#include "../common/logmessages.h"
+#include "../common/queryhelper.h"
+
 #include "../utils/utils.h"
 
 namespace tks::UI
 {
-const std::string PersistenceManager::PersistenceSelectQuery = "SELECT value FROM persistent_objects WHERE key = ?;";
-const std::string PersistenceManager::PersistenceInsertQuery =
+std::string PersistenceManager::PersistenceSelectQuery =
+    "SELECT value FROM persistent_objects WHERE key = ?;";
+std::string PersistenceManager::PersistenceInsertQuery =
     "INSERT OR REPLACE INTO persistent_objects(key, value) VALUES(?, ?);";
 
-PersistenceManager::PersistenceManager(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFile)
+PersistenceManager::PersistenceManager(std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath)
     : pLogger(logger)
     , pDb(nullptr)
 {
-    pLogger->info("PersistenceManager - Open database connection at \"{0}\"", databaseFile);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
 
-    int rc = sqlite3_open(databaseFile.c_str(), &pDb);
+    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
+
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate, "PersistenceManager", databaseFile, rc, std::string(err));
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
+
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::ForeignKeys, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
+
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::ExecQueryTemplate, "PersistenceManager", Utils::sqlite::pragmas::ForeignKeys, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
+
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::JournalMode, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
+
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::ExecQueryTemplate, "PersistenceManager", Utils::sqlite::pragmas::JournalMode, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
+
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::Synchronous, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
+
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessage::ExecQueryTemplate, "PersistenceManager", Utils::sqlite::pragmas::Synchronous, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
+
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::TempStore, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
+
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "PersistenceManager", Utils::sqlite::pragmas::TempStore, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
+
         return;
     }
 
-    rc = sqlite3_exec(pDb, Utils::sqlite::pragmas::MmapSize, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
+
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecQueryTemplate, "PersistenceManager", Utils::sqlite::pragmas::MmapSize, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
+
         return;
     }
 }
@@ -84,52 +98,58 @@ PersistenceManager::PersistenceManager(std::shared_ptr<spdlog::logger> logger, c
 PersistenceManager::~PersistenceManager()
 {
     sqlite3_close(pDb);
-    pLogger->info("PersistenceManager - Close database connection");
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
-bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxString& name, bool* value)
+bool PersistenceManager::RestoreValue(const wxPersistentObject& who,
+    const wxString& name,
+    bool* value)
 {
+    sqlite3_stmt* stmt = nullptr;
+
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->info("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
-
-    sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, PersistenceSelectQuery.c_str(), -1, &stmt, nullptr);
+
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
+        pLogger->error(LogMessages::PrepareStatementTemplate, PersistenceSelectQuery, rc, err);
         sqlite3_finalize(stmt);
+
         return false;
     }
 
     rc = sqlite3_bind_text(stmt, 1, key.c_str(), static_cast<int>(key.size()), SQLITE_TRANSIENT);
+
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "PersistenceManager", key, 1, rc, err);
+        pLogger->error(LogMessages::BindParameterTemplate, key, 1, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     rc = sqlite3_step(stmt);
+
     if (rc == SQLITE_DONE) {
-        pLogger->info("PersistenceManager - No value found for key \"{0}\"", key);
         sqlite3_finalize(stmt);
         return false;
     } else if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
+        pLogger->error(LogMessages::ExecStepTemplate, PersistenceSelectQuery, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     *value = (sqlite3_column_int(stmt, 0) > 0);
 
-    pLogger->info("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", *value, key);
-
     rc = sqlite3_step(stmt);
+
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "PersistenceManager", rc, err);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
@@ -138,49 +158,54 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
     return true;
 }
 
-bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxString& name, int* value)
+bool PersistenceManager::RestoreValue(const wxPersistentObject& who,
+    const wxString& name,
+    int* value)
 {
+    sqlite3_stmt* stmt = nullptr;
+
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->info("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
-
-    sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, PersistenceSelectQuery.c_str(), -1, &stmt, nullptr);
+
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
+        pLogger->error(LogMessages::PrepareStatementTemplate, PersistenceSelectQuery, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     rc = sqlite3_bind_text(stmt, 1, key.c_str(), static_cast<int>(key.size()), SQLITE_TRANSIENT);
+
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "PersistenceManager", key, 1, rc, err);
+        pLogger->error(LogMessages::BindParameterTemplate, key, 1, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     rc = sqlite3_step(stmt);
+
     if (rc == SQLITE_DONE) {
-        pLogger->info("PersistenceManager - No value found for key \"{0}\"", key);
         sqlite3_finalize(stmt);
         return false;
     } else if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
+        pLogger->error(LogMessages::ExecStepTemplate, PersistenceSelectQuery, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     *value = sqlite3_column_int(stmt, 0);
 
-    pLogger->info("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", *value, key);
-
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "PersistenceManager", rc, err);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
@@ -189,49 +214,55 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
     return true;
 }
 
-bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxString& name, long* value)
+bool PersistenceManager::RestoreValue(const wxPersistentObject& who,
+    const wxString& name,
+    long* value)
 {
+    sqlite3_stmt* stmt = nullptr;
+
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->info("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
-
-    sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, PersistenceSelectQuery.c_str(), -1, &stmt, nullptr);
+
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
+        pLogger->error(LogMessages::PrepareStatementTemplate, PersistenceSelectQuery, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     rc = sqlite3_bind_text(stmt, 1, key.c_str(), static_cast<int>(key.size()), SQLITE_TRANSIENT);
+
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "PersistenceManager", key, 1, rc, err);
+        pLogger->error(LogMessages::BindParameterTemplate, key, 1, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     rc = sqlite3_step(stmt);
+
     if (rc == SQLITE_DONE) {
-        pLogger->info("PersistenceManager - No value found for key \"{0}\"", key);
         sqlite3_finalize(stmt);
         return false;
     } else if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
+        pLogger->error(LogMessages::ExecStepTemplate, PersistenceSelectQuery, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     *value = static_cast<long>(sqlite3_column_int(stmt, 0));
 
-    pLogger->info("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", *value, key);
-
     rc = sqlite3_step(stmt);
+
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "PersistenceManager", rc, err);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
@@ -240,37 +271,42 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
     return true;
 }
 
-bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxString& name, wxString* value)
+bool PersistenceManager::RestoreValue(const wxPersistentObject& who,
+    const wxString& name,
+    wxString* value)
 {
+    sqlite3_stmt* stmt = nullptr;
+
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->info("PersistenceManager - Attempting to restore value with key \"{0}\"", key);
-
-    sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb, PersistenceSelectQuery.c_str(), -1, &stmt, nullptr);
+
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
+        pLogger->error(LogMessages::PrepareStatementTemplate, PersistenceSelectQuery, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     rc = sqlite3_bind_text(stmt, 1, key.c_str(), static_cast<int>(key.size()), SQLITE_TRANSIENT);
+
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "PersistenceManager", key, 1, rc, err);
+        pLogger->error(LogMessages::BindParameterTemplate, key, 1, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     rc = sqlite3_step(stmt);
     if (rc == SQLITE_DONE) {
-        pLogger->info("PersistenceManager - No value found for key \"{0}\"", key);
         sqlite3_finalize(stmt);
         return false;
     } else if (rc != SQLITE_ROW) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "PersistenceManager", PersistenceSelectQuery, rc, err);
+        pLogger->error(LogMessages::ExecStepTemplate, PersistenceSelectQuery, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
@@ -278,12 +314,12 @@ bool PersistenceManager::RestoreValue(const wxPersistentObject& who, const wxStr
     const unsigned char* res = sqlite3_column_text(stmt, 0);
     *value = std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, 0));
 
-    pLogger->info("PersistenceManager - Restored value \"{0}\" for key \"{1}\"", value->ToStdString(), key);
-
     rc = sqlite3_step(stmt);
+
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessage::ExecStepMoreResultsThanExpectedTemplate, "PersistenceManager", rc, err);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
@@ -296,8 +332,6 @@ bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->info("PersistenceManager - Attempting to save value with key \"{0}\"", key);
-
     bool ret = SaveValue(key, std::to_string(value));
     return ret;
 }
@@ -305,8 +339,6 @@ bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString
 bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString& name, int value)
 {
     auto key = GetKey(who, name).ToStdString();
-
-    pLogger->info("PersistenceManager - Attempting to save value with key \"{0}\"", key);
 
     bool ret = SaveValue(key, std::to_string(value));
     return ret;
@@ -316,17 +348,15 @@ bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString
 {
     auto key = GetKey(who, name).ToStdString();
 
-    pLogger->info("PersistenceManager - Attempting to save value with key \"{0}\"", key);
-
     bool ret = SaveValue(key, std::to_string(value));
     return ret;
 }
 
-bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString& name, wxString value)
+bool PersistenceManager::SaveValue(const wxPersistentObject& who,
+    const wxString& name,
+    wxString value)
 {
     auto key = GetKey(who, name).ToStdString();
-
-    pLogger->info("PersistenceManager - Attempting to save value with key \"{0}\"", key);
 
     bool ret = SaveValue(key, value.ToStdString());
     return ret;
@@ -334,7 +364,8 @@ bool PersistenceManager::SaveValue(const wxPersistentObject& who, const wxString
 
 wxString PersistenceManager::GetKey(const wxPersistentObject& who, const wxString& name)
 {
-    return who.GetKind() << wxCONFIG_PATH_SEPARATOR << who.GetName() << wxCONFIG_PATH_SEPARATOR << name;
+    return who.GetKind() << wxCONFIG_PATH_SEPARATOR << who.GetName() << wxCONFIG_PATH_SEPARATOR
+                         << name;
 }
 
 bool PersistenceManager::SaveValue(const std::string& key, const std::string& value)
@@ -342,38 +373,46 @@ bool PersistenceManager::SaveValue(const std::string& key, const std::string& va
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb, PersistenceInsertQuery.c_str(), -1, &stmt, nullptr);
+
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::PrepareStatementTemplate, "PersistenceManager", PersistenceInsertQuery, rc, err);
+        pLogger->error(LogMessages::PrepareStatementTemplate, PersistenceInsertQuery, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     rc = sqlite3_bind_text(stmt, 1, key.c_str(), static_cast<int>(key.size()), SQLITE_TRANSIENT);
+
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "PersistenceManager", key, 1, rc, err);
+        pLogger->error(LogMessages::BindParameterTemplate, key, 1, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
-    rc = sqlite3_bind_text(stmt, 2, value.c_str(), static_cast<int>(value.size()), SQLITE_TRANSIENT);
+    rc =
+        sqlite3_bind_text(stmt, 2, value.c_str(), static_cast<int>(value.size()), SQLITE_TRANSIENT);
+
     if (rc == SQLITE_ERROR) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::BindParameterTemplate, "PersistenceManager", value, 2, rc, err);
+        pLogger->error(LogMessages::BindParameterTemplate, value, 2, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
     rc = sqlite3_step(stmt);
+
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessage::ExecStepTemplate, "PersistenceManager", PersistenceInsertQuery, rc, err);
+        pLogger->error(LogMessages::ExecStepTemplate, PersistenceInsertQuery, rc, err);
+
         sqlite3_finalize(stmt);
         return false;
     }
 
-    pLogger->info("PersistenceManager - Saved value \"{0}\" for key \"{1}\"", value, key);
     sqlite3_finalize(stmt);
     return true;
 }
