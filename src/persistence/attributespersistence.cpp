@@ -196,7 +196,6 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
     }
 
     sqlite3_finalize(stmt);
-
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, attributeModels.size(), searchTerm);
 
     return 0;
@@ -399,7 +398,7 @@ int AttributesPersistence::FilterByAttributeGroupIdAndIsStatic(const std::int64_
 }
 
 int AttributesPersistence::GetById(const std::int64_t attributeId,
-    Model::AttributeModel& attributeModel)
+    Model::AttributeModel& attributeModel) const
 {
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb,

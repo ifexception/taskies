@@ -54,9 +54,9 @@
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/taskattributevaluespersistence.h"
 
-#include "../../repository/categoryrepositorymodel.h"
+#include "../../services/category/categoryviewmodel.h"
 
-#include "../../repository/categoryrepository.h"
+#include "../../services/category/categoryservice.h"
 
 #include "../../utils/utils.h"
 
@@ -710,13 +710,13 @@ void TaskDialog::DataToControls()
     // load categories
     ResetCategoryChoiceControl();
 
-    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
-    std::vector<repos::CategoryRepositoryModel> categories;
+    Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
+    std::vector<Services::CategoryViewModel> categories;
 
     if (pCfg->ShowProjectAssociatedCategories()) {
-        ret = categoryRepo.FilterByProjectId(taskModel.ProjectId, categories);
+        ret = categoryService.FilterByProjectId(taskModel.ProjectId, categories);
     } else {
-        ret = categoryRepo.Filter(categories);
+        ret = categoryService.Filter(categories);
     }
 
     if (ret == -1) {
@@ -736,8 +736,8 @@ void TaskDialog::DataToControls()
                 category.GetFormattedName(), new ClientData<std::int64_t>(category.CategoryId));
         }
 
-        repos::CategoryRepositoryModel category;
-        ret = categoryRepo.GetById(taskModel.CategoryId, category);
+        Services::CategoryViewModel category;
+        ret = categoryService.GetById(taskModel.CategoryId, category);
         if (ret != 0) {
             std::string message = "Failed to get category";
             QueueErrorNotificationEvent(message);
@@ -1339,14 +1339,14 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
 
 void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> projectId)
 {
-    std::vector<repos::CategoryRepositoryModel> categories;
-    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+    std::vector<Services::CategoryViewModel> categories;
+    Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
     int rc = 0;
 
     if (projectId.has_value()) {
-        rc = categoryRepo.FilterByProjectId(projectId.value(), categories);
+        rc = categoryService.FilterByProjectId(projectId.value(), categories);
     } else {
-        rc = categoryRepo.Filter(categories);
+        rc = categoryService.Filter(categories);
     }
 
     if (rc != 0) {

@@ -33,12 +33,12 @@ message (STATUS "add subdirectory models")
 add_subdirectory("persistence")
 message (STATUS "add subdirectory persistence")
 
+add_subdirectory("services")
+message (STATUS "add subdirectory services")
+
 set(SRC_REPOS
     "repository/taskrepository.cpp"
     "repository/taskrepositorymodel.cpp"
-    "repository/categoryrepositorymodel.cpp"
-    "repository/categoryrepository.cpp"
-    "repository/setupwizardrepository.cpp"
 )
 
 set(SRC_EXPORTS
@@ -91,6 +91,7 @@ set (SRC
     ${SRC_DIALOGS}
     ${SRC_EXPORTS}
     ${SRC_UI}
+    ${SRC_SERVICES}
 )
 
 add_executable (

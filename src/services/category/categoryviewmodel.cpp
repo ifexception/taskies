@@ -17,16 +17,16 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "categoryrepositorymodel.h"
+#include "categoryviewmodel.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
 
 #include "../utils/utils.h"
 
-namespace tks::repos
+namespace tks::Services
 {
-CategoryRepositoryModel::CategoryRepositoryModel()
+CategoryViewModel::CategoryViewModel()
     : CategoryId(-1)
     , Name()
     , Color(0)
@@ -40,23 +40,23 @@ CategoryRepositoryModel::CategoryRepositoryModel()
 {
 }
 
-std::string CategoryRepositoryModel::GetFormattedName()
+std::string CategoryViewModel::GetFormattedName()
 {
     auto displayName = ProjectDisplayName.has_value() ? ProjectDisplayName.value() : "none";
     return fmt::format("({0}) - {1}", displayName, Name);
 }
 
-const std::string CategoryRepositoryModel::GetDateCreatedString() const
+const std::string CategoryViewModel::GetDateCreatedString() const
 {
     date::sys_seconds dateTime{ std::chrono::seconds{ DateCreated } };
     std::string dateString = date::format("%Y-%m-%d %I:%M:%S %p", dateTime);
     return dateString;
 }
 
-const std::string CategoryRepositoryModel::GetDateModifiedString() const
+const std::string CategoryViewModel::GetDateModifiedString() const
 {
     date::sys_seconds dateTime{ std::chrono::seconds{ DateModified } };
     std::string dateString = date::format("%Y-%m-%d %I:%M:%S %p", dateTime);
     return dateString;
 }
-} // namespace tks::repos
+} // namespace tks::Services

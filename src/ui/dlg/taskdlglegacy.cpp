@@ -45,8 +45,8 @@
 #include "../../models/clientmodel.h"
 #include "../../models/projectmodel.h"
 
-#include "../../repository/categoryrepositorymodel.h"
-#include "../../repository/categoryrepository.h"
+#include "../../services/category/categoryviewmodel.h"
+#include "../../services/category/categoryservice.h"
 
 #include "../../utils/utils.h"
 
@@ -486,10 +486,10 @@ void TaskDialogLegacy::FillControls()
                         pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
 
                         if (pCfg->ShowProjectAssociatedCategories()) {
-                            std::vector<repos::CategoryRepositoryModel> categories;
-                            repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+                            std::vector<Services::CategoryViewModel> categories;
+                            Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
-                            int rc = categoryRepo.FilterByProjectId(
+                            int rc = categoryService.FilterByProjectId(
                                 defaultProject.ProjectId, categories);
                             if (rc != 0) {
                                 std::string message = "Failed to get categories";
@@ -518,10 +518,10 @@ void TaskDialogLegacy::FillControls()
     }
 
     if (!pCfg->ShowProjectAssociatedCategories()) {
-        std::vector<repos::CategoryRepositoryModel> categories;
-        repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+        std::vector<Services::CategoryViewModel> categories;
+        Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
-        rc = categoryRepo.Filter(categories);
+        rc = categoryService.Filter(categories);
         if (rc == -1) {
             std::string message = "Failed to get categories";
             QueueErrorNotificationEventToParent(message);
@@ -716,11 +716,11 @@ void TaskDialogLegacy::DataToControls()
             }
         }
 
-        std::vector<repos::CategoryRepositoryModel> categories;
-        repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+        std::vector<Services::CategoryViewModel> categories;
+        Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
         if (pCfg->ShowProjectAssociatedCategories()) {
-            rc = categoryRepo.FilterByProjectId(task.ProjectId, categories);
+            rc = categoryService.FilterByProjectId(task.ProjectId, categories);
         }
 
         if (rc == -1) {
@@ -745,8 +745,8 @@ void TaskDialogLegacy::DataToControls()
             }
         }
 
-        repos::CategoryRepositoryModel category;
-        rc = categoryRepo.GetById(task.CategoryId, category);
+        Services::CategoryViewModel category;
+        rc = categoryService.GetById(task.CategoryId, category);
         if (rc != 0) {
             std::string message = "Failed to get category";
             QueueErrorNotificationEventToParent(message);
@@ -840,10 +840,10 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
                 pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
 
                 if (pCfg->ShowProjectAssociatedCategories()) {
-                    std::vector<repos::CategoryRepositoryModel> categories;
-                    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+                    std::vector<Services::CategoryViewModel> categories;
+                    Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
-                    int rc = categoryRepo.FilterByProjectId(defaultProject.ProjectId, categories);
+                    int rc = categoryService.FilterByProjectId(defaultProject.ProjectId, categories);
                     if (rc != 0) {
                         std::string message = "Failed to get categories";
                         QueueErrorNotificationEventToParent(message);
@@ -946,10 +946,10 @@ void TaskDialogLegacy::OnProjectChoiceSelection(wxCommandEvent& event)
 
     auto projectId = projectIdData->GetValue();
 
-    std::vector<repos::CategoryRepositoryModel> categories;
-    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+    std::vector<Services::CategoryViewModel> categories;
+    Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
-    int rc = categoryRepo.FilterByProjectId(projectId, categories);
+    int rc = categoryService.FilterByProjectId(projectId, categories);
     if (rc == -1) {
         std::string message = "Failed to get categories";
         QueueErrorNotificationEventToParent(message);
@@ -972,8 +972,8 @@ void TaskDialogLegacy::OnProjectChoiceSelection(wxCommandEvent& event)
 void TaskDialogLegacy::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
 {
     int rc = -1;
-    std::vector<repos::CategoryRepositoryModel> categories;
-    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+    std::vector<Services::CategoryViewModel> categories;
+    Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
     pCategoryChoiceCtrl->Clear();
     pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -994,12 +994,12 @@ void TaskDialogLegacy::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& ev
 
         auto projectId = projectIdData->GetValue();
 
-        rc = categoryRepo.FilterByProjectId(projectId, categories);
+        rc = categoryService.FilterByProjectId(projectId, categories);
     } else if (event.IsChecked() && mEmployerIndex < 1) {
         pCategoryChoiceCtrl->Disable();
         return;
     } else {
-        rc = categoryRepo.Filter(categories);
+        rc = categoryService.Filter(categories);
     }
 
     if (rc == -1) {

@@ -46,7 +46,7 @@ struct AttributesPersistence final
     int FilterByAttributeGroupIdAndIsStatic(const std::int64_t attributeGroupId,
         /*out*/ std::vector<Model::AttributeModel>& attributeModels) const;
     int GetById(const std::int64_t attributeId,
-        /*out*/ Model::AttributeModel& attributeModel);
+        /*out*/ Model::AttributeModel& attributeModel) const;
     std::int64_t Create(const Model::AttributeModel& attributeModel) const;
     int Update(Model::AttributeModel attributeModel) const;
     int Delete(const std::int64_t attributeId) const;

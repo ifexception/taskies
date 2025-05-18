@@ -25,33 +25,33 @@
 #include <vector>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include <sqlite3.h>
 
-#include "categoryrepositorymodel.h"
+#include "categoryviewmodel.h"
 
-namespace tks::repos
+namespace tks::Services
 {
-class CategoryRepository final
-{
-public:
-    CategoryRepository() = delete;
-    CategoryRepository(const CategoryRepository&) = delete;
-    CategoryRepository(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~CategoryRepository();
+struct CategoryService final {
+    CategoryService() = delete;
+    CategoryService(const CategoryService&) = delete;
+    CategoryService(const std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
+    ~CategoryService();
 
-    CategoryRepository& operator=(const CategoryRepository&) = delete;
+    CategoryService& operator=(const CategoryService&) = delete;
 
-    int Filter(/*out*/ std::vector<CategoryRepositoryModel>& categories);
-    int FilterByProjectId(const std::int64_t projectId, /*out*/ std::vector<CategoryRepositoryModel>& categories);
-    int GetById(const std::int64_t categoryId, CategoryRepositoryModel& category);
+    int Filter(/*out*/ std::vector<CategoryViewModel>& categories) const;
+    int FilterByProjectId(const std::int64_t projectId,
+        /*out*/ std::vector<CategoryViewModel>& categories) const;
+    int GetById(const std::int64_t categoryId, CategoryViewModel& category) const;
 
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filter;
-    static const std::string filterByProjectId;
-    static const std::string getById;
+    static std::string filter;
+    static std::string filterByProjectId;
+    static std::string getById;
 };
-}
+} // namespace tks::Services

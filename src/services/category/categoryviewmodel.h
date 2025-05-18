@@ -23,10 +23,10 @@
 #include <optional>
 #include <string>
 
-namespace tks::repos
+namespace tks::Services
 {
-struct CategoryRepositoryModel {
-    CategoryRepositoryModel();
+struct CategoryViewModel {
+    CategoryViewModel();
 
     std::int64_t CategoryId;
     std::string Name;
@@ -45,4 +45,4 @@ struct CategoryRepositoryModel {
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;
 };
-} // namespace tks::repos
+} // namespace tks::Services
