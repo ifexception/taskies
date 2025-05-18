@@ -24,25 +24,21 @@
 #include <string>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include <sqlite3.h>
 
-#include "../models/employermodel.h"
-#include "../models/clientmodel.h"
-#include "../models/projectmodel.h"
-#include "../models/categorymodel.h"
+#include "../../models/employermodel.h"
+#include "../../models/clientmodel.h"
+#include "../../models/projectmodel.h"
+#include "../../models/categorymodel.h"
 
-namespace tks::repos
+namespace tks::Services
 {
-class SetupWizardRepository final
-{
-public:
-    SetupWizardRepository() = delete;
-    SetupWizardRepository(const SetupWizardRepository&) = delete;
-    SetupWizardRepository(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~SetupWizardRepository();
-
-    SetupWizardRepository& operator=(const SetupWizardRepository&) = delete;
+struct SetupWizardService final {
+    SetupWizardService(const std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
+    ~SetupWizardService();
 
     int BeginTransaction();
     int CommitTransaction();
@@ -66,30 +62,29 @@ public:
 
     bool IsInTransaction() const;
 
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
     int mTransactionCounter;
 
-    static const std::string beginTransaction;
-    static const std::string commitTransaction;
-    static const std::string rollbackTransaction;
+    static std::string beginTransaction;
+    static std::string commitTransaction;
+    static std::string rollbackTransaction;
 
-    static const std::string createEmployer;
-    static const std::string getByEmployerId;
-    static const std::string updateEmployer;
+    static std::string createEmployer;
+    static std::string getByEmployerId;
+    static std::string updateEmployer;
 
-    static const std::string createClient;
-    static const std::string getByClientId;
-    static const std::string updateClient;
+    static std::string createClient;
+    static std::string getByClientId;
+    static std::string updateClient;
 
-    static const std::string createProject;
-    static const std::string getByProjectId;
-    static const std::string updateProject;
+    static std::string createProject;
+    static std::string getByProjectId;
+    static std::string updateProject;
 
-    static const std::string createCategory;
-    static const std::string getCategoryById;
-    static const std::string updateCategory;
+    static std::string createCategory;
+    static std::string getCategoryById;
+    static std::string updateCategory;
 };
-} // namespace tks::repos
+} // namespace tks::Services
