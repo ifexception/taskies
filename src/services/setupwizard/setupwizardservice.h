@@ -53,9 +53,9 @@ struct SetupWizardService final {
     int GetByClientId(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel) const;
     int UpdateClient(const Model::ClientModel& clientModel) const;
 
-    std::int64_t CreateProject(const Model::ProjectModel& project);
-    int GetByProjectId(const std::int64_t projectId, /*out*/ Model::ProjectModel& model);
-    int UpdateProject(const Model::ProjectModel& project);
+    std::int64_t CreateProject(const Model::ProjectModel& projectModel) const;
+    int GetByProjectId(const std::int64_t projectId, /*out*/ Model::ProjectModel& projectModel) const;
+    int UpdateProject(const Model::ProjectModel& projectModel) const;
 
     std::int64_t CreateCategory(const Model::CategoryModel& category);
     int GetByCategoryId(const std::int64_t categoryId, /*out*/ Model::CategoryModel& model);

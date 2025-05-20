@@ -627,7 +627,7 @@ std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
     return rowId;
 }
 
-int ProjectsPersistence::Update(Model::ProjectModel& projectModel) const
+int ProjectsPersistence::Update(const Model::ProjectModel& projectModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 

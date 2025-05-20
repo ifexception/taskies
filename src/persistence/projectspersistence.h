@@ -45,7 +45,7 @@ struct ProjectsPersistence final {
         /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
     int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& projectModel) const;
     std::int64_t Create(Model::ProjectModel& projectModel);
-    int Update(Model::ProjectModel& projectModel) const;
+    int Update(const Model::ProjectModel& projectModel) const;
     int Delete(const std::int64_t projectId) const;
     int UnsetDefault() const;
 
