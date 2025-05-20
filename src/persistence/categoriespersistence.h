@@ -43,8 +43,8 @@ struct CategoriesPersistence final {
     int Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::CategoryModel>& categoryModels) const;
     int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& categoryModel) const;
-    std::int64_t Create(Model::CategoryModel& categoryModel) const;
-    int Update(Model::CategoryModel& categoryModel) const;
+    std::int64_t Create(const Model::CategoryModel& categoryModel) const;
+    int Update(const Model::CategoryModel& categoryModel) const;
     int Delete(const std::int64_t categoryId) const;
 
     std::shared_ptr<spdlog::logger> pLogger;

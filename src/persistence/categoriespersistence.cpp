@@ -306,7 +306,7 @@ int CategoriesPersistence::GetById(const std::int64_t categoryId,
     return 0;
 }
 
-std::int64_t CategoriesPersistence::Create(Model::CategoryModel& category) const
+std::int64_t CategoriesPersistence::Create(const Model::CategoryModel& category) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -420,7 +420,7 @@ std::int64_t CategoriesPersistence::Create(Model::CategoryModel& category) const
     return rowId;
 }
 
-int CategoriesPersistence::Update(Model::CategoryModel& categoryModel) const
+int CategoriesPersistence::Update(const Model::CategoryModel& categoryModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 

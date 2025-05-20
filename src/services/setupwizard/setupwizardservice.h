@@ -57,9 +57,9 @@ struct SetupWizardService final {
     int GetByProjectId(const std::int64_t projectId, /*out*/ Model::ProjectModel& projectModel) const;
     int UpdateProject(const Model::ProjectModel& projectModel) const;
 
-    std::int64_t CreateCategory(const Model::CategoryModel& category);
-    int GetByCategoryId(const std::int64_t categoryId, /*out*/ Model::CategoryModel& model);
-    int UpdateCategory(const Model::CategoryModel& model);
+    std::int64_t CreateCategory(const Model::CategoryModel& categoryModel) const;
+    int GetByCategoryId(const std::int64_t categoryId, /*out*/ Model::CategoryModel& categoryModel) const;
+    int UpdateCategory(const Model::CategoryModel& categoryModel) const;
 
     bool IsInTransaction() const;
 
@@ -71,21 +71,5 @@ struct SetupWizardService final {
     static std::string beginTransaction;
     static std::string commitTransaction;
     static std::string rollbackTransaction;
-
-    static std::string createEmployer;
-    static std::string getByEmployerId;
-    static std::string updateEmployer;
-
-    static std::string createClient;
-    static std::string getByClientId;
-    static std::string updateClient;
-
-    static std::string createProject;
-    static std::string getByProjectId;
-    static std::string updateProject;
-
-    static std::string createCategory;
-    static std::string getCategoryById;
-    static std::string updateCategory;
 };
 } // namespace tks::Services

@@ -492,7 +492,7 @@ int ProjectsPersistence::GetById(const std::int64_t projectId,
     return 0;
 }
 
-std::int64_t ProjectsPersistence::Create(Model::ProjectModel& projectModel)
+std::int64_t ProjectsPersistence::Create(const Model::ProjectModel& projectModel)
 {
     sqlite3_stmt* stmt = nullptr;
 
