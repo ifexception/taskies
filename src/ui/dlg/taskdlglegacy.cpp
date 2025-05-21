@@ -45,8 +45,8 @@
 #include "../../models/clientmodel.h"
 #include "../../models/projectmodel.h"
 
-#include "../../services/category/categoryviewmodel.h"
-#include "../../services/category/categoryservice.h"
+#include "../../services/categories/categoryviewmodel.h"
+#include "../../services/categories/categoryservice.h"
 
 #include "../../utils/utils.h"
 

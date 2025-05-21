@@ -22,8 +22,8 @@
 #include <wx/taskbarbutton.h>
 #include <sqlite3.h>
 
-#include "../common/common.h"
-#include "../common/constants.h"
+#include "../common/logmessages.h"
+#include "../common/queryhelper.h"
 
 #include "../core/environment.h"
 #include "../core/configuration.h"
@@ -158,25 +158,19 @@ void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
 
     int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "TaskBarIcon::OnExit",
-            pEnv->GetDatabaseName(),
+        const char* error = sqlite3_errmsg(db);
+        pLogger->error(LogMessages::OpenDatabaseTemplate,
             pEnv->GetDatabasePath().string(),
             rc,
-            std::string(err));
+            error);
 
         goto close;
     }
 
-    rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(db, QueryHelper::Optimize, nullptr, nullptr, nullptr);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::ExecQueryTemplate,
-            "TaskBarIcon::OnExit",
-            Utils::sqlite::pragmas::Optimize,
-            rc,
-            err);
+        const char* error = sqlite3_errmsg(db);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
 
         goto close;
     }

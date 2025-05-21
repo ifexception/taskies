@@ -32,8 +32,8 @@
 
 #include <spdlog/logger.h>
 
-#include "../../repository/taskrepository.h"
-#include "../../repository/taskrepositorymodel.h"
+#include "../../services/tasks/taskviewmodel.h"
+#include "../../services/tasks/tasksservice.h"
 
 #include "../../common/constants.h"
 
@@ -78,8 +78,8 @@ public:
     virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override;
     virtual unsigned int GetCount() const override;
 
-    void Append(const repos::TaskRepositoryModel& model);
-    void AppendMany(const std::vector<repos::TaskRepositoryModel>& models);
+    void Append(const Services::TaskViewModel& model);
+    void AppendMany(const std::vector<Services::TaskViewModel>& models);
     void ChangeItem();
     void DeleteItem();
     void Clear();

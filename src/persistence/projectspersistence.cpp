@@ -392,8 +392,10 @@ int ProjectsPersistence::FilterByEmployerIdOrClientId(std::optional<std::int64_t
     }
 
     sqlite3_finalize(stmt);
+    std::int64_t employerIdValue = employerId.has_value() ? employerId.value() : -1;
+    std::int64_t clientIdValue = clientId.has_value() ? clientId.value() : -1;
     std::string searched =
-        fmt::format("{0} - {1}", employerId, clientId.has_value() ? clientId.value() : -1);
+        fmt::format("{0} - {1}", employerIdValue, clientIdValue);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, projectModels.size(), searched);
 
     return 0;

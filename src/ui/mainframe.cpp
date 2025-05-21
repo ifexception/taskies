@@ -38,6 +38,8 @@
 
 #include "../common/common.h"
 #include "../common/constants.h"
+#include "../common/logmessages.h"
+#include "../common/queryhelper.h"
 #include "../common/enums.h"
 #include "../common/version.h"
 
@@ -46,8 +48,8 @@
 
 #include "../persistence/taskspersistence.h"
 
-#include "../repository/taskrepository.h"
-#include "../repository/taskrepositorymodel.h"
+#include "../services/tasks/taskviewmodel.h"
+#include "../services/tasks/tasksservice.h"
 
 #include "../utils/utils.h"
 
@@ -500,11 +502,11 @@ void MainFrame::DataToControls()
     }
 
     // Fetch tasks between mFromDate and mToDate
-    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
     int rc =
-        taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+        tasksService.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -544,19 +546,15 @@ void MainFrame::OnClose(wxCloseEvent& event)
             goto cleanup;
         }
 
-        rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
+        rc = sqlite3_exec(db, QueryHelper::Optimize, nullptr, nullptr, nullptr);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(db);
             pLogger->error(LogMessage::ExecQueryTemplate,
-                "MainFrame::OnClose",
-                Utils::sqlite::pragmas::Optimize,
+                QueryHelper::Optimize,
                 rc,
                 err);
             goto cleanup;
         }
-
-        pLogger->info(
-            "MainFrame::OnClose - Optimizimation command successfully executed on database");
 
     cleanup:
         sqlite3_close(db);
@@ -924,10 +922,10 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 
     pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
 
-    std::vector<repos::TaskRepositoryModel> taskModels;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::vector<Services::TaskViewModel> taskModels;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDate(mTaskDate, taskModels);
+    int rc = tasksService.FilterByDate(mTaskDate, taskModels);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -967,10 +965,10 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
 
     pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
 
-    std::vector<repos::TaskRepositoryModel> taskModels;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::vector<Services::TaskViewModel> taskModels;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDate(mTaskDate, taskModels);
+    int rc = tasksService.FilterByDate(mTaskDate, taskModels);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -1068,10 +1066,10 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
         }
 
         if (isActive) {
-            repos::TaskRepositoryModel taskModel;
-            repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+            Services::TaskViewModel taskModel;
+            Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-            int rc = taskRepo.GetById(mTaskIdToModify, taskModel);
+            int rc = tasksService.GetById(mTaskIdToModify, taskModel);
             if (rc != 0) {
                 QueueFetchTasksErrorNotificationEvent();
             } else {
@@ -1293,10 +1291,10 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     if (mFromDate == mToDate) {
         auto fromDateString = date::format("%F", mFromDate);
 
-        std::vector<repos::TaskRepositoryModel> tasks;
-        repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+        std::vector<Services::TaskViewModel> tasks;
+        Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        int rc = taskRepo.FilterByDate(fromDateString, tasks);
+        int rc = tasksService.FilterByDate(fromDateString, tasks);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
         } else {
@@ -1315,10 +1313,10 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Fetch all the tasks for said date range
-    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
+    int rc = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -1383,10 +1381,10 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     if (mFromDate == mToDate) {
         auto date = date::format("%F", mToDate);
 
-        std::vector<repos::TaskRepositoryModel> tasks;
-        repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+        std::vector<Services::TaskViewModel> tasks;
+        Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        int rc = taskRepo.FilterByDate(date, tasks);
+        int rc = tasksService.FilterByDate(date, tasks);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
         } else {
@@ -1400,10 +1398,10 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Fetch all the tasks for said date range
-    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
+    int rc = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -1588,11 +1586,11 @@ void MainFrame::RefetchTasksForDateRange()
         date::format("%F", mToDate));
 
     // Fetch tasks between mFromDate and mToDate
-    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
     int rc =
-        taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+        tasksService.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -1605,10 +1603,10 @@ void MainFrame::RefetchTasksForDateRange()
 
 void MainFrame::RefetchTasksForDate(const std::string& date, const std::int64_t taskId)
 {
-    repos::TaskRepositoryModel taskModel;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    Services::TaskViewModel taskModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.GetById(taskId, taskModel);
+    int rc = tasksService.GetById(taskId, taskModel);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {

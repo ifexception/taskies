@@ -47,13 +47,14 @@ SetupWizard::SetupWizard(wxFrame* frame,
     : wxWizard(frame,
           wxID_ANY,
           "Setup/Restore Wizard",
-          wxBitmapBundle::FromSVGFile((env->GetResourcesPath() / Common::Resources::Wizard()).string(),
+          wxBitmapBundle::FromSVGFile(
+              (env->GetResourcesPath() / Common::Resources::Wizard()).string(),
               wxSize(116, 260)))
     , pLogger(logger)
     , pEnv(env)
     , pCfg(cfg)
     , mDatabasePath(pCfg->GetDatabasePath())
-    , pSetupWizardRepository(nullptr)
+    , pSetupWizardService(nullptr)
     , pWelcomePage(nullptr)
     , pOptionPage(nullptr)
     , pCreateEmployerAndClientPage(nullptr)
@@ -67,7 +68,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     , mBackupDatabasePath()
     , mRestoreDatabasePath()
 {
-    pSetupWizardRepository = new repos::SetupWizardRepository(pLogger, mDatabasePath);
+    pSetupWizardService = new Services::SetupWizardService(pLogger, mDatabasePath);
 
     pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
     // Set left side wizard image
@@ -85,16 +86,16 @@ SetupWizard::SetupWizard(wxFrame* frame,
     pLogger->info("SetupWizard::SetupWizard - initialize pages");
     pWelcomePage = new WelcomePage(this, pLogger);
     pCreateEmployerAndClientPage =
-        new CreateEmployerAndClientPage(this, pSetupWizardRepository, pLogger, mDatabasePath);
+        new CreateEmployerAndClientPage(this, pSetupWizardService, pLogger, mDatabasePath);
     pCreateProjectAndCategoryPage =
-        new CreateProjectAndCategoryPage(this, pSetupWizardRepository, pLogger, mDatabasePath);
-    pSetupCompletePage = new SetupCompletePage(this, pLogger, pSetupWizardRepository);
+        new CreateProjectAndCategoryPage(this, pSetupWizardService, pLogger, mDatabasePath);
+    pSetupCompletePage = new SetupCompletePage(this, pLogger, pSetupWizardService);
     pRestoreDatabasePage = new RestoreDatabasePage(this, pLogger, pEnv, pCfg);
     pRestoreDatabaseResultPage = new RestoreDatabaseResultPage(this, pLogger);
     pSkipWizardPage = new SkipWizardPage(this);
 
     pOptionPage = new OptionPage(this,
-        pSetupWizardRepository,
+        pSetupWizardService,
         pLogger,
         pWelcomePage,
         pCreateEmployerAndClientPage,
@@ -115,8 +116,8 @@ SetupWizard::SetupWizard(wxFrame* frame,
 
 SetupWizard::~SetupWizard()
 {
-    if (pSetupWizardRepository != nullptr) {
-        delete pSetupWizardRepository;
+    if (pSetupWizardService != nullptr) {
+        delete pSetupWizardService;
     }
 }
 
@@ -198,8 +199,8 @@ void SetupWizard::ConfigureEventBindings()
 
 void SetupWizard::OnWizardFinished(wxWizardEvent& event)
 {
-    if (pSetupWizardRepository->IsInTransaction()) {
-        pSetupWizardRepository->CommitTransaction();
+    if (pSetupWizardService->IsInTransaction()) {
+        pSetupWizardService->CommitTransaction();
     }
 }
 
@@ -218,9 +219,11 @@ void WelcomePage::CreateControls()
 
     std::string welcome = "Welcome to the Taskies Setup/Restore Wizard";
     auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
-    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    welcomeLabel->SetFont(
+        wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
-    std::string introMessage = "This wizard will help you get Taskies setup or restored to your computer";
+    std::string introMessage =
+        "This wizard will help you get Taskies setup or restored to your computer";
     auto introLabel = new wxStaticText(this, wxID_ANY, introMessage);
 
     std::string continueNextMessage = "To continue, click Next";
@@ -251,7 +254,7 @@ void WelcomePage::OnWizardCancel(wxWizardEvent& event)
 }
 
 OptionPage::OptionPage(SetupWizard* parent,
-    repos::SetupWizardRepository* setupWizardRepository,
+    Services::SetupWizardService* setupWizardService,
     std::shared_ptr<spdlog::logger> logger,
     wxWizardPage* prev,
     wxWizardPage* nextOption1,
@@ -259,7 +262,7 @@ OptionPage::OptionPage(SetupWizard* parent,
     wxWizardPage* nextOption3)
     : wxWizardPage(parent)
     , pParent(parent)
-    , pSetupWizardRepository(setupWizardRepository)
+    , pSetupWizardService(setupWizardService)
     , pLogger(logger)
     , pPrev(prev)
     , pNextOption1(nextOption1)
@@ -294,18 +297,23 @@ void OptionPage::CreateControls()
 
     auto introductionText = "Please select an option below:";
     auto introductionLabel = new wxStaticText(this, wxID_ANY, introductionText);
-    introductionLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    introductionLabel->SetFont(
+        wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     auto defaultOptionText = "(not selecting an option will default to the setup wizard)";
     auto defaultOptionLabel = new wxStaticText(this, wxID_ANY, defaultOptionText);
-    defaultOptionLabel->SetFont(wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
+    defaultOptionLabel->SetFont(
+        wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
 
     auto staticBox = new wxStaticBox(this, wxID_ANY, "Options");
     auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
 
-    pSetupWizardFlowCheckBox = new wxCheckBox(staticBox, tksIDC_SETUPWIZARD_CHECKBOX, "Setup program wizard");
-    pRestoreWizardFlowCheckBox = new wxCheckBox(staticBox, tksIDC_RESTOREWIZARD_CHECKBOX, "Restore database wizard");
-    pSkipWizardFlowCheckBox = new wxCheckBox(staticBox, tksIDC_SKIPWIZARD_CHECKBOX, "Skip program wizard");
+    pSetupWizardFlowCheckBox =
+        new wxCheckBox(staticBox, tksIDC_SETUPWIZARD_CHECKBOX, "Setup program wizard");
+    pRestoreWizardFlowCheckBox =
+        new wxCheckBox(staticBox, tksIDC_RESTOREWIZARD_CHECKBOX, "Restore database wizard");
+    pSkipWizardFlowCheckBox =
+        new wxCheckBox(staticBox, tksIDC_SKIPWIZARD_CHECKBOX, "Skip program wizard");
 
     staticBoxSizer->Add(pSetupWizardFlowCheckBox, wxSizerFlags().Border(wxALL, FromDIP(5)));
     staticBoxSizer->Add(pRestoreWizardFlowCheckBox, wxSizerFlags().Border(wxALL, FromDIP(5)));
@@ -377,19 +385,19 @@ void OptionPage::OnSkipWizardFlowCheck(wxCommandEvent& event)
 }
 
 CreateEmployerAndClientPage::CreateEmployerAndClientPage(SetupWizard* parent,
-    repos::SetupWizardRepository* setupWizardRepository,
+    Services::SetupWizardService* setupWizardService,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databasePath)
     : wxWizardPageSimple(parent)
     , pParent(parent)
-    , pSetupWizardRepository(setupWizardRepository)
+    , pSetupWizardService(setupWizardService)
     , pLogger(logger)
     , mDatabasePath(databasePath)
 {
     CreateControls();
     ConfigureEventBindings();
 
-    pSetupWizardRepository->BeginTransaction();
+    pSetupWizardService->BeginTransaction();
 }
 
 bool CreateEmployerAndClientPage::TransferDataFromWindow()
@@ -403,7 +411,8 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
         return false;
     }
 
-    if (employerName.length() < MIN_CHARACTER_COUNT || employerName.length() > MAX_CHARACTER_COUNT_NAMES) {
+    if (employerName.length() < MIN_CHARACTER_COUNT ||
+        employerName.length() > MAX_CHARACTER_COUNT_NAMES) {
         auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
             MIN_CHARACTER_COUNT,
             MAX_CHARACTER_COUNT_NAMES);
@@ -414,8 +423,8 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
     }
 
     auto clientName = pClientNameTextCtrl->GetValue().ToStdString();
-    if (!clientName.empty() &&
-        (clientName.length() < MIN_CHARACTER_COUNT || clientName.length() > MAX_CHARACTER_COUNT_NAMES)) {
+    if (!clientName.empty() && (clientName.length() < MIN_CHARACTER_COUNT ||
+                                   clientName.length() > MAX_CHARACTER_COUNT_NAMES)) {
         auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
             MIN_CHARACTER_COUNT,
             MAX_CHARACTER_COUNT_NAMES);
@@ -429,15 +438,21 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
     employerModel.Name = Utils::TrimWhitespace(employerName);
 
     if (pParent->GetEmployerId() > 0) {
-        int rc = pSetupWizardRepository->UpdateEmployer(employerModel);
+        int rc = pSetupWizardService->UpdateEmployer(employerModel);
         if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            wxMessageBox("The setup wizard encountered an unexpected error",
+                "Setup Error",
+                wxOK | wxICON_ERROR,
+                this);
             return false;
         }
     } else {
-        std::int64_t employerId = pSetupWizardRepository->CreateEmployer(employerModel);
+        std::int64_t employerId = pSetupWizardService->CreateEmployer(employerModel);
         if (employerId == -1) {
-            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            wxMessageBox("The setup wizard encountered an unexpected error",
+                "Setup Error",
+                wxOK | wxICON_ERROR,
+                this);
             return false;
         } else {
             pParent->SetEmployerId(employerId);
@@ -451,15 +466,21 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
     // TODO: Handle client delete scenario
 
     if (pParent->GetClientId() > 0) {
-        int rc = pSetupWizardRepository->UpdateClient(clientModel);
+        int rc = pSetupWizardService->UpdateClient(clientModel);
         if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            wxMessageBox("The setup wizard encountered an unexpected error",
+                "Setup Error",
+                wxOK | wxICON_ERROR,
+                this);
             return false;
         }
     } else if (!clientName.empty()) {
-        std::int64_t clientId = pSetupWizardRepository->CreateClient(clientModel);
+        std::int64_t clientId = pSetupWizardService->CreateClient(clientModel);
         if (clientId == -1) {
-            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            wxMessageBox("The setup wizard encountered an unexpected error",
+                "Setup Error",
+                wxOK | wxICON_ERROR,
+                this);
             return false;
         } else {
             pParent->SetClientId(clientId);
@@ -475,7 +496,8 @@ void CreateEmployerAndClientPage::CreateControls()
 
     std::string welcome = "Setup an employer and (optional) client";
     auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
-    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    welcomeLabel->SetFont(
+        wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
@@ -496,7 +518,8 @@ void CreateEmployerAndClientPage::CreateControls()
     auto employerDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     employerDetailsGridSizer->AddGrowableCol(1, 1);
 
-    employerDetailsGridSizer->Add(employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    employerDetailsGridSizer->Add(
+        employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     employerDetailsGridSizer->Add(
         pEmployerNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
@@ -519,8 +542,10 @@ void CreateEmployerAndClientPage::CreateControls()
     auto clienbtDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     clienbtDetailsGridSizer->AddGrowableCol(1, 1);
 
-    clienbtDetailsGridSizer->Add(clientNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    clienbtDetailsGridSizer->Add(pClientNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    clienbtDetailsGridSizer->Add(
+        clientNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    clienbtDetailsGridSizer->Add(
+        pClientNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     clientBoxSizer->Add(clienbtDetailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -547,7 +572,7 @@ void CreateEmployerAndClientPage::ConfigureEventBindings()
 void CreateEmployerAndClientPage::OnWizardCancel(wxWizardEvent& event)
 {
     pLogger->info("CreateEmployerAndClientPage::OnWizardCancel - Wizard canceled");
-    pSetupWizardRepository->RollbackTransaction();
+    pSetupWizardService->RollbackTransaction();
 }
 
 void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
@@ -556,10 +581,14 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
         Model::EmployerModel employer;
         int rc = 0;
 
-        rc = pSetupWizardRepository->GetByEmployerId(pParent->GetEmployerId(), employer);
+        rc = pSetupWizardService->GetByEmployerId(pParent->GetEmployerId(), employer);
         if (rc != 0) {
-            pLogger->info("CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch employer");
-            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            pLogger->info(
+                "CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch employer");
+            wxMessageBox("The setup wizard encountered an unexpected error",
+                "Setup Error",
+                wxOK | wxICON_ERROR,
+                this);
             return;
         }
 
@@ -570,10 +599,14 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
         Model::ClientModel client;
         int rc = 0;
 
-        rc = pSetupWizardRepository->GetByClientId(pParent->GetClientId(), client);
+        rc = pSetupWizardService->GetByClientId(pParent->GetClientId(), client);
         if (rc != 0) {
-            pLogger->info("CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch client");
-            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            pLogger->info(
+                "CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch client");
+            wxMessageBox("The setup wizard encountered an unexpected error",
+                "Setup Error",
+                wxOK | wxICON_ERROR,
+                this);
             return;
         }
 
@@ -582,12 +615,12 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
 }
 
 CreateProjectAndCategoryPage::CreateProjectAndCategoryPage(SetupWizard* parent,
-    repos::SetupWizardRepository* setupWizardRepository,
+    Services::SetupWizardService* setupWizardService,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databasePath)
     : wxWizardPageSimple(parent)
     , pParent(parent)
-    , pSetupWizardRepository(setupWizardRepository)
+    , pSetupWizardService(setupWizardService)
     , pLogger(logger)
     , mDatabasePath(databasePath)
 {
@@ -607,7 +640,8 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
         return false;
     }
 
-    if (projectName.length() < MIN_CHARACTER_COUNT || projectName.length() > MAX_CHARACTER_COUNT_NAMES) {
+    if (projectName.length() < MIN_CHARACTER_COUNT ||
+        projectName.length() > MAX_CHARACTER_COUNT_NAMES) {
         auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
             MIN_CHARACTER_COUNT,
             MAX_CHARACTER_COUNT_NAMES);
@@ -626,10 +660,12 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
         return false;
     }
 
-    if (projectDisplayName.length() < MIN_CHARACTER_COUNT || projectDisplayName.length() > MAX_CHARACTER_COUNT_NAMES) {
-        auto valMsg = fmt::format("Display name must be at minimum {0} or maximum {1} characters long",
-            MIN_CHARACTER_COUNT,
-            MAX_CHARACTER_COUNT_NAMES);
+    if (projectDisplayName.length() < MIN_CHARACTER_COUNT ||
+        projectDisplayName.length() > MAX_CHARACTER_COUNT_NAMES) {
+        auto valMsg =
+            fmt::format("Display name must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_NAMES);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pProjectDisplayNameCtrl);
@@ -646,7 +682,8 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
         return false;
     }
 
-    if (categoryName.length() < MIN_CHARACTER_COUNT || categoryName.length() > MAX_CHARACTER_COUNT_NAMES) {
+    if (categoryName.length() < MIN_CHARACTER_COUNT ||
+        categoryName.length() > MAX_CHARACTER_COUNT_NAMES) {
         auto valMsg = fmt::format("Name must be at minimum {0} or maximum {1} characters long",
             MIN_CHARACTER_COUNT,
             MAX_CHARACTER_COUNT_NAMES);
@@ -663,12 +700,16 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     project.DisplayName = Utils::TrimWhitespace(projectDisplayName);
     project.IsDefault = pProjectIsDefaultCtrl->GetValue();
     project.EmployerId = pParent->GetEmployerId();
-    project.ClientId =
-        pParent->GetClientId() == -1 ? std::nullopt : std::make_optional<std::int64_t>(pParent->GetClientId());
+    project.ClientId = pParent->GetClientId() == -1
+                           ? std::nullopt
+                           : std::make_optional<std::int64_t>(pParent->GetClientId());
 
-    std::int64_t projectId = pSetupWizardRepository->CreateProject(project);
+    std::int64_t projectId = pSetupWizardService->CreateProject(project);
     if (projectId == -1) {
-        wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+        wxMessageBox("The setup wizard encountered an unexpected error",
+            "Setup Error",
+            wxOK | wxICON_ERROR,
+            this);
         return false;
     } else {
         pParent->SetProjectId(projectId);
@@ -681,9 +722,12 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     category.Billable = pCategoryBillableCtrl->GetValue();
     category.ProjectId = std::make_optional<std::int64_t>(projectId);
 
-    std::int64_t categoryId = pSetupWizardRepository->CreateCategory(category);
+    std::int64_t categoryId = pSetupWizardService->CreateCategory(category);
     if (categoryId == -1) {
-        wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+        wxMessageBox("The setup wizard encountered an unexpected error",
+            "Setup Error",
+            wxOK | wxICON_ERROR,
+            this);
         return false;
     } else {
         pParent->SetCategoryId(categoryId);
@@ -698,7 +742,8 @@ void CreateProjectAndCategoryPage::CreateControls()
 
     std::string welcome = "Setup a project and category";
     auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
-    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    welcomeLabel->SetFont(
+        wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
@@ -720,21 +765,26 @@ void CreateProjectAndCategoryPage::CreateControls()
 
     pProjectDisplayNameCtrl = new wxTextCtrl(projectBox, tksIDC_PROJECTDISPLAYNAME);
     pProjectDisplayNameCtrl->SetHint("Display name");
-    pProjectDisplayNameCtrl->SetToolTip("Enter a nickname, abbreviation or common name for a project (if applicable)");
+    pProjectDisplayNameCtrl->SetToolTip(
+        "Enter a nickname, abbreviation or common name for a project (if applicable)");
     pProjectDisplayNameCtrl->SetValidator(NameValidator());
 
     /* Is Default Checkbox Ctrl */
     pProjectIsDefaultCtrl = new wxCheckBox(projectBox, tksIDC_PROJECTISDEFAULT, "Is Default");
-    pProjectIsDefaultCtrl->SetToolTip("Enabling this option for a project will auto-select it on a task entry");
+    pProjectIsDefaultCtrl->SetToolTip(
+        "Enabling this option for a project will auto-select it on a task entry");
 
     /* Details Grid Sizer */
     auto projectDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     projectDetailsGridSizer->AddGrowableCol(1, 1);
 
-    projectDetailsGridSizer->Add(projectNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    projectDetailsGridSizer->Add(pProjectNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    projectDetailsGridSizer->Add(
+        projectNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    projectDetailsGridSizer->Add(
+        pProjectNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    projectDetailsGridSizer->Add(displayNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    projectDetailsGridSizer->Add(
+        displayNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     projectDetailsGridSizer->Add(
         pProjectDisplayNameCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
@@ -762,18 +812,21 @@ void CreateProjectAndCategoryPage::CreateControls()
     pCategoryColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
 
     pCategoryBillableCtrl = new wxCheckBox(categoryBox, tksIDC_CATEGORYBILLABLE, "Billable");
-    pCategoryBillableCtrl->SetToolTip("Indicates if a task captured with this category is billable");
+    pCategoryBillableCtrl->SetToolTip(
+        "Indicates if a task captured with this category is billable");
 
     /* Details Grid Sizer */
     auto categoryDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     categoryDetailsGridSizer->AddGrowableCol(1, 1);
 
-    categoryDetailsGridSizer->Add(categoryNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    categoryDetailsGridSizer->Add(
+        categoryNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     categoryDetailsGridSizer->Add(
         pCategoryNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     categoryDetailsGridSizer->Add(0, 0);
-    categoryDetailsGridSizer->Add(pCategoryColorPickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    categoryDetailsGridSizer->Add(
+        pCategoryColorPickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     categoryDetailsGridSizer->Add(0, 0);
     categoryDetailsGridSizer->Add(pCategoryBillableCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -815,7 +868,7 @@ void CreateProjectAndCategoryPage::OnProjectNameChange(wxCommandEvent& event)
 void CreateProjectAndCategoryPage::OnWizardCancel(wxWizardEvent& event)
 {
     pLogger->info("CreateProjectAndCategoryPage::OnWizardCancel - Wizard canceled");
-    pSetupWizardRepository->RollbackTransaction();
+    pSetupWizardService->RollbackTransaction();
 }
 
 void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
@@ -824,10 +877,14 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
         Model::ProjectModel project;
         int rc = 0;
 
-        rc = pSetupWizardRepository->GetByProjectId(pParent->GetProjectId(), project);
+        rc = pSetupWizardService->GetByProjectId(pParent->GetProjectId(), project);
         if (rc != 0) {
-            pLogger->info("CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch project");
-            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            pLogger->info(
+                "CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch project");
+            wxMessageBox("The setup wizard encountered an unexpected error",
+                "Setup Error",
+                wxOK | wxICON_ERROR,
+                this);
             return;
         }
 
@@ -840,10 +897,14 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
         Model::CategoryModel category;
         int rc = 0;
 
-        rc = pSetupWizardRepository->GetByCategoryId(pParent->GetCategoryId(), category);
+        rc = pSetupWizardService->GetByCategoryId(pParent->GetCategoryId(), category);
         if (rc != 0) {
-            pLogger->info("CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch category");
-            wxMessageBox("The setup wizard encountered an unexpected error", "Setup Error", wxOK | wxICON_ERROR, this);
+            pLogger->info(
+                "CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch category");
+            wxMessageBox("The setup wizard encountered an unexpected error",
+                "Setup Error",
+                wxOK | wxICON_ERROR,
+                this);
             return;
         }
 
@@ -855,11 +916,11 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
 
 SetupCompletePage::SetupCompletePage(SetupWizard* parent,
     std::shared_ptr<spdlog::logger> logger,
-    repos::SetupWizardRepository* setupWizardRepository)
+    Services::SetupWizardService* setupWizardService)
     : wxWizardPageSimple(parent)
     , pParent(parent)
     , pLogger(logger)
-    , pSetupWizardRepository(setupWizardRepository)
+    , pSetupWizardService(setupWizardService)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -915,7 +976,7 @@ void SetupCompletePage::OnSetupCompleteWizardPageShown(wxWizardEvent& event)
 void SetupCompletePage::OnWizardCancel(wxWizardEvent& event)
 {
     pLogger->info("SetupCompletePage::OnWizardCancel - Wizard canceled");
-    pSetupWizardRepository->RollbackTransaction();
+    pSetupWizardService->RollbackTransaction();
 }
 
 // -- Restore Wizard
@@ -939,7 +1000,8 @@ void RestoreDatabasePage::CreateControls()
 
     std::string welcome = "Restore the program with an existing database";
     auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
-    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    welcomeLabel->SetFont(
+        wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
@@ -951,15 +1013,21 @@ void RestoreDatabasePage::CreateControls()
     /* Backup path sizer */
     auto backupPathSizer = new wxBoxSizer(wxHORIZONTAL);
     auto backupPathLabel = new wxStaticText(backupBox, wxID_ANY, "Path");
-    pBackupPathTextCtrl = new wxTextCtrl(
-        backupBox, tksIDC_BACKUP_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
+    pBackupPathTextCtrl = new wxTextCtrl(backupBox,
+        tksIDC_BACKUP_PATH,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_LEFT | wxTE_READONLY);
     pBrowseBackupPathButton = new wxButton(backupBox, tksIDC_BACKUP_PATH_BUTTON, "Browse...");
     pBrowseBackupPathButton->SetToolTip("Browse and select the backups directory");
-    backupPathSizer->Add(backupPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
     backupPathSizer->Add(
-        pBackupPathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
+        backupPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
+    backupPathSizer->Add(pBackupPathTextCtrl,
+        wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
     backupPathSizer->Add(pBrowseBackupPathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
-    backupBoxSizer->Add(backupPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    backupBoxSizer->Add(
+        backupPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* Restore box */
     auto restoreBox = new wxStaticBox(this, wxID_ANY, "Restore");
@@ -969,15 +1037,21 @@ void RestoreDatabasePage::CreateControls()
     /* Backup path sizer*/
     auto restorePathSizer = new wxBoxSizer(wxHORIZONTAL);
     auto restorePathLabel = new wxStaticText(restoreBox, wxID_ANY, "Path");
-    pRestorePathTextCtrl = new wxTextCtrl(
-        restoreBox, tksIDC_RESTORE_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
+    pRestorePathTextCtrl = new wxTextCtrl(restoreBox,
+        tksIDC_RESTORE_PATH,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_LEFT | wxTE_READONLY);
     pBrowseRestorePathButton = new wxButton(restoreBox, tksIDC_RESTORE_PATH_BUTTON, "Browse...");
     pBrowseRestorePathButton->SetToolTip("Browse and select the restore directory");
-    restorePathSizer->Add(restorePathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
     restorePathSizer->Add(
-        pRestorePathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
+        restorePathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
+    restorePathSizer->Add(pRestorePathTextCtrl,
+        wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
     restorePathSizer->Add(pBrowseRestorePathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
-    restoreBoxSizer->Add(restorePathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    restoreBoxSizer->Add(
+        restorePathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     SetSizerAndFit(sizer);
 }
@@ -1061,7 +1135,8 @@ void RestoreDatabasePage::OnOpenFileForRestoreLocation(wxCommandEvent& event)
     openFileDialog->Destroy();
 }
 
-RestoreDatabaseResultPage::RestoreDatabaseResultPage(SetupWizard* parent, std::shared_ptr<spdlog::logger> logger)
+RestoreDatabaseResultPage::RestoreDatabaseResultPage(SetupWizard* parent,
+    std::shared_ptr<spdlog::logger> logger)
     : wxWizardPageSimple(parent)
     , pParent(parent)
     , pLogger(logger)
@@ -1077,7 +1152,8 @@ void RestoreDatabaseResultPage::CreateControls()
 
     std::string welcome = "Restoring database";
     auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
-    welcomeLabel->SetFont(wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    welcomeLabel->SetFont(
+        wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     sizer->Add(welcomeLabel, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
@@ -1165,7 +1241,8 @@ void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event)
 
     /* Complete operation */
     std::string continueNextMessage = "\n\n\nTo exit the wizard, click 'Finish'";
-    auto statusComplete = "The wizard has restored the database successfully!" + continueNextMessage;
+    auto statusComplete =
+        "The wizard has restored the database successfully!" + continueNextMessage;
     pStatusFeedbackLabel->SetLabel(statusComplete);
     pRestoreProgressGaugeCtrl->SetValue(100);
 }
@@ -1184,7 +1261,8 @@ void SkipWizardPage::CreateControls()
 
     std::string welcome = "Wizard skipped";
     auto welcomeLabel = new wxStaticText(this, wxID_ANY, welcome);
-    welcomeLabel->SetFont(wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    welcomeLabel->SetFont(
+        wxFont(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     std::string continueNextMessage = "\n\nTo exit the wizard, click 'Finish'";
     auto continueNextLabel = new wxStaticText(this, wxID_ANY, continueNextMessage);
