@@ -17,54 +17,44 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "taskrepositorymodel.h"
+#include "categoryviewmodel.h"
 
 #include <date/date.h>
 #include <fmt/format.h>
 
-#include "../utils/utils.h"
-
-namespace tks::repos
+namespace tks::Services
 {
-TaskRepositoryModel::TaskRepositoryModel()
-    : TaskId(-1)
+CategoryViewModel::CategoryViewModel()
+    : CategoryId(-1)
+    , Name()
+    , Color(0)
     , Billable(false)
-    , UniqueIdentifier()
-    , Hours(-1)
-    , Minutes(-1)
     , Description()
     , DateCreated(0)
     , DateModified(0)
     , IsActive(false)
-    , ProjectId(-1)
-    , CategoryId(-1)
-    , WorkdayId(-1)
-    , ProjectName()
-    , CategoryName()
+    , ProjectId()
+    , ProjectDisplayName()
 {
 }
 
-const std::string TaskRepositoryModel::GetDuration() const
+std::string CategoryViewModel::GetFormattedName()
 {
-    return fmt::format("{0:02}:{1:02}", Hours, Minutes);
+    auto displayName = ProjectDisplayName.has_value() ? ProjectDisplayName.value() : "none";
+    return fmt::format("({0}) - {1}", displayName, Name);
 }
 
-const std::string TaskRepositoryModel::GetTrimmedDescription()
-{
-    return Utils::ReplaceNewlineWithEllipses(Description);
-}
-
-const std::string TaskRepositoryModel::GetDateCreatedString() const
+const std::string CategoryViewModel::GetDateCreatedString() const
 {
     date::sys_seconds dateTime{ std::chrono::seconds{ DateCreated } };
     std::string dateString = date::format("%Y-%m-%d %I:%M:%S %p", dateTime);
     return dateString;
 }
 
-const std::string TaskRepositoryModel::GetDateModifiedString() const
+const std::string CategoryViewModel::GetDateModifiedString() const
 {
     date::sys_seconds dateTime{ std::chrono::seconds{ DateModified } };
     std::string dateString = date::format("%Y-%m-%d %I:%M:%S %p", dateTime);
     return dateString;
 }
-} // namespace tks::repos
+} // namespace tks::Services

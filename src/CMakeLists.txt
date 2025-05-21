@@ -36,11 +36,6 @@ message (STATUS "add subdirectory persistence")
 add_subdirectory("services")
 message (STATUS "add subdirectory services")
 
-set(SRC_REPOS
-    "repository/taskrepository.cpp"
-    "repository/taskrepositorymodel.cpp"
-)
-
 set(SRC_EXPORTS
     "ui/dlg/exports/exporttocsvdlg.cpp"
     "ui/dlg/exports/quickexporttocsvdlg.cpp"
@@ -87,7 +82,6 @@ set (SRC
     ${SRC_COMMON}
     ${SRC_MODELS}
     ${SRC_PERSISTENCE}
-    ${SRC_REPOS}
     ${SRC_DIALOGS}
     ${SRC_EXPORTS}
     ${SRC_UI}

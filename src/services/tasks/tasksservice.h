@@ -26,33 +26,31 @@
 #include <vector>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include <sqlite3.h>
 
-#include "taskrepositorymodel.h"
+#include "taskviewmodel.h"
 
-namespace tks::repos
+namespace tks::Services
 {
-class TaskRepository final
-{
-public:
-    TaskRepository() = delete;
-    TaskRepository(const TaskRepository&) = delete;
-    TaskRepository(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~TaskRepository();
+struct TasksService final {
+    TasksService() = delete;
+    TasksService(const TasksService&) = delete;
+    TasksService(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~TasksService();
 
-    TaskRepository& operator=(const TaskRepository&) = delete;
+    TasksService& operator=(const TasksService&) = delete;
 
     int FilterByDateRange(std::vector<std::string> dates,
-        /*out*/ std::map<std::string, std::vector<TaskRepositoryModel>>& models);
-    int FilterByDate(const std::string& date, /*out*/ std::vector<TaskRepositoryModel>& tasks);
-    int GetById(const std::int64_t taskId, /*out*/ TaskRepositoryModel& taskModel);
+        /*out*/ std::map<std::string, std::vector<TaskViewModel>>& taskViewModels);
+    int FilterByDate(const std::string& date, /*out*/ std::vector<TaskViewModel>& taskViewModels) const;
+    int GetById(const std::int64_t taskId, /*out*/ TaskViewModel& taskViewModel) const;
 
-private:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static const std::string filterByDate;
-    static const std::string getById;
+    static std::string filterByDate;
+    static std::string getById;
 };
-} // namespace tks::repos
+} // namespace tks::Services

@@ -23,10 +23,10 @@
 #include <optional>
 #include <string>
 
-namespace tks::repos
+namespace tks::Services
 {
-struct TaskRepositoryModel {
-    TaskRepositoryModel();
+struct TaskViewModel {
+    TaskViewModel();
 
     std::int64_t TaskId;
     bool Billable;
