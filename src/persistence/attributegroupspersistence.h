@@ -42,6 +42,8 @@ struct AttributeGroupsPersistence final {
         /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels) const;
     int FilterByStaticFlag(
         /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels) const;
+    int FilterByStaticFlagAndWithValueCounts(
+        /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels) const;
     int GetById(const std::int64_t attributeGroupId,
         /*out*/ Model::AttributeGroupModel& attributeGroupModel) const;
     std::int64_t Create(const Model::AttributeGroupModel& attributeGroupModel) const;
@@ -53,6 +55,7 @@ struct AttributeGroupsPersistence final {
 
     static std::string filter;
     static std::string filterStatic;
+    static std::string filterStaticWithValueCounts;
     static std::string getById;
     static std::string create;
     static std::string update;
