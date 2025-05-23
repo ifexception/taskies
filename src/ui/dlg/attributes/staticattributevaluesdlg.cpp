@@ -36,6 +36,7 @@
 
 #include "../../../persistence/attributegroupspersistence.h"
 #include "../../../persistence/attributespersistence.h"
+#include "../../../persistence/staticattributevaluespersistence.h"
 
 #include "../../../models/attributegroupmodel.h"
 #include "../../../models/attributemodel.h"
@@ -236,7 +237,6 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
             AttributeTypeToString((AttributeTypes) attributeModels[i].AttributeTypeId));
 
         auto controlId = tksIDC_ATTRIBUTECONTROLBASE + mAttributeControlCounter;
-        auto isActiveControlId = tksIDC_ATTRIBUTECONTROLISACTIVEBASE + mAttributeControlCounter;
 
         AttributeMetadata attributeMetadata;
         attributeMetadata.IsRequired = attributeModels[i].IsRequired;
@@ -251,15 +251,11 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
                 new wxStaticText(pAttributesBox, wxID_ANY, attributeModels[i].Name);
             auto attributeTextControl = new wxTextCtrl(pAttributesBox, controlId);
             attributeTextControl->SetHint(attributeModels[i].Name);
-            auto attributeTextControlIsActive =
-                new wxCheckBox(pAttributesBox, isActiveControlId, "Is Active");
 
             pAttributesControlFlexGridSizer->Add(
                 attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
             pAttributesControlFlexGridSizer->Add(
                 attributeTextControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-            pAttributesControlFlexGridSizer->Add(attributeTextControlIsActive,
-                wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
             attributeControl.TextControl = attributeTextControl;
 
@@ -272,14 +268,10 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
                 wxDefaultPosition,
                 wxDefaultSize,
                 wxCHK_3STATE | wxCHK_ALLOW_3RD_STATE_FOR_USER);
-            auto attributeTextControlIsActive =
-                new wxCheckBox(pAttributesBox, isActiveControlId, "Is Active");
 
             pAttributesControlFlexGridSizer->Add(0, 0);
             pAttributesControlFlexGridSizer->Add(
                 attributeBooleanControl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-            pAttributesControlFlexGridSizer->Add(attributeTextControlIsActive,
-                wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
             attributeControl.BooleanControl = attributeBooleanControl;
 
@@ -296,15 +288,11 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
                 wxTE_LEFT,
                 wxTextValidator(wxFILTER_NUMERIC));
             attributeNumericControl->SetHint(attributeModels[i].Name);
-            auto attributeTextControlIsActive =
-                new wxCheckBox(pAttributesBox, isActiveControlId, "Is Active");
 
             pAttributesControlFlexGridSizer->Add(
                 attributeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
             pAttributesControlFlexGridSizer->Add(
                 attributeNumericControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-            pAttributesControlFlexGridSizer->Add(attributeTextControlIsActive,
-                wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
             attributeControl.NumericControl = attributeNumericControl;
 
@@ -334,6 +322,33 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
 {
     if (!Validate()) {
         return;
+    }
+
+    auto staticAttributeValueModels = TransferDataFromControls();
+    if (staticAttributeValueModels.size() > 1) {
+        Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
+            pLogger, mDatabaseFilePath);
+        int ret = staticAttributeValuesPersistence.CreateMultiple(staticAttributeValueModels);
+
+        std::string message = "";
+
+        if (ret == -1) {
+            message = "Failed to create static attribute values";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData =
+                new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+        } else {
+            message = "Successfully created static attribute values";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData =
+                new NotificationClientData(NotificationType::Information, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(pParent, addNotificationEvent);
+        }
     }
 
     EndModal(wxID_OK);
@@ -396,7 +411,60 @@ bool StaticAttributeValuesDialog::Validate()
     return true;
 }
 
-void StaticAttributeValuesDialog::TransferDataFromControls() {}
+std::vector<Model::StaticAttributeValueModel>
+    StaticAttributeValuesDialog::TransferDataFromControls()
+{
+    std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels;
+    for (const auto& attributeMetadata : mAttributesMetadata) {
+        Model::StaticAttributeValueModel staticAttributeValueModel;
+        staticAttributeValueModel.AttributeGroupId = mAttributeGroupId;
+        staticAttributeValueModel.AttributeId = attributeMetadata.AttributeId;
+
+        switch (attributeMetadata.AttributeType) {
+        case AttributeTypes::Text: {
+            std::string value = attributeMetadata.Control.TextControl->GetValue().ToStdString();
+            if (!value.empty()) {
+                staticAttributeValueModel.TextValue = std::make_optional<std::string>(value);
+            }
+            break;
+        }
+        case AttributeTypes::Boolean: {
+            std::optional<bool> boolValue;
+
+            int threeStateValue = attributeMetadata.Control.BooleanControl->Get3StateValue();
+            switch (threeStateValue) {
+            case wxCHK_UNCHECKED:
+                boolValue = std::make_optional<bool>(false);
+                break;
+            case wxCHK_CHECKED:
+                boolValue = std::make_optional<bool>(true);
+                break;
+            case wxCHK_UNDETERMINED:
+                boolValue = std::nullopt;
+                break;
+            default:
+                break;
+            }
+            staticAttributeValueModel.BooleanValue = boolValue;
+            break;
+        }
+        case AttributeTypes::Numeric: {
+            std::string intValue = attributeMetadata.Control.NumericControl->GetValue().ToStdString();
+            if (!intValue.empty()) {
+                int value = std::stoi(attributeMetadata.Control.NumericControl->GetValue().ToStdString());
+                staticAttributeValueModel.NumericValue = std::make_optional<int>(value);
+            }
+            break;
+        }
+        default:
+            break;
+        }
+
+        staticAttributeValueModels.push_back(staticAttributeValueModel);
+    }
+
+    return staticAttributeValueModels;
+}
 
 void StaticAttributeValuesDialog::QueueErrorNotificationEvent(const std::string& message)
 {

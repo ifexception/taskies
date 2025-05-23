@@ -33,6 +33,7 @@
 #include "../../../common/enums.h"
 
 #include "../../../models/attributemodel.h"
+#include "../../../models/staticattributevaluemodel.h"
 
 namespace tks::UI::dlg
 {
@@ -64,7 +65,7 @@ private:
     void OnCancel(wxCommandEvent& event);
 
     bool Validate();
-    void TransferDataFromControls();
+    std::vector<Model::StaticAttributeValueModel> TransferDataFromControls();
 
     void QueueErrorNotificationEvent(const std::string& message);
 
@@ -91,7 +92,6 @@ private:
     enum {
         tksIDC_ATTRIBUTEGROUPCHOICECTRL = wxID_HIGHEST + 1001,
         tksIDC_ATTRIBUTECONTROLBASE,
-        tksIDC_ATTRIBUTECONTROLISACTIVEBASE
     };
 
     struct AttributeControl {
