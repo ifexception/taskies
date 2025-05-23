@@ -38,7 +38,9 @@ struct StaticAttributeValuesPersistence final {
         const std::string& databaseFilePath);
     ~StaticAttributeValuesPersistence();
 
-    std::int64_t Create(Model::StaticAttributeValueModel staticAttributeValueModel);
+    std::int64_t Create(const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
+    int CreateMultiple(
+        const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;

@@ -94,7 +94,7 @@ StaticAttributeValuesPersistence::~StaticAttributeValuesPersistence()
 }
 
 std::int64_t StaticAttributeValuesPersistence::Create(
-    Model::StaticAttributeValueModel staticAttributeValueModel)
+    const Model::StaticAttributeValueModel& staticAttributeValueModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -212,6 +212,20 @@ std::int64_t StaticAttributeValuesPersistence::Create(
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "static_attribute_value", rowId);
 
     return rowId;
+}
+
+int StaticAttributeValuesPersistence::CreateMultiple(
+    const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const
+{
+    for (const auto& staticAttributeValueModel : staticAttributeValueModels) {
+        std::int64_t rc = Create(staticAttributeValueModel);
+        if (rc != 0) {
+            // safe to cast to int as an error will definitely be less than int.max
+            return static_cast<int>(rc);
+        }
+    }
+
+    return 0;
 }
 
 std::string StaticAttributeValuesPersistence::create = "INSERT INTO "
