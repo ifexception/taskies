@@ -112,7 +112,7 @@ std::string EditListDialog::GetEditTitle()
         return "Find Attribute Groups";
     case EditListEntityType::Attributes:
         return "Find Attributes";
-    case EditListEntityType::StaticAttributeValues:
+    case EditListEntityType::StaticAttributeGroups:
         return "Find Static Attribute Groups and Values";
     default:
         return "Find [Not Found]";
@@ -265,6 +265,10 @@ void EditListDialog::DataToControls()
     case EditListEntityType::Attributes:
         AttributeDataToControls();
         break;
+    case EditListEntityType::StaticAttributeGroups: {
+        StaticAttributeGroupsDataToControls();
+        break;
+    }
     default:
         break;
     }
@@ -424,7 +428,7 @@ void EditListDialog::AttributeDataToControls()
     }
 }
 
-void EditListDialog::StaticAttributeValueDataToControls() {}
+void EditListDialog::StaticAttributeGroupsDataToControls() {}
 
 void EditListDialog::SetDataToControls(const std::vector<ListCtrlData>& entries)
 {
@@ -535,6 +539,9 @@ void EditListDialog::Search()
         break;
     case EditListEntityType::Attributes:
         SearchAttributes();
+        break;
+    case EditListEntityType::StaticAttributeGroups:
+        SearchStaticAttributeGroups();
         break;
     default:
         break;
@@ -738,6 +745,8 @@ std::string EditListDialog::GetSearchHintText()
         return "Search attribute groups...";
     case EditListEntityType::Attributes:
         return "Search attributes...";
+    case EditListEntityType::StaticAttributeGroups:
+        return "Search static attribute groups...";
     default:
         return "";
     }

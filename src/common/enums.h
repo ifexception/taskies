@@ -30,7 +30,7 @@ enum class EditListEntityType {
     Categories,
     AttributeGroups,
     Attributes,
-    StaticAttributeValues
+    StaticAttributeGroups
 };
 
 enum class WindowState : int { Normal = 1, Minimized = 2, Hidden = 3, Maximized = 4 };

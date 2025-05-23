@@ -70,7 +70,7 @@ private:
     void CategoryDataToControls();
     void AttributeGroupDataToControls();
     void AttributeDataToControls();
-    void StaticAttributeValueDataToControls();
+    void StaticAttributeGroupsDataToControls();
 
     void SetDataToControls(const std::vector<ListCtrlData>& entries);
 
