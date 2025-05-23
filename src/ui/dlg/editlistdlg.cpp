@@ -101,17 +101,19 @@ std::string EditListDialog::GetEditTitle()
 {
     switch (mType) {
     case EditListEntityType::Employers:
-        return "Find Employer";
+        return "Find Employers";
     case EditListEntityType::Clients:
-        return "Find Client";
+        return "Find Clients";
     case EditListEntityType::Projects:
-        return "Find Project";
+        return "Find Projects";
     case EditListEntityType::Categories:
-        return "Find Category";
+        return "Find Categories";
     case EditListEntityType::AttributeGroups:
-        return "Find Attribute Group";
+        return "Find Attribute Groups";
     case EditListEntityType::Attributes:
-        return "Find Attribute";
+        return "Find Attributes";
+    case EditListEntityType::StaticAttributeValues:
+        return "Find Static Attribute Groups and Values";
     default:
         return "Find [Not Found]";
     }

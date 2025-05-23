@@ -70,6 +70,7 @@ private:
     void CategoryDataToControls();
     void AttributeGroupDataToControls();
     void AttributeDataToControls();
+    void StaticAttributeValueDataToControls();
 
     void SetDataToControls(const std::vector<ListCtrlData>& entries);
 
@@ -87,6 +88,7 @@ private:
     void SearchCategories();
     void SearchAttributeGroups();
     void SearchAttributes();
+    void SearchStaticAttributeGroups();
 
     std::string GetSearchHintText();
 
@@ -110,7 +112,7 @@ private:
     std::int64_t mEntityId;
 
     enum {
-        tksIDC_LISTRESULTS = wxID_HIGHEST + 100,
+        tksIDC_LISTRESULTS = wxID_HIGHEST + 1001,
         tksIDC_SEARCHTEXTCTRL,
         tksIDC_SEARCHBUTTON,
         tksIDC_RESETBUTTON
