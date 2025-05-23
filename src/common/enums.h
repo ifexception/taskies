@@ -23,7 +23,15 @@
 
 namespace tks
 {
-enum class EditListEntityType { Employer, Client, Project, Category, AttributeGroup, Attribute };
+enum class EditListEntityType {
+    Employers,
+    Clients,
+    Projects,
+    Categories,
+    AttributeGroups,
+    Attributes,
+    StaticAttributeValues
+};
 
 enum class WindowState : int { Normal = 1, Minimized = 2, Hidden = 3, Maximized = 4 };
 

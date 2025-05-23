@@ -768,42 +768,42 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnEditEmployer(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editEmployer(
-        this, pLogger, mDatabaseFilePath, EditListEntityType::Employer);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Employers);
     editEmployer.ShowModal();
 }
 
 void MainFrame::OnEditClient(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editClient(
-        this, pLogger, mDatabaseFilePath, EditListEntityType::Client);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Clients);
     editClient.ShowModal();
 }
 
 void MainFrame::OnEditProject(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editProject(
-        this, pLogger, mDatabaseFilePath, EditListEntityType::Project);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Projects);
     editProject.ShowModal();
 }
 
 void MainFrame::OnEditCategory(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editCategory(
-        this, pLogger, mDatabaseFilePath, EditListEntityType::Category);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Categories);
     editCategory.ShowModal();
 }
 
 void MainFrame::OnEditAttributeGroup(wxCommandEvent& event)
 {
     UI::dlg::EditListDialog editAttributeGroup(
-        this, pLogger, mDatabaseFilePath, EditListEntityType::AttributeGroup);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::AttributeGroups);
     editAttributeGroup.ShowModal();
 }
 
 void MainFrame::OnEditAttribute(wxCommandEvent& event)
 {
     UI::dlg::EditListDialog editAttribute(
-        this, pLogger, mDatabaseFilePath, EditListEntityType::Attribute);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Attributes);
     editAttribute.ShowModal();
 }
 

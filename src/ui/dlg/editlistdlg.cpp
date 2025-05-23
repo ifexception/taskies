@@ -32,6 +32,7 @@
 
 #include "attributes/attributegroupdlg.h"
 #include "attributes/attributedlg.h"
+#include "attributes/staticattributevaluesdlg.h"
 
 #include "../events.h"
 #include "../notificationclientdata.h"
@@ -44,6 +45,7 @@
 #include "../../persistence/categoriespersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
+#include "../../persistence/staticattributevaluespersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -51,6 +53,7 @@
 #include "../../models/categorymodel.h"
 #include "../../models/attributegroupmodel.h"
 #include "../../models/attributemodel.h"
+#include "../../models/staticattributevaluemodel.h"
 
 #include "../../utils/utils.h"
 
@@ -97,17 +100,17 @@ EditListDialog::EditListDialog(wxWindow* parent,
 std::string EditListDialog::GetEditTitle()
 {
     switch (mType) {
-    case EditListEntityType::Employer:
+    case EditListEntityType::Employers:
         return "Find Employer";
-    case EditListEntityType::Client:
+    case EditListEntityType::Clients:
         return "Find Client";
-    case EditListEntityType::Project:
+    case EditListEntityType::Projects:
         return "Find Project";
-    case EditListEntityType::Category:
+    case EditListEntityType::Categories:
         return "Find Category";
-    case EditListEntityType::AttributeGroup:
+    case EditListEntityType::AttributeGroups:
         return "Find Attribute Group";
-    case EditListEntityType::Attribute:
+    case EditListEntityType::Attributes:
         return "Find Attribute";
     default:
         return "Find [Not Found]";
@@ -242,22 +245,22 @@ void EditListDialog::ConfigureEventBindings()
 void EditListDialog::DataToControls()
 {
     switch (mType) {
-    case EditListEntityType::Employer:
+    case EditListEntityType::Employers:
         EmployerDataToControls();
         break;
-    case EditListEntityType::Client:
+    case EditListEntityType::Clients:
         ClientDataToControls();
         break;
-    case EditListEntityType::Project:
+    case EditListEntityType::Projects:
         ProjectDataToControls();
         break;
-    case EditListEntityType::Category:
+    case EditListEntityType::Categories:
         CategoryDataToControls();
         break;
-    case EditListEntityType::AttributeGroup:
+    case EditListEntityType::AttributeGroups:
         AttributeGroupDataToControls();
         break;
-    case EditListEntityType::Attribute:
+    case EditListEntityType::Attributes:
         AttributeDataToControls();
         break;
     default:
@@ -419,6 +422,8 @@ void EditListDialog::AttributeDataToControls()
     }
 }
 
+void EditListDialog::StaticAttributeValueDataToControls() {}
+
 void EditListDialog::SetDataToControls(const std::vector<ListCtrlData>& entries)
 {
     int listIndex = 0;
@@ -457,32 +462,32 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
 {
     mEntityId = static_cast<std::int64_t>(event.GetData());
     switch (mType) {
-    case EditListEntityType::Employer: {
+    case EditListEntityType::Employers: {
         EmployerDialog employerDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         employerDlg.ShowModal();
         break;
     }
-    case EditListEntityType::Client: {
+    case EditListEntityType::Clients: {
         ClientDialog clientDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         clientDlg.ShowModal();
         break;
     }
-    case EditListEntityType::Project: {
+    case EditListEntityType::Projects: {
         ProjectDialog projectDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         projectDlg.ShowModal();
         break;
     }
-    case EditListEntityType::Category: {
+    case EditListEntityType::Categories: {
         CategoryDialog categoryDlg(this, pLogger, mDatabaseFilePath, mEntityId);
         categoryDlg.ShowModal();
         break;
     }
-    case EditListEntityType::AttributeGroup: {
+    case EditListEntityType::AttributeGroups: {
         AttributeGroupDialog attributeGroupDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         attributeGroupDlg.ShowModal();
         break;
     }
-    case EditListEntityType::Attribute: {
+    case EditListEntityType::Attributes: {
         AttributeDialog attributeDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         attributeDlg.ShowModal();
         break;
@@ -511,22 +516,22 @@ void EditListDialog::OnCancel(wxCommandEvent& event)
 void EditListDialog::Search()
 {
     switch (mType) {
-    case EditListEntityType::Employer:
+    case EditListEntityType::Employers:
         SearchEmployers();
         break;
-    case EditListEntityType::Client:
+    case EditListEntityType::Clients:
         SearchClients();
         break;
-    case EditListEntityType::Project:
+    case EditListEntityType::Projects:
         SearchProjects();
         break;
-    case EditListEntityType::Category:
+    case EditListEntityType::Categories:
         SearchCategories();
         break;
-    case EditListEntityType::AttributeGroup:
+    case EditListEntityType::AttributeGroups:
         SearchAttributeGroups();
         break;
-    case EditListEntityType::Attribute:
+    case EditListEntityType::Attributes:
         SearchAttributes();
         break;
     default:
@@ -714,20 +719,22 @@ void EditListDialog::SearchAttributes()
     pOkButton->Enable();
 }
 
+void EditListDialog::SearchStaticAttributeGroups() {}
+
 std::string EditListDialog::GetSearchHintText()
 {
     switch (mType) {
-    case EditListEntityType::Employer:
+    case EditListEntityType::Employers:
         return "Search employers...";
-    case EditListEntityType::Client:
+    case EditListEntityType::Clients:
         return "Search clients...";
-    case EditListEntityType::Project:
+    case EditListEntityType::Projects:
         return "Search projects...";
-    case EditListEntityType::Category:
+    case EditListEntityType::Categories:
         return "Search categories...";
-    case EditListEntityType::AttributeGroup:
+    case EditListEntityType::AttributeGroups:
         return "Search attribute groups...";
-    case EditListEntityType::Attribute:
+    case EditListEntityType::Attributes:
         return "Search attributes...";
     default:
         return "";
