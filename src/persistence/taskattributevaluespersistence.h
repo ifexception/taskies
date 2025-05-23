@@ -41,7 +41,7 @@ struct TaskAttributeValuesPersistence final {
     std::int64_t Create(Model::TaskAttributeValueModel& taskAttributeValueModel) const;
     int CreateMany(std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
     int GetByTaskId(const std::int64_t taskId,
-        /*out*/ std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels);
+        /*out*/ std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;

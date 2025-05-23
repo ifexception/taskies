@@ -228,7 +228,7 @@ int TaskAttributeValuesPersistence::CreateMany(
 }
 
 int TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t taskId,
-    std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels)
+    std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const
 {
     sqlite3_stmt* stmt = nullptr;
 
