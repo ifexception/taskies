@@ -107,7 +107,7 @@ void StaticAttributeValuesDialog::CreateControls()
     pAttributesBoxSizer = new wxStaticBoxSizer(pAttributesBox, wxVERTICAL);
     pMainSizer->Add(pAttributesBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    pAttributesControlFlexGridSizer = new wxFlexGridSizer(3, FromDIP(4), FromDIP(4));
+    pAttributesControlFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     pAttributesControlFlexGridSizer->AddGrowableCol(1, 1);
     pAttributesBoxSizer->Add(
         pAttributesControlFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
@@ -197,13 +197,13 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
 
     auto data = reinterpret_cast<ClientData<std::int64_t>*>(
         pAttributeGroupChoiceCtrl->GetClientObject(selection));
-    std::int64_t attributeGroupId = data->GetValue();
+    mAttributeGroupId = data->GetValue();
 
     std::vector<Model::AttributeModel> attributeModels;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
     int rc = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
-        attributeGroupId, attributeModels);
+        mAttributeGroupId, attributeModels);
 
     if (rc != 0) {
         std::string message = "Failed to fetch attributes";
@@ -214,7 +214,7 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
     SPDLOG_LOGGER_TRACE(pLogger,
         "Build \"{0}\" control attributes from attribute group id \"{1}\"",
         attributeModels.size(),
-        attributeGroupId);
+        mAttributeGroupId);
 
     if (attributeModels.size() < 1) {
         auto noAttributesLabel = new wxStaticText(pAttributesBox, wxID_ANY, "No attributes found");

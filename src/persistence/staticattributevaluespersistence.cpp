@@ -219,9 +219,8 @@ int StaticAttributeValuesPersistence::CreateMultiple(
 {
     for (const auto& staticAttributeValueModel : staticAttributeValueModels) {
         std::int64_t rc = Create(staticAttributeValueModel);
-        if (rc != 0) {
-            // safe to cast to int as an error will definitely be less than int.max
-            return static_cast<int>(rc);
+        if (rc < 1) {
+            return -1;
         }
     }
 
