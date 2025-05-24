@@ -45,7 +45,6 @@
 #include "../../persistence/categoriespersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
-#include "../../persistence/staticattributevaluespersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -53,7 +52,9 @@
 #include "../../models/categorymodel.h"
 #include "../../models/attributegroupmodel.h"
 #include "../../models/attributemodel.h"
-#include "../../models/staticattributevaluemodel.h"
+
+#include "../../services/attributes/staticattributegroupviewmodel.h"
+#include "../../services/attributes/staticattributegroupsservice.h"
 
 #include "../../utils/utils.h"
 
@@ -113,7 +114,7 @@ std::string EditListDialog::GetEditTitle()
     case EditListEntityType::Attributes:
         return "Find Attributes";
     case EditListEntityType::StaticAttributeGroups:
-        return "Find Static Attribute Groups and Values";
+        return "Find Static Attribute Values";
     default:
         return "Find [Not Found]";
     }
@@ -428,7 +429,33 @@ void EditListDialog::AttributeDataToControls()
     }
 }
 
-void EditListDialog::StaticAttributeGroupsDataToControls() {}
+void EditListDialog::StaticAttributeGroupsDataToControls()
+{
+    std::vector<Services::StaticAttributeGroupViewModel> staticAttributeGroups;
+    std::vector<ListCtrlData> entries;
+
+    Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
+
+    int rc = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
+        /*searchTerm,*/ staticAttributeGroups);
+    if (rc == -1) {
+        std::string message = "Failed to filter static attribute groups";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& staticAttributeGroup : staticAttributeGroups) {
+            ListCtrlData data(
+                staticAttributeGroup.AttributeGroupId, staticAttributeGroup.GetDisplayValue());
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+}
 
 void EditListDialog::SetDataToControls(const std::vector<ListCtrlData>& entries)
 {
@@ -467,6 +494,7 @@ void EditListDialog::OnReset(wxCommandEvent& event)
 void EditListDialog::OnItemDoubleClick(wxListEvent& event)
 {
     mEntityId = static_cast<std::int64_t>(event.GetData());
+
     switch (mType) {
     case EditListEntityType::Employers: {
         EmployerDialog employerDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
@@ -496,6 +524,12 @@ void EditListDialog::OnItemDoubleClick(wxListEvent& event)
     case EditListEntityType::Attributes: {
         AttributeDialog attributeDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         attributeDlg.ShowModal();
+        break;
+    }
+    case EditListEntityType::StaticAttributeGroups: {
+        StaticAttributeValuesDialog staticAttributeValuesDlg(
+            this, pLogger, mDatabaseFilePath, true, mEntityId);
+        staticAttributeValuesDlg.ShowModal();
         break;
     }
     default:
@@ -728,7 +762,35 @@ void EditListDialog::SearchAttributes()
     pOkButton->Enable();
 }
 
-void EditListDialog::SearchStaticAttributeGroups() {}
+void EditListDialog::SearchStaticAttributeGroups()
+{
+    pListCtrl->DeleteAllItems();
+
+    std::vector<Services::StaticAttributeGroupViewModel> staticAttributeGroups;
+    std::vector<ListCtrlData> entries;
+
+    Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
+
+    int rc = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
+        /*searchTerm,*/ staticAttributeGroups);
+    if (rc == -1) {
+        std::string message = "Failed to filter static attribute groups";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& staticAttributeGroup : staticAttributeGroups) {
+            ListCtrlData data(
+                staticAttributeGroup.AttributeGroupId, staticAttributeGroup.GetDisplayValue());
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+}
 
 std::string EditListDialog::GetSearchHintText()
 {
