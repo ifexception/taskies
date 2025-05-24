@@ -39,7 +39,7 @@ struct StaticAttributeGroupsService final {
     ~StaticAttributeGroupsService();
 
     int FilterByStaticFlagAndWithValueCounts(
-        /*out*/ std::vector<StaticAttributeGroupViewModel> staticAttributeGroupViewModels);
+        /*out*/ std::vector<StaticAttributeGroupViewModel> staticAttributeGroupViewModels) const;
 
     sqlite3* pDb;
     std::shared_ptr<spdlog::logger> pLogger;

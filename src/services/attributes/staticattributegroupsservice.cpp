@@ -93,8 +93,71 @@ StaticAttributeGroupsService::~StaticAttributeGroupsService()
 }
 
 int StaticAttributeGroupsService::FilterByStaticFlagAndWithValueCounts(
-    std::vector<StaticAttributeGroupViewModel> staticAttributeGroupViewModels)
+    std::vector<StaticAttributeGroupViewModel> staticAttributeGroupViewModels) const
 {
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        StaticAttributeGroupsService::filterStaticWithValueCounts.c_str(),
+        static_cast<int>(StaticAttributeGroupsService::filterStaticWithValueCounts.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            StaticAttributeGroupsService::filterStaticWithValueCounts,
+            rc,
+            err);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            StaticAttributeGroupViewModel model;
+
+            int columnIndex = 0;
+
+            model.AttributeGroupId = sqlite3_column_int64(stmt, columnIndex++);
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            model.AttributeGroupName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            model.StaticAttributeValueCount = sqlite3_column_int(stmt, columnIndex++);
+
+            staticAttributeGroupViewModels.push_back(model);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+    if (rc != SQLITE_DONE) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate,
+            StaticAttributeGroupsService::filterStaticWithValueCounts,
+            rc,
+            err);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::FilterEntities, staticAttributeGroupViewModels.size(), "");
+
     return 0;
 }
 
