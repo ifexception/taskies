@@ -20,8 +20,30 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
+#include <vector>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
+
+#include <sqlite3.h>
+
+#include "staticattributegroupviewmodel.h"
 
 namespace tks::Services
 {
+struct StaticAttributeGroupsService final {
+    StaticAttributeGroupsService(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
+    ~StaticAttributeGroupsService();
+
+    int FilterByStaticFlagAndWithValueCounts(
+        /*out*/ std::vector<StaticAttributeGroupViewModel> staticAttributeGroupViewModels);
+
+    sqlite3* pDb;
+    std::shared_ptr<spdlog::logger> pLogger;
+
+    static std::string filterStaticWithValueCounts;
+};
 }
