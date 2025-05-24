@@ -31,5 +31,7 @@ struct StaticAttributeGroupViewModel final {
 
     StaticAttributeGroupViewModel();
     ~StaticAttributeGroupViewModel() = default;
+
+    std::string GetDisplayValue();
 };
 } // namespace tks::Services

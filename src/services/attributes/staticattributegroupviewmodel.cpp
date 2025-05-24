@@ -19,6 +19,8 @@
 
 #include "staticattributegroupviewmodel.h"
 
+#include <fmt/format.h>
+
 namespace tks::Services
 {
 StaticAttributeGroupViewModel::StaticAttributeGroupViewModel()
@@ -26,5 +28,10 @@ StaticAttributeGroupViewModel::StaticAttributeGroupViewModel()
     , AttributeGroupName("")
     , StaticAttributeValueCount(-1)
 {
+}
+
+std::string StaticAttributeGroupViewModel::GetDisplayValue()
+{
+    return fmt::format("{0} ({1})", AttributeGroupName, StaticAttributeValueCount);
 }
 } // namespace tks::Services
