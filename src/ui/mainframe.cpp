@@ -114,6 +114,7 @@ EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
 EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
 EVT_MENU(ID_EDIT_ATTRIBUTE_GROUP, MainFrame::OnEditAttributeGroup)
 EVT_MENU(ID_EDIT_ATTRIBUTE, MainFrame::OnEditAttribute)
+EVT_MENU(ID_EDIT_STATIC_ATTRIBUTE_VALUES, MainFrame::OnEditStaticAttributeValues)
 EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_EXPAND, MainFrame::OnViewExpand)
 // EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
@@ -341,6 +342,8 @@ void MainFrame::CreateControls()
     editMenu->AppendSeparator();
     editMenu->Append(ID_EDIT_ATTRIBUTE_GROUP, "Edit Attribute Group", "Edit an attribute group");
     editMenu->Append(ID_EDIT_ATTRIBUTE, "Edit Attribute", "Edit an attribute");
+    editMenu->Append(
+        ID_EDIT_STATIC_ATTRIBUTE_VALUES, "Edit Static Attributes", "Edit static attribute values");
 
     /* View */
     auto viewMenu = new wxMenu();
@@ -505,8 +508,8 @@ void MainFrame::DataToControls()
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc =
-        tasksService.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+    int rc = tasksService.FilterByDateRange(
+        pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -549,10 +552,7 @@ void MainFrame::OnClose(wxCloseEvent& event)
         rc = sqlite3_exec(db, QueryHelper::Optimize, nullptr, nullptr, nullptr);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(db);
-            pLogger->error(LogMessage::ExecQueryTemplate,
-                QueryHelper::Optimize,
-                rc,
-                err);
+            pLogger->error(LogMessage::ExecQueryTemplate, QueryHelper::Optimize, rc, err);
             goto cleanup;
         }
 
@@ -804,6 +804,13 @@ void MainFrame::OnEditAttribute(wxCommandEvent& event)
 {
     UI::dlg::EditListDialog editAttribute(
         this, pLogger, mDatabaseFilePath, EditListEntityType::Attributes);
+    editAttribute.ShowModal();
+}
+
+void MainFrame::OnEditStaticAttributeValues(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editAttribute(
+        this, pLogger, mDatabaseFilePath, EditListEntityType::StaticAttributeGroups);
     editAttribute.ShowModal();
 }
 
@@ -1589,8 +1596,8 @@ void MainFrame::RefetchTasksForDateRange()
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc =
-        tasksService.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+    int rc = tasksService.FilterByDateRange(
+        pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
