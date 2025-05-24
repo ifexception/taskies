@@ -26,7 +26,7 @@ namespace tks::Services
 StaticAttributeGroupViewModel::StaticAttributeGroupViewModel()
     : AttributeGroupId(-1)
     , AttributeGroupName("")
-    , StaticAttributeValueCount(-1)
+    , StaticAttributeValueCount(0)
 {
 }
 
