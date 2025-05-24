@@ -93,7 +93,7 @@ StaticAttributeGroupsService::~StaticAttributeGroupsService()
 }
 
 int StaticAttributeGroupsService::FilterByStaticFlagAndWithValueCounts(
-    std::vector<StaticAttributeGroupViewModel> staticAttributeGroupViewModels) const
+    std::vector<StaticAttributeGroupViewModel>& staticAttributeGroupViewModels) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -143,6 +143,7 @@ int StaticAttributeGroupsService::FilterByStaticFlagAndWithValueCounts(
             break;
         }
     }
+
     if (rc != SQLITE_DONE) {
         const char* err = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::ExecStepTemplate,
@@ -169,8 +170,8 @@ std::string StaticAttributeGroupsService::filterStaticWithValueCounts =
     "FROM attribute_groups "
     "INNER JOIN static_attribute_values "
     "ON attribute_groups.attribute_group_id = static_attribute_values.attribute_group_id "
-    "WHERE attribute_groups.is_active = 1"
+    "WHERE attribute_groups.is_active = 1 "
     "AND attribute_groups.is_static_group = 1 "
-    "AND static_attribute_values.is_active = 1"
+    "AND static_attribute_values.is_active = 1 "
     "GROUP BY attribute_groups.attribute_group_id, attribute_groups.name";
 } // namespace tks::Services
