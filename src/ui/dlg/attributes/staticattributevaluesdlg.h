@@ -67,6 +67,9 @@ private:
     bool Validate();
     std::vector<Model::StaticAttributeValueModel> TransferDataFromControls();
 
+    void CreateControlsWithData(
+        std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels);
+
     void QueueErrorNotificationEvent(const std::string& message);
 
     std::shared_ptr<spdlog::logger> pLogger;
