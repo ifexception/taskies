@@ -41,10 +41,13 @@ struct StaticAttributeValuesPersistence final {
     std::int64_t Create(const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
     int CreateMultiple(
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
+    int FilterByAttributeGroupId(const std::int64_t attributeGroupId,
+        /*out*/ const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels);
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
     static std::string create;
+    static std::string filterByAttributeGroupId;
 };
 } // namespace tks::Persistence
