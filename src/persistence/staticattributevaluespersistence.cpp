@@ -228,8 +228,115 @@ int StaticAttributeValuesPersistence::CreateMultiple(
 }
 
 int StaticAttributeValuesPersistence::FilterByAttributeGroupId(const std::int64_t attributeGroupId,
-    const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels)
+    std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const
 {
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        StaticAttributeValuesPersistence::filterByAttributeGroupId.c_str(),
+        static_cast<int>(StaticAttributeValuesPersistence::filterByAttributeGroupId.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            StaticAttributeValuesPersistence::filterByAttributeGroupId,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeGroupId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            Model::StaticAttributeValueModel staticAttributeValueModel;
+
+            int columnIndex = 0;
+
+            staticAttributeValueModel.StaticAttributeValueId =
+                sqlite3_column_int64(stmt, columnIndex++);
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                staticAttributeValueModel.TextValue = std::nullopt;
+            } else {
+                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+                staticAttributeValueModel.TextValue = std::make_optional<std::string>(std::string(
+                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+            }
+
+            columnIndex++;
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                staticAttributeValueModel.BooleanValue = std::nullopt;
+            } else {
+                staticAttributeValueModel.BooleanValue =
+                    std::make_optional<bool>(sqlite3_column_int(stmt, columnIndex));
+            }
+
+            columnIndex++;
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                staticAttributeValueModel.NumericValue = std::nullopt;
+            } else {
+                staticAttributeValueModel.NumericValue =
+                    std::make_optional<int>(sqlite3_column_int(stmt, columnIndex));
+            }
+
+            columnIndex++;
+
+            staticAttributeValueModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            staticAttributeValueModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            staticAttributeValueModel.IsActive = sqlite3_column_int(stmt, columnIndex++);
+
+            staticAttributeValueModel.AttributeGroupId = sqlite3_column_int64(stmt, columnIndex++);
+            staticAttributeValueModel.AttributeId = sqlite3_column_int64(stmt, columnIndex++);
+
+            staticAttributeValueModels.push_back(staticAttributeValueModel);
+            break;
+        }
+        case SQLITE_DONE: {
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        }
+        default:
+            break;
+        }
+    }
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate,
+            StaticAttributeValuesPersistence::filterByAttributeGroupId,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::EntityGetById, "static_attribute_values", attributeGroupId);
+
     return 0;
 }
 

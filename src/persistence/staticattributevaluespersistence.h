@@ -42,7 +42,7 @@ struct StaticAttributeValuesPersistence final {
     int CreateMultiple(
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
     int FilterByAttributeGroupId(const std::int64_t attributeGroupId,
-        /*out*/ const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels);
+        /*out*/ std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
