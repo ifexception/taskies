@@ -340,6 +340,18 @@ int StaticAttributeValuesPersistence::FilterByAttributeGroupId(const std::int64_
     return 0;
 }
 
+int StaticAttributeValuesPersistence::Update(const std::int64_t staticAttributeValueId,
+    const Model::StaticAttributeValueModel& staticAttributeValueModel) const
+{
+    return 0;
+}
+
+int StaticAttributeValuesPersistence::UpdateMultiple(
+    const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const
+{
+    return 0;
+}
+
 std::string StaticAttributeValuesPersistence::create = "INSERT INTO "
                                                        "static_attribute_values "
                                                        "("
@@ -366,4 +378,6 @@ std::string StaticAttributeValuesPersistence::filterByAttributeGroupId =
     "FROM static_attribute_values "
     "WHERE is_active = 1 "
     "AND attribute_group_id = ?";
+
+std::string StaticAttributeValuesPersistence::update = "";
 } // namespace tks::Persistence
