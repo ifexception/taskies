@@ -51,7 +51,7 @@ StaticAttributeValuesDialog::StaticAttributeValuesDialog(wxWindow* parent,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          isEdit ? "Edit Static Attributes" : "New Static Attributes",
+          isEdit ? "Edit Static Attribute Values" : "New Static Attribute Values",
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
@@ -189,8 +189,8 @@ void StaticAttributeValuesDialog::ConfigureEventBindings()
 void StaticAttributeValuesDialog::DataToControls()
 {
     for (size_t i = 0; i < pAttributeGroupChoiceCtrl->GetCount(); i++) {
-        ClientData<std::int64_t>* data =
-            reinterpret_cast<ClientData<std::int64_t>*>(pAttributeGroupChoiceCtrl->GetClientObject(i));
+        ClientData<std::int64_t>* data = reinterpret_cast<ClientData<std::int64_t>*>(
+            pAttributeGroupChoiceCtrl->GetClientObject(i));
         if (mAttributeGroupId == data->GetValue()) {
             pAttributeGroupChoiceCtrl->SetSelection(i);
             break;
@@ -314,6 +314,54 @@ void StaticAttributeValuesDialog::DataToControls()
     pMainSizer->Layout();
 
     SetSizerAndFit(pMainSizer);
+
+    std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels;
+    Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
+        pLogger, mDatabaseFilePath);
+
+    rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+        mAttributeGroupId, staticAttributeValueModels);
+    if (rc != 0) {
+        std::string message = "Failed to fetch static attribute values";
+        QueueErrorNotificationEvent(message);
+        return;
+    }
+
+    assert(mAttributesMetadata.size() == staticAttributeValueModels.size());
+
+    for (size_t i = 0; i < mAttributesMetadata.size(); i++) {
+        switch (mAttributesMetadata[i].AttributeType) {
+        case AttributeTypes::Text: {
+            if (staticAttributeValueModels[i].TextValue.has_value()) {
+                mAttributesMetadata[i].Control.TextControl->ChangeValue(
+                    staticAttributeValueModels[i].TextValue.value());
+            }
+            break;
+        }
+        case AttributeTypes::Boolean: {
+            if (staticAttributeValueModels[i].BooleanValue.has_value()) {
+                if (staticAttributeValueModels[i].BooleanValue.value()) {
+                    mAttributesMetadata[i].Control.BooleanControl->Set3StateValue(wxCHK_CHECKED);
+                } else {
+                    mAttributesMetadata[i].Control.BooleanControl->Set3StateValue(wxCHK_UNCHECKED);
+                }
+            } else {
+                mAttributesMetadata[i].Control.BooleanControl->Set3StateValue(wxCHK_UNDETERMINED);
+            }
+            break;
+        }
+        case AttributeTypes::Numeric: {
+            if (staticAttributeValueModels[i].NumericValue.has_value()) {
+                mAttributesMetadata[i].Control.NumericControl->ChangeValue(
+                    std::to_string(staticAttributeValueModels[i].NumericValue.value()));
+            }
+            break;
+        }
+        default:
+            pLogger->error("Unmatched attribute type, cannot set control values");
+            break;
+        }
+    }
 }
 
 void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
@@ -577,9 +625,11 @@ std::vector<Model::StaticAttributeValueModel>
             break;
         }
         case AttributeTypes::Numeric: {
-            std::string intValue = attributeMetadata.Control.NumericControl->GetValue().ToStdString();
+            std::string intValue =
+                attributeMetadata.Control.NumericControl->GetValue().ToStdString();
             if (!intValue.empty()) {
-                int value = std::stoi(attributeMetadata.Control.NumericControl->GetValue().ToStdString());
+                int value =
+                    std::stoi(attributeMetadata.Control.NumericControl->GetValue().ToStdString());
                 staticAttributeValueModel.NumericValue = std::make_optional<int>(value);
             }
             break;
