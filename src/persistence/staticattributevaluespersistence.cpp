@@ -343,12 +343,143 @@ int StaticAttributeValuesPersistence::FilterByAttributeGroupId(const std::int64_
 int StaticAttributeValuesPersistence::Update(const std::int64_t staticAttributeValueId,
     const Model::StaticAttributeValueModel& staticAttributeValueModel) const
 {
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        StaticAttributeValuesPersistence::update.c_str(),
+        static_cast<int>(StaticAttributeValuesPersistence::update.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            StaticAttributeValuesPersistence::update,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    if (staticAttributeValueModel.TextValue.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            staticAttributeValueModel.TextValue.value().c_str(),
+            static_cast<int>(staticAttributeValueModel.TextValue.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "text_value", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    if (staticAttributeValueModel.BooleanValue.has_value()) {
+        rc = sqlite3_bind_int(stmt, bindIndex, staticAttributeValueModel.BooleanValue.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "boolean_value", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    if (staticAttributeValueModel.NumericValue.has_value()) {
+        rc = sqlite3_bind_int(stmt, bindIndex, staticAttributeValueModel.NumericValue.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "numeric_value", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, staticAttributeValueModel.AttributeGroupId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, staticAttributeValueModel.AttributeId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, staticAttributeValueId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "static_attribute_value_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    assert(bindIndex == 6);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, StaticAttributeValuesPersistence::update, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
     return 0;
 }
 
 int StaticAttributeValuesPersistence::UpdateMultiple(
     const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const
 {
+    for (const auto& staticAttributeValueModel : staticAttributeValueModels) {
+        int rc =
+            Update(staticAttributeValueModel.StaticAttributeValueId, staticAttributeValueModel);
+        if (rc < 1) {
+            return -1;
+        }
+    }
+
     return 0;
 }
 
@@ -379,5 +510,15 @@ std::string StaticAttributeValuesPersistence::filterByAttributeGroupId =
     "WHERE is_active = 1 "
     "AND attribute_group_id = ?";
 
-std::string StaticAttributeValuesPersistence::update = "";
+std::string StaticAttributeValuesPersistence::update = "UPDATE static_attribute_values "
+                                                       "SET "
+                                                       "text_value = ?, "
+                                                       "boolean_value = ?, "
+                                                       "numeric_value = ?, "
+                                                       "date_created = ?, "
+                                                       "date_modified = ?, "
+                                                       "is_active = ?, "
+                                                       "attribute_group_id = ?, "
+                                                       "attribute_id = ? "
+                                                       "WHERE static_attribute_value_id = ? ";
 } // namespace tks::Persistence

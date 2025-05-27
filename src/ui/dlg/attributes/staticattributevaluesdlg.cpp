@@ -504,27 +504,32 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
     if (staticAttributeValueModels.size() > 1) {
         Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);
-        int ret = staticAttributeValuesPersistence.CreateMultiple(staticAttributeValueModels);
 
+        int ret = -1;
         std::string message = "";
+        NotificationClientData* clientData = nullptr;
 
-        if (ret == -1) {
-            message = "Failed to create static attribute values";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-            NotificationClientData* clientData =
-                new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
+        if (bIsEdit) {
+            ret = staticAttributeValuesPersistence.CreateMultiple(staticAttributeValueModels);
 
-            wxQueueEvent(pParent, addNotificationEvent);
+            message = ret == -1 ? "Failed to create static attribute values"
+                                : "Successfully created static attribute values";
+        } else if (!bIsEdit) {
+            ret = staticAttributeValuesPersistence.UpdateMultiple(staticAttributeValueModels);
+
+            message = ret == -1 ? "Failed to update static attribute values"
+                                : "Successfully updated static attribute values";
         } else {
-            message = "Successfully created static attribute values";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-            NotificationClientData* clientData =
-                new NotificationClientData(NotificationType::Information, message);
-            addNotificationEvent->SetClientObject(clientData);
-
-            wxQueueEvent(pParent, addNotificationEvent);
+            return;
         }
+
+        clientData = ret == -1 ? new NotificationClientData(NotificationType::Error, message)
+                               : new NotificationClientData(NotificationType::Information, message);
+
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
     }
 
     EndModal(wxID_OK);
