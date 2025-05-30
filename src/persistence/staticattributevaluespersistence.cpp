@@ -22,6 +22,8 @@
 #include "../common/logmessages.h"
 #include "../common/queryhelper.h"
 
+#include "../utils/utils.h"
+
 namespace tks::Persistence
 {
 StaticAttributeValuesPersistence::StaticAttributeValuesPersistence(
@@ -441,6 +443,18 @@ int StaticAttributeValuesPersistence::Update(const std::int64_t staticAttributeV
 
     bindIndex++;
 
+    rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
     rc = sqlite3_bind_int64(stmt, bindIndex, staticAttributeValueId);
 
     if (rc != SQLITE_OK) {
@@ -452,7 +466,7 @@ int StaticAttributeValuesPersistence::Update(const std::int64_t staticAttributeV
         return -1;
     }
 
-    assert(bindIndex == 6);
+    assert(bindIndex == 7);
 
     rc = sqlite3_step(stmt);
 
@@ -515,10 +529,8 @@ std::string StaticAttributeValuesPersistence::update = "UPDATE static_attribute_
                                                        "text_value = ?, "
                                                        "boolean_value = ?, "
                                                        "numeric_value = ?, "
-                                                       "date_created = ?, "
-                                                       "date_modified = ?, "
-                                                       "is_active = ?, "
                                                        "attribute_group_id = ?, "
-                                                       "attribute_id = ? "
+                                                       "attribute_id = ?, "
+                                                       "date_modified = ? "
                                                        "WHERE static_attribute_value_id = ? ";
 } // namespace tks::Persistence

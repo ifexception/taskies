@@ -120,6 +120,7 @@ private:
         AttributeControl Control;
 
         std::int64_t AttributeId;
+        std::int64_t StaticAttributeValueId;
 
         AttributeMetadata()
             : AttributeType()
@@ -127,6 +128,7 @@ private:
             , Name()
             , Control()
             , AttributeId(-1)
+            , StaticAttributeValueId(-1)
         {
         }
     };

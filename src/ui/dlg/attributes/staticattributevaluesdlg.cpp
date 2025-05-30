@@ -361,6 +361,9 @@ void StaticAttributeValuesDialog::DataToControls()
             pLogger->error("Unmatched attribute type, cannot set control values");
             break;
         }
+
+        mAttributesMetadata[i].StaticAttributeValueId =
+            staticAttributeValueModels[i].StaticAttributeValueId;
     }
 }
 
@@ -509,12 +512,12 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
         std::string message = "";
         NotificationClientData* clientData = nullptr;
 
-        if (bIsEdit) {
+        if (!bIsEdit) {
             ret = staticAttributeValuesPersistence.CreateMultiple(staticAttributeValueModels);
 
             message = ret == -1 ? "Failed to create static attribute values"
                                 : "Successfully created static attribute values";
-        } else if (!bIsEdit) {
+        } else if (bIsEdit) {
             ret = staticAttributeValuesPersistence.UpdateMultiple(staticAttributeValueModels);
 
             message = ret == -1 ? "Failed to update static attribute values"
@@ -598,6 +601,8 @@ std::vector<Model::StaticAttributeValueModel>
     std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels;
     for (const auto& attributeMetadata : mAttributesMetadata) {
         Model::StaticAttributeValueModel staticAttributeValueModel;
+
+        staticAttributeValueModel.StaticAttributeValueId = attributeMetadata.StaticAttributeValueId;
         staticAttributeValueModel.AttributeGroupId = mAttributeGroupId;
         staticAttributeValueModel.AttributeId = attributeMetadata.AttributeId;
 
