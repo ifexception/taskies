@@ -865,6 +865,7 @@ void TaskDialog::OnTaskAttributesAdded(wxCommandEvent& event)
     Common::TaskAttributeValueClientData* taskAttributeValueClientData =
         reinterpret_cast<Common::TaskAttributeValueClientData*>(event.GetClientObject());
 
+    mTaskAttributeValueModels.clear();
     mTaskAttributeValueModels = taskAttributeValueClientData->TaskAttributeValueModels;
 
     SPDLOG_LOGGER_TRACE(pLogger,

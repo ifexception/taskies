@@ -37,8 +37,12 @@
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
 #include "../../persistence/taskattributevaluespersistence.h"
+#include "../../persistence/staticattributevaluespersistence.h"
 
 #include "../../models/attributegroupmodel.h"
+#include "../../models/attributemodel.h"
+#include "../../models/taskattributevaluemodel.h"
+#include "../../models/staticattributevaluemodel.h"
 
 namespace tks::UI::dlg
 {
@@ -228,6 +232,10 @@ void TaskManageAttributesDialog::FillControls()
             pAttributesControlFlexGridSizer->Add(
                 attributeTextControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+            if (attributeGroupModel.IsStaticGroup) {
+                attributeTextControl->Disable();
+            }
+
             attributeControlData.TextControl = attributeTextControl;
 
             break;
@@ -243,6 +251,10 @@ void TaskManageAttributesDialog::FillControls()
             pAttributesControlFlexGridSizer->Add(0, 0);
             pAttributesControlFlexGridSizer->Add(
                 attributeBooleanControl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+            if (attributeGroupModel.IsStaticGroup) {
+                attributeBooleanControl->Disable();
+            }
 
             attributeControlData.BooleanControl = attributeBooleanControl;
 
@@ -265,6 +277,10 @@ void TaskManageAttributesDialog::FillControls()
             pAttributesControlFlexGridSizer->Add(
                 attributeNumericControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+            if (attributeGroupModel.IsStaticGroup) {
+                attributeNumericControl->Disable();
+            }
+
             attributeControlData.NumericControl = attributeNumericControl;
 
             break;
@@ -284,6 +300,56 @@ void TaskManageAttributesDialog::FillControls()
     pMainSizer->Layout();
 
     SetSizerAndFit(pMainSizer);
+
+    std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels;
+    Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
+        pLogger, mDatabaseFilePath);
+
+    rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+        mAttributeGroupId, staticAttributeValueModels);
+    if (rc != 0) {
+        std::string message = "Failed to fetch static attribute values";
+        QueueErrorNotificationEvent(message);
+        return;
+    }
+
+    if (attributeGroupModel.IsStaticGroup) {
+        assert(mAttributeControls.size() == staticAttributeValueModels.size());
+
+        for (size_t i = 0; i < mAttributeControls.size(); i++) {
+            switch (mAttributeControls[i].AttributeType) {
+            case AttributeTypes::Text: {
+                if (staticAttributeValueModels[i].TextValue.has_value()) {
+                    mAttributeControls[i].TextControl->ChangeValue(
+                        staticAttributeValueModels[i].TextValue.value());
+                }
+                break;
+            }
+            case AttributeTypes::Boolean: {
+                if (staticAttributeValueModels[i].BooleanValue.has_value()) {
+                    if (staticAttributeValueModels[i].BooleanValue.value()) {
+                        mAttributeControls[i].BooleanControl->Set3StateValue(wxCHK_CHECKED);
+                    } else {
+                        mAttributeControls[i].BooleanControl->Set3StateValue(wxCHK_UNCHECKED);
+                    }
+                } else {
+                    mAttributeControls[i].BooleanControl->Set3StateValue(wxCHK_UNDETERMINED);
+                }
+                break;
+            }
+            case AttributeTypes::Numeric: {
+                if (staticAttributeValueModels[i].NumericValue.has_value()) {
+                    mAttributeControls[i].NumericControl->ChangeValue(
+                        std::to_string(staticAttributeValueModels[i].NumericValue.value()));
+                }
+                break;
+            }
+            default:
+                pLogger->error("Unmatched attribute type, cannot set control values");
+                break;
+            }
+        }
+    }
 }
 
 // clang-format off
@@ -365,6 +431,7 @@ void TaskManageAttributesDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
+    mTaskAttributeValueModels.clear();
     TransferDataFromControls();
 
     if (mTaskAttributeValueModels.size() >= 1) {
