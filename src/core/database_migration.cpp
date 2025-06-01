@@ -148,7 +148,7 @@ DatabaseMigration::~DatabaseMigration()
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
-bool DatabaseMigration::Migrate()
+bool DatabaseMigration::Migrate() const
 {
     CreateMigrationHistoryTable();
 

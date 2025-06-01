@@ -39,7 +39,7 @@ struct DatabaseMigration final {
     DatabaseMigration(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~DatabaseMigration();
 
-    bool Migrate();
+    bool Migrate() const;
 
     void CreateMigrationHistoryTable() const;
     bool MigrationExists(const std::string& name) const;
