@@ -46,7 +46,7 @@
 #include "../../models/attributegroupmodel.h"
 
 #include "../../persistence/employerspersistence.h"
-#include "../../persistence/ClientsPersistence.h"
+#include "../../persistence/clientspersistence.h"
 #include "../../persistence/projectspersistence.h"
 #include "../../persistence/categoriespersistence.h"
 #include "../../persistence/workdayspersistence.h"
@@ -751,19 +751,30 @@ void TaskDialog::DataToControls()
     }
 
     // set attribute group choice
-    if (mTaskModel.AttributeGroupId.has_value()) {
+    if (taskModel.AttributeGroupId.has_value()) {
         for (unsigned int i = 0; i < pAttributeGroupChoiceCtrl->GetCount(); i++) {
             auto* data = reinterpret_cast<ClientData<std::int64_t>*>(
                 pAttributeGroupChoiceCtrl->GetClientObject(i));
 
-            if (mTaskModel.AttributeGroupId.value() == data->GetValue()) {
+            if (taskModel.AttributeGroupId.value() == data->GetValue()) {
                 pAttributeGroupChoiceCtrl->SetSelection(i);
 
                 pManageAttributesButton->Enable();
-                mAttributeGroupId = mTaskModel.AttributeGroupId.value();
+                mAttributeGroupId = taskModel.AttributeGroupId.value();
 
                 break;
             }
+        }
+
+        // fetch task attribute values (if applicable)
+        Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+            pLogger, mDatabaseFilePath);
+
+        int rc = taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
+        if (rc != 0) {
+            std::string message = "Failed to fetch attribute values";
+            QueueErrorNotificationEvent(message);
+            return;
         }
     }
 
@@ -1234,6 +1245,13 @@ void TaskDialog::TransferDataFromControls()
         pCategoryChoiceCtrl->GetClientObject(categoryIndex));
     mTaskModel.CategoryId = categoryIdData->GetValue();
     mTaskModel.IsActive = pIsActiveCheckBoxCtrl->GetValue();
+
+    int attributeGroupIndex = pAttributeGroupChoiceCtrl->GetSelection();
+    ClientData<std::int64_t>* attributeGroupIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pAttributeGroupChoiceCtrl->GetClientObject(attributeGroupIndex));
+    if (attributeGroupIndex > 0) {
+        mTaskModel.AttributeGroupId = attributeGroupIdData->GetValue();
+    }
 }
 
 void TaskDialog::ResetClientChoiceControl(bool disable)
