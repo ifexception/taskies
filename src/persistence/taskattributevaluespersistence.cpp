@@ -337,6 +337,7 @@ int TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t taskId,
 }
 
 std::string TaskAttributeValuesPersistence::getByTaskId = "SELECT "
+                                                          "task_attribute_value_id, "
                                                           "text_value, "
                                                           "boolean_value, "
                                                           "numeric_value, "
