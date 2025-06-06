@@ -33,7 +33,6 @@ struct StaticAttributeValueModel {
     std::optional<std::string> TextValue;
     std::optional<bool> BooleanValue;
     std::optional<int> NumericValue;
-    bool IsStatic;
 
     std::uint32_t DateCreated;
     std::uint32_t DateModified;

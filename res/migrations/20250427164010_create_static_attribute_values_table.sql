@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS static_attribute_values
     text_value TEXT NULL,
     boolean_value INTEGER NULL,
     numeric_value INTEGER NULL,
-    is_static INTEGER NOT NULL DEFAULT(1),
 
     date_created INTEGER NOT NULL DEFAULT (strftime('%s','now', 'localtime')),
     date_modified INTEGER NOT NULL DEFAULT (strftime('%s','now', 'localtime')),
