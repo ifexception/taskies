@@ -393,16 +393,12 @@ void AttributeDialog::OnIsActiveCheck(wxCommandEvent& event)
         pDescriptionTextCtrl->Enable();
         pAttributeGroupChoiceCtrl->Enable();
         pAttributeTypeChoiceCtrl->Enable();
-
-        pAddAnotherCheckBoxCtrl->Enable();
     } else {
         pNameTextCtrl->Disable();
         pIsRequiredCheckBoxCtrl->Disable();
         pDescriptionTextCtrl->Disable();
         pAttributeGroupChoiceCtrl->Disable();
         pAttributeTypeChoiceCtrl->Disable();
-
-        pAddAnotherCheckBoxCtrl->Disable();
     }
 }
 
@@ -436,6 +432,41 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         message = ret == -1 ? "Failed to update attribute" : "Successfully updated attribute";
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        bool value = false;
+        ret = attributesPersistence.CheckAttributeUsage(mAttributeId, value);
+        message =
+            ret == -1 ? "Failed to check attribute usage" : "Successfully checked attribute usage";
+        {
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            if (ret == -1) {
+                NotificationClientData* clientData =
+                    new NotificationClientData(NotificationType::Error, message);
+                addNotificationEvent->SetClientObject(clientData);
+
+                // if we are editing, pParent is EditListDlg. We need to get parent of pParent and
+                // then we have wxFrame
+                wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+
+            } else {
+                NotificationClientData* clientData =
+                    new NotificationClientData(NotificationType::Information, message);
+                addNotificationEvent->SetClientObject(clientData);
+
+                // if we are editing, pParent is EditListDlg. We need to get parent of pParent and
+                // then we have wxFrame
+                wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+                EndModal(wxID_OK);
+            }
+
+            if (value) {
+                wxMessageBox("Attribute has values captured and is in use",
+                    "Attribute Usage",
+                    wxOK_DEFAULT,
+                    this);
+                return;
+            }
+        }
+
         ret = attributesPersistence.Delete(mAttributeId);
 
         message = ret == -1 ? "Failed to delete attribute" : "Successfully deleted attribute";
