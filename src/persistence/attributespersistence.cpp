@@ -762,6 +762,68 @@ int AttributesPersistence::Delete(const std::int64_t attributeId) const
     return 0;
 }
 
+int AttributesPersistence::CheckAttributeUsage(const std::int64_t attributeId,
+    bool& value) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributesPersistence::checkUsage.c_str(),
+        static_cast<int>(AttributesPersistence::checkUsage.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, AttributesPersistence::checkUsage, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeId);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, err);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_ROW) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::checkUsage, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+
+    value = !!sqlite3_column_int64(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityUsage, "attribute", attributeId, value);
+
+    return 0;
+}
+
 std::string AttributesPersistence::filter = "SELECT "
                                             "attribute_id, "
                                             "name, "
@@ -848,4 +910,17 @@ std::string AttributesPersistence::isActive = "UPDATE attributes "
                                               "is_active = 0, "
                                               "date_modified = ? "
                                               "WHERE attribute_id = ?";
+
+std::string AttributesPersistence::checkUsage =
+    "SELECT "
+    "CASE "
+    "WHEN "
+    "COUNT(*) >= 1 "
+    "THEN 1 "
+    "ELSE 0 "
+    "END AS UsageCount "
+    "FROM attributes "
+    "INNER JOIN task_attribute_values "
+    "ON attributes.attribute_id = task_attribute_values.attribute_id "
+    "WHERE attributes.attribute_id = ? ";
 } // namespace tks::Persistence

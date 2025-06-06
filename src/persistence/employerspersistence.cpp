@@ -238,7 +238,6 @@ int EmployersPersistence::GetById(const std::int64_t employerId,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -249,7 +248,6 @@ int EmployersPersistence::GetById(const std::int64_t employerId,
 
     if (rc != SQLITE_ROW) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(LogMessages::ExecStepTemplate, EmployersPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);

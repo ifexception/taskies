@@ -50,6 +50,7 @@ struct AttributesPersistence final
     std::int64_t Create(const Model::AttributeModel& attributeModel) const;
     int Update(Model::AttributeModel attributeModel) const;
     int Delete(const std::int64_t attributeId) const;
+    int CheckAttributeUsage(const std::int64_t attributeId, bool& value) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
@@ -61,5 +62,6 @@ struct AttributesPersistence final
     static std::string create;
     static std::string update;
     static std::string isActive;
+    static std::string checkUsage;
 };
 } // namespace tks::Persistence
