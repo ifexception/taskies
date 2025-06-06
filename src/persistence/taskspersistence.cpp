@@ -537,6 +537,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         return -1;
     }
 
+    assert(bindIndex == 11);
+
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
@@ -955,9 +957,9 @@ std::string TasksPersistence::update = "UPDATE tasks "
                                        "project_id = ?, "
                                        "category_id = ?, "
                                        "workday_id = ?, "
-                                       "workday_id = ?, "
-                                       "attribute_group_id = ? "
-                                       "WHERE task_id = ?;";
+                                       "attribute_group_id = ?, "
+                                       "date_modified = ? "
+                                       "WHERE task_id = ?";
 
 std::string TasksPersistence::isActive = "UPDATE tasks "
                                          "SET "
