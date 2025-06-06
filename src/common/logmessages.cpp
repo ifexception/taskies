@@ -49,4 +49,6 @@ const char* EntityGetById = "Retreived \"{0}\" with ID \"{1}\"";
 const char* EntityUpdated = "Updated \"{0}\" with ID \"{1}\"";
 
 const char* EntityDeleted = "Deleted \"{0}\" with ID \"{1}\"";
+
+const char* EntityUsage = "\"{0}\" with ID \"{1}\" usage status \"{2}\"";
 } // namespace tks::LogMessages

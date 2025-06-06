@@ -171,4 +171,15 @@ extern const char* EntityUpdated;
 /// </example>
 /// </summary>
 extern const char* EntityDeleted;
+
+/// <summary>
+/// Use this template to log Information an entity usage
+/// <example>
+/// <para>Usage:</para>
+/// <code>
+/// ""{Entity}" with ID "{ID}" is used status "{Status}""
+/// </code>
+/// </example>
+/// </summary>
+extern const char* EntityUsage;
 } // namespace tks::LogMessages
