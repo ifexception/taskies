@@ -857,7 +857,7 @@ void TaskDialog::OnManageAttributes(wxCommandEvent& WXUNUSED(event))
     TaskManageAttributesDialog taskManageAttributes(
         this, pLogger, mDatabaseFilePath, mAttributeGroupId, bIsEdit, mTaskId);
 
-    if (!bIsEdit && mTaskAttributeValueModels.size() > 0) {
+    if (mTaskAttributeValueModels.size() > 0) {
         pLogger->info("{0} - Task is still being created, but attribute values to be edited", TAG);
         taskManageAttributes.SetTaskAttributeValues(mTaskAttributeValueModels);
     }
@@ -1070,7 +1070,13 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && mTaskModel.IsActive) {
-        // update task attribute values
+        Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+            pLogger, mDatabaseFilePath);
+        ret = taskAttributeValuesPersistence.UpdateMultiple(mTaskAttributeValueModels);
+
+        ret == -1 ? message = "Failed to update task attribute values"
+                  : "Successfully updated task attribute values";
+        QueueNotificationEvent(ret, message);
 
         ret = taskPersistence.Update(mTaskModel);
 
