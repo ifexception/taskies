@@ -1070,6 +1070,8 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && mTaskModel.IsActive) {
+        // update task attribute values
+
         ret = taskPersistence.Update(mTaskModel);
 
         ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
@@ -1077,15 +1079,22 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
+        Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+            pLogger, mDatabaseFilePath);
+
+        ret = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
+
+        ret == -1 ? message = "Failed to delete task attribute values"
+                  : message = "Successfully deleted task attribute values";
+        QueueNotificationEvent(ret, message);
+
         ret = taskPersistence.Delete(mTaskId);
 
         ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
-        QueueInformationNotificationEvent(message);
+        QueueNotificationEvent(ret, message);
     }
 
     if (ret == -1) {
-        QueueErrorNotificationEvent(message);
-
         pOkButton->Enable();
     } else {
         if (!bIsEdit) {
@@ -1384,6 +1393,15 @@ void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> project
         }
     } else {
         pCategoryChoiceCtrl->Disable();
+    }
+}
+
+void TaskDialog::QueueNotificationEvent(int ret, const std::string& message)
+{
+    if (ret == -1) {
+        QueueErrorNotificationEvent(message);
+    } else {
+        QueueInformationNotificationEvent(message);
     }
 }
 

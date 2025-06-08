@@ -100,6 +100,7 @@ private:
         const std::optional<std::int64_t> clientId);
     void FetchCategoryEntities(const std::optional<std::int64_t> projectId);
 
+    void QueueNotificationEvent(int ret, const std::string& message);
     void QueueErrorNotificationEvent(const std::string& message);
     void QueueInformationNotificationEvent(const std::string& message);
 
