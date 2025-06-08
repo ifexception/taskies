@@ -109,6 +109,7 @@ private:
         wxTextCtrl* NumericControl;
 
         std::int64_t AttributeId;
+        std::int64_t TaskAttributeValueId;
 
         AttributeControlData()
             : ControlId(-1)
@@ -119,6 +120,7 @@ private:
             , BooleanControl(nullptr)
             , NumericControl(nullptr)
             , AttributeId(-1)
+            , TaskAttributeValueId(-1)
         {
         }
     };

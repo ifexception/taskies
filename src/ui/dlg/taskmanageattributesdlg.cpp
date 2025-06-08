@@ -92,7 +92,7 @@ void TaskManageAttributesDialog::SetTaskAttributeValues(
 
     mTaskAttributeValueModels = taskAttributeValueModels;
 
-    if (!bIsEdit && mTaskAttributeValueModels.size() > 0) {
+    if (mTaskAttributeValueModels.size() > 0) {
         SetAttributeControlsWithData();
     }
 }
@@ -391,6 +391,8 @@ void TaskManageAttributesDialog::SetAttributeControlsWithData()
     assert(mAttributeControls.size() == mTaskAttributeValueModels.size());
 
     for (size_t i = 0; i < mAttributeControls.size(); i++) {
+        mAttributeControls[i].TaskAttributeValueId =
+            mTaskAttributeValueModels[i].TaskAttributeValueId;
         switch (mAttributeControls[i].AttributeType) {
         case AttributeTypes::Text: {
             if (mTaskAttributeValueModels[i].TextValue.has_value()) {
@@ -512,6 +514,7 @@ void TaskManageAttributesDialog::TransferDataFromControls()
     for (const auto& attributeControl : mAttributeControls) {
         Model::TaskAttributeValueModel taskAttributeModel;
         taskAttributeModel.AttributeId = attributeControl.AttributeId;
+        taskAttributeModel.TaskAttributeValueId = attributeControl.TaskAttributeValueId;
 
         switch (attributeControl.AttributeType) {
         case AttributeTypes::Text: {
