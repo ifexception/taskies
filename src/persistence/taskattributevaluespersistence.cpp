@@ -486,6 +486,19 @@ int TaskAttributeValuesPersistence::Update(
         return -1;
     }
 
+    bindIndex++;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, taskAttributeValueModel.TaskAttributeValueId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "task_attribute_value_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
     assert(bindIndex == 6);
 
     rc = sqlite3_step(stmt);
@@ -509,7 +522,7 @@ int TaskAttributeValuesPersistence::UpdateMultiple(
 {
     for (const auto& taskAttributeValueModel : taskAttributeValueModels) {
         int rc = Update(taskAttributeValueModel);
-        if (rc < 1) {
+        if (rc == -1) {
             return -1;
         }
     }
