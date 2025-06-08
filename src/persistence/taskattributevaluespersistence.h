@@ -42,11 +42,17 @@ struct TaskAttributeValuesPersistence final {
     int CreateMany(std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
     int GetByTaskId(const std::int64_t taskId,
         /*out*/ std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
+    int DeleteByTaskId(const std::int64_t taskId) const;
+    int Update(const Model::TaskAttributeValueModel& taskAttributeValueModel) const;
+    int UpdateMultiple(
+        const std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
     static std::string getByTaskId;
     static std::string create;
+    static std::string deleteByTaskId;
+    static std::string update;
 };
 } // namespace tks::Persistence

@@ -336,6 +336,187 @@ int TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t taskId,
     return 0;
 }
 
+int TaskAttributeValuesPersistence::DeleteByTaskId(const std::int64_t taskId) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        TaskAttributeValuesPersistence::deleteByTaskId.c_str(),
+        static_cast<int>(TaskAttributeValuesPersistence::deleteByTaskId.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            TaskAttributeValuesPersistence::deleteByTaskId,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate,
+            TaskAttributeValuesPersistence::deleteByTaskId,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityDeleted, "task_attribute_value", taskId);
+
+    return 0;
+}
+
+int TaskAttributeValuesPersistence::Update(
+    const Model::TaskAttributeValueModel& taskAttributeValueModel) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        TaskAttributeValuesPersistence::update.c_str(),
+        static_cast<int>(TaskAttributeValuesPersistence::update.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            TaskAttributeValuesPersistence::update,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    if (taskAttributeValueModel.TextValue.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            taskAttributeValueModel.TextValue.value().c_str(),
+            static_cast<int>(taskAttributeValueModel.TextValue.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "text_value", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    if (taskAttributeValueModel.BooleanValue.has_value()) {
+        rc = sqlite3_bind_int(stmt, bindIndex, taskAttributeValueModel.BooleanValue.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "boolean_value", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    if (taskAttributeValueModel.NumericValue.has_value()) {
+        rc = sqlite3_bind_int(stmt, bindIndex, taskAttributeValueModel.NumericValue.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "numeric_value", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, taskAttributeValueModel.AttributeId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modifed", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    assert(bindIndex == 6);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, TaskAttributeValuesPersistence::update, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    return 0;
+}
+
+int TaskAttributeValuesPersistence::UpdateMultiple(
+    const std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const
+{
+    for (const auto& taskAttributeValueModel : taskAttributeValueModels) {
+        int rc = Update(taskAttributeValueModel);
+        if (rc < 1) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 std::string TaskAttributeValuesPersistence::getByTaskId = "SELECT "
                                                           "task_attribute_value_id, "
                                                           "text_value, "
@@ -361,4 +542,17 @@ std::string TaskAttributeValuesPersistence::create = "INSERT INTO "
                                                      ")"
                                                      " VALUES "
                                                      "(?, ?, ?, ?, ?)";
+
+std::string TaskAttributeValuesPersistence::deleteByTaskId = "DELETE "
+                                                             "FROM task_attribute_values "
+                                                             "WHERE task_id = ?";
+
+std::string TaskAttributeValuesPersistence::update = "UPDATE task_attribute_values "
+                                                     "SET "
+                                                     "text_value = ?, "
+                                                     "boolean_value = ?, "
+                                                     "numeric_value = ?, "
+                                                     "attribute_id = ?, "
+                                                     "date_modified = ? "
+                                                     "WHERE task_attribute_value_id = ?";
 } // namespace tks::Persistence
