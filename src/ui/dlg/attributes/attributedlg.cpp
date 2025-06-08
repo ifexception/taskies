@@ -459,7 +459,7 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
             }
 
             if (value) {
-                wxMessageBox("Attribute has values captured and is in use",
+                wxMessageBox("Attribute has values captured and cannot be deleted",
                     "Attribute Usage",
                     wxOK_DEFAULT,
                     this);
