@@ -32,7 +32,13 @@
 
 #include "../../../models/attributemodel.h"
 
-namespace tks::UI::dlg
+namespace tks
+{
+namespace Persistence
+{
+struct AttributesPersistence;
+}
+namespace UI::dlg
 {
 class AttributeDialog final : public wxDialog
 {
@@ -68,6 +74,7 @@ private:
     bool Validate();
     void TransferDataFromControls();
 
+    bool CheckAttributeUsage(Persistence::AttributesPersistence& attributesPersistence);
     void QueueErrorNotificationEvent(const std::string& message);
 
     std::shared_ptr<spdlog::logger> pLogger;
@@ -97,6 +104,8 @@ private:
     Model::AttributeModel mAttributeModel;
     bool bAddAnotherAttribute;
 
+    std::int64_t mOriginalAttributeTypeIdEdit;
+
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
         tksIDC_DESCRIPTIONTEXTCTRL,
@@ -108,4 +117,5 @@ private:
         tksIDC_ADDANOTHERCHECKBOXCTRL
     };
 };
-}
+} // namespace UI::dlg
+} // namespace tks
