@@ -43,8 +43,7 @@ struct StaticAttributeValuesPersistence final {
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
     int FilterByAttributeGroupId(const std::int64_t attributeGroupId,
         /*out*/ std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
-    int Update(const std::int64_t staticAttributeValueId,
-        const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
+    int Update(const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
     int UpdateMultiple(
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
 

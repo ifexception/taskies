@@ -342,7 +342,7 @@ int StaticAttributeValuesPersistence::FilterByAttributeGroupId(const std::int64_
     return 0;
 }
 
-int StaticAttributeValuesPersistence::Update(const std::int64_t staticAttributeValueId,
+int StaticAttributeValuesPersistence::Update(
     const Model::StaticAttributeValueModel& staticAttributeValueModel) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -455,7 +455,7 @@ int StaticAttributeValuesPersistence::Update(const std::int64_t staticAttributeV
 
     bindIndex++;
 
-    rc = sqlite3_bind_int64(stmt, bindIndex, staticAttributeValueId);
+    rc = sqlite3_bind_int64(stmt, bindIndex, staticAttributeValueModel.StaticAttributeValueId);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
@@ -487,9 +487,8 @@ int StaticAttributeValuesPersistence::UpdateMultiple(
     const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const
 {
     for (const auto& staticAttributeValueModel : staticAttributeValueModels) {
-        int rc =
-            Update(staticAttributeValueModel.StaticAttributeValueId, staticAttributeValueModel);
-        if (rc < 1) {
+        int rc = Update(staticAttributeValueModel);
+        if (rc != 0) {
             return -1;
         }
     }
