@@ -63,6 +63,9 @@ private:
     bool Validate();
     void TransferDataFromControls();
 
+    void DisableControlsIfUsed();
+    void QueueErrorNotificationEvent(const std::string& message);
+
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;

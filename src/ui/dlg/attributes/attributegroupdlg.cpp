@@ -214,20 +214,43 @@ void AttributeGroupDialog::DataToControls()
         // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
         // have wxFrame
         wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-    } else {
-        pNameTextCtrl->SetValue(attributeGroupModel.Name);
-        pIsStaticGroupCheckBoxCtrl->SetValue(attributeGroupModel.IsStaticGroup);
-
-        if (attributeGroupModel.Description.has_value()) {
-            pDescriptionTextCtrl->SetValue(attributeGroupModel.Description.value());
-        }
-        pIsActiveCheckBoxCtrl->SetValue(attributeGroupModel.IsActive);
-
-        pIsActiveCheckBoxCtrl->Enable();
-
-        pOkButton->Enable();
-        pOkButton->SetFocus();
+        return;
     }
+
+    pNameTextCtrl->SetValue(attributeGroupModel.Name);
+    pIsStaticGroupCheckBoxCtrl->SetValue(attributeGroupModel.IsStaticGroup);
+
+    if (attributeGroupModel.Description.has_value()) {
+        pDescriptionTextCtrl->SetValue(attributeGroupModel.Description.value());
+    }
+    pIsActiveCheckBoxCtrl->SetValue(attributeGroupModel.IsActive);
+
+    pIsActiveCheckBoxCtrl->Enable();
+
+    bool isAttributeGroupAttributeValueUsed = false;
+    rc = attributeGroupPersistence.CheckAttributeGroupAttributeValuesUsage(
+        mAttributeGroupId, isAttributeGroupAttributeValueUsed);
+
+    if (rc == -1) {
+        std::string message = "Failed to check attribute usage";
+        QueueErrorNotificationEvent(message);
+    }
+
+    bool isAttributeGroupAttributeUsed = false;
+    rc = attributeGroupPersistence.CheckAttributeGroupAttributesUsage(
+        mAttributeGroupId, isAttributeGroupAttributeUsed);
+
+    if (rc == -1) {
+        std::string message = "Failed to check attribute usage";
+        QueueErrorNotificationEvent(message);
+    }
+
+    if (isAttributeGroupAttributeValueUsed || isAttributeGroupAttributeUsed) {
+        DisableControlsIfUsed();
+    }
+
+    pOkButton->Enable();
+    pOkButton->SetFocus();
 }
 
 void AttributeGroupDialog::OnIsActiveCheck(wxCommandEvent& event)
@@ -257,6 +280,7 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
 
     int ret = 0;
     std::string message = "";
+
     if (!bIsEdit) {
         std::int64_t attributeGroupId = attributeGroupsPersistence.Create(mAttributeGroupModel);
         ret = attributeGroupId > 0 ? 1 : -1;
@@ -354,5 +378,25 @@ void AttributeGroupDialog::TransferDataFromControls()
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mAttributeGroupModel.Description =
         description.empty() ? std::nullopt : std::make_optional(description);
+}
+
+void AttributeGroupDialog::DisableControlsIfUsed()
+{
+    pNameTextCtrl->Disable();
+    pIsStaticGroupCheckBoxCtrl->Disable();
+    pDescriptionTextCtrl->Disable();
+    pIsActiveCheckBoxCtrl->Disable();
+}
+
+void AttributeGroupDialog::QueueErrorNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+    // have wxFrame
+    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg
