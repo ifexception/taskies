@@ -73,7 +73,6 @@ AttributeDialog::AttributeDialog(wxWindow* parent,
     , pCancelButton(nullptr)
     , mAttributeModel()
     , bAddAnotherAttribute(false)
-    , mOriginalAttributeTypeIdEdit(-1)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -329,8 +328,9 @@ void AttributeDialog::DataToControls()
     } else {
         pNameTextCtrl->ChangeValue(mAttributeModel.Name);
         pIsRequiredCheckBoxCtrl->SetValue(mAttributeModel.IsRequired);
-        pDescriptionTextCtrl->ChangeValue(
-            mAttributeModel.Description.has_value() ? mAttributeModel.Description.value() : "");
+        if (mAttributeModel.Description.has_value()) {
+            pDescriptionTextCtrl->ChangeValue(mAttributeModel.Description.value());
+        }
 
         for (unsigned int i = 0; i < pAttributeGroupChoiceCtrl->GetCount(); i++) {
             ClientData<std::int64_t>* data = reinterpret_cast<ClientData<std::int64_t>*>(
@@ -371,11 +371,14 @@ void AttributeDialog::DataToControls()
             }
         }
 
-        mOriginalAttributeTypeIdEdit = mAttributeModel.AttributeTypeId;
-
         pIsActiveCheckBoxCtrl->SetValue(mAttributeModel.IsActive);
-
         pIsActiveCheckBoxCtrl->Enable();
+
+        bool isAttributeUsed = CheckAttributeUsage(attributesPersistence);
+        if (isAttributeUsed) {
+            DisableChoiceControlsIfUsed();
+        }
+
         pOkButton->Enable();
     }
 }
@@ -451,33 +454,11 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
             attributeId == -1 ? "Failed to create attribute" : "Successfully created attribute";
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-        if (mOriginalAttributeTypeIdEdit != mAttributeModel.AttributeTypeId) {
-            bool value = CheckAttributeUsage(attributesPersistence);
-
-            if (value) {
-                wxMessageBox("Attribute has values captured and its type cannot be edited",
-                    "Attribute Usage",
-                    wxOK_DEFAULT,
-                    this);
-                return;
-            }
-        }
-
         ret = attributesPersistence.Update(mAttributeModel);
 
         message = ret == -1 ? "Failed to update attribute" : "Successfully updated attribute";
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
-        bool value = CheckAttributeUsage(attributesPersistence);
-
-        if (value) {
-            wxMessageBox("Attribute has values captured and cannot be deleted",
-                "Attribute Usage",
-                wxOK_DEFAULT,
-                this);
-            return;
-        }
-
         ret = attributesPersistence.Delete(mAttributeId);
 
         message = ret == -1 ? "Failed to delete attribute" : "Successfully deleted attribute";
@@ -633,6 +614,13 @@ bool AttributeDialog::CheckAttributeUsage(Persistence::AttributesPersistence& at
     }
 
     return value;
+}
+
+void AttributeDialog::DisableChoiceControlsIfUsed()
+{
+    pAttributeGroupChoiceCtrl->Disable();
+    pAttributeTypeChoiceCtrl->Disable();
+    pIsActiveCheckBoxCtrl->Disable();
 }
 
 void AttributeDialog::QueueErrorNotificationEvent(const std::string& message)

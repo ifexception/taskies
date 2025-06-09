@@ -75,6 +75,7 @@ private:
     void TransferDataFromControls();
 
     bool CheckAttributeUsage(Persistence::AttributesPersistence& attributesPersistence);
+    void DisableChoiceControlsIfUsed();
     void QueueErrorNotificationEvent(const std::string& message);
 
     std::shared_ptr<spdlog::logger> pLogger;
@@ -103,8 +104,6 @@ private:
 
     Model::AttributeModel mAttributeModel;
     bool bAddAnotherAttribute;
-
-    std::int64_t mOriginalAttributeTypeIdEdit;
 
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
