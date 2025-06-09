@@ -762,8 +762,7 @@ int AttributesPersistence::Delete(const std::int64_t attributeId) const
     return 0;
 }
 
-int AttributesPersistence::CheckAttributeUsage(const std::int64_t attributeId,
-    bool& value) const
+int AttributesPersistence::CheckAttributeUsage(const std::int64_t attributeId, bool& value) const
 {
     sqlite3_stmt* stmt = nullptr;
 

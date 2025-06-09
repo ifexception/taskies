@@ -33,8 +33,7 @@
 
 namespace tks::Persistence
 {
-struct AttributesPersistence final
-{
+struct AttributesPersistence final {
     AttributesPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
     ~AttributesPersistence();
