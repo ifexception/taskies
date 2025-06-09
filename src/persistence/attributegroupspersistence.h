@@ -47,6 +47,10 @@ struct AttributeGroupsPersistence final {
     std::int64_t Create(const Model::AttributeGroupModel& attributeGroupModel) const;
     int Update(Model::AttributeGroupModel attributeGroupModel) const;
     int Delete(const std::int64_t attributeGroupId) const;
+    int CheckAttributeGroupAttributeValuesUsage(const std::int64_t attributeGroupId,
+        bool& value) const;
+    int CheckAttributeGroupAttributesUsage(const std::int64_t attributeGroupId,
+        bool& value) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
@@ -57,5 +61,7 @@ struct AttributeGroupsPersistence final {
     static std::string create;
     static std::string update;
     static std::string isActive;
+    static std::string checkAttributeGroupAttributeValuesUsage;
+    static std::string checkAttributeGroupAttributesUsage;
 };
 } // namespace tks::Persistence

@@ -660,6 +660,147 @@ int AttributeGroupsPersistence::Delete(const std::int64_t attributeGroupId) cons
     return 0;
 }
 
+int AttributeGroupsPersistence::CheckAttributeGroupAttributeValuesUsage(
+    const std::int64_t attributeGroupId,
+    bool& value) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributeGroupsPersistence::checkAttributeGroupAttributeValuesUsage.c_str(),
+        static_cast<int>(
+            AttributeGroupsPersistence::checkAttributeGroupAttributeValuesUsage.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            AttributeGroupsPersistence::checkAttributeGroupAttributeValuesUsage,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeGroupId);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, err);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_ROW) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate,
+            AttributeGroupsPersistence::checkAttributeGroupAttributeValuesUsage,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+
+    value = !!sqlite3_column_int64(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::EntityUsage, "attribute_group", attributeGroupId, value);
+
+    return 0;
+}
+
+int AttributeGroupsPersistence::CheckAttributeGroupAttributesUsage(
+    const std::int64_t attributeGroupId,
+    bool& value) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributeGroupsPersistence::checkAttributeGroupAttributesUsage.c_str(),
+        static_cast<int>(AttributeGroupsPersistence::checkAttributeGroupAttributesUsage.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            AttributeGroupsPersistence::checkAttributeGroupAttributesUsage,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeGroupId);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, err);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_ROW) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate,
+            AttributeGroupsPersistence::checkAttributeGroupAttributesUsage,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+
+    value = !!sqlite3_column_int64(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::EntityUsage, "attribute_group", attributeGroupId, value);
+
+    return 0;
+}
+
 std::string AttributeGroupsPersistence::filter = "SELECT "
                                                  "attribute_group_id, "
                                                  "name, "
@@ -718,4 +859,32 @@ std::string AttributeGroupsPersistence::isActive = "UPDATE attribute_groups "
                                                    "is_active = 0, "
                                                    "date_modified = ? "
                                                    "WHERE attribute_group_id = ?";
+
+std::string AttributeGroupsPersistence::checkAttributeGroupAttributeValuesUsage =
+    "SELECT "
+    "CASE "
+    "WHEN "
+    "COUNT(*) >= 1 "
+    "THEN 1 "
+    "ELSE 0 "
+    "END AS UsageCount "
+    "FROM attributes "
+    "INNER JOIN task_attribute_values "
+    "ON attributes.attribute_id = task_attribute_values.attribute_id "
+    "INNER JOIN attribute_groups "
+    "ON attributes.attribute_group_id = attribute_groups.attribute_group_id "
+    "WHERE attribute_groups.attribute_group_id = ?";
+
+std::string AttributeGroupsPersistence::checkAttributeGroupAttributesUsage =
+    "SELECT "
+    "CASE "
+    "WHEN "
+    "COUNT(*) >= 1 "
+    "THEN 1 "
+    "ELSE 0 "
+    "END AS UsageCount "
+    "FROM attributes "
+    "INNER JOIN attribute_groups "
+    "ON attributes.attribute_group_id = attribute_groups.attribute_group_id "
+    "WHERE attribute_groups.attribute_group_id = ?";
 } // namespace tks::Persistence
