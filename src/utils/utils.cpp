@@ -170,8 +170,9 @@ std::string FormatSqlSearchTerm(const std::string& source)
 
 std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t> ids)
 {
-    return std::accumulate(std::begin(ids), std::end(ids), std::string(), [](std::string s, int i) {
-        return s.empty() ? std::to_string(i) : s + "," + std::to_string(i);
-    });
+    return std::accumulate(
+        std::begin(ids), std::end(ids), std::string(), [](std::string s, std::int64_t i) {
+            return s.empty() ? std::to_string(i) : s + "," + std::to_string(i);
+        });
 }
 } // namespace tks::Utils
