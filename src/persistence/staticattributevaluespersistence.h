@@ -47,6 +47,7 @@ struct StaticAttributeValuesPersistence final {
     int UpdateMultiple(
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
     int Delete(const std::vector<std::int64_t>& staticAttributeValueIds) const;
+    int CheckUsage(const std::vector<std::int64_t>& attributeIds, bool& value) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
@@ -55,5 +56,6 @@ struct StaticAttributeValuesPersistence final {
     static std::string filterByAttributeGroupId;
     static std::string update;
     static std::string isActive;
+    static std::string checkUsage;
 };
 } // namespace tks::Persistence

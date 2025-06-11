@@ -542,6 +542,55 @@ int StaticAttributeValuesPersistence::Delete(
     return 0;
 }
 
+int StaticAttributeValuesPersistence::CheckUsage(const std::vector<std::int64_t>& attributeIds,
+    bool& value) const
+{
+    std::string csvIds = Utils::ConvertListIdsToCommaDelimitedString(attributeIds);
+    std::string sql = StaticAttributeValuesPersistence::checkUsage + "(" + csvIds + ")";
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_ROW) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+
+    value = !!sqlite3_column_int64(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::EntityUsage, "static_attribute_values", csvIds, value);
+
+    return 0;
+}
+
 std::string StaticAttributeValuesPersistence::create = "INSERT INTO "
                                                        "static_attribute_values "
                                                        "("
@@ -582,4 +631,19 @@ std::string StaticAttributeValuesPersistence::update = "UPDATE static_attribute_
 std::string StaticAttributeValuesPersistence::isActive = "UPDATE static_attribute_values "
                                                          "SET date_modified = ? "
                                                          "WHERE static_attribute_value_id IN ";
+
+std::string StaticAttributeValuesPersistence::checkUsage =
+    "SELECT "
+    "CASE "
+    "WHEN "
+    "COUNT(*) >= 1 "
+    "THEN 1 "
+    "ELSE 0 "
+    "END AS UsageCount "
+    "FROM attributes "
+    "INNER JOIN static_attribute_values "
+    "ON attributes.attribute_id = static_attribute_values.attribute_id "
+    "INNER JOIN task_attribute_values "
+    "ON attributes.attribute_id = task_attribute_values.attribute_id "
+    "WHERE attributes.attribute_id IN ";
 } // namespace tks::Persistence
