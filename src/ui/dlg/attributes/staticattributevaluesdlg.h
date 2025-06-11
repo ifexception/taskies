@@ -61,6 +61,7 @@ private:
     void DataToControls();
 
     void OnAttributeGroupChoiceSelection(wxCommandEvent& event);
+    void OnIsActiveCheck(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
@@ -84,6 +85,8 @@ private:
     wxStaticBoxSizer* pAttributesBoxSizer;
     wxFlexGridSizer* pAttributesControlFlexGridSizer;
 
+    wxCheckBox* pIsActiveCheckBoxCtrl;
+
     wxButton* pOKButton;
     wxButton* pCancelButton;
 
@@ -94,6 +97,7 @@ private:
 
     enum {
         tksIDC_ATTRIBUTEGROUPCHOICECTRL = wxID_HIGHEST + 1001,
+        tksIDC_ISACTIVECHECKBOXCTRL,
         tksIDC_ATTRIBUTECONTROLBASE,
     };
 

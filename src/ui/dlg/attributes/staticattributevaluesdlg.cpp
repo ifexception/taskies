@@ -19,6 +19,7 @@
 
 #include "staticattributevaluesdlg.h"
 
+#include <algorithm>
 #include <optional>
 
 #include <fmt/format.h>
@@ -66,6 +67,7 @@ StaticAttributeValuesDialog::StaticAttributeValuesDialog(wxWindow* parent,
     , pAttributesBox(nullptr)
     , pAttributesBoxSizer(nullptr)
     , pAttributesControlFlexGridSizer(nullptr)
+    , pIsActiveCheckBoxCtrl(nullptr)
     , pOKButton(nullptr)
     , pCancelButton(nullptr)
     , mAttributesMetadata()
@@ -111,6 +113,17 @@ void StaticAttributeValuesDialog::CreateControls()
     pAttributesControlFlexGridSizer->AddGrowableCol(1, 1);
     pAttributesBoxSizer->Add(
         pAttributesControlFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
+
+    /* Is Active static box control */
+    auto isActiveStaticBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    auto isActiveStaticBoxSizer = new wxStaticBoxSizer(isActiveStaticBox, wxHORIZONTAL);
+    pMainSizer->Add(isActiveStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Is Active checkbox control */
+    pIsActiveCheckBoxCtrl =
+        new wxCheckBox(isActiveStaticBox, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
+    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
+    pIsActiveCheckBoxCtrl->Disable();
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
@@ -167,6 +180,12 @@ void StaticAttributeValuesDialog::ConfigureEventBindings()
     pAttributeGroupChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection,
+        this
+    );
+
+    pIsActiveCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &StaticAttributeValuesDialog::OnIsActiveCheck,
         this
     );
 
@@ -365,6 +384,8 @@ void StaticAttributeValuesDialog::DataToControls()
         mAttributesMetadata[i].StaticAttributeValueId =
             staticAttributeValueModels[i].StaticAttributeValueId;
     }
+
+    pIsActiveCheckBoxCtrl->Enable();
 }
 
 void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
@@ -497,6 +518,55 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
     SetSizerAndFit(pMainSizer);
 }
 
+void StaticAttributeValuesDialog::OnIsActiveCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pAttributeGroupChoiceCtrl->Disable();
+
+        for (size_t i = 0; i < mAttributesMetadata.size(); i++) {
+            switch (mAttributesMetadata[i].AttributeType) {
+            case AttributeTypes::Text: {
+                mAttributesMetadata[i].Control.TextControl->Disable();
+                break;
+            }
+            case AttributeTypes::Boolean: {
+                mAttributesMetadata[i].Control.BooleanControl->Disable();
+                break;
+            }
+            case AttributeTypes::Numeric: {
+                mAttributesMetadata[i].Control.NumericControl->Disable();
+                break;
+            }
+            default:
+                pLogger->error("Unmatched attribute type, cannot set control values");
+                break;
+            }
+        }
+    } else {
+        pAttributeGroupChoiceCtrl->Enable();
+
+        for (size_t i = 0; i < mAttributesMetadata.size(); i++) {
+            switch (mAttributesMetadata[i].AttributeType) {
+            case AttributeTypes::Text: {
+                mAttributesMetadata[i].Control.TextControl->Enable();
+                break;
+            }
+            case AttributeTypes::Boolean: {
+                mAttributesMetadata[i].Control.BooleanControl->Enable();
+                break;
+            }
+            case AttributeTypes::Numeric: {
+                mAttributesMetadata[i].Control.NumericControl->Enable();
+                break;
+            }
+            default:
+                pLogger->error("Unmatched attribute type, cannot set control values");
+                break;
+            }
+        }
+    }
+}
+
 void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
 {
     if (!Validate()) {
@@ -517,13 +587,25 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
 
             message = ret == -1 ? "Failed to create static attribute values"
                                 : "Successfully created static attribute values";
-        } else if (bIsEdit) {
+        } else if (bIsEdit && pIsActiveCheckBoxCtrl->GetValue()) {
             ret = staticAttributeValuesPersistence.UpdateMultiple(staticAttributeValueModels);
 
             message = ret == -1 ? "Failed to update static attribute values"
                                 : "Successfully updated static attribute values";
-        } else {
-            return;
+        } else if (bIsEdit && !pIsActiveCheckBoxCtrl->GetValue()) {
+            std::vector<std::int64_t> staticAttributeValueIds;
+            std::transform(
+                std::begin(staticAttributeValueModels),
+                std::end(staticAttributeValueModels),
+                std::back_inserter(staticAttributeValueIds),
+                [](const Model::StaticAttributeValueModel& staticAttributeValueModel) {
+                    return staticAttributeValueModel.StaticAttributeValueId;
+                }
+            );
+
+            ret = staticAttributeValuesPersistence.Delete(staticAttributeValueIds);
+            message = ret == -1 ? "Failed to delete static attribute values"
+                                : "Successfully deleted static attribute values";
         }
 
         clientData = ret == -1 ? new NotificationClientData(NotificationType::Error, message)
