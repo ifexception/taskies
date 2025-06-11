@@ -20,6 +20,7 @@
 #include "utils.h"
 
 #include <chrono>
+#include <numeric>
 #include <random>
 
 #include <date/date.h>
@@ -165,5 +166,12 @@ int ConvertMinutesToMilliseconds(const int valueInMinutes)
 std::string FormatSqlSearchTerm(const std::string& source)
 {
     return "%" + source + "%";
+}
+
+std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t> ids)
+{
+    return std::accumulate(std::begin(ids), std::end(ids), std::string(), [](std::string s, int i) {
+        return s.empty() ? std::to_string(i) : s + "," + std::to_string(i);
+    });
 }
 } // namespace tks::Utils

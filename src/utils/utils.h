@@ -54,4 +54,6 @@ int ConvertMinutesToMilliseconds(const int valueInMinutes);
 // If a parameter is in single quotes, then this function handles adding the LIKE operator '%'
 // to the string so the parameterization takes effect
 std::string FormatSqlSearchTerm(const std::string& source);
+
+std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t> ids);
 } // namespace tks::Utils
