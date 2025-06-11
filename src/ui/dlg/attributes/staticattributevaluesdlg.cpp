@@ -122,8 +122,10 @@ void StaticAttributeValuesDialog::CreateControls()
     /* Is Active checkbox control */
     pIsActiveCheckBoxCtrl =
         new wxCheckBox(isActiveStaticBox, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
-    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
+    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this static attribute value is used/active");
     pIsActiveCheckBoxCtrl->Disable();
+
+    isActiveStaticBoxSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
@@ -386,6 +388,7 @@ void StaticAttributeValuesDialog::DataToControls()
     }
 
     pIsActiveCheckBoxCtrl->Enable();
+    pIsActiveCheckBoxCtrl->SetValue(true); // TODO: might need to look at this again
 }
 
 void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
@@ -520,7 +523,7 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
 
 void StaticAttributeValuesDialog::OnIsActiveCheck(wxCommandEvent& event)
 {
-    if (event.IsChecked()) {
+    if (!event.IsChecked()) {
         pAttributeGroupChoiceCtrl->Disable();
 
         for (size_t i = 0; i < mAttributesMetadata.size(); i++) {
@@ -593,7 +596,38 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
             message = ret == -1 ? "Failed to update static attribute values"
                                 : "Successfully updated static attribute values";
         } else if (bIsEdit && !pIsActiveCheckBoxCtrl->GetValue()) {
+            bool areStaticAttributeValuesUsed = false;
+            std::vector<std::int64_t> attributeIds;
+
+            // clang-format off
+            std::transform(
+                std::begin(staticAttributeValueModels),
+                std::end(staticAttributeValueModels),
+                std::back_inserter(attributeIds),
+                [](const Model::StaticAttributeValueModel& staticAttributeValueModel) {
+                    return staticAttributeValueModel.AttributeId;
+                }
+            );
+            // clang-format on
+
+            ret = staticAttributeValuesPersistence.CheckUsage(
+                attributeIds, areStaticAttributeValuesUsed);
+            if (ret == -1) {
+                message = "Failed to check static attribute value usage";
+                QueueErrorNotificationEvent(message);
+                return;
+            }
+
+            if (areStaticAttributeValuesUsed) {
+                wxMessageBox("Static attribute values are being used and cannot be deleted",
+                    Common::GetProgramName(),
+                    wxOK_DEFAULT | wxICON_WARNING);
+                return;
+            }
+
             std::vector<std::int64_t> staticAttributeValueIds;
+
+            // clang-format off
             std::transform(
                 std::begin(staticAttributeValueModels),
                 std::end(staticAttributeValueModels),
@@ -602,6 +636,7 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
                     return staticAttributeValueModel.StaticAttributeValueId;
                 }
             );
+            // clang-format on
 
             ret = staticAttributeValuesPersistence.Delete(staticAttributeValueIds);
             message = ret == -1 ? "Failed to delete static attribute values"
