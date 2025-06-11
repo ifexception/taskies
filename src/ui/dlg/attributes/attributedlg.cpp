@@ -590,27 +590,10 @@ bool AttributeDialog::CheckAttributeUsage(Persistence::AttributesPersistence& at
     bool value = false;
 
     int ret = attributesPersistence.CheckAttributeUsage(mAttributeId, value);
-    std::string message =
-        ret == -1 ? "Failed to check attribute usage" : "Successfully checked attribute usage";
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
     if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and
-        // then we have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
-    } else {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and
-        // then we have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        std::string message = "Failed to check attribute usage";
+        QueueErrorNotificationEvent(message);
     }
 
     return value;
@@ -630,6 +613,8 @@ void AttributeDialog::QueueErrorNotificationEvent(const std::string& message)
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);
 
-    wxQueueEvent(pParent, addNotificationEvent);
+    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and
+    // then we have wxFrame
+    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg
