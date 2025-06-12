@@ -259,7 +259,7 @@ void StaticAttributeValuesDialog::DataToControls()
 
         AttributeMetadata attributeMetadata;
         attributeMetadata.IsRequired = attributeModels[i].IsRequired;
-        attributeMetadata.Name = attributeModels[i].Name;
+        attributeMetadata.AttributeName = attributeModels[i].Name;
 
         AttributeControl attributeControl;
         attributeControl.ControlId = controlId;
@@ -443,7 +443,7 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
 
         AttributeMetadata attributeMetadata;
         attributeMetadata.IsRequired = attributeModels[i].IsRequired;
-        attributeMetadata.Name = attributeModels[i].Name;
+        attributeMetadata.AttributeName = attributeModels[i].Name;
 
         AttributeControl attributeControl;
         attributeControl.ControlId = controlId;
@@ -619,7 +619,7 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
             }
 
             if (areStaticAttributeValuesUsed) {
-                wxMessageBox("Static attribute values are being used and cannot be deleted",
+                wxMessageBox("Unable to delete static attribute values as they are in use",
                     Common::GetProgramName(),
                     wxOK_DEFAULT | wxICON_WARNING);
                 return;
@@ -669,7 +669,7 @@ bool StaticAttributeValuesDialog::Validate()
                 std::string value = attributeMetadata.Control.TextControl->GetValue().ToStdString();
                 if (value.empty()) {
                     std::string validation =
-                        fmt::format("A value is required for \"{0}\"", attributeMetadata.Name);
+                        fmt::format("A value is required for \"{0}\"", attributeMetadata.AttributeName);
                     wxRichToolTip toolTip("Validation", validation);
                     toolTip.SetIcon(wxICON_WARNING);
                     toolTip.ShowFor(attributeMetadata.Control.TextControl);
@@ -682,7 +682,7 @@ bool StaticAttributeValuesDialog::Validate()
                     attributeMetadata.Control.BooleanControl->Get3StateValue();
                 if (isUndeterminedState == wxCHK_UNDETERMINED) {
                     std::string validation =
-                        fmt::format("A value is required for \"{0}\"", attributeMetadata.Name);
+                        fmt::format("A value is required for \"{0}\"", attributeMetadata.AttributeName);
                     wxRichToolTip toolTip("Validation", validation);
                     toolTip.SetIcon(wxICON_WARNING);
                     toolTip.ShowFor(attributeMetadata.Control.BooleanControl);
@@ -695,7 +695,7 @@ bool StaticAttributeValuesDialog::Validate()
                     attributeMetadata.Control.NumericControl->GetValue().ToStdString();
                 if (value.empty()) {
                     std::string validation =
-                        fmt::format("A value is required for \"{0}\"", attributeMetadata.Name);
+                        fmt::format("A value is required for \"{0}\"", attributeMetadata.AttributeName);
                     wxRichToolTip toolTip("Validation", validation);
                     toolTip.SetIcon(wxICON_WARNING);
                     toolTip.ShowFor(attributeMetadata.Control.NumericControl);

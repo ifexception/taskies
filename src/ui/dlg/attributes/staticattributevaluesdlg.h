@@ -119,7 +119,7 @@ private:
     struct AttributeMetadata {
         AttributeTypes AttributeType;
         bool IsRequired;
-        std::string Name;
+        std::string AttributeName;
 
         AttributeControl Control;
 
@@ -129,7 +129,7 @@ private:
         AttributeMetadata()
             : AttributeType()
             , IsRequired(false)
-            , Name()
+            , AttributeName()
             , Control()
             , AttributeId(-1)
             , StaticAttributeValueId(-1)
