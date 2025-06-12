@@ -383,14 +383,6 @@ void AttributeGroupDialog::TransferDataFromControls()
         description.empty() ? std::nullopt : std::make_optional(description);
 }
 
-void AttributeGroupDialog::DisableControlsIfUsed()
-{
-    pNameTextCtrl->Disable();
-    pIsStaticGroupCheckBoxCtrl->Disable();
-    pDescriptionTextCtrl->Disable();
-    pIsActiveCheckBoxCtrl->Disable();
-}
-
 void AttributeGroupDialog::QueueErrorNotificationEvent(const std::string& message)
 {
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
