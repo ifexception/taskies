@@ -1051,7 +1051,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         mTaskId = taskId;
 
         ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
-        QueueInformationNotificationEvent(message);
+        QueueNotificationEvent(ret, message);
 
         if (ret == 0 && mTaskAttributeValueModels.size() > 0) {
             for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
@@ -1065,7 +1065,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
             ret == -1 ? message = "Failed to create task attribute values"
                       : message = "Successfully created task attribute values";
-            QueueInformationNotificationEvent(message);
+            QueueNotificationEvent(ret, message);
         }
     }
 
@@ -1081,7 +1081,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         ret = taskPersistence.Update(mTaskModel);
 
         ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
-        QueueInformationNotificationEvent(message);
+        QueueNotificationEvent(ret, message);
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
