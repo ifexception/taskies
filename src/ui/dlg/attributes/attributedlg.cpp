@@ -374,11 +374,6 @@ void AttributeDialog::DataToControls()
         pIsActiveCheckBoxCtrl->SetValue(mAttributeModel.IsActive);
         pIsActiveCheckBoxCtrl->Enable();
 
-        bool isAttributeUsed = CheckAttributeUsage(attributesPersistence);
-        if (isAttributeUsed) {
-            DisableChoiceControlsIfUsed();
-        }
-
         pOkButton->Enable();
     }
 }
@@ -453,12 +448,28 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         message =
             attributeId == -1 ? "Failed to create attribute" : "Successfully created attribute";
     }
+
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        bool isAttributeUsed = CheckAttributeUsage(attributesPersistence);
+        if (isAttributeUsed) {
+            wxMessageBox("Unable to edit attribute as it is in use",
+                Common::GetProgramName(),
+                wxOK_DEFAULT | wxICON_WARNING);
+            return;
+        }
         ret = attributesPersistence.Update(mAttributeModel);
 
         message = ret == -1 ? "Failed to update attribute" : "Successfully updated attribute";
     }
+
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        bool isAttributeUsed = CheckAttributeUsage(attributesPersistence);
+        if (isAttributeUsed) {
+            wxMessageBox("Unable to delete attribute as it is in use",
+                Common::GetProgramName(),
+                wxOK_DEFAULT | wxICON_WARNING);
+            return;
+        }
         ret = attributesPersistence.Delete(mAttributeId);
 
         message = ret == -1 ? "Failed to delete attribute" : "Successfully deleted attribute";
