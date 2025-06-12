@@ -227,28 +227,6 @@ void AttributeGroupDialog::DataToControls()
 
     pIsActiveCheckBoxCtrl->Enable();
 
-    bool isAttributeGroupAttributeValueUsed = false;
-    rc = attributeGroupPersistence.CheckAttributeGroupAttributeValuesUsage(
-        mAttributeGroupId, isAttributeGroupAttributeValueUsed);
-
-    if (rc == -1) {
-        std::string message = "Failed to check attribute usage";
-        QueueErrorNotificationEvent(message);
-    }
-
-    bool isAttributeGroupAttributeUsed = false;
-    rc = attributeGroupPersistence.CheckAttributeGroupAttributesUsage(
-        mAttributeGroupId, isAttributeGroupAttributeUsed);
-
-    if (rc == -1) {
-        std::string message = "Failed to check attribute usage";
-        QueueErrorNotificationEvent(message);
-    }
-
-    if (isAttributeGroupAttributeValueUsed || isAttributeGroupAttributeUsed) {
-        DisableControlsIfUsed();
-    }
-
     pOkButton->Enable();
     pOkButton->SetFocus();
 }
@@ -295,6 +273,31 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
                   : message = "Successfully updated attribute group";
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        bool isAttributeGroupAttributeValueUsed = false;
+        ret = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
+            mAttributeGroupId, isAttributeGroupAttributeValueUsed);
+
+        if (ret == -1) {
+            std::string message = "Failed to check attribute group usage";
+            QueueErrorNotificationEvent(message);
+        }
+
+        bool isAttributeGroupAttributeUsed = false;
+        ret = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(
+            mAttributeGroupId, isAttributeGroupAttributeUsed);
+
+        if (ret == -1) {
+            std::string message = "Failed to check attribute group usage";
+            QueueErrorNotificationEvent(message);
+        }
+
+        if (isAttributeGroupAttributeValueUsed || isAttributeGroupAttributeUsed) {
+            wxMessageBox("Unable to delete attribute group as it is in use",
+                Common::GetProgramName(),
+                wxOK_DEFAULT | wxICON_WARNING);
+            return;
+        }
+
         ret = attributeGroupsPersistence.Delete(mAttributeGroupId);
 
         ret == -1 ? message = "Failed to delete attribute group"

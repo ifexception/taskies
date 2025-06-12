@@ -69,6 +69,7 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
+    wxBoxSizer* pMainSizer;
 
     wxTextCtrl* pNameTextCtrl;
     wxCheckBox* pIsStaticGroupCheckBoxCtrl;
