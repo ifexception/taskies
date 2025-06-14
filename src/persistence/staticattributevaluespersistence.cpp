@@ -629,7 +629,8 @@ std::string StaticAttributeValuesPersistence::update = "UPDATE static_attribute_
                                                        "WHERE static_attribute_value_id = ? ";
 
 std::string StaticAttributeValuesPersistence::isActive = "UPDATE static_attribute_values "
-                                                         "SET date_modified = ? "
+                                                         "SET date_modified = ?, "
+                                                         "is_active = 0 "
                                                          "WHERE static_attribute_value_id IN ";
 
 std::string StaticAttributeValuesPersistence::checkUsage =
