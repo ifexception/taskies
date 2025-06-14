@@ -44,6 +44,8 @@
 #include "../../models/projectmodel.h"
 #include "../../models/categorymodel.h"
 #include "../../models/attributegroupmodel.h"
+#include "../../models/attributemodel.h"
+#include "../../models/staticattributevaluemodel.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
@@ -53,6 +55,7 @@
 #include "../../persistence/taskspersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/taskattributevaluespersistence.h"
+#include "../../persistence/staticattributevaluespersistence.h"
 
 #include "../../services/categories/categoryviewmodel.h"
 #include "../../services/categories/categoryservice.h"
@@ -855,6 +858,39 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
     mAttributeGroupId = attributeGroupId;
 
     // check if static and automatically set taskAttributeValueModels
+    Model::AttributeGroupModel attributeGroupModel;
+    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
+    if (rc == -1) {
+        std::string message = "Failed to get attribute group";
+        QueueErrorNotificationEvent(message);
+        return;
+    }
+
+    if (attributeGroupModel.IsStaticGroup) {
+        std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels;
+        Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
+            pLogger, mDatabaseFilePath);
+
+        rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+            mAttributeGroupId, staticAttributeValueModels);
+        if (rc == -1) {
+            std::string message = "Failed to get static attribute values";
+            QueueErrorNotificationEvent(message);
+            return;
+        }
+
+        for (size_t i = 0; i < staticAttributeValueModels.size(); i++) {
+            Model::TaskAttributeValueModel taskAttributeValueModel;
+            taskAttributeValueModel.TextValue = staticAttributeValueModels[i].TextValue;
+            taskAttributeValueModel.BooleanValue = staticAttributeValueModels[i].BooleanValue;
+            taskAttributeValueModel.NumericValue = staticAttributeValueModels[i].NumericValue;
+            taskAttributeValueModel.AttributeId = staticAttributeValueModels[i].AttributeId;
+
+            mTaskAttributeValueModels.push_back(taskAttributeValueModel);
+        }
+    }
 }
 
 void TaskDialog::OnManageAttributes(wxCommandEvent& WXUNUSED(event))
