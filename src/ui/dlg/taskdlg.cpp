@@ -850,6 +850,19 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
     std::int64_t attributeGroupId = attributeGroupIdData->GetValue();
 
     if (attributeGroupId < 1) {
+        if (bIsEdit && mTaskAttributeValueModels.size() > 0 && mTaskId > 0) {
+            Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+                pLogger, mDatabaseFilePath);
+
+            int rc = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
+            if (rc == -1) {
+                std::string message = "Failed to delete task attribute values";
+                QueueErrorNotificationEvent(message);
+                return;
+            }
+        }
+
+        mTaskAttributeValueModels.clear();
         mAttributeGroupId = -1;
         pManageAttributesButton->Disable();
         return;
@@ -863,6 +876,7 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
 
     int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
     if (rc == -1) {
+        mAttributeGroupId = -1;
         std::string message = "Failed to get attribute group";
         QueueErrorNotificationEvent(message);
         return;
@@ -1087,6 +1101,8 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     mTaskModel.WorkdayId = workdayId;
 
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+        pLogger, mDatabaseFilePath);
 
     if (!bIsEdit) {
         std::int64_t taskId = taskPersistence.Create(mTaskModel);
@@ -1101,9 +1117,6 @@ void TaskDialog::OnOK(wxCommandEvent& event)
                 mTaskAttributeValueModels[i].TaskId = taskId;
             }
 
-            Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
-                pLogger, mDatabaseFilePath);
-
             ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
 
             ret == -1 ? message = "Failed to create task attribute values"
@@ -1113,23 +1126,22 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && mTaskModel.IsActive) {
-        Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
-            pLogger, mDatabaseFilePath);
+        if (mTaskAttributeValueModels.size() > 0) {
+            if (bHasTaskAttributeValues) {
+                ret = taskAttributeValuesPersistence.UpdateMultiple(mTaskAttributeValueModels);
 
-        if (bHasTaskAttributeValues) {
-            ret = taskAttributeValuesPersistence.UpdateMultiple(mTaskAttributeValueModels);
+                ret == -1 ? message = "Failed to update task attribute values"
+                          : message = "Successfully updated task attribute values";
+            } else {
+                for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
+                    mTaskAttributeValueModels[i].TaskId = mTaskId;
+                }
 
-            ret == -1 ? message = "Failed to update task attribute values"
-                      : message = "Successfully updated task attribute values";
-        } else {
-            for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
-                mTaskAttributeValueModels[i].TaskId = mTaskId;
+                ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
+
+                ret == -1 ? message = "Failed to create task attribute values"
+                          : message = "Successfully created task attribute values";
             }
-
-            ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
-
-            ret == -1 ? message = "Failed to create task attribute values"
-                      : message = "Successfully created task attribute values";
         }
 
         // check if task attribute values were removed
@@ -1142,9 +1154,6 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
-        Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
-            pLogger, mDatabaseFilePath);
-
         ret = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
 
         ret == -1 ? message = "Failed to delete task attribute values"
