@@ -141,6 +141,7 @@ private:
     std::int64_t mAttributeGroupId;
 
     Model::TaskModel mTaskModel;
+    bool bHasTaskAttributeValues;
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
     enum {

@@ -383,7 +383,9 @@ void TaskManageAttributesDialog::DataToControls()
         return;
     }
 
-    SetAttributeControlsWithData();
+    if (mTaskAttributeValueModels.size() > 0) {
+        SetAttributeControlsWithData();
+    }
 }
 
 void TaskManageAttributesDialog::SetAttributeControlsWithData()

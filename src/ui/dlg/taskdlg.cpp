@@ -103,6 +103,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mEmployerId(-1)
     , mAttributeGroupId(-1)
     , mTaskModel()
+    , bHasTaskAttributeValues(false)
     , mTaskAttributeValueModels()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
@@ -776,6 +777,10 @@ void TaskDialog::DataToControls()
             QueueErrorNotificationEvent(message);
             return;
         }
+
+        if (mTaskAttributeValueModels.size() > 0) {
+            bHasTaskAttributeValues = true;
+        }
     }
 
     if (isSuccess) {
@@ -848,6 +853,8 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
 
     pManageAttributesButton->Enable();
     mAttributeGroupId = attributeGroupId;
+
+    // check if static and automatically set taskAttributeValueModels
 }
 
 void TaskDialog::OnManageAttributes(wxCommandEvent& WXUNUSED(event))
@@ -1072,10 +1079,24 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     if (bIsEdit && mTaskModel.IsActive) {
         Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);
-        ret = taskAttributeValuesPersistence.UpdateMultiple(mTaskAttributeValueModels);
 
-        ret == -1 ? message = "Failed to update task attribute values"
-                  : "Successfully updated task attribute values";
+        if (bHasTaskAttributeValues) {
+            ret = taskAttributeValuesPersistence.UpdateMultiple(mTaskAttributeValueModels);
+
+            ret == -1 ? message = "Failed to update task attribute values"
+                      : message = "Successfully updated task attribute values";
+        } else {
+            for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
+                mTaskAttributeValueModels[i].TaskId = mTaskId;
+            }
+
+            ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
+
+            ret == -1 ? message = "Failed to create task attribute values"
+                      : message = "Successfully created task attribute values";
+        }
+
+        // check if task attribute values were removed
         QueueNotificationEvent(ret, message);
 
         ret = taskPersistence.Update(mTaskModel);
@@ -1231,6 +1252,8 @@ bool TaskDialog::Validate()
         toolTip.ShowFor(pUniqueIdentiferTextCtrl);
         return false;
     }
+
+    // validate attributes are selected here
 
     return true;
 }
