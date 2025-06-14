@@ -1144,7 +1144,6 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             }
         }
 
-        // check if task attribute values were removed
         QueueNotificationEvent(ret, message);
 
         ret = taskPersistence.Update(mTaskModel);
