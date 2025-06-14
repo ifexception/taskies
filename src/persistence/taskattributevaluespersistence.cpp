@@ -359,7 +359,20 @@ int TaskAttributeValuesPersistence::DeleteByTaskId(const std::int64_t taskId) co
 
     int bindIndex = 1;
 
+    rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
     rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
+
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
@@ -556,8 +569,10 @@ std::string TaskAttributeValuesPersistence::create = "INSERT INTO "
                                                      " VALUES "
                                                      "(?, ?, ?, ?, ?)";
 
-std::string TaskAttributeValuesPersistence::deleteByTaskId = "DELETE "
-                                                             "FROM task_attribute_values "
+std::string TaskAttributeValuesPersistence::deleteByTaskId = "UPDATE task_attribute_values "
+                                                             "SET  "
+                                                             "is_active = 0, "
+                                                             "date_modified = ? "
                                                              "WHERE task_id = ?";
 
 std::string TaskAttributeValuesPersistence::update = "UPDATE task_attribute_values "
