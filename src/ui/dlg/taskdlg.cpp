@@ -850,6 +850,7 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
     std::int64_t attributeGroupId = attributeGroupIdData->GetValue();
 
     if (attributeGroupId < 1) {
+        mAttributeGroupId = -1;
         pManageAttributesButton->Disable();
         return;
     }
@@ -857,7 +858,6 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
     pManageAttributesButton->Enable();
     mAttributeGroupId = attributeGroupId;
 
-    // check if static and automatically set taskAttributeValueModels
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
@@ -1289,7 +1289,13 @@ bool TaskDialog::Validate()
         return false;
     }
 
-    // validate attributes are selected here
+    if (mAttributeGroupId >= 1 && mTaskAttributeValueModels.size() == 0) {
+        auto valMsg = "No attribute values have been captured for selected attribute group";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pManageAttributesButton);
+        return false;
+    }
 
     return true;
 }
