@@ -23,7 +23,15 @@
 
 namespace tks
 {
-enum class EditListEntityType { Employer, Client, Project, Category };
+enum class EditListEntityType {
+    Employers,
+    Clients,
+    Projects,
+    Categories,
+    AttributeGroups,
+    Attributes,
+    StaticAttributeGroups
+};
 
 enum class WindowState : int { Normal = 1, Minimized = 2, Hidden = 3, Maximized = 4 };
 
@@ -49,9 +57,12 @@ enum class TaskDurationType { Default = 1, Billable };
 
 enum class TaskDurationField { Day = 1, Week, Month, Range = 10 };
 
+enum class AttributeTypes { Text = 1, Numeric, Boolean };
+
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);
+std::string AttributeTypeToString(AttributeTypes attributeType);
 
 std::string MapTextQualifierEnumToValue(TextQualifierType textQualifier);
 

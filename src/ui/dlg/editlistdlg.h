@@ -33,13 +33,7 @@
 
 #include "../../common/enums.h"
 
-namespace tks
-{
-namespace Core
-{
-class Environment;
-} // namespace Core
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 struct ListCtrlData {
     std::int64_t EntityId;
@@ -54,7 +48,6 @@ public:
     EditListDialog() = delete;
     EditListDialog(const EditListDialog&) = delete;
     EditListDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         EditListEntityType editListEntityType,
@@ -75,6 +68,10 @@ private:
     void ClientDataToControls();
     void ProjectDataToControls();
     void CategoryDataToControls();
+    void AttributeGroupDataToControls();
+    void AttributeDataToControls();
+    void StaticAttributeGroupsDataToControls();
+
     void SetDataToControls(const std::vector<ListCtrlData>& entries);
 
     void OnSearchTextChange(wxCommandEvent& event);
@@ -89,27 +86,36 @@ private:
     void SearchClients();
     void SearchProjects();
     void SearchCategories();
+    void SearchAttributeGroups();
+    void SearchAttributes();
+    void SearchStaticAttributeGroups();
 
     std::string GetSearchHintText();
 
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 
     std::string mDatabaseFilePath;
     EditListEntityType mType;
 
     wxWindow* pParent;
+
     wxTextCtrl* pSearchTextCtrl;
     wxBitmapButton* pSearchButton;
     wxBitmapButton* pResetButton;
+
     wxListCtrl* pListCtrl;
+
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
     std::string mSearchTerm;
     std::int64_t mEntityId;
 
-    enum { tksIDC_LISTRESULTS = wxID_HIGHEST + 100, tksIDC_SEARCHTEXT, tksIDC_SEARCHBTN, tksIDC_RESETBTN };
+    enum {
+        tksIDC_LISTRESULTS = wxID_HIGHEST + 1001,
+        tksIDC_SEARCHTEXTCTRL,
+        tksIDC_SEARCHBUTTON,
+        tksIDC_RESETBUTTON
+    };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg

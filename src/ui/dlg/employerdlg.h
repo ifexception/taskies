@@ -32,19 +32,12 @@
 
 #include "../../models/employermodel.h"
 
-namespace tks
-{
-namespace Core
-{
-class Environment;
-} // namespace Core
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 class EmployerDialog final : public wxDialog
 {
 public:
     EmployerDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isEdit = false,
@@ -64,9 +57,12 @@ private:
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
-    bool TransferDataAndValidate();
+    bool Validate();
 
-    std::shared_ptr<Core::Environment> pEnv;
+    void TransferDataFromControls();
+
+    void QueueErrorNotificationEvent(const std::string& message);
+
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 
@@ -77,8 +73,6 @@ private:
 
     wxTextCtrl* pDescriptionTextCtrl;
 
-    wxTextCtrl* pDateCreatedTextCtrl;
-    wxTextCtrl* pDateModifiedTextCtrl;
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxButton* pOkButton;
@@ -93,8 +87,7 @@ private:
         tksIDC_NAME = wxID_HIGHEST + 1001,
         tksIDC_ISDEFAULT,
         tksIDC_DESCRIPTION,
-        tksIDC_ISACTIVE,
+        tksIDC_ISACTIVECHECKBOXCTRL,
     };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg

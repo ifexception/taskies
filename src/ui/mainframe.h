@@ -33,8 +33,9 @@
 #endif
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
-#include <wx/infobar.h>
 #include <wx/dataview.h>
+#include <wx/infobar.h>
+#include <wx/notifmsg.h>
 
 #include <spdlog/spdlog.h>
 
@@ -61,6 +62,9 @@ enum class MenuIds : int {
     File_NewClient,
     File_NewProject,
     File_NewCategory,
+    File_NewAttributeGroup,
+    File_NewAttribute,
+    File_NewStaticAttributes,
     File_TasksDatabaseBackup,
     File_TasksExportToCsv,
     File_TasksQuickExportToCsv,
@@ -68,9 +72,12 @@ enum class MenuIds : int {
     Edit_Client,
     Edit_Project,
     Edit_Category,
+    Edit_AttributeGroup,
+    Edit_Attribute,
+    Edit_StaticAttributeValues,
     View_Reset,
     View_Expand,
-    View_Day,
+    // View_Day,
     View_Preferences,
     Help_About,
 
@@ -78,10 +85,6 @@ enum class MenuIds : int {
     Pop_NewTask,
     Pop_ContainerCopyTasks,
     Pop_ContainerCopyTasksWithHeaders,
-
-    /* Keyboard shortcuts */
-    Kyb_LeftArrow,
-    Kyb_RightArrow,
 };
 
 /* File */
@@ -90,6 +93,10 @@ static const int ID_NEW_EMPLOYER = static_cast<int>(MenuIds::File_NewEmployer);
 static const int ID_NEW_CLIENT = static_cast<int>(MenuIds::File_NewClient);
 static const int ID_NEW_PROJECT = static_cast<int>(MenuIds::File_NewProject);
 static const int ID_NEW_CATEGORY = static_cast<int>(MenuIds::File_NewCategory);
+static const int ID_NEW_ATTRIBUTEGROUP = static_cast<int>(MenuIds::File_NewAttributeGroup);
+static const int ID_NEW_ATTRIBUTE = static_cast<int>(MenuIds::File_NewAttribute);
+static const int ID_NEW_STATIC_ATTRIBUTES = static_cast<int>(MenuIds::File_NewStaticAttributes);
+
 static const int ID_TASKS_BACKUPDATABASE = static_cast<int>(MenuIds::File_TasksDatabaseBackup);
 static const int ID_TASKS_EXPORTTOCSV = static_cast<int>(MenuIds::File_TasksExportToCsv);
 static const int ID_TASKS_QUICKEXPORTTOCSV = static_cast<int>(MenuIds::File_TasksQuickExportToCsv);
@@ -99,11 +106,15 @@ static const int ID_EDIT_EMPLOYER = static_cast<int>(MenuIds::Edit_Employer);
 static const int ID_EDIT_CLIENT = static_cast<int>(MenuIds::Edit_Client);
 static const int ID_EDIT_PROJECT = static_cast<int>(MenuIds::Edit_Project);
 static const int ID_EDIT_CATEGORY = static_cast<int>(MenuIds::Edit_Category);
+static const int ID_EDIT_ATTRIBUTE_GROUP = static_cast<int>(MenuIds::Edit_AttributeGroup);
+static const int ID_EDIT_ATTRIBUTE = static_cast<int>(MenuIds::Edit_Attribute);
+static const int ID_EDIT_STATIC_ATTRIBUTE_VALUES =
+    static_cast<int>(MenuIds::Edit_StaticAttributeValues);
 
 /* View */
 static const int ID_VIEW_RESET = static_cast<int>(MenuIds::View_Reset);
 static const int ID_VIEW_EXPAND = static_cast<int>(MenuIds::View_Expand);
-static const int ID_VIEW_DAY = static_cast<int>(MenuIds::View_Day);
+// static const int ID_VIEW_DAY = static_cast<int>(MenuIds::View_Day);
 static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preferences);
 
 /* Help */
@@ -152,12 +163,16 @@ private:
     void OnClose(wxCloseEvent& event);
     void OnIconize(wxIconizeEvent& event);
     void OnResize(wxSizeEvent& event);
+    void OnTaskReminder(wxTimerEvent& event);
     /* Menu Event Handlers */
     void OnNewTask(wxCommandEvent& event);
     void OnNewEmployer(wxCommandEvent& event);
     void OnNewClient(wxCommandEvent& event);
     void OnNewProject(wxCommandEvent& event);
     void OnNewCategory(wxCommandEvent& event);
+    void OnNewAttributeGroup(wxCommandEvent& event);
+    void OnNewAttribute(wxCommandEvent& event);
+    void OnNewStaticAttributes(wxCommandEvent& event);
     void OnTasksBackupDatabase(wxCommandEvent& event);
     void OnTasksExportToCsv(wxCommandEvent& event);
     void OnTasksQuickExportToCsv(wxCommandEvent& event);
@@ -166,9 +181,12 @@ private:
     void OnEditClient(wxCommandEvent& event);
     void OnEditProject(wxCommandEvent& event);
     void OnEditCategory(wxCommandEvent& event);
+    void OnEditAttributeGroup(wxCommandEvent& event);
+    void OnEditAttribute(wxCommandEvent& event);
+    void OnEditStaticAttributeValues(wxCommandEvent& event);
     void OnViewReset(wxCommandEvent& event);
     void OnViewExpand(wxCommandEvent& event);
-    void OnViewDay(wxCommandEvent& event);
+    // void OnViewDay(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     /* Popup Menu Event Handlers */
@@ -178,8 +196,6 @@ private:
     void OnCopyTaskToClipboard(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
-    /* Error Event Handlers */ /*TODO(SW): Is this still relevant?*/
-    void OnError(wxCommandEvent& event);
     /* Custom Event Handlers */
     void OnAddNotification(wxCommandEvent& event);
     void OnTaskAddedOnDate(wxCommandEvent& event);
@@ -193,6 +209,8 @@ private:
     /* DataViewCtrl Event Handlers */
     void OnContextMenu(wxDataViewEvent& event);
     void OnDataViewSelectionChanged(wxDataViewEvent& event);
+    /* Notification Event Handlers */
+    void OnReminderNotificationClicked(wxCommandEvent& event);
 
     void SetNewTaskMenubarTitle();
 
@@ -233,30 +251,41 @@ private:
     StatusBar* pStatusBar;
 
     NotificationPopupWindow* pNotificationPopupWindow;
+
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
+
     wxBitmapButton* pNotificationButton;
     wxBitmap mBellBitmap;
     wxBitmap mBellNotificationBitmap;
+
     std::unique_ptr<DateStore> pDateStore;
+
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
+
     wxDataViewCtrl* pDataViewCtrl;
     wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
+
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
+
     std::int64_t mTaskIdToModify;
     std::string mTaskDate;
     int mExpandCounter;
     bool bDateRangeChanged;
+
+    std::unique_ptr<wxTimer> pTaskReminderTimer;
+    std::shared_ptr<wxNotificationMessage> pTaskReminderNotification;
 
     enum {
         tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 1000,
         tksIDC_FROMDATE,
         tksIDC_TODATE,
         tksIDC_TASKDATAVIEWCTRL,
-        tksIDC_DAY_TASKDATAVIEW
+        tksIDC_DAY_TASKDATAVIEW,
+        tksIDC_TASKREMINDERTIMER
     };
 };
 } // namespace UI

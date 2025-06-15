@@ -154,7 +154,7 @@ unsigned int TaskListModel::GetCount() const
     return mListItemModels.size();
 }
 
-void TaskListModel::Append(const repos::TaskRepositoryModel& model)
+void TaskListModel::Append(const Services::TaskViewModel& model)
 {
     TaskListItemModel listModel(
         model.ProjectName, model.CategoryName, model.GetDuration(), model.Description, model.TaskId);
@@ -163,7 +163,7 @@ void TaskListModel::Append(const repos::TaskRepositoryModel& model)
     RowAppended();
 }
 
-void TaskListModel::AppendMany(const std::vector<repos::TaskRepositoryModel>& models)
+void TaskListModel::AppendMany(const std::vector<Services::TaskViewModel>& models)
 {
     for (const auto& model : models) {
         Append(model);

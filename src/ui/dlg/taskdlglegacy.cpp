@@ -34,19 +34,19 @@
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
 
-#include "../../persistence/employerpersistence.h"
-#include "../../persistence/clientpersistence.h"
-#include "../../persistence/projectpersistence.h"
-#include "../../persistence/categorypersistence.h"
-#include "../../persistence/workdaypersistence.h"
-#include "../../persistence/taskpersistence.h"
+#include "../../persistence/employerspersistence.h"
+#include "../../persistence/ClientsPersistence.h"
+#include "../../persistence/projectspersistence.h"
+#include "../../persistence/categoriespersistence.h"
+#include "../../persistence/workdayspersistence.h"
+#include "../../persistence/taskspersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
 #include "../../models/projectmodel.h"
 
-#include "../../repository/categoryrepositorymodel.h"
-#include "../../repository/categoryrepository.h"
+#include "../../services/categories/categoryviewmodel.h"
+#include "../../services/categories/categoryservice.h"
 
 #include "../../utils/utils.h"
 
@@ -382,7 +382,7 @@ void TaskDialogLegacy::FillControls()
     std::string defaultSearhTerm = "";
 
     std::vector<Model::EmployerModel> employers;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.Filter(defaultSearhTerm, employers);
     if (rc != 0) {
@@ -398,7 +398,7 @@ void TaskDialogLegacy::FillControls()
     bool hasDefaultEmployer = false;
 
     Model::EmployerModel applicableDefaultEmployer;
-    rc = employerPersistence.TrySelectDefault(applicableDefaultEmployer);
+    rc = employerPersistence.SelectDefault(applicableDefaultEmployer);
     if (rc == -1) {
         std::string message = "Failed to get default employer";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -437,9 +437,9 @@ void TaskDialogLegacy::FillControls()
             auto employerId = employerIdData->GetValue();
             mEmployerIndex = employerIndex;
             std::vector<Model::ClientModel> clients;
-            Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+            Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-            int rc = clientPersistence.FilterByEmployerId(employerId, clients);
+            int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
 
             if (rc != 0) {
                 std::string message = "Failed to get clients";
@@ -460,7 +460,7 @@ void TaskDialogLegacy::FillControls()
             }
 
             std::vector<Model::ProjectModel> projects;
-            Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+            Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
             rc = projectPersistence.FilterByEmployerIdOrClientId(
                 std::make_optional(employerId), std::nullopt, projects);
@@ -486,10 +486,10 @@ void TaskDialogLegacy::FillControls()
                         pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
 
                         if (pCfg->ShowProjectAssociatedCategories()) {
-                            std::vector<repos::CategoryRepositoryModel> categories;
-                            repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+                            std::vector<Services::CategoryViewModel> categories;
+                            Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
-                            int rc = categoryRepo.FilterByProjectId(
+                            int rc = categoryService.FilterByProjectId(
                                 defaultProject.ProjectId, categories);
                             if (rc != 0) {
                                 std::string message = "Failed to get categories";
@@ -518,10 +518,10 @@ void TaskDialogLegacy::FillControls()
     }
 
     if (!pCfg->ShowProjectAssociatedCategories()) {
-        std::vector<repos::CategoryRepositoryModel> categories;
-        repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+        std::vector<Services::CategoryViewModel> categories;
+        Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
-        rc = categoryRepo.Filter(categories);
+        rc = categoryService.Filter(categories);
         if (rc == -1) {
             std::string message = "Failed to get categories";
             QueueErrorNotificationEventToParent(message);
@@ -608,7 +608,7 @@ void TaskDialogLegacy::DataToControls()
     // load task
     Model::TaskModel task;
     // FIXME: look into using task repo class to fetch all data in one go
-    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
     int rc = taskPersistence.GetById(mTaskId, task);
@@ -630,7 +630,7 @@ void TaskDialogLegacy::DataToControls()
 
     // load project
     Model::ProjectModel project;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     rc = projectPersistence.GetById(task.ProjectId, project);
     if (rc != 0) {
@@ -666,7 +666,7 @@ void TaskDialogLegacy::DataToControls()
 
         // load employer
         Model::EmployerModel employer;
-        Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+        Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
         rc = employerPersistence.GetById(project.EmployerId, employer);
         if (rc == -1) {
@@ -681,10 +681,10 @@ void TaskDialogLegacy::DataToControls()
 
         // load clients
         std::vector<Model::ClientModel> clients;
-        Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+        Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
         std::string defaultSearchTerm = "";
 
-        rc = clientPersistence.FilterByEmployerId(project.EmployerId, clients);
+        rc = ClientsPersistence.FilterByEmployerId(project.EmployerId, clients);
         if (rc == -1) {
             std::string message = "Failed to get clients";
             QueueErrorNotificationEventToParent(message);
@@ -700,7 +700,7 @@ void TaskDialogLegacy::DataToControls()
 
                 if (project.ClientId.has_value()) {
                     Model::ClientModel client;
-                    rc = clientPersistence.GetById(project.ClientId.value(), client);
+                    rc = ClientsPersistence.GetById(project.ClientId.value(), client);
                     if (rc == -1) {
                         std::string message = "Failed to get client";
                         QueueErrorNotificationEventToParent(message);
@@ -716,11 +716,11 @@ void TaskDialogLegacy::DataToControls()
             }
         }
 
-        std::vector<repos::CategoryRepositoryModel> categories;
-        repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+        std::vector<Services::CategoryViewModel> categories;
+        Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
         if (pCfg->ShowProjectAssociatedCategories()) {
-            rc = categoryRepo.FilterByProjectId(task.ProjectId, categories);
+            rc = categoryService.FilterByProjectId(task.ProjectId, categories);
         }
 
         if (rc == -1) {
@@ -745,8 +745,8 @@ void TaskDialogLegacy::DataToControls()
             }
         }
 
-        repos::CategoryRepositoryModel category;
-        rc = categoryRepo.GetById(task.CategoryId, category);
+        Services::CategoryViewModel category;
+        rc = categoryService.GetById(task.CategoryId, category);
         if (rc != 0) {
             std::string message = "Failed to get category";
             QueueErrorNotificationEventToParent(message);
@@ -791,9 +791,9 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
     auto employerId = employerIdData->GetValue();
     mEmployerIndex = employerIndex;
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientPersistence.FilterByEmployerId(employerId, clients);
+    int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
 
     if (rc != 0) {
         std::string message = "Failed to get clients";
@@ -814,7 +814,7 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
     }
 
     std::vector<Model::ProjectModel> projects;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     rc = projectPersistence.FilterByEmployerIdOrClientId(
         std::make_optional(employerId), std::nullopt, projects);
@@ -840,10 +840,10 @@ void TaskDialogLegacy::OnEmployerChoiceSelection(wxCommandEvent& event)
                 pProjectChoiceCtrl->SetStringSelection(defaultProject.DisplayName);
 
                 if (pCfg->ShowProjectAssociatedCategories()) {
-                    std::vector<repos::CategoryRepositoryModel> categories;
-                    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+                    std::vector<Services::CategoryViewModel> categories;
+                    Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
-                    int rc = categoryRepo.FilterByProjectId(defaultProject.ProjectId, categories);
+                    int rc = categoryService.FilterByProjectId(defaultProject.ProjectId, categories);
                     if (rc != 0) {
                         std::string message = "Failed to get categories";
                         QueueErrorNotificationEventToParent(message);
@@ -894,7 +894,7 @@ void TaskDialogLegacy::OnClientChoiceSelection(wxCommandEvent& event)
     }
 
     std::vector<Model::ProjectModel> projects;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc = projectPersistence.FilterByEmployerIdOrClientId(
         std::make_optional(employerId), std::make_optional(clientId), projects);
@@ -946,10 +946,10 @@ void TaskDialogLegacy::OnProjectChoiceSelection(wxCommandEvent& event)
 
     auto projectId = projectIdData->GetValue();
 
-    std::vector<repos::CategoryRepositoryModel> categories;
-    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+    std::vector<Services::CategoryViewModel> categories;
+    Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
-    int rc = categoryRepo.FilterByProjectId(projectId, categories);
+    int rc = categoryService.FilterByProjectId(projectId, categories);
     if (rc == -1) {
         std::string message = "Failed to get categories";
         QueueErrorNotificationEventToParent(message);
@@ -972,8 +972,8 @@ void TaskDialogLegacy::OnProjectChoiceSelection(wxCommandEvent& event)
 void TaskDialogLegacy::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event)
 {
     int rc = -1;
-    std::vector<repos::CategoryRepositoryModel> categories;
-    repos::CategoryRepository categoryRepo(pLogger, mDatabaseFilePath);
+    std::vector<Services::CategoryViewModel> categories;
+    Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
     pCategoryChoiceCtrl->Clear();
     pCategoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
@@ -994,12 +994,12 @@ void TaskDialogLegacy::OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& ev
 
         auto projectId = projectIdData->GetValue();
 
-        rc = categoryRepo.FilterByProjectId(projectId, categories);
+        rc = categoryService.FilterByProjectId(projectId, categories);
     } else if (event.IsChecked() && mEmployerIndex < 1) {
         pCategoryChoiceCtrl->Disable();
         return;
     } else {
-        rc = categoryRepo.Filter(categories);
+        rc = categoryService.Filter(categories);
     }
 
     if (rc == -1) {
@@ -1035,7 +1035,7 @@ void TaskDialogLegacy::OnCategoryChoiceSelection(wxCommandEvent& event)
     }
 
     Model::CategoryModel model;
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
     int rc = 0;
 
     rc = categoryPersistence.GetById(categoryIdData->GetValue(), model);
@@ -1077,7 +1077,7 @@ void TaskDialogLegacy::OnOK(wxCommandEvent& event)
         int ret = 0;
         std::string message = "";
 
-        Persistence::WorkdayPersistence workdayPersistence(pLogger, mDatabaseFilePath);
+        Persistence::WorkdaysPersistence workdayPersistence(pLogger, mDatabaseFilePath);
         std::int64_t workdayId = workdayPersistence.GetWorkdayIdByDate(mDate);
         ret = workdayId > 0 ? 0 : -1;
 
@@ -1089,7 +1089,7 @@ void TaskDialogLegacy::OnOK(wxCommandEvent& event)
 
         mTaskModel.WorkdayId = workdayId;
 
-        Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+        Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
         if (!bIsEdit) {
             std::int64_t taskId = taskPersistence.Create(mTaskModel);
             ret = taskId > 0 ? 0 : -1;

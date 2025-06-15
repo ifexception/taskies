@@ -35,7 +35,7 @@
 
 #include "tasktreemodelnode.h"
 
-#include "../../repository/taskrepositorymodel.h"
+#include "../../services/tasks/taskviewmodel.h"
 
 namespace tks::UI
 {
@@ -60,16 +60,16 @@ public:
     void Delete(const wxDataViewItem& item);
     void DeleteChild(const std::string& date, const std::int64_t taskId);
 
-    void ChangeChild(const std::string& date, repos::TaskRepositoryModel& taskModel);
+    void ChangeChild(const std::string& date, Services::TaskViewModel& taskModel);
     //void ChangeContainerLabelWithTime(const std::string date, const std::string time);
 
     void Clear();
     void ClearAll();
     void ClearNodeEntriesByDateKey(const std::string& date);
 
-    void InsertChildNode(const std::string& date, repos::TaskRepositoryModel& taskModel);
-    void InsertChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
-    void InsertRootAndChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models);
+    void InsertChildNode(const std::string& date, Services::TaskViewModel& taskModel);
+    void InsertChildNodes(const std::string& date, std::vector<Services::TaskViewModel> models);
+    void InsertRootAndChildNodes(const std::string& date, std::vector<Services::TaskViewModel> models);
 
     wxDataViewItem TryExpandTodayDateNode(const std::string& todaysDate);
     wxDataViewItemArray TryCollapseDateNodes();

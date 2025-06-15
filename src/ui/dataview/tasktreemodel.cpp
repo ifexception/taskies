@@ -227,7 +227,7 @@ void TaskTreeModel::DeleteChild(const std::string& date, const std::int64_t task
     }
 }
 
-void TaskTreeModel::ChangeChild(const std::string& date, repos::TaskRepositoryModel& taskModel)
+void TaskTreeModel::ChangeChild(const std::string& date, Services::TaskViewModel& taskModel)
 {
     pLogger->info("TaskTreeModel::ChangeChild - Begin");
     auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
@@ -339,7 +339,7 @@ void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
     }
 }
 
-void TaskTreeModel::InsertChildNode(const std::string& date, repos::TaskRepositoryModel& taskModel)
+void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewModel& taskModel)
 {
     pLogger->info("TaskTreeModel::InsertChildNodes - Begin append of task for \"{0}\"", date);
     auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
@@ -362,7 +362,7 @@ void TaskTreeModel::InsertChildNode(const std::string& date, repos::TaskReposito
     }
 }
 
-void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models)
+void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<Services::TaskViewModel> models)
 {
     pLogger->info("TaskTreeModel::InsertChildNodes - Begin insertion of tasks for \"{0}\"", date);
     auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
@@ -396,7 +396,7 @@ void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<repos:
     }
 }
 
-void TaskTreeModel::InsertRootAndChildNodes(const std::string& date, std::vector<repos::TaskRepositoryModel> models)
+void TaskTreeModel::InsertRootAndChildNodes(const std::string& date, std::vector<Services::TaskViewModel> models)
 {
     pLogger->info("TaskTreeModel::InsertRootAndChildNodes - Begin insertion of tasks for \"{0}\"", date);
 

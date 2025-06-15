@@ -40,7 +40,12 @@ public:
         std::string OriginalColumn;
         int Order;
 
-        PresetColumnSettings() = default;
+        PresetColumnSettings()
+            : Column()
+            , OriginalColumn()
+            , Order(-1)
+        {
+        }
         PresetColumnSettings(Common::PresetColumn presetColumn);
         ~PresetColumnSettings() = default;
     };
@@ -57,7 +62,19 @@ public:
         bool ExcludeHeaders;
         std::vector<PresetColumnSettings> Columns;
 
-        PresetSettings() = default;
+        PresetSettings()
+            : Uuid()
+            , Name()
+            , IsDefault(false)
+            , Delimiter(DelimiterType::None)
+            , TextQualifier(TextQualifierType::None)
+            , EmptyValuesHandler(EmptyValues::None)
+            , NewLinesHandler(NewLines::None)
+            , BooleanHandler(BooleanHandler::None)
+            , ExcludeHeaders(false)
+            , Columns()
+        {
+        }
         PresetSettings(Common::Preset preset);
         ~PresetSettings() = default;
     };
@@ -110,6 +127,21 @@ public:
     bool UseLegacyTaskDialog() const;
     void UseLegacyTaskDialog(const bool value);
 
+    bool UseReminders() const;
+    void UseReminders(const bool value);
+
+    bool UseNotificationBanners() const;
+    void UseNotificationBanners(const bool value);
+
+    bool UseTaskbarFlashing() const;
+    void UseTaskbarFlashing(const bool value);
+
+    int ReminderInterval() const;
+    void SetReminderInterval(const int value);
+
+    bool OpenTaskDialogOnReminderClick() const;
+    void OpenTaskDialogOnReminderClick(const bool value);
+
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
@@ -160,6 +192,11 @@ private:
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;
         bool UseLegacyTaskDialog;
+        bool UseReminders;
+        bool UseNotificationBanners;
+        bool UseTaskbarFlashing;
+        int ReminderInterval;
+        bool OpenTaskDialogOnReminderClick;
 
         bool TodayAlwaysExpanded;
 

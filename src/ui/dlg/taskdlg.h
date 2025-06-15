@@ -23,6 +23,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -35,6 +36,7 @@
 #include <spdlog/logger.h>
 
 #include "../../models/taskmodel.h"
+#include "../../models/taskattributevaluemodel.h"
 
 namespace tks
 {
@@ -72,6 +74,10 @@ private:
     void OnDateChange(wxDateEvent& event);
     void OnEmployerChoiceSelection(wxCommandEvent& event);
 
+    void OnAttributeGroupChoiceSelection(wxCommandEvent& event);
+    void OnManageAttributes(wxCommandEvent& event);
+    void OnTaskAttributesAdded(wxCommandEvent& event);
+
     void OnClientChoiceSelection(wxCommandEvent& event);
     void OnProjectChoiceSelection(wxCommandEvent& event);
     void OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event);
@@ -82,28 +88,49 @@ private:
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
-    bool TransferDataAndValidate();
+    bool Validate();
+    void TransferDataFromControls();
 
     void ResetClientChoiceControl(bool disable = false);
     void ResetProjectChoiceControl(bool disable = false);
     void ResetCategoryChoiceControl(bool disable = false);
 
-    void FetchEmployersAndAddDataToChoiceControl();
-    void TrySetDefaultEmployer(bool& hasDefaultEmployer);
+    void FetchClientEntitiesByEmployer(const std::int64_t employerId);
+    void FetchProjectEntitiesByEmployerOrClient(const std::optional<std::int64_t> employerId,
+        const std::optional<std::int64_t> clientId);
+    void FetchCategoryEntities(const std::optional<std::int64_t> projectId);
 
-    void SetEmployerAssociatedDataAndControls();
-    void SetEmployerClientDataToChoiceControl(const std::int64_t employerId);
-    void SetEmployerAndOrClientProjectDataToChoiceControl(
-        const std::optional<std::int64_t> employerId,
-        const std::optional < std::int64_t> clientId);
+    void QueueNotificationEvent(int ret, const std::string& message);
+    void QueueErrorNotificationEvent(const std::string& message);
+    void QueueInformationNotificationEvent(const std::string& message);
 
-    void SetCategoryDataToChoiceControl(std::optional<std::int64_t> projectId);
-
-    void QueueErrorNotificationEventToParent(const std::string& message);
-
-    wxWindow* pParent;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
+
+    wxWindow* pParent;
+
+    wxDatePickerCtrl* pDateContextDatePickerCtrl;
+    wxChoice* pEmployerChoiceCtrl;
+
+    wxSpinCtrl* pTimeHoursSpinCtrl;
+    wxSpinCtrl* pTimeMinutesSpinCtrl;
+
+    wxCheckBox* pBillableCheckBoxCtrl;
+    wxTextCtrl* pUniqueIdentiferTextCtrl;
+    wxChoice* pAttributeGroupChoiceCtrl;
+    wxButton* pManageAttributesButton;
+
+    wxChoice* pClientChoiceCtrl;
+    wxChoice* pProjectChoiceCtrl;
+    wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
+    wxChoice* pCategoryChoiceCtrl;
+
+    wxCheckBox* pIsActiveCheckBoxCtrl;
+
+    wxTextCtrl* pTaskDescriptionTextCtrl;
+
+    wxButton* pOkButton;
+    wxButton* pCancelButton;
 
     std::string mDatabaseFilePath;
     bool bIsEdit;
@@ -111,31 +138,11 @@ private:
     std::string mDate;
     std::string mOldDate;
     std::int64_t mEmployerId;
+    std::int64_t mAttributeGroupId;
 
     Model::TaskModel mTaskModel;
-
-    wxDatePickerCtrl* pDateContextDatePickerCtrl;
-    wxChoice* pEmployerChoiceCtrl;
-
-    wxChoice* pClientChoiceCtrl;
-    wxChoice* pProjectChoiceCtrl;
-    wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
-    wxChoice* pCategoryChoiceCtrl;
-
-    wxCheckBox* pBillableCheckBoxCtrl;
-    wxTextCtrl* pUniqueIdentiferTextCtrl;
-
-    wxSpinCtrl* pTimeHoursSpinCtrl;
-    wxSpinCtrl* pTimeMinutesSpinCtrl;
-
-    wxTextCtrl* pTaskDescriptionTextCtrl;
-
-    wxTextCtrl* pDateCreatedReadonlyTextCtrl;
-    wxTextCtrl* pDateModifiedReadonlyTextCtrl;
-    wxCheckBox* pIsActiveCheckBoxCtrl;
-
-    wxButton* pOkButton;
-    wxButton* pCancelButton;
+    bool bHasTaskAttributeValues;
+    std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
     enum {
         tksIDC_DATECONTEXTDATEPICKERCTRL = wxID_HIGHEST + 100,
@@ -146,6 +153,8 @@ private:
         tksIDC_CATEGORYCHOICECTRL,
         tksIDC_BILLABLECHECKBOXCTRL,
         tksIDC_UNIQUEIDENTIFERTEXTCTRL,
+        tksIDC_ATTRIBUTEGROUPCHOICECTRL,
+        tksIDC_MANAGEATTRIBUTESBUTTON,
         tksIDC_TIMEHOURSSPINCTRL,
         tksIDC_TIMEMINUTESSPINCTRL,
         tksIDC_TASKDESCRIPTIONTEXTCTRL,

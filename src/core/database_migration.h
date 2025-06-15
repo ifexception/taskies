@@ -35,25 +35,22 @@ struct Migration {
     std::string sql;
 };
 
-class DatabaseMigration
-{
-public:
+struct DatabaseMigration final {
     DatabaseMigration(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~DatabaseMigration();
 
-    bool Migrate();
+    bool Migrate() const;
 
-private:
-    void CreateMigrationHistoryTable();
-    bool MigrationExists(const std::string& name);
+    void CreateMigrationHistoryTable() const;
+    bool MigrationExists(const std::string& name) const;
 
     sqlite3* pDb;
     std::shared_ptr<spdlog::logger> pLogger;
 
-    static const std::string BeginTransactionQuery;
-    static const std::string CommitTransactionQuery;
-    static const std::string CreateMigrationHistoryQuery;
-    static const std::string SelectMigrationExistsQuery;
-    static const std::string InsertMigrationHistoryQuery;
+    static std::string BeginTransactionQuery;
+    static std::string CommitTransactionQuery;
+    static std::string CreateMigrationHistoryQuery;
+    static std::string SelectMigrationExistsQuery;
+    static std::string InsertMigrationHistoryQuery;
 };
 } // namespace tks::Core

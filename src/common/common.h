@@ -47,6 +47,13 @@ struct PresetColumn {
     std::string Column;
     std::string OriginalColumn;
     int Order;
+
+    PresetColumn()
+        : Column()
+        , OriginalColumn()
+        , Order(-1)
+    {
+    }
 };
 
 struct Preset {
@@ -61,8 +68,20 @@ struct Preset {
     bool ExcludeHeaders;
     std::vector<PresetColumn> Columns;
 
-    Preset() = default;
-    ~Preset() = default;
+    Preset()
+        : Uuid()
+        , Name()
+        , IsDefault(false)
+        , Delimiter(DelimiterType::None)
+        , TextQualifier(TextQualifierType::None)
+        , EmptyValuesHandler(EmptyValues::None)
+        , NewLinesHandler(NewLines::None)
+        , BooleanHandler(BooleanHandler::None)
+        , ExcludeHeaders(false)
+        , Columns()
+    {
+    }
+    ~Preset() {}
 };
 
 namespace Resources

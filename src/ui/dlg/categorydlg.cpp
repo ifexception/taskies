@@ -19,18 +19,20 @@
 
 #include "categorydlg.h"
 
+#include <fmt/format.h>
+
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
-#include <fmt/format.h>
+
+#include "../events.h"
+#include "../notificationclientdata.h"
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
 
-#include "../../core/environment.h"
-
-#include "../../persistence/projectpersistence.h"
-#include "../../persistence/categorypersistence.h"
+#include "../../persistence/projectspersistence.h"
+#include "../../persistence/categoriespersistence.h"
 
 #include "../../models/projectmodel.h"
 
@@ -38,13 +40,9 @@
 
 #include "../../utils/utils.h"
 
-#include "../events.h"
-#include "../notificationclientdata.h"
-
 namespace tks::UI::dlg
 {
 CategoryDialog::CategoryDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     std::int64_t categoryId,
@@ -57,21 +55,18 @@ CategoryDialog::CategoryDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , pNameTextCtrl(nullptr)
     , pColorPickerCtrl(nullptr)
-    , pBillableCtrl(nullptr)
+    , pBillableCheckBoxCtrl(nullptr)
     , pProjectChoiceCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
-    , pDateCreatedTextCtrl(nullptr)
-    , pDateModifiedTextCtrl(nullptr)
-    , pIsActiveCtrl(nullptr)
+    , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mCategoryId(categoryId)
-    , mModel()
+    , mCategoryModel()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -102,103 +97,70 @@ void CategoryDialog::CreateControls()
     /* Name Ctrl */
     auto categoryNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Name");
 
-    pNameTextCtrl = new wxTextCtrl(detailsBox, tksIDC_NAME);
+    pNameTextCtrl = new wxTextCtrl(detailsBox, tksIDC_NAMETEXTCTRL);
     pNameTextCtrl->SetHint("Category name");
     pNameTextCtrl->SetToolTip("Enter a name for a category");
 
     pNameTextCtrl->SetValidator(NameValidator());
 
     /* Color Picker Ctrl */
-    pColorPickerCtrl = new wxColourPickerCtrl(detailsBox, tksIDC_COLORPICKER);
+    pColorPickerCtrl = new wxColourPickerCtrl(detailsBox, tksIDC_COLORPICKERCTRL);
     pColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
 
-    pBillableCtrl = new wxCheckBox(detailsBox, tksIDC_BILLABLE, "Billable");
-    pBillableCtrl->SetToolTip("Indicates if a task captured with this category is billable");
+    pBillableCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_BILLABLECHECKBOXCTRL, "Billable");
+    pBillableCheckBoxCtrl->SetToolTip(
+        "Indicates if a task captured with this category is billable");
 
     /* Details Grid Sizer */
-    auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
+    auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     detailsGridSizer->AddGrowableCol(1, 1);
 
-    detailsGridSizer->Add(categoryNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    detailsGridSizer->Add(
+        categoryNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    detailsGridSizer->Add(
+        pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     detailsGridSizer->Add(0, 0);
     detailsGridSizer->Add(pColorPickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsGridSizer->Add(0, 0);
-    detailsGridSizer->Add(pBillableCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    detailsGridSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
     /* Description Box */
-    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Description (optional)");
+    auto descriptionBox = new wxStaticBox(this, wxID_ANY, "Description");
     auto descriptionBoxSizer = new wxStaticBoxSizer(descriptionBox, wxVERTICAL);
-    sizer->Add(descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    sizer->Add(
+        descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Description Text Ctrl */
     pDescriptionTextCtrl = new wxTextCtrl(descriptionBox,
-        tksIDC_DESCRIPTION,
+        tksIDC_DESCRIPTIONTEXTCTRL,
         wxEmptyString,
         wxDefaultPosition,
         wxDefaultSize,
         wxHSCROLL | wxTE_MULTILINE);
     pDescriptionTextCtrl->SetHint("Description (optional)");
     pDescriptionTextCtrl->SetToolTip("Enter an optional description for a category");
-    descriptionBoxSizer->Add(pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
-
-    /* Project Choice Box */
-    auto selectionBox = new wxStaticBox(this, wxID_ANY, "Selection");
-    auto selectionBoxSizer = new wxStaticBoxSizer(selectionBox, wxVERTICAL);
-    sizer->Add(selectionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    descriptionBoxSizer->Add(
+        pDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* Project choice control */
-    auto projectLabel = new wxStaticText(selectionBox, wxID_ANY, "Project");
+    auto projectLabel = new wxStaticText(this, wxID_ANY, "Project");
 
-    pProjectChoiceCtrl = new wxChoice(selectionBox, tksIDC_PROJECTCHOICE);
+    pProjectChoiceCtrl = new wxChoice(this, tksIDC_PROJECTCHOICECTRL);
     pProjectChoiceCtrl->SetToolTip("Select an (optional) project to associate this category with");
 
-    auto projectChoiceGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
-    projectChoiceGridSizer->AddGrowableCol(1, 1);
-
-    projectChoiceGridSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    projectChoiceGridSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-
-    selectionBoxSizer->Add(projectChoiceGridSizer, wxSizerFlags().Expand().Proportion(1));
-
-    auto metadataLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxSize(FromDIP(3), FromDIP(3)));
-    sizer->Add(metadataLine, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
-
-    auto metadataBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
-    auto metadataBoxSizer = new wxStaticBoxSizer(metadataBox, wxVERTICAL);
-    sizer->Add(metadataBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
-
-    /* FlexGrid sizer */
-    auto metadataFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-    metadataBoxSizer->Add(metadataFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
-    metadataFlexGridSizer->AddGrowableCol(1, 1);
-
-    /* Date Created */
-    auto dateCreatedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Created");
-    metadataFlexGridSizer->Add(dateCreatedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
-
-    pDateCreatedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
-    pDateCreatedTextCtrl->Disable();
-    metadataFlexGridSizer->Add(pDateCreatedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
-
-    /* Date Modified */
-    auto dateModifiedLabel = new wxStaticText(metadataBox, wxID_ANY, "Date Modified");
-    metadataFlexGridSizer->Add(dateModifiedLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).CenterVertical());
-
-    pDateModifiedTextCtrl = new wxTextCtrl(metadataBox, wxID_ANY, wxEmptyString);
-    pDateModifiedTextCtrl->Disable();
-    metadataFlexGridSizer->Add(pDateModifiedTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    sizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    sizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Is Active checkbox control */
-    metadataFlexGridSizer->Add(0, 0);
+    pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
+    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
+    pIsActiveCheckBoxCtrl->Disable();
 
-    pIsActiveCtrl = new wxCheckBox(metadataBox, tksIDC_ISACTIVE, "Is Active");
-    pIsActiveCtrl->SetToolTip("Indicates if this category is being used");
-    metadataFlexGridSizer->Add(pIsActiveCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    sizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line = new wxStaticLine(this, wxID_ANY);
@@ -216,30 +178,26 @@ void CategoryDialog::CreateControls()
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
-    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
-    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
 
 void CategoryDialog::FillControls()
 {
-    pProjectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
+    pProjectChoiceCtrl->Append("Select a project", new ClientData<std::int64_t>(-1));
     pProjectChoiceCtrl->SetSelection(0);
     pProjectChoiceCtrl->Disable();
 
     std::string defaultSearchTerm = "";
     std::vector<Model::ProjectModel> projects;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc = projectPersistence.Filter(defaultSearchTerm, projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
     } else {
         if (!projects.empty()) {
             if (!pProjectChoiceCtrl->IsEnabled()) {
@@ -247,10 +205,9 @@ void CategoryDialog::FillControls()
             }
 
             for (auto& project : projects) {
-                pProjectChoiceCtrl->Append(project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                pProjectChoiceCtrl->Append(
+                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
             }
-        } else {
-            pProjectChoiceCtrl->Disable();
         }
     }
 }
@@ -258,7 +215,7 @@ void CategoryDialog::FillControls()
 // clang-format off
 void CategoryDialog::ConfigureEventBindings()
 {
-    pIsActiveCtrl->Bind(
+    pIsActiveCheckBoxCtrl->Bind(
             wxEVT_CHECKBOX,
             &CategoryDialog::OnIsActiveCheck,
             this
@@ -282,43 +239,35 @@ void CategoryDialog::ConfigureEventBindings()
 
 void CategoryDialog::DataToControls()
 {
-    Model::CategoryModel model;
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
     int rc = 0;
 
-    rc = categoryPersistence.GetById(mCategoryId, model);
+    rc = categoryPersistence.GetById(mCategoryId, mCategoryModel);
     if (rc != 0) {
         std::string message = "Failed to get category";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
-        wxQueueEvent(pParent->GetParent(), addNotificationEvent);
+        QueueErrorNotificationEvent(message);
     } else {
-        pNameTextCtrl->ChangeValue(model.Name);
-        pColorPickerCtrl->SetColour(model.Color);
-        pBillableCtrl->SetValue(model.Billable);
-        pDescriptionTextCtrl->SetValue(model.Description.has_value() ? model.Description.value() : "");
-        pDateCreatedTextCtrl->SetValue(model.GetDateCreatedString());
-        pDateModifiedTextCtrl->SetValue(model.GetDateModifiedString());
-        pIsActiveCtrl->SetValue(model.IsActive);
+        pNameTextCtrl->ChangeValue(mCategoryModel.Name);
 
-        if (model.ProjectId.has_value()) {
-            Model::ProjectModel project;
-            Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+        pColorPickerCtrl->SetColour(mCategoryModel.Color);
+        pBillableCheckBoxCtrl->SetValue(mCategoryModel.Billable);
 
-            int rc = projectPersistence.GetById(model.ProjectId.value(), project);
-            if (rc != 0) {
-                std::string message = "Failed to get project";
-                wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-                NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-                addNotificationEvent->SetClientObject(clientData);
+        if (mCategoryModel.Description.has_value()) {
+            pDescriptionTextCtrl->SetValue(mCategoryModel.Description.value());
+        }
 
-                wxQueueEvent(pParent, addNotificationEvent);
+        pIsActiveCheckBoxCtrl->SetValue(mCategoryModel.IsActive);
+        pIsActiveCheckBoxCtrl->Enable();
+
+        if (mCategoryModel.ProjectId.has_value()) {
+            for (unsigned int i = 0; i < pProjectChoiceCtrl->GetCount(); i++) {
+                auto* data = reinterpret_cast<ClientData<std::int64_t>*>(
+                    pProjectChoiceCtrl->GetClientObject(i));
+                if (mCategoryModel.ProjectId.value() == data->GetValue()) {
+                    pProjectChoiceCtrl->SetSelection(i);
+                    break;
+                }
             }
-
-            pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
         }
     }
 
@@ -330,15 +279,15 @@ void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)
     if (event.IsChecked()) {
         pNameTextCtrl->Enable();
         pColorPickerCtrl->Enable();
-        pBillableCtrl->Enable();
+        pBillableCheckBoxCtrl->Enable();
         pDescriptionTextCtrl->Enable();
         pProjectChoiceCtrl->Enable();
-
     } else {
         pNameTextCtrl->Disable();
         pColorPickerCtrl->Disable();
-        pBillableCtrl->Disable();
+        pBillableCheckBoxCtrl->Disable();
         pDescriptionTextCtrl->Disable();
+
         pProjectChoiceCtrl->SetSelection(0);
         pProjectChoiceCtrl->Disable();
     }
@@ -346,42 +295,46 @@ void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)
 
 void CategoryDialog::OnOK(wxCommandEvent& event)
 {
+    if (!Validate()) {
+        return;
+    }
+
     pOkButton->Disable();
 
-    if (TransferDataAndValidate()) {
-        Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    TransferDataFromControls();
 
-        int ret = 0;
-        std::string message = "";
-        if (pIsActiveCtrl->IsChecked()) {
-            ret = categoryPersistence.Update(mModel);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-            ret == -1 ? message = "Failed to update category" : message = "Successfully updated category";
-        }
-        if (!pIsActiveCtrl->IsChecked()) {
-            ret = categoryPersistence.Delete(mCategoryId);
+    int ret = 0;
+    std::string message = "";
+    if (pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = categoryPersistence.Update(mCategoryModel);
 
-            ret == -1 ? message = "Failed to delete category" : message = "Successfully deleted category";
-        }
+        ret == -1 ? message = "Failed to update category"
+                  : message = "Successfully updated category";
+    }
+    if (!pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = categoryPersistence.Delete(mCategoryId);
 
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        if (ret == -1) {
-            NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
+        ret == -1 ? message = "Failed to delete category"
+                  : message = "Successfully deleted category";
+    }
 
-            // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
-            wxQueueEvent(pParent->GetParent(), addNotificationEvent);
+    if (ret == -1) {
+        QueueErrorNotificationEvent(message);
 
-            pOkButton->Enable();
-        } else {
-            NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
-            addNotificationEvent->SetClientObject(clientData);
+        pOkButton->Enable();
+    } else {
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
 
-            // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then we have wxFrame
-            wxQueueEvent(pParent->GetParent(), addNotificationEvent);
+        // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then
+        // we have wxFrame
+        wxQueueEvent(pParent->GetParent(), addNotificationEvent);
 
-            EndModal(wxID_OK);
-        }
+        EndModal(wxID_OK);
     }
 }
 
@@ -390,7 +343,7 @@ void CategoryDialog::OnCancel(wxCommandEvent& event)
     EndModal(wxID_CANCEL);
 }
 
-bool CategoryDialog::TransferDataAndValidate()
+bool CategoryDialog::Validate()
 {
     auto name = pNameTextCtrl->GetValue().ToStdString();
     if (name.empty()) {
@@ -412,36 +365,55 @@ bool CategoryDialog::TransferDataAndValidate()
     }
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
-    if (!description.empty() &&
-        (description.length() < MIN_CHARACTER_COUNT || description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
-        auto valMsg = fmt::format("Description must be at minimum {0} or maximum {1} characters long",
-            MIN_CHARACTER_COUNT,
-            MAX_CHARACTER_COUNT_DESCRIPTIONS);
+    if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
+                                    description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
+        auto valMsg =
+            fmt::format("Description must be at minimum {0} or maximum {1} characters long",
+                MIN_CHARACTER_COUNT,
+                MAX_CHARACTER_COUNT_DESCRIPTIONS);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pDescriptionTextCtrl);
         return false;
     }
 
+    return true;
+}
+
+void CategoryDialog::TransferDataFromControls()
+{
+    mCategoryModel.CategoryId = mCategoryId;
+
+    auto name = pNameTextCtrl->GetValue().ToStdString();
+    mCategoryModel.Name = Utils::TrimWhitespace(name);
+
+    mCategoryModel.Color = pColorPickerCtrl->GetColour().GetRGB();
+    mCategoryModel.Billable = pBillableCheckBoxCtrl->IsChecked();
+
+    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    mCategoryModel.Description =
+        description.empty() ? std::nullopt : std::make_optional(description);
+
     if (pProjectChoiceCtrl->IsEnabled()) {
         int projectIndex = pProjectChoiceCtrl->GetSelection();
-        ClientData<std::int64_t>* projectIdData =
-            reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(projectIndex));
+        ClientData<std::int64_t>* projectIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+            pProjectChoiceCtrl->GetClientObject(projectIndex));
 
         if (projectIdData->GetValue() > 0) {
             auto projectId = projectIdData->GetValue();
-            mModel.ProjectId = std::make_optional(projectId);
+            mCategoryModel.ProjectId = std::make_optional(projectId);
         } else {
-            mModel.ProjectId = std::nullopt;
+            mCategoryModel.ProjectId = std::nullopt;
         }
     }
+}
+void CategoryDialog::QueueErrorNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
 
-    mModel.CategoryId = mCategoryId;
-    mModel.Name = Utils::TrimWhitespace(name);
-    mModel.Color = pColorPickerCtrl->GetColour().GetRGB();
-    mModel.Billable = pBillableCtrl->IsChecked();
-    mModel.Description = description.empty() ? std::nullopt : std::make_optional(description);
-
-    return true;
+    wxQueueEvent(pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

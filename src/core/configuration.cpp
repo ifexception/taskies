@@ -155,6 +155,12 @@ bool Configuration::Save()
     root.at(Sections::TaskSection)["showProjectAssociatedCategories"] =
         mSettings.ShowProjectAssociatedCategories;
     root.at(Sections::TaskSection)["useLegacyTaskDialog"] = mSettings.UseLegacyTaskDialog;
+    root.at(Sections::TaskSection)["useReminders"] = mSettings.UseReminders;
+    root.at(Sections::TaskSection)["useNotificationBanners"] = mSettings.UseNotificationBanners;
+    root.at(Sections::TaskSection)["openTaskDialogOnReminderClick"] =
+        mSettings.OpenTaskDialogOnReminderClick;
+    root.at(Sections::TaskSection)["useTaskbarFlashing"] = mSettings.UseTaskbarFlashing;
+    root.at(Sections::TaskSection)["reminderInterval"] = mSettings.ReminderInterval;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -163,7 +169,8 @@ bool Configuration::Save()
     // Export section
     root.at(Sections::ExportSection).as_table_fmt().fmt = toml::table_format::multiline;
     root.at(Sections::ExportSection)["exportPath"] = mSettings.ExportPath;
-    root.at(Sections::ExportSection)["closeExportDialogAfterExporting"] = mSettings.CloseExportDialogAfterExporting;
+    root.at(Sections::ExportSection)["closeExportDialogAfterExporting"] =
+        mSettings.CloseExportDialogAfterExporting;
     root.at(Sections::ExportSection)["presetCount"] = mSettings.PresetCount;
 
     // Presets section
@@ -252,6 +259,11 @@ bool Configuration::RestoreDefaults()
     SetMinutesIncrement(15);
     ShowProjectAssociatedCategories(false);
     UseLegacyTaskDialog(false);
+    UseReminders(false);
+    UseNotificationBanners(false);
+    UseTaskbarFlashing(false);
+    SetReminderInterval(0);
+    OpenTaskDialogOnReminderClick(false);
 
     SetExportPath(pEnv->GetExportPath().string());
     CloseExportDialogAfterExporting(false);
@@ -284,7 +296,12 @@ bool Configuration::RestoreDefaults()
                 toml::table {
                     { "minutesIncrement", 15 },
                     { "showProjectAssociatedCategories", false },
-                    { "useLegacyTaskDialog", false }
+                    { "useLegacyTaskDialog", false },
+                    { "useReminders", false },
+                    { "useNotificationBanners", false },
+                    { "useTaskbarFlashing", false },
+                    { "reminderInterval", 0 },
+                    { "openTaskDialogOnReminderClick", false }
                 }
             },
             {
@@ -659,6 +676,56 @@ void Configuration::UseLegacyTaskDialog(const bool value)
     mSettings.UseLegacyTaskDialog = value;
 }
 
+bool Configuration::UseReminders() const
+{
+    return mSettings.UseReminders;
+}
+
+void Configuration::UseReminders(const bool value)
+{
+    mSettings.UseReminders = value;
+}
+
+bool Configuration::UseNotificationBanners() const
+{
+    return mSettings.UseNotificationBanners;
+}
+
+void Configuration::UseNotificationBanners(const bool value)
+{
+    mSettings.UseNotificationBanners = value;
+}
+
+bool Configuration::UseTaskbarFlashing() const
+{
+    return mSettings.UseTaskbarFlashing;
+}
+
+void Configuration::UseTaskbarFlashing(const bool value)
+{
+    mSettings.UseTaskbarFlashing = value;
+}
+
+int Configuration::ReminderInterval() const
+{
+    return mSettings.ReminderInterval;
+}
+
+void Configuration::SetReminderInterval(const int value)
+{
+    mSettings.ReminderInterval = value;
+}
+
+bool Configuration::OpenTaskDialogOnReminderClick() const
+{
+    return mSettings.OpenTaskDialogOnReminderClick;
+}
+
+void Configuration::OpenTaskDialogOnReminderClick(const bool value)
+{
+    mSettings.OpenTaskDialogOnReminderClick = value;
+}
+
 bool Configuration::TodayAlwaysExpanded() const
 {
     return mSettings.TodayAlwaysExpanded;
@@ -763,9 +830,19 @@ void Configuration::GetTasksConfig(const toml::value& root)
     const auto& taskSection = toml::find(root, Sections::TaskSection);
 
     mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
+
     mSettings.ShowProjectAssociatedCategories =
         toml::find<bool>(taskSection, "showProjectAssociatedCategories");
+
     mSettings.UseLegacyTaskDialog = toml::find<bool>(taskSection, "useLegacyTaskDialog");
+
+    mSettings.UseReminders = toml::find<bool>(taskSection, "useReminders");
+    mSettings.UseNotificationBanners = toml::find<bool>(taskSection, "useNotificationBanners");
+    mSettings.OpenTaskDialogOnReminderClick =
+        toml::find<bool>(taskSection, "openTaskDialogOnReminderClick");
+    mSettings.UseTaskbarFlashing = toml::find<bool>(taskSection, "useTaskbarFlashing");
+
+    mSettings.ReminderInterval = toml::find<int>(taskSection, "reminderInterval");
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)
@@ -828,11 +905,11 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
                                                   .at("originalColumn")
                                                   .as_string();
                 presetColumn.Order = static_cast<int>(root.at(Sections::PresetsSection)
-                                                          .at(i)
-                                                          .at("columns")
-                                                          .at(j)
-                                                          .at("order")
-                                                          .as_integer());
+                        .at(i)
+                        .at("columns")
+                        .at(j)
+                        .at("order")
+                        .as_integer());
 
                 preset.Columns.push_back(presetColumn);
             }

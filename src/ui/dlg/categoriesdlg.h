@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <wx/wxprec.h>
@@ -34,13 +35,7 @@
 
 #include "../../models/categorymodel.h"
 
-namespace tks
-{
-namespace Core
-{
-class Environment;
-} // namespace Core
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 class CategoriesDialog final : public wxDialog
 {
@@ -48,7 +43,6 @@ public:
     CategoriesDialog() = delete;
     CategoriesDialog(const CategoriesDialog&) = delete;
     CategoriesDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         const wxString& name = "categoriesdlg");
@@ -82,21 +76,28 @@ private:
 
     std::string ExtractNameFromListIndex(long itemIndex);
 
-    bool TransferDataAndValidate();
+    bool Validate();
+    void TransferDataFromControls();
 
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
+
     wxTextCtrl* pNameTextCtrl;
+
     wxColourPickerCtrl* pColorPickerCtrl;
-    wxCheckBox* pBillableCtrl;
-    wxChoice* pProjectChoiceCtrl;
+    wxCheckBox* pBillableCheckBoxCtrl;
+
     wxTextCtrl* pDescriptionTextCtrl;
-    wxListCtrl* pListCtrl;
+
+    wxChoice* pProjectChoiceCtrl;
+
     wxButton* pAddButton;
     wxButton* pRemoveButton;
     wxButton* pRemoveAllButton;
+
+    wxListCtrl* pListCtrl;
+
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
@@ -110,13 +111,12 @@ private:
     std::vector<Model::CategoryModel> mCategoriesToAdd;
 
     enum {
-        tksIDC_NAME = wxID_HIGHEST + 100,
-        tksIDC_COLORPICKER,
-        tksIDC_BILLABLE,
-        tksIDC_PROJECTCHOICE,
-        tksIDC_DESCRIPTION,
-        tksIDC_LIST
+        tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
+        tksIDC_COLORPICKERCTRL,
+        tksIDC_BILLABLECHECKBOXCTRL,
+        tksIDC_PROJECTCHOICECTRL,
+        tksIDC_DESCRIPTIONTEXTCTRL,
+        tksIDC_LISTCTRL
     };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg

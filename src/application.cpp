@@ -40,6 +40,8 @@
 #include "ui/translator.h"
 #include "ui/mainframe.h"
 
+#define LOGGER_NAME "TaskiesLogger"
+
 namespace tks
 {
 Application::Application()
@@ -71,8 +73,9 @@ bool Application::OnInit()
 
     pCfg = std::make_shared<Core::Configuration>(pEnv, pLogger);
     if (!InitializeConfiguration()) {
-        wxMessageBox(
-            "An error occured when initializing configuration", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+        wxMessageBox("An error occured when initializing configuration",
+            Common::GetProgramName(),
+            wxICON_ERROR | wxOK_DEFAULT);
         return false;
     }
 
@@ -86,22 +89,26 @@ bool Application::OnInit()
         pCfg->Save();
     }
 
-    pPersistenceManager = std::make_unique<UI::PersistenceManager>(pLogger, pCfg->GetDatabasePath());
+    pPersistenceManager =
+        std::make_unique<UI::PersistenceManager>(pLogger, pCfg->GetDatabasePath());
     wxPersistenceManager::Set(*pPersistenceManager);
 
     if (!RunMigrations()) {
-        wxMessageBox("Failed to run migrations", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+        wxMessageBox(
+            "Failed to run migrations", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
         return false;
     }
 
     if (!InitializeTranslations()) {
         pLogger->error("Failed to initialize translations");
-        wxMessageBox("Failed to initialize translations.", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+        wxMessageBox("Failed to initialize translations.",
+            Common::GetProgramName(),
+            wxICON_ERROR | wxOK_DEFAULT);
         return false;
     }
 
-    pLogger->info(
-        "Application - Initialize MainFrame with WindowState \"{0}\"", WindowStateToString(pCfg->GetWindowState()));
+    pLogger->info("Application - Initialize MainFrame with WindowState \"{0}\"",
+        WindowStateToString(pCfg->GetWindowState()));
     auto frame = new UI::MainFrame(pEnv, pCfg, pLogger);
     SetTopWindow(frame);
 
@@ -151,25 +158,35 @@ void Application::InitializeLogger()
 {
     auto logDirectory = pEnv->GetLogFilePath().string();
 
+#ifdef TKS_DEBUG
     auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_st>();
-    msvcSink->set_level(spdlog::level::info);
+    msvcSink->set_level(spdlog::level::trace);
+    msvcSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%@:%!:%#] [%^%l%$] %v");
 
-    auto dialySink = std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 5, 0);
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        dialySink->set_level(spdlog::level::info);
-    } else {
-        dialySink->set_level(spdlog::level::warn);
-    }
+    auto dailyFileSink =
+        std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 5, 0, false, 5);
+    dailyFileSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
 
-    std::shared_ptr<spdlog::sinks::dist_sink_st> combinedLoggers = std::make_shared<spdlog::sinks::dist_sink_st>();
+    dailyFileSink->set_level(spdlog::level::info);
 
-    combinedLoggers->add_sink(msvcSink);
-    combinedLoggers->add_sink(dialySink);
+    std::vector<spdlog::sink_ptr> sinks{ msvcSink, dailyFileSink };
 
-    auto logger = std::make_shared<spdlog::logger>("taskies-logger", combinedLoggers);
-    logger->flush_on(spdlog::level::err);
+    pLogger = std::make_shared<spdlog::logger>(LOGGER_NAME, sinks.begin(), sinks.end());
+    pLogger->set_level(spdlog::level::trace);
+    //pLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+#else
+    auto dailyFileSink =
+        std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 5, 0, false, 5);
+    dailyFileSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%s:%#] [%^%l%$] %v");
 
-    pLogger = logger;
+    std::vector<spdlog::sink_ptr> sinks{ dailyFileSink };
+
+    pLogger = std::make_shared<spdlog::logger>(LOGGER_NAME, sinks.begin(), sinks.end());
+    pLogger->set_level(spdlog::level::warn);
+    pLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%s:%#] [%^%l%$] %v");
+#endif // TKS_DEBUG
+
+    SPDLOG_LOGGER_TRACE(pLogger, "{0} has been initialized", LOGGER_NAME);
 }
 
 bool Application::InitializeConfiguration()
@@ -186,7 +203,8 @@ bool Application::RunMigrations()
 
 bool Application::InitializeTranslations()
 {
-    return UI::Translator::GetInstance().Load(pCfg->GetUserInterfaceLanguage(), pEnv->GetLanguagesPath());
+    return UI::Translator::GetInstance().Load(
+        pCfg->GetUserInterfaceLanguage(), pEnv->GetLanguagesPath());
 }
 
 bool Application::FirstStartupProcedure(wxFrame* frame)
@@ -201,16 +219,11 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
         if (result) {
             return true;
         }
-        pLogger->error(
-            "Application::FirstStartupProcedure - Error occured when setting 'IsSetup' Windows registry key.");
+        pLogger->error("Application::FirstStartupProcedure - Error occured when setting 'IsSetup' "
+                       "Windows registry key.");
     }
-    pLogger->error("Application::FirstStartupProcedure - Wizard canceled or unexpected error occured");
-
-    /*bool result = pEnv->SetIsSetup();
-    if (result) {
-        return true;
-    }
-    pLogger->error("Application::FirstStartupProcedure - Error occured when setting 'IsSetup' Windows registry key.");*/
+    pLogger->error(
+        "Application::FirstStartupProcedure - Wizard canceled or unexpected error occured");
 
     return false;
 }
@@ -220,7 +233,8 @@ void Application::ActivateOtherInstance()
     pLogger->info("MainFrame::ActivateOtherInstance begin");
 
     wxClient client;
-    auto connection = client.MakeConnection("localhost", Common::GetProgramName(), "ApplicationOptions");
+    auto connection =
+        client.MakeConnection("localhost", Common::GetProgramName(), "ApplicationOptions");
 
     if (connection) {
         pLogger->info("MainFrame::ActivateOtherInstance connection established");

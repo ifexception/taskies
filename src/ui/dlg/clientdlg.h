@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -31,13 +32,7 @@
 
 #include "../../models/clientmodel.h"
 
-namespace tks
-{
-namespace Core
-{
-class Environment;
-} // namespace Core
-namespace UI::dlg
+namespace tks::UI::dlg
 {
 class ClientDialog : public wxDialog
 {
@@ -45,7 +40,6 @@ public:
     ClientDialog() = delete;
     ClientDialog(const ClientDialog&) = delete;
     ClientDialog(wxWindow* parent,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std ::string& databaseFilePath,
         bool isEdit = false,
@@ -67,18 +61,23 @@ private:
     void OnCancel(wxCommandEvent& event);
     void OnIsActiveCheck(wxCommandEvent& event);
 
-    bool TransferDataAndValidate();
+    bool Validate();
+    void TransferDataFromControls();
 
-    std::shared_ptr<Core::Environment> pEnv;
+    void QueueErrorNotificationEvent(const std::string& message);
+
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
+
     wxTextCtrl* pNameTextCtrl;
+
     wxTextCtrl* pDescriptionTextCtrl;
+
     wxChoice* pEmployerChoiceCtrl;
-    wxTextCtrl* pDateCreatedTextCtrl;
-    wxTextCtrl* pDateModifiedTextCtrl;
-    wxCheckBox* pIsActiveCtrl;
+
+    wxCheckBox* pIsActiveCheckBoxCtrl;
+
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
@@ -89,11 +88,10 @@ private:
     Model::ClientModel mClientModel;
 
     enum {
-        tksIDC_NAME = wxID_HIGHEST + 1,
-        tksIDC_DESCRIPTION,
-        tksIDC_CHOICE,
-        tksIDC_ISACTIVE,
+        tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
+        tksIDC_DESCRIPTIONTEXTCTRL,
+        tksIDC_EMPLOYERCHOICECTRL,
+        tksIDC_ISACTIVECHECKBOXCTRL,
     };
 };
-} // namespace UI::dlg
-} // namespace tks
+} // namespace tks::UI::dlg

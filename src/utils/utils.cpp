@@ -20,6 +20,7 @@
 #include "utils.h"
 
 #include <chrono>
+#include <numeric>
 #include <random>
 
 #include <date/date.h>
@@ -34,7 +35,8 @@ namespace tks::Utils
 #ifdef _WIN32
 std::string ToStdString(const std::wstring& input)
 {
-    int size = WideCharToMultiByte(CP_UTF8, 0, input.data(), static_cast<int>(input.size()), NULL, 0, NULL, NULL);
+    int size = WideCharToMultiByte(
+        CP_UTF8, 0, input.data(), static_cast<int>(input.size()), NULL, 0, NULL, NULL);
     std::string result(size, 0);
     WideCharToMultiByte(CP_UTF8, 0, &input[0], (int) input.size(), &result[0], size, NULL, NULL);
     return result;
@@ -154,22 +156,23 @@ std::string Uuid()
     return res;
 }
 
-namespace sqlite
+int ConvertMinutesToMilliseconds(const int valueInMinutes)
 {
-std::string FormatSearchTerm(const std::string& source)
+    const int multiplier = 60000;
+    int valueInMilliseconds = valueInMinutes * multiplier;
+    return valueInMilliseconds;
+}
+
+std::string FormatSqlSearchTerm(const std::string& source)
 {
     return "%" + source + "%";
 }
 
-namespace pragmas
+std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t> ids)
 {
-const char* ForeignKeys = "PRAGMA foreign_keys = ON;";
-const char* JournalMode = "PRAGMA journal_mode = WAL;";
-const char* Synchronous = "PRAGMA synchronous = normal;";
-const char* TempStore = "PRAGMA temp_store = memory;";
-const char* MmapSize = "PRAGMA mmap_size = 30000000000;";
-
-const char* Optimize = "PRAGMA optimize;";
-} // namespace pragmas
-} // namespace sqlite
+    return std::accumulate(
+        std::begin(ids), std::end(ids), std::string(), [](std::string s, std::int64_t i) {
+            return s.empty() ? std::to_string(i) : s + "," + std::to_string(i);
+        });
+}
 } // namespace tks::Utils

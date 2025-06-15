@@ -32,7 +32,7 @@
 
 #include <spdlog/logger.h>
 
-#include "../../repository/setupwizardrepository.h"
+#include "../../services/setupwizard/setupwizardservice.h"
 
 namespace tks
 {
@@ -95,7 +95,7 @@ private:
     std::shared_ptr<Core::Configuration> pCfg;
     std::string mDatabasePath;
 
-    repos::SetupWizardRepository* pSetupWizardRepository;
+    Services::SetupWizardService* pSetupWizardService;
 
     WelcomePage* pWelcomePage;
     OptionPage* pOptionPage;
@@ -142,7 +142,7 @@ public:
     OptionPage() = delete;
     OptionPage(const OptionPage&) = delete;
     OptionPage(SetupWizard* parent,
-        repos::SetupWizardRepository* setupWizardRepository,
+        Services::SetupWizardService* setupWizardService,
         std::shared_ptr<spdlog::logger> logger,
         wxWizardPage* prev,
         wxWizardPage* nextOption1,
@@ -165,7 +165,7 @@ private:
     void OnSkipWizardFlowCheck(wxCommandEvent& event);
 
     SetupWizard* pParent;
-    repos::SetupWizardRepository* pSetupWizardRepository;
+    Services::SetupWizardService* pSetupWizardService;
     std::shared_ptr<spdlog::logger> pLogger;
     wxWizardPage* pNextOption1;
     wxWizardPage* pNextOption2;
@@ -189,7 +189,7 @@ public:
     CreateEmployerAndClientPage() = delete;
     CreateEmployerAndClientPage(const CreateEmployerAndClientPage&) = delete;
     CreateEmployerAndClientPage(SetupWizard* parent,
-        repos::SetupWizardRepository* setupWizardRepository,
+        Services::SetupWizardService* setupWizardService,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databasePath);
     virtual ~CreateEmployerAndClientPage() = default;
@@ -206,7 +206,7 @@ private:
     void OnWizardPageShown(wxWizardEvent& event);
 
     SetupWizard* pParent;
-    repos::SetupWizardRepository* pSetupWizardRepository;
+    Services::SetupWizardService* pSetupWizardService;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabasePath;
 
@@ -222,7 +222,7 @@ public:
     CreateProjectAndCategoryPage() = delete;
     CreateProjectAndCategoryPage(const CreateProjectAndCategoryPage&) = delete;
     CreateProjectAndCategoryPage(SetupWizard* parent,
-        repos::SetupWizardRepository* setupWizardRepository,
+        Services::SetupWizardService* setupWizardService,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databasePath);
     virtual ~CreateProjectAndCategoryPage() = default;
@@ -240,7 +240,7 @@ private:
     void OnWizardPageShown(wxWizardEvent& event);
 
     SetupWizard* pParent;
-    repos::SetupWizardRepository* pSetupWizardRepository;
+    Services::SetupWizardService* pSetupWizardService;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabasePath;
 
@@ -268,7 +268,7 @@ public:
     SetupCompletePage(const SetupCompletePage&) = delete;
     SetupCompletePage(SetupWizard* parent,
         std::shared_ptr<spdlog::logger> logger,
-        repos::SetupWizardRepository* setupWizardRepository);
+        Services::SetupWizardService* setupWizardService);
     virtual ~SetupCompletePage() = default;
 
 private:
@@ -281,7 +281,7 @@ private:
 
     SetupWizard* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
-    repos::SetupWizardRepository* pSetupWizardRepository;
+    Services::SetupWizardService* pSetupWizardService;
 };
 
 class RestoreDatabasePage final : public wxWizardPageSimple

@@ -40,6 +40,7 @@ struct TaskModel {
     std::int64_t ProjectId;
     std::int64_t CategoryId;
     std::int64_t WorkdayId;
+    std::optional<std::int64_t> AttributeGroupId;
 
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;
@@ -49,4 +50,4 @@ struct TaskDurationModel {
     int Hours;
     int Minutes;
 };
-}
+} // namespace tks::Model

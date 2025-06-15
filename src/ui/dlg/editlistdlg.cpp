@@ -25,30 +25,38 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
+#include "employerdlg.h"
+#include "clientdlg.h"
+#include "projectdlg.h"
+#include "categorydlg.h"
+
+#include "attributes/attributegroupdlg.h"
+#include "attributes/attributedlg.h"
+#include "attributes/staticattributevaluesdlg.h"
+
+#include "../events.h"
+#include "../notificationclientdata.h"
+
 #include "../../common/common.h"
 
-#include "../../core/environment.h"
-
-#include "../../persistence/employerpersistence.h"
-#include "../../persistence/clientpersistence.h"
-#include "../../persistence/projectpersistence.h"
-#include "../../persistence/categorypersistence.h"
+#include "../../persistence/employerspersistence.h"
+#include "../../persistence/ClientsPersistence.h"
+#include "../../persistence/projectspersistence.h"
+#include "../../persistence/categoriespersistence.h"
+#include "../../persistence/attributegroupspersistence.h"
+#include "../../persistence/attributespersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
 #include "../../models/projectmodel.h"
 #include "../../models/categorymodel.h"
+#include "../../models/attributegroupmodel.h"
+#include "../../models/attributemodel.h"
+
+#include "../../services/attributes/staticattributegroupviewmodel.h"
+#include "../../services/attributes/staticattributegroupsservice.h"
 
 #include "../../utils/utils.h"
-
-#include "../events.h"
-#include "../notificationclientdata.h"
-
-#include "errordlg.h"
-#include "employerdlg.h"
-#include "clientdlg.h"
-#include "projectdlg.h"
-#include "categorydlg.h"
 
 namespace tks::UI::dlg
 {
@@ -59,7 +67,6 @@ ListCtrlData::ListCtrlData(std::int64_t entityId, std::string entityName)
 }
 
 EditListDialog::EditListDialog(wxWindow* parent,
-    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     EditListEntityType editListEntityType,
@@ -72,7 +79,6 @@ EditListDialog::EditListDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
-    , pEnv(env)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , mType(editListEntityType)
@@ -95,16 +101,22 @@ EditListDialog::EditListDialog(wxWindow* parent,
 std::string EditListDialog::GetEditTitle()
 {
     switch (mType) {
-    case EditListEntityType::Employer:
-        return "Find Employer";
-    case EditListEntityType::Client:
-        return "Find Client";
-    case EditListEntityType::Project:
-        return "Find Project";
-    case EditListEntityType::Category:
-        return "Find Category";
+    case EditListEntityType::Employers:
+        return "Find Employers";
+    case EditListEntityType::Clients:
+        return "Find Clients";
+    case EditListEntityType::Projects:
+        return "Find Projects";
+    case EditListEntityType::Categories:
+        return "Find Categories";
+    case EditListEntityType::AttributeGroups:
+        return "Find Attribute Groups";
+    case EditListEntityType::Attributes:
+        return "Find Attributes";
+    case EditListEntityType::StaticAttributeGroups:
+        return "Find Static Attribute Values";
     default:
-        return "Error";
+        return "Find [Not Found]";
     }
 }
 
@@ -113,8 +125,6 @@ void EditListDialog::Create()
     CreateControls();
     ConfigureEventBindings();
     DataToControls();
-
-    SetMinSize(FromDIP(wxSize(334, 290)));
 }
 
 void EditListDialog::CreateControls()
@@ -129,33 +139,37 @@ void EditListDialog::CreateControls()
 
     /* Search Text Control */
     pSearchTextCtrl = new wxTextCtrl(searchBox,
-        tksIDC_SEARCHTEXT,
+        tksIDC_SEARCHTEXTCTRL,
         wxEmptyString,
         wxDefaultPosition,
         wxDefaultSize,
         wxTE_LEFT /* | wxTE_PROCESS_ENTER*/);
     pSearchTextCtrl->SetHint(GetSearchHintText());
     pSearchTextCtrl->SetToolTip("Enter a search term");
-    searchBoxSizer->Add(pSearchTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    searchBoxSizer->Add(
+        pSearchTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Search Button */
-    auto providedFindBitmap =
-        wxArtProvider::GetBitmapBundle(wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    pSearchButton = new wxBitmapButton(searchBox, tksIDC_SEARCHBTN, providedFindBitmap);
-    pSearchButton->SetToolTip("Search for an entity based on the search term");
-    searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    auto providedFindBitmap = wxArtProvider::GetBitmapBundle(
+        wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    pSearchButton = new wxBitmapButton(searchBox, tksIDC_SEARCHBUTTON, providedFindBitmap);
+    pSearchButton->SetToolTip("Search for an entity by entered criteria");
+    searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Reset Button */
-    auto providedCloseBitmap =
-        wxArtProvider::GetBitmapBundle(wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    pResetButton = new wxBitmapButton(searchBox, tksIDC_RESETBTN, providedCloseBitmap);
+    auto providedCloseBitmap = wxArtProvider::GetBitmapBundle(
+        wxART_CLOSE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    pResetButton = new wxBitmapButton(searchBox, tksIDC_RESETBUTTON, providedCloseBitmap);
     pResetButton->SetToolTip("Reset search term");
-    searchBoxSizer->Add(pResetButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    searchBoxSizer->Add(pResetButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* List Control */
-    pListCtrl = new wxListCtrl(
-        this, tksIDC_LISTRESULTS, wxDefaultPosition, wxDefaultSize, wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
-    sizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    pListCtrl = new wxListCtrl(this,
+        tksIDC_LISTRESULTS,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
+    sizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     wxListItem nameColumn;
     nameColumn.SetId(0);
@@ -179,8 +193,8 @@ void EditListDialog::CreateControls()
 
     pOkButton->Disable();
 
-    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
-    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(5)));
+    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -198,14 +212,14 @@ void EditListDialog::ConfigureEventBindings()
         wxEVT_BUTTON,
         &EditListDialog::OnSearch,
         this,
-        tksIDC_SEARCHBTN
+        tksIDC_SEARCHBUTTON
     );
 
     pResetButton->Bind(
         wxEVT_BUTTON,
         &EditListDialog::OnReset,
         this,
-        tksIDC_RESETBTN
+        tksIDC_RESETBUTTON
     );
 
     pListCtrl->Bind(
@@ -234,18 +248,28 @@ void EditListDialog::ConfigureEventBindings()
 void EditListDialog::DataToControls()
 {
     switch (mType) {
-    case EditListEntityType::Employer:
+    case EditListEntityType::Employers:
         EmployerDataToControls();
         break;
-    case EditListEntityType::Client:
+    case EditListEntityType::Clients:
         ClientDataToControls();
         break;
-    case EditListEntityType::Project:
+    case EditListEntityType::Projects:
         ProjectDataToControls();
         break;
-    case EditListEntityType::Category:
+    case EditListEntityType::Categories:
         CategoryDataToControls();
         break;
+    case EditListEntityType::AttributeGroups:
+        AttributeGroupDataToControls();
+        break;
+    case EditListEntityType::Attributes:
+        AttributeDataToControls();
+        break;
+    case EditListEntityType::StaticAttributeGroups: {
+        StaticAttributeGroupsDataToControls();
+        break;
+    }
     default:
         break;
     }
@@ -257,13 +281,14 @@ void EditListDialog::EmployerDataToControls()
 {
     std::vector<Model::EmployerModel> employers;
     std::vector<ListCtrlData> entries;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {
         std::string message = "Failed to filter employers";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
@@ -281,13 +306,14 @@ void EditListDialog::ClientDataToControls()
 {
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientPersistence.Filter(mSearchTerm, clients);
+    int rc = ClientsPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
         std::string message = "Failed to filter clients";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
@@ -305,13 +331,14 @@ void EditListDialog::ProjectDataToControls()
 {
     std::vector<Model::ProjectModel> projects;
     std::vector<ListCtrlData> entries;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
         std::string message = "Failed to filter projects";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
@@ -329,19 +356,100 @@ void EditListDialog::CategoryDataToControls()
 {
     std::vector<Model::CategoryModel> categories;
     std::vector<ListCtrlData> entries;
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
         std::string message = "Failed to filter categories";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+}
+
+void EditListDialog::AttributeGroupDataToControls()
+{
+    std::vector<Model::AttributeGroupModel> attributeGroups;
+    std::vector<ListCtrlData> entries;
+
+    Persistence::AttributeGroupsPersistence attributeGroupPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributeGroupPersistence.Filter(mSearchTerm, attributeGroups);
+    if (rc == -1) {
+        std::string message = "Failed to filter attribute groups";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& attributeGroup : attributeGroups) {
+            ListCtrlData data(attributeGroup.AttributeGroupId, attributeGroup.Name);
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+}
+
+void EditListDialog::AttributeDataToControls()
+{
+    std::vector<Model::AttributeModel> attributes;
+    std::vector<ListCtrlData> entries;
+
+    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributesPersistence.Filter(mSearchTerm, attributes);
+    if (rc == -1) {
+        std::string message = "Failed to filter attributes";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& attribute : attributes) {
+            ListCtrlData data(attribute.AttributeId, attribute.Name);
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+}
+
+void EditListDialog::StaticAttributeGroupsDataToControls()
+{
+    std::vector<Services::StaticAttributeGroupViewModel> staticAttributeGroups;
+    std::vector<ListCtrlData> entries;
+
+    Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
+
+    int rc = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
+        /*searchTerm,*/ staticAttributeGroups);
+    if (rc == -1) {
+        std::string message = "Failed to filter static attribute groups";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& staticAttributeGroup : staticAttributeGroups) {
+            ListCtrlData data(
+                staticAttributeGroup.AttributeGroupId, staticAttributeGroup.GetDisplayValue());
             entries.push_back(data);
         }
 
@@ -386,25 +494,42 @@ void EditListDialog::OnReset(wxCommandEvent& event)
 void EditListDialog::OnItemDoubleClick(wxListEvent& event)
 {
     mEntityId = static_cast<std::int64_t>(event.GetData());
+
     switch (mType) {
-    case EditListEntityType::Employer: {
-        EmployerDialog employerDlg(this, pEnv, pLogger, mDatabaseFilePath, true, mEntityId);
+    case EditListEntityType::Employers: {
+        EmployerDialog employerDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         employerDlg.ShowModal();
         break;
     }
-    case EditListEntityType::Client: {
-        ClientDialog clientDlg(this, pEnv, pLogger, mDatabaseFilePath, true, mEntityId);
+    case EditListEntityType::Clients: {
+        ClientDialog clientDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         clientDlg.ShowModal();
         break;
     }
-    case EditListEntityType::Project: {
-        ProjectDialog projectDlg(this, pEnv, pLogger, mDatabaseFilePath, true, mEntityId);
+    case EditListEntityType::Projects: {
+        ProjectDialog projectDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
         projectDlg.ShowModal();
         break;
     }
-    case EditListEntityType::Category: {
-        CategoryDialog categoryDlg(this, pEnv, pLogger, mDatabaseFilePath, mEntityId);
+    case EditListEntityType::Categories: {
+        CategoryDialog categoryDlg(this, pLogger, mDatabaseFilePath, mEntityId);
         categoryDlg.ShowModal();
+        break;
+    }
+    case EditListEntityType::AttributeGroups: {
+        AttributeGroupDialog attributeGroupDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
+        attributeGroupDlg.ShowModal();
+        break;
+    }
+    case EditListEntityType::Attributes: {
+        AttributeDialog attributeDlg(this, pLogger, mDatabaseFilePath, true, mEntityId);
+        attributeDlg.ShowModal();
+        break;
+    }
+    case EditListEntityType::StaticAttributeGroups: {
+        StaticAttributeValuesDialog staticAttributeValuesDlg(
+            this, pLogger, mDatabaseFilePath, true, mEntityId);
+        staticAttributeValuesDlg.ShowModal();
         break;
     }
     default:
@@ -431,17 +556,26 @@ void EditListDialog::OnCancel(wxCommandEvent& event)
 void EditListDialog::Search()
 {
     switch (mType) {
-    case EditListEntityType::Employer:
+    case EditListEntityType::Employers:
         SearchEmployers();
         break;
-    case EditListEntityType::Client:
+    case EditListEntityType::Clients:
         SearchClients();
         break;
-    case EditListEntityType::Project:
+    case EditListEntityType::Projects:
         SearchProjects();
         break;
-    case EditListEntityType::Category:
+    case EditListEntityType::Categories:
         SearchCategories();
+        break;
+    case EditListEntityType::AttributeGroups:
+        SearchAttributeGroups();
+        break;
+    case EditListEntityType::Attributes:
+        SearchAttributes();
+        break;
+    case EditListEntityType::StaticAttributeGroups:
+        SearchStaticAttributeGroups();
         break;
     default:
         break;
@@ -455,13 +589,14 @@ void EditListDialog::SearchEmployers()
 
     std::vector<Model::EmployerModel> employers;
     std::vector<ListCtrlData> entries;
-    Persistence::EmployerPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {
         std::string message = "Failed to filter employers";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
@@ -484,13 +619,14 @@ void EditListDialog::SearchClients()
 
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Persistence::ClientPersistence clientPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = clientPersistence.Filter(mSearchTerm, clients);
+    int rc = ClientsPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
         std::string message = "Failed to filter clients";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
@@ -513,13 +649,14 @@ void EditListDialog::SearchProjects()
 
     std::vector<Model::ProjectModel> projects;
     std::vector<ListCtrlData> entries;
-    Persistence::ProjectPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
         std::string message = "Failed to filter projects";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
@@ -542,13 +679,14 @@ void EditListDialog::SearchCategories()
 
     std::vector<Model::CategoryModel> categories;
     std::vector<ListCtrlData> entries;
-    Persistence::CategoryPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
         std::string message = "Failed to filter categories";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
@@ -564,17 +702,113 @@ void EditListDialog::SearchCategories()
     pOkButton->Enable();
 }
 
+void EditListDialog::SearchAttributeGroups()
+{
+    pOkButton->Disable();
+    pListCtrl->DeleteAllItems();
+
+    std::vector<Model::AttributeGroupModel> attributeGroups;
+    std::vector<ListCtrlData> entries;
+    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributeGroupsPersistence.Filter(mSearchTerm, attributeGroups);
+    if (rc == -1) {
+        std::string message = "Failed to filter attribute groups";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& attributeGroup : attributeGroups) {
+            ListCtrlData data(attributeGroup.AttributeGroupId, attributeGroup.Name);
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+
+    pOkButton->Enable();
+}
+
+void EditListDialog::SearchAttributes()
+{
+    pOkButton->Disable();
+    pListCtrl->DeleteAllItems();
+
+    std::vector<Model::AttributeModel> attributes;
+    std::vector<ListCtrlData> entries;
+    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
+
+    int rc = attributesPersistence.Filter(mSearchTerm, attributes);
+    if (rc == -1) {
+        std::string message = "Failed to filter attributes";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& attribute : attributes) {
+            ListCtrlData data(attribute.AttributeId, attribute.Name);
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+
+    pOkButton->Enable();
+}
+
+void EditListDialog::SearchStaticAttributeGroups()
+{
+    pListCtrl->DeleteAllItems();
+
+    std::vector<Services::StaticAttributeGroupViewModel> staticAttributeGroups;
+    std::vector<ListCtrlData> entries;
+
+    Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
+
+    int rc = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
+        /*searchTerm,*/ staticAttributeGroups);
+    if (rc == -1) {
+        std::string message = "Failed to filter static attribute groups";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Information, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+    } else {
+        for (auto& staticAttributeGroup : staticAttributeGroups) {
+            ListCtrlData data(
+                staticAttributeGroup.AttributeGroupId, staticAttributeGroup.GetDisplayValue());
+            entries.push_back(data);
+        }
+
+        SetDataToControls(entries);
+    }
+}
+
 std::string EditListDialog::GetSearchHintText()
 {
     switch (mType) {
-    case EditListEntityType::Employer:
+    case EditListEntityType::Employers:
         return "Search employers...";
-    case EditListEntityType::Client:
+    case EditListEntityType::Clients:
         return "Search clients...";
-    case EditListEntityType::Project:
+    case EditListEntityType::Projects:
         return "Search projects...";
-    case EditListEntityType::Category:
+    case EditListEntityType::Categories:
         return "Search categories...";
+    case EditListEntityType::AttributeGroups:
+        return "Search attribute groups...";
+    case EditListEntityType::Attributes:
+        return "Search attributes...";
+    case EditListEntityType::StaticAttributeGroups:
+        return "Search static attribute groups...";
     default:
         return "";
     }

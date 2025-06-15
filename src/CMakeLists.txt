@@ -21,57 +21,24 @@ message (STATUS "toml11 found: ${toml11_FOUND}")
 message (STATUS "nlohmann_json found: ${nlohmann_json_FOUND}")
 message (STATUS "fmt found: ${fmt_FOUND}")
 
-set (SRC_MODELS
-    "models/employermodel.cpp"
-    "models/clientmodel.cpp"
-    "models/projectmodel.cpp"
-    "models/categorymodel.cpp"
-    "models/workdaymodel.cpp"
-    "models/taskmodel.cpp"
-)
+add_subdirectory("common")
+message (STATUS "add subdirectory common")
 
-set(SRC_PERSISTENCE
-    "persistence/employerpersistence.cpp"
-    "persistence/clientpersistence.cpp"
-    "persistence/projectpersistence.cpp"
-    "persistence/categorypersistence.cpp"
-    "persistence/workdaypersistence.cpp"
-    "persistence/taskpersistence.cpp"
-    "persistence/exportpersistence.cpp"
-)
+add_subdirectory("ui")
+message (STATUS "add subdirectory ui")
 
-set(SRC_REPOS
-    "repository/taskrepository.cpp"
-    "repository/taskrepositorymodel.cpp"
-    "repository/categoryrepositorymodel.cpp"
-    "repository/categoryrepository.cpp"
-    "repository/setupwizardrepository.cpp"
-)
+add_subdirectory("models")
+message (STATUS "add subdirectory models")
+
+add_subdirectory("persistence")
+message (STATUS "add subdirectory persistence")
+
+add_subdirectory("services")
+message (STATUS "add subdirectory services")
 
 set(SRC_EXPORTS
     "ui/dlg/exports/exporttocsvdlg.cpp"
     "ui/dlg/exports/quickexporttocsvdlg.cpp"
-)
-
-set (SRC_DIALOGS
-    "ui/dlg/employerdlg.cpp"
-    "ui/dlg/errordlg.cpp"
-    "ui/dlg/editlistdlg.cpp"
-    "ui/dlg/clientdlg.cpp"
-    "ui/dlg/projectdlg.cpp"
-    "ui/dlg/categoriesdlg.cpp"
-    "ui/dlg/categorydlg.cpp"
-    "ui/dlg/aboutdlg.cpp"
-    "ui/dlg/preferences/preferencesdlg.cpp"
-    "ui/dlg/preferences/preferencesgeneralpage.cpp"
-    "ui/dlg/preferences/preferencesdatabasepage.cpp"
-    "ui/dlg/preferences/preferencestaskspage.cpp"
-    "ui/dlg/preferences/preferencestasksviewpage.cpp"
-    "ui/dlg/preferences/preferencesexportpage.cpp"
-    "ui/dlg/taskdlglegacy.cpp"
-    "ui/dlg/taskdlg.cpp"
-    "ui/dlg/daytaskviewdlg.cpp"
-    "ui/wizards/setupwizard.cpp"
 )
 
 set (SRC
@@ -98,10 +65,6 @@ set (SRC
     "ui/statusbar.cpp"
     "resources.rc"
     "application.manifest"
-    "common/common.cpp"
-    "common/enums.cpp"
-    "common/constants.cpp"
-    "common/validator.cpp"
     "ipc/applicationoptionsconnection.cpp"
     "ipc/server.cpp"
     "services/export/projectionbuilder.cpp"
@@ -116,11 +79,13 @@ set (SRC
     "services/export/csvexportmappedoptions.cpp"
     "services/export/columnexportmodel.cpp"
     "services/taskduration/taskdurationservice.cpp"
+    ${SRC_COMMON}
     ${SRC_MODELS}
     ${SRC_PERSISTENCE}
-    ${SRC_REPOS}
     ${SRC_DIALOGS}
     ${SRC_EXPORTS}
+    ${SRC_UI}
+    ${SRC_SERVICES}
 )
 
 add_executable (
@@ -152,6 +117,7 @@ target_compile_definitions (
     wxUSE_DATEPICKCTRL=1
     wxNO_UNSAFE_WXSTRING_CONV=1
     __WXMSW__
+    $<$<CONFIG:Debug>:SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE>
     $<$<CONFIG:Debug>:TKS_DEBUG>
     $<$<CONFIG:Debug>:WXDEBUG>
 )

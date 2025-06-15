@@ -28,6 +28,8 @@
 
 #include <sqlite3.h>
 
+#include <spdlog/spdlog.h>
+
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/persist/toplevel.h>
@@ -36,20 +38,21 @@
 
 #include "../common/common.h"
 #include "../common/constants.h"
+#include "../common/logmessages.h"
+#include "../common/queryhelper.h"
 #include "../common/enums.h"
 #include "../common/version.h"
 
 #include "../core/environment.h"
 #include "../core/configuration.h"
 
-#include "../persistence/taskpersistence.h"
+#include "../persistence/taskspersistence.h"
 
-#include "../repository/taskrepository.h"
-#include "../repository/taskrepositorymodel.h"
+#include "../services/tasks/taskviewmodel.h"
+#include "../services/tasks/tasksservice.h"
 
 #include "../utils/utils.h"
 
-#include "../ui/dlg/errordlg.h"
 #include "../ui/dlg/employerdlg.h"
 #include "../ui/dlg/editlistdlg.h"
 #include "../ui/dlg/clientdlg.h"
@@ -58,10 +61,13 @@
 #include "../ui/dlg/aboutdlg.h"
 #include "../ui/dlg/preferences/preferencesdlg.h"
 #include "../ui/dlg/taskdlglegacy.h"
-#include "../ui/dlg/daytaskviewdlg.h"
+// #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exports/exporttocsvdlg.h"
 #include "../ui/dlg/exports/quickexporttocsvdlg.h"
 #include "../ui/dlg/taskdlg.h"
+#include "../ui/dlg/attributes/attributegroupdlg.h"
+#include "../ui/dlg/attributes/attributedlg.h"
+#include "../ui/dlg/attributes/staticattributevaluesdlg.h"
 
 #include "events.h"
 #include "notificationclientdata.h"
@@ -88,12 +94,16 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
 EVT_SIZE(MainFrame::OnResize)
+EVT_TIMER(tksIDC_TASKREMINDERTIMER, MainFrame::OnTaskReminder)
 /* Menu Event Handlers */
 EVT_MENU(ID_NEW_TASK, MainFrame::OnNewTask)
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
 EVT_MENU(ID_NEW_CLIENT, MainFrame::OnNewClient)
 EVT_MENU(ID_NEW_PROJECT, MainFrame::OnNewProject)
 EVT_MENU(ID_NEW_CATEGORY, MainFrame::OnNewCategory)
+EVT_MENU(ID_NEW_ATTRIBUTEGROUP, MainFrame::OnNewAttributeGroup)
+EVT_MENU(ID_NEW_ATTRIBUTE, MainFrame::OnNewAttribute)
+EVT_MENU(ID_NEW_STATIC_ATTRIBUTES, MainFrame::OnNewStaticAttributes)
 EVT_MENU(ID_TASKS_BACKUPDATABASE, MainFrame::OnTasksBackupDatabase)
 EVT_MENU(ID_TASKS_EXPORTTOCSV, MainFrame::OnTasksExportToCsv)
 EVT_MENU(ID_TASKS_QUICKEXPORTTOCSV, MainFrame::OnTasksQuickExportToCsv)
@@ -102,9 +112,12 @@ EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
 EVT_MENU(ID_EDIT_PROJECT, MainFrame::OnEditProject)
 EVT_MENU(ID_EDIT_CATEGORY, MainFrame::OnEditCategory)
+EVT_MENU(ID_EDIT_ATTRIBUTE_GROUP, MainFrame::OnEditAttributeGroup)
+EVT_MENU(ID_EDIT_ATTRIBUTE, MainFrame::OnEditAttribute)
+EVT_MENU(ID_EDIT_STATIC_ATTRIBUTE_VALUES, MainFrame::OnEditStaticAttributeValues)
 EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_EXPAND, MainFrame::OnViewExpand)
-EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
+// EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Popup Menu Event Handlers */
@@ -114,8 +127,6 @@ EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTas
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
-/* Error Event Handlers */
-EVT_COMMAND(wxID_ANY, tksEVT_ERROR, MainFrame::OnError)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
@@ -169,8 +180,11 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mTaskDate()
     , mExpandCounter(0)
     , bDateRangeChanged(false)
+    , pTaskReminderTimer(std::make_unique<wxTimer>(this, tksIDC_TASKREMINDERTIMER))
+    , pTaskReminderNotification()
 // clang-format on
 {
+    SPDLOG_LOGGER_TRACE(pLogger, "Initialization of MainFrame");
     // Initialization setup
     SetMinSize(wxSize(FromDIP(320), FromDIP(320)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
@@ -217,6 +231,13 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     mFromDate = pDateStore->MondayDate;
     mToDate = pDateStore->SundayDate;
 
+    // Setup reminders (if enabled)
+    if (pCfg->UseReminders()) {
+        pTaskReminderTimer->Start(Utils::ConvertMinutesToMilliseconds(pCfg->ReminderInterval()));
+
+        wxNotificationMessage::UseTaskBarIcon(pTaskBarIcon);
+    }
+
     // Create controls
     Create();
 
@@ -226,24 +247,31 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
 MainFrame::~MainFrame()
 {
+    const std::string TAG = "MainFrame::~MainFrame";
     if (pTaskBarIcon) {
-        pLogger->info("MainFrame - Removing task bar icon");
+        pLogger->info("{0} - Removing task bar icon", TAG);
         pTaskBarIcon->RemoveIcon();
-        pLogger->info("MainFrame - Delete task bar icon pointer");
+        pLogger->info("{0} - Delete task bar icon pointer", TAG);
         delete pTaskBarIcon;
     }
 
-    if (pNotificationPopupWindow) {
-        pLogger->info("MainFrame - Delete notification popup window pointer");
-        delete pNotificationPopupWindow;
-    }
-
     if (pStatusBar) {
-        pLogger->info("MainFrame - Delete status bar pointer");
+        pLogger->info("{0} - Delete status bar pointer", TAG);
         delete pStatusBar;
     }
 
-    pLogger->info("MainFrame - Destructor");
+    if (pCfg->UseReminders() && pTaskReminderTimer->IsRunning()) {
+        pLogger->info("{0} - Reminders enabled and timer is running", TAG);
+        pTaskReminderTimer->Stop();
+        pLogger->info("{0} - Timer stopped", TAG);
+    }
+
+    if (pNotificationPopupWindow) {
+        pLogger->info("{0} - Delete notification popup window pointer", TAG);
+        delete pNotificationPopupWindow;
+    }
+
+    pLogger->info("{0} - Destructor complete", TAG);
 }
 
 void MainFrame::Create()
@@ -277,6 +305,11 @@ void MainFrame::CreateControls()
     fileNewMenu->Append(ID_NEW_CLIENT, "New Client", "Create new client");
     fileNewMenu->Append(ID_NEW_PROJECT, "New Project", "Create new project");
     fileNewMenu->Append(ID_NEW_CATEGORY, "New Category", "Create new category");
+    fileNewMenu->AppendSeparator();
+    fileNewMenu->Append(ID_NEW_ATTRIBUTEGROUP, "New Attribute Group", "Create new attribute group");
+    fileNewMenu->Append(ID_NEW_ATTRIBUTE, "New Attribute", "Create new attribute");
+    fileNewMenu->Append(
+        ID_NEW_STATIC_ATTRIBUTES, "New Static Attributes", "Create new static attribute values");
     fileMenu->AppendSubMenu(fileNewMenu, "New");
     fileMenu->AppendSeparator();
 
@@ -306,12 +339,17 @@ void MainFrame::CreateControls()
     editMenu->Append(ID_EDIT_CLIENT, "Edit Client", "Edit a client");
     editMenu->Append(ID_EDIT_PROJECT, "Edit Project", "Edit a project");
     editMenu->Append(ID_EDIT_CATEGORY, "Edit Category", "Edit a category");
+    editMenu->AppendSeparator();
+    editMenu->Append(ID_EDIT_ATTRIBUTE_GROUP, "Edit Attribute Group", "Edit an attribute group");
+    editMenu->Append(ID_EDIT_ATTRIBUTE, "Edit Attribute", "Edit an attribute");
+    editMenu->Append(
+        ID_EDIT_STATIC_ATTRIBUTE_VALUES, "Edit Static Attributes", "Edit static attribute values");
 
     /* View */
     auto viewMenu = new wxMenu();
     viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current week");
     viewMenu->Append(ID_VIEW_EXPAND, "&Expand\tCtrl-E", "Expand date procedure");
-    viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
+    // viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
     viewMenu->AppendSeparator();
     auto preferencesMenuItem =
         viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
@@ -467,11 +505,11 @@ void MainFrame::DataToControls()
     }
 
     // Fetch tasks between mFromDate and mToDate
-    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc =
-        taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+    int rc = tasksService.FilterByDateRange(
+        pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -511,19 +549,12 @@ void MainFrame::OnClose(wxCloseEvent& event)
             goto cleanup;
         }
 
-        rc = sqlite3_exec(db, Utils::sqlite::pragmas::Optimize, nullptr, nullptr, nullptr);
+        rc = sqlite3_exec(db, QueryHelper::Optimize, nullptr, nullptr, nullptr);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(db);
-            pLogger->error(LogMessage::ExecQueryTemplate,
-                "MainFrame::OnClose",
-                Utils::sqlite::pragmas::Optimize,
-                rc,
-                err);
+            pLogger->error(LogMessage::ExecQueryTemplate, QueryHelper::Optimize, rc, err);
             goto cleanup;
         }
-
-        pLogger->info(
-            "MainFrame::OnClose - Optimizimation command successfully executed on database");
 
     cleanup:
         sqlite3_close(db);
@@ -547,6 +578,34 @@ void MainFrame::OnResize(wxSizeEvent& event)
     }
 
     event.Skip();
+}
+
+void MainFrame::OnTaskReminder(wxTimerEvent& event)
+{
+    const std::string TAG = "MainFrame::OnTaskReminder";
+    pLogger->info("{0} - Task reminder trigger notification", TAG);
+
+    if (pCfg->UseNotificationBanners()) {
+        pLogger->info("{0} - Display task reminder as notification", TAG);
+        pTaskReminderNotification = std::make_shared<wxNotificationMessage>(
+            "Reminder", "Reminder to capture tasks and their duration", this);
+        pTaskReminderNotification->SetFlags(0);
+
+        if (pCfg->OpenTaskDialogOnReminderClick()) {
+            pLogger->info("{0} - Open task dialog on reminder is enabled", TAG);
+            pTaskReminderNotification->Bind(
+                wxEVT_NOTIFICATION_MESSAGE_CLICK, &MainFrame::OnReminderNotificationClicked, this);
+        }
+
+        pTaskReminderNotification->Show(wxNotificationMessage::Timeout_Auto);
+    }
+    if (pCfg->UseTaskbarFlashing()) {
+        pLogger->info("{0} - Display task reminder as taskbar flashing", TAG);
+        if (!IsActive() || IsIconized()) { // check if window is in background or minimized
+            RequestUserAttention(wxUSER_ATTENTION_INFO);
+        }
+    }
+    pLogger->info("{0} - Task reminder notification finished", TAG);
 }
 
 void MainFrame::OnNotificationClick(wxCommandEvent& event)
@@ -580,26 +639,44 @@ void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnNewEmployer(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::EmployerDialog newEmployerDialog(this, pEnv, pLogger, mDatabaseFilePath);
+    UI::dlg::EmployerDialog newEmployerDialog(this, pLogger, mDatabaseFilePath);
     newEmployerDialog.ShowModal();
 }
 
 void MainFrame::OnNewClient(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::ClientDialog newClientDialog(this, pEnv, pLogger, mDatabaseFilePath);
+    UI::dlg::ClientDialog newClientDialog(this, pLogger, mDatabaseFilePath);
     newClientDialog.ShowModal();
 }
 
 void MainFrame::OnNewProject(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::ProjectDialog newProjectDialog(this, pEnv, pLogger, mDatabaseFilePath);
+    UI::dlg::ProjectDialog newProjectDialog(this, pLogger, mDatabaseFilePath);
     newProjectDialog.ShowModal();
 }
 
 void MainFrame::OnNewCategory(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::CategoriesDialog addCategories(this, pEnv, pLogger, mDatabaseFilePath);
+    UI::dlg::CategoriesDialog addCategories(this, pLogger, mDatabaseFilePath);
     addCategories.ShowModal();
+}
+
+void MainFrame::OnNewAttributeGroup(wxCommandEvent& event)
+{
+    UI::dlg::AttributeGroupDialog newAttributeGroupDialog(this, pLogger, mDatabaseFilePath);
+    newAttributeGroupDialog.ShowModal();
+}
+
+void MainFrame::OnNewAttribute(wxCommandEvent& event)
+{
+    dlg::AttributeDialog newAttributeDialog(this, pLogger, mDatabaseFilePath);
+    newAttributeDialog.ShowModal();
+}
+
+void MainFrame::OnNewStaticAttributes(wxCommandEvent& event)
+{
+    dlg::StaticAttributeValuesDialog newStaticAttributesDialog(this, pLogger, mDatabaseFilePath);
+    newStaticAttributesDialog.ShowModal();
 }
 
 void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
@@ -691,29 +768,50 @@ void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnEditEmployer(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editEmployer(
-        this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Employer);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Employers);
     editEmployer.ShowModal();
 }
 
 void MainFrame::OnEditClient(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editClient(
-        this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Client);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Clients);
     editClient.ShowModal();
 }
 
 void MainFrame::OnEditProject(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editProject(
-        this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Project);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Projects);
     editProject.ShowModal();
 }
 
 void MainFrame::OnEditCategory(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editCategory(
-        this, pEnv, pLogger, mDatabaseFilePath, EditListEntityType::Category);
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Categories);
     editCategory.ShowModal();
+}
+
+void MainFrame::OnEditAttributeGroup(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editAttributeGroup(
+        this, pLogger, mDatabaseFilePath, EditListEntityType::AttributeGroups);
+    editAttributeGroup.ShowModal();
+}
+
+void MainFrame::OnEditAttribute(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editAttribute(
+        this, pLogger, mDatabaseFilePath, EditListEntityType::Attributes);
+    editAttribute.ShowModal();
+}
+
+void MainFrame::OnEditStaticAttributeValues(wxCommandEvent& event)
+{
+    UI::dlg::EditListDialog editAttribute(
+        this, pLogger, mDatabaseFilePath, EditListEntityType::StaticAttributeGroups);
+    editAttribute.ShowModal();
 }
 
 void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
@@ -759,15 +857,15 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
     TryUpdateSelectedDateAndAllTaskDurations(pDateStore->PrintTodayDate);
 }
 
-void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
-{
-    UI::dlg::DayTaskViewDialog dayTaskView(this,
-        pLogger,
-        pEnv,
-        mDatabaseFilePath,
-        mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
-    dayTaskView.ShowModal();
-}
+// void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
+//{
+//     UI::dlg::DayTaskViewDialog dayTaskView(this,
+//         pLogger,
+//         pEnv,
+//         mDatabaseFilePath,
+//         mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
+//     dayTaskView.ShowModal();
+// }
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
@@ -788,6 +886,17 @@ void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
         }
 
         SetNewTaskMenubarTitle();
+
+        if (pCfg->UseReminders()) {
+            if (!pTaskReminderTimer->IsRunning()) {
+                pTaskReminderTimer->Start(
+                    Utils::ConvertMinutesToMilliseconds(pCfg->ReminderInterval()));
+            }
+        } else {
+            if (pTaskReminderTimer->IsRunning()) {
+                pTaskReminderTimer->Stop();
+            }
+        }
     }
 }
 
@@ -820,10 +929,10 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 
     pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
 
-    std::vector<repos::TaskRepositoryModel> taskModels;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::vector<Services::TaskViewModel> taskModels;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDate(mTaskDate, taskModels);
+    int rc = tasksService.FilterByDate(mTaskDate, taskModels);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -863,10 +972,10 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
 
     pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
 
-    std::vector<repos::TaskRepositoryModel> taskModels;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::vector<Services::TaskViewModel> taskModels;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDate(mTaskDate, taskModels);
+    int rc = tasksService.FilterByDate(mTaskDate, taskModels);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -920,7 +1029,7 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
     assert(mTaskIdToModify != -1);
 
     std::string description;
-    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
     int rc = taskPersistence.GetDescriptionById(mTaskIdToModify, description);
     if (rc != 0) {
@@ -956,7 +1065,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 
     if (ret == wxID_OK) {
         bool isActive = false;
-        Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+        Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
         int rc = taskPersistence.IsDeleted(mTaskIdToModify, isActive);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
@@ -964,10 +1073,10 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
         }
 
         if (isActive) {
-            repos::TaskRepositoryModel taskModel;
-            repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+            Services::TaskViewModel taskModel;
+            Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-            int rc = taskRepo.GetById(mTaskIdToModify, taskModel);
+            int rc = tasksService.GetById(mTaskIdToModify, taskModel);
             if (rc != 0) {
                 QueueFetchTasksErrorNotificationEvent();
             } else {
@@ -986,7 +1095,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
 
-    Persistence::TaskPersistence taskPersistence(pLogger, mDatabaseFilePath);
+    Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
     int rc = taskPersistence.Delete(mTaskIdToModify);
     if (rc != 0) {
@@ -1006,12 +1115,6 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     }
 
     ResetTaskContextMenuVariables();
-}
-
-void MainFrame::OnError(wxCommandEvent& event)
-{
-    UI::dlg::ErrorDialog errDialog(this, pEnv, pLogger, event.GetString().ToStdString());
-    errDialog.ShowModal();
 }
 
 void MainFrame::OnAddNotification(wxCommandEvent& event)
@@ -1195,10 +1298,10 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     if (mFromDate == mToDate) {
         auto fromDateString = date::format("%F", mFromDate);
 
-        std::vector<repos::TaskRepositoryModel> tasks;
-        repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+        std::vector<Services::TaskViewModel> tasks;
+        Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        int rc = taskRepo.FilterByDate(fromDateString, tasks);
+        int rc = tasksService.FilterByDate(fromDateString, tasks);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
         } else {
@@ -1217,10 +1320,10 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Fetch all the tasks for said date range
-    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
+    int rc = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -1285,10 +1388,10 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     if (mFromDate == mToDate) {
         auto date = date::format("%F", mToDate);
 
-        std::vector<repos::TaskRepositoryModel> tasks;
-        repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+        std::vector<Services::TaskViewModel> tasks;
+        Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        int rc = taskRepo.FilterByDate(date, tasks);
+        int rc = tasksService.FilterByDate(date, tasks);
         if (rc != 0) {
             QueueFetchTasksErrorNotificationEvent();
         } else {
@@ -1302,10 +1405,10 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
 
     // Fetch all the tasks for said date range
-    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.FilterByDateRange(dates, tasksGroupedByWorkday);
+    int rc = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -1410,6 +1513,17 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
     }
 }
 
+void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
+{
+    if (pCfg->UseLegacyTaskDialog()) {
+        UI::dlg::TaskDialogLegacy newTaskDialogLegacy(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialogLegacy.ShowModal();
+    } else {
+        UI::dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialog.ShowModal();
+    }
+}
+
 void MainFrame::SetNewTaskMenubarTitle()
 {
     auto newTaskMenubarTitle =
@@ -1479,11 +1593,11 @@ void MainFrame::RefetchTasksForDateRange()
         date::format("%F", mToDate));
 
     // Fetch tasks between mFromDate and mToDate
-    std::map<std::string, std::vector<repos::TaskRepositoryModel>> tasksGroupedByWorkday;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc =
-        taskRepo.FilterByDateRange(pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+    int rc = tasksService.FilterByDateRange(
+        pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
@@ -1496,10 +1610,10 @@ void MainFrame::RefetchTasksForDateRange()
 
 void MainFrame::RefetchTasksForDate(const std::string& date, const std::int64_t taskId)
 {
-    repos::TaskRepositoryModel taskModel;
-    repos::TaskRepository taskRepo(pLogger, mDatabaseFilePath);
+    Services::TaskViewModel taskModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = taskRepo.GetById(taskId, taskModel);
+    int rc = tasksService.GetById(taskId, taskModel);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
