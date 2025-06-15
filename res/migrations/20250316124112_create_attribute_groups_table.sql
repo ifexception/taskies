@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS attribute_groups
 (
     attribute_group_id INTEGER PRIMARY KEY NOT NULL,
 
-    name TEXT NOT NULL,
+    name TEXT NOT NULL UNIQUE,
     description TEXT NULL,
     is_static INTEGER NOT NULL,
 
