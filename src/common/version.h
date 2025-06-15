@@ -18,7 +18,7 @@
 //     szymonwelgus at gmail dot com
 
 #define TASKIES_MAJOR 0
-#define TASKIES_MINOR 1
+#define TASKIES_MINOR 2
 #define TASKIES_PATCH 1
 #define TASKIES_SRLC "beta"
 
