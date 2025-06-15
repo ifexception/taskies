@@ -171,7 +171,7 @@ std::string StaticAttributeGroupsService::filterStaticWithValueCounts =
     "INNER JOIN static_attribute_values "
     "ON attribute_groups.attribute_group_id = static_attribute_values.attribute_group_id "
     "WHERE attribute_groups.is_active = 1 "
-    "AND attribute_groups.is_static_group = 1 "
+    "AND attribute_groups.is_static = 1 "
     "AND static_attribute_values.is_active = 1 "
     "GROUP BY attribute_groups.attribute_group_id, attribute_groups.name";
 } // namespace tks::Services

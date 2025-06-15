@@ -33,7 +33,7 @@ struct AttributeGroupModel {
 
     std::string Name;
     std::optional<std::string> Description;
-    bool IsStaticGroup;
+    bool IsStatic;
 
     std::uint32_t DateCreated;
     std::uint32_t DateModified;

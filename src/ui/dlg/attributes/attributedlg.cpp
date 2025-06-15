@@ -358,7 +358,7 @@ void AttributeDialog::DataToControls()
             wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
         }
 
-        if (attributeGroupModel.IsStaticGroup) {
+        if (attributeGroupModel.IsStatic) {
             pIsStaticCheckBoxCtrl->SetValue(true);
         }
 
@@ -400,7 +400,7 @@ void AttributeDialog::OnAttributeGroupSelection(wxCommandEvent& event)
         return;
     }
 
-    if (attributeGroupModel.IsStaticGroup) {
+    if (attributeGroupModel.IsStatic) {
         pIsStaticCheckBoxCtrl->SetValue(true);
     } else {
         pIsStaticCheckBoxCtrl->SetValue(false);

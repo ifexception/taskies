@@ -218,7 +218,7 @@ void AttributeGroupDialog::DataToControls()
     }
 
     pNameTextCtrl->SetValue(attributeGroupModel.Name);
-    pIsStaticGroupCheckBoxCtrl->SetValue(attributeGroupModel.IsStaticGroup);
+    pIsStaticGroupCheckBoxCtrl->SetValue(attributeGroupModel.IsStatic);
 
     if (attributeGroupModel.Description.has_value()) {
         pDescriptionTextCtrl->SetValue(attributeGroupModel.Description.value());
@@ -376,7 +376,7 @@ void AttributeGroupDialog::TransferDataFromControls()
     auto name = pNameTextCtrl->GetValue().ToStdString();
     mAttributeGroupModel.Name = Utils::TrimWhitespace(name);
 
-    mAttributeGroupModel.IsStaticGroup = pIsStaticGroupCheckBoxCtrl->GetValue();
+    mAttributeGroupModel.IsStatic = pIsStaticGroupCheckBoxCtrl->GetValue();
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mAttributeGroupModel.Description =

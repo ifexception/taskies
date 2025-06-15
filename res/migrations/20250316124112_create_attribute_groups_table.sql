@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS attribute_groups
 
     name TEXT NOT NULL,
     description TEXT NULL,
-    is_static_group INTEGER NOT NULL,
+    is_static INTEGER NOT NULL,
 
     date_created INTEGER NOT NULL DEFAULT (strftime('%s','now', 'localtime')),
     date_modified INTEGER NOT NULL DEFAULT (strftime('%s','now', 'localtime')),

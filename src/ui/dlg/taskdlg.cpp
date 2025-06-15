@@ -882,7 +882,7 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
         return;
     }
 
-    if (attributeGroupModel.IsStaticGroup) {
+    if (attributeGroupModel.IsStatic) {
         std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels;
         Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);

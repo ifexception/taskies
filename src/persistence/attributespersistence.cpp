@@ -867,7 +867,7 @@ std::string AttributesPersistence::filterByAttributeGroupIdAndIsStatic =
     "INNER JOIN attribute_groups "
     "ON attributes.attribute_group_id = attribute_groups.attribute_group_id "
     "WHERE attributes.is_active = 1 "
-    "AND attribute_groups.is_static_group = 1 "
+    "AND attribute_groups.is_static = 1 "
     "AND attributes.attribute_group_id = ?";
 
 std::string AttributesPersistence::getById = "SELECT "

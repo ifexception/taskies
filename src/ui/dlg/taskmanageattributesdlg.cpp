@@ -232,7 +232,7 @@ void TaskManageAttributesDialog::FillControls()
             pAttributesControlFlexGridSizer->Add(
                 attributeTextControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-            if (attributeGroupModel.IsStaticGroup) {
+            if (attributeGroupModel.IsStatic) {
                 attributeTextControl->Disable();
             }
 
@@ -252,7 +252,7 @@ void TaskManageAttributesDialog::FillControls()
             pAttributesControlFlexGridSizer->Add(
                 attributeBooleanControl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-            if (attributeGroupModel.IsStaticGroup) {
+            if (attributeGroupModel.IsStatic) {
                 attributeBooleanControl->Disable();
             }
 
@@ -277,7 +277,7 @@ void TaskManageAttributesDialog::FillControls()
             pAttributesControlFlexGridSizer->Add(
                 attributeNumericControl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-            if (attributeGroupModel.IsStaticGroup) {
+            if (attributeGroupModel.IsStatic) {
                 attributeNumericControl->Disable();
             }
 
@@ -313,7 +313,7 @@ void TaskManageAttributesDialog::FillControls()
         return;
     }
 
-    if (attributeGroupModel.IsStaticGroup) {
+    if (attributeGroupModel.IsStatic) {
         assert(mAttributeControls.size() == staticAttributeValueModels.size());
 
         for (size_t i = 0; i < mAttributeControls.size(); i++) {
