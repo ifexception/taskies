@@ -441,7 +441,27 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
 
     int ret = 0;
     std::string message = "";
+
     if (!bIsEdit) {
+        Persistence::AttributeGroupsPersistence attributeGroupsPersistence(
+            pLogger, mDatabaseFilePath);
+        bool isAttributeGroupAlreadyAssociated = false;
+        ret = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
+            mAttributeModel.AttributeGroupId, isAttributeGroupAlreadyAssociated);
+
+        if (ret == -1) {
+            message = "Failed to check attribute group associations";
+            QueueErrorNotificationEvent(message);
+            return;
+        }
+
+        if (isAttributeGroupAlreadyAssociated) {
+            wxMessageBox("Selected attribute group is already associated with attribute values",
+                Common::GetProgramName(),
+                wxOK_DEFAULT | wxICON_WARNING);
+            return;
+        }
+
         std::int64_t attributeId = attributesPersistence.Create(mAttributeModel);
         ret = attributeId > 0 ? 1 : -1;
 
@@ -457,6 +477,7 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
                 wxOK_DEFAULT | wxICON_WARNING);
             return;
         }
+
         ret = attributesPersistence.Update(mAttributeModel);
 
         message = ret == -1 ? "Failed to update attribute" : "Successfully updated attribute";
