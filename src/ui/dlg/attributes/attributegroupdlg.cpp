@@ -261,6 +261,12 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
 
     if (!bIsEdit) {
         std::int64_t attributeGroupId = attributeGroupsPersistence.Create(mAttributeGroupModel);
+        if (attributeGroupId == -19) { // SQLITE_CONSTRAINT * -1
+            wxMessageBox("Attribute group with specified name already exists",
+                Common::GetProgramName(),
+                wxOK_DEFAULT | wxICON_WARNING);
+            return;
+        }
         ret = attributeGroupId > 0 ? 1 : -1;
 
         message = attributeGroupId == -1 ? "Failed to create attribute group"
@@ -268,6 +274,12 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
         ret = attributeGroupsPersistence.Update(mAttributeGroupModel);
+        if (ret == -19) { // SQLITE_CONSTRAINT * -1
+            wxMessageBox("Attribute group with specified name already exists",
+                Common::GetProgramName(),
+                wxOK_DEFAULT | wxICON_WARNING);
+            return;
+        }
 
         ret == -1 ? message = "Failed to update attribute group"
                   : message = "Successfully updated attribute group";

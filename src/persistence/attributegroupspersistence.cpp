@@ -469,6 +469,15 @@ std::int64_t AttributeGroupsPersistence::Create(
 
     rc = sqlite3_step(stmt);
 
+    if (rc == SQLITE_CONSTRAINT) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, AttributeGroupsPersistence::create, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SQLITE_CONSTRAINT * -1;
+    }
+
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
@@ -580,6 +589,15 @@ int AttributeGroupsPersistence::Update(Model::AttributeGroupModel attributeGroup
     }
 
     rc = sqlite3_step(stmt);
+
+    if (rc == SQLITE_CONSTRAINT) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, AttributeGroupsPersistence::create, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SQLITE_CONSTRAINT * -1;
+    }
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
