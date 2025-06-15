@@ -2,6 +2,7 @@
 
 ## v0.2.0-beta (to be released)
 * Add reminders using Windows notification messages or taskbar flashing
+* Add attributes to tasks
 
 ## v0.1.1-beta (release 10/03/2025)
 * Fix: No categories on task edit when "Only show associated categories" is not checked (#1)
