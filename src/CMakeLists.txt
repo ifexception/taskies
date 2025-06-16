@@ -24,6 +24,12 @@ message (STATUS "fmt found: ${fmt_FOUND}")
 add_subdirectory("common")
 message (STATUS "add subdirectory common")
 
+add_subdirectory("core")
+message (STATUS "add subdirectory core")
+
+add_subdirectory("ipc")
+message (STATUS "add subdirectory ipc")
+
 add_subdirectory("ui")
 message (STATUS "add subdirectory ui")
 
@@ -46,9 +52,6 @@ set (SRC
     "application.cpp"
     "utils/utils.cpp"
     "utils/datestore.cpp"
-    "core/environment.cpp"
-    "core/configuration.cpp"
-    "core/database_migration.cpp"
     "ui/persistencemanager.cpp"
     "ui/translator.cpp"
     "ui/mainframe.cpp"
@@ -65,8 +68,6 @@ set (SRC
     "ui/statusbar.cpp"
     "resources.rc"
     "application.manifest"
-    "ipc/applicationoptionsconnection.cpp"
-    "ipc/server.cpp"
     "services/export/projectionbuilder.cpp"
     "services/export/availablecolumns.cpp"
     "services/export/columnprojection.cpp"
@@ -80,6 +81,8 @@ set (SRC
     "services/export/columnexportmodel.cpp"
     "services/taskduration/taskdurationservice.cpp"
     ${SRC_COMMON}
+    ${SRC_CORE}
+    ${SRC_IPC}
     ${SRC_MODELS}
     ${SRC_PERSISTENCE}
     ${SRC_DIALOGS}
