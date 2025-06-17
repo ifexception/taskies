@@ -741,101 +741,6 @@ int TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
     return 0;
 }
 
-int TasksPersistence::GetTaskDurationsForDateRange(const std::string& startDate,
-    const std::string& endDate,
-    TaskDurationType type,
-    std::vector<Model::TaskDurationModel>& models) const
-{
-    // clang-format off
-    std::string sql = type == TaskDurationType::Default
-        ? TasksPersistence::getAllHoursForDateRange
-        : TasksPersistence::getBillableHoursForDateRange;
-
-    std::size_t sqlSize = type == TaskDurationType::Default
-        ? TasksPersistence::getAllHoursForDateRange.size()
-        : TasksPersistence::getBillableHoursForDateRange.size();
-    // clang-format on
-
-    sqlite3_stmt* stmt = nullptr;
-
-    int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sqlSize), &stmt, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
-
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    int bindIndex = 1;
-
-    rc = sqlite3_bind_text(
-        stmt, bindIndex, startDate.c_str(), static_cast<int>(startDate.size()), SQLITE_TRANSIENT);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
-
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    bindIndex++;
-
-    rc = sqlite3_bind_text(
-        stmt, bindIndex, endDate.c_str(), static_cast<int>(endDate.size()), SQLITE_TRANSIENT);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
-
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    bool done = false;
-    while (!done) {
-        switch (sqlite3_step(stmt)) {
-        case SQLITE_ROW: {
-            Model::TaskDurationModel model;
-            rc = SQLITE_ROW;
-
-            int columnIndex = 0;
-
-            model.Hours = sqlite3_column_int(stmt, columnIndex++);
-            model.Minutes = sqlite3_column_int(stmt, columnIndex++);
-
-            models.push_back(model);
-            break;
-        }
-        case SQLITE_DONE:
-            rc = SQLITE_DONE;
-            done = true;
-            break;
-        default:
-            break;
-        }
-    }
-
-    if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
-
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    sqlite3_finalize(stmt);
-    SPDLOG_LOGGER_TRACE(pLogger,
-        "Retreived \"{0}\" \"tasks\" from \"{1}\" to \"{2}\"",
-        models.size(),
-        startDate,
-        endDate);
-
-    return 0;
-}
-
 int TasksPersistence::GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
     std::map<std::string, std::vector<Model::TaskDurationModel>>& durationsGroupedByDate) const
 {
@@ -976,28 +881,6 @@ std::string TasksPersistence::isDeleted = "SELECT "
                                           "is_active "
                                           "FROM tasks "
                                           "WHERE task_id = ?;";
-
-std::string TasksPersistence::getAllHoursForDateRange = "SELECT "
-                                                        "hours, "
-                                                        "minutes "
-                                                        "FROM tasks "
-                                                        "INNER JOIN workdays "
-                                                        "ON tasks.workday_id = workdays.workday_id "
-                                                        "WHERE workdays.date >= ? "
-                                                        "AND workdays.date <= ? "
-                                                        "AND tasks.is_active = 1";
-
-std::string TasksPersistence::getBillableHoursForDateRange =
-    "SELECT "
-    "hours, "
-    "minutes "
-    "FROM tasks "
-    "INNER JOIN workdays "
-    "ON tasks.workday_id = workdays.workday_id "
-    "WHERE workdays.date >= ? "
-    "AND workdays.date <= ? "
-    "AND tasks.billable = 1 "
-    "AND tasks.is_active = 1";
 
 std::string TasksPersistence::getAllHoursForDate = "SELECT "
                                                    "hours, "

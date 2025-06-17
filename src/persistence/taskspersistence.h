@@ -46,10 +46,6 @@ struct TasksPersistence final {
     int Delete(const std::int64_t taskId);
     int GetDescriptionById(const std::int64_t taskId, std::string& description) const;
     int IsDeleted(const std::int64_t taskId, bool& value);
-    int GetTaskDurationsForDateRange(const std::string& startDate,
-        const std::string& endDate,
-        TaskDurationType type,
-        /*out*/ std::vector<Model::TaskDurationModel>& taskModels) const;
     int GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
         /*out*/ std::map<std::string, std::vector<Model::TaskDurationModel>>&
             taskDurationsGroupedByDateModels) const;
@@ -63,8 +59,6 @@ struct TasksPersistence final {
     static std::string isActive;
     static std::string getDescriptionById;
     static std::string isDeleted;
-    static std::string getAllHoursForDateRange;
-    static std::string getBillableHoursForDateRange;
     static std::string getAllHoursForDate;
 };
 } // namespace tks::Persistence

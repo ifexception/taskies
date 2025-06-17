@@ -24,6 +24,8 @@
 #include "events.h"
 #include "notificationclientdata.h"
 
+#include "../services/taskduration/taskdurationviewmodel.h"
+
 namespace tks::UI
 {
 std::string StatusBar::HoursDayFormat = "[D] {0}";
@@ -34,7 +36,9 @@ std::string StatusBar::BillableDayFormat = "[D] {0}";
 std::string StatusBar::BillableWeekMonthFormat = "[W] {0} | [M] {1}";
 std::string StatusBar::BillableRangeFormat = "[R] {0}";
 
-StatusBar::StatusBar(wxWindow* parent, std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath)
+StatusBar::StatusBar(wxWindow* parent,
+    std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath)
     : wxStatusBar(parent, wxID_ANY, wxSTB_DEFAULT_STYLE, "tksstatusbar")
     , pParent(parent)
     , pLogger(logger)
@@ -45,14 +49,16 @@ StatusBar::StatusBar(wxWindow* parent, std::shared_ptr<spdlog::logger> logger, c
     , mBillableHoursWeek()
     , mBillableHoursMonth()
 {
-    int widths[] = { -1, FromDIP(56), FromDIP(64), FromDIP(136), FromDIP(56), FromDIP(64), FromDIP(136) };
+    int widths[] = {
+        -1, FromDIP(56), FromDIP(64), FromDIP(136), FromDIP(56), FromDIP(64), FromDIP(136)
+    };
 
+    // clang-format off
     // TODO(SW): calling SetFieldsCount *without* the width parameters logs the following error(?) messages:
-    // statusbar.cpp(448): 'SendMessage(SB_GETRECT)' failed with error 0x000000b7 (Cannot create a file when that file
-    // already exists.).
-    // statusbar.cpp(448): 'SendMessage(SB_GETRECT)' failed with error 0x00000000 (The operation
-    // completed successfully.). * 10
+    // statusbar.cpp(448): 'SendMessage(SB_GETRECT)' failed with error 0x000000b7 (Cannot create a file when that file already exists.).
+    // statusbar.cpp(448): 'SendMessage(SB_GETRECT)' failed with error 0x00000000 (The operation completed successfully.). (repeats * 10)
     // Though the statusbar gets painted correctly and continues to work fine
+    // clang-format on
     SetFieldsCount(7, widths);
     // SetStatusWidths(7, widths);
 
@@ -70,7 +76,8 @@ void StatusBar::UpdateDefaultHoursDay(const std::string& fromDate, const std::st
     int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Default, duration);
+    rc = mTaskDurationService.CalculateAndFormatDuration(
+        fromDate, toDate, TaskDurationType::Default, duration);
     if (rc != 0) {
         QueueErrorNotificationEventToParentWindow();
     } else {
@@ -84,7 +91,8 @@ void StatusBar::UpdateDefaultHoursWeek(const std::string& fromDate, const std::s
     int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Default, duration);
+    rc = mTaskDurationService.CalculateAndFormatDuration(
+        fromDate, toDate, TaskDurationType::Default, duration);
     if (rc != 0) {
         QueueErrorNotificationEventToParentWindow();
     } else {
@@ -99,7 +107,8 @@ void StatusBar::UpdateDefaultHoursMonth(const std::string& fromDate, const std::
     int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Default, duration);
+    rc = mTaskDurationService.CalculateAndFormatDuration(
+        fromDate, toDate, TaskDurationType::Default, duration);
     if (rc != 0) {
         QueueErrorNotificationEventToParentWindow();
     } else {
@@ -114,7 +123,8 @@ void StatusBar::UpdateDefaultHoursRange(const std::string& fromDate, const std::
     int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Default, duration);
+    rc = mTaskDurationService.CalculateAndFormatDuration(
+        fromDate, toDate, TaskDurationType::Default, duration);
     if (rc != 0) {
         QueueErrorNotificationEventToParentWindow();
     } else {
@@ -128,7 +138,8 @@ void StatusBar::UpdateBillableHoursDay(const std::string& fromDate, const std::s
     int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Billable, duration);
+    rc = mTaskDurationService.CalculateAndFormatDuration(
+        fromDate, toDate, TaskDurationType::Billable, duration);
     if (rc != 0) {
         QueueErrorNotificationEventToParentWindow();
     } else {
@@ -142,7 +153,8 @@ void StatusBar::UpdateBillableHoursWeek(const std::string& fromDate, const std::
     int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Billable, duration);
+    rc = mTaskDurationService.CalculateAndFormatDuration(
+        fromDate, toDate, TaskDurationType::Billable, duration);
     if (rc != 0) {
         QueueErrorNotificationEventToParentWindow();
     } else {
@@ -157,7 +169,8 @@ void StatusBar::UpdateBillableHoursMonth(const std::string& fromDate, const std:
     int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Billable, duration);
+    rc = mTaskDurationService.CalculateAndFormatDuration(
+        fromDate, toDate, TaskDurationType::Billable, duration);
     if (rc != 0) {
         QueueErrorNotificationEventToParentWindow();
     } else {
@@ -172,8 +185,9 @@ void StatusBar::UpdateBillableHoursRange(const std::string& fromDate, const std:
     int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(fromDate, toDate, TaskDurationType::Billable, duration);
-    if (rc !=0 ) {
+    rc = mTaskDurationService.CalculateAndFormatDuration(
+        fromDate, toDate, TaskDurationType::Billable, duration);
+    if (rc != 0) {
         QueueErrorNotificationEventToParentWindow();
     } else {
         auto durationStatusBarFormat = fmt::format(StatusBar::BillableRangeFormat, duration);
@@ -185,7 +199,8 @@ void StatusBar::QueueErrorNotificationEventToParentWindow()
 {
     std::string message = "Failed to get/calculate task durations";
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(NotificationType::Error, message);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);
 
     wxQueueEvent(pParent, addNotificationEvent);
@@ -193,7 +208,8 @@ void StatusBar::QueueErrorNotificationEventToParentWindow()
 
 void StatusBar::UpdateDefaultHoursWeekMonth()
 {
-    auto durationStatusBarFormat = fmt::format(StatusBar::HoursWeekMonthFormat, mDefaultHoursWeek, mDefaultHoursMonth);
+    auto durationStatusBarFormat =
+        fmt::format(StatusBar::HoursWeekMonthFormat, mDefaultHoursWeek, mDefaultHoursMonth);
     SetStatusText(durationStatusBarFormat, Fields::HoursWeekMonthOrRange);
 }
 

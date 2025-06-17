@@ -22,31 +22,39 @@
 #include <memory>
 #include <string>
 
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
-#include "../../models/taskmodel.h"
+#include <sqlite3.h>
 
-#include "../../persistence/taskspersistence.h"
+#include "../../common/enums.h"
 
-namespace tks::Services::TaskDuration
+#include "taskdurationviewmodel.h"
+
+namespace tks::Services
 {
-class TaskDurationService final
-{
-public:
+struct TaskDurationService final {
     TaskDurationService() = delete;
-    TaskDurationService(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~TaskDurationService() = default;
+    TaskDurationService(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
+    ~TaskDurationService();
+
+    int GetTaskDurationsForDateRange(const std::string& startDate,
+        const std::string& endDate,
+        TaskDurationType type,
+        /*out*/ std::vector<TaskDurationViewModel>& taskDurationViewModels) const;
 
     int CalculateAndFormatDuration(const std::string& fromDate,
         const std::string& toDate,
         TaskDurationType type,
         /*out*/ std::string& formatDuration);
 
-private:
-    std::string CalculateTaskDurationTime(const std::vector<Model::TaskDurationModel>& taskDurations);
+    std::string CalculateTaskDurationTime(const std::vector<TaskDurationViewModel>& taskDurations);
 
     std::shared_ptr<spdlog::logger> pLogger;
-    std::string mDatabaseFilePath;
-    Persistence::TasksPersistence taskDao;
+    sqlite3* pDb;
+
+    static std::string getAllHoursForDateRange;
+    static std::string getBillableHoursForDateRange;
 };
-} // namespace tks::Services::TaskDuration
+} // namespace tks::Services

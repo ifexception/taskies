@@ -79,7 +79,6 @@ set (SRC
     "services/export/csvexporter.cpp"
     "services/export/csvexportmappedoptions.cpp"
     "services/export/columnexportmodel.cpp"
-    "services/taskduration/taskdurationservice.cpp"
     ${SRC_COMMON}
     ${SRC_CORE}
     ${SRC_IPC}

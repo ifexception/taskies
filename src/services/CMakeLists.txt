@@ -5,6 +5,7 @@ add_subdirectory("attributes")
 add_subdirectory("categories")
 add_subdirectory("setupwizard")
 add_subdirectory("tasks")
+add_subdirectory("taskduration")
 
 set(
     SRC_SERVICES
@@ -12,5 +13,6 @@ set(
     ${SRC_SERVICE_SETUPWIZARD}
     ${SRC_SERVICE_TASKS}
     ${SRC_SERVICE_STATICATTRIBUTEGROUPS}
+    ${SRC_SERVICE_TASKDURATION}
     PARENT_SCOPE
 )

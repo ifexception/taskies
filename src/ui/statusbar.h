@@ -37,7 +37,9 @@ class StatusBar : public wxStatusBar
 {
 public:
     StatusBar() = delete;
-    StatusBar(wxWindow* parent, std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    StatusBar(wxWindow* parent,
+        std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~StatusBar() = default;
 
     void UpdateDefaultHoursDay(const std::string& fromDate, const std::string& toDate);
@@ -74,7 +76,7 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 
-    Services::TaskDuration::TaskDurationService mTaskDurationService;
+    Services::TaskDurationService mTaskDurationService;
 
     std::string mDefaultHoursWeek;
     std::string mDefaultHoursMonth;
