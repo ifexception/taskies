@@ -22,8 +22,8 @@ OutputBaseFilename=Taskies-x64.{#TaskiesVersion}-{#TaskiesLifeCycle}-Installer
 LicenseFile=License
 WindowResizable=no
 DisableWelcomePage=no
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 
 [Files]
 Source: "Taskies.exe"; DestDir: "{app}"; Flags: ignoreversion
