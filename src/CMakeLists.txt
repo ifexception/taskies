@@ -66,17 +66,6 @@ set (SRC
     "ui/statusbar.cpp"
     "resources.rc"
     "application.manifest"
-    "services/export/projectionbuilder.cpp"
-    "services/export/availablecolumns.cpp"
-    "services/export/columnprojection.cpp"
-    "services/export/projection.cpp"
-    "services/export/columnjoinprojection.cpp"
-    "services/export/sqliteexportquerybuilder.cpp"
-    "services/export/csvexportoptions.cpp"
-    "services/export/csvexportprocessor.cpp"
-    "services/export/csvexporter.cpp"
-    "services/export/csvexportmappedoptions.cpp"
-    "services/export/columnexportmodel.cpp"
     ${SRC_COMMON}
     ${SRC_CORE}
     ${SRC_IPC}
