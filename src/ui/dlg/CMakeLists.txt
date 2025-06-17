@@ -3,6 +3,7 @@ project ("Taskies")
 
 add_subdirectory("attributes")
 add_subdirectory("preferences")
+add_subdirectory("exports")
 
 set (
     SRC_DIALOGS
@@ -22,6 +23,7 @@ set (
     SRC_DLG
     ${SRC_ATTR_DLG}
     ${SRC_PREFERENCES_DLG}
+    ${SRC_EXPORT_DIALOGS}
     ${SRC_DIALOGS}
     PARENT_SCOPE
 )
