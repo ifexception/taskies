@@ -28,8 +28,8 @@
 #include <wx/valtext.h>
 
 #include "../events.h"
-#include "../notificationclientdata.h"
 
+#include "../common/notificationclientdata.h"
 #include "../common/taskattributevalueclientdata.h"
 
 #include "../../common/common.h"

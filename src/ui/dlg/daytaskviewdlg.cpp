@@ -29,7 +29,7 @@
 #include <fmt/format.h>
 
 #include "../events.h"
-#include "../notificationclientdata.h"
+#include "../common/notificationclientdata.h"
 
 #include "../../common/common.h"
 

@@ -28,9 +28,9 @@
 
 #include "taskmanageattributesdlg.h"
 
-#include "../clientdata.h"
 #include "../events.h"
-#include "../notificationclientdata.h"
+#include "../common/clientdata.h"
+#include "../common/notificationclientdata.h"
 #include "../common/taskattributevalueclientdata.h"
 
 #include "../../common/common.h"

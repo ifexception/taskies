@@ -25,7 +25,8 @@
 #include <wx/statline.h>
 
 #include "../events.h"
-#include "../notificationclientdata.h"
+#include "../common/clientdata.h"
+#include "../common/notificationclientdata.h"
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
@@ -35,8 +36,6 @@
 #include "../../persistence/categoriespersistence.h"
 
 #include "../../models/projectmodel.h"
-
-#include "../../ui/clientdata.h"
 
 #include "../../utils/utils.h"
 

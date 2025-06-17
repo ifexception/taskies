@@ -70,7 +70,7 @@
 #include "../ui/dlg/attributes/staticattributevaluesdlg.h"
 
 #include "events.h"
-#include "notificationclientdata.h"
+#include "common/notificationclientdata.h"
 
 // This date was selected arbitrarily
 // wxDatePickerCtrl needs a from and to date for the range

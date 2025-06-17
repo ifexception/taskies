@@ -24,7 +24,7 @@
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
 #include "../../events.h"
-#include "../../notificationclientdata.h"
+#include "../../common/notificationclientdata.h"
 
 #include "preferencesgeneralpage.h"
 #include "preferencesdatabasepage.h"

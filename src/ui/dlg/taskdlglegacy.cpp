@@ -50,9 +50,9 @@
 
 #include "../../utils/utils.h"
 
-#include "../clientdata.h"
 #include "../events.h"
-#include "../notificationclientdata.h"
+#include "../common/clientdata.h"
+#include "../common/notificationclientdata.h"
 
 namespace tks::UI::dlg
 {

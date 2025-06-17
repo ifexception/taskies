@@ -19,8 +19,9 @@
 
 #include "taskbaricon.h"
 
-#include <wx/taskbarbutton.h>
 #include <sqlite3.h>
+
+#include <wx/taskbarbutton.h>
 
 #include "../common/logmessages.h"
 #include "../common/queryhelper.h"

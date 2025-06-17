@@ -26,7 +26,7 @@
 #include <wx/wx.h>
 #endif
 
-#include "../common/enums.h"
+#include "../../common/enums.h"
 
 namespace tks::UI
 {

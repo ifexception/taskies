@@ -21,7 +21,7 @@
 
 #include <wx/richtooltip.h>
 
-#include "../../clientdata.h"
+#include "../../common/clientdata.h"
 
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"

@@ -22,7 +22,7 @@
 #include <fmt/format.h>
 
 #include "events.h"
-#include "notificationclientdata.h"
+#include "common/notificationclientdata.h"
 
 #include "../services/taskduration/taskdurationviewmodel.h"
 

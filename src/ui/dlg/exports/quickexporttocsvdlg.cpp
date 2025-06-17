@@ -36,9 +36,9 @@
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
 
-#include "../../clientdata.h"
 #include "../../events.h"
-#include "../../notificationclientdata.h"
+#include "../../common/clientdata.h"
+#include "../../common/notificationclientdata.h"
 
 namespace
 {

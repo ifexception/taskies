@@ -23,9 +23,9 @@
 #include <wx/statline.h>
 #include <fmt/format.h>
 
-#include "../clientdata.h"
 #include "../events.h"
-#include "../notificationclientdata.h"
+#include "../common/clientdata.h"
+#include "../common/notificationclientdata.h"
 
 #include "../../common/constants.h"
 #include "../../common/common.h"

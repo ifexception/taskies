@@ -24,9 +24,9 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../../clientdata.h"
 #include "../../events.h"
-#include "../../notificationclientdata.h"
+#include "../../common/clientdata.h"
+#include "../../common/notificationclientdata.h"
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"

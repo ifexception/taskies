@@ -25,7 +25,7 @@
 
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
-#include "../../clientdata.h"
+#include "../../common/clientdata.h"
 
 #ifdef _WIN32
 namespace
