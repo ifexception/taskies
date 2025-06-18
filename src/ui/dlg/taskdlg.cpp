@@ -435,7 +435,7 @@ void TaskDialog::FillControls()
 
     int rc = attributeGroupsPersistence.Filter(defaultSearhTerm, attributeGroups);
     if (rc != 0) {
-        std::string message = "Failed to get employers";
+        std::string message = "Failed to get attribute groups";
         QueueErrorNotificationEvent(message);
     } else {
         for (const auto& attributeGroup : attributeGroups) {
@@ -1142,9 +1142,8 @@ void TaskDialog::OnOK(wxCommandEvent& event)
                 ret == -1 ? message = "Failed to create task attribute values"
                           : message = "Successfully created task attribute values";
             }
+            QueueNotificationEvent(ret, message);
         }
-
-        QueueNotificationEvent(ret, message);
 
         ret = taskPersistence.Update(mTaskModel);
 
