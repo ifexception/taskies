@@ -11,7 +11,7 @@ AppCopyright=Copyright (C) 2025 Szymon Welgus
 AppPublisher=Szymon Welgus
 AppId={{f106cae9-8ca1-45e2-bbad-49caf39a7a2c}
 AppVerName=Taskies {#TaskiesVersion}-{#TaskiesLifeCycle}
-DefaultDirName={commonpf}\Taskies
+DefaultDirName={autopf}\Taskies
 DefaultGroupName=Taskies
 UninstallDisplayIcon={app}\Taskies.exe
 WizardStyle=modern
@@ -20,10 +20,24 @@ SolidCompression=yes
 OutputDir=Installer
 OutputBaseFilename=Taskies-x64.{#TaskiesVersion}-{#TaskiesLifeCycle}-Installer
 LicenseFile=License
-WindowResizable=no
 DisableWelcomePage=no
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
+
+UsedUserAreasWarning=no
+; The above directive silences the following compiler warning:
+;    Warning: The [Setup] section directive "PrivilegesRequired" is set to "admin" but per-user areas (HKCU,userdocs)
+;    are used by the script. Regardless of the version of Windows, if the installation is administrative then you should
+;    be careful about making any per-user area changes: such changes may not achieve what you are intending.
+; Background info:
+; This installer indeed asks for admin rights so the Taskies files can be copied to a place where they have at least
+; a minimum layer of protection against changes, e.g. by malware, plus it handles things for the currently logged-in user
+; in the registry (GUI wallet per-user options) and for some of the icons. For reasons too complicated to fully explain
+; here this does not work as intended if the installing user does not have admin rights and has to provide the password
+; of a user that does for installing: The settings of the admin user instead of those of the installing user are changed.
+; Short of ripping out that per-user functionality the issue has no suitable solution. Fortunately, this will probably
+; play a role in only in few cases as the first standard user in a Windows installation does have admin rights.
+; So, for the time being, this installer simply disregards this problem.
 
 [Files]
 Source: "Taskies.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -53,8 +67,20 @@ WelcomeLabel1=Welcome to the Taskies Installation Wizard
 [UninstallDelete]
 Type: filesandordirs; Name: "{userappdata}\Taskies\logs"
 Type: files; Name: "{userappdata}\Taskies\taskies.toml"
-Type: filesandordirs; Name: "{userappdata}\Taskies"
-Type: filesandordirs; Name: "{userappdata}\Taskies"
+Type: files; Name: "{app}\fmt.dll";
+Type: files; Name: "{app}\jpeg62.dll";
+Type: files; Name: "{app}\liblzma.dll";
+Type: files; Name: "{app}\libpng16.dll";
+Type: files; Name: "{app}\pcre2-16.dll";
+Type: files; Name: "{app}\spdlog.dll";
+Type: files; Name: "{app}\sqlite3.dll";
+Type: files; Name: "{app}\tiff.dll";
+Type: files; Name: "{app}\wxbase32u_vc_x64_custom.dll";
+Type: files; Name: "{app}\wxmsw32u_core_vc_x64_custom.dll";
+Type: files; Name: "{app}\zlib1.dll";
+Type: filesandordirs; Name: "{app}\lang";
+Type: filesandordirs; Name: "{app}\res";
+
 
 [Registry]
 Root: HKCU; Subkey: "Software\Taskies"; Flags: uninsdeletekey
