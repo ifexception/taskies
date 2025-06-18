@@ -106,6 +106,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pUpButton(nullptr)
     , pDownButton(nullptr)
     , pExcludeHeadersCheckBoxCtrl(nullptr)
+    , pIncludeAttributesCheckBoxCtrl(nullptr)
     , pDataExportPreviewTextCtrl(nullptr)
     , pShowPreviewButton(nullptr)
     , pExportButton(nullptr)
@@ -469,10 +470,18 @@ void ExportToCsvDialog::CreateControls()
     upDownButtonSizer->Add(pUpButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     upDownButtonSizer->Add(pDownButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
 
+    /* Export checkbox options */
     pExcludeHeadersCheckBoxCtrl =
         new wxCheckBox(dataToExportStaticBox, tksIDC_EXCLUDE_HEADERS_CTRL, "Exclude Headers");
+    pExcludeHeadersCheckBoxCtrl->SetToolTip("Headers are excluded from the CSV export");
     dataToExportStaticBoxSizer->Add(
         pExcludeHeadersCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    pIncludeAttributesCheckBoxCtrl = new wxCheckBox(
+        dataToExportStaticBox, tksIDC_INCLUDEATTRIBUTESCHECKBOXCTRL, "Include Attributes");
+    pIncludeAttributesCheckBoxCtrl->SetToolTip("Include task attribute values in the CSV export");
+    dataToExportStaticBoxSizer->Add(
+        pIncludeAttributesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Data Preview sizer and controls */
     auto dataPreviewStaticBox = new wxStaticBox(this, wxID_ANY, "Preview");
