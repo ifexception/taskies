@@ -20,6 +20,7 @@ useNotificationBanners=false
 useTaskbarFlashing=false
 reminderInterval=0
 openTaskDialogOnReminderClick=false
+selectDefaultAttributeGroup=false
 
 [tasksView]
 todayAlwaysExpanded=false
