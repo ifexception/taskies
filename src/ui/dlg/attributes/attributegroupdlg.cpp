@@ -55,10 +55,13 @@ AttributeGroupDialog::AttributeGroupDialog(wxWindow* parent,
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
+    , bIsInUse(false)
     , mAttributeGroupId(attributeGroupId)
     , mAttributeGroupModel()
     , pNameTextCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
+    , pIsStaticCheckBoxCtrl(nullptr)
+    , pIsDefaultCheckBoxCtrl(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
@@ -99,11 +102,14 @@ void AttributeGroupDialog::CreateControls()
     pNameTextCtrl->SetHint("Attribute group name");
     pNameTextCtrl->SetToolTip("Set a name for the attribute group");
 
-    /* Attribute group is static group check box control */
-    pIsStaticGroupCheckBoxCtrl =
-        new wxCheckBox(detailsBox, tksIDC_ISSTATICGROUPCHECKBOXCTRL, "Is Static Group");
-    pIsStaticGroupCheckBoxCtrl->SetToolTip(
+    /* Attribute group is static check box control */
+    pIsStaticCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISSTATICCHECKBOXCTRL, "Is Static");
+    pIsStaticCheckBoxCtrl->SetToolTip(
         "Attributes captured if this is enabled will use the provided static values");
+
+    /* Attribute group is default check box control */
+    pIsDefaultCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULTCHECKBOXCTRL, "Is Default");
+    pIsStaticCheckBoxCtrl->SetToolTip("Enabling this option will auto-select it where applicable");
 
     /* Grid sizer for attribute group name controls */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -114,7 +120,9 @@ void AttributeGroupDialog::CreateControls()
     detailsGridSizer->Add(
         pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
     detailsGridSizer->Add(0, 0);
-    detailsGridSizer->Add(pIsStaticGroupCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    detailsGridSizer->Add(pIsStaticCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    detailsGridSizer->Add(0, 0);
+    detailsGridSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -218,14 +226,35 @@ void AttributeGroupDialog::DataToControls()
     }
 
     pNameTextCtrl->SetValue(attributeGroupModel.Name);
-    pIsStaticGroupCheckBoxCtrl->SetValue(attributeGroupModel.IsStatic);
 
     if (attributeGroupModel.Description.has_value()) {
         pDescriptionTextCtrl->SetValue(attributeGroupModel.Description.value());
     }
+
+    pIsStaticCheckBoxCtrl->SetValue(attributeGroupModel.IsStatic);
+    pIsDefaultCheckBoxCtrl->SetValue(attributeGroupModel.IsDefault);
+
     pIsActiveCheckBoxCtrl->SetValue(attributeGroupModel.IsActive);
 
     pIsActiveCheckBoxCtrl->Enable();
+
+    rc = attributeGroupPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
+    if (rc == -1) {
+        std::string message = "Failed to check attribute group usage";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        return;
+    }
+
+    if (bIsInUse) {
+        pNameTextCtrl->Disable();
+    }
 
     pOkButton->Enable();
     pOkButton->SetFocus();
@@ -234,12 +263,16 @@ void AttributeGroupDialog::DataToControls()
 void AttributeGroupDialog::OnIsActiveCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
-        pNameTextCtrl->Enable();
-        pIsStaticGroupCheckBoxCtrl->Enable();
+        if (!bIsInUse) {
+            pNameTextCtrl->Enable();
+        }
+        pIsStaticCheckBoxCtrl->Enable();
+        pIsDefaultCheckBoxCtrl->Enable();
         pDescriptionTextCtrl->Enable();
     } else {
         pNameTextCtrl->Disable();
-        pIsStaticGroupCheckBoxCtrl->Disable();
+        pIsStaticCheckBoxCtrl->Disable();
+        pIsDefaultCheckBoxCtrl->Disable();
         pDescriptionTextCtrl->Disable();
     }
 }
@@ -254,10 +287,18 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
 
     TransferDataFromControls();
 
-    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
-
     int ret = 0;
     std::string message = "";
+
+    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
+
+    if (pIsDefaultCheckBoxCtrl->GetValue()) {
+        ret = attributeGroupsPersistence.UnsetDefault();
+        if (ret == -1) {
+            message = "Failed to unset default attribute group";
+            QueueErrorNotificationEvent(message);
+        }
+    }
 
     if (!bIsEdit) {
         std::int64_t attributeGroupId = attributeGroupsPersistence.Create(mAttributeGroupModel);
@@ -273,7 +314,7 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
                                          : "Successfully created attribute group";
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = attributeGroupsPersistence.Update(mAttributeGroupModel);
+        ret = attributeGroupsPersistence.Update(mAttributeGroupModel, bIsInUse);
         if (ret == -19) { // SQLITE_CONSTRAINT * -1
             wxMessageBox("Attribute group with specified name already exists",
                 Common::GetProgramName(),
@@ -388,7 +429,8 @@ void AttributeGroupDialog::TransferDataFromControls()
     auto name = pNameTextCtrl->GetValue().ToStdString();
     mAttributeGroupModel.Name = Utils::TrimWhitespace(name);
 
-    mAttributeGroupModel.IsStatic = pIsStaticGroupCheckBoxCtrl->GetValue();
+    mAttributeGroupModel.IsStatic = pIsStaticCheckBoxCtrl->GetValue();
+    mAttributeGroupModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mAttributeGroupModel.Description =

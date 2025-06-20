@@ -164,8 +164,6 @@ int AttributeGroupsPersistence::Filter(const std::string& searchTerm,
             model.Name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-            model.IsStatic = sqlite3_column_int(stmt, columnIndex++);
-
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
                 model.Description = std::nullopt;
             } else {
@@ -175,6 +173,9 @@ int AttributeGroupsPersistence::Filter(const std::string& searchTerm,
             }
 
             columnIndex++;
+
+            model.IsStatic = !!sqlite3_column_int(stmt, columnIndex++);
+            model.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
             model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             model.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -246,8 +247,6 @@ int AttributeGroupsPersistence::FilterByStaticFlag(
             model.Name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-            model.IsStatic = sqlite3_column_int(stmt, columnIndex++);
-
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
                 model.Description = std::nullopt;
             } else {
@@ -257,6 +256,9 @@ int AttributeGroupsPersistence::FilterByStaticFlag(
             }
 
             columnIndex++;
+
+            model.IsStatic = !!sqlite3_column_int(stmt, columnIndex++);
+            model.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
             model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             model.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -289,7 +291,7 @@ int AttributeGroupsPersistence::FilterByStaticFlag(
     sqlite3_finalize(stmt);
 
     SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::FilterEntities, attributeGroupModels.size(), "is_static=1");
+        pLogger, LogMessages::FilterEntities, attributeGroupModels.size(), "is_static = 1");
 
     return 0;
 }
@@ -365,11 +367,12 @@ int AttributeGroupsPersistence::GetById(const std::int64_t attributeGroupId,
 
     columnIndex++;
 
-    attributeGroupModel.IsStatic = sqlite3_column_int(stmt, columnIndex++);
+    attributeGroupModel.IsStatic = !!sqlite3_column_int(stmt, columnIndex++);
+    attributeGroupModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
     attributeGroupModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     attributeGroupModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
-    attributeGroupModel.IsActive = sqlite3_column_int(stmt, columnIndex++);
+    attributeGroupModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
     rc = sqlite3_step(stmt);
 
@@ -494,20 +497,22 @@ std::int64_t AttributeGroupsPersistence::Create(
     return rowId;
 }
 
-int AttributeGroupsPersistence::Update(Model::AttributeGroupModel attributeGroupModel) const
+int AttributeGroupsPersistence::Update(Model::AttributeGroupModel& attributeGroupModel,
+    bool isInUse) const
 {
+    std::string sql =
+        isInUse ? AttributeGroupsPersistence::updateIfInUse : AttributeGroupsPersistence::update;
+
+    size_t sqlSize = isInUse ? AttributeGroupsPersistence::updateIfInUse.size()
+                             : AttributeGroupsPersistence::update.size();
+
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
-        AttributeGroupsPersistence::update.c_str(),
-        static_cast<int>(AttributeGroupsPersistence::update.size()),
-        &stmt,
-        nullptr);
+    int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sqlSize), &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessages::PrepareStatementTemplate, AttributeGroupsPersistence::update, rc, error);
+        pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -515,35 +520,24 @@ int AttributeGroupsPersistence::Update(Model::AttributeGroupModel attributeGroup
 
     int bindIndex = 1;
 
-    // name
-    rc = sqlite3_bind_text(stmt,
-        bindIndex,
-        attributeGroupModel.Name.c_str(),
-        static_cast<int>(attributeGroupModel.Name.size()),
-        SQLITE_TRANSIENT);
+    if (!isInUse) {
+        // name
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            attributeGroupModel.Name.c_str(),
+            static_cast<int>(attributeGroupModel.Name.size()),
+            SQLITE_TRANSIENT);
 
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+        if (rc != SQLITE_OK) {
+            const char* error = sqlite3_errmsg(pDb);
+            pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
-        sqlite3_finalize(stmt);
-        return -1;
+            sqlite3_finalize(stmt);
+            return -1;
+        }
+
+        bindIndex++;
     }
-
-    bindIndex++;
-
-    // is_static
-    rc = sqlite3_bind_int(stmt, bindIndex, attributeGroupModel.IsStatic);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "is_static", bindIndex, rc, error);
-
-        sqlite3_finalize(stmt);
-        return -1;
-    }
-
-    bindIndex++;
 
     if (attributeGroupModel.Description.has_value()) {
         rc = sqlite3_bind_text(stmt,
@@ -565,6 +559,33 @@ int AttributeGroupsPersistence::Update(Model::AttributeGroupModel attributeGroup
 
     bindIndex++;
 
+    // is_static
+    rc = sqlite3_bind_int(stmt, bindIndex, attributeGroupModel.IsStatic);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "is_static", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // is_default
+    rc = sqlite3_bind_int(stmt, bindIndex, attributeGroupModel.IsDefault);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // date_modified
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
@@ -592,8 +613,7 @@ int AttributeGroupsPersistence::Update(Model::AttributeGroupModel attributeGroup
 
     if (rc == SQLITE_CONSTRAINT) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessages::ExecStepTemplate, AttributeGroupsPersistence::create, rc, error);
+        pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
         return SQLITE_CONSTRAINT * -1;
@@ -601,8 +621,7 @@ int AttributeGroupsPersistence::Update(Model::AttributeGroupModel attributeGroup
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessages::ExecStepTemplate, AttributeGroupsPersistence::update, rc, error);
+        pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -819,12 +838,147 @@ int AttributeGroupsPersistence::CheckAttributeGroupAttributesUsage(
     return 0;
 }
 
+int AttributeGroupsPersistence::UnsetDefault() const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributeGroupsPersistence::unsetDefault.c_str(),
+        static_cast<int>(AttributeGroupsPersistence::unsetDefault.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            AttributeGroupsPersistence::unsetDefault,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, AttributeGroupsPersistence::unsetDefault, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Unset default \"attribute_group\"");
+
+    return 0;
+}
+
+int AttributeGroupsPersistence::SelectDefault(Model::AttributeGroupModel& attributeGroupModel) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributeGroupsPersistence::selectDefault.c_str(),
+        static_cast<int>(AttributeGroupsPersistence::selectDefault.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            AttributeGroupsPersistence::selectDefault,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc == SQLITE_DONE) {
+        SPDLOG_LOGGER_TRACE(pLogger, "No default attribute_group found");
+
+        sqlite3_finalize(stmt);
+        return 0;
+    } else if (rc != SQLITE_ROW) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->error(
+            LogMessages::ExecStepTemplate, AttributeGroupsPersistence::selectDefault, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+
+    attributeGroupModel.AttributeGroupId = sqlite3_column_int64(stmt, columnIndex++);
+
+    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+    attributeGroupModel.Name =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        attributeGroupModel.Description = std::nullopt;
+    } else {
+        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+        attributeGroupModel.Description = std::string(
+            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
+    }
+
+    columnIndex++;
+
+    attributeGroupModel.IsStatic = !!sqlite3_column_int(stmt, columnIndex++);
+    attributeGroupModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
+
+    attributeGroupModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    attributeGroupModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    attributeGroupModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Retreived default \"attribute_group\" with ID \"{0}\"",
+        attributeGroupModel.AttributeGroupId);
+
+    return 0;
+}
+
 std::string AttributeGroupsPersistence::filter = "SELECT "
                                                  "attribute_group_id, "
                                                  "name, "
                                                  "description, "
-                                                 "date_created, "
                                                  "is_static, "
+                                                 "is_default, "
+                                                 "date_created, "
                                                  "date_modified, "
                                                  "is_active "
                                                  "FROM attribute_groups "
@@ -836,8 +990,9 @@ std::string AttributeGroupsPersistence::filterStatic = "SELECT "
                                                        "attribute_group_id, "
                                                        "name, "
                                                        "description, "
-                                                       "date_created, "
                                                        "is_static, "
+                                                       "is_default, "
+                                                       "date_created, "
                                                        "date_modified, "
                                                        "is_active "
                                                        "FROM attribute_groups "
@@ -849,6 +1004,7 @@ std::string AttributeGroupsPersistence::getById = "SELECT "
                                                   "name, "
                                                   "description, "
                                                   "is_static, "
+                                                  "is_default, "
                                                   "date_created, "
                                                   "date_modified, "
                                                   "is_active "
@@ -869,8 +1025,17 @@ std::string AttributeGroupsPersistence::update = "UPDATE attribute_groups "
                                                  "name = ?, "
                                                  "description = ?, "
                                                  "is_static = ?, "
+                                                 "is_default = ?, "
                                                  "date_modified = ? "
                                                  "WHERE attribute_group_id = ?";
+
+std::string AttributeGroupsPersistence::updateIfInUse = "UPDATE attribute_groups "
+                                                        "SET "
+                                                        "description = ?, "
+                                                        "is_static = ?, "
+                                                        "is_default = ?, "
+                                                        "date_modified = ? "
+                                                        "WHERE attribute_group_id = ?";
 
 std::string AttributeGroupsPersistence::isActive = "UPDATE attribute_groups "
                                                    "SET "
@@ -885,7 +1050,7 @@ std::string AttributeGroupsPersistence::checkAttributeGroupAttributeValuesUsage 
     "COUNT(*) >= 1 "
     "THEN 1 "
     "ELSE 0 "
-    "END AS UsageCount "
+    "END AS usage_count "
     "FROM attributes "
     "INNER JOIN task_attribute_values "
     "ON attributes.attribute_id = task_attribute_values.attribute_id "
@@ -900,9 +1065,27 @@ std::string AttributeGroupsPersistence::checkAttributeGroupAttributesUsage =
     "COUNT(*) >= 1 "
     "THEN 1 "
     "ELSE 0 "
-    "END AS UsageCount "
+    "END AS usage_count "
     "FROM attributes "
     "INNER JOIN attribute_groups "
     "ON attributes.attribute_group_id = attribute_groups.attribute_group_id "
     "WHERE attribute_groups.attribute_group_id = ?";
+
+std::string AttributeGroupsPersistence::selectDefault = "SELECT "
+                                                        "attribute_group_id, "
+                                                        "name, "
+                                                        "description, "
+                                                        "is_static, "
+                                                        "is_default, "
+                                                        "date_created, "
+                                                        "date_modified, "
+                                                        "is_active "
+                                                        "FROM attribute_groups "
+                                                        "WHERE is_default = 1";
+
+std::string AttributeGroupsPersistence::unsetDefault = "UPDATE attribute_groups "
+                                                       "SET "
+                                                       "is_default = 0, "
+                                                       "date_modified = ? "
+                                                       "WHERE is_default = 1 ";
 } // namespace tks::Persistence

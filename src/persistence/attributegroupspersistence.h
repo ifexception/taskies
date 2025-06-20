@@ -45,12 +45,13 @@ struct AttributeGroupsPersistence final {
     int GetById(const std::int64_t attributeGroupId,
         /*out*/ Model::AttributeGroupModel& attributeGroupModel) const;
     std::int64_t Create(const Model::AttributeGroupModel& attributeGroupModel) const;
-    int Update(Model::AttributeGroupModel attributeGroupModel) const;
+    int Update(Model::AttributeGroupModel& attributeGroupModel, bool isInUse = false) const;
     int Delete(const std::int64_t attributeGroupId) const;
     int CheckAttributeGroupAttributeValuesUsage(const std::int64_t attributeGroupId,
         bool& value) const;
-    int CheckAttributeGroupAttributesUsage(const std::int64_t attributeGroupId,
-        bool& value) const;
+    int CheckAttributeGroupAttributesUsage(const std::int64_t attributeGroupId, bool& value) const;
+    int UnsetDefault() const;
+    int SelectDefault(Model::AttributeGroupModel& attributeGroupModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
@@ -60,8 +61,11 @@ struct AttributeGroupsPersistence final {
     static std::string getById;
     static std::string create;
     static std::string update;
+    static std::string updateIfInUse;
     static std::string isActive;
     static std::string checkAttributeGroupAttributeValuesUsage;
     static std::string checkAttributeGroupAttributesUsage;
+    static std::string unsetDefault;
+    static std::string selectDefault;
 };
 } // namespace tks::Persistence
