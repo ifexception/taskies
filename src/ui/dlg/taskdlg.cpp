@@ -430,17 +430,55 @@ void TaskDialog::FillControls()
     // Fill controls with data
 
     // Fill Attribute Group choice control with data
-    std::vector<Model::AttributeGroupModel> attributeGroups;
+    std::vector<Model::AttributeGroupModel> attributeGroupModels;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.Filter(defaultSearhTerm, attributeGroups);
+    int rc = attributeGroupsPersistence.Filter(defaultSearhTerm, attributeGroupModels);
     if (rc != 0) {
         std::string message = "Failed to get attribute groups";
         QueueErrorNotificationEvent(message);
     } else {
-        for (const auto& attributeGroup : attributeGroups) {
-            pAttributeGroupChoiceCtrl->Append(
-                attributeGroup.Name, new ClientData<std::int64_t>(attributeGroup.AttributeGroupId));
+        for (const auto& attributeGroupModel : attributeGroupModels) {
+            pAttributeGroupChoiceCtrl->Append(attributeGroupModel.Name,
+                new ClientData<std::int64_t>(attributeGroupModel.AttributeGroupId));
+
+            if (attributeGroupModel.IsDefault) {
+                pAttributeGroupChoiceCtrl->SetStringSelection(attributeGroupModel.Name);
+
+                if (!bIsEdit) {
+                    if (attributeGroupModel.IsStatic) {
+                        std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels;
+                        Persistence::StaticAttributeValuesPersistence
+                            staticAttributeValuesPersistence(pLogger, mDatabaseFilePath);
+
+                        rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+                            attributeGroupModel.AttributeGroupId, staticAttributeValueModels);
+                        if (rc == -1) {
+                            std::string message = "Failed to get static attribute values";
+                            QueueErrorNotificationEvent(message);
+                            return;
+                        }
+
+                        for (size_t i = 0; i < staticAttributeValueModels.size(); i++) {
+                            Model::TaskAttributeValueModel taskAttributeValueModel;
+                            taskAttributeValueModel.TextValue =
+                                staticAttributeValueModels[i].TextValue;
+                            taskAttributeValueModel.BooleanValue =
+                                staticAttributeValueModels[i].BooleanValue;
+                            taskAttributeValueModel.NumericValue =
+                                staticAttributeValueModels[i].NumericValue;
+                            taskAttributeValueModel.AttributeId =
+                                staticAttributeValueModels[i].AttributeId;
+
+                            mTaskAttributeValueModels.push_back(taskAttributeValueModel);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (mTaskAttributeValueModels.size() > 0) {
+            pManageAttributesButton->Enable();
         }
     }
 
