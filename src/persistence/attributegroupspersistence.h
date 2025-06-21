@@ -50,6 +50,8 @@ struct AttributeGroupsPersistence final {
     int CheckAttributeGroupAttributeValuesUsage(const std::int64_t attributeGroupId,
         bool& value) const;
     int CheckAttributeGroupAttributesUsage(const std::int64_t attributeGroupId, bool& value) const;
+    int CheckAttributeGroupStaticAttributesUsage(const std::int64_t attributeGroupId,
+        bool& value) const;
     int UnsetDefault() const;
     int SelectDefault(Model::AttributeGroupModel& attributeGroupModel) const;
 
@@ -65,6 +67,7 @@ struct AttributeGroupsPersistence final {
     static std::string isActive;
     static std::string checkAttributeGroupAttributeValuesUsage;
     static std::string checkAttributeGroupAttributesUsage;
+    static std::string checkAttributeGroupStaticAttributesUsage;
     static std::string unsetDefault;
     static std::string selectDefault;
 };
