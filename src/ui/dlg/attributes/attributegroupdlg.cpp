@@ -286,7 +286,9 @@ void AttributeGroupDialog::OnIsActiveCheck(wxCommandEvent& event)
         if (!bIsInUse) {
             pNameTextCtrl->Enable();
         }
-        pIsStaticCheckBoxCtrl->Enable();
+        if (!bIsInUseStatic) {
+            pIsStaticCheckBoxCtrl->Enable();
+        }
         pIsDefaultCheckBoxCtrl->Enable();
         pDescriptionTextCtrl->Enable();
     } else {

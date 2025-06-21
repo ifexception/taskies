@@ -1153,11 +1153,11 @@ std::string AttributeGroupsPersistence::checkAttributeGroupStaticAttributesUsage
     "FROM attributes "
     "INNER JOIN attribute_groups "
     "ON attributes.attribute_group_id = attribute_groups.attribute_group_id "
-    "INNER JOIN static_attribute_values"
-    "ON attribute_groups.attribute_group_id = static_attribute_values.attribute_group_id"
-    "AND attributes.attribute_id = static_attribute_values.attribute_id"
-    "WHERE attribute_groups.attribute_group_id = 1"
-    "AND attribute_groups.is_static = 1"
+    "INNER JOIN static_attribute_values "
+    "ON attribute_groups.attribute_group_id = static_attribute_values.attribute_group_id "
+    "AND attributes.attribute_id = static_attribute_values.attribute_id "
+    "WHERE attribute_groups.attribute_group_id = ? "
+    "AND attribute_groups.is_static = 1";
 
     std::string AttributeGroupsPersistence::selectDefault = "SELECT "
                                                             "attribute_group_id, "
