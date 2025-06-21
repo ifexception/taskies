@@ -85,6 +85,7 @@ private:
     std::int64_t mAttributeGroupId;
     bool bIsEdit;
     bool bIsInUse;
+    bool bIsInUseStatic;
 
     Model::AttributeGroupModel mAttributeGroupModel;
 

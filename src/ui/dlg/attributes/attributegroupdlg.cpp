@@ -56,6 +56,7 @@ AttributeGroupDialog::AttributeGroupDialog(wxWindow* parent,
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , bIsInUse(false)
+    , bIsInUseStatic(false)
     , mAttributeGroupId(attributeGroupId)
     , mAttributeGroupModel()
     , pNameTextCtrl(nullptr)
@@ -209,9 +210,9 @@ void AttributeGroupDialog::DataToControls()
     pOkButton->Disable();
 
     Model::AttributeGroupModel attributeGroupModel;
-    Persistence::AttributeGroupsPersistence attributeGroupPersistence(pLogger, mDatabaseFilePath);
+    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupPersistence.GetById(mAttributeGroupId, attributeGroupModel);
+    int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
     if (rc == -1) {
         std::string message = "Failed to get attribute group";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -238,7 +239,7 @@ void AttributeGroupDialog::DataToControls()
 
     pIsActiveCheckBoxCtrl->Enable();
 
-    rc = attributeGroupPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
+    rc = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
     if (rc == -1) {
         std::string message = "Failed to check attribute group usage";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -254,6 +255,25 @@ void AttributeGroupDialog::DataToControls()
 
     if (bIsInUse) {
         pNameTextCtrl->Disable();
+    }
+
+    rc = attributeGroupsPersistence.CheckAttributeGroupStaticAttributesUsage(
+        mAttributeGroupId, bIsInUseStatic);
+    if (rc == -1) {
+        std::string message = "Failed to check attribute group static usage";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
+        // have wxFrame
+        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        return;
+    }
+
+    if (bIsInUseStatic) {
+        pIsStaticCheckBoxCtrl->Disable();
     }
 
     pOkButton->Enable();
