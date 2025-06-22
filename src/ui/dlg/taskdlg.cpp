@@ -22,6 +22,7 @@
 #include <date/date.h>
 #include <fmt/format.h>
 
+#include <wx/artprov.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
@@ -91,6 +92,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pBillableCheckBoxCtrl(nullptr)
     , pUniqueIdentiferTextCtrl(nullptr)
     , pAttributeGroupChoiceCtrl(nullptr)
+    , pAttributeCountStatusLabelCtrl(nullptr)
     , pManageAttributesButton(nullptr)
     , pEmployerChoiceCtrl(nullptr)
     , pClientChoiceCtrl(nullptr)
@@ -271,6 +273,20 @@ void TaskDialog::CreateControls()
     taskAttributesStaticBoxSizer->Add(
         pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+    /* Attribute status label */
+    auto providedInfoBitmap = wxArtProvider::GetBitmapBundle(
+        wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(12), FromDIP(12)));
+    auto infoStaticBitmap =
+        new wxStaticBitmap(taskAttributesStaticBox, wxID_ANY, providedInfoBitmap);
+    infoStaticBitmap->SetToolTip(
+        "Indicates how many attribute values have been captured for this task");
+
+    pAttributeCountStatusLabelCtrl = new wxStaticText(taskAttributesStaticBox,
+        tksIDC_ATTRIBUTECOUNTSTATUSLABELCTRL,
+        "\"0\" attribute values captured");
+    pAttributeCountStatusLabelCtrl->SetFont(
+        wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
+
     /* Manage attributes button */
     pManageAttributesButton = new wxButton(
         taskAttributesStaticBox, tksIDC_MANAGEATTRIBUTESBUTTON, "Manage Attributes...");
@@ -280,6 +296,10 @@ void TaskDialog::CreateControls()
     auto manageAttributesHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     taskAttributesStaticBoxSizer->Add(manageAttributesHorizontalSizer, wxSizerFlags().Expand());
 
+    manageAttributesHorizontalSizer->Add(
+        infoStaticBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    manageAttributesHorizontalSizer->Add(
+        pAttributeCountStatusLabelCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     manageAttributesHorizontalSizer->AddStretchSpacer(1);
     manageAttributesHorizontalSizer->Add(
         pManageAttributesButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -430,17 +450,60 @@ void TaskDialog::FillControls()
     // Fill controls with data
 
     // Fill Attribute Group choice control with data
-    std::vector<Model::AttributeGroupModel> attributeGroups;
+    std::vector<Model::AttributeGroupModel> attributeGroupModels;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.Filter(defaultSearhTerm, attributeGroups);
+    int rc = attributeGroupsPersistence.Filter(defaultSearhTerm, attributeGroupModels);
     if (rc != 0) {
         std::string message = "Failed to get attribute groups";
         QueueErrorNotificationEvent(message);
     } else {
-        for (const auto& attributeGroup : attributeGroups) {
-            pAttributeGroupChoiceCtrl->Append(
-                attributeGroup.Name, new ClientData<std::int64_t>(attributeGroup.AttributeGroupId));
+        for (const auto& attributeGroupModel : attributeGroupModels) {
+            pAttributeGroupChoiceCtrl->Append(attributeGroupModel.Name,
+                new ClientData<std::int64_t>(attributeGroupModel.AttributeGroupId));
+
+            if (attributeGroupModel.IsDefault) {
+                pAttributeGroupChoiceCtrl->SetStringSelection(attributeGroupModel.Name);
+
+                if (!bIsEdit) {
+                    if (attributeGroupModel.IsStatic) {
+                        std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels;
+                        Persistence::StaticAttributeValuesPersistence
+                            staticAttributeValuesPersistence(pLogger, mDatabaseFilePath);
+
+                        rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+                            attributeGroupModel.AttributeGroupId, staticAttributeValueModels);
+                        if (rc == -1) {
+                            std::string message = "Failed to get static attribute values";
+                            QueueErrorNotificationEvent(message);
+                            return;
+                        }
+
+                        for (size_t i = 0; i < staticAttributeValueModels.size(); i++) {
+                            Model::TaskAttributeValueModel taskAttributeValueModel;
+                            taskAttributeValueModel.TextValue =
+                                staticAttributeValueModels[i].TextValue;
+                            taskAttributeValueModel.BooleanValue =
+                                staticAttributeValueModels[i].BooleanValue;
+                            taskAttributeValueModel.NumericValue =
+                                staticAttributeValueModels[i].NumericValue;
+                            taskAttributeValueModel.AttributeId =
+                                staticAttributeValueModels[i].AttributeId;
+
+                            mTaskAttributeValueModels.push_back(taskAttributeValueModel);
+                        }
+
+                        std::string attributeStatusLabel =
+                            fmt::format(TaskDialog::AttributeValuesCapturedLabel,
+                                mTaskAttributeValueModels.size());
+                        pAttributeCountStatusLabelCtrl->SetLabelText(attributeStatusLabel);
+                    }
+                }
+            }
+        }
+
+        if (mTaskAttributeValueModels.size() > 0) {
+            pManageAttributesButton->Enable();
         }
     }
 
@@ -784,6 +847,10 @@ void TaskDialog::DataToControls()
         if (mTaskAttributeValueModels.size() > 0) {
             bHasTaskAttributeValues = true;
         }
+
+        std::string attributeStatusLabel =
+            fmt::format(TaskDialog::AttributeValuesCapturedLabel, mTaskAttributeValueModels.size());
+        pAttributeCountStatusLabelCtrl->SetLabelText(attributeStatusLabel);
     }
 
     if (isSuccess) {
@@ -865,6 +932,7 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
         mTaskAttributeValueModels.clear();
         mAttributeGroupId = -1;
         pManageAttributesButton->Disable();
+        pAttributeCountStatusLabelCtrl->SetLabelText("\"0\" attribute values captured");
         return;
     }
 
@@ -905,6 +973,10 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
             mTaskAttributeValueModels.push_back(taskAttributeValueModel);
         }
     }
+
+    std::string attributeStatusLabel =
+        fmt::format(TaskDialog::AttributeValuesCapturedLabel, mTaskAttributeValueModels.size());
+    pAttributeCountStatusLabelCtrl->SetLabelText(attributeStatusLabel);
 }
 
 void TaskDialog::OnManageAttributes(wxCommandEvent& WXUNUSED(event))
@@ -943,6 +1015,10 @@ void TaskDialog::OnTaskAttributesAdded(wxCommandEvent& event)
     if (taskAttributeValueClientData) {
         delete taskAttributeValueClientData;
     }
+
+    std::string attributeStatusLabel =
+        fmt::format(TaskDialog::AttributeValuesCapturedLabel, mTaskAttributeValueModels.size());
+    pAttributeCountStatusLabelCtrl->SetLabelText(attributeStatusLabel);
 }
 
 void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
@@ -1502,4 +1578,6 @@ void TaskDialog::QueueInformationNotificationEvent(const std::string& message)
 
     wxQueueEvent(pParent, addNotificationEvent);
 }
+
+std::string TaskDialog::AttributeValuesCapturedLabel = "\"{0}\" attribute values captured";
 } // namespace tks::UI::dlg

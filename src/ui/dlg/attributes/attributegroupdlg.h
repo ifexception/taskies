@@ -71,9 +71,10 @@ private:
     wxBoxSizer* pMainSizer;
 
     wxTextCtrl* pNameTextCtrl;
-    wxCheckBox* pIsStaticGroupCheckBoxCtrl;
-
     wxTextCtrl* pDescriptionTextCtrl;
+
+    wxCheckBox* pIsStaticCheckBoxCtrl;
+    wxCheckBox* pIsDefaultCheckBoxCtrl;
 
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
@@ -83,13 +84,16 @@ private:
     std::string mDatabaseFilePath;
     std::int64_t mAttributeGroupId;
     bool bIsEdit;
+    bool bIsInUse;
+    bool bIsInUseStatic;
 
     Model::AttributeGroupModel mAttributeGroupModel;
 
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
-        tksIDC_ISSTATICGROUPCHECKBOXCTRL,
         tksIDC_DESCRIPTIONTEXTCTRL,
+        tksIDC_ISSTATICCHECKBOXCTRL,
+        tksIDC_ISDEFAULTCHECKBOXCTRL,
         tksIDC_ISACTIVECHECKBOXCTRL
     };
 };

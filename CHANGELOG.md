@@ -1,6 +1,6 @@
 # Taskies Changelog
 
-## v0.2.0-beta (to be released)
+## v0.3.0-beta (to be released)
 * Add reminders using Windows notification messages or taskbar flashing
 * Add attributes to tasks
 
