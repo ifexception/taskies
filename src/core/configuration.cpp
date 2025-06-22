@@ -301,8 +301,7 @@ bool Configuration::RestoreDefaults()
                     { "useNotificationBanners", false },
                     { "useTaskbarFlashing", false },
                     { "reminderInterval", 0 },
-                    { "openTaskDialogOnReminderClick", false },
-                    { "selectDefaultAttributeGroup", false }
+                    { "openTaskDialogOnReminderClick", false }
                 }
             },
             {
