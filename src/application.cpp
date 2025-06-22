@@ -172,18 +172,17 @@ void Application::InitializeLogger()
     std::vector<spdlog::sink_ptr> sinks{ msvcSink, dailyFileSink };
 
     pLogger = std::make_shared<spdlog::logger>(LOGGER_NAME, sinks.begin(), sinks.end());
-    //pLogger->set_level(spdlog::level::trace);
-    //pLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
 #else
     auto dailyFileSink =
         std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 5, 0, false, 5);
-    dailyFileSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%s:%#] [%^%l%$] %v");
+    dailyFileSink->set_level(spdlog::level::warn);
+    dailyFileSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
 
     std::vector<spdlog::sink_ptr> sinks{ dailyFileSink };
 
     pLogger = std::make_shared<spdlog::logger>(LOGGER_NAME, sinks.begin(), sinks.end());
     pLogger->set_level(spdlog::level::warn);
-    pLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%s:%#] [%^%l%$] %v");
+    pLogger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
 #endif // TKS_DEBUG
 
     SPDLOG_LOGGER_TRACE(pLogger, "{0} has been initialized", LOGGER_NAME);
