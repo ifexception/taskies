@@ -22,6 +22,7 @@
 #include <date/date.h>
 #include <fmt/format.h>
 
+#include <wx/artprov.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
@@ -273,8 +274,16 @@ void TaskDialog::CreateControls()
         pAttributeGroupChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Attribute status label */
-    pAttributeCountStatusLabelCtrl = new wxStaticText(
-        taskAttributesStaticBox, tksIDC_ATTRIBUTECOUNTSTATUSLABELCTRL, wxEmptyString);
+    auto providedInfoBitmap = wxArtProvider::GetBitmapBundle(
+        wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(12), FromDIP(12)));
+    auto infoStaticBitmap =
+        new wxStaticBitmap(taskAttributesStaticBox, wxID_ANY, providedInfoBitmap);
+    infoStaticBitmap->SetToolTip(
+        "Indicates how many attribute values have been captured for this task");
+
+    pAttributeCountStatusLabelCtrl = new wxStaticText(taskAttributesStaticBox,
+        tksIDC_ATTRIBUTECOUNTSTATUSLABELCTRL,
+        "\"0\" attribute values captured");
     pAttributeCountStatusLabelCtrl->SetFont(
         wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
 
@@ -287,6 +296,8 @@ void TaskDialog::CreateControls()
     auto manageAttributesHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     taskAttributesStaticBoxSizer->Add(manageAttributesHorizontalSizer, wxSizerFlags().Expand());
 
+    manageAttributesHorizontalSizer->Add(
+        infoStaticBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     manageAttributesHorizontalSizer->Add(
         pAttributeCountStatusLabelCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     manageAttributesHorizontalSizer->AddStretchSpacer(1);
@@ -921,7 +932,7 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
         mTaskAttributeValueModels.clear();
         mAttributeGroupId = -1;
         pManageAttributesButton->Disable();
-        pAttributeCountStatusLabelCtrl->SetLabelText("");
+        pAttributeCountStatusLabelCtrl->SetLabelText("\"0\" attribute values captured");
         return;
     }
 
