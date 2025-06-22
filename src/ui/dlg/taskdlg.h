@@ -118,6 +118,7 @@ private:
     wxCheckBox* pBillableCheckBoxCtrl;
     wxTextCtrl* pUniqueIdentiferTextCtrl;
     wxChoice* pAttributeGroupChoiceCtrl;
+    wxStaticText* pAttributeCountStatusLabelCtrl;
     wxButton* pManageAttributesButton;
 
     wxChoice* pClientChoiceCtrl;
@@ -144,6 +145,8 @@ private:
     bool bHasTaskAttributeValues;
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
+    static std::string AttributeValuesCapturedLabel;
+
     enum {
         tksIDC_DATECONTEXTDATEPICKERCTRL = wxID_HIGHEST + 100,
         tksIDC_EMPLOYERCHOICECTRL,
@@ -154,6 +157,7 @@ private:
         tksIDC_BILLABLECHECKBOXCTRL,
         tksIDC_UNIQUEIDENTIFERTEXTCTRL,
         tksIDC_ATTRIBUTEGROUPCHOICECTRL,
+        tksIDC_ATTRIBUTECOUNTSTATUSLABELCTRL,
         tksIDC_MANAGEATTRIBUTESBUTTON,
         tksIDC_TIMEHOURSSPINCTRL,
         tksIDC_TIMEMINUTESSPINCTRL,
