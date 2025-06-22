@@ -40,7 +40,6 @@ PreferencesTasksPage::PreferencesTasksPage(wxWindow* parent,
     , pUseRemindersCheckBoxCtrl(nullptr)
     , pReminderIntervalChoiceCtrl(nullptr)
     , pOpenTaskDialogOnReminderClickCheckBoxCtrl(nullptr)
-    , pSelectDefaultAttributeGroupCheckBoxCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -119,8 +118,6 @@ void PreferencesTasksPage::Save()
     } else {
         pCfg->SetReminderInterval(intervalData->GetValue());
     }
-
-    pCfg->SelectDefaultAttributeGroup(pSelectDefaultAttributeGroupCheckBoxCtrl->GetValue());
 }
 
 void PreferencesTasksPage::Reset()
@@ -138,8 +135,6 @@ void PreferencesTasksPage::Reset()
     pReminderIntervalChoiceCtrl->Disable();
 
     pOpenTaskDialogOnReminderClickCheckBoxCtrl->SetValue(pCfg->OpenTaskDialogOnReminderClick());
-
-    pSelectDefaultAttributeGroupCheckBoxCtrl->SetValue(pCfg->SelectDefaultAttributeGroup());
 }
 
 void PreferencesTasksPage::CreateControls()
@@ -230,13 +225,6 @@ void PreferencesTasksPage::CreateControls()
     reminderIntervalHorizontalSizer->Add(
         pReminderIntervalChoiceCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(4)).Expand());
 
-    /* Select default attribute group */
-    pSelectDefaultAttributeGroupCheckBoxCtrl = new wxCheckBox(
-        this, tksIDC_SELECTDEFAULTATTRIBUTEGROUPCHECKBOXCTRL, "Select default attribute group");
-    pSelectDefaultAttributeGroupCheckBoxCtrl->SetToolTip(
-        "Automatically select an attribute group on task capture (if applicable)");
-    sizer->Add(pSelectDefaultAttributeGroupCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
     SetSizerAndFit(sizer);
 }
 
@@ -312,8 +300,6 @@ void PreferencesTasksPage::DataToControls()
         pUseTaskbarFlashing->Disable();
         pReminderIntervalChoiceCtrl->Disable();
     }
-
-    pSelectDefaultAttributeGroupCheckBoxCtrl->SetValue(pCfg->SelectDefaultAttributeGroup());
 }
 
 void PreferencesTasksPage::OnUseRemindersCheck(wxCommandEvent& event)

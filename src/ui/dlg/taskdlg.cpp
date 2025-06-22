@@ -465,7 +465,7 @@ void TaskDialog::FillControls()
             if (attributeGroupModel.IsDefault) {
                 pAttributeGroupChoiceCtrl->SetStringSelection(attributeGroupModel.Name);
 
-                if (!bIsEdit && pCfg->SelectDefaultAttributeGroup()) {
+                if (!bIsEdit) {
                     if (attributeGroupModel.IsStatic) {
                         std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels;
                         Persistence::StaticAttributeValuesPersistence

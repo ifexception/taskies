@@ -161,8 +161,6 @@ bool Configuration::Save()
         mSettings.OpenTaskDialogOnReminderClick;
     root.at(Sections::TaskSection)["useTaskbarFlashing"] = mSettings.UseTaskbarFlashing;
     root.at(Sections::TaskSection)["reminderInterval"] = mSettings.ReminderInterval;
-    root.at(Sections::TaskSection)["selectDefaultAttributeGroup"] =
-        mSettings.SelectDefaultAttributeGroup;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -266,7 +264,6 @@ bool Configuration::RestoreDefaults()
     UseTaskbarFlashing(false);
     SetReminderInterval(0);
     OpenTaskDialogOnReminderClick(false);
-    SelectDefaultAttributeGroup(false);
 
     SetExportPath(pEnv->GetExportPath().string());
     CloseExportDialogAfterExporting(false);
@@ -730,16 +727,6 @@ void Configuration::OpenTaskDialogOnReminderClick(const bool value)
     mSettings.OpenTaskDialogOnReminderClick = value;
 }
 
-bool Configuration::SelectDefaultAttributeGroup() const
-{
-    return mSettings.SelectDefaultAttributeGroup;
-}
-
-void Configuration::SelectDefaultAttributeGroup(const bool value)
-{
-    mSettings.SelectDefaultAttributeGroup = value;
-}
-
 bool Configuration::TodayAlwaysExpanded() const
 {
     return mSettings.TodayAlwaysExpanded;
@@ -857,9 +844,6 @@ void Configuration::GetTasksConfig(const toml::value& root)
     mSettings.UseTaskbarFlashing = toml::find<bool>(taskSection, "useTaskbarFlashing");
 
     mSettings.ReminderInterval = toml::find<int>(taskSection, "reminderInterval");
-
-    mSettings.SelectDefaultAttributeGroup =
-        toml::find<bool>(taskSection, "selectDefaultAttributeGroup");
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)
