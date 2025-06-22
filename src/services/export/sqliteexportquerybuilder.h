@@ -57,7 +57,8 @@ private:
         const std::vector<std::string>& secondLevelJoins,
         const std::string& where);
 
-    std::vector<std::string> ComputeFirstLevelJoinProjections(const std::vector<ColumnJoinProjection>& joinProjections);
+    std::vector<std::string> ComputeFirstLevelJoinProjections(
+        const std::vector<ColumnJoinProjection>& joinProjections);
     std::string ComputeFirstLevelJoinProjection(const ColumnJoinProjection& joinProjection);
 
     std::vector<std::string> ComputeSecondLevelJoinProjections(

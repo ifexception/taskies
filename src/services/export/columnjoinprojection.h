@@ -32,7 +32,12 @@ struct ColumnJoinProjection {
     bool IsSecondLevelJoin;
 
     ColumnJoinProjection();
-    ColumnJoinProjection(std::string tableName, std::string idColumn, bool isSecondLevelJoin = false);
-    ColumnJoinProjection(std::string tableName, std::string idColumn, JoinType join, bool isSecondLevelJoin = false);
+    ColumnJoinProjection(std::string tableName,
+        std::string idColumn,
+        bool isSecondLevelJoin = false);
+    ColumnJoinProjection(std::string tableName,
+        std::string idColumn,
+        JoinType join,
+        bool isSecondLevelJoin = false);
 };
-}
+} // namespace tks::Services::Export

@@ -48,4 +48,4 @@ private:
     CsvExportOptions mOptions;
     CsvMappedOptions mMappedOptions;
 };
-}
+} // namespace tks::Services::Export

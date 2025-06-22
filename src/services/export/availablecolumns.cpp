@@ -23,26 +23,54 @@ namespace tks::Services::Export
 {
 std::vector<AvailableColumn> MakeAvailableColumns()
 {
-    AvailableColumn employer{ "name", "Employer", "employers", "employer_id", JoinType::InnerJoin, FieldType::Default };
-    AvailableColumn client{ "name", "Client", "clients", "client_id", JoinType::LeftJoin, FieldType::Default };
-    AvailableColumn project{ "name", "Project", "projects", "project_id", JoinType::InnerJoin, FieldType::Default };
-    AvailableColumn projectDisplayName{
-        "display_name", "Display Name", "projects", "project_id", JoinType::InnerJoin, FieldType::Default
+    AvailableColumn employer{
+        "name", "Employer", "employers", "employer_id", JoinType::InnerJoin, FieldType::Default
     };
+    AvailableColumn client{
+        "name", "Client", "clients", "client_id", JoinType::LeftJoin, FieldType::Default
+    };
+    AvailableColumn project{
+        "name", "Project", "projects", "project_id", JoinType::InnerJoin, FieldType::Default
+    };
+    AvailableColumn projectDisplayName{ "display_name",
+        "Display Name",
+        "projects",
+        "project_id",
+        JoinType::InnerJoin,
+        FieldType::Default };
     AvailableColumn category{
         "name", "Category", "categories", "category_id", JoinType::InnerJoin, FieldType::Default
     };
-    AvailableColumn date{ "date", "Date", "workdays", "workday_id", JoinType::None, FieldType::Default };
-    AvailableColumn description{ "description", "Description", "tasks", "", JoinType::None, FieldType::Default };
-    AvailableColumn billable{ "billable", "Billable", "tasks", "", JoinType::None, FieldType::Default };
-    AvailableColumn uid{ "unique_identifier", "Unique ID", "tasks", "", JoinType::None, FieldType::Default };
+    AvailableColumn date{
+        "date", "Date", "workdays", "workday_id", JoinType::None, FieldType::Default
+    };
+    AvailableColumn description{
+        "description", "Description", "tasks", "", JoinType::None, FieldType::Default
+    };
+    AvailableColumn billable{
+        "billable", "Billable", "tasks", "", JoinType::None, FieldType::Default
+    };
+    AvailableColumn uid{
+        "unique_identifier", "Unique ID", "tasks", "", JoinType::None, FieldType::Default
+    };
     AvailableColumn hours{ "hours", "Hours", "tasks", "", JoinType::None, FieldType::Formatted };
-    AvailableColumn minutes{ "minutes", "Minutes", "tasks", "", JoinType::None, FieldType::Formatted };
+    AvailableColumn minutes{
+        "minutes", "Minutes", "tasks", "", JoinType::None, FieldType::Formatted
+    };
     // *time* special identifier to select two columns into one
     AvailableColumn time{ "*time*", "Duration", "tasks", "", JoinType::None, FieldType::Formatted };
 
-    return std::vector<AvailableColumn>{
-        employer, client, project, projectDisplayName, category, date, description, billable, uid, hours, minutes, time
-    };
+    return std::vector<AvailableColumn>{ employer,
+        client,
+        project,
+        projectDisplayName,
+        category,
+        date,
+        description,
+        billable,
+        uid,
+        hours,
+        minutes,
+        time };
 }
 } // namespace tks::Services::Export

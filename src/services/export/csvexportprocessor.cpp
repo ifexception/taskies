@@ -88,7 +88,8 @@ void CsvExportProcessor::TryProcessTextQualifier(std::stringstream& data, std::s
     std::string quote = "\"";
 
     if (mOptions.TextQualifier != TextQualifierType::None) {
-        value = Utils::ReplaceAll(value, quote, MapTextQualifierEnumToValue(mOptions.TextQualifier));
+        value =
+            Utils::ReplaceAll(value, quote, MapTextQualifierEnumToValue(mOptions.TextQualifier));
 
         if (value.find(mMappedOptions.Delimiter) != std::string::npos) {
             data << mMappedOptions.TextQualifier << value << mMappedOptions.TextQualifier;

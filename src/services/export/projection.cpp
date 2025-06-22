@@ -32,4 +32,4 @@ Projection::Projection(int order, SColumnProjection columnProjection)
     , ColumnProjection(columnProjection)
 {
 }
-}
+} // namespace tks::Services::Export
