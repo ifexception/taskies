@@ -88,16 +88,19 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
     const std::string& toDate,
     std::string& exportedDataPreview)
 {
-    std::vector<std::vector<std::pair<std::string, std::string>>> projectionModel;
-
-    const auto& sql = pQueryBuilder->Build(projections, joinProjections, fromDate, toDate);
+    const auto& sql = pQueryBuilder->BuildQuery(projections, joinProjections, fromDate, toDate);
 
     const auto& computedProjectionModel = ComputeProjectionModel(projections);
 
+    std::vector<std::vector<std::pair<std::string, std::string>>> projectionModel;
     Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
     int rc = exportPersistence.FilterExportCsvData(sql, computedProjectionModel, projectionModel);
     if (rc != 0) {
         return false;
+    }
+
+    if (mOptions.IncludeAttributes) {
+        const std::string& attributeSql = pQueryBuilder->BuildAttributesQuery(fromDate, toDate, -1);
     }
 
     CsvMappedOptions mappedOptions(mOptions);
