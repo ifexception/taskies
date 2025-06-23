@@ -36,15 +36,22 @@ void SQLiteExportQueryBuilder::IsPreview(const bool preview)
     bIsPreview = preview;
 }
 
-std::string SQLiteExportQueryBuilder::Build(const std::vector<Projection>& projections,
+std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate)
 {
-    return BuildQuery(projections, joinProjections, fromDate, toDate);
+    return BuildQueryInternal(projections, joinProjections, fromDate, toDate);
 }
 
-std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& projections,
+std::string SQLiteExportQueryBuilder::BuildAttributesQuery(const std::string& fromDate,
+    const std::string& toDate,
+    const std::int64_t taskId)
+{
+    return BuildAttributesQueryInternal(fromDate, toDate, taskId);
+}
+
+std::string SQLiteExportQueryBuilder::BuildQueryInternal(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate)
@@ -55,6 +62,16 @@ std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& 
     const auto& where = BuildWhere(fromDate, toDate);
 
     std::string query = BuildQueryString(columns, firstLevelJoins, secondLevelJoins, where);
+    return query;
+}
+
+std::string SQLiteExportQueryBuilder::BuildAttributesQueryInternal(const std::string& fromDate,
+    const std::string& toDate,
+    const std::int64_t taskId)
+{
+    const auto& where = BuildWhere(fromDate, toDate);
+
+    std::string query = BuildAttributeQueryString(where, taskId);
     return query;
 }
 
@@ -85,6 +102,37 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
 
     if (bIsPreview) {
         AppendClause(query, " LIMIT ", "1");
+    }
+
+    return query.str();
+}
+
+std::string SQLiteExportQueryBuilder::BuildAttributeQueryString(const std::string& where,
+    const std::int64_t taskId)
+{
+    std::stringstream query;
+
+    query << "SELECT ";
+    query << "tasks.task_id, ";
+    query << "attributes.name AS \"Name\", ";
+    query << "coalesce(task_attribute_values.text_value, task_attribute_values.boolean_value, "
+             "task_attribute_values.numeric_value, NULL) AS \"Value\" ";
+
+    query << "FROM tasks ";
+    query << "INNER JOIN workdays ";
+    query << "ON tasks.workday_id = workdays.workday_id ";
+
+    query << "INNER JOIN task_attribute_values ";
+    query << "ON tasks.task_id = task_attribute_values.task_id ";
+
+    query << "INNER JOIN attributes ";
+    query << "ON task_attribute_values.attribute_id = attributes.attribute_id ";
+
+    AppendClause(query, " WHERE ", where);
+    AppendClause(query, " AND ", "task_attribute_values.is_active = 1");
+
+    if (bIsPreview) {
+        AppendClause(query, " WHERE ", "tasks.task_id = " + taskId);
     }
 
     return query.str();
