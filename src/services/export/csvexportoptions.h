@@ -30,6 +30,7 @@ struct CsvExportOptions {
     NewLines NewLinesHandler;
     BooleanHandler BooleanHandler;
     bool ExcludeHeaders;
+    bool IncludeAttributes;
 
     CsvExportOptions();
     ~CsvExportOptions() = default;
