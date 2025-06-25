@@ -83,6 +83,7 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
     std::stringstream query;
 
     query << "SELECT ";
+    query << "tasks.task_id, ";
     AppendColumns(query, columns);
 
     query << "FROM tasks ";
