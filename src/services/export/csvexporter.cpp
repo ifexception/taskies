@@ -19,6 +19,8 @@
 
 #include "csvexporter.h"
 
+#include "projectionkeyvaluepairmodel.h"
+
 #include "../../persistence/exportpersistence.h"
 
 namespace tks::Services::Export
@@ -92,9 +94,13 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 
     const auto& computedProjectionModel = ComputeProjectionModel(projections);
 
-    std::vector<std::vector<std::pair<std::string, std::string>>> projectionModel;
+    std::vector<std::vector<ProjectionKeyValuePairModel>> projectionKeyValuePairModels;
+
     Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
-    int rc = exportPersistence.FilterExportCsvData(sql, computedProjectionModel, projectionModel);
+
+    int rc = exportPersistence.FilterExportCsvData(
+        sql, computedProjectionModel, projectionKeyValuePairModels);
+
     if (rc != 0) {
         return false;
     }
@@ -119,14 +125,14 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
         exportedData << "\n";
     }
 
-    for (const auto& rowModel : projectionModel) {
-        for (auto i = 0; i < rowModel.size(); i++) {
-            auto& rowValue = rowModel[i];
-            std::string value = rowValue.second;
+    for (const auto& rowKeyValueModel : projectionKeyValuePairModels) {
+        for (auto i = 1; i < rowKeyValueModel.size(); i++) {
+            auto& rowValue = rowKeyValueModel[i];
+            std::string value = rowValue.Value;
 
             exportProcessor.ProcessData(exportedData, value);
 
-            if (i < rowModel.size() - 1) {
+            if (i < rowKeyValueModel.size() - 1) {
                 exportedData << mappedOptions.Delimiter;
             }
         }

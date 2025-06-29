@@ -28,6 +28,8 @@
 
 #include <sqlite3.h>
 
+#include "../services/export/projectionkeyvaluepairmodel.h"
+
 namespace tks::Persistence
 {
 struct ExportPersistence final {
@@ -38,7 +40,7 @@ public:
 
     int FilterExportCsvData(const std::string& sql,
         const std::vector<std::string>& projectionMap,
-        /*out*/ std::vector<std::vector<std::pair<std::string, std::string>>>& projectionModels)
+        /*out*/ std::vector<std::vector<ProjectionKeyValuePairModel>>& projectionKeyValuePairModels)
         const;
 
     std::shared_ptr<spdlog::logger> pLogger;

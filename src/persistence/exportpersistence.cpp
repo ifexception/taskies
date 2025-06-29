@@ -96,7 +96,7 @@ ExportPersistence::~ExportPersistence()
 
 int ExportPersistence::FilterExportCsvData(const std::string& sql,
     const std::vector<std::string>& projectionMap,
-    std::vector<std::vector<std::pair<std::string, std::string>>>& projectionModels) const
+    std::vector<std::vector<ProjectionKeyValuePairModel>>& projectionKeyValuePairModels) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -116,10 +116,19 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
 
-            std::vector<std::pair<std::string, std::string>> rowProjectionModel;
+            std::vector<ProjectionKeyValuePairModel> rowProjectionModel;
+
+            const unsigned char* res = sqlite3_column_text(stmt, 0);
+            const auto& value =
+                std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, 0));
+
+            ProjectionKeyValuePairModel model("task_id", value);
+
+            rowProjectionModel.push_back(model);
 
             for (size_t i = 0; i < projectionMap.size(); i++) {
                 int index = static_cast<int>(i);
+                index++;
 
                 const auto& key = projectionMap[i];
 
@@ -127,10 +136,12 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
                 const auto& value = std::string(
                     reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, index));
 
-                rowProjectionModel.push_back(std::make_pair(key, value));
+                ProjectionKeyValuePairModel model(key, value);
+
+                rowProjectionModel.push_back(model);
             }
 
-            projectionModels.push_back(rowProjectionModel);
+            projectionKeyValuePairModels.push_back(rowProjectionModel);
             break;
         }
         case SQLITE_DONE:
@@ -153,7 +164,7 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
     sqlite3_finalize(stmt);
 
     SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::FilterEntities, projectionModels.size(), "<csv_export>");
+        pLogger, LogMessages::FilterEntities, projectionKeyValuePairModels.size(), "<csv_export>");
 
     return 0;
 }

@@ -14,5 +14,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/csvexporter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/csvexportmappedoptions.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/columnexportmodel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/projectionkeyvaluepairmodel.cpp"
     PARENT_SCOPE
 )
