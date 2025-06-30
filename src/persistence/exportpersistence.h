@@ -40,7 +40,7 @@ public:
 
     int FilterExportCsvData(const std::string& sql,
         const std::vector<std::string>& projectionMap,
-        /*out*/ std::vector<std::vector<ProjectionKeyValuePairModel>>& projectionKeyValuePairModels)
+        /*out*/ std::vector<ProjectionListModel>& projectionListModels)
         const;
 
     std::shared_ptr<spdlog::logger> pLogger;

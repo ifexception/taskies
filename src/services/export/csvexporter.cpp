@@ -94,12 +94,11 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 
     const auto& computedProjectionModel = ComputeProjectionModel(projections);
 
-    std::vector<std::vector<ProjectionKeyValuePairModel>> projectionKeyValuePairModels;
+    std::vector<ProjectionListModel> projectionListModels;
 
     Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
 
-    int rc = exportPersistence.FilterExportCsvData(
-        sql, computedProjectionModel, projectionKeyValuePairModels);
+    int rc = exportPersistence.FilterExportCsvData(sql, computedProjectionModel, projectionListModels);
 
     if (rc != 0) {
         return false;
@@ -125,14 +124,14 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
         exportedData << "\n";
     }
 
-    for (const auto& rowKeyValueModel : projectionKeyValuePairModels) {
-        for (auto i = 1; i < rowKeyValueModel.size(); i++) {
-            auto& rowValue = rowKeyValueModel[i];
+    for (const auto& listModel : projectionListModels) {
+        for (auto i = 0; i < listModel.ProjectionKeyValuePairModels.size(); i++) {
+            auto& rowValue = listModel.ProjectionKeyValuePairModels[i];
             std::string value = rowValue.Value;
 
             exportProcessor.ProcessData(exportedData, value);
 
-            if (i < rowKeyValueModel.size() - 1) {
+            if (i < listModel.ProjectionKeyValuePairModels.size() - 1) {
                 exportedData << mappedOptions.Delimiter;
             }
         }

@@ -96,7 +96,7 @@ ExportPersistence::~ExportPersistence()
 
 int ExportPersistence::FilterExportCsvData(const std::string& sql,
     const std::vector<std::string>& projectionMap,
-    std::vector<std::vector<ProjectionKeyValuePairModel>>& projectionKeyValuePairModels) const
+    std::vector<ProjectionListModel>& projectionListModels) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -116,15 +116,13 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
 
+            ProjectionListModel listModel;
+
             std::vector<ProjectionKeyValuePairModel> rowProjectionModel;
 
-            const unsigned char* res = sqlite3_column_text(stmt, 0);
-            const auto& value =
-                std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, 0));
+            auto res = sqlite3_column_int64(stmt, 0);
 
-            ProjectionKeyValuePairModel model("task_id", value);
-
-            rowProjectionModel.push_back(model);
+            listModel.TaskId = static_cast<std::int64_t>(res);
 
             for (size_t i = 0; i < projectionMap.size(); i++) {
                 int index = static_cast<int>(i);
@@ -141,7 +139,8 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
                 rowProjectionModel.push_back(model);
             }
 
-            projectionKeyValuePairModels.push_back(rowProjectionModel);
+            listModel.ProjectionKeyValuePairModels = rowProjectionModel;
+            projectionListModels.push_back(listModel);
             break;
         }
         case SQLITE_DONE:
@@ -164,7 +163,7 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
     sqlite3_finalize(stmt);
 
     SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::FilterEntities, projectionKeyValuePairModels.size(), "<csv_export>");
+        pLogger, LogMessages::FilterEntities, projectionListModels.size(), "<csv_export>");
 
     return 0;
 }
