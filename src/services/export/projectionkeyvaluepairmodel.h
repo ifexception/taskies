@@ -1,6 +1,8 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
+#include <vector>
 
 struct ProjectionKeyValuePairModel {
     ProjectionKeyValuePairModel() = delete;
@@ -9,4 +11,12 @@ struct ProjectionKeyValuePairModel {
 
     std::string Key;
     std::string Value;
+};
+
+struct ProjectionListModel {
+    ProjectionListModel();
+    ~ProjectionListModel() = default;
+
+    std::int64_t TaskId;
+    std::vector<ProjectionKeyValuePairModel> ProjectionKeyValuePairModels;
 };

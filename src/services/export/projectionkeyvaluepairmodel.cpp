@@ -6,3 +6,9 @@ ProjectionKeyValuePairModel::ProjectionKeyValuePairModel(const std::string& key,
     , Value(value)
 {
 }
+
+ProjectionListModel::ProjectionListModel()
+    : TaskId(-1)
+    , ProjectionKeyValuePairModels()
+{
+}
