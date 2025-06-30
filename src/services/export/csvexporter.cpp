@@ -19,6 +19,8 @@
 
 #include "csvexporter.h"
 
+#include <cassert>
+
 #include "projectionkeyvaluepairmodel.h"
 
 #include "../../persistence/exportpersistence.h"
@@ -98,14 +100,22 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 
     Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
 
-    int rc = exportPersistence.FilterExportCsvData(sql, computedProjectionModel, projectionListModels);
+    int rc =
+        exportPersistence.FilterExportCsvData(sql, computedProjectionModel, projectionListModels);
 
     if (rc != 0) {
         return false;
     }
 
     if (mOptions.IncludeAttributes) {
-        const std::string& attributeSql = pQueryBuilder->BuildAttributesQuery(fromDate, toDate, -1);
+        std::int64_t taskId = -1;
+        if (pQueryBuilder->IsPreview() == true) {
+            assert(projectionListModels.size() == 1);
+            taskId = projectionListModels[0].TaskId;
+        }
+
+        const std::string& attributeSql =
+            pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
     }
 
     CsvMappedOptions mappedOptions(mOptions);
