@@ -98,6 +98,7 @@ private:
     void OnUpButtonSort(wxCommandEvent& event);
     void OnDownButtonSort(wxCommandEvent& event);
     void OnExcludeHeadersCheck(wxCommandEvent& event);
+    void OnIncludeAttributesCheck(wxCommandEvent& event);
 
     void OnShowPreview(wxCommandEvent& event);
     void OnExport(wxCommandEvent& event);
