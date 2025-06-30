@@ -133,7 +133,8 @@ std::string SQLiteExportQueryBuilder::BuildAttributeQueryString(const std::strin
     AppendClause(query, " AND ", "task_attribute_values.is_active = 1");
 
     if (bIsPreview) {
-        AppendClause(query, " WHERE ", "tasks.task_id = " + taskId);
+        std::string whereClause = "tasks.task_id = " + std::to_string(taskId);
+        AppendClause(query, " AND ", whereClause);
     }
 
     return query.str();
