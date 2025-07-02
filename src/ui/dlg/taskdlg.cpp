@@ -463,6 +463,7 @@ void TaskDialog::FillControls()
                 new ClientData<std::int64_t>(attributeGroupModel.AttributeGroupId));
 
             if (attributeGroupModel.IsDefault) {
+                mAttributeGroupId = attributeGroupModel.AttributeGroupId;
                 pAttributeGroupChoiceCtrl->SetStringSelection(attributeGroupModel.Name);
 
                 if (!bIsEdit) {
@@ -499,6 +500,7 @@ void TaskDialog::FillControls()
                         pAttributeCountStatusLabelCtrl->SetLabelText(attributeStatusLabel);
                     }
                 }
+                break;
             }
         }
 
