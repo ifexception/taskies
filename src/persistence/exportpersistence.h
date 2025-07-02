@@ -43,6 +43,10 @@ public:
         /*out*/ std::vector<ProjectionListModel>& projectionListModels)
         const;
 
+    int FilterExportCsvAttributesData(const std::string& sql,
+        const std::vector<std::string>& projectionList,
+        /*out*/ std::vector<ProjectionListModel>& projectionListModels) const;
+
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 };

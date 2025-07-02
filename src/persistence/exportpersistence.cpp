@@ -167,4 +167,75 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
 
     return 0;
 }
+
+int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
+    const std::vector<std::string>& projectionList,
+    std::vector<ProjectionListModel>& projectionListModels) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            ProjectionListModel listModel;
+
+            std::vector<ProjectionKeyValuePairModel> rowProjectionModel;
+
+            for (size_t i = 0; i < projectionList.size(); i++) {
+                int index = static_cast<int>(i);
+
+                const auto& key = projectionList[i];
+
+                const unsigned char* res = sqlite3_column_text(stmt, index);
+                const auto& value = std::string(
+                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, index));
+
+                ProjectionKeyValuePairModel model(key, value);
+
+                rowProjectionModel.push_back(model);
+            }
+
+            listModel.ProjectionKeyValuePairModels = rowProjectionModel;
+            projectionListModels.push_back(listModel);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        LogMessages::FilterEntities,
+        projectionListModels.size(),
+        "<csv_attributes_export>");
+
+    return 0;
+}
 } // namespace tks::Persistence

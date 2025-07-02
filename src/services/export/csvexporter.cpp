@@ -116,6 +116,19 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 
         const std::string& attributeSql =
             pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
+
+        std::vector<std::string> attributeProjectionModel{ "task_id", "Name", "Value" };
+
+        std::vector<ProjectionListModel> projectionAttributeListModels;
+
+        rc = exportPersistence.FilterExportCsvAttributesData(
+            attributeSql, attributeProjectionModel, projectionAttributeListModels);
+
+        if (rc != 0) {
+            return false;
+        }
+
+        // transpose attributes to attach to parent list model (somehow)
     }
 
     CsvMappedOptions mappedOptions(mOptions);
