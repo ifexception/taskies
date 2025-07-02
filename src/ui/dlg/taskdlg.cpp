@@ -500,7 +500,6 @@ void TaskDialog::FillControls()
                         pAttributeCountStatusLabelCtrl->SetLabelText(attributeStatusLabel);
                     }
                 }
-                break;
             }
         }
 
@@ -936,6 +935,11 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
         pManageAttributesButton->Disable();
         pAttributeCountStatusLabelCtrl->SetLabelText("\"0\" attribute values captured");
         return;
+    }
+
+    if (mAttributeGroupId != attributeGroupId) {
+        mTaskAttributeValueModels.clear();
+        pAttributeCountStatusLabelCtrl->SetLabelText("\"0\" attribute values captured");
     }
 
     pManageAttributesButton->Enable();
