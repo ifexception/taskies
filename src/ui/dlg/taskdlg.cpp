@@ -463,6 +463,7 @@ void TaskDialog::FillControls()
                 new ClientData<std::int64_t>(attributeGroupModel.AttributeGroupId));
 
             if (attributeGroupModel.IsDefault) {
+                mAttributeGroupId = attributeGroupModel.AttributeGroupId;
                 pAttributeGroupChoiceCtrl->SetStringSelection(attributeGroupModel.Name);
 
                 if (!bIsEdit) {
@@ -934,6 +935,11 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
         pManageAttributesButton->Disable();
         pAttributeCountStatusLabelCtrl->SetLabelText("\"0\" attribute values captured");
         return;
+    }
+
+    if (mAttributeGroupId != attributeGroupId) {
+        mTaskAttributeValueModels.clear();
+        pAttributeCountStatusLabelCtrl->SetLabelText("\"0\" attribute values captured");
     }
 
     pManageAttributesButton->Enable();
