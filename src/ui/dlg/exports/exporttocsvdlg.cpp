@@ -1389,8 +1389,10 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
-    const std::string fromDate = date::format("%F", mFromDate);
-    const std::string toDate = date::format("%F", mToDate);
+    const std::string fromDate =
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
+    const std::string toDate =
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
 
     pLogger->info("ExportToCsvDialog::OnShowPreview - Export date range: [\"{0}\", \"{1}\"]",
         fromDate,
