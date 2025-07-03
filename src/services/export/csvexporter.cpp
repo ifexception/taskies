@@ -94,7 +94,7 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 {
     const auto& sql = pQueryBuilder->BuildQuery(projections, joinProjections, fromDate, toDate);
 
-    const auto& computedProjectionModel = ComputeProjectionModel(projections);
+    std::vector<std::string> computedProjectionModel = ComputeProjectionModel(projections);
 
     std::vector<ProjectionListModel> projectionListModels;
 
@@ -128,7 +128,21 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
             return false;
         }
 
-        // transpose attributes to attach to parent list model (somehow)
+        if (computedProjectionModel.size() > 0 && projectionListModels.size() > 0) {
+            for (auto& projectionListModel : projectionListModels) {
+                for (size_t i = 0; i < projectionAttributeListModels.size(); i++) {
+                    computedProjectionModel.push_back(
+                        projectionAttributeListModels[i].ProjectionKeyValuePairModels[1].Value);
+
+                    ProjectionKeyValuePairModel attributeKeyValuePair(
+                        projectionAttributeListModels[i].ProjectionKeyValuePairModels[1].Value,
+                        projectionAttributeListModels[i].ProjectionKeyValuePairModels[2].Value);
+
+                    projectionListModel.ProjectionKeyValuePairModels.push_back(
+                        attributeKeyValuePair);
+                }
+            }
+        }
     }
 
     CsvMappedOptions mappedOptions(mOptions);
