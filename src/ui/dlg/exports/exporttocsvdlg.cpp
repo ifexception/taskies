@@ -1397,6 +1397,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     pLogger->info("ExportToCsvDialog::OnShowPreview - Export date range: [\"{0}\", \"{1}\"]",
         fromDate,
         toDate);
+
     std::string exportedDataPreview = "";
     bool success = mCsvExporter.GeneratePreview(
         mCsvOptions, projections, joinProjections, fromDate, toDate, exportedDataPreview);

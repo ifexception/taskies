@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <spdlog/spdlog.h>
@@ -39,13 +40,12 @@ public:
     ~ExportPersistence();
 
     int FilterExportCsvData(const std::string& sql,
-        const std::vector<std::string>& projectionMap,
-        /*out*/ std::vector<ProjectionListModel>& projectionListModels)
+        const std::vector<std::string>& projectionList,
+        /*out*/ std::unordered_map<std::int64_t, ValuesModel>& valueModelsUnorderedMap)
         const;
 
     int FilterExportCsvAttributesData(const std::string& sql,
-        const std::vector<std::string>& projectionList,
-        /*out*/ std::vector<ProjectionListModel>& projectionListModels) const;
+        /*out*/ AttributeValueModel& valueModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
