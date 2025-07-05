@@ -45,7 +45,7 @@ public:
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
-    std ::vector<std::string> ComputeProjectionModel(const std::vector<Projection>& projections);
+    std ::vector<std::string> ComputeHeaderModel(const std::vector<Projection>& projections);
 
     bool GeneratePreview(CsvExportOptions options,
         const std::vector<Projection>& projections,

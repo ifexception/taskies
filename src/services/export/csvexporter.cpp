@@ -20,6 +20,7 @@
 #include "csvexporter.h"
 
 #include <cassert>
+#include <unordered_map>
 
 #include "projectionkeyvaluepairmodel.h"
 
@@ -35,8 +36,7 @@ CsvExporter::CsvExporter(const std::string& databaseFilePath,
     pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
 }
 
-std::vector<std::string> CsvExporter::ComputeProjectionModel(
-    const std::vector<Projection>& projections)
+std::vector<std::string> CsvExporter::ComputeHeaderModel(const std::vector<Projection>& projections)
 {
     if (projections.empty()) {
         return std::vector<std::string>();
@@ -94,14 +94,14 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 {
     const auto& sql = pQueryBuilder->BuildQuery(projections, joinProjections, fromDate, toDate);
 
-    std::vector<std::string> computedProjectionModel = ComputeProjectionModel(projections);
+    std::vector<std::string> computedHeaderModel = ComputeHeaderModel(projections);
 
-    std::vector<ProjectionListModel> projectionListModels;
+    std::unordered_map<std::int64_t, ValuesModel> unorderedMapValueModels;
 
     Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
 
     int rc =
-        exportPersistence.FilterExportCsvData(sql, computedProjectionModel, projectionListModels);
+        exportPersistence.FilterExportCsvData(sql, computedHeaderModel, unorderedMapValueModels);
 
     if (rc != 0) {
         return false;
@@ -109,39 +109,32 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 
     if (mOptions.IncludeAttributes) {
         std::int64_t taskId = -1;
-        if (pQueryBuilder->IsPreview() == true) {
-            assert(projectionListModels.size() == 1);
-            taskId = projectionListModels[0].TaskId;
+        if (pQueryBuilder->IsPreview()) {
+            assert(unorderedMapValueModels.size() == 1);
+            for (auto& valueModel : unorderedMapValueModels) {
+                taskId = valueModel.first;
+            }
         }
 
         const std::string& attributeSql =
             pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
 
-        std::vector<std::string> attributeProjectionModel{ "task_id", "Name", "Value" };
+        AttributeValueModel attributeValueModel;
 
-        std::vector<ProjectionListModel> projectionAttributeListModels;
-
-        rc = exportPersistence.FilterExportCsvAttributesData(
-            attributeSql, attributeProjectionModel, projectionAttributeListModels);
+        rc = exportPersistence.FilterExportCsvAttributesData(attributeSql, attributeValueModel);
 
         if (rc != 0) {
             return false;
         }
 
-        if (computedProjectionModel.size() > 0 && projectionListModels.size() > 0) {
-            for (auto& projectionListModel : projectionListModels) {
-                for (size_t i = 0; i < projectionAttributeListModels.size(); i++) {
-                    computedProjectionModel.push_back(
-                        projectionAttributeListModels[i].ProjectionKeyValuePairModels[1].Value);
+        for (const auto& headerValueModel : attributeValueModel.HeaderValueModels) {
+            computedHeaderModel.push_back(headerValueModel.Header);
 
-                    ProjectionKeyValuePairModel attributeKeyValuePair(
-                        projectionAttributeListModels[i].ProjectionKeyValuePairModels[1].Value,
-                        projectionAttributeListModels[i].ProjectionKeyValuePairModels[2].Value);
+            ColumnValueModel attributeColumnValueModel(
+                headerValueModel.Header, headerValueModel.Value);
 
-                    projectionListModel.ProjectionKeyValuePairModels.push_back(
-                        attributeKeyValuePair);
-                }
-            }
+            unorderedMapValueModels[attributeValueModel.TaskId].ColumnValueModels.push_back(
+                attributeColumnValueModel);
         }
     }
 
@@ -152,23 +145,23 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
     std::stringstream exportedData;
 
     if (!mOptions.ExcludeHeaders) {
-        for (auto i = 0; i < computedProjectionModel.size(); i++) {
-            exportedData << computedProjectionModel[i];
-            if (i < computedProjectionModel.size() - 1) {
+        for (auto i = 0; i < computedHeaderModel.size(); i++) {
+            exportedData << computedHeaderModel[i];
+            if (i < computedHeaderModel.size() - 1) {
                 exportedData << mappedOptions.Delimiter;
             }
         }
         exportedData << "\n";
     }
 
-    for (const auto& listModel : projectionListModels) {
-        for (auto i = 0; i < listModel.ProjectionKeyValuePairModels.size(); i++) {
-            auto& rowValue = listModel.ProjectionKeyValuePairModels[i];
+    for (const auto& valueModel : unorderedMapValueModels) {
+        for (auto i = 0; i < valueModel.second.ColumnValueModels.size(); i++) {
+            auto& rowValue = valueModel.second.ColumnValueModels[i];
             std::string value = rowValue.Value;
 
             exportProcessor.ProcessData(exportedData, value);
 
-            if (i < listModel.ProjectionKeyValuePairModels.size() - 1) {
+            if (i < valueModel.second.ColumnValueModels.size() - 1) {
                 exportedData << mappedOptions.Delimiter;
             }
         }
