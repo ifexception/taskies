@@ -20,6 +20,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -48,11 +49,14 @@ public:
 
     int GetAttributeHeaderNames(const std::string& fromDate,
         const std::string& toDate,
+        std::optional<std::int64_t> taskId,
+        bool isPreview,
         /*out*/ std::vector<std::string>& attributeHeaders) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
     static std::string getAttributeHeaderNames;
+    static std::string getAttributeHeaderNamesPreview;
 };
 } // namespace tks::Persistence
