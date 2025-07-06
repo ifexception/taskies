@@ -41,13 +41,18 @@ public:
 
     int FilterExportCsvData(const std::string& sql,
         const std::vector<std::string>& projectionList,
-        /*out*/ std::unordered_map<std::int64_t, ValuesModel>& valueModelsUnorderedMap)
-        const;
+        /*out*/ std::unordered_map<std::int64_t, ValuesModel>& valueModelsUnorderedMap) const;
 
     int FilterExportCsvAttributesData(const std::string& sql,
-        /*out*/ AttributeValueModel& valueModel) const;
+        /*out*/ std::unordered_map<std::int64_t, AttributeValueModel>& attributeValueModels) const;
+
+    int GetAttributeHeaderNames(const std::string& fromDate,
+        const std::string& toDate,
+        /*out*/ std::vector<std::string>& attributeHeaders) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
+
+    static std::string getAttributeHeaderNames;
 };
 } // namespace tks::Persistence

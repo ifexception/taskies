@@ -165,7 +165,7 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
 }
 
 int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
-    AttributeValueModel& valueModel) const
+    std::unordered_map<std::int64_t, AttributeValueModel>& attributeValueModels) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -187,8 +187,6 @@ int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
 
             std::int64_t taskId = sqlite3_column_int64(stmt, ATTRIBUTE_PROP_INDEX_TASKID);
 
-            valueModel.TaskId = taskId;
-
             AttributeHeaderValueModel headerValueModel;
 
             const unsigned char* resName = sqlite3_column_text(stmt, ATTRIBUTE_PROP_INDEX_NAME);
@@ -202,8 +200,7 @@ int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
             headerValueModel.Header = valueName;
             headerValueModel.Value = valueValue;
 
-            valueModel.HeaderValueModels.push_back(headerValueModel);
-
+            attributeValueModels[taskId].HeaderValueModels.push_back(headerValueModel);
             break;
         }
         case SQLITE_DONE:
@@ -227,9 +224,118 @@ int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
 
     SPDLOG_LOGGER_TRACE(pLogger,
         LogMessages::FilterEntities,
-        valueModel.HeaderValueModels.size(),
+        attributeValueModels.size(),
         "<csv_attributes_export>");
 
     return 0;
 }
+
+int ExportPersistence::GetAttributeHeaderNames(const std::string& fromDate,
+    const std::string& toDate,
+    std::vector<std::string>& attributeHeaders) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        ExportPersistence::getAttributeHeaderNames.c_str(),
+        static_cast<int>(ExportPersistence::getAttributeHeaderNames.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            ExportPersistence::getAttributeHeaderNames,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    // fromDate
+    rc = sqlite3_bind_text(
+        stmt, bindIndex, fromDate.c_str(), static_cast<int>(fromDate.size()), SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "from_date", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // toDate
+    rc = sqlite3_bind_text(
+        stmt, bindIndex, toDate.c_str(), static_cast<int>(toDate.size()), SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "to_date", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            int columnIndex = 0;
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            std::string name = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            attributeHeaders.push_back(name);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate,
+            "ExportPersistence",
+            ExportPersistence::getAttributeHeaderNames,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(pLogger,
+        LogMessages::FilterEntities,
+        attributeHeaders.size(),
+        fmt::format("[{0}, {1}]", fromDate, toDate));
+
+    return 0;
+}
+
+std::string ExportPersistence::getAttributeHeaderNames =
+    "SELECT "
+    "attributes.name "
+    "FROM tasks "
+    "INNER JOIN workdays ON tasks.workday_id = workdays.workday_id "
+    "INNER JOIN task_attribute_values ON tasks.task_id = task_attribute_values.task_id "
+    "INNER JOIN attributes ON task_attribute_values.attribute_id = attributes.attribute_id "
+    "WHERE workdays.date >= ? "
+    "AND workdays.date <= ? "
+    "AND tasks.is_active = 1 "
+    "AND task_attribute_values.is_active = 1 "
+    "GROUP BY attributes.name "
+    "HAVING COUNT(DISTINCT attributes.name) > 0";
 } // namespace tks::Persistence
