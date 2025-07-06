@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 struct ColumnValueModel {
@@ -57,16 +58,18 @@ struct AttributeHeaderValueModel {
 
 struct AttributeValueModel {
     AttributeValueModel()
-        : TaskId(-1)
-        , HeaderValueModels()
-    {
-    }
-    AttributeValueModel(std::int64_t taskId)
-        : TaskId(taskId)
-        , HeaderValueModels()
+        : HeaderValueModels()
     {
     }
 
-    std::int64_t TaskId;
     std::vector<AttributeHeaderValueModel> HeaderValueModels;
+};
+
+struct Row {
+    std::vector<std::string> Values;
+};
+
+struct Data {
+    std::vector<std::string> Headers;
+    std::unordered_map<std::int64_t, Row> Rows;
 };
