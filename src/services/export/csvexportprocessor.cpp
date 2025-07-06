@@ -31,12 +31,12 @@ CsvExportProcessor::CsvExportProcessor(CsvExportOptions options, CsvMappedOption
 {
 }
 
-void CsvExportProcessor::ProcessData(std::stringstream& data, std::string& value)
+void CsvExportProcessor::ProcessData(std::string& value)
 {
     TryProcessEmptyValues(value);
     TryProcessNewLines(value);
     TryProcessBooleanHandler(value);
-    TryProcessTextQualifier(data, value);
+    TryProcessTextQualifier(value);
 }
 
 void CsvExportProcessor::TryProcessNewLines(std::string& value) const
@@ -83,7 +83,7 @@ void CsvExportProcessor::TryProcessBooleanHandler(std::string& value) const
     }
 }
 
-void CsvExportProcessor::TryProcessTextQualifier(std::stringstream& data, std::string& value) const
+void CsvExportProcessor::TryProcessTextQualifier(std::string& value) const
 {
     std::string quote = "\"";
 
@@ -92,11 +92,10 @@ void CsvExportProcessor::TryProcessTextQualifier(std::stringstream& data, std::s
             Utils::ReplaceAll(value, quote, MapTextQualifierEnumToValue(mOptions.TextQualifier));
 
         if (value.find(mMappedOptions.Delimiter) != std::string::npos) {
-            data << mMappedOptions.TextQualifier << value << mMappedOptions.TextQualifier;
+            // data << mMappedOptions.TextQualifier << value << mMappedOptions.TextQualifier;
+            value = mMappedOptions.TextQualifier + value + mMappedOptions.TextQualifier;
             return;
         }
     }
-
-    data << value;
 }
 } // namespace tks::Services::Export
