@@ -42,11 +42,11 @@ constexpr int ATTRIBUTE_PROP_INDEX_VALUE = 2;
 
 struct AttributeHeaderValueModel {
     AttributeHeaderValueModel()
-        : Header()
-        , Value()
+        : Header("")
+        , Value("")
     {
     }
-    AttributeHeaderValueModel(std::string& header, std::string& value)
+    AttributeHeaderValueModel(std::string header, std::string value)
         : Header(header)
         , Value(value)
     {

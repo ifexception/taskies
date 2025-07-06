@@ -1438,7 +1438,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
     const std::string fromDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintMondayDate : date::format("%F", mFromDate);
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
     const std::string toDate =
         bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
 
