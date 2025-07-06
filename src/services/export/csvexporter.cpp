@@ -211,28 +211,32 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
     std::stringstream exportedData;
 
     if (!mOptions.ExcludeHeaders) {
-        for (auto i = 0; i < computedHeadersModel.size(); i++) {
-            exportedData << computedHeadersModel[i];
-            if (i < computedHeadersModel.size() - 1) {
+        for (auto i = 0; i < exportData.Headers.size(); i++) {
+            exportedData << exportData.Headers[i];
+            if (i < exportData.Headers.size() - 1) {
                 exportedData << mappedOptions.Delimiter;
             }
         }
         exportedData << "\n";
     }
 
-    for (const auto& valueModel : unorderedMapValueModels) {
-        for (auto i = 0; i < valueModel.second.ColumnValueModels.size(); i++) {
-            auto& rowValue = valueModel.second.ColumnValueModels[i];
-            std::string value = rowValue.Value;
+    for (const auto& row : exportData.Rows) {
+        const auto& rowValues = row.second.Values;
+        for (size_t i = 0; i < rowValues.size(); i++) {
+            std::string value = rowValues[i];
+            exportProcessor.ProcessData(value);
+            exportedData << value;
 
-            exportProcessor.ProcessData(exportedData, value);
-
-            if (i < valueModel.second.ColumnValueModels.size() - 1) {
+            if (i < rowValues.size() - 1) {
                 exportedData << mappedOptions.Delimiter;
             }
         }
 
         exportedData << "\n";
+    }
+
+    if (!exportedData.good()) {
+        return false;
     }
 
     exportedDataPreview = exportedData.str();
