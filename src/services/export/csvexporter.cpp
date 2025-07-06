@@ -94,17 +94,34 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 {
     const auto& sql = pQueryBuilder->BuildQuery(projections, joinProjections, fromDate, toDate);
 
-    std::vector<std::string> computedHeaderModel = ComputeHeaderModel(projections);
+    std::vector<std::string> computedHeadersModel = ComputeHeaderModel(projections);
 
     std::unordered_map<std::int64_t, ValuesModel> unorderedMapValueModels;
 
     Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
 
     int rc =
-        exportPersistence.FilterExportCsvData(sql, computedHeaderModel, unorderedMapValueModels);
+        exportPersistence.FilterExportCsvData(sql, computedHeadersModel, unorderedMapValueModels);
 
     if (rc != 0) {
         return false;
+    }
+
+    Data exportData;
+
+    // step 1: build out computed header list
+    for (auto& computedHeader : computedHeadersModel) {
+        exportData.Headers.push_back(computedHeader);
+    }
+
+    // step 2: build out row values
+    for (auto& valueModel : unorderedMapValueModels) {
+        Row row;
+        for (size_t i = 0; i < valueModel.second.ColumnValueModels.size(); i++) {
+            row.Values.push_back(valueModel.second.ColumnValueModels[i].Value);
+        }
+
+        exportData.Rows[valueModel.first] = row;
     }
 
     if (mOptions.IncludeAttributes) {
@@ -119,22 +136,52 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
         const std::string& attributeSql =
             pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
 
-        AttributeValueModel attributeValueModel;
-
-        rc = exportPersistence.FilterExportCsvAttributesData(attributeSql, attributeValueModel);
+        std::unordered_map<std::int64_t, AttributeValueModel> attributeValueModels;
+        rc = exportPersistence.FilterExportCsvAttributesData(attributeSql, attributeValueModels);
 
         if (rc != 0) {
             return false;
         }
 
-        for (const auto& headerValueModel : attributeValueModel.HeaderValueModels) {
-            computedHeaderModel.push_back(headerValueModel.Header);
+        std::vector<std::string> attributeHeaders;
+        rc = exportPersistence.GetAttributeHeaderNames(fromDate, toDate, attributeHeaders);
+        if (rc != 0) {
+            return false;
+        }
+        std::vector<AttributeHeaderValueModel> attributeRows;
 
-            ColumnValueModel attributeColumnValueModel(
-                headerValueModel.Header, headerValueModel.Value);
+        // step 3: build out attribute header list (ordered by SQLite ASC by name)
+        for (auto& attributeHeader : attributeHeaders) {
+            exportData.Headers.push_back(attributeHeader);
+        }
 
-            unorderedMapValueModels[attributeValueModel.TaskId].ColumnValueModels.push_back(
-                attributeColumnValueModel);
+        // step 4: attach attributes to their index in attributeHeaders list
+
+        for (auto& [taskIdKey, rowValue] : exportData.Rows) {
+            auto& hv = attributeValueModels[taskIdKey].HeaderValueModels;
+
+            { // attempt 1
+                std::vector<std::pair<bool, std::string>> indicesToInsert(attributeHeaders.size());
+                for (auto& h : hv) {
+                    for (size_t i = 0; i < attributeHeaders.size(); i++) {
+                        if (h.Header == attributeHeaders[i]) {
+                            indicesToInsert[i] = std::make_pair(true, h.Value);
+                            break;
+                        }
+                    }
+                }
+
+                for (size_t i = 0; i < indicesToInsert.size(); i++) {
+                    if (indicesToInsert[i].first) {
+                        rowValue.Values.push_back(indicesToInsert[i].second);
+                    } else {
+                        rowValue.Values.push_back("");
+                    }
+                }
+            }
+            { // attempt 2
+                // swap out lists again (attributeHeaders list first) and use break statement
+            }
         }
     }
 
@@ -145,9 +192,9 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
     std::stringstream exportedData;
 
     if (!mOptions.ExcludeHeaders) {
-        for (auto i = 0; i < computedHeaderModel.size(); i++) {
-            exportedData << computedHeaderModel[i];
-            if (i < computedHeaderModel.size() - 1) {
+        for (auto i = 0; i < computedHeadersModel.size(); i++) {
+            exportedData << computedHeadersModel[i];
+            if (i < computedHeadersModel.size() - 1) {
                 exportedData << mappedOptions.Delimiter;
             }
         }
