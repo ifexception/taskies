@@ -195,7 +195,7 @@ int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
 
             const unsigned char* resValue = sqlite3_column_text(stmt, ATTRIBUTE_PROP_INDEX_VALUE);
             const auto& valueValue = std::string(reinterpret_cast<const char*>(resValue),
-                sqlite3_column_bytes(stmt, ATTRIBUTE_PROP_INDEX_NAME));
+                sqlite3_column_bytes(stmt, ATTRIBUTE_PROP_INDEX_VALUE));
 
             headerValueModel.Header = valueName;
             headerValueModel.Value = valueValue;
