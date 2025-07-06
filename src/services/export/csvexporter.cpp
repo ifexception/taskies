@@ -144,7 +144,12 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
         }
 
         std::vector<std::string> attributeHeaders;
-        rc = exportPersistence.GetAttributeHeaderNames(fromDate, toDate, attributeHeaders);
+
+        rc = exportPersistence.GetAttributeHeaderNames(fromDate,
+            toDate,
+            std::make_optional(taskId),
+            pQueryBuilder->IsPreview(),
+            attributeHeaders);
         if (rc != 0) {
             return false;
         }
@@ -158,11 +163,11 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
         // step 4: attach attributes to their index in attributeHeaders list
 
         for (auto& [taskIdKey, rowValue] : exportData.Rows) {
-            auto& hv = attributeValueModels[taskIdKey].HeaderValueModels;
+            auto& hvm = attributeValueModels[taskIdKey].HeaderValueModels;
 
-            { // attempt 1
+            if (false) { // attempt 1
                 std::vector<std::pair<bool, std::string>> indicesToInsert(attributeHeaders.size());
-                for (auto& h : hv) {
+                for (auto& h : hvm) {
                     for (size_t i = 0; i < attributeHeaders.size(); i++) {
                         if (h.Header == attributeHeaders[i]) {
                             indicesToInsert[i] = std::make_pair(true, h.Value);
@@ -179,8 +184,22 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
                     }
                 }
             }
-            { // attempt 2
+            if (true) { // attempt 2
                 // swap out lists again (attributeHeaders list first) and use break statement
+                for (size_t i = 0; i < attributeHeaders.size(); i++) {
+                    std::string v = "";
+                    for (auto& hv : hvm) {
+                        if (hv.Header == attributeHeaders[i]) {
+                            v = hv.Value;
+                            break;
+                        }
+                    }
+                    if (!v.empty()) {
+                        rowValue.Values.push_back(v);
+                    } else {
+                        rowValue.Values.push_back("");
+                    }
+                }
             }
         }
     }
