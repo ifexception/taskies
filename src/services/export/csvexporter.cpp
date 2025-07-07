@@ -32,25 +32,9 @@ CsvExporter::CsvExporter(const std::string& databaseFilePath,
     std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
+    , bIsPreview(false)
 {
     pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
-}
-
-std::vector<std::string> CsvExporter::ComputeHeaderModel(const std::vector<Projection>& projections)
-{
-    if (projections.empty()) {
-        return std::vector<std::string>();
-    }
-
-    std::vector<std::string> projectionMap;
-
-    for (const auto& projection : projections) {
-        const auto& columnProjection = projection.ColumnProjection.UserColumn;
-
-        projectionMap.push_back(columnProjection);
-    }
-
-    return projectionMap;
 }
 
 bool CsvExporter::GeneratePreview(CsvExportOptions options,
@@ -60,6 +44,7 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
     const std::string& toDate,
     std::string& exportedDataPreview)
 {
+    bIsPreview = true;
     mOptions = options;
 
     pQueryBuilder->IsPreview(true);
@@ -92,17 +77,19 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
     const std::string& toDate,
     std::string& exportedDataPreview)
 {
+    std::unordered_map<std::int64_t, Row> rows;
+    int rc = -1;
+
+    std::vector<std::string> headers = GetHeadersFromProjections(projections);
+    if (headers.empty()) {
+        return false;
+    }
+
     const auto& sql = pQueryBuilder->BuildQuery(projections, joinProjections, fromDate, toDate);
-
-    std::vector<std::string> computedHeadersModel = ComputeHeaderModel(projections);
-
-    std::unordered_map<std::int64_t, ValuesModel> unorderedMapValueModels;
 
     Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
 
-    int rc =
-        exportPersistence.FilterExportCsvData(sql, computedHeadersModel, unorderedMapValueModels);
-
+    rc = exportPersistence.FilterExportCsvData(sql, headers.size(), rows);
     if (rc != 0) {
         return false;
     }
@@ -110,99 +97,92 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
     Data exportData;
 
     // step 1: build out computed header list
-    for (auto& computedHeader : computedHeadersModel) {
-        exportData.Headers.push_back(computedHeader);
+    for (auto& header : headers) {
+        exportData.Headers.push_back(header);
     }
 
-    // step 2: build out row values
-    for (auto& valueModel : unorderedMapValueModels) {
-        Row row;
-        for (size_t i = 0; i < valueModel.second.ColumnValueModels.size(); i++) {
-            row.Values.push_back(valueModel.second.ColumnValueModels[i].Value);
-        }
+    // step 2: attach "main" rows to 'Data' struct
+    exportData.Rows = rows;
 
-        exportData.Rows[valueModel.first] = row;
-    }
+    //if (mOptions.IncludeAttributes) {
+    //    std::int64_t taskId = -1;
+    //    if (bIsPreview) {
+    //        assert(unorderedMapValueModels.size() == 1);
+    //        for (auto& valueModel : unorderedMapValueModels) {
+    //            taskId = valueModel.first;
+    //        }
+    //    }
 
-    if (mOptions.IncludeAttributes) {
-        std::int64_t taskId = -1;
-        if (pQueryBuilder->IsPreview()) {
-            assert(unorderedMapValueModels.size() == 1);
-            for (auto& valueModel : unorderedMapValueModels) {
-                taskId = valueModel.first;
-            }
-        }
+    //    const std::string& attributeSql =
+    //        pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
 
-        const std::string& attributeSql =
-            pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
+    //    std::unordered_map<std::int64_t, AttributeValueModel> attributeValueModels;
+    //    rc = exportPersistence.FilterExportCsvAttributesData(attributeSql, attributeValueModels);
 
-        std::unordered_map<std::int64_t, AttributeValueModel> attributeValueModels;
-        rc = exportPersistence.FilterExportCsvAttributesData(attributeSql, attributeValueModels);
+    //    if (rc != 0) {
+    //        return false;
+    //    }
 
-        if (rc != 0) {
-            return false;
-        }
+    //    std::vector<std::string> attributeHeaders;
 
-        std::vector<std::string> attributeHeaders;
+    //    rc = exportPersistence.GetAttributeHeaderNames(fromDate,
+    //        toDate,
+    //        std::make_optional(taskId),
+    //        pQueryBuilder->IsPreview(),
+    //        attributeHeaders);
+    //    if (rc != 0) {
+    //        return false;
+    //    }
+    //    std::vector<AttributeHeaderValueModel> attributeRows;
 
-        rc = exportPersistence.GetAttributeHeaderNames(fromDate,
-            toDate,
-            std::make_optional(taskId),
-            pQueryBuilder->IsPreview(),
-            attributeHeaders);
-        if (rc != 0) {
-            return false;
-        }
-        std::vector<AttributeHeaderValueModel> attributeRows;
+    //    // step 3: build out attribute header list (ordered by SQLite ASC by name)
+    //    for (auto& attributeHeader : attributeHeaders) {
+    //        exportData.Headers.push_back(attributeHeader);
+    //    }
 
-        // step 3: build out attribute header list (ordered by SQLite ASC by name)
-        for (auto& attributeHeader : attributeHeaders) {
-            exportData.Headers.push_back(attributeHeader);
-        }
+    //    // step 4: attach attributes to their index in attributeHeaders list
 
-        // step 4: attach attributes to their index in attributeHeaders list
+    //    for (auto& [taskIdKey, rowValue] : exportData.Rows) {
+    //        auto& hvm = attributeValueModels[taskIdKey].HeaderValueModels;
 
-        for (auto& [taskIdKey, rowValue] : exportData.Rows) {
-            auto& hvm = attributeValueModels[taskIdKey].HeaderValueModels;
+    //        if (false) { // attempt 1
+    //            std::vector<std::pair<bool, std::string>> indicesToInsert(attributeHeaders.size());
+    //            for (auto& h : hvm) {
+    //                for (size_t i = 0; i < attributeHeaders.size(); i++) {
+    //                    if (h.Header == attributeHeaders[i]) {
+    //                        indicesToInsert[i] = std::make_pair(true, h.Value);
+    //                        break;
+    //                    }
+    //                }
+    //            }
 
-            if (false) { // attempt 1
-                std::vector<std::pair<bool, std::string>> indicesToInsert(attributeHeaders.size());
-                for (auto& h : hvm) {
-                    for (size_t i = 0; i < attributeHeaders.size(); i++) {
-                        if (h.Header == attributeHeaders[i]) {
-                            indicesToInsert[i] = std::make_pair(true, h.Value);
-                            break;
-                        }
-                    }
-                }
-
-                for (size_t i = 0; i < indicesToInsert.size(); i++) {
-                    if (indicesToInsert[i].first) {
-                        rowValue.Values.push_back(indicesToInsert[i].second);
-                    } else {
-                        rowValue.Values.push_back("");
-                    }
-                }
-            }
-            if (true) { // attempt 2
-                // swap out lists again (attributeHeaders list first) and use break statement
-                for (size_t i = 0; i < attributeHeaders.size(); i++) {
-                    std::string v = "";
-                    for (auto& hv : hvm) {
-                        if (hv.Header == attributeHeaders[i]) {
-                            v = hv.Value;
-                            break;
-                        }
-                    }
-                    if (!v.empty()) {
-                        rowValue.Values.push_back(v);
-                    } else {
-                        rowValue.Values.push_back("");
-                    }
-                }
-            }
-        }
-    }
+    //            for (size_t i = 0; i < indicesToInsert.size(); i++) {
+    //                if (indicesToInsert[i].first) {
+    //                    rowValue.Values.push_back(indicesToInsert[i].second);
+    //                } else {
+    //                    rowValue.Values.push_back("");
+    //                }
+    //            }
+    //        }
+    //        if (true) { // attempt 2
+    //            // swap out lists again (attributeHeaders list first) and use break statement
+    //            for (size_t i = 0; i < attributeHeaders.size(); i++) {
+    //                std::string v = "";
+    //                for (auto& hv : hvm) {
+    //                    if (hv.Header == attributeHeaders[i]) {
+    //                        v = hv.Value;
+    //                        break;
+    //                    }
+    //                }
+    //                if (!v.empty()) {
+    //                    rowValue.Values.push_back(v);
+    //                } else {
+    //                    rowValue.Values.push_back("");
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     CsvMappedOptions mappedOptions(mOptions);
 
@@ -241,5 +221,22 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
 
     exportedDataPreview = exportedData.str();
     return true;
+}
+
+std::vector<std::string> CsvExporter::GetHeadersFromProjections(
+    const std::vector<Projection>& projections)
+{
+    if (projections.empty()) {
+        return std::vector<std::string>();
+    }
+
+    std::vector<std::string> headers;
+
+    for (const auto& projection : projections) {
+        const auto& userNamedHeader = projection.ColumnProjection.UserColumn;
+        headers.push_back(userNamedHeader);
+    }
+
+    return headers;
 }
 } // namespace tks::Services::Export

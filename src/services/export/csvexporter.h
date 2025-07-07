@@ -45,8 +45,6 @@ public:
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
-    std ::vector<std::string> ComputeHeaderModel(const std::vector<Projection>& projections);
-
     bool GeneratePreview(CsvExportOptions options,
         const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
@@ -69,6 +67,8 @@ private:
         const std::string& toDate,
         /*out*/ std::string& exportedDataPreview);
 
+    std::vector<std::string> GetHeadersFromProjections(const std::vector<Projection>& projections);
+
     std::shared_ptr<spdlog::logger> pLogger;
 
     std::unique_ptr<SQLiteExportQueryBuilder> pQueryBuilder;
@@ -76,5 +76,6 @@ private:
     CsvExportOptions mOptions;
 
     std::string mDatabaseFilePath;
+    bool bIsPreview;
 };
 } // namespace tks::Services::Export
