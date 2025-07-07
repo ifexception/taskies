@@ -41,8 +41,8 @@ public:
     ~ExportPersistence();
 
     int FilterExportCsvData(const std::string& sql,
-        const std::vector<std::string>& projectionList,
-        /*out*/ std::unordered_map<std::int64_t, ValuesModel>& valueModelsUnorderedMap) const;
+        const std::size_t valueCount,
+        /*out*/ std::unordered_map<std::int64_t, Row>& rows) const;
 
     int FilterExportCsvAttributesData(const std::string& sql,
         /*out*/ std::unordered_map<std::int64_t, AttributeValueModel>& attributeValueModels) const;

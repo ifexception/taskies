@@ -95,8 +95,8 @@ ExportPersistence::~ExportPersistence()
 }
 
 int ExportPersistence::FilterExportCsvData(const std::string& sql,
-    const std::vector<std::string>& projectionMap,
-    std::unordered_map<std::int64_t, ValuesModel>& valueModelsUnorderedMap) const
+    const std::size_t valueCount,
+    std::unordered_map<std::int64_t, Row>& rows) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -119,23 +119,19 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
             auto res = sqlite3_column_int64(stmt, 0);
             auto taskId = static_cast<std::int64_t>(res);
 
-            ValuesModel valueModel;
+            Row row;
 
-            for (size_t i = 0; i < projectionMap.size(); i++) {
+            for (size_t i = 0; i < valueCount; i++) {
                 int index = static_cast<int>(i);
                 index++;
-
-                const auto& key = projectionMap[i];
 
                 const unsigned char* res = sqlite3_column_text(stmt, index);
                 const auto& value = std::string(
                     reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, index));
 
-                ColumnValueModel columnValueModel(key, value);
-
-                valueModel.ColumnValueModels.push_back(columnValueModel);
+                row.Values.push_back(value);
             }
-            valueModelsUnorderedMap[taskId] = valueModel;
+            rows[taskId] = row;
 
             break;
         }
@@ -159,7 +155,7 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
     sqlite3_finalize(stmt);
 
     SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::FilterEntities, valueModelsUnorderedMap.size(), "<csv_export>");
+        pLogger, LogMessages::FilterEntities, rows.size(), "<csv_export>");
 
     return 0;
 }
