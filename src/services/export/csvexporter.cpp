@@ -22,8 +22,6 @@
 #include <cassert>
 #include <unordered_map>
 
-#include "projectionkeyvaluepairmodel.h"
-
 #include "../../persistence/exportpersistence.h"
 
 namespace tks::Services::Export
@@ -48,8 +46,9 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
     mOptions = options;
 
     pQueryBuilder->IsPreview(true);
-    auto success = GenerateExport(
-        mOptions, projections, joinProjections, fromDate, toDate, exportedDataPreview);
+
+    bool success =
+        GenerateExport(projections, joinProjections, fromDate, toDate, exportedDataPreview);
 
     return success;
 }
@@ -61,17 +60,18 @@ bool CsvExporter::Generate(CsvExportOptions options,
     const std::string& toDate,
     std::string& exportedDataPreview)
 {
+    bIsPreview = false;
     mOptions = options;
 
     pQueryBuilder->IsPreview(false);
-    auto success = GenerateExport(
-        mOptions, projections, joinProjections, fromDate, toDate, exportedDataPreview);
+
+    bool success =
+        GenerateExport(projections, joinProjections, fromDate, toDate, exportedDataPreview);
 
     return success;
 }
 
-bool CsvExporter::GenerateExport(CsvExportOptions options,
-    const std::vector<Projection>& projections,
+bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
@@ -104,85 +104,12 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
     // step 2: attach "main" rows to 'Data' struct
     exportData.Rows = rows;
 
-    //if (mOptions.IncludeAttributes) {
-    //    std::int64_t taskId = -1;
-    //    if (bIsPreview) {
-    //        assert(unorderedMapValueModels.size() == 1);
-    //        for (auto& valueModel : unorderedMapValueModels) {
-    //            taskId = valueModel.first;
-    //        }
-    //    }
-
-    //    const std::string& attributeSql =
-    //        pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
-
-    //    std::unordered_map<std::int64_t, AttributeValueModel> attributeValueModels;
-    //    rc = exportPersistence.FilterExportCsvAttributesData(attributeSql, attributeValueModels);
-
-    //    if (rc != 0) {
-    //        return false;
-    //    }
-
-    //    std::vector<std::string> attributeHeaders;
-
-    //    rc = exportPersistence.GetAttributeHeaderNames(fromDate,
-    //        toDate,
-    //        std::make_optional(taskId),
-    //        pQueryBuilder->IsPreview(),
-    //        attributeHeaders);
-    //    if (rc != 0) {
-    //        return false;
-    //    }
-    //    std::vector<AttributeHeaderValueModel> attributeRows;
-
-    //    // step 3: build out attribute header list (ordered by SQLite ASC by name)
-    //    for (auto& attributeHeader : attributeHeaders) {
-    //        exportData.Headers.push_back(attributeHeader);
-    //    }
-
-    //    // step 4: attach attributes to their index in attributeHeaders list
-
-    //    for (auto& [taskIdKey, rowValue] : exportData.Rows) {
-    //        auto& hvm = attributeValueModels[taskIdKey].HeaderValueModels;
-
-    //        if (false) { // attempt 1
-    //            std::vector<std::pair<bool, std::string>> indicesToInsert(attributeHeaders.size());
-    //            for (auto& h : hvm) {
-    //                for (size_t i = 0; i < attributeHeaders.size(); i++) {
-    //                    if (h.Header == attributeHeaders[i]) {
-    //                        indicesToInsert[i] = std::make_pair(true, h.Value);
-    //                        break;
-    //                    }
-    //                }
-    //            }
-
-    //            for (size_t i = 0; i < indicesToInsert.size(); i++) {
-    //                if (indicesToInsert[i].first) {
-    //                    rowValue.Values.push_back(indicesToInsert[i].second);
-    //                } else {
-    //                    rowValue.Values.push_back("");
-    //                }
-    //            }
-    //        }
-    //        if (true) { // attempt 2
-    //            // swap out lists again (attributeHeaders list first) and use break statement
-    //            for (size_t i = 0; i < attributeHeaders.size(); i++) {
-    //                std::string v = "";
-    //                for (auto& hv : hvm) {
-    //                    if (hv.Header == attributeHeaders[i]) {
-    //                        v = hv.Value;
-    //                        break;
-    //                    }
-    //                }
-    //                if (!v.empty()) {
-    //                    rowValue.Values.push_back(v);
-    //                } else {
-    //                    rowValue.Values.push_back("");
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
+    if (mOptions.IncludeAttributes) {
+        bool attributeAddedSuccessfully = GenerateAttributes(fromDate, toDate, exportData);
+        if (!attributeAddedSuccessfully) {
+            return false;
+        }
+    }
 
     CsvMappedOptions mappedOptions(mOptions);
 
@@ -220,6 +147,70 @@ bool CsvExporter::GenerateExport(CsvExportOptions options,
     }
 
     exportedDataPreview = exportedData.str();
+    return true;
+}
+
+bool CsvExporter::GenerateAttributes(const std::string& fromDate,
+    const std::string& toDate,
+    Data& data)
+{
+    std::optional<std::int64_t> taskId;
+    Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
+    int rc = -1;
+    std::vector<std::string> attributeNames;
+
+    if (bIsPreview) {
+        assert(data.Rows.size() == 1);
+        for (auto& row : data.Rows) {
+            taskId = std::make_optional(row.first);
+        }
+    }
+
+    const std::string& attributeSql = pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
+
+    std::unordered_map<std::int64_t, HeaderValueRow> attributeHeaderValueRows;
+    rc = exportPersistence.FilterExportCsvAttributesData(attributeSql, attributeHeaderValueRows);
+
+    if (rc != 0) {
+        return false;
+    }
+
+    rc = exportPersistence.GetAttributeNames(fromDate, toDate, taskId, bIsPreview, attributeNames);
+    if (rc != 0) {
+        return false;
+    }
+    if (attributeNames.empty()) {
+        return true;
+    }
+
+    // step 3: append attribute header (name) list to main struct
+    // (ordered by ASC name by SQLite)
+    for (auto& attributeName : attributeNames) {
+        data.Headers.push_back(attributeName);
+    }
+
+    // step 4: attach attributes to their index in attributeNames list
+    for (auto& [taskIdKey, row] : data.Rows) {
+        auto& headerValuePair = attributeHeaderValueRows[taskIdKey].HeaderValuePairs;
+
+        for (size_t i = 0; i < attributeNames.size(); i++) {
+            std::string value = "";
+
+            for (auto& headerValue : headerValuePair) {
+                if (headerValue.Header == attributeNames[i]) {
+                    value = headerValue.Value;
+                    break;
+                }
+            }
+
+            if (!value.empty()) {
+                row.Values.push_back(value);
+            } else {
+                row.Values.push_back("");
+            }
+        }
+    }
+
     return true;
 }
 

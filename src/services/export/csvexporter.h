@@ -32,6 +32,7 @@
 #include "sqliteexportquerybuilder.h"
 #include "csvexportoptions.h"
 #include "csvexportprocessor.h"
+#include "projectionkeyvaluepairmodel.h"
 
 namespace tks::Services::Export
 {
@@ -60,12 +61,15 @@ public:
         /*out*/ std::string& exportedDataPreview);
 
 private:
-    bool GenerateExport(CsvExportOptions options,
-        const std::vector<Projection>& projections,
+    bool GenerateExport(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
         /*out*/ std::string& exportedDataPreview);
+
+    bool GenerateAttributes(const std::string& fromDate,
+        const std::string& toDate,
+        /*out*/ Data& data);
 
     std::vector<std::string> GetHeadersFromProjections(const std::vector<Projection>& projections);
 
