@@ -30,28 +30,34 @@
 
 #include <sqlite3.h>
 
-#include "../services/export/projectionkeyvaluepairmodel.h"
+#include "headervaluepair.h"
+#include "headervaluerow.h"
+#include "projectionkeyvaluepairmodel.h"
 
-namespace tks::Persistence
+constexpr int ATTRIBUTE_PROP_INDEX_TASKID = 0;
+constexpr int ATTRIBUTE_PROP_INDEX_NAME = 1;
+constexpr int ATTRIBUTE_PROP_INDEX_VALUE = 2;
+
+namespace tks::Services::Export
 {
-struct ExportPersistence final {
+struct ExportsService final {
 public:
-    explicit ExportPersistence(const std::string& databaseFilePath,
+    explicit ExportsService(const std::string& databaseFilePath,
         const std::shared_ptr<spdlog::logger> logger);
-    ~ExportPersistence();
+    ~ExportsService();
 
     int FilterExportCsvData(const std::string& sql,
         const std::size_t valueCount,
         /*out*/ std::unordered_map<std::int64_t, Row>& rows) const;
 
     int FilterExportCsvAttributesData(const std::string& sql,
-        /*out*/ std::unordered_map<std::int64_t, HeaderValueRow>& attributeValueModels) const;
+        /*out*/ std::unordered_map<std::int64_t, HeaderValueRow>& headerValueRows) const;
 
     int GetAttributeNames(const std::string& fromDate,
         const std::string& toDate,
         std::optional<std::int64_t> taskId,
         bool isPreview,
-        /*out*/ std::vector<std::string>& attributeHeaders) const;
+        /*out*/ std::vector<std::string>& attributeNames) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
@@ -59,4 +65,4 @@ public:
     static std::string getAttributeHeaderNames;
     static std::string getAttributeHeaderNamesPreview;
 };
-} // namespace tks::Persistence
+} // namespace tks::Services::Export

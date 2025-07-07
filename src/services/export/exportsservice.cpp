@@ -17,16 +17,16 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "exportpersistence.h"
+#include "exportsservice.h"
 
-#include "../common/logmessages.h"
-#include "../common/queryhelper.h"
+#include "../../common/logmessages.h"
+#include "../../common/queryhelper.h"
 
-#include "../utils/utils.h"
+#include "../../utils/utils.h"
 
-namespace tks::Persistence
+namespace tks::Services::Export
 {
-ExportPersistence::ExportPersistence(const std::string& databaseFilePath,
+ExportsService::ExportsService(const std::string& databaseFilePath,
     const std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , pDb(nullptr)
@@ -88,13 +88,13 @@ ExportPersistence::ExportPersistence(const std::string& databaseFilePath,
     }
 }
 
-ExportPersistence::~ExportPersistence()
+ExportsService::~ExportsService()
 {
     sqlite3_close(pDb);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
-int ExportPersistence::FilterExportCsvData(const std::string& sql,
+int ExportsService::FilterExportCsvData(const std::string& sql,
     const std::size_t valueCount,
     std::unordered_map<std::int64_t, Row>& rows) const
 {
@@ -159,7 +159,7 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
     return 0;
 }
 
-int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
+int ExportsService::FilterExportCsvAttributesData(const std::string& sql,
     std::unordered_map<std::int64_t, HeaderValueRow>& headerValueRows) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -223,16 +223,16 @@ int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
     return 0;
 }
 
-int ExportPersistence::GetAttributeNames(const std::string& fromDate,
+int ExportsService::GetAttributeNames(const std::string& fromDate,
     const std::string& toDate,
     std::optional<std::int64_t> taskId,
     bool isPreview,
-    std::vector<std::string>& attributeHeaders) const
+    std::vector<std::string>& attributeNames) const
 {
     std::string sql =
-        isPreview ? ExportPersistence::getAttributeHeaderNamesPreview : getAttributeHeaderNames;
+        isPreview ? ExportsService::getAttributeHeaderNamesPreview : getAttributeHeaderNames;
 
-    size_t sqlSize = isPreview ? ExportPersistence::getAttributeHeaderNamesPreview.size()
+    size_t sqlSize = isPreview ? ExportsService::getAttributeHeaderNamesPreview.size()
                                : getAttributeHeaderNames.size();
 
     sqlite3_stmt* stmt = nullptr;
@@ -300,7 +300,7 @@ int ExportPersistence::GetAttributeNames(const std::string& fromDate,
             std::string name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-            attributeHeaders.push_back(name);
+            attributeNames.push_back(name);
             break;
         }
         case SQLITE_DONE:
@@ -314,7 +314,7 @@ int ExportPersistence::GetAttributeNames(const std::string& fromDate,
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, "ExportPersistence", sql, rc, error);
+        pLogger->error(LogMessages::ExecStepTemplate, "ExportsService", sql, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -323,14 +323,14 @@ int ExportPersistence::GetAttributeNames(const std::string& fromDate,
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger,
         LogMessages::FilterEntities,
-        attributeHeaders.size(),
+        attributeNames.size(),
         fmt::format(
             "[{0}, {1}] - \"{2}\"", fromDate, toDate, taskId.has_value() ? taskId.value() : -1));
 
     return 0;
 }
 
-std::string ExportPersistence::getAttributeHeaderNames =
+std::string ExportsService::getAttributeHeaderNames =
     "SELECT "
     "attributes.name "
     "FROM tasks "
@@ -344,7 +344,7 @@ std::string ExportPersistence::getAttributeHeaderNames =
     "GROUP BY attributes.name "
     "HAVING COUNT(DISTINCT attributes.name) > 0";
 
-std::string ExportPersistence::getAttributeHeaderNamesPreview =
+std::string ExportsService::getAttributeHeaderNamesPreview =
     "SELECT "
     "attributes.name "
     "FROM tasks "

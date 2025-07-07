@@ -22,7 +22,7 @@
 #include <cassert>
 #include <unordered_map>
 
-#include "../../persistence/exportpersistence.h"
+#include "exportsservice.h"
 
 namespace tks::Services::Export
 {
@@ -87,9 +87,9 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
 
     const auto& sql = pQueryBuilder->BuildQuery(projections, joinProjections, fromDate, toDate);
 
-    Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
+    ExportsService exportsService(mDatabaseFilePath, pLogger);
 
-    rc = exportPersistence.FilterExportCsvData(sql, headers.size(), rows);
+    rc = exportsService.FilterExportCsvData(sql, headers.size(), rows);
     if (rc != 0) {
         return false;
     }
@@ -155,7 +155,7 @@ bool CsvExporter::GenerateAttributes(const std::string& fromDate,
     Data& data)
 {
     std::optional<std::int64_t> taskId;
-    Persistence::ExportPersistence exportPersistence(mDatabaseFilePath, pLogger);
+    ExportsService exportsService(mDatabaseFilePath, pLogger);
     int rc = -1;
     std::vector<std::string> attributeNames;
 
@@ -169,13 +169,13 @@ bool CsvExporter::GenerateAttributes(const std::string& fromDate,
     const std::string& attributeSql = pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
 
     std::unordered_map<std::int64_t, HeaderValueRow> attributeHeaderValueRows;
-    rc = exportPersistence.FilterExportCsvAttributesData(attributeSql, attributeHeaderValueRows);
+    rc = exportsService.FilterExportCsvAttributesData(attributeSql, attributeHeaderValueRows);
 
     if (rc != 0) {
         return false;
     }
 
-    rc = exportPersistence.GetAttributeNames(fromDate, toDate, taskId, bIsPreview, attributeNames);
+    rc = exportsService.GetAttributeNames(fromDate, toDate, taskId, bIsPreview, attributeNames);
     if (rc != 0) {
         return false;
     }
