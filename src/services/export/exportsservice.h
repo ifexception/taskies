@@ -32,7 +32,7 @@
 
 #include "headervaluepair.h"
 #include "headervaluerow.h"
-#include "projectionkeyvaluepairmodel.h"
+#include "row.h"
 
 constexpr int ATTRIBUTE_PROP_INDEX_TASKID = 0;
 constexpr int ATTRIBUTE_PROP_INDEX_NAME = 1;

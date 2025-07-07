@@ -94,7 +94,7 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
         return false;
     }
 
-    Data exportData;
+    SData exportData;
 
     // step 1: build out computed header list
     for (auto& header : headers) {
@@ -152,7 +152,7 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
 
 bool CsvExporter::GenerateAttributes(const std::string& fromDate,
     const std::string& toDate,
-    Data& data)
+    SData& data)
 {
     std::optional<std::int64_t> taskId;
     ExportsService exportsService(mDatabaseFilePath, pLogger);

@@ -32,7 +32,7 @@
 #include "sqliteexportquerybuilder.h"
 #include "csvexportoptions.h"
 #include "csvexportprocessor.h"
-#include "projectionkeyvaluepairmodel.h"
+#include "data.h"
 
 namespace tks::Services::Export
 {
@@ -69,7 +69,7 @@ private:
 
     bool GenerateAttributes(const std::string& fromDate,
         const std::string& toDate,
-        /*out*/ Data& data);
+        /*out*/ SData& data);
 
     std::vector<std::string> GetHeadersFromProjections(const std::vector<Projection>& projections);
 
