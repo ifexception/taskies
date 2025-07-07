@@ -46,7 +46,7 @@ std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& 
 
 std::string SQLiteExportQueryBuilder::BuildAttributesQuery(const std::string& fromDate,
     const std::string& toDate,
-    const std::int64_t taskId)
+    const std::optional<std::int64_t> taskId)
 {
     return BuildAttributesQueryInternal(fromDate, toDate, taskId);
 }
@@ -67,7 +67,7 @@ std::string SQLiteExportQueryBuilder::BuildQueryInternal(const std::vector<Proje
 
 std::string SQLiteExportQueryBuilder::BuildAttributesQueryInternal(const std::string& fromDate,
     const std::string& toDate,
-    const std::int64_t taskId)
+    const std::optional<std::int64_t> taskId)
 {
     const auto& where = BuildWhere(fromDate, toDate);
 
@@ -109,7 +109,7 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
 }
 
 std::string SQLiteExportQueryBuilder::BuildAttributeQueryString(const std::string& where,
-    const std::int64_t taskId)
+    const std::optional<std::int64_t> taskId)
 {
     std::stringstream query;
 
@@ -132,8 +132,8 @@ std::string SQLiteExportQueryBuilder::BuildAttributeQueryString(const std::strin
     AppendClause(query, " WHERE ", where);
     AppendClause(query, " AND ", "task_attribute_values.is_active = 1");
 
-    if (bIsPreview) {
-        std::string whereClause = "tasks.task_id = " + std::to_string(taskId);
+    if (bIsPreview && taskId.has_value()) {
+        std::string whereClause = "tasks.task_id = " + std::to_string(taskId.value());
         AppendClause(query, " AND ", whereClause);
     }
 

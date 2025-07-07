@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -49,7 +50,7 @@ public:
 
     std::string BuildAttributesQuery(const std::string& fromDate,
         const std::string& toDate,
-        const std::int64_t taskId);
+        const std::optional<std::int64_t> taskId);
 
 private:
     std::string BuildQueryInternal(const std::vector<Projection>& projections,
@@ -59,14 +60,15 @@ private:
 
     std::string BuildAttributesQueryInternal(const std::string& fromDate,
         const std::string& toDate,
-        const std::int64_t taskId);
+        const std::optional<std::int64_t> taskId);
 
     std::string BuildQueryString(const std::vector<std::string>& columns,
         const std::vector<std::string>& firstLevelJoins,
         const std::vector<std::string>& secondLevelJoins,
         const std::string& where);
 
-    std::string BuildAttributeQueryString(const std::string& where, const std::int64_t taskId);
+    std::string BuildAttributeQueryString(const std::string& where,
+        const std::optional<std::int64_t> taskId);
 
     std::vector<std::string> ComputeFirstLevelJoinProjections(
         const std::vector<ColumnJoinProjection>& joinProjections);
