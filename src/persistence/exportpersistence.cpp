@@ -154,14 +154,13 @@ int ExportPersistence::FilterExportCsvData(const std::string& sql,
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::FilterEntities, rows.size(), "<csv_export>");
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, rows.size(), "<csv_export>");
 
     return 0;
 }
 
 int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
-    std::unordered_map<std::int64_t, AttributeValueModel>& attributeValueModels) const
+    std::unordered_map<std::int64_t, HeaderValueRow>& headerValueRows) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -183,7 +182,7 @@ int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
 
             std::int64_t taskId = sqlite3_column_int64(stmt, ATTRIBUTE_PROP_INDEX_TASKID);
 
-            AttributeHeaderValueModel headerValueModel;
+            HeaderValuePair headerValuePair;
 
             const unsigned char* resName = sqlite3_column_text(stmt, ATTRIBUTE_PROP_INDEX_NAME);
             const auto& valueName = std::string(reinterpret_cast<const char*>(resName),
@@ -193,10 +192,10 @@ int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
             const auto& valueValue = std::string(reinterpret_cast<const char*>(resValue),
                 sqlite3_column_bytes(stmt, ATTRIBUTE_PROP_INDEX_VALUE));
 
-            headerValueModel.Header = valueName;
-            headerValueModel.Value = valueValue;
+            headerValuePair.Header = valueName;
+            headerValuePair.Value = valueValue;
 
-            attributeValueModels[taskId].HeaderValueModels.push_back(headerValueModel);
+            headerValueRows[taskId].HeaderValuePairs.push_back(headerValuePair);
             break;
         }
         case SQLITE_DONE:
@@ -218,15 +217,13 @@ int ExportPersistence::FilterExportCsvAttributesData(const std::string& sql,
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(pLogger,
-        LogMessages::FilterEntities,
-        attributeValueModels.size(),
-        "<csv_attributes_export>");
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::FilterEntities, headerValueRows.size(), "<csv_attributes_export>");
 
     return 0;
 }
 
-int ExportPersistence::GetAttributeHeaderNames(const std::string& fromDate,
+int ExportPersistence::GetAttributeNames(const std::string& fromDate,
     const std::string& toDate,
     std::optional<std::int64_t> taskId,
     bool isPreview,

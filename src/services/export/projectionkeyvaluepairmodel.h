@@ -5,19 +5,17 @@
 #include <unordered_map>
 #include <vector>
 
-// -- ATTRIBUTES
-
 constexpr int ATTRIBUTE_PROP_INDEX_TASKID = 0;
 constexpr int ATTRIBUTE_PROP_INDEX_NAME = 1;
 constexpr int ATTRIBUTE_PROP_INDEX_VALUE = 2;
 
-struct AttributeHeaderValueModel {
-    AttributeHeaderValueModel()
+struct HeaderValuePair {
+    HeaderValuePair()
         : Header("")
         , Value("")
     {
     }
-    AttributeHeaderValueModel(std::string header, std::string value)
+    HeaderValuePair(std::string header, std::string value)
         : Header(header)
         , Value(value)
     {
@@ -27,13 +25,13 @@ struct AttributeHeaderValueModel {
     std::string Value;
 };
 
-struct AttributeValueModel {
-    AttributeValueModel()
-        : HeaderValueModels()
+struct HeaderValueRow {
+    HeaderValueRow()
+        : HeaderValuePairs()
     {
     }
 
-    std::vector<AttributeHeaderValueModel> HeaderValueModels;
+    std::vector<HeaderValuePair> HeaderValuePairs;
 };
 
 struct Row {

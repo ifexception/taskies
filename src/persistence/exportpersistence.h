@@ -45,9 +45,9 @@ public:
         /*out*/ std::unordered_map<std::int64_t, Row>& rows) const;
 
     int FilterExportCsvAttributesData(const std::string& sql,
-        /*out*/ std::unordered_map<std::int64_t, AttributeValueModel>& attributeValueModels) const;
+        /*out*/ std::unordered_map<std::int64_t, HeaderValueRow>& attributeValueModels) const;
 
-    int GetAttributeHeaderNames(const std::string& fromDate,
+    int GetAttributeNames(const std::string& fromDate,
         const std::string& toDate,
         std::optional<std::int64_t> taskId,
         bool isPreview,
