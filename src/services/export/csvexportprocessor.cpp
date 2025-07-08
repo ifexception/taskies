@@ -66,17 +66,29 @@ void CsvExportProcessor::TryProcessBooleanHandler(std::string& value) const
 {
     if (!value.empty() && value.size() == 1) {
         if (value == "0" || value == "1" && mOptions.BooleanHandler != BooleanHandler::OneZero) {
-            if (mOptions.BooleanHandler == BooleanHandler::TrueFalse) {
+            if (mOptions.BooleanHandler == BooleanHandler::TrueFalseLowerCase) {
                 if (value == "1") {
                     value = "true";
                 } else if (value == "0") {
                     value = "false";
                 }
-            } else if (mOptions.BooleanHandler == BooleanHandler::YesNo) {
+            } else if (mOptions.BooleanHandler == BooleanHandler::YesNoLowerCase) {
                 if (value == "1") {
                     value = "yes";
                 } else if (value == "0") {
                     value = "no";
+                }
+            } else if (mOptions.BooleanHandler == BooleanHandler::TrueFalseTitleCase) {
+                if (value == "1") {
+                    value = "True";
+                } else if (value == "0") {
+                    value = "False";
+                }
+            } else if (mOptions.BooleanHandler == BooleanHandler::YesNoTitleCase) {
+                if (value == "1") {
+                    value = "Yes";
+                } else if (value == "0") {
+                    value = "No";
                 }
             }
         }
