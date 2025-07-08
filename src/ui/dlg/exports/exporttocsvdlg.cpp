@@ -586,17 +586,17 @@ void ExportToCsvDialog::FillControls()
     SetFromDateAndDatePicker();
     SetToDateAndDatePicker();
 
+    /* Available Columns */
+    for (auto& column : Services::Export::MakeAvailableColumns()) {
+        pAvailableColumnsListView->InsertItem(0, column.UserColumn);
+    }
+
     /* Presets controls */
     pPresetsChoiceCtrl->Append("(none)", new ClientData<std::string>(""));
     pPresetsChoiceCtrl->SetSelection(0);
 
     for (const auto& preset : pCfg->GetPresets()) {
         pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
-    }
-
-    /* Available Columns */
-    for (auto& column : Services::Export::MakeAvailableColumns()) {
-        int i = pAvailableColumnsListView->InsertItem(0, column.UserColumn);
     }
 
     auto presets = pCfg->GetPresets();
@@ -646,7 +646,6 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_BROWSE_EXPORT_PATH_CTRL
     );
 
-
     pDelimiterChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ExportToCsvDialog::OnDelimiterChoiceSelection,
@@ -676,6 +675,7 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnBooleanHandlerChoiceSelection,
         this
     );
+
     pFromDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
         &ExportToCsvDialog::OnFromDateSelection,
@@ -1078,6 +1078,7 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
     pExportColumnListModel->Clear();
 
     pExcludeHeadersCheckBoxCtrl->SetValue(false);
+    pIncludeAttributesCheckBoxCtrl->SetValue(false);
 }
 
 void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
@@ -1140,6 +1141,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     preset.Columns = columns;
 
     preset.ExcludeHeaders = mCsvOptions.ExcludeHeaders;
+    preset.IncludeAttributes = mCsvOptions.IncludeAttributes;
 
     auto success = pCfg->TryUnsetDefaultPreset();
     if (!success) {
@@ -1615,6 +1617,7 @@ void ExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetS
     pExportColumnListModel->AppendFromStaging();
 
     pExcludeHeadersCheckBoxCtrl->SetValue(presetSettings.ExcludeHeaders);
+    pIncludeAttributesCheckBoxCtrl->SetValue(presetSettings.IncludeAttributes);
 
     mCsvOptions.Delimiter = presetSettings.Delimiter;
     mCsvOptions.TextQualifier = presetSettings.TextQualifier;

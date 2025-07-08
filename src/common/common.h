@@ -66,6 +66,7 @@ struct Preset {
     NewLines NewLinesHandler;
     BooleanHandler BooleanHandler;
     bool ExcludeHeaders;
+    bool IncludeAttributes;
     std::vector<PresetColumn> Columns;
 
     Preset()
@@ -78,6 +79,7 @@ struct Preset {
         , NewLinesHandler(NewLines::None)
         , BooleanHandler(BooleanHandler::None)
         , ExcludeHeaders(false)
+        , IncludeAttributes(false)
         , Columns()
     {
     }

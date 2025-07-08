@@ -60,6 +60,7 @@ public:
         NewLines NewLinesHandler;
         BooleanHandler BooleanHandler;
         bool ExcludeHeaders;
+        bool IncludeAttributes;
         std::vector<PresetColumnSettings> Columns;
 
         PresetSettings()
@@ -72,6 +73,7 @@ public:
             , NewLinesHandler(NewLines::None)
             , BooleanHandler(BooleanHandler::None)
             , ExcludeHeaders(false)
+            , IncludeAttributes(false)
             , Columns()
         {
         }
