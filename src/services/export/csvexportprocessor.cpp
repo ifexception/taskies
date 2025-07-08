@@ -92,9 +92,7 @@ void CsvExportProcessor::TryProcessTextQualifier(std::string& value) const
             Utils::ReplaceAll(value, quote, MapTextQualifierEnumToValue(mOptions.TextQualifier));
 
         if (value.find(mMappedOptions.Delimiter) != std::string::npos) {
-            // data << mMappedOptions.TextQualifier << value << mMappedOptions.TextQualifier;
             value = mMappedOptions.TextQualifier + value + mMappedOptions.TextQualifier;
-            return;
         }
     }
 }

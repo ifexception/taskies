@@ -62,7 +62,7 @@ public:
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
-    static std::string getAttributeHeaderNames;
-    static std::string getAttributeHeaderNamesPreview;
+    static std::string getAttributeNames;
+    static std::string getAttributeNamesPreview;
 };
 } // namespace tks::Services::Export

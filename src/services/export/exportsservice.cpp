@@ -229,11 +229,10 @@ int ExportsService::GetAttributeNames(const std::string& fromDate,
     bool isPreview,
     std::vector<std::string>& attributeNames) const
 {
-    std::string sql =
-        isPreview ? ExportsService::getAttributeHeaderNamesPreview : getAttributeHeaderNames;
+    std::string sql = isPreview ? ExportsService::getAttributeNamesPreview : getAttributeNames;
 
-    size_t sqlSize = isPreview ? ExportsService::getAttributeHeaderNamesPreview.size()
-                               : getAttributeHeaderNames.size();
+    size_t sqlSize =
+        isPreview ? ExportsService::getAttributeNamesPreview.size() : getAttributeNames.size();
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -330,7 +329,7 @@ int ExportsService::GetAttributeNames(const std::string& fromDate,
     return 0;
 }
 
-std::string ExportsService::getAttributeHeaderNames =
+std::string ExportsService::getAttributeNames =
     "SELECT "
     "attributes.name "
     "FROM tasks "
@@ -344,7 +343,7 @@ std::string ExportsService::getAttributeHeaderNames =
     "GROUP BY attributes.name "
     "HAVING COUNT(DISTINCT attributes.name) > 0";
 
-std::string ExportsService::getAttributeHeaderNamesPreview =
+std::string ExportsService::getAttributeNamesPreview =
     "SELECT "
     "attributes.name "
     "FROM tasks "
@@ -358,4 +357,4 @@ std::string ExportsService::getAttributeHeaderNamesPreview =
     "AND tasks.task_id = ? "
     "GROUP BY attributes.name "
     "HAVING COUNT(DISTINCT attributes.name) > 0";
-} // namespace tks::Persistence
+} // namespace tks::Services::Export
