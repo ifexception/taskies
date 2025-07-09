@@ -1623,7 +1623,9 @@ void ExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetS
     mCsvOptions.TextQualifier = presetSettings.TextQualifier;
     mCsvOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
     mCsvOptions.NewLinesHandler = presetSettings.NewLinesHandler;
-    mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
     mCsvOptions.BooleanHandler = presetSettings.BooleanHandler;
+
+    mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
+    mCsvOptions.IncludeAttributes = presetSettings.IncludeAttributes;
 }
 } // namespace tks::UI::dlg
