@@ -116,12 +116,19 @@ int ExportsService::FilterExportCsvData(const std::string& sql,
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
 
+            /* `taskId` is our key and will always be first */
             auto res = sqlite3_column_int64(stmt, 0);
             auto taskId = static_cast<std::int64_t>(res);
 
             Row row;
 
+            /* loop over how many headers / columns the user selected to export */
             for (size_t i = 0; i < valueCount; i++) {
+                /*
+                 * the projection is not aware that `taskId` is selected first
+                 * so `index` needs to be manually incremented by 1 to match the correct
+                 * column index of the query in SQLite
+                 */
                 int index = static_cast<int>(i);
                 index++;
 
@@ -129,8 +136,10 @@ int ExportsService::FilterExportCsvData(const std::string& sql,
                 const auto& value = std::string(
                     reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, index));
 
+                /* append the value to our row */
                 row.Values.push_back(value);
             }
+            /* set the row and our `taskId` key */
             rows[taskId] = row;
 
             break;
@@ -180,21 +189,27 @@ int ExportsService::FilterExportCsvAttributesData(const std::string& sql,
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
 
+            /* `taskId` is always selected first so correctly link with the main export data */
             std::int64_t taskId = sqlite3_column_int64(stmt, ATTRIBUTE_PROP_INDEX_TASKID);
 
             HeaderValuePair headerValuePair;
 
+            /* the query always will return three columns */
+            /* we get the attribute name (header) at ATTRIBUTE_PROP_INDEX_NAME index */
             const unsigned char* resName = sqlite3_column_text(stmt, ATTRIBUTE_PROP_INDEX_NAME);
             const auto& valueName = std::string(reinterpret_cast<const char*>(resName),
                 sqlite3_column_bytes(stmt, ATTRIBUTE_PROP_INDEX_NAME));
 
+            /* we get the attribute value at ATTRIBUTE_PROP_INDEX_VALUE index */
             const unsigned char* resValue = sqlite3_column_text(stmt, ATTRIBUTE_PROP_INDEX_VALUE);
             const auto& valueValue = std::string(reinterpret_cast<const char*>(resValue),
                 sqlite3_column_bytes(stmt, ATTRIBUTE_PROP_INDEX_VALUE));
 
+            /* build up the header value pair struct */
             headerValuePair.Header = valueName;
             headerValuePair.Value = valueValue;
 
+            /* attach the header value pair struct to our header value vector and `taskId` index */
             headerValueRows[taskId].HeaderValuePairs.push_back(headerValuePair);
             break;
         }
@@ -274,6 +289,7 @@ int ExportsService::GetAttributeNames(const std::string& fromDate,
         return -1;
     }
 
+    // task_id
     if (isPreview && taskId.has_value()) {
         bindIndex++;
 
