@@ -26,25 +26,24 @@
 
 namespace tks::Services::Export
 {
-CsvExporter::CsvExporter(const std::string& databaseFilePath,
-    std::shared_ptr<spdlog::logger> logger)
+CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger,
+    CsvExportOptions options,
+    const std::string& databaseFilePath)
     : pLogger(logger)
+    , mOptions(options)
     , mDatabaseFilePath(databaseFilePath)
     , bIsPreview(false)
 {
     pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
 }
 
-bool CsvExporter::GeneratePreview(CsvExportOptions options,
-    const std::vector<Projection>& projections,
+bool CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
     std::string& exportedDataPreview)
 {
     bIsPreview = true;
-    mOptions = options;
-
     pQueryBuilder->IsPreview(true);
 
     bool success =
@@ -53,16 +52,13 @@ bool CsvExporter::GeneratePreview(CsvExportOptions options,
     return success;
 }
 
-bool CsvExporter::Generate(CsvExportOptions options,
-    const std::vector<Projection>& projections,
+bool CsvExporter::Generate(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
     std::string& exportedDataPreview)
 {
     bIsPreview = false;
-    mOptions = options;
-
     pQueryBuilder->IsPreview(false);
 
     bool success =

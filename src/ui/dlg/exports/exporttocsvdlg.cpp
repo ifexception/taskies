@@ -34,11 +34,14 @@
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
 #include "../../../common/enums.h"
+
 #include "../../../services/export/availablecolumns.h"
+#include "../../../services/export/csvexporter.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
+
 #include "../../../utils/utils.h"
 
 #include "../../events.h"
@@ -114,7 +117,6 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , mFromDate()
     , mToDate()
     , mCsvOptions()
-    , mCsvExporter(pCfg->GetDatabasePath(), pLogger)
     , bExportToClipboard(false)
     , bOpenExplorerInExportDirectory(false)
     , bExportTodaysTasksOnly(false)
@@ -1385,7 +1387,9 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     }
 
     auto columnExportModels = Services::Export::BuildFromList(columnsToExport);
+
     Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+
     std::vector<Services::Export::Projection> projections =
         projectionBuilder.BuildProjections(columnExportModels);
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
@@ -1400,9 +1404,11 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
         fromDate,
         toDate);
 
+    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath);
+
     std::string exportedDataPreview = "";
-    bool success = mCsvExporter.GeneratePreview(
-        mCsvOptions, projections, joinProjections, fromDate, toDate, exportedDataPreview);
+    bool success = csvExporter.GeneratePreview(
+        projections, joinProjections, fromDate, toDate, exportedDataPreview);
 
     if (!success) {
         std::string message = "Failed to export data";
@@ -1433,7 +1439,9 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     }
 
     auto columnExportModels = Services::Export::BuildFromList(columnsToExport);
+
     Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+
     std::vector<Services::Export::Projection> projections =
         projectionBuilder.BuildProjections(columnExportModels);
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
@@ -1447,9 +1455,11 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     pLogger->info(
         "ExportToCsvDialog::OnExport - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
+    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath);
+
     std::string exportedData = "";
-    bool success = mCsvExporter.Generate(
-        mCsvOptions, projections, joinProjections, fromDate, toDate, exportedData);
+    bool success =
+        csvExporter.Generate(projections, joinProjections, fromDate, toDate, exportedData);
 
     if (!success) {
         std::string message = "Failed to export data";

@@ -41,7 +41,6 @@
 
 #include "../../../core/configuration.h"
 
-#include "../../../services/export/csvexporter.h"
 #include "../../../services/export/csvexportoptions.h"
 
 #include "../../../utils/datestore.h"
@@ -170,7 +169,6 @@ private:
     wxDataViewItem mItemToSort;
 
     Services::Export::CsvExportOptions mCsvOptions;
-    Services::Export::CsvExporter mCsvExporter;
 
     bool bExportToClipboard;
     bool bOpenExplorerInExportDirectory;

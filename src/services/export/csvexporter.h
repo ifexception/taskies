@@ -41,20 +41,20 @@ class CsvExporter
 public:
     CsvExporter() = delete;
     CsvExporter(const CsvExporter&) = delete;
-    CsvExporter(const std::string& databaseFilePath, std::shared_ptr<spdlog::logger> logger);
+    CsvExporter(std::shared_ptr<spdlog::logger> logger,
+        CsvExportOptions options,
+        const std::string& databaseFilePath);
     ~CsvExporter() = default;
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
-    bool GeneratePreview(CsvExportOptions options,
-        const std::vector<Projection>& projections,
+    bool GeneratePreview(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
         /*out*/ std::string& exportedDataPreview);
 
-    bool Generate(CsvExportOptions options,
-        const std::vector<Projection>& projections,
+    bool Generate(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,

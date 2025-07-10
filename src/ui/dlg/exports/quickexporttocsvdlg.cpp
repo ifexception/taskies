@@ -31,6 +31,7 @@
 #include "../../../core/configuration.h"
 
 #include "../../../services/export/availablecolumns.h"
+#include "../../../services/export/csvexporter.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
@@ -92,7 +93,6 @@ QuickExportToCsvDialog::QuickExportToCsvDialog(wxWindow* parent,
     , bExportToClipboard(false)
     , bExportTodaysTasksOnly(false)
     , mCsvOptions()
-    , mCsvExporter(pCfg->GetDatabasePath(), pLogger)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -563,9 +563,11 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
 
     pLogger->info("{0} - Export date range: [\"{1}\", \"{2}\"]", TAG, fromDate, toDate);
 
+    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath);
+
     std::string exportedData = "";
-    bool success = mCsvExporter.Generate(
-        mCsvOptions, projections, joinProjections, fromDate, toDate, exportedData);
+    bool success =
+        csvExporter.Generate(projections, joinProjections, fromDate, toDate, exportedData);
 
     if (!success) {
         std::string message = "Failed to export data";
