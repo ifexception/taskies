@@ -85,7 +85,8 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
      */
     std::vector<std::string> headers = GetHeadersFromProjections(projections);
     if (headers.empty()) {
-        return false;
+        pLogger->warn("No headers were found in the projections. Nothing further to do");
+        return true;
     }
 
     /*
@@ -107,6 +108,8 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
      */
     rc = exportsService.FilterExportCsvData(sql, headers.size(), rows);
     if (rc != 0) {
+        pLogger->error("Failed to filter projected export data from generated SQL query. See "
+                       "earlier logs for error detail");
         return false;
     }
 
@@ -125,6 +128,8 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
         /* see `GenerateAttributes` for more detail */
         bool attributeAddedSuccessfully = GenerateAttributes(fromDate, toDate, exportData);
         if (!attributeAddedSuccessfully) {
+            pLogger->error("Failed to generate and attach attributes to export data. See earlier "
+                           "logs for error detail");
             return false;
         }
     }
@@ -179,6 +184,7 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
 
     /* verify the data in stringstream is in a good state */
     if (!exportedData.good()) {
+        pLogger->error("Exported data in stringstream object is not in a good state");
         return false;
     }
 
@@ -218,11 +224,14 @@ bool CsvExporter::GenerateAttributes(const std::string& fromDate,
      */
     rc = exportsService.GetAttributeNames(fromDate, toDate, taskId, bIsPreview, attributeNames);
     if (rc != 0) {
+        pLogger->error(
+            "Failed to get attribute names for data range. See earlier logs for error detail");
         return false;
     }
 
     /* we have not found any attributes associated with the task or tasks so we can return */
     if (attributeNames.empty()) {
+        pLogger->warn("No attribute names were found for data range. Nothing to do");
         return true;
     }
 
@@ -237,8 +246,9 @@ bool CsvExporter::GenerateAttributes(const std::string& fromDate,
      * the std::unordered_map with (again) the `taskId` serving as the unique key
      */
     rc = exportsService.FilterExportCsvAttributesData(attributeSql, attributeHeaderValueRows);
-
     if (rc != 0) {
+        pLogger->error("Failed to filter attribute data from generated attribute SQL query. See "
+                       "earlier logs for more detail");
         return false;
     }
 
