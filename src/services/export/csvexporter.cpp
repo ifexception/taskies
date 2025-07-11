@@ -76,7 +76,7 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
     /* initialize variables */
     int rc = -1;
     ExportsService exportsService(mDatabaseFilePath, pLogger);
-    std::unordered_map<std::int64_t, Row> rows;
+    std::unordered_map<std::int64_t, Row<std::string>> rows;
 
     /*
      * get the headers from the projections built out from selected items from the list view
@@ -202,7 +202,7 @@ bool CsvExporter::GenerateAttributes(const std::string& fromDate,
     ExportsService exportsService(mDatabaseFilePath, pLogger);
     int rc = -1;
     std::vector<std::string> attributeNames;
-    std::unordered_map<std::int64_t, HeaderValueRow> attributeHeaderValueRows;
+    std::unordered_map<std::int64_t, Row<HeaderValuePair>> attributeHeaderValueRows;
 
     if (bIsPreview) {
         /* if we are previewing data, `data.Rows.size()` should be one */
@@ -262,7 +262,7 @@ bool CsvExporter::GenerateAttributes(const std::string& fromDate,
      */
     for (auto& [taskIdKey, row] : data.Rows) {
         /* get the attribute header value pairs where we match with the `taskId` key */
-        auto& headerValuePair = attributeHeaderValueRows[taskIdKey].HeaderValuePairs;
+        auto& headerValuePair = attributeHeaderValueRows[taskIdKey].Values;
 
         /*
          * we loop over attribute names (headers)

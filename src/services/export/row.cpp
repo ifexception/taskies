@@ -18,11 +18,3 @@
 //     szymonwelgus at gmail dot com
 
 #include "row.h"
-
-namespace tks::Services::Export
-{
-Row::Row()
-    : Values()
-{
-}
-} // namespace tks::Services::Export

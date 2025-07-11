@@ -32,6 +32,6 @@ struct SData {
     ~SData() = default;
 
     std::vector<std::string> Headers;
-    std::unordered_map<std::int64_t, Row> Rows;
+    std::unordered_map<std::int64_t, Row<std::string>> Rows;
 };
 } // namespace tks::Services::Export

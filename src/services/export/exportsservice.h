@@ -48,10 +48,10 @@ public:
 
     int FilterExportCsvData(const std::string& sql,
         const std::size_t valueCount,
-        /*out*/ std::unordered_map<std::int64_t, Row>& rows) const;
+        /*out*/ std::unordered_map<std::int64_t, Row<std::string>>& rows) const;
 
     int FilterExportCsvAttributesData(const std::string& sql,
-        /*out*/ std::unordered_map<std::int64_t, HeaderValueRow>& headerValueRows) const;
+        /*out*/ std::unordered_map<std::int64_t, Row<HeaderValuePair>>& headerValueRows) const;
 
     int GetAttributeNames(const std::string& fromDate,
         const std::string& toDate,

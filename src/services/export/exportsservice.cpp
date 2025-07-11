@@ -96,7 +96,7 @@ ExportsService::~ExportsService()
 
 int ExportsService::FilterExportCsvData(const std::string& sql,
     const std::size_t valueCount,
-    std::unordered_map<std::int64_t, Row>& rows) const
+    std::unordered_map<std::int64_t, Row<std::string>>& rows) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -120,7 +120,7 @@ int ExportsService::FilterExportCsvData(const std::string& sql,
             auto res = sqlite3_column_int64(stmt, 0);
             auto taskId = static_cast<std::int64_t>(res);
 
-            Row row;
+            Row<std::string> row;
 
             /* loop over how many headers / columns the user selected to export */
             for (size_t i = 0; i < valueCount; i++) {
@@ -169,7 +169,7 @@ int ExportsService::FilterExportCsvData(const std::string& sql,
 }
 
 int ExportsService::FilterExportCsvAttributesData(const std::string& sql,
-    std::unordered_map<std::int64_t, HeaderValueRow>& headerValueRows) const
+    std::unordered_map<std::int64_t, Row<HeaderValuePair>>& headerValueRows) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -210,7 +210,7 @@ int ExportsService::FilterExportCsvAttributesData(const std::string& sql,
             headerValuePair.Value = valueValue;
 
             /* attach the header value pair struct to our header value vector and `taskId` index */
-            headerValueRows[taskId].HeaderValuePairs.push_back(headerValuePair);
+            headerValueRows[taskId].Values.push_back(headerValuePair);
             break;
         }
         case SQLITE_DONE:

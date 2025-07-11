@@ -24,10 +24,15 @@
 
 namespace tks::Services::Export
 {
+template<class T>
 struct Row {
-    Row();
+    Row()
+        : Values()
+    {
+    }
+
     ~Row() = default;
 
-    std::vector<std::string> Values;
+    std::vector<T> Values;
 };
 } // namespace tks::Services::Export
