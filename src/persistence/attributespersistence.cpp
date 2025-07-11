@@ -702,6 +702,111 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
     return 0;
 }
 
+int AttributesPersistence::UpdateIfInUse(Model::AttributeModel attributeModel) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttributesPersistence::updateIfInUse.c_str(),
+        static_cast<int>(AttributesPersistence::updateIfInUse.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, AttributesPersistence::updateIfInUse, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    // name
+    rc = sqlite3_bind_text(stmt,
+        bindIndex,
+        attributeModel.Name.c_str(),
+        static_cast<int>(attributeModel.Name.size()),
+        SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // is_required
+    rc = sqlite3_bind_int(stmt, bindIndex, attributeModel.IsRequired);
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "is_required", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // description
+    if (attributeModel.Description.has_value()) {
+        rc = sqlite3_bind_text(stmt,
+            bindIndex,
+            attributeModel.Description.value().c_str(),
+            static_cast<int>(attributeModel.Description.value().size()),
+            SQLITE_TRANSIENT);
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // date modified
+    rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // attribute id
+    rc = sqlite3_bind_int64(stmt, bindIndex, attributeModel.AttributeId);
+    if (rc != SQLITE_OK) {
+        const char* err = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, err);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, AttributesPersistence::updateIfInUse, rc, error);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::EntityUpdated, "attribute", attributeModel.AttributeId);
+
+    return 0;
+}
+
 int AttributesPersistence::Delete(const std::int64_t attributeId) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -903,6 +1008,14 @@ std::string AttributesPersistence::update = "UPDATE attributes "
                                             "attribute_type_id = ?, "
                                             "date_modified = ? "
                                             "WHERE attribute_id = ?";
+
+std::string AttributesPersistence::updateIfInUse = "UPDATE attributes "
+                                                   "SET "
+                                                   "name = ?, "
+                                                   "is_required = ?, "
+                                                   "description = ?, "
+                                                   "date_modified = ? "
+                                                   "WHERE attribute_id = ?";
 
 std::string AttributesPersistence::isActive = "UPDATE attributes "
                                               "SET "

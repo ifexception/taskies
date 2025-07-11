@@ -472,13 +472,17 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
         bool isAttributeUsed = CheckAttributeUsage(attributesPersistence);
         if (isAttributeUsed) {
-            wxMessageBox("Unable to edit attribute as it is in use",
+            int rc = wxMessageBox("Unable to edit all attribute fields as it is in use. Continue?",
                 Common::GetProgramName(),
-                wxOK_DEFAULT | wxICON_WARNING);
-            return;
+                wxYES_NO | wxICON_WARNING);
+            if (rc == wxYES) {
+                ret = attributesPersistence.UpdateIfInUse(mAttributeModel);
+            } else {
+                return;
+            }
+        } else {
+            ret = attributesPersistence.Update(mAttributeModel);
         }
-
-        ret = attributesPersistence.Update(mAttributeModel);
 
         message = ret == -1 ? "Failed to update attribute" : "Successfully updated attribute";
     }

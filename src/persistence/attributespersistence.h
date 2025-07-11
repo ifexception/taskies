@@ -48,6 +48,7 @@ struct AttributesPersistence final {
         /*out*/ Model::AttributeModel& attributeModel) const;
     std::int64_t Create(const Model::AttributeModel& attributeModel) const;
     int Update(Model::AttributeModel attributeModel) const;
+    int UpdateIfInUse(Model::AttributeModel attributeModel) const;
     int Delete(const std::int64_t attributeId) const;
     int CheckAttributeUsage(const std::int64_t attributeId, bool& value) const;
 
@@ -60,6 +61,7 @@ struct AttributesPersistence final {
     static std::string getById;
     static std::string create;
     static std::string update;
+    static std::string updateIfInUse;
     static std::string isActive;
     static std::string checkUsage;
 };
