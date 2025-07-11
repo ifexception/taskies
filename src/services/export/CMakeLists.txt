@@ -15,7 +15,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/csvexportmappedoptions.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/columnexportmodel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/headervaluepair.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/headervaluerow.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/exportsservice.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/row.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/data.cpp"
