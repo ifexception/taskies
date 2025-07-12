@@ -17,19 +17,22 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "projection.h"
+#pragma once
+
+#include <string>
+#include <vector>
 
 namespace tks::Services::Export
 {
-Projection::Projection()
-    : Order(-1)
-    , ColumnProjection()
-{
-}
+template<class T>
+struct Row {
+    Row()
+        : Values()
+    {
+    }
 
-Projection::Projection(int order, SColumnProjection columnProjection)
-    : Order(order)
-    , ColumnProjection(columnProjection)
-{
-}
+    ~Row() = default;
+
+    std::vector<T> Values;
+};
 } // namespace tks::Services::Export

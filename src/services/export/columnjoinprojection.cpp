@@ -29,7 +29,9 @@ ColumnJoinProjection::ColumnJoinProjection()
 {
 }
 
-ColumnJoinProjection::ColumnJoinProjection(std::string tableName, std::string idColumn, bool isSecondLevelJoin)
+ColumnJoinProjection::ColumnJoinProjection(std::string tableName,
+    std::string idColumn,
+    bool isSecondLevelJoin)
     : TableName(tableName)
     , IdColumn(idColumn)
     , IsSecondLevelJoin(isSecondLevelJoin)
@@ -47,4 +49,4 @@ ColumnJoinProjection::ColumnJoinProjection(std::string tableName,
     , IsSecondLevelJoin(isSecondLevelJoin)
 {
 }
-}
+} // namespace tks::Services::Export

@@ -51,6 +51,8 @@ Configuration::PresetSettings::PresetSettings(Common::Preset preset)
     NewLinesHandler = preset.NewLinesHandler;
     BooleanHandler = preset.BooleanHandler;
     ExcludeHeaders = preset.ExcludeHeaders;
+    IncludeAttributes = preset.IncludeAttributes;
+
     for (auto& presetColumn : preset.Columns) {
         PresetColumnSettings presetColumnSettings(presetColumn);
         Columns.push_back(presetColumnSettings);
@@ -199,6 +201,7 @@ bool Configuration::Save()
                 { "newLines", static_cast<int>(preset.NewLinesHandler) },
                 { "booleans", static_cast<int>(preset.BooleanHandler) },
                 { "excludeHeaders", preset.ExcludeHeaders },
+                { "includeAttributes", preset.IncludeAttributes },
                 { "columns", toml::array {} },
             }
         );
@@ -379,6 +382,7 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
             { "newLines", static_cast<int>(presetToSave.NewLinesHandler) },
             { "booleans", static_cast<int>(presetToSave.BooleanHandler) },
             { "excludeHeaders", presetToSave.ExcludeHeaders },
+            { "includeAttributes", presetToSave.IncludeAttributes },
             { "columns", toml::array {} }
         }
     );
@@ -458,6 +462,7 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
             preset["newLines"] = static_cast<int>(presetToUpdate.NewLinesHandler);
             preset["booleans"] = static_cast<int>(presetToUpdate.BooleanHandler);
             preset["excludeHeaders"] = presetToUpdate.ExcludeHeaders;
+            preset["includeAttributes"] = presetToUpdate.IncludeAttributes;
 
             auto& columns = preset.at("columns").as_array();
             columns.clear();
@@ -888,6 +893,8 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
                 root.at(Sections::PresetsSection).at(i).at("booleans").as_integer());
             preset.ExcludeHeaders =
                 root.at(Sections::PresetsSection).at(i).at("excludeHeaders").as_boolean();
+            preset.IncludeAttributes =
+                root.at(Sections::PresetsSection).at(i).at("includeAttributes").as_boolean();
 
             auto columnsSize = root.at(Sections::PresetsSection).at(i).at("columns").size();
             for (size_t j = 0; j < columnsSize; j++) {

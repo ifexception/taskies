@@ -32,4 +32,4 @@ struct Projection {
     Projection();
     Projection(int Order, SColumnProjection columnProjection);
 };
-}
+} // namespace tks::Services::Export

@@ -31,12 +31,12 @@ CsvExportProcessor::CsvExportProcessor(CsvExportOptions options, CsvMappedOption
 {
 }
 
-void CsvExportProcessor::ProcessData(std::stringstream& data, std::string& value)
+void CsvExportProcessor::ProcessData(std::string& value)
 {
     TryProcessEmptyValues(value);
     TryProcessNewLines(value);
     TryProcessBooleanHandler(value);
-    TryProcessTextQualifier(data, value);
+    TryProcessTextQualifier(value);
 }
 
 void CsvExportProcessor::TryProcessNewLines(std::string& value) const
@@ -66,36 +66,46 @@ void CsvExportProcessor::TryProcessBooleanHandler(std::string& value) const
 {
     if (!value.empty() && value.size() == 1) {
         if (value == "0" || value == "1" && mOptions.BooleanHandler != BooleanHandler::OneZero) {
-            if (mOptions.BooleanHandler == BooleanHandler::TrueFalse) {
+            if (mOptions.BooleanHandler == BooleanHandler::TrueFalseLowerCase) {
                 if (value == "1") {
                     value = "true";
                 } else if (value == "0") {
                     value = "false";
                 }
-            } else if (mOptions.BooleanHandler == BooleanHandler::YesNo) {
+            } else if (mOptions.BooleanHandler == BooleanHandler::YesNoLowerCase) {
                 if (value == "1") {
                     value = "yes";
                 } else if (value == "0") {
                     value = "no";
+                }
+            } else if (mOptions.BooleanHandler == BooleanHandler::TrueFalseTitleCase) {
+                if (value == "1") {
+                    value = "True";
+                } else if (value == "0") {
+                    value = "False";
+                }
+            } else if (mOptions.BooleanHandler == BooleanHandler::YesNoTitleCase) {
+                if (value == "1") {
+                    value = "Yes";
+                } else if (value == "0") {
+                    value = "No";
                 }
             }
         }
     }
 }
 
-void CsvExportProcessor::TryProcessTextQualifier(std::stringstream& data, std::string& value) const
+void CsvExportProcessor::TryProcessTextQualifier(std::string& value) const
 {
     std::string quote = "\"";
 
     if (mOptions.TextQualifier != TextQualifierType::None) {
-        value = Utils::ReplaceAll(value, quote, MapTextQualifierEnumToValue(mOptions.TextQualifier));
+        value =
+            Utils::ReplaceAll(value, quote, MapTextQualifierEnumToValue(mOptions.TextQualifier));
 
         if (value.find(mMappedOptions.Delimiter) != std::string::npos) {
-            data << mMappedOptions.TextQualifier << value << mMappedOptions.TextQualifier;
-            return;
+            value = mMappedOptions.TextQualifier + value + mMappedOptions.TextQualifier;
         }
     }
-
-    data << value;
 }
 } // namespace tks::Services::Export

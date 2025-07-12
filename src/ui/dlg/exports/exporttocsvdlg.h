@@ -41,7 +41,6 @@
 
 #include "../../../core/configuration.h"
 
-#include "../../../services/export/csvexporter.h"
 #include "../../../services/export/csvexportoptions.h"
 
 #include "../../../utils/datestore.h"
@@ -98,6 +97,7 @@ private:
     void OnUpButtonSort(wxCommandEvent& event);
     void OnDownButtonSort(wxCommandEvent& event);
     void OnExcludeHeadersCheck(wxCommandEvent& event);
+    void OnIncludeAttributesCheck(wxCommandEvent& event);
 
     void OnShowPreview(wxCommandEvent& event);
     void OnExport(wxCommandEvent& event);
@@ -154,6 +154,7 @@ private:
     wxButton* pDownButton;
 
     wxCheckBox* pExcludeHeadersCheckBoxCtrl;
+    wxCheckBox* pIncludeAttributesCheckBoxCtrl;
 
     wxTextCtrl* pDataExportPreviewTextCtrl;
     wxButton* pShowPreviewButton;
@@ -168,7 +169,6 @@ private:
     wxDataViewItem mItemToSort;
 
     Services::Export::CsvExportOptions mCsvOptions;
-    Services::Export::CsvExporter mCsvExporter;
 
     bool bExportToClipboard;
     bool bOpenExplorerInExportDirectory;
@@ -203,6 +203,7 @@ private:
         tksIDC_UP_BUTTON,
         tksIDC_DOWN_BUTTON,
         tksIDC_EXCLUDE_HEADERS_CTRL,
+        tksIDC_INCLUDEATTRIBUTESCHECKBOXCTRL,
         tksIDC_DATA_EXPORT_PREVIEW_CTRL,
         tksIDC_SHOW_PREVIEW_BUTTON,
         tksIDC_EXPORT_BUTTON,

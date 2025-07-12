@@ -37,7 +37,6 @@
 
 #include "../../../core/configuration.h"
 
-#include "../../../services/export/csvexporter.h"
 #include "../../../services/export/csvexportoptions.h"
 
 #include "../../../utils/datestore.h"
@@ -115,7 +114,6 @@ private:
     bool bExportTodaysTasksOnly;
 
     Services::Export::CsvExportOptions mCsvOptions;
-    Services::Export::CsvExporter mCsvExporter;
 
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,

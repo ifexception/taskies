@@ -28,6 +28,7 @@ CsvExportOptions::CsvExportOptions()
     , NewLinesHandler(NewLines::Merge)
     , BooleanHandler(BooleanHandler::OneZero)
     , ExcludeHeaders(false)
+    , IncludeAttributes(false)
 {
 }
 
@@ -39,5 +40,6 @@ void CsvExportOptions::Reset()
     NewLinesHandler = NewLines::Merge;
     BooleanHandler = BooleanHandler::OneZero;
     ExcludeHeaders = false;
+    IncludeAttributes = false;
 }
-} // namespace tks::Service::Export
+} // namespace tks::Services::Export

@@ -17,19 +17,13 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "projection.h"
+#include "data.h"
 
 namespace tks::Services::Export
 {
-Projection::Projection()
-    : Order(-1)
-    , ColumnProjection()
-{
-}
-
-Projection::Projection(int order, SColumnProjection columnProjection)
-    : Order(order)
-    , ColumnProjection(columnProjection)
+SData::SData()
+    : Headers()
+    , Rows()
 {
 }
 } // namespace tks::Services::Export

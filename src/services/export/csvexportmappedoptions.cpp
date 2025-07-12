@@ -26,12 +26,12 @@ namespace tks::Services::Export
 CsvMappedOptions::CsvMappedOptions()
     : Delimiter(',')
     , TextQualifier('\"')
-{}
+{
+}
 
 CsvMappedOptions::CsvMappedOptions(CsvExportOptions options)
 {
     Delimiter = MapDelimiterEnumToValue(options.Delimiter)[0];
     TextQualifier = MapTextQualifierEnumToValue(options.TextQualifier)[0];
 }
-}
-
+} // namespace tks::Services::Export

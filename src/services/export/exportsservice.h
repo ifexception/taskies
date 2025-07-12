@@ -20,7 +20,9 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <spdlog/spdlog.h>
@@ -28,20 +30,38 @@
 
 #include <sqlite3.h>
 
-namespace tks::Persistence
+#include "headervaluepair.h"
+#include "row.h"
+
+constexpr int ATTRIBUTE_PROP_INDEX_TASKID = 0;
+constexpr int ATTRIBUTE_PROP_INDEX_NAME = 1;
+constexpr int ATTRIBUTE_PROP_INDEX_VALUE = 2;
+
+namespace tks::Services::Export
 {
-struct ExportPersistence final {
+struct ExportsService final {
 public:
-    explicit ExportPersistence(const std::string& databaseFilePath,
+    explicit ExportsService(const std::string& databaseFilePath,
         const std::shared_ptr<spdlog::logger> logger);
-    ~ExportPersistence();
+    ~ExportsService();
 
     int FilterExportCsvData(const std::string& sql,
-        const std::vector<std::string>& projectionMap,
-        /*out*/ std::vector<std::vector<std::pair<std::string, std::string>>>& projectionModels)
-        const;
+        const std::size_t valueCount,
+        /*out*/ std::unordered_map<std::int64_t, Row<std::string>>& rows) const;
+
+    int FilterExportCsvAttributesData(const std::string& sql,
+        /*out*/ std::unordered_map<std::int64_t, Row<HeaderValuePair>>& headerValueRows) const;
+
+    int GetAttributeNames(const std::string& fromDate,
+        const std::string& toDate,
+        std::optional<std::int64_t> taskId,
+        bool isPreview,
+        /*out*/ std::vector<std::string>& attributeNames) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
+
+    static std::string getAttributeNames;
+    static std::string getAttributeNamesPreview;
 };
-} // namespace tks::Persistence
+} // namespace tks::Services::Export

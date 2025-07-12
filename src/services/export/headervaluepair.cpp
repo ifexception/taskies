@@ -17,19 +17,19 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "projection.h"
+#include "headervaluepair.h"
 
-namespace tks::Services::Export
+namespace tks::Services
 {
-Projection::Projection()
-    : Order(-1)
-    , ColumnProjection()
+HeaderValuePair::HeaderValuePair()
+    : Header("")
+    , Value("")
 {
 }
 
-Projection::Projection(int order, SColumnProjection columnProjection)
-    : Order(order)
-    , ColumnProjection(columnProjection)
+HeaderValuePair::HeaderValuePair(std::string header, std::string value)
+    : Header(header)
+    , Value(value)
 {
 }
-} // namespace tks::Services::Export
+} // namespace tks::Services

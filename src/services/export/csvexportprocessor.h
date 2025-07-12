@@ -37,15 +37,15 @@ public:
 
     const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;
 
-    void ProcessData(std::stringstream& data, std::string& value);
+    void ProcessData(std::string& value);
 
 private:
     void TryProcessNewLines(std::string& value) const;
     void TryProcessEmptyValues(std::string& value) const;
     void TryProcessBooleanHandler(std::string& value) const;
-    void TryProcessTextQualifier(std::stringstream& data, std::string& value) const;
+    void TryProcessTextQualifier(std::string& value) const;
 
     CsvExportOptions mOptions;
     CsvMappedOptions mMappedOptions;
 };
-}
+} // namespace tks::Services::Export

@@ -17,19 +17,21 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "projection.h"
+#pragma once
+
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "row.h"
 
 namespace tks::Services::Export
 {
-Projection::Projection()
-    : Order(-1)
-    , ColumnProjection()
-{
-}
+struct SData {
+    SData();
+    ~SData() = default;
 
-Projection::Projection(int order, SColumnProjection columnProjection)
-    : Order(order)
-    , ColumnProjection(columnProjection)
-{
-}
+    std::vector<std::string> Headers;
+    std::unordered_map<std::int64_t, Row<std::string>> Rows;
+};
 } // namespace tks::Services::Export

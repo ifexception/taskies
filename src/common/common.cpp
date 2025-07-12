@@ -120,7 +120,7 @@ std::vector<std::string> NewLinesHandlerList()
 
 std::vector<std::string> BooleanHandlerList()
 {
-    return std::vector<std::string>{ "1|0", "true|false", "yes|no" };
+    return std::vector<std::string>{ "1|0", "true|false", "yes|no", "True|False", "Yes|No" };
 }
 } // namespace Static
 } // namespace tks::Common

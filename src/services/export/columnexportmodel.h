@@ -35,8 +35,7 @@ struct ColumnExportModel {
     int Order;
 };
 
-std::vector<ColumnExportModel> BuildFromList(
-    const std::vector<UI::ColumnListItemModel>& columns);
+std::vector<ColumnExportModel> BuildFromList(const std::vector<UI::ColumnListItemModel>& columns);
 
 std::vector<ColumnExportModel> BuildFromPreset(
     const std::vector<Core::Configuration::PresetColumnSettings>& columns);

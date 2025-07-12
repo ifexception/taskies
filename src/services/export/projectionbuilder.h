@@ -23,8 +23,6 @@
 
 #include <spdlog/logger.h>
 
-#include "../../ui/dataview/columnlistitemmodel.h"
-
 #include "availablecolumns.h"
 #include "projection.h"
 #include "columnjoinprojection.h"

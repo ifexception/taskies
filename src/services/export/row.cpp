@@ -17,19 +17,4 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "projection.h"
-
-namespace tks::Services::Export
-{
-Projection::Projection()
-    : Order(-1)
-    , ColumnProjection()
-{
-}
-
-Projection::Projection(int order, SColumnProjection columnProjection)
-    : Order(order)
-    , ColumnProjection(columnProjection)
-{
-}
-} // namespace tks::Services::Export
+#include "row.h"

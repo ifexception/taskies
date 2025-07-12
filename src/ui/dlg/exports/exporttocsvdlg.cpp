@@ -34,11 +34,14 @@
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
 #include "../../../common/enums.h"
+
 #include "../../../services/export/availablecolumns.h"
+#include "../../../services/export/csvexporter.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
+
 #include "../../../utils/utils.h"
 
 #include "../../events.h"
@@ -106,6 +109,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pUpButton(nullptr)
     , pDownButton(nullptr)
     , pExcludeHeadersCheckBoxCtrl(nullptr)
+    , pIncludeAttributesCheckBoxCtrl(nullptr)
     , pDataExportPreviewTextCtrl(nullptr)
     , pShowPreviewButton(nullptr)
     , pExportButton(nullptr)
@@ -113,7 +117,6 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , mFromDate()
     , mToDate()
     , mCsvOptions()
-    , mCsvExporter(pCfg->GetDatabasePath(), pLogger)
     , bExportToClipboard(false)
     , bOpenExplorerInExportDirectory(false)
     , bExportTodaysTasksOnly(false)
@@ -469,10 +472,18 @@ void ExportToCsvDialog::CreateControls()
     upDownButtonSizer->Add(pUpButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     upDownButtonSizer->Add(pDownButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
 
+    /* Export checkbox options */
     pExcludeHeadersCheckBoxCtrl =
         new wxCheckBox(dataToExportStaticBox, tksIDC_EXCLUDE_HEADERS_CTRL, "Exclude Headers");
+    pExcludeHeadersCheckBoxCtrl->SetToolTip("Headers are excluded from the CSV export");
     dataToExportStaticBoxSizer->Add(
         pExcludeHeadersCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    pIncludeAttributesCheckBoxCtrl = new wxCheckBox(
+        dataToExportStaticBox, tksIDC_INCLUDEATTRIBUTESCHECKBOXCTRL, "Include Attributes");
+    pIncludeAttributesCheckBoxCtrl->SetToolTip("Include task attribute values in the CSV export");
+    dataToExportStaticBoxSizer->Add(
+        pIncludeAttributesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Data Preview sizer and controls */
     auto dataPreviewStaticBox = new wxStaticBox(this, wxID_ANY, "Preview");
@@ -577,17 +588,17 @@ void ExportToCsvDialog::FillControls()
     SetFromDateAndDatePicker();
     SetToDateAndDatePicker();
 
+    /* Available Columns */
+    for (auto& column : Services::Export::MakeAvailableColumns()) {
+        pAvailableColumnsListView->InsertItem(0, column.UserColumn);
+    }
+
     /* Presets controls */
     pPresetsChoiceCtrl->Append("(none)", new ClientData<std::string>(""));
     pPresetsChoiceCtrl->SetSelection(0);
 
     for (const auto& preset : pCfg->GetPresets()) {
         pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
-    }
-
-    /* Available Columns */
-    for (auto& column : Services::Export::MakeAvailableColumns()) {
-        int i = pAvailableColumnsListView->InsertItem(0, column.UserColumn);
     }
 
     auto presets = pCfg->GetPresets();
@@ -637,7 +648,6 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_BROWSE_EXPORT_PATH_CTRL
     );
 
-
     pDelimiterChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ExportToCsvDialog::OnDelimiterChoiceSelection,
@@ -667,6 +677,7 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnBooleanHandlerChoiceSelection,
         this
     );
+
     pFromDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
         &ExportToCsvDialog::OnFromDateSelection,
@@ -783,6 +794,13 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnExcludeHeadersCheck,
         this,
         tksIDC_EXCLUDE_HEADERS_CTRL
+    );
+
+    pIncludeAttributesCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &ExportToCsvDialog::OnIncludeAttributesCheck,
+        this,
+        tksIDC_INCLUDEATTRIBUTESCHECKBOXCTRL
     );
 
     pShowPreviewButton->Bind(
@@ -1062,6 +1080,7 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
     pExportColumnListModel->Clear();
 
     pExcludeHeadersCheckBoxCtrl->SetValue(false);
+    pIncludeAttributesCheckBoxCtrl->SetValue(false);
 }
 
 void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
@@ -1124,6 +1143,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     preset.Columns = columns;
 
     preset.ExcludeHeaders = mCsvOptions.ExcludeHeaders;
+    preset.IncludeAttributes = mCsvOptions.IncludeAttributes;
 
     auto success = pCfg->TryUnsetDefaultPreset();
     if (!success) {
@@ -1346,6 +1366,11 @@ void ExportToCsvDialog::OnExcludeHeadersCheck(wxCommandEvent& event)
     mCsvOptions.ExcludeHeaders = event.IsChecked();
 }
 
+void ExportToCsvDialog::OnIncludeAttributesCheck(wxCommandEvent& event)
+{
+    mCsvOptions.IncludeAttributes = event.IsChecked();
+}
+
 void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 {
     pLogger->info("ExportToCsvDialog::OnShowPreview - Begin show preview");
@@ -1362,21 +1387,28 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     }
 
     auto columnExportModels = Services::Export::BuildFromList(columnsToExport);
+
     Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+
     std::vector<Services::Export::Projection> projections =
         projectionBuilder.BuildProjections(columnExportModels);
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
-    const std::string fromDate = date::format("%F", mFromDate);
-    const std::string toDate = date::format("%F", mToDate);
+    const std::string fromDate =
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
+    const std::string toDate =
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
 
     pLogger->info("ExportToCsvDialog::OnShowPreview - Export date range: [\"{0}\", \"{1}\"]",
         fromDate,
         toDate);
+
+    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath);
+
     std::string exportedDataPreview = "";
-    bool success = mCsvExporter.GeneratePreview(
-        mCsvOptions, projections, joinProjections, fromDate, toDate, exportedDataPreview);
+    bool success = csvExporter.GeneratePreview(
+        projections, joinProjections, fromDate, toDate, exportedDataPreview);
 
     if (!success) {
         std::string message = "Failed to export data";
@@ -1407,23 +1439,27 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     }
 
     auto columnExportModels = Services::Export::BuildFromList(columnsToExport);
+
     Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+
     std::vector<Services::Export::Projection> projections =
         projectionBuilder.BuildProjections(columnExportModels);
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
     const std::string fromDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintMondayDate : date::format("%F", mFromDate);
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
     const std::string toDate =
         bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
 
     pLogger->info(
         "ExportToCsvDialog::OnExport - Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
+    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath);
+
     std::string exportedData = "";
-    bool success = mCsvExporter.Generate(
-        mCsvOptions, projections, joinProjections, fromDate, toDate, exportedData);
+    bool success =
+        csvExporter.Generate(projections, joinProjections, fromDate, toDate, exportedData);
 
     if (!success) {
         std::string message = "Failed to export data";
@@ -1591,12 +1627,15 @@ void ExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetS
     pExportColumnListModel->AppendFromStaging();
 
     pExcludeHeadersCheckBoxCtrl->SetValue(presetSettings.ExcludeHeaders);
+    pIncludeAttributesCheckBoxCtrl->SetValue(presetSettings.IncludeAttributes);
 
     mCsvOptions.Delimiter = presetSettings.Delimiter;
     mCsvOptions.TextQualifier = presetSettings.TextQualifier;
     mCsvOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
     mCsvOptions.NewLinesHandler = presetSettings.NewLinesHandler;
-    mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
     mCsvOptions.BooleanHandler = presetSettings.BooleanHandler;
+
+    mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
+    mCsvOptions.IncludeAttributes = presetSettings.IncludeAttributes;
 }
 } // namespace tks::UI::dlg

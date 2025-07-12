@@ -47,7 +47,14 @@ enum class EmptyValues : int { None = 0, Blank, Null };
 
 enum class NewLines : int { None = 0, Preserve, Merge };
 
-enum class BooleanHandler : int { None = 0, OneZero, TrueFalse, YesNo };
+enum class BooleanHandler : int {
+    None = 0,
+    OneZero,
+    TrueFalseLowerCase,
+    YesNoLowerCase,
+    TrueFalseTitleCase,
+    YesNoTitleCase
+};
 
 enum class JoinType { None = 0, InnerJoin = 1, LeftJoin = 2 };
 

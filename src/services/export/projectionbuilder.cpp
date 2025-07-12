@@ -46,7 +46,8 @@ std::vector<Projection> ProjectionBuilder::BuildProjections(
 
         if (availableColumnIterator != mAvailableColumns.end()) {
             const auto& availableColumn = *availableColumnIterator;
-            pLogger->info("ProjectionBuilder::BuildProjections - Matched column \"{0}\" with available column \"{1}\"",
+            pLogger->info("ProjectionBuilder::BuildProjections - Matched column \"{0}\" with "
+                          "available column \"{1}\"",
                 column.OriginalColumn,
                 availableColumn.DatabaseColumn);
 
@@ -83,11 +84,13 @@ std::vector<ColumnJoinProjection> ProjectionBuilder::BuildJoinProjections(
 
         if (availableColumnIterator != mAvailableColumns.end()) {
             const auto& availableColumn = *availableColumnIterator;
-            pLogger->info("ProjectionBuilder::BuildProjections - Matched column \"{0}\" with available column \"{1}\"",
+            pLogger->info("ProjectionBuilder::BuildProjections - Matched column \"{0}\" with "
+                          "available column \"{1}\"",
                 column.OriginalColumn,
                 availableColumn.DatabaseColumn);
 
-            ColumnJoinProjection columnJoinProjection = BuildJoinProjection(column, availableColumn);
+            ColumnJoinProjection columnJoinProjection =
+                BuildJoinProjection(column, availableColumn);
 
             joinProjections.push_back(columnJoinProjection);
         }
@@ -114,7 +117,8 @@ Projection ProjectionBuilder::BuildProjection(const ColumnExportModel& column,
 
 void ProjectionBuilder::SortProjectionsByOrderDescending(std::vector<Projection>& projections)
 {
-    pLogger->info("ProjectionBuilder::SortProjectionsByOrder - Sort projections by order index ascending");
+    pLogger->info(
+        "ProjectionBuilder::SortProjectionsByOrder - Sort projections by order index ascending");
 
     // clang-format off
     std::sort(
@@ -141,7 +145,8 @@ ColumnJoinProjection ProjectionBuilder::BuildRequiredProjectTableJoinProjection(
 
     if (projectColumnIterator != mAvailableColumns.end()) {
         const auto& projectColumn = *projectColumnIterator;
-        ColumnJoinProjection cjp(projectColumn.TableName, projectColumn.IdColumn, projectColumn.Join);
+        ColumnJoinProjection cjp(
+            projectColumn.TableName, projectColumn.IdColumn, projectColumn.Join);
         pLogger->info("ProjectionBuilder::BuildJoinProjections - Insert projects table to join on");
 
         return cjp;
@@ -154,9 +159,11 @@ ColumnJoinProjection ProjectionBuilder::BuildJoinProjection(const ColumnExportMo
     const AvailableColumn& availableColumn)
 {
     if (availableColumn.TableName == "categories") {
-        ColumnJoinProjection cjp(availableColumn.TableName, availableColumn.IdColumn, JoinType::InnerJoin);
+        ColumnJoinProjection cjp(
+            availableColumn.TableName, availableColumn.IdColumn, JoinType::InnerJoin);
 
-        pLogger->info("ProjectionBuilder::BuildJoinProjection - First level join on \"{0}\" with join \"{1}\"",
+        pLogger->info("ProjectionBuilder::BuildJoinProjection - First level join on \"{0}\" with "
+                      "join \"{1}\"",
             availableColumn.TableName,
             "INNER");
 
@@ -172,7 +179,8 @@ ColumnJoinProjection ProjectionBuilder::BuildJoinProjection(const ColumnExportMo
             cjp.Join = JoinType::InnerJoin;
         }
 
-        pLogger->info("ProjectionBuilder::BuildJoinProjection - Second level join on \"{0}\" with join \"{1}\"",
+        pLogger->info("ProjectionBuilder::BuildJoinProjection - Second level join on \"{0}\" with "
+                      "join \"{1}\"",
             availableColumn.TableName,
             cjp.Join == JoinType::InnerJoin ? "INNER" : "LEFT");
 

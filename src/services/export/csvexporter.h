@@ -32,6 +32,7 @@
 #include "sqliteexportquerybuilder.h"
 #include "csvexportoptions.h"
 #include "csvexportprocessor.h"
+#include "data.h"
 
 namespace tks::Services::Export
 {
@@ -40,34 +41,37 @@ class CsvExporter
 public:
     CsvExporter() = delete;
     CsvExporter(const CsvExporter&) = delete;
-    CsvExporter(const std::string& databaseFilePath, std::shared_ptr<spdlog::logger> logger);
+    CsvExporter(std::shared_ptr<spdlog::logger> logger,
+        CsvExportOptions options,
+        const std::string& databaseFilePath);
     ~CsvExporter() = default;
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
-    std ::vector<std::string> ComputeProjectionModel(const std::vector<Projection>& projections);
-
-    bool GeneratePreview(CsvExportOptions options,
-        const std::vector<Projection>& projections,
+    bool GeneratePreview(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
         /*out*/ std::string& exportedDataPreview);
 
-    bool Generate(CsvExportOptions options,
-        const std::vector<Projection>& projections,
+    bool Generate(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
         /*out*/ std::string& exportedDataPreview);
 
 private:
-    bool GenerateExport(CsvExportOptions options,
-        const std::vector<Projection>& projections,
+    bool GenerateExport(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
         /*out*/ std::string& exportedDataPreview);
+
+    bool GenerateAttributes(const std::string& fromDate,
+        const std::string& toDate,
+        /*out*/ SData& data);
+
+    std::vector<std::string> GetHeadersFromProjections(const std::vector<Projection>& projections);
 
     std::shared_ptr<spdlog::logger> pLogger;
 
@@ -76,5 +80,6 @@ private:
     CsvExportOptions mOptions;
 
     std::string mDatabaseFilePath;
+    bool bIsPreview;
 };
 } // namespace tks::Services::Export
