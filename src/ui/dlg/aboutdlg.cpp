@@ -34,7 +34,12 @@
 namespace tks::UI::dlg
 {
 AboutDialog::AboutDialog(wxWindow* parent, const wxString& name)
-    : wxDialog(parent, wxID_ANY, "About", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    : wxDialog(parent,
+          wxID_ANY,
+          "About",
+          wxDefaultPosition,
+          wxDefaultSize,
+          wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
     , pAttributionsListView(nullptr)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
@@ -63,7 +68,8 @@ void AboutDialog::CreateControls()
     sizer->Add(staticBmp, wxSizerFlags().Border(wxLEFT | wxRIGHT, FromDIP(8)).Center());
 
     /* Taskies version */
-    auto version = fmt::format("Taskies v{0}.{1}.{2}-{3}", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH, TASKIES_SRLC);
+    auto version = fmt::format(
+        "Taskies v{0}.{1}.{2}-{3}", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH, TASKIES_SRLC);
     auto versionLabel = new wxStaticText(this, wxID_ANY, version);
     sizer->Add(versionLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).Center());
 
@@ -72,12 +78,18 @@ void AboutDialog::CreateControls()
     /* Description */
     auto descriptionSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(descriptionSizer, wxSizerFlags().Expand());
-    auto description = "Taskies is a time tracking productivity tool built with date, fmt, nlohmann_json, spdlog, "
-                       "SQLite, and wxWidgets";
-    auto descriptionCtrl = new wxTextCtrl(
-        this, wxID_ANY, wxEmptyString, wxDefaultPosition, FromDIP(wxSize(410, -1)), wxTE_MULTILINE | wxTE_READONLY);
+    auto description =
+        "Taskies is a time tracking productivity tool built with date, fmt, nlohmann_json, spdlog, "
+        "SQLite, and wxWidgets";
+    auto descriptionCtrl = new wxTextCtrl(this,
+        wxID_ANY,
+        wxEmptyString,
+        wxDefaultPosition,
+        FromDIP(wxSize(410, -1)),
+        wxTE_MULTILINE | wxTE_READONLY);
     descriptionCtrl->AppendText(description);
-    descriptionSizer->Add(descriptionCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    descriptionSizer->Add(
+        descriptionCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* License */
     /* License collaspible pane */
@@ -95,7 +107,8 @@ void AboutDialog::CreateControls()
         FromDIP(wxSize(410, 150)),
         wxTE_MULTILINE | wxTE_READONLY);
     licenseTextCtrl->AppendText(Common::GetLicense());
-    licenseCollPaneWindowSizer->Add(licenseTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    licenseCollPaneWindowSizer->Add(
+        licenseTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     licenseCollPaneWindow->SetSizer(licenseCollPaneWindowSizer);
     licenseCollPaneWindowSizer->SetSizeHints(licenseCollPaneWindow);
@@ -118,33 +131,34 @@ void AboutDialog::CreateControls()
     int columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "date");
-    softwaresListView->SetItem(listIndex, columnIndex++, "2025-05-14");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.0.4");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "fmt");
-    softwaresListView->SetItem(listIndex, columnIndex++, "11.0.2");
+    softwaresListView->SetItem(listIndex, columnIndex++, "11.0.2#1");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "nlohmann_json");
-    softwaresListView->SetItem(listIndex, columnIndex++, "3.11.3#1");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.12.0");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "spdlog");
-    softwaresListView->SetItem(listIndex, columnIndex++, "1.14.1");
+    softwaresListView->SetItem(listIndex, columnIndex++, "1.15.3");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "SQLite");
-    softwaresListView->SetItem(listIndex, columnIndex++, "3.46.1");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.50.2");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "toml11");
-    softwaresListView->SetItem(listIndex, columnIndex++, "4.2.0");
+    softwaresListView->SetItem(listIndex, columnIndex++, "4.4.0");
     columnIndex = 0;
 
     listIndex = softwaresListView->InsertItem(columnIndex++, "wxWidgets");
-    softwaresListView->SetItem(listIndex, columnIndex++, "3.2.5#3");
+    softwaresListView->SetItem(listIndex, columnIndex++, "3.2.7");
 
-    softwareCollPaneWindowSizer->Add(softwaresListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
+    softwareCollPaneWindowSizer->Add(
+        softwaresListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
 
     softwareCollPaneWindow->SetSizer(softwareCollPaneWindowSizer);
     softwareCollPaneWindowSizer->SetSizeHints(softwareCollPaneWindow);
@@ -169,35 +183,42 @@ void AboutDialog::CreateControls()
 
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "Paul J.");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Paprika");
-    pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/paprika");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/paprika");
     columnIndex = 0;
 
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "Fathema Khanom");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Logout");
-    pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/logout");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/logout");
     columnIndex = 0;
 
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "Freepik");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Bell");
-    pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/bell");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/bell");
     columnIndex = 0;
 
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "Andrean Prabowo");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Calendar");
-    pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/time-and-date");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/time-and-date");
     columnIndex = 0;
 
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "logisstudio");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "About");
-    pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/enquiry");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/enquiry");
     columnIndex = 0;
 
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "chehuna");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Setting");
-    pAttributionsListView->SetItem(listIndex, columnIndex++, "https://www.flaticon.com/free-icons/setting");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/setting");
     columnIndex = 0;
 
-    attributionsCollPaneWindowSizer->Add(pAttributionsListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
+    attributionsCollPaneWindowSizer->Add(
+        pAttributionsListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
 
     attributionsCollPaneWindow->SetSizer(attributionsCollPaneWindowSizer);
     attributionsCollPaneWindowSizer->SetSizeHints(attributionsCollPaneWindow);
@@ -219,7 +240,10 @@ void AboutDialog::CreateControls()
     footerSizer->AddStretchSpacer();
 
     /* Link */
-    auto link = new wxHyperlinkCtrl(this, wxID_ANY, "https://github.com/ifexception/taskies", "https://github.com/ifexception/taskies");
+    auto link = new wxHyperlinkCtrl(this,
+        wxID_ANY,
+        "https://github.com/ifexception/taskies",
+        "https://github.com/ifexception/taskies");
     footerSizer->Add(link, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
