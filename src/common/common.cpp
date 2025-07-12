@@ -115,7 +115,7 @@ std::vector<std::string> EmptyValueHandlerList()
 
 std::vector<std::string> NewLinesHandlerList()
 {
-    return std::vector<std::string>{ "Preserve", "Merge" };
+    return std::vector<std::string>{ "Preserve", "Merge", "Merge (add space)" };
 }
 
 std::vector<std::string> BooleanHandlerList()

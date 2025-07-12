@@ -50,6 +50,8 @@ void CsvExportProcessor::TryProcessNewLines(std::string& value) const
                 '\n'),
             value.end());
         // clang-format on
+    } else if (mOptions.NewLinesHandler == NewLines::MergeAndAddSpace) {
+        value = Utils::ReplaceAll(value, "\n", " ");
     }
 }
 

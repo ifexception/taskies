@@ -45,7 +45,7 @@ enum class TextQualifierType : int { None = 1, DoubleQuotes, SingleQuotes };
 
 enum class EmptyValues : int { None = 0, Blank, Null };
 
-enum class NewLines : int { None = 0, Preserve, Merge };
+enum class NewLines : int { None = 0, Preserve, Merge, MergeAndAddSpace };
 
 enum class BooleanHandler : int {
     None = 0,
