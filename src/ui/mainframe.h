@@ -36,6 +36,7 @@
 #include <wx/dataview.h>
 #include <wx/infobar.h>
 #include <wx/notifmsg.h>
+#include <wx/taskbarbutton.h>
 
 #include <spdlog/spdlog.h>
 
@@ -164,6 +165,9 @@ private:
     void OnIconize(wxIconizeEvent& event);
     void OnResize(wxSizeEvent& event);
     void OnTaskReminder(wxTimerEvent& event);
+    /* Taskbar Button Event Handlers */
+    void OnThumbBarNewTask(wxCommandEvent& event);
+    void OnThumbBarQuickExport(wxCommandEvent& event);
     /* Menu Event Handlers */
     void OnNewTask(wxCommandEvent& event);
     void OnNewEmployer(wxCommandEvent& event);
@@ -246,6 +250,9 @@ private:
     std::shared_ptr<Core::Configuration> pCfg;
     std::string mDatabaseFilePath;
 
+    wxThumbBarButton* pThumbBarNewTaskButton;
+    wxThumbBarButton* pThumbBarQuickExportButton;
+
     wxInfoBar* pInfoBar;
     TaskBarIcon* pTaskBarIcon;
     StatusBar* pStatusBar;
@@ -280,7 +287,9 @@ private:
     std::shared_ptr<wxNotificationMessage> pTaskReminderNotification;
 
     enum {
-        tksIDC_NOTIFICATIONBUTTON = wxID_HIGHEST + 1000,
+        tksIDC_THUMBBAR_NEWTASK = wxID_HIGHEST + 1000,
+        tksIDC_THUMBBAR_QUICKEXPORT,
+        tksIDC_NOTIFICATIONBUTTON,
         tksIDC_FROMDATE,
         tksIDC_TODATE,
         tksIDC_TASKDATAVIEWCTRL,
