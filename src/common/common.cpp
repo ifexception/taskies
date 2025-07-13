@@ -51,6 +51,11 @@ std::string GetPreferencesIconBundleName()
     return "PREFERENCES_ICO";
 }
 
+std::string GetQuickExportIconBundleName()
+{
+    return "QUICK_EXPORT_ICO";
+}
+
 std::string GetLicense()
 {
     return "Taskies is a time tracking productivity tool.\n"
