@@ -1131,6 +1131,14 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
 
+    int ret = wxMessageBox("Are you sure you want to delete this task?",
+        Common::GetProgramName(),
+        wxYES_NO | wxICON_WARNING);
+    if (ret == wxNO) {
+        ResetTaskContextMenuVariables();
+        return;
+    }
+
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
     int rc = taskPersistence.Delete(mTaskIdToModify);
@@ -1495,8 +1503,8 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
                 newTaskMenuItem->Enable(false);
             }
             menu.AppendSeparator();
-            menu.Append(ID_POP_CONTAINER_COPY_TASKS, wxT("&Copy"));
-            menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, wxT("Copy with Headers"));
+            menu.Append(ID_POP_CONTAINER_COPY_TASKS, "&Copy");
+            menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, "Copy with Headers");
             PopupMenu(&menu);
         } else {
             pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"",
@@ -1508,9 +1516,9 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             mTaskDate = model->GetParent()->GetProjectName();
 
             wxMenu menu;
-            menu.Append(wxID_COPY, wxT("&Copy"));
-            menu.Append(wxID_EDIT, wxT("&Edit"));
-            menu.Append(wxID_DELETE, wxT("&Delete"));
+            menu.Append(wxID_COPY, "&Copy");
+            menu.Append(wxID_EDIT, "&Edit");
+            menu.Append(wxID_DELETE, "&Delete");
 
             PopupMenu(&menu);
         }
