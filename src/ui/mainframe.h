@@ -200,6 +200,7 @@ private:
     void OnCopyTaskToClipboard(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
+    void OnAddMinutes(wxCommandEvent& event);
     /* Custom Event Handlers */
     void OnAddNotification(wxCommandEvent& event);
     void OnTaskAddedOnDate(wxCommandEvent& event);

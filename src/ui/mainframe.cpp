@@ -130,6 +130,7 @@ EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTas
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
+EVT_MENU(wxID_ADD, MainFrame::OnAddMinutes)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
@@ -1161,6 +1162,36 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
+void MainFrame::OnAddMinutes(wxCommandEvent& event)
+{
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
+    Services::TaskDurationService taskDurationService(pLogger, mDatabaseFilePath);
+
+    int rc = taskDurationService.GetTaskTimeByIdAndIncrementByValue(
+        mTaskIdToModify, pCfg->GetMinutesIncrement());
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+        ResetTaskContextMenuVariables();
+        return;
+    }
+
+    Services::TaskViewModel taskModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    rc = tasksService.GetById(mTaskIdToModify, taskModel);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
+
+        TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
+    }
+
+    ResetTaskContextMenuVariables();
+}
+
 void MainFrame::OnAddNotification(wxCommandEvent& event)
 {
     pLogger->info("MainFrame::OnAddNotification - Received notification event");
@@ -1519,6 +1550,10 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             menu.Append(wxID_COPY, "&Copy");
             menu.Append(wxID_EDIT, "&Edit");
             menu.Append(wxID_DELETE, "&Delete");
+            menu.AppendSeparator();
+
+            std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
+            menu.Append(wxID_ADD, addMenuLabel);
 
             PopupMenu(&menu);
         }
