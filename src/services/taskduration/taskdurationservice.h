@@ -51,10 +51,19 @@ struct TaskDurationService final {
 
     std::string CalculateTaskDurationTime(const std::vector<TaskDurationViewModel>& taskDurations);
 
+    int GetTaskTimeByIdAndIncrementByValue(const std::int64_t taskId,
+        const int value);
+    int GetTaskTimeById(const std::int64_t taskId,
+        /*out*/ TaskDurationViewModel& taskDurationViewModel) const;
+    void IncrementTimeByValue(const int value, /*out*/ TaskDurationViewModel& taskDurationViewModel);
+    int UpdateTaskTime(const std::int64_t taskId, TaskDurationViewModel& taskDurationViewModel) const;
+
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
     static std::string getAllHoursForDateRange;
     static std::string getBillableHoursForDateRange;
+    static std::string getTaskTimeById;
+    static std::string updateTaskTime;
 };
 } // namespace tks::Services
