@@ -217,6 +217,12 @@ void AboutDialog::CreateControls()
         listIndex, columnIndex++, "https://www.flaticon.com/free-icons/setting");
     columnIndex = 0;
 
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Pixel bytess");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Export");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/export");
+    columnIndex = 0;
+
     attributionsCollPaneWindowSizer->Add(
         pAttributionsListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
 
