@@ -254,7 +254,9 @@ void PreferencesTasksPage::ConfigureEventBindings()
 void PreferencesTasksPage::FillControls()
 {
     pMinutesIncrementChoiceCtrl->Append("Select duration");
+#if TKS_DEBUG
     pMinutesIncrementChoiceCtrl->Append("1", new ClientData<int>(1));
+#endif // TKS_DEBUG
     pMinutesIncrementChoiceCtrl->Append("5", new ClientData<int>(5));
     pMinutesIncrementChoiceCtrl->Append("15", new ClientData<int>(15));
     pMinutesIncrementChoiceCtrl->Append("30", new ClientData<int>(30));
@@ -262,11 +264,9 @@ void PreferencesTasksPage::FillControls()
     pMinutesIncrementChoiceCtrl->SetSelection(0);
 
     pReminderIntervalChoiceCtrl->Append("Select reminder");
-
 #ifdef TKS_DEBUG
     pReminderIntervalChoiceCtrl->Append("1", new ClientData<int>(1));
 #endif // TKS_DEBUG
-
     pReminderIntervalChoiceCtrl->Append("10", new ClientData<int>(10));
     pReminderIntervalChoiceCtrl->Append("15", new ClientData<int>(15));
     pReminderIntervalChoiceCtrl->Append("30", new ClientData<int>(30));
