@@ -6,7 +6,8 @@
 * Task cpature enhancments:
     * Confirmation before deleting task from task view
     * Thumb bar actions for "New Task" and "Quick Export"
-    * Task popup menu option to increment time by 15 minutes  
+    * Task popup menu option to increment time by 15 minutes
+* Validation check on task minute capture to ensure value is factor of 5
 
 ## v0.1.1-beta (release 10/03/2025)
 * Fix: No categories on task edit when "Only show associated categories" is not checked (#1)
