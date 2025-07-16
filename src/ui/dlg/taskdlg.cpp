@@ -1365,6 +1365,14 @@ bool TaskDialog::Validate()
         return false;
     }
 
+    if (minutesValue % 5 != 0) {
+        auto valMsg = fmt::format("Task minutes is not a valid factor of \"5\"");
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pTimeMinutesSpinCtrl);
+        return false;
+    }
+
     auto uniqueIdentifier = pUniqueIdentiferTextCtrl->GetValue().ToStdString();
     if (!uniqueIdentifier.empty() && (uniqueIdentifier.length() < MIN_CHARACTER_COUNT ||
                                          uniqueIdentifier.length() > MAX_CHARACTER_COUNT_NAMES)) {
