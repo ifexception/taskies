@@ -206,7 +206,7 @@ void TaskDialog::CreateControls()
         wxDefaultSize,
         wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
         0,
-        16);
+        MAX_TASK_HOUR_LIMIT);
     pTimeHoursSpinCtrl->SetToolTip("Number of hours the task took");
 
     /* Minutes spin control */
@@ -217,7 +217,7 @@ void TaskDialog::CreateControls()
         wxDefaultSize,
         wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
         0,
-        59);
+        MAX_TASK_MINUTE_LIMIT);
     pTimeMinutesSpinCtrl->SetToolTip("Number of minutes the task took");
     pTimeMinutesSpinCtrl->SetValue(pCfg->GetMinutesIncrement());
     pTimeMinutesSpinCtrl->SetIncrement(pCfg->GetMinutesIncrement());

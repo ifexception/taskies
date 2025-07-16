@@ -20,12 +20,16 @@
 #pragma once
 
 constexpr int MIN_CHARACTER_COUNT = 2;
+
 constexpr int MAX_CHARACTER_COUNT_NAMES = 255;
+
 constexpr int MAX_CHARACTER_COUNT_DESCRIPTIONS = 3000;
 
-constexpr auto INITIAL_NUMBER_OF_ITEMS = 32;
+constexpr int MAX_PRESET_COUNT = 5;
 
-constexpr auto MAX_PRESET_COUNT = 5;
+constexpr int MAX_TASK_HOUR_LIMIT = 16;
+
+constexpr int MAX_TASK_MINUTE_LIMIT = 59;
 
 namespace tks::LogMessage
 {

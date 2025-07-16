@@ -19,6 +19,7 @@
 
 #include "taskdurationservice.h"
 
+#include "../../common/constants.h"
 #include "../../common/logmessages.h"
 #include "../../common/queryhelper.h"
 
@@ -315,12 +316,12 @@ void TaskDurationService::IncrementTimeByValue(const int value,
     TaskDurationViewModel& taskDurationViewModel)
 {
     int minutes = taskDurationViewModel.Minutes + value;
-    if (minutes >= 59) {
+    if (minutes >= MAX_TASK_MINUTE_LIMIT) {
         minutes = 0;
         taskDurationViewModel.Minutes = minutes;
 
         int hours = taskDurationViewModel.Hours + 1;
-        if (hours <= 16) {
+        if (hours <= MAX_TASK_HOUR_LIMIT) {
             taskDurationViewModel.Hours = hours;
         }
     } else {
