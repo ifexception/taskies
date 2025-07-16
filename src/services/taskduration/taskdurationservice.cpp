@@ -317,11 +317,11 @@ void TaskDurationService::IncrementTimeByValue(const int value,
     int minutes = taskDurationViewModel.Minutes + value;
     if (minutes >= 59) {
         minutes = 0;
+        taskDurationViewModel.Minutes = minutes;
 
         int hours = taskDurationViewModel.Hours + 1;
         if (hours <= 16) {
             taskDurationViewModel.Hours = hours;
-            taskDurationViewModel.Minutes = minutes;
         }
     } else {
         taskDurationViewModel.Minutes = minutes;
