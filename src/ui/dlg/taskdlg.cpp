@@ -1366,7 +1366,7 @@ bool TaskDialog::Validate()
     }
 
     if (minutesValue % 5 != 0) {
-        auto valMsg = fmt::format("Task minutes is not a valid factor of \"5\"");
+        auto valMsg = fmt::format("Task minutes value is not a valid factor of \"5\"");
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pTimeMinutesSpinCtrl);
