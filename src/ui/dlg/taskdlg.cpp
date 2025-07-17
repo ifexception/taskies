@@ -206,7 +206,7 @@ void TaskDialog::CreateControls()
         wxDefaultSize,
         wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
         0,
-        16);
+        MAX_TASK_HOUR_LIMIT);
     pTimeHoursSpinCtrl->SetToolTip("Number of hours the task took");
 
     /* Minutes spin control */
@@ -217,7 +217,7 @@ void TaskDialog::CreateControls()
         wxDefaultSize,
         wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
         0,
-        59);
+        MAX_TASK_MINUTE_LIMIT);
     pTimeMinutesSpinCtrl->SetToolTip("Number of minutes the task took");
     pTimeMinutesSpinCtrl->SetValue(pCfg->GetMinutesIncrement());
     pTimeMinutesSpinCtrl->SetIncrement(pCfg->GetMinutesIncrement());
@@ -1359,6 +1359,14 @@ bool TaskDialog::Validate()
     auto minutesValue = pTimeMinutesSpinCtrl->GetValue();
     if (hoursValue == 0 && minutesValue < 5) {
         auto valMsg = fmt::format("Task duration must have elasped more than \"00:05\"");
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pTimeMinutesSpinCtrl);
+        return false;
+    }
+
+    if (minutesValue % 5 != 0) {
+        auto valMsg = fmt::format("Task minutes value is not a valid factor of \"5\"");
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pTimeMinutesSpinCtrl);

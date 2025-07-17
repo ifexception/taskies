@@ -95,6 +95,9 @@ EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
 EVT_SIZE(MainFrame::OnResize)
 EVT_TIMER(tksIDC_TASKREMINDERTIMER, MainFrame::OnTaskReminder)
+/* Taskbar Button Event Handlers */
+EVT_BUTTON(tksIDC_THUMBBAR_NEWTASK, MainFrame::OnThumbBarNewTask)
+EVT_BUTTON(tksIDC_THUMBBAR_QUICKEXPORT, MainFrame::OnThumbBarQuickExport)
 /* Menu Event Handlers */
 EVT_MENU(ID_NEW_TASK, MainFrame::OnNewTask)
 EVT_MENU(ID_NEW_EMPLOYER, MainFrame::OnNewEmployer)
@@ -127,6 +130,7 @@ EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTas
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
+EVT_MENU(wxID_ADD, MainFrame::OnAddMinutes)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
@@ -182,6 +186,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , bDateRangeChanged(false)
     , pTaskReminderTimer(std::make_unique<wxTimer>(this, tksIDC_TASKREMINDERTIMER))
     , pTaskReminderNotification()
+    , pThumbBarNewTaskButton(nullptr)
+    , pThumbBarQuickExportButton(nullptr)
 // clang-format on
 {
     SPDLOG_LOGGER_TRACE(pLogger, "Initialization of MainFrame");
@@ -237,6 +243,20 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
         wxNotificationMessage::UseTaskBarIcon(pTaskBarIcon);
     }
+
+    // Thumbbar button actions
+    wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
+    wxIcon newTaskIcon = addTaskIconBundle.GetIcon(wxSize(16, 16));
+    pThumbBarNewTaskButton =
+        new wxThumbBarButton(tksIDC_THUMBBAR_NEWTASK, newTaskIcon, "New Task ");
+
+    wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
+    wxIcon quickExportIcon = quickExportBundle.GetIcon(wxSize(16, 16));
+    pThumbBarQuickExportButton =
+        new wxThumbBarButton(tksIDC_THUMBBAR_QUICKEXPORT, quickExportIcon, "Quick Export ");
+
+    MSWGetTaskBarButton()->AppendThumbBarButton(pThumbBarNewTaskButton);
+    MSWGetTaskBarButton()->AppendThumbBarButton(pThumbBarQuickExportButton);
 
     // Create controls
     Create();
@@ -322,9 +342,14 @@ void MainFrame::CreateControls()
     fileTasksMenu->AppendSeparator();
     fileTasksMenu->Append(
         ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV format");
-    fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
+
+    auto quickExportMenuItem = fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
         "Q&uick Export to CSV",
         "Export selected data to CSV format using existing presets");
+
+    wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
+    quickExportMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(quickExportBundle));
+
     fileMenu->AppendSubMenu(fileTasksMenu, "Tasks");
     fileMenu->AppendSeparator();
 
@@ -606,6 +631,18 @@ void MainFrame::OnTaskReminder(wxTimerEvent& event)
         }
     }
     pLogger->info("{0} - Task reminder notification finished", TAG);
+}
+
+void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
+{
+    dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.ShowModal();
+}
+
+void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
+{
+    dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
+    quickExportToCsv.ShowModal();
 }
 
 void MainFrame::OnNotificationClick(wxCommandEvent& event)
@@ -1095,6 +1132,14 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
 
+    int ret = wxMessageBox("Are you sure you want to delete this task?",
+        Common::GetProgramName(),
+        wxYES_NO | wxICON_WARNING);
+    if (ret == wxNO) {
+        ResetTaskContextMenuVariables();
+        return;
+    }
+
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
     int rc = taskPersistence.Delete(mTaskIdToModify);
@@ -1112,6 +1157,36 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(this, addNotificationEvent);
+    }
+
+    ResetTaskContextMenuVariables();
+}
+
+void MainFrame::OnAddMinutes(wxCommandEvent& event)
+{
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
+    Services::TaskDurationService taskDurationService(pLogger, mDatabaseFilePath);
+
+    int rc = taskDurationService.GetTaskTimeByIdAndIncrementByValue(
+        mTaskIdToModify, pCfg->GetMinutesIncrement());
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+        ResetTaskContextMenuVariables();
+        return;
+    }
+
+    Services::TaskViewModel taskModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    rc = tasksService.GetById(mTaskIdToModify, taskModel);
+    if (rc != 0) {
+        QueueFetchTasksErrorNotificationEvent();
+    } else {
+        pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
+
+        TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
     }
 
     ResetTaskContextMenuVariables();
@@ -1459,8 +1534,8 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
                 newTaskMenuItem->Enable(false);
             }
             menu.AppendSeparator();
-            menu.Append(ID_POP_CONTAINER_COPY_TASKS, wxT("&Copy"));
-            menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, wxT("Copy with Headers"));
+            menu.Append(ID_POP_CONTAINER_COPY_TASKS, "&Copy");
+            menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, "Copy with Headers");
             PopupMenu(&menu);
         } else {
             pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"",
@@ -1472,9 +1547,13 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             mTaskDate = model->GetParent()->GetProjectName();
 
             wxMenu menu;
-            menu.Append(wxID_COPY, wxT("&Copy"));
-            menu.Append(wxID_EDIT, wxT("&Edit"));
-            menu.Append(wxID_DELETE, wxT("&Delete"));
+            menu.Append(wxID_COPY, "&Copy");
+            menu.Append(wxID_EDIT, "&Edit");
+            menu.Append(wxID_DELETE, "&Delete");
+            menu.AppendSeparator();
+
+            std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
+            menu.Append(wxID_ADD, addMenuLabel);
 
             PopupMenu(&menu);
         }

@@ -749,15 +749,15 @@ int TasksPersistence::GetHoursForDateRangeGroupedByDate(const std::vector<std::s
         std::vector<Model::TaskDurationModel> models;
 
         int rc = sqlite3_prepare_v2(pDb,
-            TasksPersistence::getAllHoursForDate.c_str(),
-            static_cast<int>(TasksPersistence::getAllHoursForDate.size()),
+            TasksPersistence::getAllTimeForDate.c_str(),
+            static_cast<int>(TasksPersistence::getAllTimeForDate.size()),
             &stmt,
             nullptr);
 
         if (rc != SQLITE_OK) {
             const char* error = sqlite3_errmsg(pDb);
             pLogger->error(LogMessages::PrepareStatementTemplate,
-                TasksPersistence::getAllHoursForDate,
+                TasksPersistence::getAllTimeForDate,
                 rc,
                 error);
 
@@ -805,7 +805,7 @@ int TasksPersistence::GetHoursForDateRangeGroupedByDate(const std::vector<std::s
         if (rc != SQLITE_DONE) {
             const char* error = sqlite3_errmsg(pDb);
             pLogger->error(
-                LogMessages::ExecStepTemplate, TasksPersistence::getAllHoursForDate, rc, error);
+                LogMessages::ExecStepTemplate, TasksPersistence::getAllTimeForDate, rc, error);
 
             sqlite3_finalize(stmt);
             return -1;
@@ -882,7 +882,7 @@ std::string TasksPersistence::isDeleted = "SELECT "
                                           "FROM tasks "
                                           "WHERE task_id = ?;";
 
-std::string TasksPersistence::getAllHoursForDate = "SELECT "
+std::string TasksPersistence::getAllTimeForDate = "SELECT "
                                                    "hours, "
                                                    "minutes "
                                                    "FROM tasks "

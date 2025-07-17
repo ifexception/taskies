@@ -19,6 +19,7 @@
 
 #include "taskdurationservice.h"
 
+#include "../../common/constants.h"
 #include "../../common/logmessages.h"
 #include "../../common/queryhelper.h"
 
@@ -222,6 +223,201 @@ std::string TaskDurationService::CalculateTaskDurationTime(
     return formattedTotal;
 }
 
+int TaskDurationService::GetTaskTimeByIdAndIncrementByValue(const std::int64_t taskId,
+    const int value)
+{
+    TaskDurationViewModel taskDurationViewModel;
+    int rc = GetTaskTimeById(taskId, taskDurationViewModel);
+    if (rc != 0) {
+        pLogger->error(
+            "Failed to get task hours and minutes by taskId: \"{0}\". See earlier logs for detail",
+            taskId);
+        return rc;
+    }
+
+    IncrementTimeByValue(value, taskDurationViewModel);
+
+    rc = UpdateTaskTime(taskId, taskDurationViewModel);
+    if (rc != 0) {
+        pLogger->error("Failed to update task hours and minutes with taskId: \"{0}\". See earlier "
+                       "logs for detail",
+            taskId);
+        return rc;
+    }
+
+    return rc;
+}
+
+int TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
+    TaskDurationViewModel& taskDurationViewModel) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        TaskDurationService::getTaskTimeById.c_str(),
+        static_cast<int>(TaskDurationService::getTaskTimeById.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, TaskDurationService::getTaskTimeById, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_ROW) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, TaskDurationService::getTaskTimeById, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int columnIndex = 0;
+
+    taskDurationViewModel.Hours = sqlite3_column_int(stmt, columnIndex++);
+    taskDurationViewModel.Minutes = sqlite3_column_int(stmt, columnIndex++);
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "tasks", taskId);
+
+    return 0;
+}
+
+void TaskDurationService::IncrementTimeByValue(const int value,
+    TaskDurationViewModel& taskDurationViewModel)
+{
+    int minutes = taskDurationViewModel.Minutes + value;
+    if (minutes >= MAX_TASK_MINUTE_LIMIT) {
+        minutes = 0;
+        taskDurationViewModel.Minutes = minutes;
+
+        int hours = taskDurationViewModel.Hours + 1;
+        if (hours <= MAX_TASK_HOUR_LIMIT) {
+            taskDurationViewModel.Hours = hours;
+        }
+    } else {
+        taskDurationViewModel.Minutes = minutes;
+    }
+}
+
+int TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
+    TaskDurationViewModel& taskDurationViewModel) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        TaskDurationService::updateTaskTime.c_str(),
+        static_cast<int>(TaskDurationService::updateTaskTime.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, TaskDurationService::updateTaskTime, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    // hours
+    rc = sqlite3_bind_int(stmt, bindIndex, taskDurationViewModel.Hours);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "hours", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // minutes
+    rc = sqlite3_bind_int(stmt, bindIndex, taskDurationViewModel.Minutes);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "minutes", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // date modified
+    rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // task id
+    rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, TaskDurationService::updateTaskTime, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityUpdated, "task", taskId);
+
+    return 0;
+}
+
 std::string TaskDurationService::getAllHoursForDateRange =
     "SELECT "
     "hours, "
@@ -244,4 +440,18 @@ std::string TaskDurationService::getBillableHoursForDateRange =
     "AND workdays.date <= ? "
     "AND tasks.billable = 1 "
     "AND tasks.is_active = 1";
+
+std::string TaskDurationService::getTaskTimeById = "SELECT "
+                                                   "hours, "
+                                                   "minutes "
+                                                   "FROM "
+                                                   "tasks "
+                                                   "WHERE task_id = ?";
+
+std::string TaskDurationService::updateTaskTime = "UPDATE tasks "
+                                                  "SET "
+                                                  "hours = ?, "
+                                                  "minutes = ?, "
+                                                  "date_modified = ? "
+                                                  "WHERE task_id = ?";
 } // namespace tks::Services

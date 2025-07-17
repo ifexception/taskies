@@ -324,7 +324,7 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
 
         pOkButton->Enable();
     } else {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);

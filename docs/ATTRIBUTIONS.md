@@ -11,3 +11,5 @@
 [Enquiry icons created by logisstudio - Flaticon](https://www.flaticon.com/free-icons/enquiry)
 
 [Setting icons created by chehuna - Flaticon](https://www.flaticon.com/free-icons/setting)
+
+[Export icons created by Pixel bytess - Flaticon](https://www.flaticon.com/free-icons/export)

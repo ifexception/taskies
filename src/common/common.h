@@ -41,6 +41,8 @@ std::string GetAboutIconBundleName();
 
 std::string GetPreferencesIconBundleName();
 
+std::string GetQuickExportIconBundleName();
+
 std::string GetLicense();
 
 struct PresetColumn {
