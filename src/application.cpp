@@ -190,7 +190,10 @@ void Application::InitializeLogger()
 
 bool Application::InitializeConfiguration()
 {
-    return pCfg->Load();
+    bool loadSuccess = pCfg->Load();
+    bool saveSuccess = pCfg->Save();
+
+    return loadSuccess && saveSuccess;
 }
 
 bool Application::RunMigrations()
