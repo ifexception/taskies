@@ -24,6 +24,8 @@
 
 #include "environment.h"
 
+#include "../utils/utils.h"
+
 namespace tks::Core
 {
 const std::string Configuration::Sections::GeneralSection = "general";
@@ -91,7 +93,8 @@ bool Configuration::Load()
         GetTasksConfig(root);
         GetTasksViewConfig(root);
         GetExportConfig(root);
-        GetPresetsConfigEx(root);
+        GetPresetsConfig(root);
+        // GetPresetsConfigEx(root);
     } catch (const toml::syntax_error& error) {
         pLogger->error("Configuration - A TOML syntax/parse error occurred when parsing "
                        "configuration file {0}",
@@ -885,6 +888,82 @@ void Configuration::GetExportConfig(const toml::value& root)
     mSettings.PresetCount = toml::find_or<int>(exportSection, "presetCount", 0);
 }
 
+void Configuration::GetPresetsConfig(const toml::value& root)
+{
+    const auto& presetSection = toml::find(root, Sections::PresetsSection);
+
+    if (!presetSection.is_array_of_tables()) {
+        return;
+    }
+
+    for (size_t i = 0; i < presetSection.size(); i++) {
+        if (presetSection[i].as_table().empty()) {
+            continue;
+        }
+
+        PresetSettings preset;
+
+        preset.Uuid = toml::find_or<std::string>(presetSection[i], "uuid", Utils::Uuid());
+        preset.Name = toml::find_or<std::string>(presetSection[i], "name", "<MissingName>");
+        preset.IsDefault = toml::find_or<bool>(presetSection[i], "isDefault", false);
+        preset.Delimiter = static_cast<DelimiterType>(
+            toml::find_or<int>(presetSection[i], "delimiter", 1 /*Comma*/));
+        preset.TextQualifier = static_cast<TextQualifierType>(
+            toml::find_or<int>(presetSection[i], "textQualifier", 1 /*None*/));
+        preset.EmptyValuesHandler = static_cast<EmptyValues>(
+            toml::find_or<int>(presetSection[i], "emptyValues", 0 /*None*/));
+        preset.NewLinesHandler =
+            static_cast<NewLines>(toml::find_or<int>(presetSection[i], "newLines", 0 /*None*/));
+        preset.BooleanHandler = static_cast<BooleanHandler>(
+            toml::find_or<int>(presetSection[i], "booleans", 0 /*None*/));
+        preset.ExcludeHeaders = toml::find_or<bool>(presetSection[i], "excludeHeaders", false);
+        preset.IncludeAttributes =
+            toml::find_or<bool>(presetSection[i], "includeAttributes", false);
+
+        const auto& columnsArrayTable = toml::find(presetSection[i], "columns");
+
+        bool failedToFindPresetColumns = false;
+        try {
+            if (columnsArrayTable.is_array()) {
+                for (size_t j = 0; j < columnsArrayTable.size(); j++) {
+                    PresetColumnSettings presetColumn;
+                    presetColumn.Column = toml::find<std::string>(columnsArrayTable[j], "column");
+                    presetColumn.OriginalColumn =
+                        toml::find<std::string>(columnsArrayTable[j], "originalColumn");
+                    presetColumn.Order = toml::find<int>(columnsArrayTable[j], "order");
+
+                    preset.Columns.push_back(presetColumn);
+                }
+            }
+        } catch (const std::out_of_range& error) {
+            pLogger->error("Error - {0}", error.what());
+            failedToFindPresetColumns = true;
+        } catch (const toml::type_error& error) {
+            pLogger->error("Error - {0}", error.what());
+            failedToFindPresetColumns = true;
+        } catch (const std::exception& error) {
+            pLogger->error("Error - {0}", error.what());
+            failedToFindPresetColumns = true;
+        }
+
+        if (failedToFindPresetColumns) {
+            preset.Columns.clear();
+        }
+
+        // clang-format off
+            std::sort(
+                preset.Columns.begin(),
+                preset.Columns.end(),
+                [](const PresetColumnSettings& lhs, const PresetColumnSettings& rhs) {
+                    return lhs.Order < rhs.Order;
+                }
+            );
+        // clang-format on
+
+        mSettings.PresetSettings.push_back(preset);
+    }
+}
+
 void Configuration::GetPresetsConfigEx(const toml::value& root)
 {
     try {
@@ -897,7 +976,7 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
             PresetSettings preset;
 
             preset.Uuid = root.at(Sections::PresetsSection).at(i).at("uuid").as_string();
-            preset.Uuid = toml::get_or(root.at(Sections::PresetsSection).at(i).at("uuid"), "");
+            // preset.Uuid = toml::get_or(root.at(Sections::PresetsSection).at(i).at("uuid"), "");
 
             preset.Name = root.at(Sections::PresetsSection).at(i).at("name").as_string();
             preset.IsDefault = root.at(Sections::PresetsSection).at(i).at("isDefault").as_boolean();

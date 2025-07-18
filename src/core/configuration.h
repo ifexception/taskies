@@ -168,6 +168,7 @@ private:
     void GetTasksConfig(const toml::value& root);
     void GetTasksViewConfig(const toml::value& root);
     void GetExportConfig(const toml::value& root);
+    void GetPresetsConfig(const toml::value& root);
     void GetPresetsConfigEx(const toml::value& root);
 
     struct Sections {
