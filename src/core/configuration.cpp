@@ -268,6 +268,8 @@ bool Configuration::RestoreDefaults()
     SetReminderInterval(0);
     OpenTaskDialogOnReminderClick(false);
 
+    TodayAlwaysExpanded(false);
+
     SetExportPath(pEnv->GetExportPath().string());
     CloseExportDialogAfterExporting(false);
     SetPresetCount(0);
@@ -812,59 +814,75 @@ void Configuration::GetGeneralConfig(const toml::value& root)
 {
     const auto& generalSection = toml::find(root, Sections::GeneralSection);
 
-    mSettings.UserInterfaceLanguage = toml::find<std::string>(generalSection, "lang");
-    mSettings.StartOnBoot = toml::find<bool>(generalSection, "startOnBoot");
-    auto tomlStartPosition = toml::find<int>(generalSection, "startPosition");
+    mSettings.UserInterfaceLanguage = toml::find_or<std::string>(generalSection, "lang", "en-US");
+
+    mSettings.StartOnBoot = toml::find_or<bool>(generalSection, "startOnBoot", false);
+
+    auto tomlStartPosition =
+        toml::find_or<int>(generalSection, "startPosition", static_cast<int>(WindowState::Normal));
     mSettings.StartPosition = static_cast<WindowState>(tomlStartPosition);
-    mSettings.ShowInTray = toml::find<bool>(generalSection, "showInTray");
-    mSettings.MinimizeToTray = toml::find<bool>(generalSection, "minimizeToTray");
-    mSettings.CloseToTray = toml::find<bool>(generalSection, "closeToTray");
+
+    mSettings.ShowInTray = toml::find_or<bool>(generalSection, "showInTray", false);
+
+    mSettings.MinimizeToTray = toml::find_or<bool>(generalSection, "minimizeToTray", false);
+
+    mSettings.CloseToTray = toml::find_or<bool>(generalSection, "closeToTray", false);
 }
 
 void Configuration::GetDatabaseConfig(const toml::value& root)
 {
     const auto& databaseSection = toml::find(root, Sections::DatabaseSection);
 
-    mSettings.DatabasePath = toml::find<std::string>(databaseSection, "databasePath");
-    mSettings.BackupDatabase = toml::find<bool>(databaseSection, "backupDatabase");
-    mSettings.BackupPath = toml::find<std::string>(databaseSection, "backupPath");
+    mSettings.DatabasePath = toml::find_or<std::string>(
+        databaseSection, "databasePath", pEnv->GetDatabasePath().string());
+
+    mSettings.BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
+
+    mSettings.BackupPath = toml::find_or<std::string>(databaseSection, "backupPath", "");
 }
 
 void Configuration::GetTasksConfig(const toml::value& root)
 {
     const auto& taskSection = toml::find(root, Sections::TaskSection);
 
-    mSettings.TaskMinutesIncrement = toml::find<int>(taskSection, "minutesIncrement");
+    mSettings.TaskMinutesIncrement = toml::find_or<int>(taskSection, "minutesIncrement", 15);
 
     mSettings.ShowProjectAssociatedCategories =
-        toml::find<bool>(taskSection, "showProjectAssociatedCategories");
+        toml::find_or<bool>(taskSection, "showProjectAssociatedCategories", false);
 
-    mSettings.UseLegacyTaskDialog = toml::find<bool>(taskSection, "useLegacyTaskDialog");
+    mSettings.UseLegacyTaskDialog = toml::find_or<bool>(taskSection, "useLegacyTaskDialog", false);
 
-    mSettings.UseReminders = toml::find<bool>(taskSection, "useReminders");
-    mSettings.UseNotificationBanners = toml::find<bool>(taskSection, "useNotificationBanners");
+    mSettings.UseReminders = toml::find_or<bool>(taskSection, "useReminders", false);
+
+    mSettings.UseNotificationBanners =
+        toml::find_or<bool>(taskSection, "useNotificationBanners", false);
+
     mSettings.OpenTaskDialogOnReminderClick =
-        toml::find<bool>(taskSection, "openTaskDialogOnReminderClick");
-    mSettings.UseTaskbarFlashing = toml::find<bool>(taskSection, "useTaskbarFlashing");
+        toml::find_or<bool>(taskSection, "openTaskDialogOnReminderClick", false);
 
-    mSettings.ReminderInterval = toml::find<int>(taskSection, "reminderInterval");
+    mSettings.UseTaskbarFlashing = toml::find_or<bool>(taskSection, "useTaskbarFlashing", false);
+
+    mSettings.ReminderInterval = toml::find_or<int>(taskSection, "reminderInterval", 0);
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)
 {
     const auto& tasksViewSection = toml::find(root, Sections::TasksViewSection);
 
-    mSettings.TodayAlwaysExpanded = toml::find<bool>(tasksViewSection, "todayAlwaysExpanded");
+    mSettings.TodayAlwaysExpanded =
+        toml::find_or<bool>(tasksViewSection, "todayAlwaysExpanded", false);
 }
 
 void Configuration::GetExportConfig(const toml::value& root)
 {
     const auto& exportSection = toml::find(root, Sections::ExportSection);
 
-    mSettings.ExportPath = toml::find<std::string>(exportSection, "exportPath");
+    mSettings.ExportPath =
+        toml::find_or<std::string>(exportSection, "exportPath", pEnv->GetExportPath().string());
+
     mSettings.CloseExportDialogAfterExporting =
-        toml::find<bool>(exportSection, "closeExportDialogAfterExporting");
-    mSettings.PresetCount = toml::find<int>(exportSection, "presetCount");
+        toml::find_or<bool>(exportSection, "closeExportDialogAfterExporting", false);
+    mSettings.PresetCount = toml::find_or<int>(exportSection, "presetCount", 0);
 }
 
 void Configuration::GetPresetsConfigEx(const toml::value& root)
@@ -879,6 +897,8 @@ void Configuration::GetPresetsConfigEx(const toml::value& root)
             PresetSettings preset;
 
             preset.Uuid = root.at(Sections::PresetsSection).at(i).at("uuid").as_string();
+            preset.Uuid = toml::get_or(root.at(Sections::PresetsSection).at(i).at("uuid"), "");
+
             preset.Name = root.at(Sections::PresetsSection).at(i).at("name").as_string();
             preset.IsDefault = root.at(Sections::PresetsSection).at(i).at("isDefault").as_boolean();
             preset.Delimiter = static_cast<DelimiterType>(
