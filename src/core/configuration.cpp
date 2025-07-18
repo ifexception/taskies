@@ -211,6 +211,8 @@ bool Configuration::Save()
         // clang-format on
 
         auto& columns = presetValue.at("columns");
+        columns.as_array_fmt().fmt = toml::array_format::array_of_tables;
+
         for (const auto& column : preset.Columns) {
             // clang-format off
             toml::value columnValue(
@@ -394,6 +396,8 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
     // clang-format on
 
     auto& columns = presetValue.at("columns");
+    columns.as_array_fmt().fmt = toml::array_format::array_of_tables;
+
     for (const auto& column : presetToSave.Columns) {
         // clang-format off
             toml::value columnValue(
@@ -469,8 +473,8 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
             preset["excludeHeaders"] = presetToUpdate.ExcludeHeaders;
             preset["includeAttributes"] = presetToUpdate.IncludeAttributes;
 
-            auto& columns = preset.at("columns").as_array();
-            columns.clear();
+            auto& columns = preset.at("columns");
+            columns.as_array_fmt().fmt = toml::array_format::array_of_tables;
 
             for (const auto& column : presetToUpdate.Columns) {
                 // clang-format off
@@ -961,6 +965,10 @@ void Configuration::GetPresetsConfig(const toml::value& root)
         // clang-format on
 
         mSettings.PresetSettings.push_back(preset);
+    }
+
+    if (mSettings.PresetCount == 0 && mSettings.PresetSettings.size() > 0) {
+        mSettings.PresetCount = static_cast<int>(mSettings.PresetSettings.size());
     }
 }
 
