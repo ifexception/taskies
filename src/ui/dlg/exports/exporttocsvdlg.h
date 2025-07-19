@@ -34,6 +34,7 @@
 #include <wx/listctrl.h>
 
 #include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
 
 #include "../../dataview/columnlistmodel.h"
 
@@ -106,7 +107,7 @@ private:
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
 
-    void ApplyPreset(Core::Configuration::PresetSettings& presetSettings);
+    void ApplyPreset(const Core::Configuration::PresetSettings& presetSettings);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
