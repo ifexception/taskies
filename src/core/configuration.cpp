@@ -101,7 +101,6 @@ bool Configuration::Load()
     GetTasksViewConfig(root);
     GetExportConfig(root);
     GetPresetsConfig(root);
-    // GetPresetsConfigEx(root);
 
     return true;
 }
@@ -894,83 +893,6 @@ void Configuration::GetPresetsConfig(const toml::value& root)
 
     if (mSettings.PresetCount == 0 && mSettings.PresetSettings.size() > 0) {
         mSettings.PresetCount = static_cast<int>(mSettings.PresetSettings.size());
-    }
-}
-
-void Configuration::GetPresetsConfigEx(const toml::value& root)
-{
-    try {
-        auto presetsSectionSize = root.at(Sections::PresetsSection).size();
-        for (size_t i = 0; i < presetsSectionSize; i++) {
-            if (root.at(Sections::PresetsSection).at(i).as_table().empty()) {
-                continue;
-            }
-
-            PresetSettings preset;
-
-            preset.Uuid = root.at(Sections::PresetsSection).at(i).at("uuid").as_string();
-            // preset.Uuid = toml::get_or(root.at(Sections::PresetsSection).at(i).at("uuid"), "");
-
-            preset.Name = root.at(Sections::PresetsSection).at(i).at("name").as_string();
-            preset.IsDefault = root.at(Sections::PresetsSection).at(i).at("isDefault").as_boolean();
-            preset.Delimiter = static_cast<DelimiterType>(
-                root.at(Sections::PresetsSection).at(i).at("delimiter").as_integer());
-            preset.TextQualifier = static_cast<TextQualifierType>(
-                root.at(Sections::PresetsSection).at(i).at("textQualifier").as_integer());
-            preset.EmptyValuesHandler = static_cast<EmptyValues>(
-                root.at(Sections::PresetsSection).at(i).at("emptyValues").as_integer());
-            preset.NewLinesHandler = static_cast<NewLines>(
-                root.at(Sections::PresetsSection).at(i).at("newLines").as_integer());
-            preset.BooleanHandler = static_cast<BooleanHandler>(
-                root.at(Sections::PresetsSection).at(i).at("booleans").as_integer());
-            preset.ExcludeHeaders =
-                root.at(Sections::PresetsSection).at(i).at("excludeHeaders").as_boolean();
-            preset.IncludeAttributes =
-                root.at(Sections::PresetsSection).at(i).at("includeAttributes").as_boolean();
-
-            auto columnsSize = root.at(Sections::PresetsSection).at(i).at("columns").size();
-            for (size_t j = 0; j < columnsSize; j++) {
-                PresetColumnSettings presetColumn;
-                presetColumn.Column = root.at(Sections::PresetsSection)
-                                          .at(i)
-                                          .at("columns")
-                                          .at(j)
-                                          .at("column")
-                                          .as_string();
-                presetColumn.OriginalColumn = root.at(Sections::PresetsSection)
-                                                  .at(i)
-                                                  .at("columns")
-                                                  .at(j)
-                                                  .at("originalColumn")
-                                                  .as_string();
-                presetColumn.Order = static_cast<int>(root.at(Sections::PresetsSection)
-                        .at(i)
-                        .at("columns")
-                        .at(j)
-                        .at("order")
-                        .as_integer());
-
-                preset.Columns.push_back(presetColumn);
-            }
-
-            // clang-format off
-            std::sort(
-                preset.Columns.begin(),
-                preset.Columns.end(),
-                [](const PresetColumnSettings& lhs, const PresetColumnSettings& rhs) {
-                    return lhs.Order < rhs.Order;
-                }
-            );
-            // clang-format on
-
-            mSettings.PresetSettings.push_back(preset);
-        }
-    } catch (const std::out_of_range& error) {
-        pLogger->error("Error - {0}", error.what());
-    } catch (const toml::type_error& error) {
-        pLogger->error("Error - {0}", error.what());
-    } catch (const std::exception& error) {
-        pLogger->error("Error - {0}", error.what());
     }
 }
 } // namespace tks::Core
