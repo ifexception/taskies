@@ -1108,7 +1108,6 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         pLogger->warn("Failed to unset default preset on preset save");
     }
 
-    // from here to investigate onwards to remove if empty tables check in configuration
     if (presetData->GetValue().empty()) {
         // save preset
         pCfg->SaveExportPreset(preset);
