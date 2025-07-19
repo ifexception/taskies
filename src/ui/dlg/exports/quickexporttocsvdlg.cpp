@@ -673,9 +673,6 @@ void QuickExportToCsvDialog::SetToDateAndDatePicker()
 
 void QuickExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetSettings)
 {
-    const std::string TAG = "QuickExportToCsvDialog::ApplyPreset";
-    pLogger->info("{0} - Begin to apply selected preset", TAG);
-
     mCsvOptions.Delimiter = presetSettings.Delimiter;
     mCsvOptions.TextQualifier = presetSettings.TextQualifier;
     mCsvOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
@@ -683,5 +680,6 @@ void QuickExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& pr
     mCsvOptions.BooleanHandler = presetSettings.BooleanHandler;
 
     mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
+    mCsvOptions.IncludeAttributes = presetSettings.IncludeAttributes;
 }
 } // namespace tks::UI::dlg
