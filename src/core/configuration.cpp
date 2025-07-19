@@ -70,15 +70,14 @@ Configuration::Configuration(std::shared_ptr<Environment> env,
 
 bool Configuration::Load()
 {
-    auto configPath = pEnv->GetConfigurationPath();
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Looking for configuration file at path \"{0}\"",
+        pEnv->GetConfigurationPath().string());
 
-    SPDLOG_LOGGER_TRACE(
-        pLogger, "Looking for configuration file at path \"{0}\"", configPath.string());
-
-    if (!std::filesystem::exists(configPath)) {
+    if (!std::filesystem::exists(pEnv->GetConfigurationPath())) {
         pLogger->warn(
             "Failed to find configuration file at \"{0}\". Creating new one from defaults",
-            configPath.string());
+            pEnv->GetConfigurationPath().string());
 
         if (!RestoreDefaults()) {
             pLogger->error(
@@ -89,7 +88,7 @@ bool Configuration::Load()
 
     toml::value root;
     try {
-        root = toml::parse(configPath.string());
+        root = toml::parse(pEnv->GetConfigurationPath().string());
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
@@ -333,14 +332,11 @@ bool Configuration::RestoreDefaults()
 
 bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 {
-    auto configPath = pEnv->GetConfigurationPath().string();
-
     toml::value root;
     try {
-        root = toml::parse(configPath);
+        root = toml::parse(pEnv->GetConfigurationPath().string());
     } catch (const toml::syntax_error& error) {
-        pLogger->error("Configuration::SaveExportPreset - A TOML syntax/parse error occurred when "
-                       "parsing configuration file {0}",
+        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return false;
     }
@@ -401,15 +397,11 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 
 bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
 {
-    auto configPath = pEnv->GetConfigurationPath().string();
-
     toml::value root;
     try {
-        root = toml::parse(configPath);
+        root = toml::parse(pEnv->GetConfigurationPath().string());
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "Configuration::UpdateExportPreset - A TOML syntax/parse error occurred when parsing "
-            "configuration file {0}",
+        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return false;
     }
@@ -463,14 +455,11 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
 
 bool Configuration::TryUnsetDefaultPreset()
 {
-    auto configPath = pEnv->GetConfigurationPath().string();
-
     toml::value root;
     try {
-        root = toml::parse(configPath);
+        root = toml::parse(pEnv->GetConfigurationPath().string());
     } catch (const toml::syntax_error& error) {
-        pLogger->error("Configuration::TryUnsetDefaultPreset - A TOML syntax/parse error occurred "
-                       "when parsing file {0}",
+        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return false;
     }
