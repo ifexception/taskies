@@ -256,7 +256,7 @@ void QuickExportToCsvDialog::FillControls()
         pPresetsChoiceCtrl->Append(presets[i].Name, new ClientData<std::string>(presets[i].Uuid));
 
         if (presets[i].IsDefault) {
-            presetIndexToSet = i;
+            presetIndexToSet = i + 1;
             ApplyPreset(presets[i]);
         }
     }

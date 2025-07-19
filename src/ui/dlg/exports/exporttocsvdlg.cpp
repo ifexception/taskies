@@ -600,7 +600,7 @@ void ExportToCsvDialog::FillControls()
         pPresetsChoiceCtrl->Append(presets[i].Name, new ClientData<std::string>(presets[i].Uuid));
 
         if (presets[i].IsDefault) {
-            presetIndexToSet = i;
+            presetIndexToSet = i + 1;
             ApplyPreset(presets[i]);
         }
     }
@@ -712,9 +712,10 @@ void ExportToCsvDialog::ConfigureEventBindings()
     );
 
     pPresetsChoiceCtrl->Bind(
-        wxEVT_BUTTON,
+        wxEVT_CHOICE,
         &ExportToCsvDialog::OnPresetChoice,
-        this
+        this,
+        tksIDC_PRESET_CHOICE_CTRL
     );
 
     pAvailableColumnsListView->Bind(
