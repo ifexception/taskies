@@ -69,7 +69,7 @@ bool Application::OnInit()
     InitializeLogger();
 
     auto env = pEnv->GetBuildConfiguration();
-    pLogger->info("Application - Running in \"{0}\" environment", BuildConfigurationToString(env));
+    SPDLOG_LOGGER_TRACE(pLogger, "Running in \"{0}\" environment", BuildConfigurationToString(env));
 
     pCfg = std::make_shared<Core::Configuration>(pEnv, pLogger);
     if (!InitializeConfiguration()) {
