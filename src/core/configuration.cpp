@@ -71,36 +71,38 @@ Configuration::Configuration(std::shared_ptr<Environment> env,
 bool Configuration::Load()
 {
     auto configPath = pEnv->GetConfigurationPath();
-    bool exists = std::filesystem::exists(configPath);
 
-    pLogger->info(
-        "Configuration - Probing for configuration file at path {0}", configPath.string());
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Looking for configuration file at path \"{0}\"", configPath.string());
 
-    if (!exists) {
-        pLogger->error(
-            "Configuration - Failed to find configuration file at {0}", configPath.string());
-        return false;
+    if (!std::filesystem::exists(configPath)) {
+        pLogger->warn(
+            "Failed to find configuration file at \"{0}\". Creating new one from defaults",
+            configPath.string());
+
+        if (!RestoreDefaults()) {
+            pLogger->error(
+                "Failed to recreate configuration file. See earlier logs for more detail");
+            return false;
+        }
     }
 
-    pLogger->info(
-        "Configuration - Successfully located configuration file at path {0}", configPath.string());
-
+    toml::value root;
     try {
-        auto root = toml::parse(configPath.string());
-
-        GetGeneralConfig(root);
-        GetDatabaseConfig(root);
-        GetTasksConfig(root);
-        GetTasksViewConfig(root);
-        GetExportConfig(root);
-        GetPresetsConfig(root);
-        // GetPresetsConfigEx(root);
+        root = toml::parse(configPath.string());
     } catch (const toml::syntax_error& error) {
-        pLogger->error("Configuration - A TOML syntax/parse error occurred when parsing "
-                       "configuration file {0}",
-            error.what());
+        pLogger->error(
+            "A TOML syntax/parse error occurred when parsing configuration file \"{0}\"", error.what());
         return false;
     }
+
+    GetGeneralConfig(root);
+    GetDatabaseConfig(root);
+    GetTasksConfig(root);
+    GetTasksViewConfig(root);
+    GetExportConfig(root);
+    GetPresetsConfig(root);
+    // GetPresetsConfigEx(root);
 
     return true;
 }
@@ -943,9 +945,6 @@ void Configuration::GetPresetsConfig(const toml::value& root)
             pLogger->error("Error - {0}", error.what());
             failedToFindPresetColumns = true;
         } catch (const toml::type_error& error) {
-            pLogger->error("Error - {0}", error.what());
-            failedToFindPresetColumns = true;
-        } catch (const std::exception& error) {
             pLogger->error("Error - {0}", error.what());
             failedToFindPresetColumns = true;
         }

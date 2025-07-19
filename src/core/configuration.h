@@ -23,7 +23,9 @@
 #include <string>
 
 #include <toml.hpp>
+
 #include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
 
 #include "../common/common.h"
 #include "../common/enums.h"
