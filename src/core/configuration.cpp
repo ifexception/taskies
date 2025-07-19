@@ -380,14 +380,9 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 
     presets.push_back(std::move(presetValue));
 
-    pLogger->info(
-        "Configuration::SaveExportPreset - Preset serialized to:\n{0}", toml::format(root));
-
-    // update/save ptr data
     PresetSettings newPreset(presetToSave);
-    SetPreset(newPreset);
+    AddPreset(newPreset);
 
-    // save settings to file
     const std::string tomlContentsString = toml::format(root);
 
     bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
@@ -442,7 +437,6 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
         }
     }
 
-    // update ptr data
     PresetSettings updatedPresetSettings(presetToUpdate);
     EmplacePreset(updatedPresetSettings);
 
@@ -698,7 +692,7 @@ void Configuration::SetPresets(const std::vector<PresetSettings>& values)
     mSettings.PresetSettings = values;
 }
 
-void Configuration::SetPreset(const PresetSettings& value)
+void Configuration::AddPreset(const PresetSettings& value)
 {
     mSettings.PresetSettings.push_back(value);
 }
