@@ -165,6 +165,8 @@ public:
     void ClearPresets();
 
 private:
+    bool WriteTomlContentsToFile(const std::string& fileContents);
+
     void GetGeneralConfig(const toml::value& root);
     void GetDatabaseConfig(const toml::value& root);
     void GetTasksConfig(const toml::value& root);

@@ -91,8 +91,8 @@ bool Configuration::Load()
     try {
         root = toml::parse(configPath.string());
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "A TOML syntax/parse error occurred when parsing configuration file \"{0}\"", error.what());
+        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
+            error.what());
         return false;
     }
 
@@ -157,7 +157,6 @@ bool Configuration::Save()
 
     // Task section
     root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
-
     root.at(Sections::TaskSection)["minutesIncrement"] = mSettings.TaskMinutesIncrement;
     root.at(Sections::TaskSection)["showProjectAssociatedCategories"] =
         mSettings.ShowProjectAssociatedCategories;
@@ -232,25 +231,10 @@ bool Configuration::Save()
         presets.push_back(std::move(presetValue));
     }
 
-    const std::string configString = toml::format(root);
+    const std::string tomlContentsString = toml::format(root);
 
-    const std::string configFilePath = pEnv->GetConfigurationPath().string();
-
-    pLogger->info(
-        "Configuration - Probing for configuration file for writing at path {0}", configFilePath);
-
-    std::ofstream configFile;
-    configFile.open(configFilePath, std::ios_base::out);
-    if (!configFile) {
-        pLogger->error(
-            "Configuration - Failed to open configuration file at path {0}", configFilePath);
-        return false;
-    }
-
-    configFile << configString;
-
-    configFile.close();
-    return true;
+    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
+    return writeSuccess;
 }
 
 bool Configuration::RestoreDefaults()
@@ -341,25 +325,10 @@ bool Configuration::RestoreDefaults()
     auto& presets = root.at(Sections::PresetsSection);
     presets.as_array_fmt().fmt = toml::array_format::array_of_tables;
 
-    const std::string configString = toml::format(root);
+    const std::string tomlContentsString = toml::format(root);
 
-    const std::string configFilePath = pEnv->GetConfigurationPath().string();
-
-    pLogger->info(
-        "Configuration - Probing for configuration file for writing at path {0}", configFilePath);
-
-    std::ofstream configFile;
-    configFile.open(configFilePath, std::ios_base::out);
-    if (!configFile) {
-        pLogger->error(
-            "Configuration - Failed to open configuration file at path {0}", configFilePath);
-        return false;
-    }
-
-    configFile << configString;
-
-    configFile.close();
-    return true;
+    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
+    return writeSuccess;
 }
 
 bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
@@ -424,23 +393,10 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
     SetPreset(newPreset);
 
     // save settings to file
-    const std::string presetConfigString = toml::format(root);
+    const std::string tomlContentsString = toml::format(root);
 
-    pLogger->info("Configuration - Probing for configuration file for appending preset at path {0}",
-        configPath);
-
-    std::ofstream configFileStream;
-    configFileStream.open(configPath, std::ios_base::out);
-    if (!configFileStream) {
-        pLogger->error("Configuration - Failed to open configuration file at path {0}", configPath);
-        return false;
-    }
-
-    configFileStream << presetConfigString;
-
-    configFileStream.close();
-
-    return true;
+    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
+    return writeSuccess;
 }
 
 bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
@@ -495,33 +451,14 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
         }
     }
 
-    pLogger->info(
-        "Configuration::UpdateExportPreset - Preset serialized to:\n{0}", toml::format(root));
-
     // update ptr data
     PresetSettings updatedPresetSettings(presetToUpdate);
     EmplacePreset(updatedPresetSettings);
 
-    const std::string presetConfigString = toml::format(root);
+    const std::string tomlContentsString = toml::format(root);
 
-    pLogger->info("Configuration::UpdateExportPreset - Probing for configuration file for "
-                  "appending preset at path {0}",
-        configPath);
-
-    std::ofstream configFileStream;
-    configFileStream.open(configPath, std::ios_base::out);
-    if (!configFileStream) {
-        pLogger->error(
-            "Configuration::UpdateExportPreset - Failed to open configuration file at path {0}",
-            configPath);
-        return false;
-    }
-
-    configFileStream << presetConfigString;
-
-    configFileStream.close();
-
-    return true;
+    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
+    return writeSuccess;
 }
 
 bool Configuration::TryUnsetDefaultPreset()
@@ -547,29 +484,10 @@ bool Configuration::TryUnsetDefaultPreset()
         preset["isDefault"] = false;
     }
 
-    pLogger->info(
-        "Configuration::TryUnsetDefaultPreset - Preset serialized to:\n{0}", toml::format(root));
+    const std::string tomlContentsString = toml::format(root);
 
-    const std::string presetConfigString = toml::format(root);
-
-    pLogger->info("Configuration::TryUnsetDefaultPreset - Probing for configuration file for "
-                  "appending preset at path {0}",
-        configPath);
-
-    std::ofstream configFileStream;
-    configFileStream.open(configPath, std::ios_base::out);
-    if (!configFileStream) {
-        pLogger->error(
-            "Configuration::TryUnsetDefaultPreset - Failed to open configuration file at path {0}",
-            configPath);
-        return false;
-    }
-
-    configFileStream << presetConfigString;
-
-    configFileStream.close();
-
-    return true;
+    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
+    return writeSuccess;
 }
 
 std::string Configuration::GetUserInterfaceLanguage() const
@@ -817,6 +735,25 @@ void Configuration::EmplacePreset(const PresetSettings& value)
 void Configuration::ClearPresets()
 {
     mSettings.PresetSettings.clear();
+}
+
+bool Configuration::WriteTomlContentsToFile(const std::string& fileContents)
+{
+    const std::string configFilePath = pEnv->GetConfigurationPath().string();
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Looking for configuration file at path \"{0}\"", configFilePath);
+
+    std::ofstream configFileStream;
+    configFileStream.open(configFilePath, std::ios::out);
+    if (!configFileStream.is_open()) {
+        pLogger->error("Failed to open configuration file at path \"{0}\"", configFilePath);
+        return false;
+    }
+
+    configFileStream << fileContents;
+
+    configFileStream.close();
+    return true;
 }
 
 void Configuration::GetGeneralConfig(const toml::value& root)
