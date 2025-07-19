@@ -130,10 +130,6 @@ bool Configuration::Save()
                 Sections::ExportSection,
                 toml::table { }
             },
-            {
-                Sections::PresetsSection,
-                toml::array { }
-            },
         }
     );
     // clang-format on
@@ -178,55 +174,53 @@ bool Configuration::Save()
     root.at(Sections::ExportSection)["presetCount"] = mSettings.PresetCount;
 
     // Presets section
-    auto& presets = root.at(Sections::PresetsSection);
-    presets.as_array_fmt().fmt = toml::array_format::array_of_tables;
-
-    if (mSettings.PresetSettings.empty() && presets.as_array().size() != 1) {
-        // clang-format off
-        toml::value v(
-            toml::table {}
-        );
-        // clang-format on
-        presets.push_back(std::move(v));
-    }
-
-    for (const auto& preset : mSettings.PresetSettings) {
-        // clang-format off
-        toml::value presetValue(
-            toml::table {
-                { "uuid", preset.Uuid },
-                { "name", preset.Name },
-                { "isDefault", preset.IsDefault },
-                { "delimiter", static_cast<int>(preset.Delimiter) },
-                { "textQualifier", static_cast<int>(preset.TextQualifier) },
-                { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
-                { "newLines", static_cast<int>(preset.NewLinesHandler) },
-                { "booleans", static_cast<int>(preset.BooleanHandler) },
-                { "excludeHeaders", preset.ExcludeHeaders },
-                { "includeAttributes", preset.IncludeAttributes },
-                { "columns", toml::array {} },
-            }
-        );
-        // clang-format on
-
-        auto& columns = presetValue.at("columns");
-        columns.as_array_fmt().fmt = toml::array_format::array_of_tables;
-
-        for (const auto& column : preset.Columns) {
+    if (mSettings.PresetSettings.size() > 0) {
+        for (const auto& preset : mSettings.PresetSettings) {
             // clang-format off
-            toml::value columnValue(
+            toml::value presetValue(
                 toml::table {
-                    { "column", column.Column },
-                    { "originalColumn", column.OriginalColumn },
-                    { "order", column.Order }
+                    { "uuid", preset.Uuid },
+                    { "name", preset.Name },
+                    { "isDefault", preset.IsDefault },
+                    { "delimiter", static_cast<int>(preset.Delimiter) },
+                    { "textQualifier", static_cast<int>(preset.TextQualifier) },
+                    { "emptyValues", static_cast<int>(preset.EmptyValuesHandler) },
+                    { "newLines", static_cast<int>(preset.NewLinesHandler) },
+                    { "booleans", static_cast<int>(preset.BooleanHandler) },
+                    { "excludeHeaders", preset.ExcludeHeaders },
+                    { "includeAttributes", preset.IncludeAttributes },
+                    { "columns", toml::array {} },
                 }
             );
             // clang-format on
 
-            columns.push_back(std::move(columnValue));
-        }
+            auto& columns = presetValue.at("columns");
+            columns.as_array_fmt().fmt = toml::array_format::array_of_tables;
 
-        presets.push_back(std::move(presetValue));
+            for (const auto& column : preset.Columns) {
+                // clang-format off
+                toml::value columnValue(
+                    toml::table {
+                        { "column", column.Column },
+                        { "originalColumn", column.OriginalColumn },
+                        { "order", column.Order }
+                    }
+                );
+                // clang-format on
+
+                columns.push_back(std::move(columnValue));
+            }
+
+            if (!root.contains(Sections::PresetsSection)) {
+                toml::value presetArray(toml::array{ presetValue });
+                root[Sections::PresetsSection] = presetArray;
+            } else {
+                auto& presets = root.at(Sections::PresetsSection);
+                presets.push_back(std::move(presetValue));
+            }
+
+            root[Sections::PresetsSection].as_array_fmt().fmt = toml::array_format::array_of_tables;
+        }
     }
 
     const std::string tomlContentsString = toml::format(root);
@@ -311,17 +305,10 @@ bool Configuration::RestoreDefaults()
                     { "closeExportDialogAfterExporting", false },
                     { "presetCount", 0 }
                 }
-            },
-            {
-                Sections::PresetsSection,
-                toml::array { toml::table {} }
             }
         }
     );
     // clang-format on
-
-    auto& presets = root.at(Sections::PresetsSection);
-    presets.as_array_fmt().fmt = toml::array_format::array_of_tables;
 
     const std::string tomlContentsString = toml::format(root);
 
@@ -342,7 +329,6 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 
     root.at(Sections::ExportSection)["presetCount"] = GetPresetCount() + 1;
 
-    auto& presets = root.at(Sections::PresetsSection);
     // clang-format off
     toml::value presetValue(
         toml::table {
@@ -378,7 +364,13 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
         columns.push_back(std::move(columnValue));
     }
 
-    presets.push_back(std::move(presetValue));
+    if (!root.contains(Sections::PresetsSection)) {
+        toml::value presetArray(toml::array{ presetValue });
+        root[Sections::PresetsSection] = presetArray;
+    } else {
+        auto& presets = root.at(Sections::PresetsSection);
+        presets.push_back(std::move(presetValue));
+    }
 
     PresetSettings newPreset(presetToSave);
     AddPreset(newPreset);
@@ -402,10 +394,6 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
 
     auto& presets = root.at(Sections::PresetsSection).as_array();
     for (auto& preset : presets) {
-        if (preset.as_table().empty()) {
-            continue;
-        }
-
         if (preset["uuid"].as_string() == presetToUpdate.Uuid) {
             preset["name"] = presetToUpdate.Name;
             preset["isDefault"] = presetToUpdate.IsDefault;
@@ -457,12 +445,12 @@ bool Configuration::TryUnsetDefaultPreset()
         return false;
     }
 
+    if (!root.contains(Sections::PresetsSection)) {
+        return true;
+    }
+
     auto& presets = root.at(Sections::PresetsSection).as_array();
     for (auto& preset : presets) {
-        if (preset.as_table().empty()) {
-            continue;
-        }
-
         preset["isDefault"] = false;
     }
 
@@ -815,6 +803,10 @@ void Configuration::GetExportConfig(const toml::value& root)
 
 void Configuration::GetPresetsConfig(const toml::value& root)
 {
+    if (!root.contains(Sections::PresetsSection)) {
+        return;
+    }
+
     const auto& presetSection = toml::find(root, Sections::PresetsSection);
 
     if (!presetSection.is_array_of_tables()) {
@@ -822,10 +814,6 @@ void Configuration::GetPresetsConfig(const toml::value& root)
     }
 
     for (size_t i = 0; i < presetSection.size(); i++) {
-        if (presetSection[i].as_table().empty()) {
-            continue;
-        }
-
         PresetSettings preset;
 
         preset.Uuid = toml::find_or<std::string>(presetSection[i], "uuid", Utils::Uuid());

@@ -1112,7 +1112,6 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     if (presetData->GetValue().empty()) {
         // save preset
         pCfg->SaveExportPreset(preset);
-        pCfg->SetPresetCount(pCfg->GetPresetCount() + 1);
 
         // set as the active preset
         int selection =
