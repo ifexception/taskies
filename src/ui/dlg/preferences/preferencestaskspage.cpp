@@ -36,7 +36,6 @@ PreferencesTasksPage::PreferencesTasksPage(wxWindow* parent,
     , pLogger(logger)
     , pMinutesIncrementChoiceCtrl(nullptr)
     , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
-    , pUseLegacyTaskDialogCheckBoxCtrl(nullptr)
     , pUseRemindersCheckBoxCtrl(nullptr)
     , pReminderIntervalChoiceCtrl(nullptr)
     , pOpenTaskDialogOnReminderClickCheckBoxCtrl(nullptr)
@@ -101,7 +100,6 @@ void PreferencesTasksPage::Save()
 
     pCfg->SetMinutesIncrement(incrementData->GetValue());
     pCfg->ShowProjectAssociatedCategories(pShowProjectAssociatedCategoriesCheckBoxCtrl->GetValue());
-    pCfg->UseLegacyTaskDialog(pUseLegacyTaskDialogCheckBoxCtrl->GetValue());
 
     pCfg->UseReminders(pUseRemindersCheckBoxCtrl->GetValue());
     pCfg->UseNotificationBanners(pUseNotificationBanners->GetValue());
@@ -124,7 +122,6 @@ void PreferencesTasksPage::Reset()
 {
     pMinutesIncrementChoiceCtrl->SetSelection(pCfg->GetMinutesIncrement());
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
-    pUseLegacyTaskDialogCheckBoxCtrl->SetValue(pCfg->UseLegacyTaskDialog());
 
     pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
     pUseNotificationBanners->SetValue(pCfg->UseNotificationBanners());
@@ -166,10 +163,10 @@ void PreferencesTasksPage::CreateControls()
     sizer->Add(pShowProjectAssociatedCategoriesCheckBoxCtrl,
         wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    /* Use legacy task dialog */
-    pUseLegacyTaskDialogCheckBoxCtrl =
-        new wxCheckBox(this, tksIDC_USELEGACYTASKDIALOGCHECKBOXCTRL, "Use legacy task dialog");
-    sizer->Add(pUseLegacyTaskDialogCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    /* Legacy task dialog status */
+    auto legacyTaskDialogStatusLabel =
+        new wxStaticText(this, wxID_ANY, "Legacy task dialog has been retired and cannot be used");
+    sizer->Add(legacyTaskDialogStatusLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Reminders box */
     auto remindersBox = new wxStaticBox(this, wxID_ANY, "Reminders");
@@ -280,7 +277,6 @@ void PreferencesTasksPage::DataToControls()
 {
     pMinutesIncrementChoiceCtrl->SetStringSelection(std::to_string(pCfg->GetMinutesIncrement()));
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
-    pUseLegacyTaskDialogCheckBoxCtrl->SetValue(pCfg->UseLegacyTaskDialog());
 
     pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
     if (pCfg->UseReminders()) {

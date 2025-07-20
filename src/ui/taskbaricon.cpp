@@ -33,7 +33,7 @@
 
 #include "dlg/preferences/preferencesdlg.h"
 #include "dlg/exports/quickexporttocsvdlg.h"
-#include "dlg/taskdlglegacy.h"
+#include "dlg/taskdlg.h"
 
 namespace tks::UI
 {
@@ -100,13 +100,8 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 {
     auto menu = new wxMenu();
 
-    auto newTaskMenuBarTitle =
-        pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
-    auto newTaskMenuBarDescription =
-        pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
-
     auto newTaskMenuItem =
-        menu->Append(tksIDC_MENU_NEWTASK, newTaskMenuBarTitle, newTaskMenuBarDescription);
+        menu->Append(tksIDC_MENU_NEWTASK, "&New Task\tCtrl-N", "Create new task");
 
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
@@ -139,7 +134,7 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 
 void TaskBarIcon::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::TaskDialogLegacy newTaskDialog(pParent, pEnv, pCfg, pLogger, mDatabaseFilePath);
+    dlg::TaskDialog newTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
 }
 

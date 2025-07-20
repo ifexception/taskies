@@ -86,7 +86,7 @@ public:
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
     ~Configuration() = default;
 
-    bool Load();
+    bool LoadAndOrRecreate();
 
     bool Save();
     bool RestoreDefaults();
@@ -127,9 +127,6 @@ public:
 
     bool ShowProjectAssociatedCategories() const;
     void ShowProjectAssociatedCategories(const bool value);
-
-    bool UseLegacyTaskDialog() const;
-    void UseLegacyTaskDialog(const bool value);
 
     bool UseReminders() const;
     void UseReminders(const bool value);
@@ -197,7 +194,6 @@ private:
 
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;
-        bool UseLegacyTaskDialog;
         bool UseReminders;
         bool UseNotificationBanners;
         bool UseTaskbarFlashing;

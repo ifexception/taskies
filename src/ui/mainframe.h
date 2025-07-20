@@ -217,8 +217,6 @@ private:
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
 
-    void SetNewTaskMenubarTitle();
-
     void DoResetToCurrentWeekAndOrToday();
     void ResetDateRange();
     void ResetDatePickerValues();

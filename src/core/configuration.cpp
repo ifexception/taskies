@@ -68,7 +68,7 @@ Configuration::Configuration(std::shared_ptr<Environment> env,
 {
 }
 
-bool Configuration::Load()
+bool Configuration::LoadAndOrRecreate()
 {
     SPDLOG_LOGGER_TRACE(pLogger,
         "Looking for configuration file at path \"{0}\"",
@@ -154,7 +154,6 @@ bool Configuration::Save()
     root.at(Sections::TaskSection)["minutesIncrement"] = mSettings.TaskMinutesIncrement;
     root.at(Sections::TaskSection)["showProjectAssociatedCategories"] =
         mSettings.ShowProjectAssociatedCategories;
-    root.at(Sections::TaskSection)["useLegacyTaskDialog"] = mSettings.UseLegacyTaskDialog;
     root.at(Sections::TaskSection)["useReminders"] = mSettings.UseReminders;
     root.at(Sections::TaskSection)["useNotificationBanners"] = mSettings.UseNotificationBanners;
     root.at(Sections::TaskSection)["openTaskDialogOnReminderClick"] =
@@ -244,7 +243,6 @@ bool Configuration::RestoreDefaults()
 
     SetMinutesIncrement(15);
     ShowProjectAssociatedCategories(false);
-    UseLegacyTaskDialog(false);
     UseReminders(false);
     UseNotificationBanners(false);
     UseTaskbarFlashing(false);
@@ -570,16 +568,6 @@ void Configuration::ShowProjectAssociatedCategories(const bool value)
     mSettings.ShowProjectAssociatedCategories = value;
 }
 
-bool Configuration::UseLegacyTaskDialog() const
-{
-    return mSettings.UseLegacyTaskDialog;
-}
-
-void Configuration::UseLegacyTaskDialog(const bool value)
-{
-    mSettings.UseLegacyTaskDialog = value;
-}
-
 bool Configuration::UseReminders() const
 {
     return mSettings.UseReminders;
@@ -765,8 +753,6 @@ void Configuration::GetTasksConfig(const toml::value& root)
 
     mSettings.ShowProjectAssociatedCategories =
         toml::find_or<bool>(taskSection, "showProjectAssociatedCategories", false);
-
-    mSettings.UseLegacyTaskDialog = toml::find_or<bool>(taskSection, "useLegacyTaskDialog", false);
 
     mSettings.UseReminders = toml::find_or<bool>(taskSection, "useReminders", false);
 

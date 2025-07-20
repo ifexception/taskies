@@ -70,7 +70,6 @@ private:
 
     wxChoice* pMinutesIncrementChoiceCtrl;
     wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
-    wxCheckBox* pUseLegacyTaskDialogCheckBoxCtrl;
     wxCheckBox* pUseRemindersCheckBoxCtrl;
     wxCheckBox* pUseNotificationBanners;
     wxCheckBox* pUseTaskbarFlashing;
@@ -80,7 +79,6 @@ private:
     enum {
         tksIDC_MINUTES_INCREMENT = wxID_HIGHEST + 100,
         tksIDC_ASSOCIATEDCATEGORIES,
-        tksIDC_USELEGACYTASKDIALOGCHECKBOXCTRL,
         tksIDC_USEREMINDERSCHECKBOXCTRL,
         tksIDC_USENOTIFICATIONBANNERS,
         tksIDC_USETASKBARFLASHING,
