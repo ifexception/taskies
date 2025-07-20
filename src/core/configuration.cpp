@@ -716,6 +716,10 @@ bool Configuration::WriteTomlContentsToFile(const std::string& fileContents)
 
 void Configuration::GetGeneralConfig(const toml::value& root)
 {
+    if (!root.contains(Sections::GeneralSection)) {
+        return;
+    }
+
     const auto& generalSection = toml::find(root, Sections::GeneralSection);
 
     mSettings.UserInterfaceLanguage = toml::find_or<std::string>(generalSection, "lang", "en-US");
@@ -735,6 +739,10 @@ void Configuration::GetGeneralConfig(const toml::value& root)
 
 void Configuration::GetDatabaseConfig(const toml::value& root)
 {
+    if (!root.contains(Sections::DatabaseSection)) {
+        return;
+    }
+
     const auto& databaseSection = toml::find(root, Sections::DatabaseSection);
 
     mSettings.DatabasePath = toml::find_or<std::string>(
@@ -747,6 +755,10 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
 
 void Configuration::GetTasksConfig(const toml::value& root)
 {
+    if (!root.contains(Sections::TaskSection)) {
+        return;
+    }
+
     const auto& taskSection = toml::find(root, Sections::TaskSection);
 
     mSettings.TaskMinutesIncrement = toml::find_or<int>(taskSection, "minutesIncrement", 15);
@@ -769,6 +781,10 @@ void Configuration::GetTasksConfig(const toml::value& root)
 
 void Configuration::GetTasksViewConfig(const toml::value& root)
 {
+    if (!root.contains(Sections::TasksViewSection)) {
+        return;
+    }
+
     const auto& tasksViewSection = toml::find(root, Sections::TasksViewSection);
 
     mSettings.TodayAlwaysExpanded =
@@ -777,6 +793,10 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
 
 void Configuration::GetExportConfig(const toml::value& root)
 {
+    if (!root.contains(Sections::ExportSection)) {
+        return;
+    }
+
     const auto& exportSection = toml::find(root, Sections::ExportSection);
 
     mSettings.ExportPath =
