@@ -26,10 +26,12 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
-
 #include <wx/persist.h>
+
 #include <sqlite3.h>
+
 #include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
 
 namespace tks
 {
