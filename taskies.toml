@@ -14,7 +14,6 @@ backupPath=""
 [tasks]
 minutesIncrement=15
 showProjectAssociatedCategories=false
-useLegacyTaskDialog=false
 useReminders=false
 useNotificationBanners=false
 useTaskbarFlashing=false

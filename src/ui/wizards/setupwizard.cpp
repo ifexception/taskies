@@ -26,6 +26,8 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/logmessages.h"
+#include "../../common/queryhelper.h"
 #include "../../common/validator.h"
 
 #include "../../core/environment.h"
@@ -70,20 +72,12 @@ SetupWizard::SetupWizard(wxFrame* frame,
 {
     pSetupWizardService = new Services::SetupWizardService(pLogger, mDatabasePath);
 
-    pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
-    // Set left side wizard image
-    /*auto wizardImage = pEnv->GetResourcesPath() / Common::Resources::Wizard();
-    auto wizardImagePath = wizardImage.string();
-    SetBitmap(wxBitmapBundle::FromSVGFile(
-        (pEnv->GetResourcesPath() / Common::Resources::Wizard()).string(), wxSize(116, 260)));*/
-
     // Set icon in titlebar
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 
     ConfigureEventBindings();
 
-    pLogger->info("SetupWizard::SetupWizard - initialize pages");
     pWelcomePage = new WelcomePage(this, pLogger);
     pCreateEmployerAndClientPage =
         new CreateEmployerAndClientPage(this, pSetupWizardService, pLogger, mDatabasePath);
@@ -223,7 +217,7 @@ void WelcomePage::CreateControls()
         wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     std::string introMessage =
-        "This wizard will help you get Taskies setup or restored to your computer";
+        "This wizard will help you get Taskies setup or restored on your computer";
     auto introLabel = new wxStaticText(this, wxID_ANY, introMessage);
 
     std::string continueNextMessage = "To continue, click Next";
@@ -249,7 +243,7 @@ void WelcomePage::ConfigureEventBindings()
 
 void WelcomePage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("WelcomePage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled");
     // pParent->OnWizardCanceled();
 }
 
@@ -357,7 +351,7 @@ void OptionPage::ConfigureEventBindings()
 
 void OptionPage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("OptionPage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled");
 }
 
 void OptionPage::OnSetupWizardFlowCheck(wxCommandEvent& event)
@@ -470,7 +464,7 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
         if (rc != 0) {
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return false;
         }
@@ -479,7 +473,7 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
         if (clientId == -1) {
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return false;
         } else {
@@ -571,7 +565,7 @@ void CreateEmployerAndClientPage::ConfigureEventBindings()
 
 void CreateEmployerAndClientPage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("CreateEmployerAndClientPage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled");
     pSetupWizardService->RollbackTransaction();
 }
 
@@ -583,11 +577,9 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
 
         rc = pSetupWizardService->GetByEmployerId(pParent->GetEmployerId(), employer);
         if (rc != 0) {
-            pLogger->info(
-                "CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch employer");
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return;
         }
@@ -601,11 +593,9 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
 
         rc = pSetupWizardService->GetByClientId(pParent->GetClientId(), client);
         if (rc != 0) {
-            pLogger->info(
-                "CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch client");
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return;
         }
@@ -726,7 +716,7 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     if (categoryId == -1) {
         wxMessageBox("The setup wizard encountered an unexpected error",
             "Setup Error",
-            wxOK | wxICON_ERROR,
+            wxOK_DEFAULT | wxICON_ERROR,
             this);
         return false;
     } else {
@@ -867,7 +857,7 @@ void CreateProjectAndCategoryPage::OnProjectNameChange(wxCommandEvent& event)
 
 void CreateProjectAndCategoryPage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("CreateProjectAndCategoryPage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled and rolling back transaction");
     pSetupWizardService->RollbackTransaction();
 }
 
@@ -879,11 +869,9 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
 
         rc = pSetupWizardService->GetByProjectId(pParent->GetProjectId(), project);
         if (rc != 0) {
-            pLogger->info(
-                "CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch project");
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return;
         }
@@ -899,11 +887,9 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
 
         rc = pSetupWizardService->GetByCategoryId(pParent->GetCategoryId(), category);
         if (rc != 0) {
-            pLogger->info(
-                "CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch category");
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return;
         }
@@ -975,7 +961,7 @@ void SetupCompletePage::OnSetupCompleteWizardPageShown(wxWizardEvent& event)
 
 void SetupCompletePage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("SetupCompletePage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled and rolling back transaction");
     pSetupWizardService->RollbackTransaction();
 }
 
@@ -1199,41 +1185,34 @@ void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event)
 
     rc = sqlite3_open(backupDatabasePath.c_str(), &backupDb);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(backupDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "RestoreDatabaseResultPage::OnWizardPageShown",
-            backupDatabasePath,
-            rc,
-            err);
+        const char* error = sqlite3_errmsg(backupDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, backupDatabasePath, rc, error);
         return;
     }
 
     rc = sqlite3_open(restoreDatabasePath.c_str(), &restoreDb);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(restoreDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "RestoreDatabaseResultPage::OnWizardPageShown",
-            restoreDatabasePath,
-            rc,
-            err);
+        const char* error = sqlite3_errmsg(restoreDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, restoreDatabasePath, rc, error);
         return;
     }
 
     backup = sqlite3_backup_init(/*destination*/ restoreDb, "main", /*source*/ backupDb, "main");
-    if (backup) {
-        sqlite3_backup_step(backup, -1);
-        sqlite3_backup_finish(backup);
-    }
+    if (backup == nullptr) {
+        const char* error = sqlite3_errmsg(restoreDb);
+        pLogger->error(
+            "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
+    } else {
+        rc = sqlite3_backup_step(backup, -1);
+        if (rc != SQLITE_DONE) {
+            const char* error = sqlite3_errmsg(restoreDb);
+            pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
+        }
 
-    rc = sqlite3_errcode(restoreDb);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(restoreDb);
-        pLogger->error("{0} - Failed to restore database to {1}. Error {2}: \"{3}\"",
-            "MainFrame::OnTasksBackupDatabase",
-            restoreDatabasePath,
-            rc,
-            err);
-        return;
+        rc = sqlite3_backup_finish(backup);
+        if (rc != SQLITE_OK) {
+            pLogger->error("Backup operation failed to complete successfully");
+        }
     }
 
     sqlite3_close(restoreDb);
@@ -1241,7 +1220,7 @@ void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event)
 
     /* Complete operation */
     std::string continueNextMessage = "\n\n\nTo exit the wizard, click 'Finish'";
-    auto statusComplete =
+    std::string statusComplete =
         "The wizard has restored the database successfully!" + continueNextMessage;
     pStatusFeedbackLabel->SetLabel(statusComplete);
     pRestoreProgressGaugeCtrl->SetValue(100);

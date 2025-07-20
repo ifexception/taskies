@@ -28,6 +28,7 @@
 #endif
 #include <wx/listctrl.h>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include "../../../core/configuration.h"

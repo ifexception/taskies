@@ -236,7 +236,7 @@ void QuickExportToCsvDialog::FillControls()
 {
     /* Export File Controls */
     auto saveToFile = fmt::format(
-        "{0}\\taskies-tasks-export-{1}.csv", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
+        "{0}\\taskies-export-{1}.csv", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
     pSaveToFileTextCtrl->ChangeValue(saveToFile);
     pSaveToFileTextCtrl->SetToolTip(saveToFile);
 
@@ -250,24 +250,18 @@ void QuickExportToCsvDialog::FillControls()
     pPresetsChoiceCtrl->Append("(none)", new ClientData<std::string>(""));
     pPresetsChoiceCtrl->SetSelection(0);
 
-    for (const auto& preset : pCfg->GetPresets()) {
-        pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
+    const auto& presets = pCfg->GetPresets();
+    int presetIndexToSet = 0;
+    for (size_t i = 0; i < presets.size(); i++) {
+        pPresetsChoiceCtrl->Append(presets[i].Name, new ClientData<std::string>(presets[i].Uuid));
+
+        if (presets[i].IsDefault) {
+            presetIndexToSet = i + 1;
+            ApplyPreset(presets[i]);
+        }
     }
 
-    auto presets = pCfg->GetPresets();
-    const auto& defaultPresetToApplyIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings& preset) {
-            return preset.IsDefault == true;
-        });
-
-    if (defaultPresetToApplyIterator == presets.end()) {
-        pLogger->info("ExportToCsvDialog::FillControls - No default preset found");
-    } else {
-        auto& selectedPresetToApply = *defaultPresetToApplyIterator;
-        ApplyPreset(selectedPresetToApply);
-
-        pPresetsChoiceCtrl->SetStringSelection(selectedPresetToApply.Name);
-    }
+    pPresetsChoiceCtrl->SetSelection(presetIndexToSet);
 }
 
 // clang-format off
@@ -347,11 +341,9 @@ void QuickExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
 
 void QuickExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
 {
-    std::string directoryToOpen = pCfg->GetExportPath();
-
     auto openDirDialog = new wxDirDialog(this,
         "Select a directory to export the data to",
-        directoryToOpen,
+        pCfg->GetExportPath(),
         wxDD_DEFAULT_STYLE,
         wxDefaultPosition);
     int res = openDirDialog->ShowModal();
@@ -359,7 +351,7 @@ void QuickExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent
     if (res == wxID_OK) {
         auto selectedExportPath = openDirDialog->GetPath().ToStdString();
         auto saveToFile = fmt::format(
-            "{0}\\taskies-tasks-export-{1}.csv", selectedExportPath, pDateStore->PrintTodayDate);
+            "{0}\\taskies-export-{1}.csv", selectedExportPath, pDateStore->PrintTodayDate);
 
         pSaveToFileTextCtrl->SetValue(saveToFile);
         pSaveToFileTextCtrl->SetToolTip(saveToFile);
@@ -370,12 +362,12 @@ void QuickExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent
 
 void QuickExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
 {
-    pLogger->info(
-        "ExportToCsvDialog::OnFromDateSelection - Received date (wxDateTime) with value \"{0}\"",
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Received date (wxDateTime) with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
 
-    auto eventDate = wxDateTime(event.GetDate());
-    auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+    wxDateTime eventDate = wxDateTime(event.GetDate());
+    wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
     if (eventDateUtc > mToCtrlDate) {
         SetFromDateAndDatePicker();
@@ -388,8 +380,7 @@ void QuickExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
     auto newFromDate =
         date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
-    pLogger->info("ExportToCsvDialog::OnFromDateSelection - New date value \"{0}\"",
-        date::format("%F", newFromDate));
+    SPDLOG_LOGGER_TRACE(pLogger, "New from date value \"{0}\"", date::format("%F", newFromDate));
 
     mFromCtrlDate = eventDateUtc;
     mFromDate = newFromDate;
@@ -397,13 +388,12 @@ void QuickExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
 
 void QuickExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
 {
-    pLogger->info("ExportToCsvDialog::OnToDateSelection - Received date (wxDateTime) event with "
-                  "value \"{0}\"",
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Received date (wxDateTime) event with value \"{0}\"",
         event.GetDate().FormatISODate().ToStdString());
 
-    auto eventDate = wxDateTime(event.GetDate());
-
-    auto eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+    wxDateTime eventDate = wxDateTime(event.GetDate());
+    wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
     if (eventDateUtc > mToLatestPossibleDate) {
         SetToDateAndDatePicker();
@@ -421,8 +411,7 @@ void QuickExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
     auto newToDate =
         date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
-    pLogger->info("ExportToCsvDialog::OnToDateSelection - New date value \"{0}\"",
-        date::format("%F", newToDate));
+    SPDLOG_LOGGER_TRACE(pLogger, "New to date value \"{0}\"", date::format("%F", newToDate));
 
     mToCtrlDate = eventDateUtc;
     mToDate = newToDate;
@@ -481,9 +470,6 @@ void QuickExportToCsvDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
 
 void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event)
 {
-    const std::string TAG = "QuickExportToCsvDialog::OnPresetChoiceSelection";
-    pLogger->info("{0} - Begin to apply selected preset", TAG);
-
     int presetIndex = pPresetsChoiceCtrl->GetSelection();
     ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
         pPresetsChoiceCtrl->GetClientObject(presetIndex));
@@ -494,7 +480,7 @@ void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event)
 
     auto presetUuid = presetData->GetValue();
 
-    pLogger->info("{0} - Applying selected preset uuid \"{1}\"", TAG, presetUuid);
+    SPDLOG_LOGGER_TRACE(pLogger, "Applying selected preset uuid \"{0}\"", presetUuid);
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetToApplyIterator = std::find_if(
@@ -503,7 +489,7 @@ void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event)
         });
 
     if (selectedPresetToApplyIterator == presets.end()) {
-        pLogger->warn("{0} - Could not find preset uuid \"{1}\" in config", TAG, presetUuid);
+        pLogger->warn("Could not find preset uuid \"{0}\" in config", presetUuid);
         return;
     }
 
@@ -513,9 +499,6 @@ void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event)
 
 void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
 {
-    const std::string TAG = "QuickExportToCsvDialog::OnOK";
-    pLogger->info("{0} - Begin export", TAG);
-
     int presetIndex = pPresetsChoiceCtrl->GetSelection();
     ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
         pPresetsChoiceCtrl->GetClientObject(presetIndex));
@@ -529,7 +512,7 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
 
     auto presetUuid = presetData->GetValue();
 
-    pLogger->info("{0} - Get selected preset uuid \"{1}\"", TAG, presetUuid);
+    SPDLOG_LOGGER_TRACE(pLogger, "Get selected preset uuid \"{0}\"", presetUuid);
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetIterator = std::find_if(
@@ -540,16 +523,17 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
     auto& selectedPreset = *selectedPresetIterator;
 
     const auto& columnsToExport = selectedPreset.Columns;
-    pLogger->info("{0} - Count of columns to export: \"{1}\"", TAG, columnsToExport.size());
+    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
 
     if (columnsToExport.size() == 0) {
-        wxMessageBox("No columns to export in selected preset!",
+        wxMessageBox("No columns to export in selected preset",
             Common::GetProgramName(),
             wxOK_DEFAULT | wxICON_WARNING);
         return;
     }
 
     auto columnExportModels = Services::Export::BuildFromPreset(columnsToExport);
+
     Services::Export::ProjectionBuilder projectionBuilder(pLogger);
     std::vector<Services::Export::Projection> projections =
         projectionBuilder.BuildProjections(columnExportModels);
@@ -561,7 +545,7 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
     const std::string toDate =
         bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
 
-    pLogger->info("{0} - Export date range: [\"{1}\", \"{2}\"]", TAG, fromDate, toDate);
+    SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
     Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath);
 
@@ -591,8 +575,8 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
     } else {
         std::ofstream exportFile;
         exportFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
-        if (!exportFile) {
-            pLogger->error("ExportToCsvDialog::OnExport - Failed to open export file at path {0}",
+        if (!exportFile.is_open()) {
+            pLogger->error("Failed to open export file at path \"{0}\"",
                 pSaveToFileTextCtrl->GetValue().ToStdString());
             return;
         }
@@ -604,6 +588,7 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
 
     std::string message = bExportToClipboard ? "Successfully exported data to clipboard"
                                              : "Successfully exported data to file";
+
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
 
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
@@ -620,27 +605,9 @@ void QuickExportToCsvDialog::SetFromAndToDatePickerRanges()
 {
     pFromDatePickerCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
 
-    wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
-
-    if (pFromDatePickerCtrl->GetRange(&fromFromDate, &toFromDate)) {
-        pLogger->info("ExportToCsvDialog::SetFromAndToDatePickerRanges - pFromDatePickerCtrl range "
-                      "is [{0} - {1}]",
-            fromFromDate.FormatISODate().ToStdString(),
-            toFromDate.FormatISODate().ToStdString());
-    }
-
     wxDateSpan oneDay(0, 0, 0, 1);
     auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
     pToDatePickerCtrl->SetRange(MakeMaximumFromDate(), latestPossibleDatePlusOneDay);
-
-    wxDateTime toFromDate2 = wxDateTime::Now(), toToDate = wxDateTime::Now();
-
-    if (pToDatePickerCtrl->GetRange(&toFromDate2, &toToDate)) {
-        pLogger->info("ExportToCsvDialog::SetFromAndToDatePickerRanges - pToDatePickerCtrl range "
-                      "is [{0} - {1})",
-            toFromDate2.FormatISODate().ToStdString(),
-            toToDate.FormatISODate().ToStdString());
-    }
 
     mToLatestPossibleDate = wxDateTime(pDateStore->SundayDateSeconds);
 }
@@ -649,33 +616,18 @@ void QuickExportToCsvDialog::SetFromDateAndDatePicker()
 {
     pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
 
-    pLogger->info("ExportToCsvDialog::SetFromDateAndDatePicker - Reset pFromDatePickerCtrl to: {0}",
-        pFromDatePickerCtrl->GetValue().FormatISODate().ToStdString());
-
     mFromCtrlDate = pDateStore->MondayDateSeconds;
-
-    pLogger->info("ExportToCsvDialog::SetFromDateAndDatePicker - Reset mFromCtrlDate to: {0}",
-        mFromCtrlDate.FormatISODate().ToStdString());
 }
 
 void QuickExportToCsvDialog::SetToDateAndDatePicker()
 {
     pToDatePickerCtrl->SetValue(pDateStore->SundayDateSeconds);
 
-    pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - Reset pToDatePickerCtrl to: {0}",
-        pToDatePickerCtrl->GetValue().FormatISODate().ToStdString());
-
     mToCtrlDate = pDateStore->SundayDateSeconds;
-
-    pLogger->info("ExportToCsvDialog::SetToDateAndDatePicker - Reset mToCtrlDate to: {0}",
-        mToCtrlDate.FormatISODate().ToStdString());
 }
 
-void QuickExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& presetSettings)
+void QuickExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSettings& presetSettings)
 {
-    const std::string TAG = "QuickExportToCsvDialog::ApplyPreset";
-    pLogger->info("{0} - Begin to apply selected preset", TAG);
-
     mCsvOptions.Delimiter = presetSettings.Delimiter;
     mCsvOptions.TextQualifier = presetSettings.TextQualifier;
     mCsvOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
@@ -683,5 +635,6 @@ void QuickExportToCsvDialog::ApplyPreset(Core::Configuration::PresetSettings& pr
     mCsvOptions.BooleanHandler = presetSettings.BooleanHandler;
 
     mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
+    mCsvOptions.IncludeAttributes = presetSettings.IncludeAttributes;
 }
 } // namespace tks::UI::dlg

@@ -668,8 +668,8 @@ bool StaticAttributeValuesDialog::Validate()
             case AttributeTypes::Text: {
                 std::string value = attributeMetadata.Control.TextControl->GetValue().ToStdString();
                 if (value.empty()) {
-                    std::string validation =
-                        fmt::format("A value is required for \"{0}\"", attributeMetadata.AttributeName);
+                    std::string validation = fmt::format(
+                        "A value is required for \"{0}\"", attributeMetadata.AttributeName);
                     wxRichToolTip toolTip("Validation", validation);
                     toolTip.SetIcon(wxICON_WARNING);
                     toolTip.ShowFor(attributeMetadata.Control.TextControl);
@@ -681,8 +681,8 @@ bool StaticAttributeValuesDialog::Validate()
                 int isUndeterminedState =
                     attributeMetadata.Control.BooleanControl->Get3StateValue();
                 if (isUndeterminedState == wxCHK_UNDETERMINED) {
-                    std::string validation =
-                        fmt::format("A value is required for \"{0}\"", attributeMetadata.AttributeName);
+                    std::string validation = fmt::format(
+                        "A value is required for \"{0}\"", attributeMetadata.AttributeName);
                     wxRichToolTip toolTip("Validation", validation);
                     toolTip.SetIcon(wxICON_WARNING);
                     toolTip.ShowFor(attributeMetadata.Control.BooleanControl);
@@ -694,8 +694,8 @@ bool StaticAttributeValuesDialog::Validate()
                 std::string value =
                     attributeMetadata.Control.NumericControl->GetValue().ToStdString();
                 if (value.empty()) {
-                    std::string validation =
-                        fmt::format("A value is required for \"{0}\"", attributeMetadata.AttributeName);
+                    std::string validation = fmt::format(
+                        "A value is required for \"{0}\"", attributeMetadata.AttributeName);
                     wxRichToolTip toolTip("Validation", validation);
                     toolTip.SetIcon(wxICON_WARNING);
                     toolTip.ShowFor(attributeMetadata.Control.NumericControl);

@@ -23,7 +23,9 @@
 #include <string>
 
 #include <toml.hpp>
+
 #include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
 
 #include "../common/common.h"
 #include "../common/enums.h"
@@ -31,6 +33,15 @@
 namespace tks::Core
 {
 class Environment;
+
+struct Sections {
+    static const std::string GeneralSection;
+    static const std::string DatabaseSection;
+    static const std::string TaskSection;
+    static const std::string TasksViewSection;
+    static const std::string ExportSection;
+    static const std::string PresetsSection;
+};
 
 class Configuration
 {
@@ -84,7 +95,7 @@ public:
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
     ~Configuration() = default;
 
-    bool Load();
+    bool LoadAndOrRecreate();
 
     bool Save();
     bool RestoreDefaults();
@@ -126,9 +137,6 @@ public:
     bool ShowProjectAssociatedCategories() const;
     void ShowProjectAssociatedCategories(const bool value);
 
-    bool UseLegacyTaskDialog() const;
-    void UseLegacyTaskDialog(const bool value);
-
     bool UseReminders() const;
     void UseReminders(const bool value);
 
@@ -158,26 +166,19 @@ public:
 
     std::vector<PresetSettings> GetPresets() const;
     void SetPresets(const std::vector<PresetSettings>& values);
-    void SetPreset(const PresetSettings& value);
+    void AddPreset(const PresetSettings& value);
     void EmplacePreset(const PresetSettings& value);
     void ClearPresets();
 
 private:
+    bool WriteTomlContentsToFile(const std::string& fileContents);
+
     void GetGeneralConfig(const toml::value& root);
     void GetDatabaseConfig(const toml::value& root);
     void GetTasksConfig(const toml::value& root);
     void GetTasksViewConfig(const toml::value& root);
     void GetExportConfig(const toml::value& root);
-    void GetPresetsConfigEx(const toml::value& root);
-
-    struct Sections {
-        static const std::string GeneralSection;
-        static const std::string DatabaseSection;
-        static const std::string TaskSection;
-        static const std::string TasksViewSection;
-        static const std::string ExportSection;
-        static const std::string PresetsSection;
-    };
+    void GetPresetsConfig(const toml::value& root);
 
     struct Settings {
         std::string UserInterfaceLanguage;
@@ -193,7 +194,6 @@ private:
 
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;
-        bool UseLegacyTaskDialog;
         bool UseReminders;
         bool UseNotificationBanners;
         bool UseTaskbarFlashing;

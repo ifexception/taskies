@@ -60,7 +60,6 @@
 #include "../ui/dlg/categoriesdlg.h"
 #include "../ui/dlg/aboutdlg.h"
 #include "../ui/dlg/preferences/preferencesdlg.h"
-#include "../ui/dlg/taskdlglegacy.h"
 // #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exports/exporttocsvdlg.h"
 #include "../ui/dlg/exports/quickexporttocsvdlg.h"
@@ -308,13 +307,7 @@ void MainFrame::CreateControls()
     /* File */
     auto fileMenu = new wxMenu();
 
-    auto newTaskMenuBarTitle =
-        pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
-    auto newTaskMenuBarDescription =
-        pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
-
-    auto newTaskMenuItem =
-        fileMenu->Append(ID_NEW_TASK, newTaskMenuBarTitle, newTaskMenuBarDescription);
+    auto newTaskMenuItem = fileMenu->Append(ID_NEW_TASK, "&New Task\tCtrl-N", "Create new task");
 
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
@@ -551,9 +544,8 @@ void MainFrame::DataToControls()
 
 void MainFrame::OnClose(wxCloseEvent& event)
 {
-    pLogger->info("MainFrame::OnClose - Closing program");
     if (pCfg->CloseToTray() && pCfg->ShowInTray() && event.CanVeto()) {
-        pLogger->info("MainFrame::OnClose - Closing program to tray area");
+        SPDLOG_LOGGER_TRACE(pLogger, "Closing program to tray area");
         Hide();
         MSWGetTaskBarButton()->Hide();
     } else {
@@ -561,23 +553,20 @@ void MainFrame::OnClose(wxCloseEvent& event)
         // a bad experience for the user
         Hide();
 
-        pLogger->info("MainFrame::OnClose - Optimize database on program exit");
-        pLogger->info(
-            "MainFrame::OnClose - Open database connection at \"{0}\"", mDatabaseFilePath);
+        SPDLOG_LOGGER_TRACE(pLogger, "Optimize database on program exit");
 
         sqlite3* db = nullptr;
         int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(db);
-            pLogger->error(
-                LogMessage::OpenDatabaseTemplate, "MainFrame::OnClose", mDatabaseFilePath, rc, err);
+            pLogger->error(LogMessages::OpenDatabaseTemplate, mDatabaseFilePath, rc, err);
             goto cleanup;
         }
 
         rc = sqlite3_exec(db, QueryHelper::Optimize, nullptr, nullptr, nullptr);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(db);
-            pLogger->error(LogMessage::ExecQueryTemplate, QueryHelper::Optimize, rc, err);
+            pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Optimize, rc, err);
             goto cleanup;
         }
 
@@ -665,13 +654,8 @@ void MainFrame::OnNotificationClick(wxCommandEvent& event)
 
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    if (pCfg->UseLegacyTaskDialog()) {
-        UI::dlg::TaskDialogLegacy newTaskDialogLegacy(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
-        newTaskDialogLegacy.ShowModal();
-    } else {
-        UI::dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
-        newTaskDialog.ShowModal();
-    }
+    dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.ShowModal();
 }
 
 void MainFrame::OnNewEmployer(wxCommandEvent& WXUNUSED(event))
@@ -720,9 +704,7 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
 {
     if (!pCfg->BackupDatabase()) {
         wxMessageBox(
-            "Backups are toggled off!\nToggle backups in \"File\">\"Tasks\">\"Backup Database\"",
-            Common::GetProgramName(),
-            wxOK_DEFAULT | wxICON_WARNING);
+            "Backups are not enabled", Common::GetProgramName(), wxOK_DEFAULT | wxICON_WARNING);
         return;
     }
 
@@ -734,11 +716,7 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
     rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "MainFrame::OnTasksBackupDatabase",
-            mDatabaseFilePath,
-            rc,
-            err);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, mDatabaseFilePath, rc, err);
         return;
     }
 
@@ -746,29 +724,26 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
     rc = sqlite3_open(backupFilePath.c_str(), &backupDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "MainFrame::OnTasksBackupDatabase",
-            backupFilePath,
-            rc,
-            err);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, backupFilePath, rc, err);
         return;
     }
 
     backup = sqlite3_backup_init(/*destination*/ backupDb, "main", /*source*/ db, "main");
-    if (backup) {
-        sqlite3_backup_step(backup, -1);
-        sqlite3_backup_finish(backup);
-    }
+    if (backup == nullptr) {
+        const char* error = sqlite3_errmsg(backupDb);
+        pLogger->error(
+            "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
+    } else {
+        rc = sqlite3_backup_step(backup, -1);
+        if (rc != SQLITE_DONE) {
+            const char* error = sqlite3_errmsg(backupDb);
+            pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
+        }
 
-    rc = sqlite3_errcode(backupDb);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(backupDb);
-        pLogger->error("{0} - Failed to backup database to {1}. Error {2}: \"{3}\"",
-            "MainFrame::OnTasksBackupDatabase",
-            backupFilePath,
-            rc,
-            err);
-        return;
+        rc = sqlite3_backup_finish(backup);
+        if (rc != SQLITE_OK) {
+            pLogger->error("Backup operation failed to complete successfully");
+        }
     }
 
     sqlite3_close(db);
@@ -789,7 +764,7 @@ void MainFrame::OnTasksExportToCsv(wxCommandEvent& WXUNUSED(event))
     exportToCsv.ShowModal();
 }
 
-void MainFrame::OnTasksQuickExportToCsv(wxCommandEvent& event)
+void MainFrame::OnTasksQuickExportToCsv(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
     quickExportToCsv.ShowModal();
@@ -830,21 +805,21 @@ void MainFrame::OnEditCategory(wxCommandEvent& WXUNUSED(event))
     editCategory.ShowModal();
 }
 
-void MainFrame::OnEditAttributeGroup(wxCommandEvent& event)
+void MainFrame::OnEditAttributeGroup(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editAttributeGroup(
         this, pLogger, mDatabaseFilePath, EditListEntityType::AttributeGroups);
     editAttributeGroup.ShowModal();
 }
 
-void MainFrame::OnEditAttribute(wxCommandEvent& event)
+void MainFrame::OnEditAttribute(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editAttribute(
         this, pLogger, mDatabaseFilePath, EditListEntityType::Attributes);
     editAttribute.ShowModal();
 }
 
-void MainFrame::OnEditStaticAttributeValues(wxCommandEvent& event)
+void MainFrame::OnEditStaticAttributeValues(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editAttribute(
         this, pLogger, mDatabaseFilePath, EditListEntityType::StaticAttributeGroups);
@@ -922,8 +897,6 @@ void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
             GetMenuBar()->Enable(ID_TASKS_BACKUPDATABASE, false);
         }
 
-        SetNewTaskMenubarTitle();
-
         if (pCfg->UseReminders()) {
             if (!pTaskReminderTimer->IsRunning()) {
                 pTaskReminderTimer->Start(
@@ -947,15 +920,8 @@ void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
 
-    if (pCfg->UseLegacyTaskDialog()) {
-        UI::dlg::TaskDialogLegacy popupNewTaskLegacy(
-            this, pEnv, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
-        popupNewTaskLegacy.ShowModal();
-    } else {
-        UI::dlg::TaskDialog popupNewTask(
-            this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
-        popupNewTask.ShowModal();
-    }
+    dlg::TaskDialog popupNewTask(this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
+    popupNewTask.ShowModal();
 
     ResetTaskContextMenuVariables();
 }
@@ -1090,15 +1056,9 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 
     int ret = -1;
 
-    if (pCfg->UseLegacyTaskDialog()) {
-        UI::dlg::TaskDialogLegacy editTaskDialogLegacy(
-            this, pEnv, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
-        ret = editTaskDialogLegacy.ShowModal();
-    } else {
-        UI::dlg::TaskDialog editTaskDialog(
-            this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
-        ret = editTaskDialog.ShowModal();
-    }
+    dlg::TaskDialog editTaskDialog(
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
+    ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {
         bool isActive = false;
@@ -1162,7 +1122,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnAddMinutes(wxCommandEvent& event)
+void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
@@ -1594,26 +1554,8 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
 
 void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 {
-    if (pCfg->UseLegacyTaskDialog()) {
-        UI::dlg::TaskDialogLegacy newTaskDialogLegacy(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
-        newTaskDialogLegacy.ShowModal();
-    } else {
-        UI::dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
-        newTaskDialog.ShowModal();
-    }
-}
-
-void MainFrame::SetNewTaskMenubarTitle()
-{
-    auto newTaskMenubarTitle =
-        pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
-    auto newTaskMenubarHelp =
-        pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
-
-    auto fileMenu = GetMenuBar()->GetMenu(0);
-    auto newTaskMenu = fileMenu->FindItemByPosition(0);
-    newTaskMenu->SetItemLabel(newTaskMenubarTitle);
-    newTaskMenu->SetHelp(newTaskMenubarHelp);
+    dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.ShowModal();
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()

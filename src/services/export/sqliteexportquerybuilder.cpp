@@ -218,7 +218,8 @@ std::string SQLiteExportQueryBuilder::ComputeSecondLevelJoinProjection(
         << "projects"
         << "."
         << joinProjection.IdColumn
-        << " = " << joinProjection.TableName
+        << " = "
+        << joinProjection.TableName
         << "."
         << joinProjection.IdColumn;
     // clang-format on

@@ -3,11 +3,12 @@
 ## v0.3.0-beta (to be released)
 * Add reminders using Windows notification messages or taskbar flashing
 * Add attributes to tasks and export to tasks to csv with attributes
-* Task cpature enhancments:
+* Task capture enhancments:
     * Confirmation before deleting task from task view
     * Thumb bar actions for "New Task" and "Quick Export"
     * Task popup menu option to increment time by 15 minutes
 * Validation check on task minute capture to ensure value is factor of 5
+* Improve configuration robustness; handle missing config options without failing and provide defaults where applicable
 
 ## v0.1.1-beta (release 10/03/2025)
 * Fix: No categories on task edit when "Only show associated categories" is not checked (#1)

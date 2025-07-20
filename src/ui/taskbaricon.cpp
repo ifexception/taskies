@@ -33,7 +33,7 @@
 
 #include "dlg/preferences/preferencesdlg.h"
 #include "dlg/exports/quickexporttocsvdlg.h"
-#include "dlg/taskdlglegacy.h"
+#include "dlg/taskdlg.h"
 
 namespace tks::UI
 {
@@ -100,22 +100,20 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 {
     auto menu = new wxMenu();
 
-    auto newTaskMenuBarTitle =
-        pCfg->UseLegacyTaskDialog() ? "&New Task (legacy)\tCtrl-N" : "&New Task\tCtrl-N";
-    auto newTaskMenuBarDescription =
-        pCfg->UseLegacyTaskDialog() ? "Create new task (legacy)" : "Create new task";
-
     auto newTaskMenuItem =
-        menu->Append(tksIDC_MENU_NEWTASK, newTaskMenuBarTitle, newTaskMenuBarDescription);
+        menu->Append(tksIDC_MENU_NEWTASK, "&New Task\tCtrl-N", "Create new task");
 
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
 
     menu->AppendSeparator();
 
-    menu->Append(tksIDC_MENU_QUICKEXPORTTOCSV,
-        "Quick Export to CSV",
+    auto quickExportMenuItem = menu->Append(tksIDC_MENU_QUICKEXPORTTOCSV,
+        "Q&uick Export to CSV",
         "Export selected data to CSV format using existing presets");
+
+    wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
+    quickExportMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(quickExportBundle));
 
     menu->AppendSeparator();
 
@@ -126,7 +124,7 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
 
     menu->AppendSeparator();
-    auto exitMenuItem = menu->Append(wxID_EXIT, "Exit", "Exit the program");
+    auto exitMenuItem = menu->Append(wxID_EXIT, "Ex&it", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
@@ -134,9 +132,9 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
     return menu;
 }
 
-void TaskBarIcon::OnNewTask(wxCommandEvent& event)
+void TaskBarIcon::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::TaskDialogLegacy newTaskDialog(pParent, pEnv, pCfg, pLogger, mDatabaseFilePath);
+    dlg::TaskDialog newTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
 }
 
@@ -160,10 +158,8 @@ void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
     int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(db);
-        pLogger->error(LogMessages::OpenDatabaseTemplate,
-            pEnv->GetDatabasePath().string(),
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::OpenDatabaseTemplate, pEnv->GetDatabasePath().string(), rc, error);
 
         goto close;
     }

@@ -30,6 +30,7 @@
 #include <wx/clrpicker.h>
 #include <wx/wizard.h>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include "../../services/setupwizard/setupwizardservice.h"

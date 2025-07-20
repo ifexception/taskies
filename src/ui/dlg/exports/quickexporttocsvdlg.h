@@ -24,6 +24,7 @@
 
 #include <date/date.h>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include <wx/wxprec.h>
@@ -79,7 +80,7 @@ private:
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
 
-    void ApplyPreset(Core::Configuration::PresetSettings& presetSettings);
+    void ApplyPreset(const Core::Configuration::PresetSettings& presetSettings);
 
     wxWindow* pParent;
 
