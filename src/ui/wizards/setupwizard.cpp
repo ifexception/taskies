@@ -72,20 +72,12 @@ SetupWizard::SetupWizard(wxFrame* frame,
 {
     pSetupWizardService = new Services::SetupWizardService(pLogger, mDatabasePath);
 
-    pLogger->info("SetupWizard::SetupWizard - set the left side wizard image");
-    // Set left side wizard image
-    /*auto wizardImage = pEnv->GetResourcesPath() / Common::Resources::Wizard();
-    auto wizardImagePath = wizardImage.string();
-    SetBitmap(wxBitmapBundle::FromSVGFile(
-        (pEnv->GetResourcesPath() / Common::Resources::Wizard()).string(), wxSize(116, 260)));*/
-
     // Set icon in titlebar
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 
     ConfigureEventBindings();
 
-    pLogger->info("SetupWizard::SetupWizard - initialize pages");
     pWelcomePage = new WelcomePage(this, pLogger);
     pCreateEmployerAndClientPage =
         new CreateEmployerAndClientPage(this, pSetupWizardService, pLogger, mDatabasePath);
@@ -225,7 +217,7 @@ void WelcomePage::CreateControls()
         wxFont(14, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
     std::string introMessage =
-        "This wizard will help you get Taskies setup or restored to your computer";
+        "This wizard will help you get Taskies setup or restored on your computer";
     auto introLabel = new wxStaticText(this, wxID_ANY, introMessage);
 
     std::string continueNextMessage = "To continue, click Next";
@@ -251,7 +243,7 @@ void WelcomePage::ConfigureEventBindings()
 
 void WelcomePage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("WelcomePage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled");
     // pParent->OnWizardCanceled();
 }
 
@@ -359,7 +351,7 @@ void OptionPage::ConfigureEventBindings()
 
 void OptionPage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("OptionPage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled");
 }
 
 void OptionPage::OnSetupWizardFlowCheck(wxCommandEvent& event)
@@ -472,7 +464,7 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
         if (rc != 0) {
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return false;
         }
@@ -481,7 +473,7 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
         if (clientId == -1) {
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return false;
         } else {
@@ -573,7 +565,7 @@ void CreateEmployerAndClientPage::ConfigureEventBindings()
 
 void CreateEmployerAndClientPage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("CreateEmployerAndClientPage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled");
     pSetupWizardService->RollbackTransaction();
 }
 
@@ -585,11 +577,9 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
 
         rc = pSetupWizardService->GetByEmployerId(pParent->GetEmployerId(), employer);
         if (rc != 0) {
-            pLogger->info(
-                "CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch employer");
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return;
         }
@@ -603,11 +593,9 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
 
         rc = pSetupWizardService->GetByClientId(pParent->GetClientId(), client);
         if (rc != 0) {
-            pLogger->info(
-                "CreateEmployerAndClientPage::OnWizardPageShown - Failed to fetch client");
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return;
         }
@@ -728,7 +716,7 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     if (categoryId == -1) {
         wxMessageBox("The setup wizard encountered an unexpected error",
             "Setup Error",
-            wxOK | wxICON_ERROR,
+            wxOK_DEFAULT | wxICON_ERROR,
             this);
         return false;
     } else {
@@ -869,7 +857,7 @@ void CreateProjectAndCategoryPage::OnProjectNameChange(wxCommandEvent& event)
 
 void CreateProjectAndCategoryPage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("CreateProjectAndCategoryPage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled and rolling back transaction");
     pSetupWizardService->RollbackTransaction();
 }
 
@@ -881,11 +869,9 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
 
         rc = pSetupWizardService->GetByProjectId(pParent->GetProjectId(), project);
         if (rc != 0) {
-            pLogger->info(
-                "CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch project");
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return;
         }
@@ -901,11 +887,9 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
 
         rc = pSetupWizardService->GetByCategoryId(pParent->GetCategoryId(), category);
         if (rc != 0) {
-            pLogger->info(
-                "CreateProjectAndCategoryPage::OnWizardPageShown - Failed to fetch category");
             wxMessageBox("The setup wizard encountered an unexpected error",
                 "Setup Error",
-                wxOK | wxICON_ERROR,
+                wxOK_DEFAULT | wxICON_ERROR,
                 this);
             return;
         }
@@ -977,7 +961,7 @@ void SetupCompletePage::OnSetupCompleteWizardPageShown(wxWizardEvent& event)
 
 void SetupCompletePage::OnWizardCancel(wxWizardEvent& event)
 {
-    pLogger->info("SetupCompletePage::OnWizardCancel - Wizard canceled");
+    SPDLOG_LOGGER_TRACE(pLogger, "Wizard canceled and rolling back transaction");
     pSetupWizardService->RollbackTransaction();
 }
 
