@@ -190,7 +190,13 @@ void Application::InitializeLogger()
 
 bool Application::InitializeConfiguration()
 {
-    bool loadSuccess = pCfg->Load();
+    /* we attempt to load and/or recreate the configuration file (if we cannot locate it) */
+    bool loadSuccess = pCfg->LoadAndOrRecreate();
+    /*
+     * we then save the file just in case the file didn't exist or a setting(s) was missing
+     * if a setting was missing, saving the configuration ensures the configuration is
+     * in a good state on the _next_ load
+     */
     bool saveSuccess = pCfg->Save();
 
     return loadSuccess && saveSuccess;
