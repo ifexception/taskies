@@ -551,9 +551,8 @@ void MainFrame::DataToControls()
 
 void MainFrame::OnClose(wxCloseEvent& event)
 {
-    pLogger->info("MainFrame::OnClose - Closing program");
     if (pCfg->CloseToTray() && pCfg->ShowInTray() && event.CanVeto()) {
-        pLogger->info("MainFrame::OnClose - Closing program to tray area");
+        SPDLOG_LOGGER_TRACE(pLogger, "Closing program to tray area");
         Hide();
         MSWGetTaskBarButton()->Hide();
     } else {
@@ -561,23 +560,20 @@ void MainFrame::OnClose(wxCloseEvent& event)
         // a bad experience for the user
         Hide();
 
-        pLogger->info("MainFrame::OnClose - Optimize database on program exit");
-        pLogger->info(
-            "MainFrame::OnClose - Open database connection at \"{0}\"", mDatabaseFilePath);
+        SPDLOG_LOGGER_TRACE(pLogger, "Optimize database on program exit");
 
         sqlite3* db = nullptr;
         int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(db);
-            pLogger->error(
-                LogMessage::OpenDatabaseTemplate, "MainFrame::OnClose", mDatabaseFilePath, rc, err);
+            pLogger->error(LogMessages::OpenDatabaseTemplate, mDatabaseFilePath, rc, err);
             goto cleanup;
         }
 
         rc = sqlite3_exec(db, QueryHelper::Optimize, nullptr, nullptr, nullptr);
         if (rc != SQLITE_OK) {
             const char* err = sqlite3_errmsg(db);
-            pLogger->error(LogMessage::ExecQueryTemplate, QueryHelper::Optimize, rc, err);
+            pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Optimize, rc, err);
             goto cleanup;
         }
 
@@ -720,9 +716,7 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
 {
     if (!pCfg->BackupDatabase()) {
         wxMessageBox(
-            "Backups are toggled off!\nToggle backups in \"File\">\"Tasks\">\"Backup Database\"",
-            Common::GetProgramName(),
-            wxOK_DEFAULT | wxICON_WARNING);
+            "Backups are not enabled", Common::GetProgramName(), wxOK_DEFAULT | wxICON_WARNING);
         return;
     }
 
@@ -734,11 +728,7 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
     rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "MainFrame::OnTasksBackupDatabase",
-            mDatabaseFilePath,
-            rc,
-            err);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, mDatabaseFilePath, rc, err);
         return;
     }
 
@@ -746,29 +736,26 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
     rc = sqlite3_open(backupFilePath.c_str(), &backupDb);
     if (rc != SQLITE_OK) {
         const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "MainFrame::OnTasksBackupDatabase",
-            backupFilePath,
-            rc,
-            err);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, backupFilePath, rc, err);
         return;
     }
 
     backup = sqlite3_backup_init(/*destination*/ backupDb, "main", /*source*/ db, "main");
-    if (backup) {
-        sqlite3_backup_step(backup, -1);
-        sqlite3_backup_finish(backup);
-    }
+    if (backup == nullptr) {
+        const char* error = sqlite3_errmsg(backupDb);
+        pLogger->error(
+            "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
+    } else {
+        rc = sqlite3_backup_step(backup, -1);
+        if (rc != SQLITE_DONE) {
+            const char* error = sqlite3_errmsg(backupDb);
+            pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
+        }
 
-    rc = sqlite3_errcode(backupDb);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(backupDb);
-        pLogger->error("{0} - Failed to backup database to {1}. Error {2}: \"{3}\"",
-            "MainFrame::OnTasksBackupDatabase",
-            backupFilePath,
-            rc,
-            err);
-        return;
+        rc = sqlite3_backup_finish(backup);
+        if (rc != SQLITE_OK) {
+            pLogger->error("Backup operation failed to complete successfully");
+        }
     }
 
     sqlite3_close(db);
@@ -789,7 +776,7 @@ void MainFrame::OnTasksExportToCsv(wxCommandEvent& WXUNUSED(event))
     exportToCsv.ShowModal();
 }
 
-void MainFrame::OnTasksQuickExportToCsv(wxCommandEvent& event)
+void MainFrame::OnTasksQuickExportToCsv(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
     quickExportToCsv.ShowModal();
