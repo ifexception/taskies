@@ -55,7 +55,6 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , mEmployerId(employerId)
-    , mEmployerModel()
     , pNameTextCtrl(nullptr)
     , pIsDefaultCheckBoxCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
@@ -191,21 +190,22 @@ void EmployerDialog::ConfigureEventBindings()
 
 void EmployerDialog::DataToControls()
 {
+    Model::EmployerModel employerModel;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.GetById(mEmployerId, mEmployerModel);
+    int rc = employerPersistence.GetById(mEmployerId, employerModel);
     if (rc == -1) {
         std::string message = "Failed to get employer";
         QueueErrorNotificationEvent(message);
     } else {
-        pNameTextCtrl->SetValue(mEmployerModel.Name);
-        pIsDefaultCheckBoxCtrl->SetValue(mEmployerModel.IsDefault);
+        pNameTextCtrl->SetValue(employerModel.Name);
+        pIsDefaultCheckBoxCtrl->SetValue(employerModel.IsDefault);
 
-        if (mEmployerModel.Description.has_value()) {
-            pDescriptionTextCtrl->SetValue(mEmployerModel.Description.value());
+        if (employerModel.Description.has_value()) {
+            pDescriptionTextCtrl->SetValue(employerModel.Description.value());
         }
 
-        pIsActiveCheckBoxCtrl->SetValue(mEmployerModel.IsActive);
+        pIsActiveCheckBoxCtrl->SetValue(employerModel.IsActive);
 
         pIsActiveCheckBoxCtrl->Enable();
     }
@@ -219,7 +219,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 
     pOkButton->Disable();
 
-    TransferDataFromControls();
+    Model::EmployerModel employerModel = TransferDataFromControls();
 
     int ret = 0;
     std::string message = "";
@@ -236,14 +236,14 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 
     if (ret != -1) {
         if (!bIsEdit) {
-            std::int64_t employerId = employerPersistence.Create(mEmployerModel);
+            std::int64_t employerId = employerPersistence.Create(employerModel);
             ret = employerId > 0 ? 1 : -1;
 
             ret == -1 ? message = "Failed to create employer"
                       : message = "Successfully created employer";
         }
         if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-            ret = employerPersistence.Update(mEmployerModel);
+            ret = employerPersistence.Update(employerModel);
 
             ret == -1 ? message = "Failed to update employer"
                       : message = "Successfully updated employer";
@@ -348,18 +348,21 @@ bool EmployerDialog::Validate()
     return true;
 }
 
-void EmployerDialog::TransferDataFromControls()
+Model::EmployerModel EmployerDialog::TransferDataFromControls()
 {
-    mEmployerModel.EmployerId = mEmployerId;
+    Model::EmployerModel employerModel;
+    employerModel.EmployerId = mEmployerId;
 
     auto name = pNameTextCtrl->GetValue().ToStdString();
-    mEmployerModel.Name = Utils::TrimWhitespace(name);
+    employerModel.Name = Utils::TrimWhitespace(name);
 
-    mEmployerModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
+    employerModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
-    mEmployerModel.Description =
+    employerModel.Description =
         description.empty() ? std::nullopt : std::make_optional(description);
+
+    return employerModel;
 }
 
 void EmployerDialog::QueueErrorNotificationEvent(const std::string& message)

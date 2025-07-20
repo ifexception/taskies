@@ -59,7 +59,7 @@ private:
 
     bool Validate();
 
-    void TransferDataFromControls();
+    Model::EmployerModel TransferDataFromControls();
 
     void QueueErrorNotificationEvent(const std::string& message);
 
@@ -80,8 +80,6 @@ private:
 
     bool bIsEdit;
     std::int64_t mEmployerId;
-
-    Model::EmployerModel mEmployerModel;
 
     enum {
         tksIDC_NAME = wxID_HIGHEST + 1001,
