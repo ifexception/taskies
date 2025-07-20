@@ -28,12 +28,12 @@
 
 namespace tks::Core
 {
-const std::string Configuration::Sections::GeneralSection = "general";
-const std::string Configuration::Sections::DatabaseSection = "database";
-const std::string Configuration::Sections::TaskSection = "tasks";
-const std::string Configuration::Sections::TasksViewSection = "tasksView";
-const std::string Configuration::Sections::ExportSection = "export";
-const std::string Configuration::Sections::PresetsSection = "presets";
+const std::string Sections::GeneralSection = "general";
+const std::string Sections::DatabaseSection = "database";
+const std::string Sections::TaskSection = "tasks";
+const std::string Sections::TasksViewSection = "tasksView";
+const std::string Sections::ExportSection = "export";
+const std::string Sections::PresetsSection = "presets";
 
 Configuration::PresetColumnSettings::PresetColumnSettings(Common::PresetColumn presetColumn)
 {

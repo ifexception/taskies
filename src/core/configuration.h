@@ -34,6 +34,15 @@ namespace tks::Core
 {
 class Environment;
 
+struct Sections {
+    static const std::string GeneralSection;
+    static const std::string DatabaseSection;
+    static const std::string TaskSection;
+    static const std::string TasksViewSection;
+    static const std::string ExportSection;
+    static const std::string PresetsSection;
+};
+
 class Configuration
 {
 public:
@@ -170,15 +179,6 @@ private:
     void GetTasksViewConfig(const toml::value& root);
     void GetExportConfig(const toml::value& root);
     void GetPresetsConfig(const toml::value& root);
-
-    struct Sections {
-        static const std::string GeneralSection;
-        static const std::string DatabaseSection;
-        static const std::string TaskSection;
-        static const std::string TasksViewSection;
-        static const std::string ExportSection;
-        static const std::string PresetsSection;
-    };
 
     struct Settings {
         std::string UserInterfaceLanguage;
