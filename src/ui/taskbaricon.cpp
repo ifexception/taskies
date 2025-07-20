@@ -113,9 +113,12 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 
     menu->AppendSeparator();
 
-    menu->Append(tksIDC_MENU_QUICKEXPORTTOCSV,
-        "Quick Export to CSV",
+    auto quickExportMenuItem = menu->Append(tksIDC_MENU_QUICKEXPORTTOCSV,
+        "Q&uick Export to CSV",
         "Export selected data to CSV format using existing presets");
+
+    wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
+    quickExportMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(quickExportBundle));
 
     menu->AppendSeparator();
 
@@ -126,7 +129,7 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
 
     menu->AppendSeparator();
-    auto exitMenuItem = menu->Append(wxID_EXIT, "Exit", "Exit the program");
+    auto exitMenuItem = menu->Append(wxID_EXIT, "Ex&it", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
@@ -134,7 +137,7 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
     return menu;
 }
 
-void TaskBarIcon::OnNewTask(wxCommandEvent& event)
+void TaskBarIcon::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::TaskDialogLegacy newTaskDialog(pParent, pEnv, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
