@@ -1089,8 +1089,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     std::vector<Common::PresetColumn> columns;
 
-    auto columnsSelected = pExportColumnListModel->GetColumns();
-    for (const auto& selectedColumn : columnsSelected) {
+    for (const auto& selectedColumn : pExportColumnListModel->GetColumns()) {
         Common::PresetColumn presetColumn;
         presetColumn.Column = selectedColumn.Column;
         presetColumn.OriginalColumn = selectedColumn.OriginalColumn;
