@@ -817,21 +817,21 @@ void MainFrame::OnEditCategory(wxCommandEvent& WXUNUSED(event))
     editCategory.ShowModal();
 }
 
-void MainFrame::OnEditAttributeGroup(wxCommandEvent& event)
+void MainFrame::OnEditAttributeGroup(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editAttributeGroup(
         this, pLogger, mDatabaseFilePath, EditListEntityType::AttributeGroups);
     editAttributeGroup.ShowModal();
 }
 
-void MainFrame::OnEditAttribute(wxCommandEvent& event)
+void MainFrame::OnEditAttribute(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editAttribute(
         this, pLogger, mDatabaseFilePath, EditListEntityType::Attributes);
     editAttribute.ShowModal();
 }
 
-void MainFrame::OnEditStaticAttributeValues(wxCommandEvent& event)
+void MainFrame::OnEditStaticAttributeValues(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::EditListDialog editAttribute(
         this, pLogger, mDatabaseFilePath, EditListEntityType::StaticAttributeGroups);
@@ -1149,7 +1149,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnAddMinutes(wxCommandEvent& event)
+void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
