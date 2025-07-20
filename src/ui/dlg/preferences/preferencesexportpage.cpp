@@ -116,7 +116,8 @@ void PreferencesExportPage::CreateControls()
         exportStaticBox, tksIDC_CLOSEDIALOGAFTEREXPORTING, "Close dialog after exporting");
     pCloseDialogAfterExportingCheckBoxCtrl->SetToolTip(
         "Set whether to close dialog immediately after a successful export or keep it open");
-    exportStaticBoxSizer->Add(pCloseDialogAfterExportingCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    exportStaticBoxSizer->Add(
+        pCloseDialogAfterExportingCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Presets box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
@@ -146,8 +147,14 @@ void PreferencesExportPage::CreateControls()
     wxListItem presetNamesColumn;
     presetNamesColumn.SetId(columnIndex);
     presetNamesColumn.SetText("Presets");
-    presetNamesColumn.SetWidth(180);
+    presetNamesColumn.SetWidth(wxLIST_AUTOSIZE);
     pPresetsListView->InsertColumn(columnIndex++, presetNamesColumn);
+
+    wxListItem presetUuidColumn;
+    presetUuidColumn.SetId(columnIndex);
+    presetUuidColumn.SetText("ID");
+    presetUuidColumn.SetWidth(100);
+    pPresetsListView->InsertColumn(columnIndex++, presetUuidColumn);
 
     auto providedDeleteBitmap = wxArtProvider::GetBitmapBundle(
         wxART_DELETE, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
@@ -219,8 +226,11 @@ void PreferencesExportPage::DataToControls()
 
     pCloseDialogAfterExportingCheckBoxCtrl->SetValue(pCfg->CloseExportDialogAfterExporting());
 
+    int listIndex = 0;
+    int columnIndex = 0;
     for (const auto& presetSetting : pCfg->GetPresets()) {
-        pPresetsListView->InsertItem(0, presetSetting.Name);
+        listIndex = pPresetsListView->InsertItem(columnIndex++, presetSetting.Name);
+        pPresetsListView->SetItem(listIndex, columnIndex++, presetSetting.Uuid);
     }
 }
 
@@ -251,17 +261,18 @@ void PreferencesExportPage::OnPresetItemCheck(wxListEvent& event)
     long index = event.GetIndex();
     mSelectedItemIndexes.push_back(index);
 
-    std::string name;
+    // for logging purposes only
+    std::string uuid;
 
     wxListItem item;
     item.m_itemId = index;
-    item.m_col = 0;
+    item.m_col = 1;
     item.m_mask = wxLIST_MASK_TEXT;
     pPresetsListView->GetItem(item);
 
-    name = item.GetText().ToStdString();
+    uuid = item.GetText().ToStdString();
 
-    pLogger->info("PreferencesExportPage::OnPresetItemCheck - Selected preset name \"{0}\"", name);
+    SPDLOG_LOGGER_TRACE(pLogger, "Selected preset uuid \"{0}\"", uuid);
 }
 
 void PreferencesExportPage::OnPresetItemUncheck(wxListEvent& event)
@@ -271,25 +282,23 @@ void PreferencesExportPage::OnPresetItemUncheck(wxListEvent& event)
         std::remove(mSelectedItemIndexes.begin(), mSelectedItemIndexes.end(), index),
         mSelectedItemIndexes.end());
 
-    std::string name;
+    std::string uuid;
 
     wxListItem item;
     item.m_itemId = index;
-    item.m_col = 0;
+    item.m_col = 1;
     item.m_mask = wxLIST_MASK_TEXT;
     pPresetsListView->GetItem(item);
 
-    name = item.GetText().ToStdString();
+    uuid = item.GetText().ToStdString();
 
-    pLogger->info(
-        "PreferencesExportPage::OnPresetItemUncheck - Unselected preset name \"{0}\"", name);
+    SPDLOG_LOGGER_TRACE(pLogger, "Unselected preset uuid \"{0}\"", uuid);
 }
 
 void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
 {
     if (mSelectedItemIndexes.size() == 0) {
-        pLogger->info(
-            "PreferencesExportPage::OnRemovePreset - No items (presets) selected to remove");
+        SPDLOG_LOGGER_TRACE(pLogger, "No items (presets) selected to remove");
         return;
     }
 
@@ -299,18 +308,19 @@ void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
 
     int presetCount = pCfg->GetPresetCount();
     int orderIndex = 0;
-    int columnIndex = 0;
+    int columnIndex = 1;
 
     for (long i = (mSelectedItemIndexes.size() - 1); 0 <= i; i--) {
-        // Extract the preset name text from item index
-        std::string name;
+        // Extract the preset uuid text from item index
+        std::string uuid = "";
+
         wxListItem item;
         item.m_itemId = mSelectedItemIndexes[i];
         item.m_col = columnIndex;
         item.m_mask = wxLIST_MASK_TEXT;
         pPresetsListView->GetItem(item);
 
-        name = item.GetText().ToStdString();
+        uuid = item.GetText().ToStdString();
 
         /* Remove preset from preset list control */
         pPresetsListView->DeleteItem(mSelectedItemIndexes[i]);
@@ -323,7 +333,7 @@ void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
                 mPresetSettings.begin(),
                 mPresetSettings.end(),
                 [&](const Core::Configuration::PresetSettings& preset) {
-                    return preset.Name == name;
+                    return preset.Uuid == uuid;
                 }
             ),
             mPresetSettings.end()
@@ -332,7 +342,7 @@ void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
 
         presetCount--;
 
-        pLogger->info("PreferencesExportPage::OnRemovePreset - Preset \"{0}\" removed", name);
+        SPDLOG_LOGGER_TRACE(pLogger, "Preset \"{0}\" removed", uuid);
     }
 
     pCfg->SetPresetCount(presetCount);
