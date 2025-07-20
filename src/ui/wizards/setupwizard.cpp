@@ -26,6 +26,8 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/logmessages.h"
+#include "../../common/queryhelper.h"
 #include "../../common/validator.h"
 
 #include "../../core/environment.h"
@@ -1199,41 +1201,34 @@ void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event)
 
     rc = sqlite3_open(backupDatabasePath.c_str(), &backupDb);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(backupDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "RestoreDatabaseResultPage::OnWizardPageShown",
-            backupDatabasePath,
-            rc,
-            err);
+        const char* error = sqlite3_errmsg(backupDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, backupDatabasePath, rc, error);
         return;
     }
 
     rc = sqlite3_open(restoreDatabasePath.c_str(), &restoreDb);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(restoreDb);
-        pLogger->error(LogMessage::OpenDatabaseTemplate,
-            "RestoreDatabaseResultPage::OnWizardPageShown",
-            restoreDatabasePath,
-            rc,
-            err);
+        const char* error = sqlite3_errmsg(restoreDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, restoreDatabasePath, rc, error);
         return;
     }
 
     backup = sqlite3_backup_init(/*destination*/ restoreDb, "main", /*source*/ backupDb, "main");
-    if (backup) {
-        sqlite3_backup_step(backup, -1);
-        sqlite3_backup_finish(backup);
-    }
+    if (backup == nullptr) {
+        const char* error = sqlite3_errmsg(restoreDb);
+        pLogger->error(
+            "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
+    } else {
+        rc = sqlite3_backup_step(backup, -1);
+        if (rc != SQLITE_DONE) {
+            const char* error = sqlite3_errmsg(restoreDb);
+            pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
+        }
 
-    rc = sqlite3_errcode(restoreDb);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(restoreDb);
-        pLogger->error("{0} - Failed to restore database to {1}. Error {2}: \"{3}\"",
-            "MainFrame::OnTasksBackupDatabase",
-            restoreDatabasePath,
-            rc,
-            err);
-        return;
+        rc = sqlite3_backup_finish(backup);
+        if (rc != SQLITE_OK) {
+            pLogger->error("Backup operation failed to complete successfully");
+        }
     }
 
     sqlite3_close(restoreDb);
@@ -1241,7 +1236,7 @@ void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event)
 
     /* Complete operation */
     std::string continueNextMessage = "\n\n\nTo exit the wizard, click 'Finish'";
-    auto statusComplete =
+    std::string statusComplete =
         "The wizard has restored the database successfully!" + continueNextMessage;
     pStatusFeedbackLabel->SetLabel(statusComplete);
     pRestoreProgressGaugeCtrl->SetValue(100);
