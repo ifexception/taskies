@@ -26,6 +26,7 @@
 
 #include <date/date.h>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 namespace tks
@@ -57,7 +58,8 @@ struct DateStore {
         std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate,
         std::chrono::time_point<std::chrono::system_clock, date::days> mToDate);
 
-    void ReinitializeFromWeekChange(std::chrono::time_point<std::chrono::system_clock, date::days> newMondayDate);
+    void ReinitializeFromWeekChange(
+        std::chrono::time_point<std::chrono::system_clock, date::days> newMondayDate);
 
     // -private
     void Initialize();
