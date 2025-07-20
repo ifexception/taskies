@@ -489,7 +489,7 @@ void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event)
         });
 
     if (selectedPresetToApplyIterator == presets.end()) {
-        pLogger->warn("Could not find preset uuid \"{1}\" in config", presetUuid);
+        pLogger->warn("Could not find preset uuid \"{0}\" in config", presetUuid);
         return;
     }
 
