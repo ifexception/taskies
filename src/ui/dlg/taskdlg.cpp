@@ -72,6 +72,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     bool isEdit,
     std::int64_t taskId,
     const std::string& selectedDate,
+    bool isClone,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
@@ -86,6 +87,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , mTaskId(taskId)
+    , bIsClone(isClone)
     , pDateContextDatePickerCtrl(nullptr)
     , pTimeHoursSpinCtrl(nullptr)
     , pTimeMinutesSpinCtrl(nullptr)
@@ -140,6 +142,10 @@ void TaskDialog::Create()
 
     if (bIsEdit) {
         DataToControls();
+    }
+
+    if (bIsClone) {
+        SetDataWhenTaskCloned();
     }
 }
 
@@ -644,7 +650,7 @@ void TaskDialog::DataToControls()
 
     int ret = taskPersistence.GetById(mTaskId, taskModel);
     if (ret != 0) {
-        std::string message = "Failed to get taskModel";
+        std::string message = "Failed to get task";
         QueueErrorNotificationEvent(message);
     } else {
         pBillableCheckBoxCtrl->SetValue(taskModel.Billable);
@@ -1591,6 +1597,28 @@ void TaskDialog::QueueInformationNotificationEvent(const std::string& message)
     addNotificationEvent->SetClientObject(clientData);
 
     wxQueueEvent(pParent, addNotificationEvent);
+}
+
+void TaskDialog::SetDataWhenTaskCloned()
+{
+    // set task description to indicate task was cloned
+    std::string clonedTaskDescription =
+        "--CLONED--\n\n" + pTaskDescriptionTextCtrl->GetValue().ToStdString();
+    pTaskDescriptionTextCtrl->ChangeValue(clonedTaskDescription);
+
+    // set date to today regardless from when task was cloned
+    pDateContextDatePickerCtrl->SetValue(wxDateTime::Now());
+
+    // set date variables to today also
+    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    mDate = date::format("%F", todaysDate);
+    mOldDate = mDate;
+
+    // set task id to default (-1)
+    mTaskId = -1;
+
+    // set is edit flag to false
+    bIsEdit = false;
 }
 
 std::string TaskDialog::AttributeValuesCapturedLabel = "\"{0}\" attribute values captured";

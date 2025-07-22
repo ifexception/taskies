@@ -58,6 +58,7 @@ public:
         bool isEdit = false,
         std::int64_t taskId = -1,
         const std::string& selectedDate = "",
+        bool isClone = false,
         const wxString& name = "taskdlg");
     virtual ~TaskDialog() = default;
 
@@ -104,6 +105,8 @@ private:
     void QueueErrorNotificationEvent(const std::string& message);
     void QueueInformationNotificationEvent(const std::string& message);
 
+    void SetDataWhenTaskCloned();
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
@@ -140,6 +143,7 @@ private:
     std::string mOldDate;
     std::int64_t mEmployerId;
     std::int64_t mAttributeGroupId;
+    bool bIsClone;
 
     Model::TaskModel mTaskModel;
     bool bHasTaskAttributeValues;
