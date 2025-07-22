@@ -129,6 +129,7 @@ EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTas
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
+EVT_MENU(ID_POP_CLONE_TASK, MainFrame::OnCloneTask)
 EVT_MENU(wxID_ADD, MainFrame::OnAddMinutes)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
@@ -1122,6 +1123,18 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
+void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
+{
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
+    dlg::TaskDialog cloneTaskDialog(
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate, true);
+    cloneTaskDialog.ShowModal();
+
+    ResetTaskContextMenuVariables();
+}
+
 void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
@@ -1507,9 +1520,12 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             mTaskDate = model->GetParent()->GetProjectName();
 
             wxMenu menu;
-            menu.Append(wxID_COPY, "&Copy");
-            menu.Append(wxID_EDIT, "&Edit");
-            menu.Append(wxID_DELETE, "&Delete");
+            menu.Append(wxID_COPY, "&Copy", "Copy task description to the clipboard");
+            menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
+            menu.Append(wxID_DELETE, "&Delete", "Delete the selected task");
+            menu.AppendSeparator();
+
+            menu.Append(ID_POP_CLONE_TASK, "C&lone", "Clone the selected task");
             menu.AppendSeparator();
 
             std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
