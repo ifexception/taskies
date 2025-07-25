@@ -43,6 +43,25 @@ struct Sections {
     static const std::string PresetsSection;
 };
 
+struct TaskViewColumn {
+    std::string Column;
+    int Order;
+
+    TaskViewColumn()
+        : Column("")
+        , Order(-1)
+    {
+    }
+
+    TaskViewColumn(const std::string& column, int order)
+        : Column(column)
+        , Order(order)
+    {
+    }
+
+    ~TaskViewColumn() = default;
+};
+
 class Configuration
 {
 public:
@@ -155,6 +174,9 @@ public:
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
+    std::vector<TaskViewColumn> GetTaskViewColumns() const;
+    void ResetTaskViewColumns();
+
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
 
@@ -201,6 +223,7 @@ private:
         bool OpenTaskDialogOnReminderClick;
 
         bool TodayAlwaysExpanded;
+        std::vector<TaskViewColumn> TaskViewColumns;
 
         std::string ExportPath;
         bool CloseExportDialogAfterExporting;
