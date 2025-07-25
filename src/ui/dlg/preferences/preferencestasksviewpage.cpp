@@ -174,6 +174,20 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
         tksIDC_AVAILABLECOLUMNSLISTVIEW
     );
 
+    pRightChevronButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList,
+        this,
+        tksIDC_RIGHTCHEVRONBUTTON
+    );
+
+    pLeftChevronButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesTasksViewPage::OnRemoveDisplayColumnToAvailableColumnList,
+        this,
+        tksIDC_LEFTCHEVRONBUTTON
+    );
+
     pDisplayColumnsListView->Bind(
         wxEVT_LIST_ITEM_CHECKED,
         &PreferencesTasksViewPage::OnDisplayColumnItemCheck,
@@ -256,6 +270,51 @@ void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
         pLogger, "Count of columns selected \"{0}\"", mSelectedAvailableItemIndexes.size());
 }
 
+void PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList(
+    wxCommandEvent& WXUNUSED(event))
+{
+    if (mSelectedAvailableItemIndexes.size() == 0) {
+        return;
+    }
+
+    // sort the item indexes by ascending order so the
+    // subsequent for loop correctly iterates over the entries in reverse
+    std::sort(
+        mSelectedAvailableItemIndexes.begin(), mSelectedAvailableItemIndexes.end(), std::less{});
+
+    int columnIndex = 0;
+
+    for (long i = (mSelectedAvailableItemIndexes.size() - 1); 0 <= i; i--) {
+        // Extract the column name text from item index
+        wxListItem item;
+        item.m_itemId = mSelectedAvailableItemIndexes[i];
+        item.m_col = columnIndex;
+        item.m_mask = wxLIST_MASK_TEXT;
+        pAvailableColumnsListView->GetItem(item);
+
+        std::string name = item.GetText().ToStdString();
+
+        /* work out order index */
+        int count = pDisplayColumnsListView->GetItemCount();
+
+        /* Add column to display list view update */
+        auto listIndex = pDisplayColumnsListView->InsertItem(columnIndex++, name);
+        pDisplayColumnsListView->SetItem(listIndex, columnIndex++, std::to_string(count++));
+
+        /* Remove column from available column list control */
+        pAvailableColumnsListView->DeleteItem(mSelectedAvailableItemIndexes[i]);
+
+        mSelectedAvailableItemIndexes.erase(mSelectedAvailableItemIndexes.begin() + i);
+
+        SPDLOG_LOGGER_TRACE(pLogger, "Column \"{0}\" removed from available list", name);
+    }
+}
+
+void PreferencesTasksViewPage::OnRemoveDisplayColumnToAvailableColumnList(
+    wxCommandEvent& WXUNUSED(event))
+{
+}
+
 void PreferencesTasksViewPage::OnDisplayColumnItemCheck(wxListEvent& event)
 {
     long index = event.GetIndex();
@@ -276,7 +335,7 @@ void PreferencesTasksViewPage::OnDisplayColumnItemCheck(wxListEvent& event)
         pLogger, "Count of columns selected \"{0}\"", mSelectedDisplayItemIndexes.size());
 }
 
-void PreferencesTasksViewPage::OnDisplayColumnItemCheck(wxListEvent& event)
+void PreferencesTasksViewPage::OnDisplayColumnItemUncheck(wxListEvent& event)
 {
     long index = event.GetIndex();
 

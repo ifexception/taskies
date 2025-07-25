@@ -67,6 +67,9 @@ private:
     void OnAvailableColumnItemCheck(wxListEvent& event);
     void OnAvailableColumnItemUncheck(wxListEvent& event);
 
+    void OnAddAvailableColumnToDisplayColumnList(wxCommandEvent& event);
+    void OnRemoveDisplayColumnToAvailableColumnList(wxCommandEvent& event);
+
     void OnDisplayColumnItemCheck(wxListEvent& event);
     void OnDisplayColumnItemUncheck(wxListEvent& event);
 
