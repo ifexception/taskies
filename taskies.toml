@@ -22,6 +22,12 @@ openTaskDialogOnReminderClick=false
 
 [tasksView]
 todayAlwaysExpanded=false
+taskViewColumns = [
+	{column = "Project", order = 1},
+	{column = "Category", order = 2},
+	{column = "Duration", order = 3},
+	{column = "Description", order = 4}
+]
 
 [export]
 exportPath=""
