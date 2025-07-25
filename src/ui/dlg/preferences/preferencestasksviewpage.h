@@ -75,6 +75,7 @@ private:
     void OnDisplayColumnItemUncheck(wxListEvent& event);
 
     void UpdateDisplayColumnsOrder();
+    void UpdateDisplayColumnsOrderOnRemove();
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
