@@ -54,6 +54,7 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pDisplayColumnsListView(nullptr)
     , mSelectedAvailableItemIndexes()
     , mSelectedDisplayItemIndexes()
+    , mTaskViewColumns()
 {
     CreateControls();
     ConfigureEventBindings();
@@ -282,13 +283,15 @@ void PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList(
     std::sort(
         mSelectedAvailableItemIndexes.begin(), mSelectedAvailableItemIndexes.end(), std::less{});
 
-    int columnIndex = 0;
+    int listIndex = 0;
 
     for (long i = (mSelectedAvailableItemIndexes.size() - 1); 0 <= i; i--) {
-        // Extract the column name text from item index
+        int columnIndex = 0;
+
+        // extract the column name text from item index
         wxListItem item;
         item.m_itemId = mSelectedAvailableItemIndexes[i];
-        item.m_col = columnIndex;
+        item.m_col = 0;
         item.m_mask = wxLIST_MASK_TEXT;
         pAvailableColumnsListView->GetItem(item);
 
@@ -297,11 +300,11 @@ void PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList(
         /* work out order index */
         int count = pDisplayColumnsListView->GetItemCount();
 
-        /* Add column to display list view update */
-        auto listIndex = pDisplayColumnsListView->InsertItem(columnIndex++, name);
+        /* add column to display list view update */
+        listIndex = pDisplayColumnsListView->InsertItem(columnIndex++, name);
         pDisplayColumnsListView->SetItem(listIndex, columnIndex++, std::to_string(count++));
 
-        /* Remove column from available column list control */
+        /* remove column from available column list control */
         pAvailableColumnsListView->DeleteItem(mSelectedAvailableItemIndexes[i]);
 
         mSelectedAvailableItemIndexes.erase(mSelectedAvailableItemIndexes.begin() + i);
@@ -313,6 +316,36 @@ void PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList(
 void PreferencesTasksViewPage::OnRemoveDisplayColumnToAvailableColumnList(
     wxCommandEvent& WXUNUSED(event))
 {
+    if (mSelectedDisplayItemIndexes.size() == 0) {
+        return;
+    }
+
+    // sort the item indexes by ascending order so the
+    // subsequent for loop correctly iterates over the entries in reverse
+    std::sort(mSelectedDisplayItemIndexes.begin(), mSelectedDisplayItemIndexes.end(), std::less{});
+
+    for (long i = (mSelectedDisplayItemIndexes.size() - 1); 0 <= i; i--) {
+        int columnIndex = 0;
+
+        // extract the column name text from item index
+        wxListItem item;
+        item.m_itemId = mSelectedDisplayItemIndexes[i];
+        item.m_col = columnIndex;
+        item.m_mask = wxLIST_MASK_TEXT;
+        pDisplayColumnsListView->GetItem(item);
+
+        std::string name = item.GetText().ToStdString();
+
+        /* add column to available list view update */
+        auto listIndex = pAvailableColumnsListView->InsertItem(columnIndex++, name);
+
+        /* remove column from display column list view */
+        pDisplayColumnsListView->DeleteItem(mSelectedDisplayItemIndexes[i]);
+
+        mSelectedDisplayItemIndexes.erase(mSelectedDisplayItemIndexes.begin() + i);
+
+        SPDLOG_LOGGER_TRACE(pLogger, "Column \"{0}\" removed from display list", name);
+    }
 }
 
 void PreferencesTasksViewPage::OnDisplayColumnItemCheck(wxListEvent& event)

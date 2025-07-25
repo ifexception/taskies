@@ -87,6 +87,7 @@ private:
 
     std::vector<long> mSelectedAvailableItemIndexes;
     std::vector<long> mSelectedDisplayItemIndexes;
+    std::vector<Core::TaskViewColumn> mTaskViewColumns;
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,
