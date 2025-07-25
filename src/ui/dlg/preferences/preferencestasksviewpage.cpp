@@ -21,9 +21,23 @@
 
 #include <wx/richtooltip.h>
 
+#include "../../common/clientdata.h"
+
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
-#include "../../common/clientdata.h"
+
+static std::vector<std::string> MakeTaskViewColumns()
+{
+    return std::vector<std::string>{ "Employer",
+        "Client",
+        "Project",
+        "Display Name",
+        "Category",
+        "Duration",
+        "Billable",
+        "Unique ID",
+        "Description" };
+}
 
 namespace tks::UI::dlg
 {
@@ -104,11 +118,11 @@ void PreferencesTasksViewPage::CreateControls()
     auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
     columnsBoxSizer->Add(chevronButtonSizer, wxSizerFlags());
 
-    pRightChevronButton = new wxButton(
-        columnsBox, tksIDC_RIGHTCHEVRONBUTTON, ">", wxDefaultPosition, wxSize(32, -1));
+    pRightChevronButton =
+        new wxButton(columnsBox, tksIDC_RIGHTCHEVRONBUTTON, ">", wxDefaultPosition, wxSize(32, -1));
     pRightChevronButton->SetToolTip("Select a column to include in the task view display");
-    pLeftChevronButton = new wxButton(
-        columnsBox, tksIDC_LEFTCHEVRONBUTTON, "<", wxDefaultPosition, wxSize(32, -1));
+    pLeftChevronButton =
+        new wxButton(columnsBox, tksIDC_LEFTCHEVRONBUTTON, "<", wxDefaultPosition, wxSize(32, -1));
     pLeftChevronButton->SetToolTip("Select a column to exclude from the task view display");
 
     chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
@@ -143,7 +157,13 @@ void PreferencesTasksViewPage::CreateControls()
 
 void PreferencesTasksViewPage::ConfigureEventBindings() {}
 
-void PreferencesTasksViewPage::FillControls() {}
+void PreferencesTasksViewPage::FillControls()
+{
+    const auto& availableColumns = MakeTaskViewColumns();
+    for (auto& availableColumn : availableColumns) {
+        pAvailableColumnsListView->InsertItem(0, availableColumn);
+    }
+}
 
 void PreferencesTasksViewPage::DataToControls()
 {
