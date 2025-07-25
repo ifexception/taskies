@@ -221,8 +221,28 @@ void PreferencesTasksViewPage::DataToControls()
 
     const auto& cfgColumns = pCfg->GetTaskViewColumns();
     const auto& availableColumns = MakeTaskViewColumns();
+
+    std::vector<long> itemIndexesThatMatch;
+
     for (const auto& availableColumn : availableColumns) {
+        for (const auto& cfgColumn : cfgColumns) {
+            if (availableColumn == cfgColumn.Column) {
+                mTaskViewColumns.push_back(cfgColumn);
+                long itemIndex = pAvailableColumnsListView->FindItem(-1, availableColumn);
+                itemIndexesThatMatch.push_back(itemIndex);
+                break;
+            }
+        }
     }
+
+    // sort the item indexes by ascending order so the
+    // subsequent for loop correctly iterates over the entries in reverse
+    std::sort(itemIndexesThatMatch.begin(), itemIndexesThatMatch.end(), std::less{});
+    for (long i = (itemIndexesThatMatch.size() - 1); 0 <= i; i--) {
+        pAvailableColumnsListView->DeleteItem(itemIndexesThatMatch[i]);
+    }
+
+    UpdateDisplayColumnsOrder();
 }
 
 void PreferencesTasksViewPage::OnAvailableColumnItemCheck(wxListEvent& event)
@@ -414,11 +434,15 @@ void PreferencesTasksViewPage::UpdateDisplayColumnsOrder()
 {
     // ensure the task view columns are sorted descending
     // because the list view inserts entries in reverse
-    std::sort(mTaskViewColumns.begin(),
+    // clang-format off
+    std::sort(
+        mTaskViewColumns.begin(),
         mTaskViewColumns.end(),
         [&](const Core::TaskViewColumn& lhs, const Core::TaskViewColumn& rhs) {
             return lhs.Order > rhs.Order;
-        });
+        }
+    );
+    // clang-format on
 
     // clear all the columns
     pDisplayColumnsListView->DeleteAllItems();
