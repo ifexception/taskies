@@ -67,6 +67,9 @@ private:
     void OnAvailableColumnItemCheck(wxListEvent& event);
     void OnAvailableColumnItemUncheck(wxListEvent& event);
 
+    void OnDisplayColumnItemCheck(wxListEvent& event);
+    void OnDisplayColumnItemUncheck(wxListEvent& event);
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
@@ -78,8 +81,9 @@ private:
     wxButton* pLeftChevronButton;
 
     wxListView* pDisplayColumnsListView;
-    
-    std::vector<long> mSelectedItemIndexes;
+
+    std::vector<long> mSelectedAvailableItemIndexes;
+    std::vector<long> mSelectedDisplayItemIndexes;
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,

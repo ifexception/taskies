@@ -52,7 +52,8 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
     , pDisplayColumnsListView(nullptr)
-    , mSelectedItemIndexes()
+    , mSelectedAvailableItemIndexes()
+    , mSelectedDisplayItemIndexes()
 {
     CreateControls();
     ConfigureEventBindings();
@@ -172,6 +173,20 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
         this,
         tksIDC_AVAILABLECOLUMNSLISTVIEW
     );
+
+    pDisplayColumnsListView->Bind(
+        wxEVT_LIST_ITEM_CHECKED,
+        &PreferencesTasksViewPage::OnDisplayColumnItemCheck,
+        this,
+        tksIDC_DISPLAYCOLUMNSLISTVIEW
+    );
+
+    pDisplayColumnsListView->Bind(
+        wxEVT_LIST_ITEM_UNCHECKED,
+        &PreferencesTasksViewPage::OnDisplayColumnItemUncheck,
+        this,
+        tksIDC_DISPLAYCOLUMNSLISTVIEW
+    );
 }
 // clang-format on
 
@@ -197,7 +212,7 @@ void PreferencesTasksViewPage::OnAvailableColumnItemCheck(wxListEvent& event)
 {
     long index = event.GetIndex();
 
-    mSelectedItemIndexes.push_back(index);
+    mSelectedAvailableItemIndexes.push_back(index);
 
     // This code is purely just for logging purposes
     wxListItem item;
@@ -209,7 +224,8 @@ void PreferencesTasksViewPage::OnAvailableColumnItemCheck(wxListEvent& event)
     std::string name = item.GetText().ToStdString();
 
     SPDLOG_LOGGER_TRACE(pLogger, "Selected column name \"{0}\"", name);
-    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns selected \"{0}\"", mSelectedItemIndexes.size());
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Count of columns selected \"{0}\"", mSelectedAvailableItemIndexes.size());
 }
 
 void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
@@ -217,12 +233,12 @@ void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
     long index = event.GetIndex();
 
     // clang-format off
-    mSelectedItemIndexes.erase(
+    mSelectedAvailableItemIndexes.erase(
         std::remove(
-            mSelectedItemIndexes.begin(),
-            mSelectedItemIndexes.end(),
+            mSelectedAvailableItemIndexes.begin(),
+            mSelectedAvailableItemIndexes.end(),
             index),
-        mSelectedItemIndexes.end()
+        mSelectedAvailableItemIndexes.end()
     );
     // clang-format on
 
@@ -236,6 +252,55 @@ void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
     std::string name = item.GetText().ToStdString();
 
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
-    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns selected \"{0}\"", mSelectedItemIndexes.size());
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Count of columns selected \"{0}\"", mSelectedAvailableItemIndexes.size());
+}
+
+void PreferencesTasksViewPage::OnDisplayColumnItemCheck(wxListEvent& event)
+{
+    long index = event.GetIndex();
+
+    mSelectedDisplayItemIndexes.push_back(index);
+
+    // This code is purely just for logging purposes
+    wxListItem item;
+    item.m_itemId = index;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pDisplayColumnsListView->GetItem(item);
+
+    std::string name = item.GetText().ToStdString();
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Selected column name \"{0}\"", name);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Count of columns selected \"{0}\"", mSelectedDisplayItemIndexes.size());
+}
+
+void PreferencesTasksViewPage::OnDisplayColumnItemCheck(wxListEvent& event)
+{
+    long index = event.GetIndex();
+
+    // clang-format off
+    mSelectedDisplayItemIndexes.erase(
+        std::remove(
+            mSelectedDisplayItemIndexes.begin(),
+            mSelectedDisplayItemIndexes.end(),
+            index),
+        mSelectedDisplayItemIndexes.end()
+    );
+    // clang-format on
+
+    // This code is purely just for logging purposes
+    wxListItem item;
+    item.m_itemId = index;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pAvailableColumnsListView->GetItem(item);
+
+    std::string name = item.GetText().ToStdString();
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Count of columns selected \"{0}\"", mSelectedDisplayItemIndexes.size());
 }
 } // namespace tks::UI::dlg
