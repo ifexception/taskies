@@ -81,6 +81,16 @@ void PreferencesTasksViewPage::Save()
 {
     pCfg->TodayAlwaysExpanded(pTodayAlwaysExpanded->GetValue());
 
+    // ensure we are sorted by order ascending before writing to config
+    // clang-format off
+    std::sort(
+        mTaskViewColumns.begin(),
+        mTaskViewColumns.end(),
+        [&](const Core::TaskViewColumn& lhs, const Core::TaskViewColumn& rhs) {
+            return lhs.Order < rhs.Order;
+        }
+    );
+    // clang-format on
     pCfg->SetTaskViewColumns(mTaskViewColumns);
 }
 
