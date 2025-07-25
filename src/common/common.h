@@ -43,6 +43,10 @@ std::string GetPreferencesIconBundleName();
 
 std::string GetQuickExportIconBundleName();
 
+std::string GetSortAscIconBundleName();
+
+std::string GetSortDescIconBundleName();
+
 std::string GetLicense();
 
 struct PresetColumn {

@@ -13,3 +13,7 @@
 [Setting icons created by chehuna - Flaticon](https://www.flaticon.com/free-icons/setting)
 
 [Export icons created by Pixel bytess - Flaticon](https://www.flaticon.com/free-icons/export)
+
+[Descending icons created by Dwi ridwanto - Flaticon](https://www.flaticon.com/free-icons/descending)
+
+[Ascending icons created by Dwi ridwanto - Flaticon](https://www.flaticon.com/free-icons/ascending)

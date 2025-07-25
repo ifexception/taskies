@@ -16,6 +16,8 @@ ADD_TASK_ICO ICON "..\\res\\add_task.ico"
 ABOUT_ICO ICON "..\\res\\about.ico"
 PREFERENCES_ICO ICON "..\\res\\preferences.ico"
 QUICK_EXPORT_ICO ICON "..\\res\\quick_export.ico"
+SORT_ASC_ICO ICON "..\\res\\sort_asc.ico"
+SORT_DESC_ICO ICON "..\\res\\sort_desc.ico"
 
 // Migrations
 20230104084922_create_persistent_objects_table MIGRATION "..\\res\\migrations\\20230104084922_create_persistent_objects_table.sql"

@@ -56,6 +56,16 @@ std::string GetQuickExportIconBundleName()
     return "QUICK_EXPORT_ICO";
 }
 
+std::string GetSortAscIconBundleName()
+{
+    return "SORT_ASC_ICO";
+}
+
+std::string GetSortDescIconBundleName()
+{
+    return "SORT_DESC_ICO";
+}
+
 std::string GetLicense()
 {
     return "Taskies is a time tracking productivity tool.\n"
