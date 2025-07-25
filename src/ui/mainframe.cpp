@@ -188,6 +188,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pTaskReminderNotification()
     , pThumbBarNewTaskButton(nullptr)
     , pThumbBarQuickExportButton(nullptr)
+    , mThumbBarDialogOpenCounter(0)
 // clang-format on
 {
     SPDLOG_LOGGER_TRACE(pLogger, "Initialization of MainFrame");
@@ -627,16 +628,28 @@ void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
 {
     Raise();
 
-    dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
-    newTaskDialog.ShowModal();
+    if (mThumbBarDialogOpenCounter == 0) {
+        mThumbBarDialogOpenCounter++;
+
+        dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialog.ShowModal();
+
+        mThumbBarDialogOpenCounter--;
+    }
 }
 
 void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 {
     Raise();
 
-    dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
-    quickExportToCsv.ShowModal();
+    if (mThumbBarDialogOpenCounter ==0) {
+        mThumbBarDialogOpenCounter++;
+
+        dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
+        quickExportToCsv.ShowModal();
+
+        mThumbBarDialogOpenCounter--;
+    }
 }
 
 void MainFrame::OnNotificationClick(wxCommandEvent& event)

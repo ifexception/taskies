@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <array>
 #include <chrono>
 #include <memory>
 #include <string>
@@ -284,6 +283,12 @@ private:
     std::string mTaskDate;
     int mExpandCounter;
     bool bDateRangeChanged;
+
+    /*
+     * this member ensures that only one dialog is opened at a time from the thumb bar actions
+     * the thumb bar allows a user to open an as many dialogs as they want so we cap at 1
+     */
+    int mThumbBarDialogOpenCounter;
 
     std::unique_ptr<wxTimer> pTaskReminderTimer;
     std::shared_ptr<wxNotificationMessage> pTaskReminderNotification;
