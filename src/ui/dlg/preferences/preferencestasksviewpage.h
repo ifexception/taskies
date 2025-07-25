@@ -37,6 +37,7 @@ namespace tks
 namespace Core
 {
 class Configuration;
+struct TaskViewColumn;
 } // namespace Core
 namespace UI
 {
@@ -72,6 +73,8 @@ private:
 
     void OnDisplayColumnItemCheck(wxListEvent& event);
     void OnDisplayColumnItemUncheck(wxListEvent& event);
+
+    void UpdateDisplayColumnsOrder();
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;

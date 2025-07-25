@@ -284,6 +284,7 @@ void PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList(
         mSelectedAvailableItemIndexes.begin(), mSelectedAvailableItemIndexes.end(), std::less{});
 
     int listIndex = 0;
+    int orderCount = 1;
 
     for (long i = (mSelectedAvailableItemIndexes.size() - 1); 0 <= i; i--) {
         int columnIndex = 0;
@@ -297,20 +298,18 @@ void PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList(
 
         std::string name = item.GetText().ToStdString();
 
-        /* work out order index */
-        int count = pDisplayColumnsListView->GetItemCount();
-
-        /* add column to display list view update */
-        listIndex = pDisplayColumnsListView->InsertItem(columnIndex++, name);
-        pDisplayColumnsListView->SetItem(listIndex, columnIndex++, std::to_string(count++));
-
         /* remove column from available column list control */
         pAvailableColumnsListView->DeleteItem(mSelectedAvailableItemIndexes[i]);
 
         mSelectedAvailableItemIndexes.erase(mSelectedAvailableItemIndexes.begin() + i);
 
+        Core::TaskViewColumn taskViewColumn(name, orderCount++);
+        mTaskViewColumns.push_back(taskViewColumn);
+
         SPDLOG_LOGGER_TRACE(pLogger, "Column \"{0}\" removed from available list", name);
     }
+
+    UpdateDisplayColumnsOrder();
 }
 
 void PreferencesTasksViewPage::OnRemoveDisplayColumnToAvailableColumnList(
@@ -394,5 +393,28 @@ void PreferencesTasksViewPage::OnDisplayColumnItemUncheck(wxListEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(
         pLogger, "Count of columns selected \"{0}\"", mSelectedDisplayItemIndexes.size());
+}
+
+void PreferencesTasksViewPage::UpdateDisplayColumnsOrder()
+{
+    // ensure the task view columns are sorted descending
+    // because the list view insert entries in reverse
+    std::sort(mTaskViewColumns.begin(),
+        mTaskViewColumns.end(),
+        [&](const Core::TaskViewColumn& lhs, const Core::TaskViewColumn& rhs) {
+            return lhs.Order > rhs.Order;
+        });
+
+    // clear all the columns
+    pDisplayColumnsListView->DeleteAllItems();
+
+    // reinsert the task view columns sorted by "order" field ascending
+    int listIndex = 0;
+    for (auto& taskViewColumn : mTaskViewColumns) {
+        int columnIndex = 0;
+        listIndex = pDisplayColumnsListView->InsertItem(columnIndex++, taskViewColumn.Column);
+        pDisplayColumnsListView->SetItem(
+            listIndex, columnIndex++, std::to_string(taskViewColumn.Order));
+    }
 }
 } // namespace tks::UI::dlg
