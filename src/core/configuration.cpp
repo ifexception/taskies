@@ -663,6 +663,12 @@ std::vector<TaskViewColumn> Configuration::GetTaskViewColumns() const
     return mSettings.TaskViewColumns;
 }
 
+void Configuration::SetTaskViewColumns(const std::vector<TaskViewColumn>& taskViewColumns)
+{
+    mSettings.TaskViewColumns.clear();
+    mSettings.TaskViewColumns = taskViewColumns;
+}
+
 void Configuration::ResetTaskViewColumns()
 {
     mSettings.TaskViewColumns.clear();

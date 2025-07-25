@@ -33,7 +33,7 @@ static std::vector<std::string> MakeTaskViewColumns()
     return std::vector<std::string>{ "Employer",
         "Client",
         "Project",
-        "Display Name",
+        "Project (Simple)",
         "Category",
         "Duration",
         "Billable",
@@ -80,11 +80,17 @@ bool PreferencesTasksViewPage::IsValid()
 void PreferencesTasksViewPage::Save()
 {
     pCfg->TodayAlwaysExpanded(pTodayAlwaysExpanded->GetValue());
+
+    pCfg->SetTaskViewColumns(mTaskViewColumns);
 }
 
 void PreferencesTasksViewPage::Reset()
 {
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
+
+    mTaskViewColumns.clear();
+    mTaskViewColumns = pCfg->GetTaskViewColumns();
+    UpdateDisplayColumnsOrder();
 }
 
 void PreferencesTasksViewPage::CreateControls()

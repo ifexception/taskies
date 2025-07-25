@@ -175,6 +175,7 @@ public:
     void TodayAlwaysExpanded(const bool value);
 
     std::vector<TaskViewColumn> GetTaskViewColumns() const;
+    void SetTaskViewColumns(const std::vector<TaskViewColumn>& taskViewColumns);
     void ResetTaskViewColumns();
 
     std::string GetExportPath() const;
