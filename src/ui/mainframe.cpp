@@ -625,12 +625,16 @@ void MainFrame::OnTaskReminder(wxTimerEvent& event)
 
 void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
 {
+    Raise();
+
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
 }
 
 void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 {
+    Raise();
+
     dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
     quickExportToCsv.ShowModal();
 }
