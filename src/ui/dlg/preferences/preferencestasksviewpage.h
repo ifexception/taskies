@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -63,6 +64,9 @@ private:
     void FillControls();
     void DataToControls();
 
+    void OnAvailableColumnItemCheck(wxListEvent& event);
+    void OnAvailableColumnItemUncheck(wxListEvent& event);
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
@@ -74,6 +78,8 @@ private:
     wxButton* pLeftChevronButton;
 
     wxListView* pDisplayColumnsListView;
+    
+    std::vector<long> mSelectedItemIndexes;
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,

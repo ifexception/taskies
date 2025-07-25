@@ -52,6 +52,7 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
     , pDisplayColumnsListView(nullptr)
+    , mSelectedItemIndexes()
 {
     CreateControls();
     ConfigureEventBindings();
@@ -155,7 +156,24 @@ void PreferencesTasksViewPage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-void PreferencesTasksViewPage::ConfigureEventBindings() {}
+// clang-format off
+void PreferencesTasksViewPage::ConfigureEventBindings()
+{
+    pAvailableColumnsListView->Bind(
+        wxEVT_LIST_ITEM_CHECKED,
+        &PreferencesTasksViewPage::OnAvailableColumnItemCheck,
+        this,
+        tksIDC_AVAILABLECOLUMNSLISTVIEW
+    );
+
+    pAvailableColumnsListView->Bind(
+        wxEVT_LIST_ITEM_UNCHECKED,
+        &PreferencesTasksViewPage::OnAvailableColumnItemUncheck,
+        this,
+        tksIDC_AVAILABLECOLUMNSLISTVIEW
+    );
+}
+// clang-format on
 
 void PreferencesTasksViewPage::FillControls()
 {
@@ -168,5 +186,56 @@ void PreferencesTasksViewPage::FillControls()
 void PreferencesTasksViewPage::DataToControls()
 {
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
+
+    const auto& cfgColumns = pCfg->GetTaskViewColumns();
+    const auto& availableColumns = MakeTaskViewColumns();
+    for (const auto& availableColumn : availableColumns) {
+    }
+}
+
+void PreferencesTasksViewPage::OnAvailableColumnItemCheck(wxListEvent& event)
+{
+    long index = event.GetIndex();
+
+    mSelectedItemIndexes.push_back(index);
+
+    // This code is purely just for logging purposes
+    wxListItem item;
+    item.m_itemId = index;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pAvailableColumnsListView->GetItem(item);
+
+    std::string name = item.GetText().ToStdString();
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Selected column name \"{0}\"", name);
+    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns selected \"{0}\"", mSelectedItemIndexes.size());
+}
+
+void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
+{
+    long index = event.GetIndex();
+
+    // clang-format off
+    mSelectedItemIndexes.erase(
+        std::remove(
+            mSelectedItemIndexes.begin(),
+            mSelectedItemIndexes.end(),
+            index),
+        mSelectedItemIndexes.end()
+    );
+    // clang-format on
+
+    // This code is purely just for logging purposes
+    wxListItem item;
+    item.m_itemId = index;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pAvailableColumnsListView->GetItem(item);
+
+    std::string name = item.GetText().ToStdString();
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
+    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns selected \"{0}\"", mSelectedItemIndexes.size());
 }
 } // namespace tks::UI::dlg
