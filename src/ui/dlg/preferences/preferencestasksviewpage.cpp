@@ -294,7 +294,7 @@ void PreferencesTasksViewPage::OnAvailableColumnItemCheck(wxListEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Selected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(
-        pLogger, "Count of columns selected \"{0}\"", mSelectedAvailableItemIndexes.size());
+        pLogger, "Count of available columns selected \"{0}\"", mSelectedAvailableItemIndexes.size());
 }
 
 void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
@@ -322,7 +322,7 @@ void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(
-        pLogger, "Count of columns selected \"{0}\"", mSelectedAvailableItemIndexes.size());
+        pLogger, "Count of available columns selected \"{0}\"", mSelectedAvailableItemIndexes.size());
 }
 
 void PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList(
@@ -431,7 +431,7 @@ void PreferencesTasksViewPage::OnDisplayColumnItemCheck(wxListEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Selected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(
-        pLogger, "Count of columns selected \"{0}\"", mSelectedDisplayItemIndexes.size());
+        pLogger, "Count of display columns selected \"{0}\"", mSelectedDisplayItemIndexes.size());
 }
 
 void PreferencesTasksViewPage::OnDisplayColumnItemUncheck(wxListEvent& event)
@@ -459,7 +459,7 @@ void PreferencesTasksViewPage::OnDisplayColumnItemUncheck(wxListEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(
-        pLogger, "Count of columns selected \"{0}\"", mSelectedDisplayItemIndexes.size());
+        pLogger, "Count of display columns selected \"{0}\"", mSelectedDisplayItemIndexes.size());
 }
 
 void PreferencesTasksViewPage::OnDisplayColumnItemRightClick(wxListEvent& event)
@@ -468,8 +468,13 @@ void PreferencesTasksViewPage::OnDisplayColumnItemRightClick(wxListEvent& event)
 
     wxMenu menu;
 
-    menu.Append(tksIDC_POP_SORTUP, "Sort &Up");
-    menu.Append(tksIDC_POP_SORTDOWN, "Sort &Down");
+    auto popupSortUpMenuItem = menu.Append(tksIDC_POP_SORTUP, "Sort &Up");
+    wxIconBundle sortAscBundle(Common::GetSortAscIconBundleName(), 0);
+    popupSortUpMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(sortAscBundle));
+
+    auto popupSortDownMenuItem = menu.Append(tksIDC_POP_SORTDOWN, "Sort &Down");
+    wxIconBundle sortDescBundle(Common::GetSortDescIconBundleName(), 0);
+    popupSortDownMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(sortDescBundle));
 
     PopupMenu(&menu);
 }
