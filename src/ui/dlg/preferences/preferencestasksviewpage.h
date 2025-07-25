@@ -74,6 +74,8 @@ private:
     void OnDisplayColumnItemCheck(wxListEvent& event);
     void OnDisplayColumnItemUncheck(wxListEvent& event);
 
+    void OnDisplayColumnItemRightClick(wxListEvent& event);
+
     void UpdateDisplayColumnsOrder();
     void UpdateDisplayColumnsOrderOnRemove();
 
@@ -93,12 +95,17 @@ private:
     std::vector<long> mSelectedDisplayItemIndexes;
     std::vector<Core::TaskViewColumn> mTaskViewColumns;
 
+    long mItemIndexToSort;
+
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,
         tksIDC_AVAILABLECOLUMNSLISTVIEW,
         tksIDC_RIGHTCHEVRONBUTTON,
         tksIDC_LEFTCHEVRONBUTTON,
-        tksIDC_DISPLAYCOLUMNSLISTVIEW
+        tksIDC_DISPLAYCOLUMNSLISTVIEW,
+        // Popup Sort Menu
+        tksIDC_POP_SORTUP,
+        tksIDC_POP_SORTDOWN
     };
 };
 } // namespace dlg

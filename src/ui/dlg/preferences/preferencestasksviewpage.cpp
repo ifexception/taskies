@@ -57,6 +57,7 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , mSelectedAvailableItemIndexes()
     , mSelectedDisplayItemIndexes()
     , mTaskViewColumns()
+    , mItemIndexToSort(-1)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -225,6 +226,13 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
     pDisplayColumnsListView->Bind(
         wxEVT_LIST_ITEM_UNCHECKED,
         &PreferencesTasksViewPage::OnDisplayColumnItemUncheck,
+        this,
+        tksIDC_DISPLAYCOLUMNSLISTVIEW
+    );
+
+    pDisplayColumnsListView->Bind(
+        wxEVT_LIST_ITEM_RIGHT_CLICK,
+        &PreferencesTasksViewPage::OnDisplayColumnItemRightClick,
         this,
         tksIDC_DISPLAYCOLUMNSLISTVIEW
     );
@@ -452,6 +460,18 @@ void PreferencesTasksViewPage::OnDisplayColumnItemUncheck(wxListEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(
         pLogger, "Count of columns selected \"{0}\"", mSelectedDisplayItemIndexes.size());
+}
+
+void PreferencesTasksViewPage::OnDisplayColumnItemRightClick(wxListEvent& event)
+{
+    mItemIndexToSort = event.GetIndex();
+
+    wxMenu menu;
+
+    menu.Append(tksIDC_POP_SORTUP, "Sort &Up");
+    menu.Append(tksIDC_POP_SORTDOWN, "Sort &Down");
+
+    PopupMenu(&menu);
 }
 
 void PreferencesTasksViewPage::UpdateDisplayColumnsOrder()
