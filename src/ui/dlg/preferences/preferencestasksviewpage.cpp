@@ -66,6 +66,14 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
 
 bool PreferencesTasksViewPage::IsValid()
 {
+    if (mTaskViewColumns.size() == 0) {
+        std::string validationMessage = "At least one column must be selected";
+        wxRichToolTip tooltip("Validation", validationMessage);
+        tooltip.SetIcon(wxICON_WARNING);
+        tooltip.ShowFor(pDisplayColumnsListView);
+        return false;
+    }
+
     return true;
 }
 
