@@ -26,8 +26,10 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/listctrl.h>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 namespace tks
 {
@@ -66,8 +68,19 @@ private:
 
     wxCheckBox* pTodayAlwaysExpanded;
 
+    wxListView* pAvailableColumnsListView;
+
+    wxButton* pRightChevronButton;
+    wxButton* pLeftChevronButton;
+
+    wxListView* pDisplayColumnsListView;
+
     enum {
-        tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100
+        tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,
+        tksIDC_AVAILABLECOLUMNSLISTVIEW,
+        tksIDC_RIGHTCHEVRONBUTTON,
+        tksIDC_LEFTCHEVRONBUTTON,
+        tksIDC_DISPLAYCOLUMNSLISTVIEW
     };
 };
 } // namespace dlg

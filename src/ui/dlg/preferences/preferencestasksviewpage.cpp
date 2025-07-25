@@ -34,6 +34,10 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pCfg(cfg)
     , pLogger(logger)
     , pTodayAlwaysExpanded(nullptr)
+    , pAvailableColumnsListView(nullptr)
+    , pRightChevronButton(nullptr)
+    , pLeftChevronButton(nullptr)
+    , pDisplayColumnsListView(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -61,15 +65,78 @@ void PreferencesTasksViewPage::CreateControls()
     /* Base Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    /* Time Increment box */
-    auto tasksViewBox = new wxStaticBox(this, wxID_ANY, "Tasks View");
-    auto tasksViewBoxSizer = new wxStaticBoxSizer(tasksViewBox, wxHORIZONTAL);
-    sizer->Add(tasksViewBoxSizer, wxSizerFlags().Expand());
+    /* Tasks view options box */
+    auto optionsBox = new wxStaticBox(this, wxID_ANY, "Options");
+    auto optionsBoxSizer = new wxStaticBoxSizer(optionsBox, wxHORIZONTAL);
+    sizer->Add(optionsBoxSizer, wxSizerFlags().Expand());
 
     /* Today always expanded control */
-    pTodayAlwaysExpanded = new wxCheckBox(this, tksIDC_TODAYALWAYSEXPANDED, "Today's date always expanded");
+    pTodayAlwaysExpanded =
+        new wxCheckBox(this, tksIDC_TODAYALWAYSEXPANDED, "Today's date always expanded");
     pTodayAlwaysExpanded->SetToolTip("When selecting other dates, keep today's date expanded too");
-    tasksViewBoxSizer->Add(pTodayAlwaysExpanded, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    optionsBoxSizer->Add(pTodayAlwaysExpanded, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+
+    /* Columns box */
+    auto columnsBox = new wxStaticBox(this, wxID_ANY, "Columns");
+    auto columnsBoxSizer = new wxStaticBoxSizer(columnsBox, wxHORIZONTAL);
+    sizer->Add(columnsBoxSizer, wxSizerFlags().Expand().Proportion(1));
+
+    /* Available column list */
+    pAvailableColumnsListView = new wxListView(columnsBox,
+        tksIDC_AVAILABLECOLUMNSLISTVIEW,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
+    pAvailableColumnsListView->EnableCheckBoxes();
+    pAvailableColumnsListView->SetToolTip("Select columns to display in the task view");
+    columnsBoxSizer->Add(
+        pAvailableColumnsListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    int availableColumnIndex = 0;
+
+    wxListItem availableColumn;
+    availableColumn.SetId(availableColumnIndex);
+    availableColumn.SetText("Available Columns");
+    availableColumn.SetWidth(180);
+    pAvailableColumnsListView->InsertColumn(availableColumnIndex++, availableColumn);
+
+    /* Chevrons buttons */
+    auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
+    columnsBoxSizer->Add(chevronButtonSizer, wxSizerFlags());
+
+    pRightChevronButton = new wxButton(
+        columnsBox, tksIDC_RIGHTCHEVRONBUTTON, ">", wxDefaultPosition, wxSize(32, -1));
+    pRightChevronButton->SetToolTip("Select a column to include in the task view display");
+    pLeftChevronButton = new wxButton(
+        columnsBox, tksIDC_LEFTCHEVRONBUTTON, "<", wxDefaultPosition, wxSize(32, -1));
+    pLeftChevronButton->SetToolTip("Select a column to exclude from the task view display");
+
+    chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+    chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+
+    pDisplayColumnsListView = new wxListView(columnsBox,
+        tksIDC_DISPLAYCOLUMNSLISTVIEW,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
+    pDisplayColumnsListView->EnableCheckBoxes();
+    pDisplayColumnsListView->SetToolTip("Columns to be displayed in the task view");
+    columnsBoxSizer->Add(
+        pDisplayColumnsListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    int displayColumnIndex = 0;
+
+    wxListItem displayColumnName;
+    displayColumnName.SetId(displayColumnIndex);
+    displayColumnName.SetText("Display Column");
+    displayColumnName.SetWidth(180);
+    pDisplayColumnsListView->InsertColumn(displayColumnIndex++, displayColumnName);
+
+    wxListItem displayColumnOrder;
+    displayColumnOrder.SetId(displayColumnIndex);
+    displayColumnOrder.SetText("Order");
+    displayColumnOrder.SetWidth(wxLIST_AUTOSIZE);
+    pDisplayColumnsListView->InsertColumn(displayColumnIndex++, displayColumnOrder);
 
     SetSizerAndFit(sizer);
 }
