@@ -20,6 +20,7 @@
 #include "preferencestasksviewpage.h"
 
 #include <algorithm>
+#include <cassert>
 
 #include <wx/richtooltip.h>
 
@@ -236,6 +237,20 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
         this,
         tksIDC_DISPLAYCOLUMNSLISTVIEW
     );
+
+    Bind(
+        wxEVT_MENU,
+        &PreferencesTasksViewPage::OnPopupMenuSortAscending,
+        this,
+        tksIDC_POP_SORTASC
+    );
+
+    Bind(
+        wxEVT_MENU,
+        &PreferencesTasksViewPage::OnPopupMenuSortDescending,
+        this,
+        tksIDC_POP_SORTDESC
+    );
 }
 // clang-format on
 
@@ -293,8 +308,9 @@ void PreferencesTasksViewPage::OnAvailableColumnItemCheck(wxListEvent& event)
     std::string name = item.GetText().ToStdString();
 
     SPDLOG_LOGGER_TRACE(pLogger, "Selected column name \"{0}\"", name);
-    SPDLOG_LOGGER_TRACE(
-        pLogger, "Count of available columns selected \"{0}\"", mSelectedAvailableItemIndexes.size());
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Count of available columns selected \"{0}\"",
+        mSelectedAvailableItemIndexes.size());
 }
 
 void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
@@ -321,8 +337,9 @@ void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
     std::string name = item.GetText().ToStdString();
 
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
-    SPDLOG_LOGGER_TRACE(
-        pLogger, "Count of available columns selected \"{0}\"", mSelectedAvailableItemIndexes.size());
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Count of available columns selected \"{0}\"",
+        mSelectedAvailableItemIndexes.size());
 }
 
 void PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList(
@@ -468,16 +485,64 @@ void PreferencesTasksViewPage::OnDisplayColumnItemRightClick(wxListEvent& event)
 
     wxMenu menu;
 
-    auto popupSortUpMenuItem = menu.Append(tksIDC_POP_SORTUP, "Sort &Up");
+    auto popupSortUpMenuItem = menu.Append(tksIDC_POP_SORTASC, "Sort &Up");
     wxIconBundle sortAscBundle(Common::GetSortAscIconBundleName(), 0);
     popupSortUpMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(sortAscBundle));
 
-    auto popupSortDownMenuItem = menu.Append(tksIDC_POP_SORTDOWN, "Sort &Down");
+    auto popupSortDownMenuItem = menu.Append(tksIDC_POP_SORTDESC, "Sort &Down");
     wxIconBundle sortDescBundle(Common::GetSortDescIconBundleName(), 0);
     popupSortDownMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(sortDescBundle));
 
     PopupMenu(&menu);
 }
+
+void PreferencesTasksViewPage::OnPopupMenuSortAscending(wxCommandEvent& event)
+{
+    assert(mItemIndexToSort != -1);
+
+    // clang-format off
+    std::sort(
+        mTaskViewColumns.begin(),
+        mTaskViewColumns.end(),
+        [&](const Core::TaskViewColumn& lhs, const Core::TaskViewColumn& rhs) {
+            return lhs.Order < rhs.Order;
+        }
+    );
+    // clang-format on
+
+    wxListItem item;
+    item.m_itemId = mItemIndexToSort;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pDisplayColumnsListView->GetItem(item);
+
+    std::string name = item.GetText().ToStdString();
+
+    for (size_t i = 0; i < mTaskViewColumns.size(); i++) {
+        if (name == mTaskViewColumns[i].Column) {
+            if (i == 0) {
+                break;
+            } else {
+                int iToChange = i - 1;
+
+                Core::TaskViewColumn temp = mTaskViewColumns[iToChange];
+
+                temp.Order++;
+                mTaskViewColumns[i].Order--;
+
+                mTaskViewColumns[iToChange] = mTaskViewColumns[i];
+                mTaskViewColumns[i] = temp;
+                break;
+            }
+        }
+    }
+
+    mItemIndexToSort = -1;
+
+    UpdateDisplayColumnsOrder();
+}
+
+void PreferencesTasksViewPage::OnPopupMenuSortDescending(wxCommandEvent& event) {}
 
 void PreferencesTasksViewPage::UpdateDisplayColumnsOrder()
 {

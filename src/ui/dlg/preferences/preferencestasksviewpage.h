@@ -76,6 +76,9 @@ private:
 
     void OnDisplayColumnItemRightClick(wxListEvent& event);
 
+    void OnPopupMenuSortAscending(wxCommandEvent& event);
+    void OnPopupMenuSortDescending(wxCommandEvent& event);
+
     void UpdateDisplayColumnsOrder();
     void UpdateDisplayColumnsOrderOnRemove();
 
@@ -104,8 +107,8 @@ private:
         tksIDC_LEFTCHEVRONBUTTON,
         tksIDC_DISPLAYCOLUMNSLISTVIEW,
         // Popup Sort Menu
-        tksIDC_POP_SORTUP,
-        tksIDC_POP_SORTDOWN
+        tksIDC_POP_SORTASC,
+        tksIDC_POP_SORTDESC
     };
 };
 } // namespace dlg
