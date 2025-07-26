@@ -532,6 +532,7 @@ void PreferencesTasksViewPage::OnPopupMenuSortAscending(wxCommandEvent& event)
 
                 mTaskViewColumns[iToChange] = mTaskViewColumns[i];
                 mTaskViewColumns[i] = temp;
+
                 break;
             }
         }
@@ -542,7 +543,52 @@ void PreferencesTasksViewPage::OnPopupMenuSortAscending(wxCommandEvent& event)
     UpdateDisplayColumnsOrder();
 }
 
-void PreferencesTasksViewPage::OnPopupMenuSortDescending(wxCommandEvent& event) {}
+void PreferencesTasksViewPage::OnPopupMenuSortDescending(wxCommandEvent& event)
+{
+    assert(mItemIndexToSort != -1);
+
+    // clang-format off
+    std::sort(
+        mTaskViewColumns.begin(),
+        mTaskViewColumns.end(),
+        [&](const Core::TaskViewColumn& lhs, const Core::TaskViewColumn& rhs) {
+            return lhs.Order < rhs.Order;
+        }
+    );
+    // clang-format on
+
+    wxListItem item;
+    item.m_itemId = mItemIndexToSort;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pDisplayColumnsListView->GetItem(item);
+
+    std::string name = item.GetText().ToStdString();
+
+    for (size_t i = 0; i < mTaskViewColumns.size(); i++) {
+        if (name == mTaskViewColumns[i].Column) {
+            if (i == (mTaskViewColumns.size() - 1)) {
+                break;
+            } else {
+                int iToChange = i + 1;
+
+                Core::TaskViewColumn temp = mTaskViewColumns[iToChange];
+
+                temp.Order--;
+                mTaskViewColumns[i].Order++;
+
+                mTaskViewColumns[iToChange] = mTaskViewColumns[i];
+                mTaskViewColumns[i] = temp;
+
+                break;
+            }
+        }
+    }
+
+    mItemIndexToSort = -1;
+
+    UpdateDisplayColumnsOrder();
+}
 
 void PreferencesTasksViewPage::UpdateDisplayColumnsOrder()
 {
