@@ -79,8 +79,10 @@ private:
     void OnPopupMenuSortAscending(wxCommandEvent& event);
     void OnPopupMenuSortDescending(wxCommandEvent& event);
 
-    void UpdateDisplayColumnsOrder();
+    void UpdateDisplayColumns();
     void UpdateDisplayColumnsOrderOnRemove();
+
+    void SortDisplaysColumnsAsc();
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
