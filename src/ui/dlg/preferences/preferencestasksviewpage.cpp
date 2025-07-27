@@ -42,6 +42,8 @@ static std::vector<std::string> MakeTaskViewColumns()
         "Description" };
 }
 
+// TODO(SW): Rethink of using a wxListView for display columns due to the constant switching
+// of values being sorted ascending or descending order
 namespace tks::UI::dlg
 {
 PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
