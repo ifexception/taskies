@@ -34,7 +34,7 @@ static std::vector<std::string> MakeTaskViewColumns()
     return std::vector<std::string>{ "Employer",
         "Client",
         "Project",
-        "Project (Simple)",
+        "Project (Display)",
         "Category",
         "Duration",
         "Billable",
@@ -182,6 +182,12 @@ void PreferencesTasksViewPage::CreateControls()
     displayColumnOrder.SetText("Order");
     displayColumnOrder.SetWidth(wxLIST_AUTOSIZE);
     pDisplayColumnsListView->InsertColumn(displayColumnIndex++, displayColumnOrder);
+
+    auto requiresRestartLabel =
+        new wxStaticText(this, wxID_ANY, "Changing columns requires program restart");
+    requiresRestartLabel->SetFont(
+        wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
+    sizer->Add(requiresRestartLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -398,13 +404,7 @@ void PreferencesTasksViewPage::OnRemoveDisplayColumnToAvailableColumnList(
         int columnIndex = 0;
 
         // extract the column name text from item index
-        wxListItem item;
-        item.m_itemId = mSelectedDisplayItemIndexes[i];
-        item.m_col = 0;
-        item.m_mask = wxLIST_MASK_TEXT;
-        pDisplayColumnsListView->GetItem(item);
-
-        std::string name = item.GetText().ToStdString();
+        std::string name = GetDisplayColumnNameFromListItem(mSelectedDisplayItemIndexes[i]);
 
         /* add column to available list view update */
         auto listIndex = pAvailableColumnsListView->InsertItem(columnIndex++, name);
@@ -438,13 +438,7 @@ void PreferencesTasksViewPage::OnDisplayColumnItemCheck(wxListEvent& event)
     mSelectedDisplayItemIndexes.push_back(index);
 
     // This code is purely just for logging purposes
-    wxListItem item;
-    item.m_itemId = index;
-    item.m_col = 0;
-    item.m_mask = wxLIST_MASK_TEXT;
-    pDisplayColumnsListView->GetItem(item);
-
-    std::string name = item.GetText().ToStdString();
+    std::string name = GetDisplayColumnNameFromListItem(index);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Selected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(
@@ -510,13 +504,7 @@ void PreferencesTasksViewPage::OnPopupMenuSortAscending(wxCommandEvent& event)
     );
     // clang-format on
 
-    wxListItem item;
-    item.m_itemId = mItemIndexToSort;
-    item.m_col = 0;
-    item.m_mask = wxLIST_MASK_TEXT;
-    pDisplayColumnsListView->GetItem(item);
-
-    std::string name = item.GetText().ToStdString();
+    std::string name = GetDisplayColumnNameFromListItem(mItemIndexToSort);
 
     for (size_t i = 0; i < mTaskViewColumns.size(); i++) {
         if (name == mTaskViewColumns[i].Column) {
@@ -557,13 +545,7 @@ void PreferencesTasksViewPage::OnPopupMenuSortDescending(wxCommandEvent& event)
     );
     // clang-format on
 
-    wxListItem item;
-    item.m_itemId = mItemIndexToSort;
-    item.m_col = 0;
-    item.m_mask = wxLIST_MASK_TEXT;
-    pDisplayColumnsListView->GetItem(item);
-
-    std::string name = item.GetText().ToStdString();
+    std::string name = GetDisplayColumnNameFromListItem(mItemIndexToSort);
 
     for (size_t i = 0; i < mTaskViewColumns.size(); i++) {
         if (name == mTaskViewColumns[i].Column) {
@@ -628,5 +610,18 @@ void PreferencesTasksViewPage::SortDisplaysColumnsAsc()
         }
     );
     // clang-format on
+}
+
+std::string PreferencesTasksViewPage::GetDisplayColumnNameFromListItem(int itemIndex)
+{
+    wxListItem item;
+    item.m_itemId = itemIndex;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pDisplayColumnsListView->GetItem(item);
+
+    std::string name = item.GetText().ToStdString();
+
+    return name;
 }
 } // namespace tks::UI::dlg
