@@ -85,6 +85,7 @@ private:
     void SortDisplaysColumnsAsc();
 
     std::string GetDisplayColumnNameFromListItem(int itemIndex);
+    std::string GetAvailableColumnNameFromListItem(int itemIndex);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;

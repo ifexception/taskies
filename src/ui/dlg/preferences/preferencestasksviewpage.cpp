@@ -305,13 +305,7 @@ void PreferencesTasksViewPage::OnAvailableColumnItemCheck(wxListEvent& event)
     mSelectedAvailableItemIndexes.push_back(index);
 
     // This code is purely just for logging purposes
-    wxListItem item;
-    item.m_itemId = index;
-    item.m_col = 0;
-    item.m_mask = wxLIST_MASK_TEXT;
-    pAvailableColumnsListView->GetItem(item);
-
-    std::string name = item.GetText().ToStdString();
+    std::string name = GetAvailableColumnNameFromListItem(index);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Selected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -334,13 +328,7 @@ void PreferencesTasksViewPage::OnAvailableColumnItemUncheck(wxListEvent& event)
     // clang-format on
 
     // This code is purely just for logging purposes
-    wxListItem item;
-    item.m_itemId = index;
-    item.m_col = 0;
-    item.m_mask = wxLIST_MASK_TEXT;
-    pAvailableColumnsListView->GetItem(item);
-
-    std::string name = item.GetText().ToStdString();
+    std::string name = GetAvailableColumnNameFromListItem(index);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -361,26 +349,19 @@ void PreferencesTasksViewPage::OnAddAvailableColumnToDisplayColumnList(
         mSelectedAvailableItemIndexes.begin(), mSelectedAvailableItemIndexes.end(), std::less{});
 
     int listIndex = 0;
-    int orderCount = 1;
 
     for (long i = (mSelectedAvailableItemIndexes.size() - 1); 0 <= i; i--) {
         int columnIndex = 0;
 
         // extract the column name text from item index
-        wxListItem item;
-        item.m_itemId = mSelectedAvailableItemIndexes[i];
-        item.m_col = 0;
-        item.m_mask = wxLIST_MASK_TEXT;
-        pAvailableColumnsListView->GetItem(item);
-
-        std::string name = item.GetText().ToStdString();
+        std::string name = GetAvailableColumnNameFromListItem(mSelectedAvailableItemIndexes[i]);
 
         /* remove column from available column list control */
         pAvailableColumnsListView->DeleteItem(mSelectedAvailableItemIndexes[i]);
 
         mSelectedAvailableItemIndexes.erase(mSelectedAvailableItemIndexes.begin() + i);
 
-        Core::TaskViewColumn taskViewColumn(name, orderCount++);
+        Core::TaskViewColumn taskViewColumn(name, mTaskViewColumns.size());
         mTaskViewColumns.push_back(taskViewColumn);
 
         SPDLOG_LOGGER_TRACE(pLogger, "Column \"{0}\" removed from available list", name);
@@ -460,13 +441,7 @@ void PreferencesTasksViewPage::OnDisplayColumnItemUncheck(wxListEvent& event)
     // clang-format on
 
     // This code is purely just for logging purposes
-    wxListItem item;
-    item.m_itemId = index;
-    item.m_col = 0;
-    item.m_mask = wxLIST_MASK_TEXT;
-    pAvailableColumnsListView->GetItem(item);
-
-    std::string name = item.GetText().ToStdString();
+    std::string name = GetAvailableColumnNameFromListItem(index);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
     SPDLOG_LOGGER_TRACE(
@@ -619,6 +594,19 @@ std::string PreferencesTasksViewPage::GetDisplayColumnNameFromListItem(int itemI
     item.m_col = 0;
     item.m_mask = wxLIST_MASK_TEXT;
     pDisplayColumnsListView->GetItem(item);
+
+    std::string name = item.GetText().ToStdString();
+
+    return name;
+}
+
+std::string PreferencesTasksViewPage::GetAvailableColumnNameFromListItem(int itemIndex)
+{
+    wxListItem item;
+    item.m_itemId = itemIndex;
+    item.m_col = 0;
+    item.m_mask = wxLIST_MASK_TEXT;
+    pAvailableColumnsListView->GetItem(item);
 
     std::string name = item.GetText().ToStdString();
 
