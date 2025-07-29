@@ -157,7 +157,7 @@ unsigned int TaskListModel::GetCount() const
 void TaskListModel::Append(const Services::TaskViewModel& model)
 {
     TaskListItemModel listModel(
-        model.ProjectName, model.CategoryName, model.GetDuration(), model.Description, model.TaskId);
+        model.ProjectDisplayName, model.CategoryName, model.GetDuration(), model.Description, model.TaskId);
     mListItemModels.push_back(listModel);
 
     RowAppended();

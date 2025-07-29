@@ -241,7 +241,7 @@ void TaskTreeModel::ChangeChild(const std::string& date, Services::TaskViewModel
         for (auto it = children.begin(); it != children.end(); ++it) {
             if (it->get()->GetTaskId() == taskModel.TaskId) {
                 auto child = it->get();
-                child->SetProjectName(taskModel.ProjectName);
+                child->SetProjectName(taskModel.ProjectDisplayName);
                 child->SetCategoryName(taskModel.CategoryName);
                 child->SetDuration(taskModel.GetDuration());
                 child->SetDescription(taskModel.GetTrimmedDescription());
@@ -349,7 +349,7 @@ void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewM
     if (iterator != pRoots.end()) {
         auto parentNode = iterator->get();
         auto childNode = new TaskTreeModelNode(parentNode,
-            taskModel.ProjectName,
+            taskModel.ProjectDisplayName,
             taskModel.CategoryName,
             taskModel.GetDuration(),
             taskModel.GetTrimmedDescription(),
@@ -378,7 +378,7 @@ void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<Servic
         wxDataViewItemArray itemsAdded;
         for (auto& model : models) {
             auto childNode = new TaskTreeModelNode(parentNode,
-                model.ProjectName,
+                model.ProjectDisplayName,
                 model.CategoryName,
                 model.GetDuration(),
                 model.GetTrimmedDescription(),
@@ -404,7 +404,7 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date, std::vector
 
     for (auto& model : models) {
         auto node = new TaskTreeModelNode(rootDateNode.get(),
-            model.ProjectName,
+            model.ProjectDisplayName,
             model.CategoryName,
             model.GetDuration(),
             model.GetTrimmedDescription(),

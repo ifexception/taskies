@@ -343,7 +343,7 @@ void DayTaskViewDialog::CopyTasksToClipboard(bool includeHeaders)
                 formattedClipboardData << taskModel.TaskId << "\t";
             }
 
-            formattedClipboardData << taskModel.ProjectName << "\t";
+            formattedClipboardData << taskModel.ProjectDisplayName << "\t";
             formattedClipboardData << taskModel.CategoryName << "\t";
             formattedClipboardData << taskModel.GetDuration() << "\t";
             formattedClipboardData << taskModel.Description << "\t";

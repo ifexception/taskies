@@ -525,15 +525,15 @@ void MainFrame::DataToControls()
     }
 
     // Fetch tasks between mFromDate and mToDate
-    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
+    std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkdayMap;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
     int rc = tasksService.FilterByDateRange(
-        pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
+        pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkdayMap);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {
-        for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
+        for (auto& [workdayDate, tasks] : tasksGroupedByWorkdayMap) {
             pTaskTreeModel->InsertChildNodes(workdayDate, tasks);
         }
     }
@@ -642,7 +642,7 @@ void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 {
     Raise();
 
-    if (mThumbBarDialogOpenCounter ==0) {
+    if (mThumbBarDialogOpenCounter == 0) {
         mThumbBarDialogOpenCounter++;
 
         dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
@@ -963,7 +963,7 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
                 formattedClipboardData << taskModel.TaskId << "\t";
             }
 
-            formattedClipboardData << taskModel.ProjectName << "\t";
+            formattedClipboardData << taskModel.ProjectDisplayName << "\t";
             formattedClipboardData << taskModel.CategoryName << "\t";
             formattedClipboardData << taskModel.GetDuration() << "\t";
             formattedClipboardData << taskModel.Description << "\t";
@@ -1020,7 +1020,7 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
                 formattedClipboardData << taskModel.TaskId << "\t";
             }
 
-            formattedClipboardData << taskModel.ProjectName << "\t";
+            formattedClipboardData << taskModel.ProjectDisplayName << "\t";
             formattedClipboardData << taskModel.CategoryName << "\t";
             formattedClipboardData << taskModel.GetDuration() << "\t";
             formattedClipboardData << taskModel.Description << "\t";
