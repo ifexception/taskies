@@ -43,8 +43,9 @@ struct TasksService final {
     TasksService& operator=(const TasksService&) = delete;
 
     int FilterByDateRange(std::vector<std::string> dates,
-        /*out*/ std::map<std::string, std::vector<TaskViewModel>>& taskViewModels);
-    int FilterByDate(const std::string& date, /*out*/ std::vector<TaskViewModel>& taskViewModels) const;
+        /*out*/ std::map<std::string, std::vector<TaskViewModel>>& taskViewModelsMap) const;
+    int FilterByDate(const std::string& date,
+        /*out*/ std::vector<TaskViewModel>& taskViewModels) const;
     int GetById(const std::int64_t taskId, /*out*/ TaskViewModel& taskViewModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;

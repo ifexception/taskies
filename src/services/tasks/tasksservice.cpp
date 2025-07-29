@@ -95,7 +95,7 @@ TasksService::~TasksService()
 }
 
 int TasksService::FilterByDateRange(std::vector<std::string> dates,
-    std::map<std::string, std::vector<TaskViewModel>>& taskViewModels)
+    std::map<std::string, std::vector<TaskViewModel>>& taskViewModelsMap) const
 {
     for (const auto& date : dates) {
         std::vector<TaskViewModel> tasks;
@@ -104,11 +104,11 @@ int TasksService::FilterByDateRange(std::vector<std::string> dates,
             return rc;
         }
 
-        taskViewModels[date] = tasks;
+        taskViewModelsMap[date] = tasks;
     }
 
     SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::FilterEntities, taskViewModels.size(), "[date range]");
+        pLogger, LogMessages::FilterEntities, taskViewModelsMap.size(), "[date range]");
 
     return 0;
 }
@@ -148,47 +148,66 @@ int TasksService::FilterByDate(const std::string& date,
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
 
-            TaskViewModel model;
+            TaskViewModel taskViewModel;
 
             int columnIndex = 0;
 
-            model.TaskId = sqlite3_column_int64(stmt, columnIndex++);
+            taskViewModel.TaskId = sqlite3_column_int64(stmt, columnIndex++);
 
-            model.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+            taskViewModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
 
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.UniqueIdentifier = std::nullopt;
+                taskViewModel.UniqueIdentifier = std::nullopt;
             } else {
                 const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                model.UniqueIdentifier = std::make_optional(std::string(
+                taskViewModel.UniqueIdentifier = std::make_optional(std::string(
                     reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
             }
             columnIndex++;
 
-            model.Hours = sqlite3_column_int(stmt, columnIndex++);
-            model.Minutes = sqlite3_column_int(stmt, columnIndex++);
+            taskViewModel.Hours = sqlite3_column_int(stmt, columnIndex++);
+            taskViewModel.Minutes = sqlite3_column_int(stmt, columnIndex++);
 
             const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            model.Description = std::string(
+            taskViewModel.Description = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
-            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            taskViewModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            taskViewModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            taskViewModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-            model.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
-            model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
-            model.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
+            taskViewModel.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
+            taskViewModel.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+            taskViewModel.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
             res = sqlite3_column_text(stmt, columnIndex);
-            model.ProjectName = std::string(
+            taskViewModel.ProjectName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
             res = sqlite3_column_text(stmt, columnIndex);
-            model.CategoryName = std::string(
+            taskViewModel.ProjectDisplayName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-            taskViewModels.push_back(model);
+            res = sqlite3_column_text(stmt, columnIndex);
+            taskViewModel.CategoryName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                taskViewModel.ClientName = std::nullopt;
+            } else {
+                res = sqlite3_column_text(stmt, columnIndex);
+                taskViewModel.ClientName = std::make_optional(std::string(
+                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+            }
+            columnIndex++;
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            taskViewModel.EmployerName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            rc = sqlite3_step(stmt);
+
+            taskViewModels.push_back(taskViewModel);
             break;
         }
         case SQLITE_DONE:
@@ -256,6 +275,7 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
     taskModel.TaskId = sqlite3_column_int64(stmt, columnIndex++);
 
     taskModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+
     if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
         taskModel.UniqueIdentifier = std::nullopt;
     } else {
@@ -285,7 +305,24 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
     res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.ProjectDisplayName =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    res = sqlite3_column_text(stmt, columnIndex);
     taskModel.CategoryName =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        taskModel.ClientName = std::nullopt;
+    } else {
+        res = sqlite3_column_text(stmt, columnIndex);
+        taskModel.ClientName = std::make_optional(std::string(
+            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
+    }
+    columnIndex++;
+
+    res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.EmployerName =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
     rc = sqlite3_step(stmt);
@@ -317,8 +354,11 @@ std::string TasksService::filterByDate = "SELECT "
                                          "tasks.project_id, "
                                          "tasks.category_id, "
                                          "tasks.workday_id, "
+                                         "projects.name,"
                                          "projects.display_name,"
-                                         "categories.name "
+                                         "categories.name, "
+                                         "clients.name, "
+                                         "employers.name "
                                          "FROM tasks "
                                          "INNER JOIN workdays "
                                          "ON tasks.workday_id = workdays.workday_id "
@@ -326,6 +366,10 @@ std::string TasksService::filterByDate = "SELECT "
                                          "ON tasks.project_id = projects.project_id "
                                          "INNER JOIN categories "
                                          "ON tasks.category_id = categories.category_id "
+                                         "INNER JOIN clients "
+                                         "ON projects.client_id = clients.client_id "
+                                         "INNER JOIN employers "
+                                         "ON projects.employer_id = employers.employer_id "
                                          "WHERE workdays.date = ? "
                                          "AND tasks.is_active = 1;";
 
@@ -342,13 +386,20 @@ std::string TasksService::getById = "SELECT "
                                     "tasks.project_id, "
                                     "tasks.category_id, "
                                     "tasks.workday_id, "
+                                    "projects.name,"
                                     "projects.display_name,"
-                                    "categories.name "
+                                    "categories.name, "
+                                    "clients.name, "
+                                    "employers.name "
                                     "FROM tasks "
                                     "INNER JOIN projects "
                                     "ON tasks.project_id = projects.project_id "
                                     "INNER JOIN categories "
                                     "ON tasks.category_id = categories.category_id "
+                                    "INNER JOIN clients "
+                                    "ON projects.client_id = clients.client_id "
+                                    "INNER JOIN employers "
+                                    "ON projects.employer_id = employers.employer_id "
                                     "WHERE tasks.task_id = ? "
                                     "AND tasks.is_active = 1;";
 } // namespace tks::Services
