@@ -29,6 +29,7 @@ struct TaskViewModel {
     TaskViewModel();
 
     std::int64_t TaskId;
+
     bool Billable;
     std::optional<std::string> UniqueIdentifier;
     int Hours;
@@ -37,16 +38,22 @@ struct TaskViewModel {
     std::int32_t DateCreated;
     std::int32_t DateModified;
     bool IsActive;
+
     std::int64_t ProjectId;
     std::int64_t CategoryId;
     std::int64_t WorkdayId;
+
     std::string ProjectName;
+    std::string ProjectDisplayName;
     std::string CategoryName;
 
+    std::optional<std::string> ClientName;
+    std::string EmployerName;
+
     const std::string GetDuration() const;
-    const std::string GetTrimmedDescription();
+    const std::string GetTrimmedDescription() const;
 
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;
 };
-} // namespace MyNamespace
+} // namespace tks::Services

@@ -40,7 +40,10 @@ TaskViewModel::TaskViewModel()
     , CategoryId(-1)
     , WorkdayId(-1)
     , ProjectName()
+    , ProjectDisplayName()
     , CategoryName()
+    , ClientName()
+    , EmployerName()
 {
 }
 
@@ -49,7 +52,7 @@ const std::string TaskViewModel::GetDuration() const
     return fmt::format("{0:02}:{1:02}", Hours, Minutes);
 }
 
-const std::string TaskViewModel::GetTrimmedDescription()
+const std::string TaskViewModel::GetTrimmedDescription() const
 {
     return Utils::ReplaceNewlineWithEllipses(Description);
 }
