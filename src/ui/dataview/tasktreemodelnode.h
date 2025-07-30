@@ -77,4 +77,4 @@ private:
     std::int64_t mTaskId;
     bool bContainer;
 };
-}
+} // namespace tks::UI

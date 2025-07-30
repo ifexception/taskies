@@ -26,7 +26,8 @@
 
 namespace tks::UI
 {
-TaskTreeModel::TaskTreeModel(const std::vector<std::string>& weekDates, std::shared_ptr<spdlog::logger> logger)
+TaskTreeModel::TaskTreeModel(const std::vector<std::string>& weekDates,
+    std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , pRoots()
 {
@@ -132,7 +133,8 @@ wxDataViewItem TaskTreeModel::GetParent(const wxDataViewItem& item) const
     for (const auto& parentNode : pRoots) {
         if (node == parentNode.get()) {
             pLogger->info(
-                "TaskTreeModel::GetParent - Node matched with one of the root nodes \"{0}\"", node->GetProjectName());
+                "TaskTreeModel::GetParent - Node matched with one of the root nodes \"{0}\"",
+                node->GetProjectName());
             return wxDataViewItem(0);
         }
     }
@@ -151,7 +153,8 @@ bool TaskTreeModel::IsContainer(const wxDataViewItem& item) const
     return node->IsContainer();
 }
 
-unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const
+unsigned int TaskTreeModel::GetChildren(const wxDataViewItem& parent,
+    wxDataViewItemArray& array) const
 {
     pLogger->info("TaskTreeModel::GetChildren - Begin to get children of parent");
     TaskTreeModelNode* node = (TaskTreeModelNode*) parent.GetID();
@@ -185,7 +188,8 @@ void TaskTreeModel::Delete(const wxDataViewItem& item)
 
     wxDataViewItem parent(node->GetParent());
     if (!parent.IsOk()) { // this means that the root node was clicked and has no parent
-        pLogger->info("TaskTreeModel::Delete - Root node selected and skipping deletion of root node");
+        pLogger->info(
+            "TaskTreeModel::Delete - Root node selected and skipping deletion of root node");
         return;
     }
 
@@ -205,9 +209,10 @@ void TaskTreeModel::Delete(const wxDataViewItem& item)
 void TaskTreeModel::DeleteChild(const std::string& date, const std::int64_t taskId)
 {
     pLogger->info("TaskTreeModel::DeleteChild - Begin");
-    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-        return ptr->GetProjectName() == date;
-    });
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+            return ptr->GetProjectName() == date;
+        });
 
     if (iterator != pRoots.end()) {
         auto parentNode = iterator->get();
@@ -230,9 +235,10 @@ void TaskTreeModel::DeleteChild(const std::string& date, const std::int64_t task
 void TaskTreeModel::ChangeChild(const std::string& date, Services::TaskViewModel& taskModel)
 {
     pLogger->info("TaskTreeModel::ChangeChild - Begin");
-    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-        return ptr->GetProjectName() == date;
-    });
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+            return ptr->GetProjectName() == date;
+        });
 
     if (iterator != pRoots.end()) {
         auto parentNode = iterator->get();
@@ -254,24 +260,6 @@ void TaskTreeModel::ChangeChild(const std::string& date, Services::TaskViewModel
         }
     }
 }
-
-//void TaskTreeModel::ChangeContainerLabelWithTime(const std::string date, const std::string time)
-//{
-//    pLogger->info("TaskTreeModel::ChangeContainerLabelWithTime - Begin");
-//    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-//        return ptr->GetProjectName() == date;
-//    });
-//
-//    if (iterator != pRoots.end()) {
-//        auto parentNode = iterator->get();
-//
-//        auto newContainerLabel = fmt::format("{0} ({1})", parentNode->GetProjectName(), time);
-//        parentNode->SetProjectName(newContainerLabel);
-//
-//        wxDataViewItem item((void*) parentNode);
-//        ItemChanged(item);
-//    }
-//}
 
 void TaskTreeModel::Clear()
 {
@@ -314,13 +302,15 @@ void TaskTreeModel::ClearAll()
 void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
 {
     pLogger->info("TaskTreeModel::ClearNodeEntriesByDateKey - Begin");
-    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-        return ptr->GetProjectName() == date;
-    });
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+            return ptr->GetProjectName() == date;
+        });
 
     if (iterator != pRoots.end()) {
         auto parentNode = iterator->get();
-        pLogger->info("TaskTreeModel::ClearNodeEntriesByDateKey - Located root node associated with date key \"{0}\"",
+        pLogger->info("TaskTreeModel::ClearNodeEntriesByDateKey - Located root node associated "
+                      "with date key \"{0}\"",
             parentNode->GetProjectName());
 
         wxDataViewItemArray itemsRemoved;
@@ -342,9 +332,10 @@ void TaskTreeModel::ClearNodeEntriesByDateKey(const std::string& date)
 void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewModel& taskModel)
 {
     pLogger->info("TaskTreeModel::InsertChildNodes - Begin append of task for \"{0}\"", date);
-    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-        return ptr->GetProjectName() == date;
-    });
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+            return ptr->GetProjectName() == date;
+        });
 
     if (iterator != pRoots.end()) {
         auto parentNode = iterator->get();
@@ -362,17 +353,20 @@ void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewM
     }
 }
 
-void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<Services::TaskViewModel> models)
+void TaskTreeModel::InsertChildNodes(const std::string& date,
+    std::vector<Services::TaskViewModel> models)
 {
     pLogger->info("TaskTreeModel::InsertChildNodes - Begin insertion of tasks for \"{0}\"", date);
-    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-        return ptr->GetProjectName() == date;
-    });
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+            return ptr->GetProjectName() == date;
+        });
 
     if (iterator != pRoots.end()) {
         auto parentNode = iterator->get();
 
-        pLogger->info("TaskTreeModel::InsertChildNodes - Located root node associated with date key \"{0}\"",
+        pLogger->info(
+            "TaskTreeModel::InsertChildNodes - Located root node associated with date key \"{0}\"",
             parentNode->GetProjectName());
 
         wxDataViewItemArray itemsAdded;
@@ -392,13 +386,16 @@ void TaskTreeModel::InsertChildNodes(const std::string& date, std::vector<Servic
         wxDataViewItem parent((void*) parentNode);
         ItemsAdded(parent, itemsAdded);
 
-        pLogger->info("TaskTreeModel::InsertChildNodes - Number of inserted children \"{0}\"", models.size());
+        pLogger->info(
+            "TaskTreeModel::InsertChildNodes - Number of inserted children \"{0}\"", models.size());
     }
 }
 
-void TaskTreeModel::InsertRootAndChildNodes(const std::string& date, std::vector<Services::TaskViewModel> models)
+void TaskTreeModel::InsertRootAndChildNodes(const std::string& date,
+    std::vector<Services::TaskViewModel> models)
 {
-    pLogger->info("TaskTreeModel::InsertRootAndChildNodes - Begin insertion of tasks for \"{0}\"", date);
+    pLogger->info(
+        "TaskTreeModel::InsertRootAndChildNodes - Begin insertion of tasks for \"{0}\"", date);
 
     auto rootDateNode = std::make_unique<TaskTreeModelNode>(nullptr, date);
 
@@ -414,23 +411,28 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date, std::vector
 
     pRoots.push_back(std::move(rootDateNode));
 
-    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-        return ptr->GetProjectName() == date;
-    });
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+            return ptr->GetProjectName() == date;
+        });
     wxDataViewItem child((void*) iterator->get());
     wxDataViewItem parent((void*) nullptr);
     ItemAdded(parent, child);
 
     pLogger->info(
-        "TaskTreeModel::InsertRootAndChildNodes - Inserted \"{0}\" children for root node {1}", models.size(), date);
+        "TaskTreeModel::InsertRootAndChildNodes - Inserted \"{0}\" children for root node {1}",
+        models.size(),
+        date);
 }
 
 wxDataViewItem TaskTreeModel::TryExpandTodayDateNode(const std::string& todayDate)
 {
-    pLogger->info("TaskTreeModel::TryExpandTodayDateNode - Locate root node with date: \"{0}\"", todayDate);
-    auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-        return ptr->GetProjectName() == todayDate;
-    });
+    pLogger->info(
+        "TaskTreeModel::TryExpandTodayDateNode - Locate root node with date: \"{0}\"", todayDate);
+    auto iterator = std::find_if(
+        pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+            return ptr->GetProjectName() == todayDate;
+        });
 
     if (iterator != pRoots.end()) {
         pLogger->info("TaskTreeModel::TryExpandTodayDateNode - Found root node to expand");
@@ -455,10 +457,12 @@ wxDataViewItemArray TaskTreeModel::TryExpandAllDateNodes(const std::vector<std::
 {
     wxDataViewItemArray array;
     for (auto& date : dates) {
-        pLogger->info("TaskTreeModel::TryExpandAllDateNodes - Locate root node with date: \"{0}\"", date);
-        auto iterator = std::find_if(pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-            return ptr->GetProjectName() == date;
-        });
+        pLogger->info(
+            "TaskTreeModel::TryExpandAllDateNodes - Locate root node with date: \"{0}\"", date);
+        auto iterator = std::find_if(
+            pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
+                return ptr->GetProjectName() == date;
+            });
 
         if (iterator != pRoots.end()) {
             pLogger->info("TaskTreeModel::TryExpandTodayDateNode - Found root node to expand");
