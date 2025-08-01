@@ -92,6 +92,8 @@ struct Preset {
     ~Preset() {}
 };
 
+std::vector<std::string> MakeTaskViewColumns();
+
 namespace Resources
 {
 std::string Bell();

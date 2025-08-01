@@ -84,6 +84,20 @@ std::string GetLicense()
            "You should have received a copy of the GNU General Public License\n"
            "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
 }
+
+std::vector<std::string> MakeTaskViewColumns()
+{
+    return std::vector<std::string>{ "Employer",
+        "Client",
+        "Project",
+        "Project (Display)",
+        "Category",
+        "Duration",
+        "Billable",
+        "Unique ID",
+        "Description" };
+}
+
 namespace Resources
 {
 std::string Bell()
