@@ -92,6 +92,8 @@ private:
 
     wxCheckBox* pTodayAlwaysExpanded;
 
+    wxChoice* pDefaultColumnChoiceCtrl;
+
     wxListView* pAvailableColumnsListView;
 
     wxButton* pRightChevronButton;
@@ -107,11 +109,11 @@ private:
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,
+        tksIDC_DEFAULTCOLUMNCHOICECTRL,
         tksIDC_AVAILABLECOLUMNSLISTVIEW,
         tksIDC_RIGHTCHEVRONBUTTON,
         tksIDC_LEFTCHEVRONBUTTON,
         tksIDC_DISPLAYCOLUMNSLISTVIEW,
-        // Popup Sort Menu
         tksIDC_POP_SORTASC,
         tksIDC_POP_SORTDESC
     };

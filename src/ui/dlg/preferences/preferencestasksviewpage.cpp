@@ -29,19 +29,6 @@
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
 
-static std::vector<std::string> MakeTaskViewColumns()
-{
-    return std::vector<std::string>{ "Employer",
-        "Client",
-        "Project",
-        "Project (Display)",
-        "Category",
-        "Duration",
-        "Billable",
-        "Unique ID",
-        "Description" };
-}
-
 // TODO(SW): Rethink of using a wxListView for display columns due to the constant switching
 // of values being sorted ascending or descending order
 namespace tks::UI::dlg
@@ -53,6 +40,7 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pCfg(cfg)
     , pLogger(logger)
     , pTodayAlwaysExpanded(nullptr)
+    , pDefaultColumnChoiceCtrl(nullptr)
     , pAvailableColumnsListView(nullptr)
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
@@ -125,8 +113,29 @@ void PreferencesTasksViewPage::CreateControls()
 
     /* Columns box */
     auto columnsBox = new wxStaticBox(this, wxID_ANY, "Columns");
-    auto columnsBoxSizer = new wxStaticBoxSizer(columnsBox, wxHORIZONTAL);
+    auto columnsBoxSizer = new wxStaticBoxSizer(columnsBox, wxVERTICAL);
     sizer->Add(columnsBoxSizer, wxSizerFlags().Expand().Proportion(1));
+
+    /* Default column horizontal sizer */
+    auto defaultColumnHSizer = new wxBoxSizer(wxHORIZONTAL);
+    columnsBoxSizer->Add(defaultColumnHSizer, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* Default column choice choice */
+    auto defaultColumnLabel = new wxStaticText(columnsBox, wxID_ANY, "Default Column");
+
+    pDefaultColumnChoiceCtrl =
+        new wxChoice(columnsBox, tksIDC_DEFAULTCOLUMNCHOICECTRL);
+    pDefaultColumnChoiceCtrl->SetToolTip(
+        "Set the default (first) column to display on the tasks view");
+
+    defaultColumnHSizer->Add(
+        defaultColumnLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    defaultColumnHSizer->Add(
+        pDefaultColumnChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Column list vertical sizer */
+    auto columnListHSizer = new wxBoxSizer(wxHORIZONTAL);
+    columnsBoxSizer->Add(columnListHSizer, wxSizerFlags().Expand());
 
     /* Available column list */
     pAvailableColumnsListView = new wxListView(columnsBox,
@@ -136,7 +145,7 @@ void PreferencesTasksViewPage::CreateControls()
         wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
     pAvailableColumnsListView->EnableCheckBoxes();
     pAvailableColumnsListView->SetToolTip("Select columns to display in the task view");
-    columnsBoxSizer->Add(
+    columnListHSizer->Add(
         pAvailableColumnsListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     int availableColumnIndex = 0;
@@ -149,7 +158,7 @@ void PreferencesTasksViewPage::CreateControls()
 
     /* Chevrons buttons */
     auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
-    columnsBoxSizer->Add(chevronButtonSizer, wxSizerFlags());
+    columnListHSizer->Add(chevronButtonSizer, wxSizerFlags());
 
     pRightChevronButton =
         new wxButton(columnsBox, tksIDC_RIGHTCHEVRONBUTTON, ">", wxDefaultPosition, wxSize(32, -1));
@@ -168,7 +177,7 @@ void PreferencesTasksViewPage::CreateControls()
         wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
     pDisplayColumnsListView->EnableCheckBoxes();
     pDisplayColumnsListView->SetToolTip("Columns to be displayed in the task view");
-    columnsBoxSizer->Add(
+    columnListHSizer->Add(
         pDisplayColumnsListView, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     int displayColumnIndex = 0;
@@ -264,8 +273,12 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
 
 void PreferencesTasksViewPage::FillControls()
 {
-    const auto& availableColumns = MakeTaskViewColumns();
+    pDefaultColumnChoiceCtrl->Append("Please select");
+    pDefaultColumnChoiceCtrl->SetSelection(0);
+
+    const auto& availableColumns = Common::MakeTaskViewColumns();
     for (auto& availableColumn : availableColumns) {
+        pDefaultColumnChoiceCtrl->AppendString(availableColumn);
         pAvailableColumnsListView->InsertItem(0, availableColumn);
     }
 }
@@ -275,7 +288,7 @@ void PreferencesTasksViewPage::DataToControls()
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
 
     const auto& cfgColumns = pCfg->GetTaskViewColumns();
-    const auto& availableColumns = MakeTaskViewColumns();
+    const auto& availableColumns = Common::MakeTaskViewColumns();
 
     std::vector<long> itemIndexesThatMatch;
 
