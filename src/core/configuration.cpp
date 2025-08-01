@@ -164,6 +164,18 @@ bool Configuration::Save()
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
     root.at(Sections::TasksViewSection)["todayAlwaysExpanded"] = mSettings.TodayAlwaysExpanded;
+
+    root.at(Sections::TasksViewSection)["defaultColumn"] = toml::table{};
+    // clang-format off
+        toml::value columnValue(
+            toml::table {
+                { "column", mSettings.DefaultColumn.Column },
+                { "order", mSettings.DefaultColumn.Order }
+            }
+        );
+    // clang-format on
+    root.at(Sections::TasksViewSection)["defaultColumn"] = columnValue;
+
     root.at(Sections::TasksViewSection)["taskViewColumns"] = toml::array{};
 
     auto& tasksViewSection = root.at(Sections::TasksViewSection);
@@ -266,6 +278,7 @@ bool Configuration::RestoreDefaults()
     OpenTaskDialogOnReminderClick(false);
 
     TodayAlwaysExpanded(false);
+    ResetDefaultColumn();
     ResetTaskViewColumns();
 
     SetExportPath(pEnv->GetExportPath().string());
@@ -311,6 +324,7 @@ bool Configuration::RestoreDefaults()
                 Sections::TasksViewSection,
                 toml::table {
                     { "todayAlwaysExpanded", false },
+                    { "defaultColumn", toml::table{} },
                     { "taskViewColumns", toml::array {} }
                 }
             },
@@ -325,6 +339,16 @@ bool Configuration::RestoreDefaults()
         }
     );
     // clang-format on
+
+    // clang-format off
+    toml::value defaultColumnValue(
+        toml::table {
+            { "column", mSettings.DefaultColumn.Column },
+            { "order", mSettings.DefaultColumn.Order }
+        }
+    );
+    // clang-format on
+    root[Sections::TasksViewSection]["defaultColumn"] = defaultColumnValue;
 
     for (size_t i = 0; i < mSettings.TaskViewColumns.size(); i++) {
         // clang-format off
@@ -658,6 +682,21 @@ void Configuration::TodayAlwaysExpanded(const bool value)
     mSettings.TodayAlwaysExpanded = value;
 }
 
+TaskViewColumn Configuration::GetDefaultColumn() const
+{
+    return mSettings.DefaultColumn;
+}
+
+void Configuration::SetDefaultColumn(const TaskViewColumn& value)
+{
+    mSettings.DefaultColumn = value;
+}
+
+void Configuration::ResetDefaultColumn()
+{
+    TaskViewColumn defaultColumn("Project (Display)", 0);
+}
+
 std::vector<TaskViewColumn> Configuration::GetTaskViewColumns() const
 {
     return mSettings.TaskViewColumns;
@@ -673,7 +712,7 @@ void Configuration::ResetTaskViewColumns()
 {
     mSettings.TaskViewColumns.clear();
     std::vector<TaskViewColumn> defaultTaskViewColumns{
-        { "Project", 1 }, { "Category", 1 }, { "Duration", 1 }, { "Description", 1 }
+        { "Category", 1 }, { "Duration", 2 }, { "Description", 3 }
     };
 
     mSettings.TaskViewColumns = defaultTaskViewColumns;
@@ -840,6 +879,12 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
 
     mSettings.TodayAlwaysExpanded =
         toml::find_or<bool>(tasksViewSection, "todayAlwaysExpanded", false);
+
+    TaskViewColumn defaultTaskViewColumn;
+    defaultTaskViewColumn.Column =
+        toml::find_or(tasksViewSection, "defaultColumn", "column", "Project (Display)");
+    defaultTaskViewColumn.Order = toml::find_or(tasksViewSection, "defaultColumn", "order", 0);
+    mSettings.DefaultColumn = defaultTaskViewColumn;
 
     const auto& taskViewColumns = toml::find(tasksViewSection, "taskViewColumns");
     if (!taskViewColumns.is_array()) {

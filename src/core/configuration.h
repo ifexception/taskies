@@ -174,6 +174,10 @@ public:
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
+    TaskViewColumn GetDefaultColumn() const;
+    void SetDefaultColumn(const TaskViewColumn& value);
+    void ResetDefaultColumn();
+
     std::vector<TaskViewColumn> GetTaskViewColumns() const;
     void SetTaskViewColumns(const std::vector<TaskViewColumn>& taskViewColumns);
     void ResetTaskViewColumns();
@@ -224,6 +228,7 @@ private:
         bool OpenTaskDialogOnReminderClick;
 
         bool TodayAlwaysExpanded;
+        TaskViewColumn DefaultColumn;
         std::vector<TaskViewColumn> TaskViewColumns;
 
         std::string ExportPath;
