@@ -22,11 +22,11 @@ openTaskDialogOnReminderClick=false
 
 [tasksView]
 todayAlwaysExpanded=false
+defaultColumn={column = "Project (Display)", order = 0}
 taskViewColumns = [
-	{column = "Project", order = 1},
-	{column = "Category", order = 2},
-	{column = "Duration", order = 3},
-	{column = "Description", order = 4}
+	{column = "Category", order = 1},
+	{column = "Duration", order = 2},
+	{column = "Description", order = 3}
 ]
 
 [export]
