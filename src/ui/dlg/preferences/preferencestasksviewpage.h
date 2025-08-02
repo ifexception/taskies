@@ -65,6 +65,8 @@ private:
     void FillControls();
     void DataToControls();
 
+    void OnDefaultColumnChoice(wxCommandEvent& event);
+
     void OnAvailableColumnItemCheck(wxListEvent& event);
     void OnAvailableColumnItemUncheck(wxListEvent& event);
 
@@ -106,6 +108,7 @@ private:
     std::vector<Core::TaskViewColumn> mTaskViewColumns;
 
     long mItemIndexToSort;
+    std::string mDefaultColumnName;
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,

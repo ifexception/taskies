@@ -49,6 +49,7 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , mSelectedDisplayItemIndexes()
     , mTaskViewColumns()
     , mItemIndexToSort(-1)
+    , mDefaultColumnName(pCfg->GetDefaultColumn().Column)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -123,8 +124,7 @@ void PreferencesTasksViewPage::CreateControls()
     /* Default column choice choice */
     auto defaultColumnLabel = new wxStaticText(columnsBox, wxID_ANY, "Default Column");
 
-    pDefaultColumnChoiceCtrl =
-        new wxChoice(columnsBox, tksIDC_DEFAULTCOLUMNCHOICECTRL);
+    pDefaultColumnChoiceCtrl = new wxChoice(columnsBox, tksIDC_DEFAULTCOLUMNCHOICECTRL);
     pDefaultColumnChoiceCtrl->SetToolTip(
         "Set the default (first) column to display on the tasks view");
 
@@ -206,6 +206,12 @@ void PreferencesTasksViewPage::CreateControls()
 // clang-format off
 void PreferencesTasksViewPage::ConfigureEventBindings()
 {
+    pDefaultColumnChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &PreferencesTasksViewPage::OnDefaultColumnChoice,
+        this
+    );
+
     pAvailableColumnsListView->Bind(
         wxEVT_LIST_ITEM_CHECKED,
         &PreferencesTasksViewPage::OnAvailableColumnItemCheck,
@@ -276,9 +282,27 @@ void PreferencesTasksViewPage::FillControls()
     pDefaultColumnChoiceCtrl->Append("Please select");
     pDefaultColumnChoiceCtrl->SetSelection(0);
 
-    const auto& availableColumns = Common::MakeTaskViewColumns();
+    auto availableColumns = Common::MakeTaskViewColumns();
+
     for (auto& availableColumn : availableColumns) {
         pDefaultColumnChoiceCtrl->AppendString(availableColumn);
+    }
+
+    // remove the aforementioned default column name from available column list
+    // so it cannot be picked
+    // clang-format off
+    availableColumns.erase(
+        std::remove_if(
+            availableColumns.begin(),
+            availableColumns.end(),
+            [&](const std::string& column) {
+                return column == mDefaultColumnName;
+            }),
+        availableColumns.end()
+    );
+    // clang-format on
+
+    for (auto& availableColumn : availableColumns) {
         pAvailableColumnsListView->InsertItem(0, availableColumn);
     }
 }
@@ -287,8 +311,24 @@ void PreferencesTasksViewPage::DataToControls()
 {
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
 
+    pDefaultColumnChoiceCtrl->SetStringSelection(mDefaultColumnName);
+
     const auto& cfgColumns = pCfg->GetTaskViewColumns();
-    const auto& availableColumns = Common::MakeTaskViewColumns();
+    auto availableColumns = Common::MakeTaskViewColumns();
+
+    // remove the aforementioned default column name from available column list
+    // so it cannot be picked
+    // clang-format off
+    availableColumns.erase(
+        std::remove_if(
+            availableColumns.begin(),
+            availableColumns.end(),
+            [&](const std::string& column) {
+                return column == mDefaultColumnName;
+            }),
+        availableColumns.end()
+    );
+    // clang-format on
 
     std::vector<long> itemIndexesThatMatch;
 
@@ -311,6 +351,13 @@ void PreferencesTasksViewPage::DataToControls()
     }
 
     UpdateDisplayColumns();
+}
+
+void PreferencesTasksViewPage::OnDefaultColumnChoice(wxCommandEvent& event)
+{
+    mDefaultColumnName = pDefaultColumnChoiceCtrl->GetSelection();
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "New default column selected with name \"{0}\"", mDefaultColumnName);
 }
 
 void PreferencesTasksViewPage::OnAvailableColumnItemCheck(wxListEvent& event)
