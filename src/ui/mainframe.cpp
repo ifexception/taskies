@@ -429,6 +429,7 @@ void MainFrame::CreateControls()
     auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto durationTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    auto billableCheckboxRenderer = new wxDataViewCheckIconTextRenderer(wxDATAVIEW_CELL_INERT);
     auto descriptionTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
 
@@ -449,28 +450,37 @@ void MainFrame::CreateControls()
     auto projectColumn = new wxDataViewColumn("Project",
         projectNameTextRenderer,
         TaskTreeModel::Col_Project,
-        80,
+        wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_LEFT,
         wxDATAVIEW_COL_RESIZABLE);
-    projectColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     pDataViewCtrl->AppendColumn(projectColumn);
 
     /* Category Column */
     auto categoryColumn = new wxDataViewColumn("Category",
         categoryNameTextRenderer,
         TaskTreeModel::Col_Category,
-        80,
+        wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_LEFT,
         wxDATAVIEW_COL_RESIZABLE);
-    categoryColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     pDataViewCtrl->AppendColumn(categoryColumn);
 
     /* Duration Column */
-    auto durationColumn = new wxDataViewColumn(
-        "Duration", durationTextRenderer, TaskTreeModel::Col_Duration, 80, wxALIGN_CENTER);
-    durationColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    auto durationColumn = new wxDataViewColumn("Duration",
+        durationTextRenderer,
+        TaskTreeModel::Col_Duration,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_CENTER);
     durationColumn->SetResizeable(false);
     pDataViewCtrl->AppendColumn(durationColumn);
+
+    /* Billable Column */
+    auto billableColumn = new wxDataViewColumn("Billable",
+        billableCheckboxRenderer,
+        TaskTreeModel::Col_Billable,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_CENTER);
+    billableColumn->SetResizeable(false);
+    pDataViewCtrl->AppendColumn(billableColumn);
 
     /* Description Column */
     auto descriptionColumn = new wxDataViewColumn("Description",
