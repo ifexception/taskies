@@ -205,8 +205,6 @@ int TasksService::FilterByDate(const std::string& date,
             taskViewModel.EmployerName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-            rc = sqlite3_step(stmt);
-
             taskViewModels.push_back(taskViewModel);
             break;
         }
