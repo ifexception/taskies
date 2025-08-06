@@ -42,7 +42,15 @@ namespace tks::UI
 class TaskTreeModel : public wxDataViewModel
 {
 public:
-    enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
+    enum {
+        Col_Project = 0,
+        Col_Category,
+        Col_Duration,
+        Col_Billable,
+        Col_Description,
+        Col_Id,
+        Col_Max
+    };
 
     TaskTreeModel(const std::vector<std::string>& weekDates,
         std::shared_ptr<spdlog::logger> logger);

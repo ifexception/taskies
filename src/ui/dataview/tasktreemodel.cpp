@@ -52,6 +52,8 @@ wxString TaskTreeModel::GetColumnType(unsigned int col) const
 {
     if (col == Col_Id) {
         return "long";
+    } else if (col == Col_Billable) {
+        return "bool";
     } else {
         return "string";
     }
@@ -71,6 +73,9 @@ void TaskTreeModel::GetValue(wxVariant& variant, const wxDataViewItem& item, uns
         break;
     case Col_Duration:
         variant = node->GetDuration();
+        break;
+    case Col_Billable:
+        variant = node->Billable();
         break;
     case Col_Description:
         variant = node->GetDescription();
@@ -94,11 +99,14 @@ bool TaskTreeModel::SetValue(const wxVariant& variant, const wxDataViewItem& ite
     case Col_Project:
         node->SetProjectName(variant.GetString().ToStdString());
         break;
+    case Col_Category:
+        node->SetCategoryName(variant.GetString().ToStdString());
+        break;
     case Col_Duration:
         node->SetDuration(variant.GetString().ToStdString());
         break;
-    case Col_Category:
-        node->SetCategoryName(variant.GetString().ToStdString());
+    case Col_Billable:
+        node->Billable(variant.GetBool());
         break;
     case Col_Description:
         node->SetDescription(variant.GetString().ToStdString());
@@ -250,6 +258,7 @@ void TaskTreeModel::ChangeChild(const std::string& date, Services::TaskViewModel
                 child->SetProjectName(taskModel.ProjectDisplayName);
                 child->SetCategoryName(taskModel.CategoryName);
                 child->SetDuration(taskModel.GetDuration());
+                child->Billable(taskModel.Billable);
                 child->SetDescription(taskModel.GetTrimmedDescription());
 
                 wxDataViewItem item((void*) child);
@@ -343,6 +352,7 @@ void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewM
             taskModel.ProjectDisplayName,
             taskModel.CategoryName,
             taskModel.GetDuration(),
+            taskModel.Billable,
             taskModel.GetTrimmedDescription(),
             taskModel.TaskId);
         parentNode->Append(childNode);
@@ -375,6 +385,7 @@ void TaskTreeModel::InsertChildNodes(const std::string& date,
                 model.ProjectDisplayName,
                 model.CategoryName,
                 model.GetDuration(),
+                model.Billable,
                 model.GetTrimmedDescription(),
                 model.TaskId);
             parentNode->Append(childNode);
@@ -404,6 +415,7 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date,
             model.ProjectDisplayName,
             model.CategoryName,
             model.GetDuration(),
+            model.Billable,
             model.GetTrimmedDescription(),
             model.TaskId);
         rootDateNode->Append(node);
