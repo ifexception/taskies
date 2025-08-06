@@ -25,12 +25,14 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
     const std::string& projectName,
     const std::string& categoryName,
     const std::string& duration,
+    const bool billable,
     const std::string& description,
     std::int64_t taskId)
     : pParent(parent)
     , mProjectName(projectName)
     , mCategoryName(categoryName)
     , mDuration(duration)
+    , mBillable(billable)
     , mDescription(description)
     , mTaskId(taskId)
     , bContainer(false)
@@ -43,6 +45,7 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent, const std::strin
     , bContainer(true)
     , mCategoryName("")
     , mDuration("")
+    , mBillable(false)
     , mDescription("")
     , mTaskId(0)
 {
@@ -98,6 +101,11 @@ std::string TaskTreeModelNode::GetDuration() const
     return mDuration;
 }
 
+bool TaskTreeModelNode::Billable() const
+{
+    return mBillable;
+}
+
 std::string TaskTreeModelNode::GetDescription() const
 {
     return mDescription;
@@ -121,6 +129,11 @@ void TaskTreeModelNode::SetCategoryName(const std::string& value)
 void TaskTreeModelNode::SetDuration(const std::string& value)
 {
     mDuration = value;
+}
+
+void TaskTreeModelNode::Billable(const bool value)
+{
+    mBillable = value;
 }
 
 void TaskTreeModelNode::SetDescription(const std::string& value)
