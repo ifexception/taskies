@@ -31,8 +31,6 @@
 
 #include <date/date.h>
 
-#include <spdlog/logger.h>
-
 #include "tasktreemodelnode.h"
 
 #include "../../services/tasks/taskviewmodel.h"
@@ -52,8 +50,7 @@ public:
         Col_Max
     };
 
-    TaskTreeModel(const std::vector<std::string>& weekDates,
-        std::shared_ptr<spdlog::logger> logger);
+    TaskTreeModel(const std::vector<std::string>& weekDates);
     ~TaskTreeModel();
 
     unsigned int GetColumnCount() const override;
@@ -86,7 +83,6 @@ public:
     wxDataViewItemArray TryExpandAllDateNodes(const std::vector<std::string>& dates);
 
 private:
-    std::shared_ptr<spdlog::logger> pLogger;
     std::vector<std::unique_ptr<TaskTreeModelNode>> pRoots;
 };
 } // namespace tks::UI
