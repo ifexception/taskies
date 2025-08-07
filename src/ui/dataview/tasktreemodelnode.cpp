@@ -26,6 +26,7 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
     const std::string& categoryName,
     const std::string& duration,
     const bool billable,
+    std::string uniqueIdentifier,
     const std::string& description,
     std::int64_t taskId)
     : pParent(parent)
@@ -33,6 +34,7 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
     , mCategoryName(categoryName)
     , mDuration(duration)
     , mBillable(billable)
+    , mUniqueIdentifier(uniqueIdentifier)
     , mDescription(description)
     , mTaskId(taskId)
     , bContainer(false)
@@ -46,6 +48,7 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent, const std::strin
     , mCategoryName("")
     , mDuration("")
     , mBillable(false)
+    , mUniqueIdentifier("")
     , mDescription("")
     , mTaskId(0)
 {
@@ -106,6 +109,11 @@ bool TaskTreeModelNode::Billable() const
     return mBillable;
 }
 
+std::string TaskTreeModelNode::GetUniqueIdentifier() const
+{
+    return mUniqueIdentifier;
+}
+
 std::string TaskTreeModelNode::GetDescription() const
 {
     return mDescription;
@@ -134,6 +142,11 @@ void TaskTreeModelNode::SetDuration(const std::string& value)
 void TaskTreeModelNode::Billable(const bool value)
 {
     mBillable = value;
+}
+
+void TaskTreeModelNode::SetUniqueIdentifier(const std::string& value)
+{
+    mUniqueIdentifier = value;
 }
 
 void TaskTreeModelNode::SetDescription(const std::string& value)

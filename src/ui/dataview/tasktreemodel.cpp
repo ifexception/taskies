@@ -73,6 +73,9 @@ void TaskTreeModel::GetValue(wxVariant& variant, const wxDataViewItem& item, uns
     case Col_Billable:
         variant = node->Billable();
         break;
+    case Col_Uid:
+        variant = node->GetUniqueIdentifier();
+        break;
     case Col_Description:
         variant = node->GetDescription();
         break;
@@ -102,6 +105,9 @@ bool TaskTreeModel::SetValue(const wxVariant& variant, const wxDataViewItem& ite
         break;
     case Col_Billable:
         node->Billable(variant.GetBool());
+        break;
+    case Col_Uid:
+        node->SetUniqueIdentifier(variant.GetString().ToStdString());
         break;
     case Col_Description:
         node->SetDescription(variant.GetString().ToStdString());
@@ -325,6 +331,7 @@ void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewM
             taskModel.CategoryName,
             taskModel.GetDuration(),
             taskModel.Billable,
+            taskModel.UniqueIdentifier.has_value() ? taskModel.UniqueIdentifier.value() : "",
             taskModel.GetTrimmedDescription(),
             taskModel.TaskId);
         parentNode->Append(childNode);
@@ -336,7 +343,7 @@ void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewM
 }
 
 void TaskTreeModel::InsertChildNodes(const std::string& date,
-    std::vector<Services::TaskViewModel> models)
+    std::vector<Services::TaskViewModel> taskModels)
 {
     auto iterator = std::find_if(
         pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
@@ -347,14 +354,15 @@ void TaskTreeModel::InsertChildNodes(const std::string& date,
         auto parentNode = iterator->get();
 
         wxDataViewItemArray itemsAdded;
-        for (auto& model : models) {
+        for (auto& taskModel : taskModels) {
             auto childNode = new TaskTreeModelNode(parentNode,
-                model.ProjectDisplayName,
-                model.CategoryName,
-                model.GetDuration(),
-                model.Billable,
-                model.GetTrimmedDescription(),
-                model.TaskId);
+                taskModel.ProjectDisplayName,
+                taskModel.CategoryName,
+                taskModel.GetDuration(),
+                taskModel.Billable,
+                taskModel.UniqueIdentifier.has_value() ? taskModel.UniqueIdentifier.value() : "",
+                taskModel.GetTrimmedDescription(),
+                taskModel.TaskId);
             parentNode->Append(childNode);
 
             wxDataViewItem child((void*) childNode);
@@ -367,18 +375,19 @@ void TaskTreeModel::InsertChildNodes(const std::string& date,
 }
 
 void TaskTreeModel::InsertRootAndChildNodes(const std::string& date,
-    std::vector<Services::TaskViewModel> models)
+    std::vector<Services::TaskViewModel> taskModels)
 {
     auto rootDateNode = std::make_unique<TaskTreeModelNode>(nullptr, date);
 
-    for (auto& model : models) {
+    for (auto& taskModel : taskModels) {
         auto node = new TaskTreeModelNode(rootDateNode.get(),
-            model.ProjectDisplayName,
-            model.CategoryName,
-            model.GetDuration(),
-            model.Billable,
-            model.GetTrimmedDescription(),
-            model.TaskId);
+            taskModel.ProjectDisplayName,
+            taskModel.CategoryName,
+            taskModel.GetDuration(),
+            taskModel.Billable,
+            taskModel.UniqueIdentifier.has_value() ? taskModel.UniqueIdentifier.value() : "",
+            taskModel.GetTrimmedDescription(),
+            taskModel.TaskId);
         rootDateNode->Append(node);
     }
 
@@ -388,6 +397,7 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date,
         pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
             return ptr->GetProjectName() == date;
         });
+
     wxDataViewItem child((void*) iterator->get());
     wxDataViewItem parent((void*) nullptr);
     ItemAdded(parent, child);

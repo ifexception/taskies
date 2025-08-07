@@ -429,6 +429,7 @@ void MainFrame::CreateControls()
     auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto durationTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    auto uidTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto descriptionTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
 
@@ -475,6 +476,12 @@ void MainFrame::CreateControls()
         wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_CENTER);
+
+    /* Uid Column */
+    auto uidColumn = new wxDataViewColumn(
+        "UID", uidTextRenderer, TaskTreeModel::Col_Uid, wxCOL_WIDTH_AUTOSIZE);
+    uidColumn->SetResizeable(false);
+    pDataViewCtrl->AppendColumn(uidColumn);
 
     /* Description Column */
     auto descriptionColumn = new wxDataViewColumn("Description",
