@@ -70,10 +70,8 @@ void TaskTreeModel::GetValue(wxVariant& variant, const wxDataViewItem& item, uns
     case Col_Duration:
         variant = node->GetDuration();
         break;
-    case Col_Billable: {
-        wxCheckBoxState state = node->Billable() ? wxCHK_CHECKED : wxCHK_UNCHECKED;
-        variant << wxDataViewCheckIconText("", wxBitmapBundle(), state);
-    }
+    case Col_Billable:
+        variant = node->Billable();
         break;
     case Col_Description:
         variant = node->GetDescription();

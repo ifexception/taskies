@@ -429,7 +429,6 @@ void MainFrame::CreateControls()
     auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto durationTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    auto billableCheckboxRenderer = new wxDataViewCheckIconTextRenderer(wxDATAVIEW_CELL_INERT);
     auto descriptionTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
 
@@ -443,7 +442,7 @@ void MainFrame::CreateControls()
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
 
     /* Week Data View Model */
-    pTaskTreeModel = new TaskTreeModel(pDateStore->MondayToSundayDateRangeList, pLogger);
+    pTaskTreeModel = new TaskTreeModel(pDateStore->MondayToSundayDateRangeList);
     pDataViewCtrl->AssociateModel(pTaskTreeModel.get());
 
     /* Project Column */
@@ -465,22 +464,17 @@ void MainFrame::CreateControls()
     pDataViewCtrl->AppendColumn(categoryColumn);
 
     /* Duration Column */
-    auto durationColumn = new wxDataViewColumn("Duration",
-        durationTextRenderer,
-        TaskTreeModel::Col_Duration,
-        wxCOL_WIDTH_AUTOSIZE,
-        wxALIGN_CENTER);
+    auto durationColumn = new wxDataViewColumn(
+        "Duration", durationTextRenderer, TaskTreeModel::Col_Duration, wxCOL_WIDTH_AUTOSIZE);
     durationColumn->SetResizeable(false);
     pDataViewCtrl->AppendColumn(durationColumn);
 
     /* Billable Column */
-    auto billableColumn = new wxDataViewColumn("Billable",
-        billableCheckboxRenderer,
+    pDataViewCtrl->AppendToggleColumn("Billable",
         TaskTreeModel::Col_Billable,
+        wxDATAVIEW_CELL_INERT,
         wxCOL_WIDTH_AUTOSIZE,
         wxALIGN_CENTER);
-    billableColumn->SetResizeable(false);
-    pDataViewCtrl->AppendColumn(billableColumn);
 
     /* Description Column */
     auto descriptionColumn = new wxDataViewColumn("Description",
