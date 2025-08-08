@@ -430,6 +430,10 @@ void MainFrame::CreateControls()
     auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto durationTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto uidTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    auto employerTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    employerTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
+    auto clientTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    clientTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
     auto descriptionTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
 
@@ -482,6 +486,18 @@ void MainFrame::CreateControls()
         "UID", uidTextRenderer, TaskTreeModel::Col_Uid, wxCOL_WIDTH_AUTOSIZE);
     uidColumn->SetResizeable(false);
     pDataViewCtrl->AppendColumn(uidColumn);
+
+    /* Employer Column */
+    auto employerColumn = new wxDataViewColumn(
+        "Employer", employerTextRenderer, TaskTreeModel::Col_Employer, wxCOL_WIDTH_AUTOSIZE);
+    employerColumn->SetResizeable(false);
+    pDataViewCtrl->AppendColumn(employerColumn);
+
+    /* Client Column */
+    auto clientColumn = new wxDataViewColumn(
+        "Client", clientTextRenderer, TaskTreeModel::Col_Client, wxCOL_WIDTH_AUTOSIZE);
+    clientColumn->SetResizeable(false);
+    pDataViewCtrl->AppendColumn(clientColumn);
 
     /* Description Column */
     auto descriptionColumn = new wxDataViewColumn("Description",
