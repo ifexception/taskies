@@ -60,7 +60,7 @@ BEGIN
             VALUE "LegalCopyright",     COPYRIGHT_STR "\0"
             VALUE "OriginalFilename",   ORIGINAL_FILE_NAME "\0"
             VALUE "ProductName",        PRODUCT_NAME "\0"
-            VALUE "ProductVersion",     PRODUCT_VERSION_STR "\0"
+            VALUE "ProductVersion",     PRODUCT_VERSION "\0"
         END
     END
     BLOCK "VarFileInfo"
