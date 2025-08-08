@@ -27,6 +27,8 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
     const std::string& duration,
     const bool billable,
     std::string uniqueIdentifier,
+    std::string employerName,
+    std::string clientName,
     const std::string& description,
     std::int64_t taskId)
     : pParent(parent)
@@ -35,6 +37,8 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
     , mDuration(duration)
     , mBillable(billable)
     , mUniqueIdentifier(uniqueIdentifier)
+    , mEmployerName(employerName)
+    , mClientName(clientName)
     , mDescription(description)
     , mTaskId(taskId)
     , bContainer(false)
@@ -114,6 +118,16 @@ std::string TaskTreeModelNode::GetUniqueIdentifier() const
     return mUniqueIdentifier;
 }
 
+std::string TaskTreeModelNode::GetEmployerName() const
+{
+    return mEmployerName;
+}
+
+std::string TaskTreeModelNode::GetClientName() const
+{
+    return mClientName;
+}
+
 std::string TaskTreeModelNode::GetDescription() const
 {
     return mDescription;
@@ -147,6 +161,16 @@ void TaskTreeModelNode::Billable(const bool value)
 void TaskTreeModelNode::SetUniqueIdentifier(const std::string& value)
 {
     mUniqueIdentifier = value;
+}
+
+void TaskTreeModelNode::SetEmployerName(const std::string& value)
+{
+    mEmployerName = value;
+}
+
+void TaskTreeModelNode::SetClientName(const std::string& value)
+{
+    mClientName = value;
 }
 
 void TaskTreeModelNode::SetDescription(const std::string& value)

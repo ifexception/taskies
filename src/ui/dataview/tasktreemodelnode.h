@@ -42,6 +42,8 @@ public:
         const std::string& duration,
         const bool billable,
         std::string uniqueIdentifier,
+        std::string employerName,
+        std::string clientName,
         const std::string& description,
         std::int64_t taskId);
     TaskTreeModelNode(TaskTreeModelNode* parent, const std::string& branch);
@@ -61,6 +63,8 @@ public:
     std::string GetDuration() const;
     bool Billable() const;
     std::string GetUniqueIdentifier() const;
+    std::string GetEmployerName() const;
+    std::string GetClientName() const;
     std::string GetDescription() const;
     std::int64_t GetTaskId() const;
 
@@ -69,6 +73,8 @@ public:
     void SetDuration(const std::string& value);
     void Billable(const bool value);
     void SetUniqueIdentifier(const std::string& value);
+    void SetEmployerName(const std::string& value);
+    void SetClientName(const std::string& value);
     void SetDescription(const std::string& value);
     void SetTaskId(std::int64_t taskId);
 
@@ -81,6 +87,8 @@ private:
     std::string mDuration;
     bool mBillable;
     std::string mUniqueIdentifier;
+    std::string mEmployerName;
+    std::string mClientName;
     std::string mDescription;
     std::int64_t mTaskId;
     bool bContainer;
