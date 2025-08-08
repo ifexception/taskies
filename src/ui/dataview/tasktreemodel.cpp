@@ -76,6 +76,12 @@ void TaskTreeModel::GetValue(wxVariant& variant, const wxDataViewItem& item, uns
     case Col_Uid:
         variant = node->GetUniqueIdentifier();
         break;
+    case Col_Employer:
+        variant = node->GetEmployerName();
+        break;
+    case Col_Client:
+        variant = node->GetClientName();
+        break;
     case Col_Description:
         variant = node->GetDescription();
         break;
@@ -108,6 +114,12 @@ bool TaskTreeModel::SetValue(const wxVariant& variant, const wxDataViewItem& ite
         break;
     case Col_Uid:
         node->SetUniqueIdentifier(variant.GetString().ToStdString());
+        break;
+    case Col_Employer:
+        node->SetEmployerName(variant.GetString().ToStdString());
+        break;
+    case Col_Client:
+        node->SetClientName(variant.GetString().ToStdString());
         break;
     case Col_Description:
         node->SetDescription(variant.GetString().ToStdString());
@@ -243,6 +255,12 @@ void TaskTreeModel::ChangeChild(const std::string& date, Services::TaskViewModel
                 child->SetCategoryName(taskModel.CategoryName);
                 child->SetDuration(taskModel.GetDuration());
                 child->Billable(taskModel.Billable);
+                child->SetUniqueIdentifier(taskModel.UniqueIdentifier.has_value()
+                                               ? taskModel.UniqueIdentifier.value()
+                                               : "");
+                child->SetEmployerName(taskModel.EmployerName);
+                child->SetClientName(
+                    taskModel.ClientName.has_value() ? taskModel.ClientName.value() : "");
                 child->SetDescription(taskModel.GetTrimmedDescription());
 
                 wxDataViewItem item((void*) child);
@@ -332,6 +350,8 @@ void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewM
             taskModel.GetDuration(),
             taskModel.Billable,
             taskModel.UniqueIdentifier.has_value() ? taskModel.UniqueIdentifier.value() : "",
+            taskModel.EmployerName,
+            taskModel.ClientName.has_value() ? taskModel.ClientName.value() : "",
             taskModel.GetTrimmedDescription(),
             taskModel.TaskId);
         parentNode->Append(childNode);
@@ -361,6 +381,8 @@ void TaskTreeModel::InsertChildNodes(const std::string& date,
                 taskModel.GetDuration(),
                 taskModel.Billable,
                 taskModel.UniqueIdentifier.has_value() ? taskModel.UniqueIdentifier.value() : "",
+                taskModel.EmployerName,
+                taskModel.ClientName.has_value() ? taskModel.ClientName.value() : "",
                 taskModel.GetTrimmedDescription(),
                 taskModel.TaskId);
             parentNode->Append(childNode);
@@ -386,6 +408,8 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date,
             taskModel.GetDuration(),
             taskModel.Billable,
             taskModel.UniqueIdentifier.has_value() ? taskModel.UniqueIdentifier.value() : "",
+            taskModel.EmployerName,
+            taskModel.ClientName.has_value() ? taskModel.ClientName.value() : "",
             taskModel.GetTrimmedDescription(),
             taskModel.TaskId);
         rootDateNode->Append(node);

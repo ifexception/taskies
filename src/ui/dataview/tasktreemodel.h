@@ -46,6 +46,8 @@ public:
         Col_Duration,
         Col_Billable,
         Col_Uid,
+        Col_Employer,
+        Col_Client,
         Col_Description,
         Col_Id,
         Col_Max
