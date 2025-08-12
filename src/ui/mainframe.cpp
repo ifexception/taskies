@@ -482,8 +482,8 @@ void MainFrame::CreateControls()
         wxALIGN_CENTER);
 
     /* Uid Column */
-    auto uidColumn = new wxDataViewColumn(
-        "UID", uidTextRenderer, TaskTreeModel::Col_Uid, wxCOL_WIDTH_AUTOSIZE);
+    auto uidColumn =
+        new wxDataViewColumn("UID", uidTextRenderer, TaskTreeModel::Col_Uid, wxCOL_WIDTH_AUTOSIZE);
     uidColumn->SetResizeable(false);
     pDataViewCtrl->AppendColumn(uidColumn);
 
@@ -569,6 +569,8 @@ void MainFrame::DataToControls()
 
     // Status Bar durations
     CalculateStatusBarTaskDurations();
+
+    // Apply viewable columns from config
 }
 
 void MainFrame::OnClose(wxCloseEvent& event)
