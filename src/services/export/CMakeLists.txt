@@ -18,5 +18,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/exportsservice.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/row.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/data.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/excelservice.cpp"
     PARENT_SCOPE
 )
