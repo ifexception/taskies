@@ -25,61 +25,36 @@
 
 #include <spdlog/logger.h>
 
-#include "../../common/enums.h"
-
 #include "columnjoinprojection.h"
 #include "projection.h"
-#include "sqliteexportquerybuilder.h"
 #include "csvexportoptions.h"
 #include "csvexportprocessor.h"
-#include "data.h"
+#include "dataexporter.h"
 
 namespace tks::Services::Export
 {
-class CsvExporter
-{
-public:
+struct CsvExporter final {
     CsvExporter() = delete;
     CsvExporter(const CsvExporter&) = delete;
     CsvExporter(std::shared_ptr<spdlog::logger> logger,
         CsvExportOptions options,
-        const std::string& databaseFilePath);
+        const std::string& databaseFilePath,
+        bool isPreview);
     ~CsvExporter() = default;
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
-
-    bool GeneratePreview(const std::vector<Projection>& projections,
-        const std::vector<ColumnJoinProjection>& joinProjections,
-        const std::string& fromDate,
-        const std::string& toDate,
-        /*out*/ std::string& exportedDataPreview);
 
     bool Generate(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
-        /*out*/ std::string& exportedDataPreview);
-
-private:
-    bool GenerateExport(const std::vector<Projection>& projections,
-        const std::vector<ColumnJoinProjection>& joinProjections,
-        const std::string& fromDate,
-        const std::string& toDate,
-        /*out*/ std::string& exportedDataPreview);
-
-    bool GenerateAttributes(const std::string& fromDate,
-        const std::string& toDate,
-        /*out*/ SData& data);
-
-    std::vector<std::string> GetHeadersFromProjections(const std::vector<Projection>& projections);
+        /*out*/ std::string& exportedData);
 
     std::shared_ptr<spdlog::logger> pLogger;
-
-    std::unique_ptr<SQLiteExportQueryBuilder> pQueryBuilder;
-
     CsvExportOptions mOptions;
-
     std::string mDatabaseFilePath;
+    std::unique_ptr<DataExporter> pDataExporter;
+
     bool bIsPreview;
 };
 } // namespace tks::Services::Export
