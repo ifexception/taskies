@@ -1346,10 +1346,10 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath);
+    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath, true);
 
     std::string exportedDataPreview = "";
-    bool success = csvExporter.GeneratePreview(
+    bool success = csvExporter.Generate(
         projections, joinProjections, fromDate, toDate, exportedDataPreview);
 
     if (!success) {
@@ -1395,7 +1395,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath);
+    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath, false);
 
     std::string exportedData = "";
     bool success =

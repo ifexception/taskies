@@ -547,7 +547,7 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath);
+    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath, false);
 
     std::string exportedData = "";
     bool success =
