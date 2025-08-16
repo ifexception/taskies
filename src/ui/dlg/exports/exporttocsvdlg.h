@@ -38,8 +38,6 @@
 
 #include "../../dataview/columnlistmodel.h"
 
-#include "../../../common/enums.h"
-
 #include "../../../core/configuration.h"
 
 #include "../../../services/export/csvexportoptions.h"
@@ -196,7 +194,6 @@ private:
         tksIDC_PRESET_SAVE_BUTTON,
         tksIDC_PRESET_IS_DEFAULT_CTRL,
         tksIDC_PRESET_CHOICE_CTRL,
-        tksIDC_PRESET_APPLY_BUTTON,
         tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
         tksIDC_RIGHT_CHEV_CTRL,
         tksIDC_LEFT_CHEV_CTRL,
