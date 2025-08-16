@@ -31,7 +31,7 @@
 #include "../../../common/enums.h"
 
 #include "../../../services/export/availablecolumns.h"
-#include "../../../services/export/csvexporter.h"
+#include "../../../services/export/csvexportoptions.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
@@ -803,13 +803,37 @@ void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
         preset.Uuid = presetData->GetValue();
     }
 
+    const auto& presets = pCfg->GetPresets();
+    auto presetIterator = std::find_if(
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings cfgPreset) {
+            return cfgPreset.Uuid == preset.Uuid;
+        });
+
+    // even though this preset is loaded for Excel
+    // presets are shared between CSV and Excel dialogs so we need to preserve
+    // CSV options regardless and if not found, recreate the defaults
+    if (presetIterator == presets.end()) {
+        Services::Export::CsvExportOptions csvOptions;
+
+        preset.Delimiter = csvOptions.Delimiter;
+        preset.TextQualifier = csvOptions.TextQualifier;
+        preset.EmptyValuesHandler = csvOptions.EmptyValuesHandler;
+        preset.NewLinesHandler = csvOptions.NewLinesHandler;
+        preset.BooleanHandler = csvOptions.BooleanHandler;
+
+        preset.ExcludeHeaders = false;
+    } else {
+        preset.Delimiter = presetIterator->Delimiter;
+        preset.TextQualifier = presetIterator->TextQualifier;
+        preset.EmptyValuesHandler = presetIterator->EmptyValuesHandler;
+        preset.NewLinesHandler = presetIterator->NewLinesHandler;
+        preset.BooleanHandler = presetIterator->BooleanHandler;
+
+        preset.ExcludeHeaders = presetIterator->ExcludeHeaders;
+    }
+
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
     preset.IsDefault = pPresetIsDefaultCheckBoxCtrl->GetValue();
-    // preset.Delimiter = mCsvOptions.Delimiter;
-    // preset.TextQualifier = mCsvOptions.TextQualifier;
-    // preset.EmptyValuesHandler = mCsvOptions.EmptyValuesHandler;
-    // preset.NewLinesHandler = mCsvOptions.NewLinesHandler;
-    // preset.BooleanHandler = mCsvOptions.BooleanHandler;
 
     std::vector<Common::PresetColumn> columns;
 
@@ -916,7 +940,8 @@ void ExportToExcelDialog::OnAvailableColumnItemUncheck(wxListEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
 }
 
-void ExportToExcelDialog::OnAddAvailableColumnToExportColumnListView(wxCommandEvent& WXUNUSED(event))
+void ExportToExcelDialog::OnAddAvailableColumnToExportColumnListView(
+    wxCommandEvent& WXUNUSED(event))
 {
     if (mSelectedItemIndexes.size() == 0) {
         return;
