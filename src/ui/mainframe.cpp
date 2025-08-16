@@ -62,6 +62,7 @@
 #include "../ui/dlg/preferences/preferencesdlg.h"
 // #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exports/exporttocsvdlg.h"
+#include "../ui/dlg/exports/exporttoexceldlg.h"
 #include "../ui/dlg/exports/quickexporttocsvdlg.h"
 #include "../ui/dlg/taskdlg.h"
 #include "../ui/dlg/attributes/attributegroupdlg.h"
@@ -108,6 +109,7 @@ EVT_MENU(ID_NEW_ATTRIBUTE, MainFrame::OnNewAttribute)
 EVT_MENU(ID_NEW_STATIC_ATTRIBUTES, MainFrame::OnNewStaticAttributes)
 EVT_MENU(ID_TASKS_BACKUPDATABASE, MainFrame::OnTasksBackupDatabase)
 EVT_MENU(ID_TASKS_EXPORTTOCSV, MainFrame::OnTasksExportToCsv)
+EVT_MENU(ID_TASKS_EXPORTTOEXCEL, MainFrame::OnTasksExportToExcel)
 EVT_MENU(ID_TASKS_QUICKEXPORTTOCSV, MainFrame::OnTasksQuickExportToCsv)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
@@ -336,10 +338,12 @@ void MainFrame::CreateControls()
     }
     fileTasksMenu->AppendSeparator();
     fileTasksMenu->Append(
-        ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV format");
+        ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV file/clipboard");
+    fileTasksMenu->Append(
+        ID_TASKS_EXPORTTOEXCEL, "Ex&port to Excel", "Export selected data to Excel");
 
     auto quickExportMenuItem = fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
-        "Q&uick Export to CSV",
+        "&Quick Export to CSV",
         "Export selected data to CSV format using existing presets");
 
     wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
@@ -780,6 +784,11 @@ void MainFrame::OnTasksExportToCsv(wxCommandEvent& WXUNUSED(event))
 {
     UI::dlg::ExportToCsvDialog exportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
     exportToCsv.ShowModal();
+}
+
+void MainFrame::OnTasksExportToExcel(wxCommandEvent& WXUNUSED(event)) {
+    dlg::ExportToExcelDialog exportToExcelDlg(this, pCfg, pLogger, mDatabaseFilePath);
+    exportToExcelDlg.ShowModal();
 }
 
 void MainFrame::OnTasksQuickExportToCsv(wxCommandEvent& WXUNUSED(event))

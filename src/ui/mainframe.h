@@ -67,6 +67,7 @@ enum class MenuIds : int {
     File_NewStaticAttributes,
     File_TasksDatabaseBackup,
     File_TasksExportToCsv,
+    File_TasksExportToExcel,
     File_TasksQuickExportToCsv,
     Edit_Employer,
     Edit_Client,
@@ -100,6 +101,7 @@ static const int ID_NEW_STATIC_ATTRIBUTES = static_cast<int>(MenuIds::File_NewSt
 
 static const int ID_TASKS_BACKUPDATABASE = static_cast<int>(MenuIds::File_TasksDatabaseBackup);
 static const int ID_TASKS_EXPORTTOCSV = static_cast<int>(MenuIds::File_TasksExportToCsv);
+static const int ID_TASKS_EXPORTTOEXCEL = static_cast<int>(MenuIds::File_TasksExportToExcel);
 static const int ID_TASKS_QUICKEXPORTTOCSV = static_cast<int>(MenuIds::File_TasksQuickExportToCsv);
 
 /* Edit */
@@ -180,6 +182,7 @@ private:
     void OnNewStaticAttributes(wxCommandEvent& event);
     void OnTasksBackupDatabase(wxCommandEvent& event);
     void OnTasksExportToCsv(wxCommandEvent& event);
+    void OnTasksExportToExcel(wxCommandEvent& event);
     void OnTasksQuickExportToCsv(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnEditEmployer(wxCommandEvent& event);
