@@ -17,7 +17,7 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "excelservice.h"
+#include "excelexportservice.h"
 
 #include <wx/string.h>
 
