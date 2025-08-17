@@ -37,7 +37,7 @@ CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger,
         pLogger, mDatabaseFilePath, bIsPreview, mOptions.IncludeAttributes);
 }
 
-bool CsvExporter::Generate(const std::vector<Projection>& projections,
+bool CsvExporter::ExportToCsv(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,

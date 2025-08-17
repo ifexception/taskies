@@ -1349,7 +1349,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath, true);
 
     std::string exportedDataPreview = "";
-    bool success = csvExporter.Generate(
+    bool success = csvExporter.ExportToCsv(
         projections, joinProjections, fromDate, toDate, exportedDataPreview);
 
     if (!success) {
@@ -1399,7 +1399,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     std::string exportedData = "";
     bool success =
-        csvExporter.Generate(projections, joinProjections, fromDate, toDate, exportedData);
+        csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
 
     if (!success) {
         std::string message = "Failed to export data";

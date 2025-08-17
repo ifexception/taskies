@@ -44,7 +44,7 @@ struct CsvExporter final {
 
     const CsvExporter& operator=(const CsvExporter&) = delete;
 
-    bool Generate(const std::vector<Projection>& projections,
+    bool ExportToCsv(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,

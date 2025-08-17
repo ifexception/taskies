@@ -551,7 +551,7 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
 
     std::string exportedData = "";
     bool success =
-        csvExporter.Generate(projections, joinProjections, fromDate, toDate, exportedData);
+        csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
 
     if (!success) {
         std::string message = "Failed to export data";
