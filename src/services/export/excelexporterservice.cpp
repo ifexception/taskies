@@ -36,17 +36,15 @@ bool ExcelInstanceCheck::IsExcelInstalled() const
 
 ExcelExporterService::ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
-    bool isPreview,
     bool includeAttributes)
     : pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
-    , bIsPreview(isPreview)
     , bIncludeAttributes(includeAttributes)
     , pDataExportGenerator(nullptr)
     , mExcelInstanceCheck()
 {
     pDataExportGenerator = std::make_unique<DataExportGenerator>(
-        pLogger, mDatabaseFilePath, bIsPreview, bIncludeAttributes);
+        pLogger, mDatabaseFilePath, false, bIncludeAttributes);
 }
 
 bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projections,
@@ -79,7 +77,7 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
         return false;
     }
 
-#if _DEBUG
+#if TKS_DEBUG
     if (!excelInstance.PutProperty("Visible", true)) {
         // couldn't show it, we don't want to leave the function with hidden instance of Excel still
         // running, so we close it
@@ -87,7 +85,7 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
         wxMessageBox("Succeeded to start Excel, but failed to show it");
         return false;
     }
-#endif // _DEBUG
+#endif // TKS_DEBUG
 
     wxAutomationObject workbooks;
     if (!excelInstance.GetObject(workbooks, "Workbooks")) {

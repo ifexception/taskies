@@ -52,7 +52,6 @@ struct ExcelInstanceCheck {
 struct ExcelExporterService {
     ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
-        bool isPreview,
         bool includeAttributes);
     ~ExcelExporterService() = default;
 
@@ -65,7 +64,6 @@ struct ExcelExporterService {
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
-    bool bIsPreview;
     bool bIncludeAttributes;
 
     std::unique_ptr<DataExportGenerator> pDataExportGenerator;
