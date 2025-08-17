@@ -134,8 +134,9 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     wxAutomationObject rangeObject;
     wxVariant range;
     char headerRow = 'A';
+    int headerRowIndex = 1;
     for (size_t i = 0; i < exportData.Headers.size(); i++) {
-        range = headerRow++ + std::to_string(1);
+        range = headerRow++ + std::to_string(headerRowIndex);
         if (!worksheet.GetObject(rangeObject, "Range", 1, &range)) {
             pLogger->error("Could not obtain the Range object");
             return false;
@@ -159,7 +160,7 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
                 return false;
             }
 
-            if (!rangeObject.PutProperty("Value", exportData.Headers[i])) {
+            if (!rangeObject.PutProperty("Value", row.Values[i])) {
                 pLogger->error("Failed to call PutProperty 'Value'");
                 return false;
             }
