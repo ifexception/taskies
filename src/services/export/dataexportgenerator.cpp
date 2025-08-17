@@ -17,7 +17,7 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "dataexporter.h"
+#include "dataexportgenerator.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -27,7 +27,7 @@
 
 namespace tks::Services::Export
 {
-DataExporter::DataExporter(std::shared_ptr<spdlog::logger> logger,
+DataExportGenerator::DataExportGenerator(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool isPreview,
     bool includeAttributes)
@@ -39,7 +39,7 @@ DataExporter::DataExporter(std::shared_ptr<spdlog::logger> logger,
 {
 }
 
-bool DataExporter::GenerateExportData(const std::vector<Projection>& projections,
+bool DataExportGenerator::GenerateExportData(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
@@ -107,7 +107,7 @@ bool DataExporter::GenerateExportData(const std::vector<Projection>& projections
     return true;
 }
 
-bool DataExporter::GenerateAndExportAttributes(const std::string& fromDate,
+bool DataExportGenerator::GenerateAndExportAttributes(const std::string& fromDate,
     const std::string& toDate,
     SData& data)
 {
@@ -210,7 +210,7 @@ bool DataExporter::GenerateAndExportAttributes(const std::string& fromDate,
     return true;
 }
 
-std::vector<std::string> DataExporter::GetHeadersFromProjections(
+std::vector<std::string> DataExportGenerator::GetHeadersFromProjections(
     const std::vector<Projection>& projections)
 {
     if (projections.empty()) {

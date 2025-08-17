@@ -33,7 +33,7 @@ CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger,
     , bIsPreview(isPreview)
     , pDataExporter(nullptr)
 {
-    pDataExporter = std::make_unique<DataExporter>(
+    pDataExporter = std::make_unique<DataExportGenerator>(
         pLogger, mDatabaseFilePath, bIsPreview, mOptions.IncludeAttributes);
 }
 

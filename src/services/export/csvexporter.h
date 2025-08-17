@@ -29,7 +29,7 @@
 #include "projection.h"
 #include "csvexportoptions.h"
 #include "csvexportprocessor.h"
-#include "dataexporter.h"
+#include "dataexportgenerator.h"
 
 namespace tks::Services::Export
 {
@@ -53,7 +53,7 @@ struct CsvExporter final {
     std::shared_ptr<spdlog::logger> pLogger;
     CsvExportOptions mOptions;
     std::string mDatabaseFilePath;
-    std::unique_ptr<DataExporter> pDataExporter;
+    std::unique_ptr<DataExportGenerator> pDataExporter;
 
     bool bIsPreview;
 };

@@ -33,16 +33,16 @@
 
 namespace tks::Services::Export
 {
-struct DataExporter final {
-    DataExporter() = delete;
-    DataExporter(const DataExporter&) = delete;
-    DataExporter(std::shared_ptr<spdlog::logger> logger,
+struct DataExportGenerator final {
+    DataExportGenerator() = delete;
+    DataExportGenerator(const DataExportGenerator&) = delete;
+    DataExportGenerator(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isPreview,
         bool includeAttributes);
-    ~DataExporter() = default;
+    ~DataExportGenerator() = default;
 
-    DataExporter& operator=(const DataExporter&) = delete;
+    DataExportGenerator& operator=(const DataExportGenerator&) = delete;
 
     bool GenerateExportData(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
