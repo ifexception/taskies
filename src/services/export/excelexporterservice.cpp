@@ -23,6 +23,7 @@
 
 namespace tks::Services::Export
 {
+// https://stackoverflow.com/a/3948377/7277716
 ExcelInstanceCheck::ExcelInstanceCheck()
     : mRegPath("Excel.Application/CurVer")
     , mKey(wxRegKey::HKCR, wxString(mRegPath))
