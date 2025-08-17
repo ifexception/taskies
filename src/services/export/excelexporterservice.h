@@ -19,15 +19,21 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/msw/ole/automtn.h>
 #include <wx/msw/registry.h>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
+
 #include "data.h"
+#include "dataexportgenerator.h"
 
 #include "../../utils/utils.h"
 
@@ -43,13 +49,28 @@ struct ExcelInstanceCheck {
     wxRegKey mKey;
 };
 
-struct ExcelExportService {
-    ExcelExportService();
-    ~ExcelExportService() = default;
+struct ExcelExporterService {
+    ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath,
+        bool isPreview,
+        bool includeAttributes);
+    ~ExcelExporterService() = default;
 
     bool IsExcelInstalled() const;
-    bool ExportToExcel(const SData& data);
+    bool ExportToExcel(const std::vector<Projection>& projections,
+        const std::vector<ColumnJoinProjection>& joinProjections,
+        const std::string& fromDate,
+        const std::string& toDate,
+        const std::string& saveLocation);
 
+    std::shared_ptr<spdlog::logger> pLogger;
+    std::string mDatabaseFilePath;
+    bool bIsPreview;
+    bool bIncludeAttributes;
+
+    std::unique_ptr<DataExportGenerator> pDataExportGenerator;
     ExcelInstanceCheck mExcelInstanceCheck;
+
+    bool VariantToObject(const wxVariant& v, wxAutomationObject& o);
 };
-} // namespace tks::Service::Export
+} // namespace tks::Services::Export
