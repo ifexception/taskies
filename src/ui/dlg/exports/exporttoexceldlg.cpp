@@ -36,6 +36,7 @@
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
+#include "../../../services/export/excelexporterservice.h"
 
 #include "../../../utils/utils.h"
 
@@ -1088,6 +1089,54 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
         bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
+
+    Services::Export::ExcelExporterService excelExporterService(
+        pLogger, mDatabaseFilePath, bIncludeAttributes);
+
+    const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
+    bool success = excelExporterService.ExportToExcel(
+        projections, joinProjections, fromDate, toDate, saveLocation);
+
+    if (!success) {
+        std::string message = "Failed to export data to Excel";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+
+        return;
+    }
+
+    std::string message = "Successfully exported data to Excel";
+
+    wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
+
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Information, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(pParent, addNotificationEvent);
+
+    if (bOpenExplorerInExportDirectory) {
+        {
+            SHELLEXECUTEINFO sei = { 0 };
+            sei.cbSize = sizeof(sei);
+            sei.fMask = SEE_MASK_DEFAULT;
+            sei.hwnd = GetHWND();
+            sei.lpVerb = L"open";
+            sei.lpDirectory = wxPathOnly(pSaveToFileTextCtrl->GetValue()).ToStdWstring().c_str();
+            sei.nShow = SW_SHOW;
+
+            ShellExecuteEx(&sei);
+        }
+    }
+
+    if (pCfg->CloseExportDialogAfterExporting()) {
+        EndDialog(wxID_OK);
+    }
 }
 
 void ExportToExcelDialog::SetFromAndToDatePickerRanges()
