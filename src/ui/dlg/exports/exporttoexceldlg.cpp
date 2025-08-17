@@ -847,6 +847,9 @@ void ExportToExcelDialog::OnResetPreset(wxCommandEvent& event)
     pPresetsChoiceCtrl->SetSelection(0);
     pPresetNameTextCtrl->ChangeValue("");
 
+    pNewLinesHandlerChoiceCtrl->SetSelection(0);
+    pBooleanHanderChoiceCtrl->SetSelection(0);
+
     auto columns = pExportColumnListModel->GetColumns();
 
     for (const auto& column : columns) {
@@ -1259,6 +1262,9 @@ void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSettings&
 {
     pPresetNameTextCtrl->ChangeValue(presetSettings.Name);
     pPresetIsDefaultCheckBoxCtrl->SetValue(presetSettings.IsDefault);
+
+    pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.NewLinesHandler));
+    pBooleanHanderChoiceCtrl->SetSelection(static_cast<int>(presetSettings.BooleanHandler));
 
     // apply selected columns
     for (long i = (pAvailableColumnsListView->GetItemCount() - 1); 0 <= i; i--) {
