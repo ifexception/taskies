@@ -68,6 +68,9 @@ private:
     void OnCloseDialogAfterExportingCheck(wxCommandEvent& event);
     void OnOpenExplorerInExportDirectoryCheck(wxCommandEvent& event);
 
+    void OnNewLinesHandlerChoiceSelection(wxCommandEvent& event);
+    void OnBooleanHandlerChoiceSelection(wxCommandEvent& event);
+
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
     void OnExportTodaysTasksOnlyCheck(wxCommandEvent& event);
@@ -110,6 +113,9 @@ private:
     wxCheckBox* pCloseDialogAfterExportingCheckBoxCtrl;
     wxCheckBox* pOpenExplorerInExportDirectoryCheckBoxCtrl;
 
+    wxChoice* pNewLinesHandlerChoiceCtrl;
+    wxChoice* pBooleanHanderChoiceCtrl;
+
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
     wxCheckBox* pExportTodaysTasksCheckBoxCtrl;
@@ -150,11 +156,16 @@ private:
     bool bExportTodaysTasksOnly;
     bool bIncludeAttributes;
 
+    NewLines mNewLinesOption;
+    BooleanHandler mBooleanOption;
+
     enum {
         tksIDC_SAVETOFILETEXTCTRL = wxID_HIGHEST + 100,
         tksIDC_BROWSEEXPORTPATHBUTTON,
         tksIDC_CLOSEDIALOGAFTEREXPORTINGCHECKBOXCTRL,
         TKSIDC_OPENEXPLORERINEXPORTDIRECTORYCHECKBOXCTRL,
+        tksIDC_NEW_LINES_HANDLER_CTRL,
+        tksIDC_BOOLEAN_HANDLER_CTRL,
         tksIDC_FROMDATEPICKERCTRL,
         tksIDC_TODATEPICKERCTRL,
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
@@ -174,4 +185,4 @@ private:
         tksIDC_EXPORTBUTTON,
     };
 };
-}
+} // namespace tks::UI::dlg

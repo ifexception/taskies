@@ -84,6 +84,8 @@ ExportToExcelDialog::ExportToExcelDialog(wxWindow* parent,
     , pBrowseExportPathButton(nullptr)
     , pCloseDialogAfterExportingCheckBoxCtrl(nullptr)
     , pOpenExplorerInExportDirectoryCheckBoxCtrl(nullptr)
+    , pNewLinesHandlerChoiceCtrl(nullptr)
+    , pBooleanHanderChoiceCtrl(nullptr)
     , pFromDatePickerCtrl(nullptr)
     , pToDatePickerCtrl(nullptr)
     , pExportTodaysTasksCheckBoxCtrl(nullptr)
@@ -110,6 +112,8 @@ ExportToExcelDialog::ExportToExcelDialog(wxWindow* parent,
     , bOpenExplorerInExportDirectory(false)
     , bExportTodaysTasksOnly(false)
     , bIncludeAttributes(false)
+    , mNewLinesOption(NewLines::None)
+    , mBooleanOption(BooleanHandler::OneZero)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -246,10 +250,47 @@ void ExportToExcelDialog::CreateControls()
     auto line0 = new wxStaticLine(this, wxID_ANY);
     sizer->Add(line0, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(4)).Expand());
 
+    /* Horizontal sizer for options and date range controls */
+    auto optionsAndDateRangeHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(optionsAndDateRangeHorizontalSizer, wxSizerFlags().Expand());
+
+    /* Options static box */
+    auto optionsStaticBox = new wxStaticBox(this, wxID_ANY, "Options");
+    auto optionsStaticBoxSizer = new wxStaticBoxSizer(optionsStaticBox, wxVERTICAL);
+    optionsAndDateRangeHorizontalSizer->Add(
+        optionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    /* Flex grid sizer for option choices */
+    auto optionsFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    optionsStaticBoxSizer->Add(optionsFlexGridSizer, wxSizerFlags().Expand().Proportion(1));
+
+    optionsFlexGridSizer->AddGrowableCol(1, 1);
+
+    /* New lines choice control */
+    auto newLinesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "New Lines");
+    pNewLinesHandlerChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_NEW_LINES_HANDLER_CTRL);
+    pNewLinesHandlerChoiceCtrl->SetToolTip("Set how to handle multiline field values");
+
+    /* Boolean handler control */
+    auto booleanHandlerLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Booleans");
+    pBooleanHanderChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_BOOLEAN_HANDLER_CTRL);
+    pBooleanHanderChoiceCtrl->SetToolTip("Set how to handle boolean field values");
+
+    optionsFlexGridSizer->Add(
+        newLinesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    optionsFlexGridSizer->Add(
+        pNewLinesHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    optionsFlexGridSizer->Add(
+        booleanHandlerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    optionsFlexGridSizer->Add(
+        pBooleanHanderChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
     /* Date range static box */
     auto dateRangeStaticBox = new wxStaticBox(this, wxID_ANY, "Date Range");
     auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxVERTICAL);
-    sizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    optionsAndDateRangeHorizontalSizer->Add(
+        dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* From date control */
     auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
@@ -277,12 +318,14 @@ void ExportToExcelDialog::CreateControls()
 
     dateControlsHorizontalSizer->Add(
         fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateControlsHorizontalSizer->Add(
-        pFromDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+    dateControlsHorizontalSizer->Add(pFromDatePickerCtrl,
+        wxSizerFlags() /*.Border(wxLEFT, FromDIP(1))*/.Border(
+            wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
     dateControlsHorizontalSizer->Add(
         toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateControlsHorizontalSizer->Add(
-        pToDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+    dateControlsHorizontalSizer->Add(pToDatePickerCtrl,
+        wxSizerFlags() /*.Border(wxLEFT, FromDIP(1))*/.Border(
+            wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
 
     dateRangeStaticBoxSizer->Add(
         pExportTodaysTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -435,6 +478,22 @@ void ExportToExcelDialog::FillControls()
     SetFromDateAndDatePicker();
     SetToDateAndDatePicker();
 
+    pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pNewLinesHandlerChoiceCtrl->SetSelection(0);
+
+    auto newLineHandlers = Common::Static::NewLinesHandlerList();
+    for (auto i = 0; i < newLineHandlers.size(); i++) {
+        pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i + 1));
+    }
+
+    pBooleanHanderChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pBooleanHanderChoiceCtrl->SetSelection(0);
+
+    auto booleanHandlers = Common::Static::BooleanHandlerList();
+    for (auto i = 0; i < booleanHandlers.size(); i++) {
+        pBooleanHanderChoiceCtrl->Append(booleanHandlers[i], new ClientData<int>(i + 1));
+    }
+
     /* Available Columns */
     for (auto& column : Services::Export::MakeAvailableColumns()) {
         pAvailableColumnsListView->InsertItem(0, column.UserColumn);
@@ -480,6 +539,18 @@ void ExportToExcelDialog::ConfigureEventBindings()
         &ExportToExcelDialog::OnOpenDirectoryForSaveToFileLocation,
         this,
         tksIDC_BROWSEEXPORTPATHBUTTON
+    );
+
+    pNewLinesHandlerChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &ExportToExcelDialog::OnNewLinesHandlerChoiceSelection,
+        this
+    );
+
+    pBooleanHanderChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &ExportToExcelDialog::OnBooleanHandlerChoiceSelection,
+        this
     );
 
     pFromDatePickerCtrl->Bind(
@@ -640,6 +711,26 @@ void ExportToExcelDialog::OnCloseDialogAfterExportingCheck(wxCommandEvent& event
 void ExportToExcelDialog::OnOpenExplorerInExportDirectoryCheck(wxCommandEvent& event)
 {
     bOpenExplorerInExportDirectory = event.IsChecked();
+}
+
+void ExportToExcelDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+    int newLinesIndex = pNewLinesHandlerChoiceCtrl->GetSelection();
+    ClientData<int>* newLinesData = reinterpret_cast<ClientData<int>*>(
+        pNewLinesHandlerChoiceCtrl->GetClientObject(newLinesIndex));
+
+    mNewLinesOption = static_cast<NewLines>(newLinesData->GetValue());
+}
+
+void ExportToExcelDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+    int booleanHandlerIndex = pBooleanHanderChoiceCtrl->GetSelection();
+    ClientData<int>* booleanHandlerData = reinterpret_cast<ClientData<int>*>(
+        pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
+
+    mBooleanOption = static_cast<BooleanHandler>(booleanHandlerData->GetValue());
 }
 
 void ExportToExcelDialog::OnFromDateSelection(wxDateEvent& event)
