@@ -811,7 +811,7 @@ void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
 
     // even though this preset is loaded for Excel
     // presets are shared between CSV and Excel dialogs so we need to preserve
-    // CSV options regardless and if not found, recreate the defaults
+    // CSV options regardless and if not found, reset to the defaults
     if (presetIterator == presets.end()) {
         Services::Export::CsvExportOptions csvOptions;
 
@@ -1059,7 +1059,36 @@ void ExportToExcelDialog::OnIncludeAttributesCheck(wxCommandEvent& event)
     bIncludeAttributes = event.IsChecked();
 }
 
-void ExportToExcelDialog::OnExport(wxCommandEvent& event) {}
+void ExportToExcelDialog::OnExport(wxCommandEvent& event)
+{
+    SPDLOG_LOGGER_TRACE(pLogger, "Begin export");
+
+    const auto& columnsToExport = pExportColumnListModel->GetColumns();
+    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
+
+    if (columnsToExport.size() == 0) {
+        wxMessageBox("Please select at least one column to export.",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_INFORMATION);
+        return;
+    }
+
+    auto columnExportModels = Services::Export::BuildFromList(columnsToExport);
+
+    Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+
+    std::vector<Services::Export::Projection> projections =
+        projectionBuilder.BuildProjections(columnExportModels);
+    std::vector<Services::Export::ColumnJoinProjection> joinProjections =
+        projectionBuilder.BuildJoinProjections(columnExportModels);
+
+    const std::string fromDate =
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
+    const std::string toDate =
+        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
+}
 
 void ExportToExcelDialog::SetFromAndToDatePickerRanges()
 {
