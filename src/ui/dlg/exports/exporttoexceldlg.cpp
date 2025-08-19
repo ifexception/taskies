@@ -1185,7 +1185,7 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
     Services::Export::ExcelExporterService excelExporterService(
-        pLogger, mDatabaseFilePath, bIncludeAttributes);
+        pLogger, mDatabaseFilePath, bIncludeAttributes, mNewLinesOption, mBooleanOption);
 
     const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
     bool success = excelExporterService.ExportToExcel(
@@ -1266,6 +1266,9 @@ void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSettings&
     pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.NewLinesHandler));
     pBooleanHanderChoiceCtrl->SetSelection(static_cast<int>(presetSettings.BooleanHandler));
 
+    mNewLinesOption = presetSettings.NewLinesHandler;
+    mBooleanOption = presetSettings.BooleanHandler;
+
     // apply selected columns
     for (long i = (pAvailableColumnsListView->GetItemCount() - 1); 0 <= i; i--) {
         std::string name;
@@ -1299,7 +1302,6 @@ void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSettings&
     pExportColumnListModel->AppendFromStaging();
 
     pIncludeAttributesCheckBoxCtrl->SetValue(presetSettings.IncludeAttributes);
-
     bIncludeAttributes = presetSettings.IncludeAttributes;
 }
 } // namespace tks::UI::dlg
