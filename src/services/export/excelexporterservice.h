@@ -32,8 +32,11 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
+#include "../../common/enums.h"
+
 #include "data.h"
 #include "dataexportgenerator.h"
+#include "excelexportprocessor.h"
 
 #include "../../utils/utils.h"
 
@@ -52,7 +55,9 @@ struct ExcelInstanceCheck {
 struct ExcelExporterService {
     ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
-        bool includeAttributes);
+        bool includeAttributes,
+        NewLines newLinesOption,
+        BooleanHandler booleanHandlerOption);
     ~ExcelExporterService() = default;
 
     bool IsExcelInstalled() const;
@@ -68,6 +73,7 @@ struct ExcelExporterService {
 
     std::unique_ptr<DataExportGenerator> pDataExportGenerator;
     ExcelInstanceCheck mExcelInstanceCheck;
+    ExcelExportProcessor mExportDataProcessor;
 
     bool VariantToObject(const wxVariant& v, wxAutomationObject& o);
 };

@@ -37,12 +37,15 @@ bool ExcelInstanceCheck::IsExcelInstalled() const
 
 ExcelExporterService::ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
-    bool includeAttributes)
+    bool includeAttributes,
+    NewLines newLinesOption,
+    BooleanHandler booleanHandlerOption)
     : pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , bIncludeAttributes(includeAttributes)
     , pDataExportGenerator(nullptr)
     , mExcelInstanceCheck()
+    , mExportDataProcessor(newLinesOption, booleanHandlerOption)
 {
     pDataExportGenerator = std::make_unique<DataExportGenerator>(
         pLogger, mDatabaseFilePath, false, bIncludeAttributes);
@@ -161,7 +164,10 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
                 return false;
             }
 
-            if (!rangeObject.PutProperty("Value", row.Values[i])) {
+            std::string value = row.Values[i];
+            mExportDataProcessor.TryApplyOptionsAndProcessExportData(value);
+
+            if (!rangeObject.PutProperty("Value", value)) {
                 pLogger->error("Failed to call PutProperty 'Value'");
                 return false;
             }
