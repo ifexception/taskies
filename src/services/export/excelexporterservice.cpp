@@ -174,7 +174,9 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
         return false;
     }
 
+#if !defined(TKS_DEBUG)
     excelInstance.CallMethod("Quit");
+#endif // DEBUG
 
     return true;
 }
