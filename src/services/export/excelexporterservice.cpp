@@ -23,18 +23,6 @@
 
 namespace tks::Services::Export
 {
-// https://stackoverflow.com/a/3948377/7277716
-ExcelInstanceCheck::ExcelInstanceCheck()
-    : mRegPath("Excel.Application/CurVer")
-    , mKey(wxRegKey::HKCR, wxString(mRegPath))
-{
-}
-
-bool ExcelInstanceCheck::IsExcelInstalled() const
-{
-    return mKey.Exists();
-}
-
 ExcelExporterService::ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool includeAttributes,
@@ -44,7 +32,6 @@ ExcelExporterService::ExcelExporterService(std::shared_ptr<spdlog::logger> logge
     , mDatabaseFilePath(databaseFilePath)
     , bIncludeAttributes(includeAttributes)
     , pDataExportGenerator(nullptr)
-    , mExcelInstanceCheck()
     , mExportDataProcessor(newLinesOption, booleanHandlerOption)
 {
     pDataExportGenerator = std::make_unique<DataExportGenerator>(

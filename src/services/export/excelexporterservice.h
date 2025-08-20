@@ -27,7 +27,6 @@
 #include <wx/wx.h>
 #endif
 #include <wx/msw/ole/automtn.h>
-#include <wx/msw/registry.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
@@ -42,16 +41,6 @@
 
 namespace tks::Services::Export
 {
-struct ExcelInstanceCheck {
-    ExcelInstanceCheck();
-    ~ExcelInstanceCheck() = default;
-
-    bool IsExcelInstalled() const;
-
-    std::string mRegPath;
-    wxRegKey mKey;
-};
-
 struct ExcelExporterService {
     ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
@@ -60,7 +49,6 @@ struct ExcelExporterService {
         BooleanHandler booleanHandlerOption);
     ~ExcelExporterService() = default;
 
-    bool IsExcelInstalled() const;
     bool ExportToExcel(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
@@ -72,7 +60,6 @@ struct ExcelExporterService {
     bool bIncludeAttributes;
 
     std::unique_ptr<DataExportGenerator> pDataExportGenerator;
-    ExcelInstanceCheck mExcelInstanceCheck;
     ExcelExportProcessor mExportDataProcessor;
 
     bool VariantToObject(const wxVariant& v, wxAutomationObject& o);
