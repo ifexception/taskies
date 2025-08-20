@@ -48,6 +48,7 @@
 
 #include "../persistence/taskspersistence.h"
 
+#include "../services/export/excelinstancecheck.h"
 #include "../services/tasks/taskviewmodel.h"
 #include "../services/tasks/tasksservice.h"
 
@@ -339,8 +340,12 @@ void MainFrame::CreateControls()
     fileTasksMenu->AppendSeparator();
     fileTasksMenu->Append(
         ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV file/clipboard");
-    fileTasksMenu->Append(
-        ID_TASKS_EXPORTTOEXCEL, "Ex&port to Excel", "Export selected data to Excel");
+
+    Services::Export::ExcelInstanceCheck isExcelInstalled;
+    if (isExcelInstalled()) {
+        fileTasksMenu->Append(
+            ID_TASKS_EXPORTTOEXCEL, "Ex&port to Excel", "Export selected data to Excel");
+    }
 
     auto quickExportMenuItem = fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
         "&Quick Export to CSV",
