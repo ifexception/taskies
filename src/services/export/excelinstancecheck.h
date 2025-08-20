@@ -32,7 +32,7 @@ struct ExcelInstanceCheck {
     ExcelInstanceCheck();
     ~ExcelInstanceCheck() = default;
 
-    bool IsExcelInstalled() const;
+    bool operator()() const;
 
     std::string mRegPath;
     wxRegKey mKey;

@@ -23,13 +23,18 @@ namespace tks::Services::Export
 {
 // https://stackoverflow.com/a/3948377/7277716
 ExcelInstanceCheck::ExcelInstanceCheck()
-    : mRegPath("Excel.Application/CurVer")
+    : mRegPath("Excel.Application\\CurVer")
     , mKey(wxRegKey::HKCR, wxString(mRegPath))
 {
 }
 
-bool ExcelInstanceCheck::IsExcelInstalled() const
+bool ExcelInstanceCheck::operator()() const
 {
-    return mKey.Exists();
+    if (mKey.Exists()) {
+        wxString value = mKey.QueryDefaultValue();
+        return !value.empty();
+    }
+
+    return false;
 }
 } // namespace tks::Services::Export
