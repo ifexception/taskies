@@ -35,6 +35,7 @@
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/excelinstancecheck.h"
+#include "../../../services/export/excelexporterservice.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
 
@@ -375,6 +376,9 @@ void QuickExportToFormatDialog::OnExportFormatRadioButtonClick(wxCommandEvent& e
     int selection = event.GetSelection();
 
     mExportFormat = static_cast<ExportFormat>(selection + 1);
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Export format selected: {0}",
+        mExportFormat == ExportFormat::Csv ? "CSV" : "XLSX");
 
     std::string fileExtension = mExportFormat == ExportFormat::Csv ? "csv" : "xlsx";
     auto saveToFile = fmt::format("{0}\\taskies-export-{1}.{2}",
@@ -415,9 +419,12 @@ void QuickExportToFormatDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEv
     int res = openDirDialog->ShowModal();
 
     if (res == wxID_OK) {
-        auto selectedExportPath = openDirDialog->GetPath().ToStdString();
-        auto saveToFile = fmt::format(
-            "{0}\\taskies-export-{1}.csv", selectedExportPath, pDateStore->PrintTodayDate);
+        std::string fileExtension = mExportFormat == ExportFormat::Csv ? "csv" : "xlsx";
+        std::string selectedExportPath = openDirDialog->GetPath().ToStdString();
+        std::string saveToFile = fmt::format("{0}\\taskies-export-{1}.{2}",
+            selectedExportPath,
+            pDateStore->PrintTodayDate,
+            fileExtension);
 
         pSaveToFileTextCtrl->SetValue(saveToFile);
         pSaveToFileTextCtrl->SetToolTip(saveToFile);
@@ -613,14 +620,59 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath, false);
+    bool success = false;
+    std::string message = "";
 
-    std::string exportedData = "";
-    bool success =
-        csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
+    if (mExportFormat == ExportFormat::Csv) {
+        Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath, false);
+
+        std::string exportedData = "";
+        success =
+            csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
+
+        if (success) {
+            if (bExportToClipboard) {
+                auto canOpen = wxTheClipboard->Open();
+                if (canOpen) {
+                    auto textData = new wxTextDataObject(exportedData);
+                    wxTheClipboard->SetData(textData);
+                    wxTheClipboard->Close();
+                }
+            } else {
+                std::ofstream exportFile;
+                exportFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
+                if (!exportFile.is_open()) {
+                    pLogger->error("Failed to open export file at path \"{0}\"",
+                        pSaveToFileTextCtrl->GetValue().ToStdString());
+                    return;
+                }
+
+                exportFile << exportedData;
+
+                exportFile.close();
+            }
+            message = bExportToClipboard ? "Successfully exported data to clipboard"
+                                         : "Successfully exported data to file";
+        }
+    } else if (mExportFormat == ExportFormat::Excel) {
+        Services::Export::ExcelExporterService excelExporterService(pLogger,
+            mDatabaseFilePath,
+            mCsvOptions.IncludeAttributes,
+            mCsvOptions.NewLinesHandler,
+            mCsvOptions.BooleanHandler);
+
+        const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
+        success = excelExporterService.ExportToExcel(
+            projections, joinProjections, fromDate, toDate, saveLocation);
+
+        message = "Successfully exported data to Excel";
+    } else {
+        pLogger->error("Unmatched or invalid enum value of ExportFormat");
+        return;
+    }
 
     if (!success) {
-        std::string message = "Failed to export data";
+        message = "Failed to export data";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
@@ -630,30 +682,6 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 
         return;
     }
-
-    if (bExportToClipboard) {
-        auto canOpen = wxTheClipboard->Open();
-        if (canOpen) {
-            auto textData = new wxTextDataObject(exportedData);
-            wxTheClipboard->SetData(textData);
-            wxTheClipboard->Close();
-        }
-    } else {
-        std::ofstream exportFile;
-        exportFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
-        if (!exportFile.is_open()) {
-            pLogger->error("Failed to open export file at path \"{0}\"",
-                pSaveToFileTextCtrl->GetValue().ToStdString());
-            return;
-        }
-
-        exportFile << exportedData;
-
-        exportFile.close();
-    }
-
-    std::string message = bExportToClipboard ? "Successfully exported data to clipboard"
-                                             : "Successfully exported data to file";
 
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
 
