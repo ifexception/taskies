@@ -635,6 +635,9 @@ void MainFrame::OnTaskReminder(wxTimerEvent& event)
 
 void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
 {
+    if (IsIconized()) {
+        Restore();
+    }
     Raise();
     Show();
 
@@ -650,6 +653,9 @@ void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
 
 void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 {
+    if (IsIconized()) {
+        Restore();
+    }
     Raise();
     Show();
 
