@@ -183,7 +183,7 @@ private:
     void OnTasksBackupDatabase(wxCommandEvent& event);
     void OnTasksExportToCsv(wxCommandEvent& event);
     void OnTasksExportToExcel(wxCommandEvent& event);
-    void OnTasksQuickExportToCsv(wxCommandEvent& event);
+    void OnTasksQuickExportToFormat(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnEditEmployer(wxCommandEvent& event);
     void OnEditClient(wxCommandEvent& event);

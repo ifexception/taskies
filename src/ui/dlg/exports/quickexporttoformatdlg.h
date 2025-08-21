@@ -39,23 +39,24 @@
 #include "../../../core/configuration.h"
 
 #include "../../../services/export/csvexportoptions.h"
+#include "../../../services/export/excelinstancecheck.h"
 
 #include "../../../utils/datestore.h"
 
 namespace tks::UI::dlg
 {
-class QuickExportToCsvDialog : public wxDialog
+class QuickExportToFormatDialog : public wxDialog
 {
 public:
-    QuickExportToCsvDialog() = delete;
-    QuickExportToCsvDialog(const QuickExportToCsvDialog&) = delete;
-    QuickExportToCsvDialog(wxWindow* parent,
+    QuickExportToFormatDialog() = delete;
+    QuickExportToFormatDialog(const QuickExportToFormatDialog&) = delete;
+    QuickExportToFormatDialog(wxWindow* parent,
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databasePath,
-        const wxString& name = "quickexporttocsvdlg");
+        const wxString& name = "quickexporttoformatdlg");
 
-    const QuickExportToCsvDialog& operator=(const QuickExportToCsvDialog&) = delete;
+    const QuickExportToFormatDialog& operator=(const QuickExportToFormatDialog&) = delete;
 
 private:
     void Create();
@@ -63,6 +64,8 @@ private:
     void CreateControls();
     void FillControls();
     void ConfigureEventBindings();
+
+    void OnExportFormatRadioButtonClick(wxCommandEvent& event);
 
     void OnExportToClipboardCheck(wxCommandEvent& event);
     void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
@@ -90,6 +93,8 @@ private:
 
     std::unique_ptr<DateStore> pDateStore;
 
+    wxRadioBox* pExportFormatRadioBoxCtrl;
+
     wxCheckBox* pExportToClipboardCheckBoxCtrl;
     wxTextCtrl* pSaveToFileTextCtrl;
     wxButton* pBrowseExportPathButton;
@@ -114,10 +119,14 @@ private:
     bool bExportToClipboard;
     bool bExportTodaysTasksOnly;
 
+    Services::Export::ExcelInstanceCheck mIsExcelInstalled;
     Services::Export::CsvExportOptions mCsvOptions;
+    ExportFormat mExportFormat;
+    wxArrayString mRadioExportOptions;
 
     enum {
-        tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
+        tksIDC_EXPORTFORMATRADIOBOXCTRL = wxID_HIGHEST + 101,
+        tksIDC_COPY_TO_CLIPBOARD_CTRL ,
         tksIDC_SAVE_TO_FILE_CTRL,
         tksIDC_BROWSE_EXPORT_PATH_CTRL,
         tksIDC_DATE_FROM_CTRL,

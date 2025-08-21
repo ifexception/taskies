@@ -64,7 +64,7 @@
 // #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exports/exporttocsvdlg.h"
 #include "../ui/dlg/exports/exporttoexceldlg.h"
-#include "../ui/dlg/exports/quickexporttocsvdlg.h"
+#include "../ui/dlg/exports/quickexporttoformatdlg.h"
 #include "../ui/dlg/taskdlg.h"
 #include "../ui/dlg/attributes/attributegroupdlg.h"
 #include "../ui/dlg/attributes/attributedlg.h"
@@ -111,7 +111,7 @@ EVT_MENU(ID_NEW_STATIC_ATTRIBUTES, MainFrame::OnNewStaticAttributes)
 EVT_MENU(ID_TASKS_BACKUPDATABASE, MainFrame::OnTasksBackupDatabase)
 EVT_MENU(ID_TASKS_EXPORTTOCSV, MainFrame::OnTasksExportToCsv)
 EVT_MENU(ID_TASKS_EXPORTTOEXCEL, MainFrame::OnTasksExportToExcel)
-EVT_MENU(ID_TASKS_QUICKEXPORTTOCSV, MainFrame::OnTasksQuickExportToCsv)
+EVT_MENU(ID_TASKS_QUICKEXPORTTOCSV, MainFrame::OnTasksQuickExportToFormat)
 EVT_MENU(wxID_EXIT, MainFrame::OnExit)
 EVT_MENU(ID_EDIT_EMPLOYER, MainFrame::OnEditEmployer)
 EVT_MENU(ID_EDIT_CLIENT, MainFrame::OnEditClient)
@@ -651,11 +651,11 @@ void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 {
     Raise();
 
-    if (mThumbBarDialogOpenCounter ==0) {
+    if (mThumbBarDialogOpenCounter == 0) {
         mThumbBarDialogOpenCounter++;
 
-        dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
-        quickExportToCsv.ShowModal();
+        dlg::QuickExportToFormatDialog quickExportToDialog(this, pCfg, pLogger, mDatabaseFilePath);
+        quickExportToDialog.ShowModal();
 
         mThumbBarDialogOpenCounter--;
     }
@@ -791,15 +791,16 @@ void MainFrame::OnTasksExportToCsv(wxCommandEvent& WXUNUSED(event))
     exportToCsv.ShowModal();
 }
 
-void MainFrame::OnTasksExportToExcel(wxCommandEvent& WXUNUSED(event)) {
+void MainFrame::OnTasksExportToExcel(wxCommandEvent& WXUNUSED(event))
+{
     dlg::ExportToExcelDialog exportToExcelDlg(this, pCfg, pLogger, mDatabaseFilePath);
     exportToExcelDlg.ShowModal();
 }
 
-void MainFrame::OnTasksQuickExportToCsv(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnTasksQuickExportToFormat(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::QuickExportToCsvDialog quickExportToCsv(this, pCfg, pLogger, mDatabaseFilePath);
-    quickExportToCsv.ShowModal();
+    dlg::QuickExportToFormatDialog quickExportToDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    quickExportToDialog.ShowModal();
 }
 
 void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))

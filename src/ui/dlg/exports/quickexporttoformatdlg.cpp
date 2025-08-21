@@ -17,7 +17,7 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "quickexporttocsvdlg.h"
+#include "quickexporttoformatdlg.h"
 
 #include <fmt/format.h>
 
@@ -34,6 +34,7 @@
 #include "../../../services/export/csvexporter.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
+#include "../../../services/export/excelinstancecheck.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
 
@@ -60,14 +61,14 @@ wxDateTime MakeMaximumFromDate()
 
 namespace tks::UI::dlg
 {
-QuickExportToCsvDialog::QuickExportToCsvDialog(wxWindow* parent,
+QuickExportToFormatDialog::QuickExportToFormatDialog(wxWindow* parent,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databasePath,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          "Quick Export to CSV",
+          "Quick Export",
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX,
@@ -77,6 +78,7 @@ QuickExportToCsvDialog::QuickExportToCsvDialog(wxWindow* parent,
     , pLogger(logger)
     , mDatabaseFilePath(databasePath)
     , pDateStore(nullptr)
+    , pExportFormatRadioBoxCtrl(nullptr)
     , pExportToClipboardCheckBoxCtrl(nullptr)
     , pSaveToFileTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
@@ -93,11 +95,24 @@ QuickExportToCsvDialog::QuickExportToCsvDialog(wxWindow* parent,
     , bExportToClipboard(false)
     , bExportTodaysTasksOnly(false)
     , mCsvOptions()
+    , mIsExcelInstalled()
+    , mRadioExportOptions()
+    , mExportFormat(ExportFormat::Csv)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
     mFromDate = pDateStore->MondayDate;
     mToDate = pDateStore->SundayDate;
+
+    mRadioExportOptions.Add("Export to CSV");
+
+    std::string excelOption;
+    if (mIsExcelInstalled()) {
+        excelOption = "Export to Excel";
+    } else {
+        excelOption = "Export to Excel (unavailable)";
+    }
+    mRadioExportOptions.Add(excelOption);
 
     Create();
     SetSize(wxSize(FromDIP(640), -1));
@@ -106,17 +121,33 @@ QuickExportToCsvDialog::QuickExportToCsvDialog(wxWindow* parent,
     SetIcons(iconBundle);
 }
 
-void QuickExportToCsvDialog::Create()
+void QuickExportToFormatDialog::Create()
 {
     CreateControls();
     FillControls();
     ConfigureEventBindings();
 }
 
-void QuickExportToCsvDialog::CreateControls()
+void QuickExportToFormatDialog::CreateControls()
 {
     /* Main sizer window */
     auto mainSizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Radio static box*/
+    /*auto exportFormatStaticBox = new wxStaticBox(this, wxID_ANY, "Export Format");
+    auto exportFormatStaticBoxSizer = new wxStaticBoxSizer(exportFormatStaticBox, wxHORIZONTAL);
+    mainSizer->Add(exportFormatStaticBoxSizer, wxSizerFlags().Expand());*/
+
+    /* Radio box */
+    pExportFormatRadioBoxCtrl = new wxRadioBox(this,
+        tksIDC_EXPORTFORMATRADIOBOXCTRL,
+        "Export Format",
+        wxDefaultPosition,
+        wxDefaultSize,
+        mRadioExportOptions,
+        1,
+        wxRA_SPECIFY_ROWS);
+    mainSizer->Add(pExportFormatRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Output static box (top) */
     auto outputStaticBox = new wxStaticBox(this, wxID_ANY, "Output");
@@ -232,8 +263,14 @@ void QuickExportToCsvDialog::CreateControls()
     SetSizerAndFit(mainSizer);
 }
 
-void QuickExportToCsvDialog::FillControls()
+void QuickExportToFormatDialog::FillControls()
 {
+    pExportFormatRadioBoxCtrl->SetSelection(0);
+    int excelRadioButtonIndex = static_cast<int>(ExportFormat::Excel) - 1;
+    if (!mIsExcelInstalled()) {
+        pExportFormatRadioBoxCtrl->Enable(excelRadioButtonIndex, false);
+    }
+
     /* Export File Controls */
     auto saveToFile = fmt::format(
         "{0}\\taskies-export-{1}.csv", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
@@ -265,46 +302,53 @@ void QuickExportToCsvDialog::FillControls()
 }
 
 // clang-format off
-void QuickExportToCsvDialog::ConfigureEventBindings()
+void QuickExportToFormatDialog::ConfigureEventBindings()
 {
+    pExportFormatRadioBoxCtrl->Bind(
+        wxEVT_RADIOBOX,
+        &QuickExportToFormatDialog::OnExportFormatRadioButtonClick,
+        this,
+        tksIDC_EXPORTFORMATRADIOBOXCTRL
+    );
+
     pExportToClipboardCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
-        &QuickExportToCsvDialog::OnExportToClipboardCheck,
+        &QuickExportToFormatDialog::OnExportToClipboardCheck,
         this,
         tksIDC_COPY_TO_CLIPBOARD_CTRL
     );
 
     pBrowseExportPathButton->Bind(
         wxEVT_BUTTON,
-        &QuickExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation,
+        &QuickExportToFormatDialog::OnOpenDirectoryForSaveToFileLocation,
         this,
         tksIDC_BROWSE_EXPORT_PATH_CTRL
     );
 
     pFromDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
-        &QuickExportToCsvDialog::OnFromDateSelection,
+        &QuickExportToFormatDialog::OnFromDateSelection,
         this,
         tksIDC_DATE_FROM_CTRL
     );
 
     pToDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
-        &QuickExportToCsvDialog::OnToDateSelection,
+        &QuickExportToFormatDialog::OnToDateSelection,
         this,
         tksIDC_DATE_TO_CTRL
     );
 
     pExportTodaysTasksCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
-        &QuickExportToCsvDialog::OnExportTodaysTasksCheck,
+        &QuickExportToFormatDialog::OnExportTodaysTasksCheck,
         this,
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL
     );
 
     pWorkWeekRangeCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
-        &QuickExportToCsvDialog::OnWorkWeekRangeCheck,
+        &QuickExportToFormatDialog::OnWorkWeekRangeCheck,
         this,
         tksIDC_WORKWEEKRANGECHECKBOXCTRL
     );
@@ -312,21 +356,43 @@ void QuickExportToCsvDialog::ConfigureEventBindings()
 
     pPresetsChoiceCtrl->Bind(
         wxEVT_CHOICE,
-        &QuickExportToCsvDialog::OnPresetChoiceSelection,
+        &QuickExportToFormatDialog::OnPresetChoiceSelection,
         this,
         tksIDC_PRESET_CHOICE_CTRL
     );
 
     pOKButton->Bind(
         wxEVT_BUTTON,
-        &QuickExportToCsvDialog::OnOK,
+        &QuickExportToFormatDialog::OnOK,
         this,
         wxID_OK
     );
 }
 // clang-format on
 
-void QuickExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
+void QuickExportToFormatDialog::OnExportFormatRadioButtonClick(wxCommandEvent& event)
+{
+    int selection = event.GetSelection();
+
+    mExportFormat = static_cast<ExportFormat>(selection + 1);
+
+    std::string fileExtension = mExportFormat == ExportFormat::Csv ? "csv" : "xlsx";
+    auto saveToFile = fmt::format("{0}\\taskies-export-{1}.{2}",
+        pCfg->GetExportPath(),
+        pDateStore->PrintTodayDate,
+        fileExtension);
+    pSaveToFileTextCtrl->ChangeValue(saveToFile);
+    pSaveToFileTextCtrl->SetToolTip(saveToFile);
+
+    if (mExportFormat == ExportFormat::Excel) {
+        bExportToClipboard = false;
+        pExportToClipboardCheckBoxCtrl->Disable();
+    } else {
+        pExportToClipboardCheckBoxCtrl->Enable();
+    }
+}
+
+void QuickExportToFormatDialog::OnExportToClipboardCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         pSaveToFileTextCtrl->Disable();
@@ -339,7 +405,7 @@ void QuickExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
     bExportToClipboard = event.IsChecked();
 }
 
-void QuickExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
+void QuickExportToFormatDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
 {
     auto openDirDialog = new wxDirDialog(this,
         "Select a directory to export the data to",
@@ -360,7 +426,7 @@ void QuickExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent
     openDirDialog->Destroy();
 }
 
-void QuickExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
+void QuickExportToFormatDialog::OnFromDateSelection(wxDateEvent& event)
 {
     SPDLOG_LOGGER_TRACE(pLogger,
         "Received date (wxDateTime) with value \"{0}\"",
@@ -386,7 +452,7 @@ void QuickExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
     mFromDate = newFromDate;
 }
 
-void QuickExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
+void QuickExportToFormatDialog::OnToDateSelection(wxDateEvent& event)
 {
     SPDLOG_LOGGER_TRACE(pLogger,
         "Received date (wxDateTime) event with value \"{0}\"",
@@ -417,7 +483,7 @@ void QuickExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     mToDate = newToDate;
 }
 
-void QuickExportToCsvDialog::OnExportTodaysTasksCheck(wxCommandEvent& event)
+void QuickExportToFormatDialog::OnExportTodaysTasksCheck(wxCommandEvent& event)
 {
     bExportTodaysTasksOnly = event.IsChecked();
 
@@ -441,7 +507,7 @@ void QuickExportToCsvDialog::OnExportTodaysTasksCheck(wxCommandEvent& event)
     }
 }
 
-void QuickExportToCsvDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
+void QuickExportToFormatDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         auto fridayDate = pDateStore->MondayDate + (pDateStore->MondayDate - date::Thursday);
@@ -468,7 +534,7 @@ void QuickExportToCsvDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
     }
 }
 
-void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event)
+void QuickExportToFormatDialog::OnPresetChoiceSelection(wxCommandEvent& event)
 {
     int presetIndex = pPresetsChoiceCtrl->GetSelection();
     ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
@@ -497,7 +563,7 @@ void QuickExportToCsvDialog::OnPresetChoiceSelection(wxCommandEvent& event)
     ApplyPreset(selectedPresetToApply);
 }
 
-void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
+void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 {
     int presetIndex = pPresetsChoiceCtrl->GetSelection();
     ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
@@ -601,7 +667,7 @@ void QuickExportToCsvDialog::OnOK(wxCommandEvent& event)
     EndModal(wxID_OK);
 }
 
-void QuickExportToCsvDialog::SetFromAndToDatePickerRanges()
+void QuickExportToFormatDialog::SetFromAndToDatePickerRanges()
 {
     pFromDatePickerCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
 
@@ -612,21 +678,22 @@ void QuickExportToCsvDialog::SetFromAndToDatePickerRanges()
     mToLatestPossibleDate = wxDateTime(pDateStore->SundayDateSeconds);
 }
 
-void QuickExportToCsvDialog::SetFromDateAndDatePicker()
+void QuickExportToFormatDialog::SetFromDateAndDatePicker()
 {
     pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
 
     mFromCtrlDate = pDateStore->MondayDateSeconds;
 }
 
-void QuickExportToCsvDialog::SetToDateAndDatePicker()
+void QuickExportToFormatDialog::SetToDateAndDatePicker()
 {
     pToDatePickerCtrl->SetValue(pDateStore->SundayDateSeconds);
 
     mToCtrlDate = pDateStore->SundayDateSeconds;
 }
 
-void QuickExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSettings& presetSettings)
+void QuickExportToFormatDialog::ApplyPreset(
+    const Core::Configuration::PresetSettings& presetSettings)
 {
     mCsvOptions.Delimiter = presetSettings.Delimiter;
     mCsvOptions.TextQualifier = presetSettings.TextQualifier;

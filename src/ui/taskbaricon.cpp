@@ -32,7 +32,7 @@
 #include "../utils/utils.h"
 
 #include "dlg/preferences/preferencesdlg.h"
-#include "dlg/exports/quickexporttocsvdlg.h"
+#include "dlg/exports/quickexporttoformatdlg.h"
 #include "dlg/taskdlg.h"
 
 namespace tks::UI
@@ -140,9 +140,9 @@ void TaskBarIcon::OnNewTask(wxCommandEvent& WXUNUSED(event))
 
 void TaskBarIcon::OnQuickExportToCsv(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::QuickExportToCsvDialog quickExportToCsvDialog(
+    dlg::QuickExportToFormatDialog quickExportToDialog(
         pParent, pCfg, pLogger, mDatabaseFilePath);
-    quickExportToCsvDialog.ShowModal();
+    quickExportToDialog.ShowModal();
 }
 
 void TaskBarIcon::OnPreferences(wxCommandEvent& WXUNUSED(event))

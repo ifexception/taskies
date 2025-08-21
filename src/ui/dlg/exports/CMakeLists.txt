@@ -5,6 +5,6 @@ set(
     SRC_EXPORT_DIALOGS
     "${CMAKE_CURRENT_SOURCE_DIR}/exporttocsvdlg.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/exporttoexceldlg.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/quickexporttocsvdlg.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/quickexporttoformatdlg.cpp"
     PARENT_SCOPE
 )
