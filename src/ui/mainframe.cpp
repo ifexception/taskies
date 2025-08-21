@@ -339,17 +339,17 @@ void MainFrame::CreateControls()
     }
     fileTasksMenu->AppendSeparator();
     fileTasksMenu->Append(
-        ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export selected data to CSV file/clipboard");
+        ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export tasks data to CSV file/clipboard");
 
     Services::Export::ExcelInstanceCheck isExcelInstalled;
     if (isExcelInstalled()) {
         fileTasksMenu->Append(
-            ID_TASKS_EXPORTTOEXCEL, "Ex&port to Excel", "Export selected data to Excel");
+            ID_TASKS_EXPORTTOEXCEL, "Ex&port to Excel", "Export tasks data to Excel");
     }
 
     auto quickExportMenuItem = fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
-        "&Quick Export to CSV",
-        "Export selected data to CSV format using existing presets");
+        "&Quick Export",
+        "Export tasks data to CSV or Excel");
 
     wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
     quickExportMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(quickExportBundle));

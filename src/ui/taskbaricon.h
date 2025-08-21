@@ -60,7 +60,7 @@ private:
     wxMenu* CreatePopupMenu() wxOVERRIDE;
 
     void OnNewTask(wxCommandEvent& event);
-    void OnQuickExportToCsv(wxCommandEvent& event);
+    void OnQuickExport(wxCommandEvent& event);
     void OnPreferences(wxCommandEvent& event);
     void OnExit(wxCommandEvent& event);
     void OnLeftButtonDown(wxTaskBarIconEvent& event);
@@ -74,7 +74,7 @@ private:
 
     enum {
         tksIDC_MENU_NEWTASK = wxID_HIGHEST + 1000,
-        tksIDC_MENU_QUICKEXPORTTOCSV,
+        tksIDC_MENU_QUICKEXPORT,
         tksIDC_MENU_PREFERENCES
     };
 };
