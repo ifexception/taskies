@@ -636,6 +636,7 @@ void MainFrame::OnTaskReminder(wxTimerEvent& event)
 void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
 {
     Raise();
+    Show();
 
     if (mThumbBarDialogOpenCounter == 0) {
         mThumbBarDialogOpenCounter++;
@@ -650,6 +651,7 @@ void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
 void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 {
     Raise();
+    Show();
 
     if (mThumbBarDialogOpenCounter == 0) {
         mThumbBarDialogOpenCounter++;
