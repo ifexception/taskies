@@ -66,6 +66,8 @@ enum class TaskDurationField { Day = 1, Week, Month, Range = 10 };
 
 enum class AttributeTypes { Text = 1, Numeric, Boolean };
 
+enum class ExportFormat { None = 0, Csv, Excel };
+
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);
