@@ -21,6 +21,8 @@
 
 #include <wx/string.h>
 
+#include "../../utils/utils.h"
+
 namespace tks::Services::Export
 {
 ExcelExporterService::ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
@@ -124,10 +126,11 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     /* insert the headers into the first row from our `SData` struct */
     wxAutomationObject rangeObject;
     wxVariant range;
-    char headerRow = 'A';
     int headerRowIndex = 1;
     for (size_t i = 0; i < exportData.Headers.size(); i++) {
-        range = headerRow++ + std::to_string(headerRowIndex);
+        std::string excelColumn = Utils::ToExcelColumnName(i + 1);
+        range = excelColumn + std::to_string(headerRowIndex);
+
         if (!worksheet.GetObject(rangeObject, "Range", 1, &range)) {
             pLogger->error("Could not obtain the Range object");
             return false;
@@ -140,11 +143,11 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     }
 
     /* insert the rows data from our `SData` struct */
-    char valueRow = 'A';
     int rowIndex = 2;
     for (auto& [taskId, row] : exportData.Rows) {
         for (size_t i = 0; i < row.Values.size(); i++) {
-            range = valueRow++ + std::to_string(rowIndex);
+            std::string excelColumn = Utils::ToExcelColumnName(i + 1);
+            range = excelColumn + std::to_string(rowIndex);
 
             if (!worksheet.GetObject(rangeObject, "Range", 1, &range)) {
                 pLogger->error("Could not obtain the Range object");
@@ -160,7 +163,6 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
             }
         }
 
-        valueRow = 'A';
         rowIndex++;
     }
 

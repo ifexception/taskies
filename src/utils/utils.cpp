@@ -179,6 +179,20 @@ int ConvertMinutesToMilliseconds(const int valueInMinutes)
     return valueInMilliseconds;
 }
 
+std::string ToExcelColumnName(int columnNumber)
+{
+    std::string columnName = "";
+
+    while (columnNumber > 0) {
+        int modulo = (columnNumber - 1) % 26;
+        char name = 'A' + modulo;
+        columnName = std::string{name} + columnName;
+        columnNumber = (columnNumber - modulo) / 26;
+    }
+
+    return columnName;
+}
+
 std::string FormatSqlSearchTerm(const std::string& source)
 {
     return "%" + source + "%";

@@ -53,6 +53,8 @@ std::vector<std::string> Split(std::string s, std::string delimiter);
 
 int ConvertMinutesToMilliseconds(const int valueInMinutes);
 
+std::string ToExcelColumnName(int columnNumber);
+
 // SQLite interprets single quotes as string and performs no parameterization.
 // If a parameter is in single quotes, then this function handles adding the LIKE operator '%'
 // to the string so the parameterization takes effect
