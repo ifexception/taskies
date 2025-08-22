@@ -31,7 +31,7 @@
 #include "../../../common/enums.h"
 
 #include "../../../services/export/availablecolumns.h"
-#include "../../../services/export/csvexportoptions.h"
+#include "../../../services/export/exportoptions.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
@@ -908,13 +908,13 @@ void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
     // presets are shared between CSV and Excel dialogs so we need to preserve
     // CSV options regardless and if not found, reset to the defaults
     if (presetIterator == presets.end()) {
-        Services::Export::CsvExportOptions csvOptions;
+        Services::Export::ExportOptions exportOptions;
 
-        preset.Delimiter = csvOptions.Delimiter;
-        preset.TextQualifier = csvOptions.TextQualifier;
-        preset.EmptyValuesHandler = csvOptions.EmptyValuesHandler;
-        preset.NewLinesHandler = csvOptions.NewLinesHandler;
-        preset.BooleanHandler = csvOptions.BooleanHandler;
+        preset.Delimiter = exportOptions.Delimiter;
+        preset.TextQualifier = exportOptions.TextQualifier;
+        preset.EmptyValuesHandler = exportOptions.EmptyValuesHandler;
+        preset.NewLinesHandler = exportOptions.NewLinesHandler;
+        preset.BooleanHandler = exportOptions.BooleanHandler;
 
         preset.ExcludeHeaders = false;
     } else {

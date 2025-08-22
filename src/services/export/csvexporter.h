@@ -27,7 +27,7 @@
 
 #include "columnjoinprojection.h"
 #include "projection.h"
-#include "csvexportoptions.h"
+#include "exportoptions.h"
 #include "csvexportprocessor.h"
 #include "dataexportgenerator.h"
 
@@ -37,7 +37,7 @@ struct CsvExporter final {
     CsvExporter() = delete;
     CsvExporter(const CsvExporter&) = delete;
     CsvExporter(std::shared_ptr<spdlog::logger> logger,
-        CsvExportOptions options,
+        ExportOptions options,
         const std::string& databaseFilePath,
         bool isPreview);
     ~CsvExporter() = default;
@@ -51,7 +51,7 @@ struct CsvExporter final {
         /*out*/ std::string& exportedData);
 
     std::shared_ptr<spdlog::logger> pLogger;
-    CsvExportOptions mOptions;
+    ExportOptions mOptions;
     std::string mDatabaseFilePath;
     std::unique_ptr<DataExportGenerator> pDataExporter;
 

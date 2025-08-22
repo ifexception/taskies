@@ -95,7 +95,7 @@ QuickExportToFormatDialog::QuickExportToFormatDialog(wxWindow* parent,
     , mToDate()
     , bExportToClipboard(false)
     , bExportTodaysTasksOnly(false)
-    , mCsvOptions()
+    , mExportOptions()
     , mIsExcelInstalled()
     , mRadioExportOptions()
     , mExportFormat(ExportFormat::Csv)
@@ -624,7 +624,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
     std::string message = "";
 
     if (mExportFormat == ExportFormat::Csv) {
-        Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath, false);
+        Services::Export::CsvExporter csvExporter(pLogger, mExportOptions, mDatabaseFilePath, false);
 
         std::string exportedData = "";
         success =
@@ -657,9 +657,9 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
     } else if (mExportFormat == ExportFormat::Excel) {
         Services::Export::ExcelExporterService excelExporterService(pLogger,
             mDatabaseFilePath,
-            mCsvOptions.IncludeAttributes,
-            mCsvOptions.NewLinesHandler,
-            mCsvOptions.BooleanHandler);
+            mExportOptions.IncludeAttributes,
+            mExportOptions.NewLinesHandler,
+            mExportOptions.BooleanHandler);
 
         const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
         success = excelExporterService.ExportToExcel(
@@ -723,13 +723,13 @@ void QuickExportToFormatDialog::SetToDateAndDatePicker()
 void QuickExportToFormatDialog::ApplyPreset(
     const Core::Configuration::PresetSettings& presetSettings)
 {
-    mCsvOptions.Delimiter = presetSettings.Delimiter;
-    mCsvOptions.TextQualifier = presetSettings.TextQualifier;
-    mCsvOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
-    mCsvOptions.NewLinesHandler = presetSettings.NewLinesHandler;
-    mCsvOptions.BooleanHandler = presetSettings.BooleanHandler;
+    mExportOptions.Delimiter = presetSettings.Delimiter;
+    mExportOptions.TextQualifier = presetSettings.TextQualifier;
+    mExportOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
+    mExportOptions.NewLinesHandler = presetSettings.NewLinesHandler;
+    mExportOptions.BooleanHandler = presetSettings.BooleanHandler;
 
-    mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
-    mCsvOptions.IncludeAttributes = presetSettings.IncludeAttributes;
+    mExportOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
+    mExportOptions.IncludeAttributes = presetSettings.IncludeAttributes;
 }
 } // namespace tks::UI::dlg

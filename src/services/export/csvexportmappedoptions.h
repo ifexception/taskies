@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "csvexportoptions.h"
+#include "exportoptions.h"
 
 namespace tks::Services::Export
 {
@@ -28,7 +28,7 @@ struct CsvMappedOptions {
     char TextQualifier;
 
     CsvMappedOptions();
-    CsvMappedOptions(CsvExportOptions options);
+    CsvMappedOptions(ExportOptions options);
     ~CsvMappedOptions() = default;
 };
 } // namespace tks::Services::Export

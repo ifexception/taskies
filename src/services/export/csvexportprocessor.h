@@ -22,7 +22,7 @@
 #include <string>
 #include <sstream>
 
-#include "csvexportoptions.h"
+#include "exportoptions.h"
 #include "csvexportmappedoptions.h"
 
 namespace tks::Services::Export
@@ -32,7 +32,7 @@ class CsvExportProcessor final
 public:
     CsvExportProcessor() = delete;
     CsvExportProcessor(const CsvExportProcessor&) = delete;
-    CsvExportProcessor(CsvExportOptions options, CsvMappedOptions mappedOptions);
+    CsvExportProcessor(ExportOptions options, CsvMappedOptions mappedOptions);
     ~CsvExportProcessor() = default;
 
     const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;
@@ -45,7 +45,7 @@ private:
     void TryProcessBooleanHandler(std::string& value) const;
     void TryProcessTextQualifier(std::string& value) const;
 
-    CsvExportOptions mOptions;
+    ExportOptions mOptions;
     CsvMappedOptions mMappedOptions;
 };
 } // namespace tks::Services::Export

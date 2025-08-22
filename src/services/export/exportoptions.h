@@ -23,7 +23,7 @@
 
 namespace tks::Services::Export
 {
-struct CsvExportOptions {
+struct ExportOptions {
     DelimiterType Delimiter;
     TextQualifierType TextQualifier;
     EmptyValues EmptyValuesHandler;
@@ -32,8 +32,8 @@ struct CsvExportOptions {
     bool ExcludeHeaders;
     bool IncludeAttributes;
 
-    CsvExportOptions();
-    ~CsvExportOptions() = default;
+    ExportOptions();
+    ~ExportOptions() = default;
 
     void Reset();
 };

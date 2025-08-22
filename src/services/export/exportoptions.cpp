@@ -17,11 +17,11 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "csvexportoptions.h"
+#include "exportoptions.h"
 
 namespace tks::Services::Export
 {
-CsvExportOptions::CsvExportOptions()
+ExportOptions::ExportOptions()
     : Delimiter(DelimiterType::Comma)
     , TextQualifier(TextQualifierType::DoubleQuotes)
     , EmptyValuesHandler(EmptyValues::Blank)
@@ -32,7 +32,7 @@ CsvExportOptions::CsvExportOptions()
 {
 }
 
-void CsvExportOptions::Reset()
+void ExportOptions::Reset()
 {
     Delimiter = DelimiterType::Comma;
     TextQualifier = TextQualifierType::DoubleQuotes;

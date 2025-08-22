@@ -113,7 +113,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pCancelButton(nullptr)
     , mFromDate()
     , mToDate()
-    , mCsvOptions()
+    , mExportOptions()
     , bExportToClipboard(false)
     , bOpenExplorerInExportDirectory(false)
     , bExportTodaysTasksOnly(false)
@@ -818,7 +818,7 @@ void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
     ClientData<DelimiterType>* delimiterData = reinterpret_cast<ClientData<DelimiterType>*>(
         pDelimiterChoiceCtrl->GetClientObject(delimiterIndex));
 
-    mCsvOptions.Delimiter = delimiterData->GetValue();
+    mExportOptions.Delimiter = delimiterData->GetValue();
 }
 
 void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
@@ -829,7 +829,7 @@ void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
         reinterpret_cast<ClientData<TextQualifierType>*>(
             pTextQualifierChoiceCtrl->GetClientObject(textQualifierIndex));
 
-    mCsvOptions.TextQualifier = textQualifierData->GetValue();
+    mExportOptions.TextQualifier = textQualifierData->GetValue();
 }
 
 void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event)
@@ -840,7 +840,7 @@ void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event
     ClientData<int>* emptyValueData = reinterpret_cast<ClientData<int>*>(
         pEmptyValueHandlerChoiceCtrl->GetClientObject(emptyValueIndex));
 
-    mCsvOptions.EmptyValuesHandler = static_cast<EmptyValues>(emptyValueData->GetValue());
+    mExportOptions.EmptyValuesHandler = static_cast<EmptyValues>(emptyValueData->GetValue());
 }
 
 void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
@@ -850,7 +850,7 @@ void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
     ClientData<int>* newLinesData = reinterpret_cast<ClientData<int>*>(
         pNewLinesHandlerChoiceCtrl->GetClientObject(newLinesIndex));
 
-    mCsvOptions.NewLinesHandler = static_cast<NewLines>(newLinesData->GetValue());
+    mExportOptions.NewLinesHandler = static_cast<NewLines>(newLinesData->GetValue());
 }
 
 void ExportToCsvDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
@@ -860,7 +860,7 @@ void ExportToCsvDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
     ClientData<int>* booleanHandlerData = reinterpret_cast<ClientData<int>*>(
         pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
 
-    mCsvOptions.BooleanHandler = static_cast<BooleanHandler>(booleanHandlerData->GetValue());
+    mExportOptions.BooleanHandler = static_cast<BooleanHandler>(booleanHandlerData->GetValue());
 }
 
 void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
@@ -1018,7 +1018,7 @@ void ExportToCsvDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 {
-    mCsvOptions.Reset();
+    mExportOptions.Reset();
 
     pDelimiterChoiceCtrl->SetSelection(0);
     pTextQualifierChoiceCtrl->SetSelection(0);
@@ -1081,11 +1081,11 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
     preset.IsDefault = pPresetIsDefaultCheckBoxCtrl->GetValue();
-    preset.Delimiter = mCsvOptions.Delimiter;
-    preset.TextQualifier = mCsvOptions.TextQualifier;
-    preset.EmptyValuesHandler = mCsvOptions.EmptyValuesHandler;
-    preset.NewLinesHandler = mCsvOptions.NewLinesHandler;
-    preset.BooleanHandler = mCsvOptions.BooleanHandler;
+    preset.Delimiter = mExportOptions.Delimiter;
+    preset.TextQualifier = mExportOptions.TextQualifier;
+    preset.EmptyValuesHandler = mExportOptions.EmptyValuesHandler;
+    preset.NewLinesHandler = mExportOptions.NewLinesHandler;
+    preset.BooleanHandler = mExportOptions.BooleanHandler;
 
     std::vector<Common::PresetColumn> columns;
 
@@ -1099,8 +1099,8 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     preset.Columns = columns;
 
-    preset.ExcludeHeaders = mCsvOptions.ExcludeHeaders;
-    preset.IncludeAttributes = mCsvOptions.IncludeAttributes;
+    preset.ExcludeHeaders = mExportOptions.ExcludeHeaders;
+    preset.IncludeAttributes = mExportOptions.IncludeAttributes;
 
     bool success = pCfg->TryUnsetDefaultPreset();
     if (!success) {
@@ -1308,12 +1308,12 @@ void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnExcludeHeadersCheck(wxCommandEvent& event)
 {
-    mCsvOptions.ExcludeHeaders = event.IsChecked();
+    mExportOptions.ExcludeHeaders = event.IsChecked();
 }
 
 void ExportToCsvDialog::OnIncludeAttributesCheck(wxCommandEvent& event)
 {
-    mCsvOptions.IncludeAttributes = event.IsChecked();
+    mExportOptions.IncludeAttributes = event.IsChecked();
 }
 
 void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
@@ -1346,7 +1346,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath, true);
+    Services::Export::CsvExporter csvExporter(pLogger, mExportOptions, mDatabaseFilePath, true);
 
     std::string exportedDataPreview = "";
     bool success = csvExporter.ExportToCsv(
@@ -1395,7 +1395,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporter csvExporter(pLogger, mCsvOptions, mDatabaseFilePath, false);
+    Services::Export::CsvExporter csvExporter(pLogger, mExportOptions, mDatabaseFilePath, false);
 
     std::string exportedData = "";
     bool success =
@@ -1536,13 +1536,13 @@ void ExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSettings& p
     pExcludeHeadersCheckBoxCtrl->SetValue(presetSettings.ExcludeHeaders);
     pIncludeAttributesCheckBoxCtrl->SetValue(presetSettings.IncludeAttributes);
 
-    mCsvOptions.Delimiter = presetSettings.Delimiter;
-    mCsvOptions.TextQualifier = presetSettings.TextQualifier;
-    mCsvOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
-    mCsvOptions.NewLinesHandler = presetSettings.NewLinesHandler;
-    mCsvOptions.BooleanHandler = presetSettings.BooleanHandler;
+    mExportOptions.Delimiter = presetSettings.Delimiter;
+    mExportOptions.TextQualifier = presetSettings.TextQualifier;
+    mExportOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
+    mExportOptions.NewLinesHandler = presetSettings.NewLinesHandler;
+    mExportOptions.BooleanHandler = presetSettings.BooleanHandler;
 
-    mCsvOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
-    mCsvOptions.IncludeAttributes = presetSettings.IncludeAttributes;
+    mExportOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
+    mExportOptions.IncludeAttributes = presetSettings.IncludeAttributes;
 }
 } // namespace tks::UI::dlg

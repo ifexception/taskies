@@ -25,7 +25,7 @@
 
 namespace tks::Services::Export
 {
-CsvExportProcessor::CsvExportProcessor(CsvExportOptions options, CsvMappedOptions mappedOptions)
+CsvExportProcessor::CsvExportProcessor(ExportOptions options, CsvMappedOptions mappedOptions)
     : mOptions(options)
     , mMappedOptions(mappedOptions)
 {

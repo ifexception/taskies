@@ -9,7 +9,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/projection.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/columnjoinprojection.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/sqliteexportquerybuilder.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/csvexportoptions.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/exportoptions.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/csvexportprocessor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/csvexporter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/csvexportmappedoptions.cpp"

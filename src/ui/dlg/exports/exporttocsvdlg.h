@@ -40,7 +40,7 @@
 
 #include "../../../core/configuration.h"
 
-#include "../../../services/export/csvexportoptions.h"
+#include "../../../services/export/exportoptions.h"
 
 #include "../../../utils/datestore.h"
 
@@ -167,7 +167,7 @@ private:
     std::vector<long> mSelectedItemIndexes;
     wxDataViewItem mItemToSort;
 
-    Services::Export::CsvExportOptions mCsvOptions;
+    Services::Export::ExportOptions mExportOptions;
 
     bool bExportToClipboard;
     bool bOpenExplorerInExportDirectory;

@@ -24,7 +24,7 @@
 namespace tks::Services::Export
 {
 CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger,
-    CsvExportOptions options,
+    ExportOptions options,
     const std::string& databaseFilePath,
     bool isPreview)
     : pLogger(logger)
