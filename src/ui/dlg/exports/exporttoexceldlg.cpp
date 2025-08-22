@@ -921,8 +921,8 @@ void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
         preset.Delimiter = presetIterator->Delimiter;
         preset.TextQualifier = presetIterator->TextQualifier;
         preset.EmptyValuesHandler = presetIterator->EmptyValuesHandler;
-        preset.NewLinesHandler = presetIterator->NewLinesHandler;
-        preset.BooleanHandler = presetIterator->BooleanHandler;
+        preset.NewLinesHandler = mNewLinesOption;
+        preset.BooleanHandler = mBooleanOption;
 
         preset.ExcludeHeaders = presetIterator->ExcludeHeaders;
     }
