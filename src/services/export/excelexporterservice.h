@@ -41,6 +41,8 @@
 
 namespace tks::Services::Export
 {
+constexpr int xlWorkbookDefaultSaveAs = 51;
+
 struct ExcelExporterService {
     ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,

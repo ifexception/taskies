@@ -169,7 +169,7 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     /* save the excel to specified location */
     wxVariant filename = saveLocation;
     // https://learn.microsoft.com/en-us/office/vba/api/excel.xlfileformat
-    wxVariant fileFormat = 51; // xlWorkbookDefault
+    wxVariant fileFormat = xlWorkbookDefaultSaveAs;
     if (!excelInstance.CallMethod("ActiveWorkbook.SaveAs", filename, fileFormat)) {
         pLogger->error("Failed to call 'SaveAs' method");
         excelInstance.CallMethod("Quit");
