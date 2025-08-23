@@ -33,10 +33,10 @@ ExcelExporterService::ExcelExporterService(std::shared_ptr<spdlog::logger> logge
     : pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , bIncludeAttributes(includeAttributes)
-    , pDataExportGenerator(nullptr)
+    , pDataGenerator(nullptr)
     , mExportDataProcessor(newLinesOption, booleanHandlerOption)
 {
-    pDataExportGenerator = std::make_unique<DataExportGenerator>(
+    pDataGenerator = std::make_unique<DataGenerator>(
         pLogger, mDatabaseFilePath, false, bIncludeAttributes);
 }
 
@@ -49,7 +49,7 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     /* `SData` is our main struct to store the headers and rows */
     SData exportData;
 
-    bool success = pDataExportGenerator->GenerateExportData(
+    bool success = pDataGenerator->FillData(
         projections, joinProjections, fromDate, toDate, exportData);
     if (!success) {
         pLogger->error("Failed to generate export data. See earlier logs for detail");

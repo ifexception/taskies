@@ -31,9 +31,9 @@ CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger,
     , mOptions(options)
     , mDatabaseFilePath(databaseFilePath)
     , bIsPreview(isPreview)
-    , pDataExporter(nullptr)
+    , pDataGenerator(nullptr)
 {
-    pDataExporter = std::make_unique<DataExportGenerator>(
+    pDataGenerator = std::make_unique<DataGenerator>(
         pLogger, mDatabaseFilePath, bIsPreview, mOptions.IncludeAttributes);
 }
 
@@ -46,7 +46,7 @@ bool CsvExporter::ExportToCsv(const std::vector<Projection>& projections,
     /* `SData` is our main struct to store the headers and rows */
     SData exportData;
 
-    bool success = pDataExporter->GenerateExportData(
+    bool success = pDataGenerator->FillData(
         projections, joinProjections, fromDate, toDate, exportData);
     if (!success) {
         pLogger->error("Failed to generate export data. See earlier logs for detail");

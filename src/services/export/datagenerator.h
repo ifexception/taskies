@@ -33,28 +33,28 @@
 
 namespace tks::Services::Export
 {
-struct DataExportGenerator final {
-    DataExportGenerator() = delete;
-    DataExportGenerator(const DataExportGenerator&) = delete;
-    DataExportGenerator(std::shared_ptr<spdlog::logger> logger,
+struct DataGenerator final {
+    DataGenerator() = delete;
+    DataGenerator(const DataGenerator&) = delete;
+    DataGenerator(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isPreview,
         bool includeAttributes);
-    ~DataExportGenerator() = default;
+    ~DataGenerator() = default;
 
-    DataExportGenerator& operator=(const DataExportGenerator&) = delete;
+    DataGenerator& operator=(const DataGenerator&) = delete;
 
-    bool GenerateExportData(const std::vector<Projection>& projections,
+    bool FillData(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
         /*out*/ SData& data);
 
-    std::vector<std::string> GetHeadersFromProjections(const std::vector<Projection>& projections);
-
-    bool GenerateAndExportAttributes(const std::string& fromDate,
+    bool FillAttributes(const std::string& fromDate,
         const std::string& toDate,
         /*out*/ SData& data);
+
+    static void FillHeadersFromProjections(const std::vector<Projection>& projections, SData& data);
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;

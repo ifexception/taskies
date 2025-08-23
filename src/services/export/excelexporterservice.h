@@ -34,7 +34,7 @@
 #include "../../common/enums.h"
 
 #include "data.h"
-#include "dataexportgenerator.h"
+#include "datagenerator.h"
 #include "excelexportprocessor.h"
 
 #include "../../utils/utils.h"
@@ -61,7 +61,7 @@ struct ExcelExporterService {
     std::string mDatabaseFilePath;
     bool bIncludeAttributes;
 
-    std::unique_ptr<DataExportGenerator> pDataExportGenerator;
+    std::unique_ptr<DataGenerator> pDataGenerator;
     ExcelExportProcessor mExportDataProcessor;
 
     bool VariantToObject(const wxVariant& v, wxAutomationObject& o);

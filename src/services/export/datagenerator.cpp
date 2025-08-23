@@ -17,7 +17,7 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "dataexportgenerator.h"
+#include "datagenerator.h"
 
 #include <cassert>
 #include <unordered_map>
@@ -27,7 +27,7 @@
 
 namespace tks::Services::Export
 {
-DataExportGenerator::DataExportGenerator(std::shared_ptr<spdlog::logger> logger,
+DataGenerator::DataGenerator(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool isPreview,
     bool includeAttributes)
@@ -39,7 +39,7 @@ DataExportGenerator::DataExportGenerator(std::shared_ptr<spdlog::logger> logger,
 {
 }
 
-bool DataExportGenerator::GenerateExportData(const std::vector<Projection>& projections,
+bool DataGenerator::FillData(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
@@ -55,11 +55,7 @@ bool DataExportGenerator::GenerateExportData(const std::vector<Projection>& proj
      * use the `UserColumn` as this is what the user renamed a potential header to
      * if a user did not rename a header, then it defaults to the "display" name
      */
-    std::vector<std::string> headers = GetHeadersFromProjections(projections);
-    if (headers.empty()) {
-        pLogger->warn("No headers were found in the projections. Nothing further to do");
-        return true;
-    }
+    FillHeadersFromProjections(projections, data);
 
     /*
      * build the dynamic query factoring the projections built out from the selected items
@@ -79,16 +75,11 @@ bool DataExportGenerator::GenerateExportData(const std::vector<Projection>& proj
      * each std::string contains the corresponding value relating to the headers position
      * see the function `FilterExportCsvData` for more detail
      */
-    rc = exportsService.FilterExportCsvData(sql, headers.size(), rows);
+    rc = exportsService.FilterExportDataFromGeneratedSql(sql, data.Headers.size(), rows);
     if (rc != 0) {
         pLogger->error("Failed to filter projected export data from generated SQL query. See "
                        "earlier logs for error detail");
         return false;
-    }
-
-    /* insert the headers we got from the projections into the `Headers` field of `SData` */
-    for (auto& header : headers) {
-        data.Headers.push_back(header);
     }
 
     /* set the task row values into the `Rows` field of `SData` */
@@ -96,7 +87,7 @@ bool DataExportGenerator::GenerateExportData(const std::vector<Projection>& proj
 
     if (bIncludeAttributes) {
         /* see `GenerateAndExportAttributes` for more detail */
-        bool attributeAddedSuccessfully = GenerateAndExportAttributes(fromDate, toDate, data);
+        bool attributeAddedSuccessfully = FillAttributes(fromDate, toDate, data);
         if (!attributeAddedSuccessfully) {
             pLogger->error("Failed to generate and attach attributes to export data. See earlier "
                            "logs for error detail");
@@ -107,7 +98,7 @@ bool DataExportGenerator::GenerateExportData(const std::vector<Projection>& proj
     return true;
 }
 
-bool DataExportGenerator::GenerateAndExportAttributes(const std::string& fromDate,
+bool DataGenerator::FillAttributes(const std::string& fromDate,
     const std::string& toDate,
     SData& data)
 {
@@ -139,13 +130,13 @@ bool DataExportGenerator::GenerateAndExportAttributes(const std::string& fromDat
     rc = exportsService.GetAttributeNames(fromDate, toDate, taskId, bIsPreview, attributeNames);
     if (rc != 0) {
         pLogger->error(
-            "Failed to get attribute names for data range. See earlier logs for error detail");
+            "Failed to get attribute names for date range. See earlier logs for error detail");
         return false;
     }
 
     /* we have not found any attributes associated with the task or tasks so we can return */
     if (attributeNames.empty()) {
-        pLogger->warn("No attribute names were found for data range. Nothing to do");
+        pLogger->warn("No attribute names were found for date range. Nothing to do");
         return true;
     }
 
@@ -210,20 +201,12 @@ bool DataExportGenerator::GenerateAndExportAttributes(const std::string& fromDat
     return true;
 }
 
-std::vector<std::string> DataExportGenerator::GetHeadersFromProjections(
-    const std::vector<Projection>& projections)
+void DataGenerator::FillHeadersFromProjections(const std::vector<Projection>& projections,
+    SData& data)
 {
-    if (projections.empty()) {
-        return std::vector<std::string>();
-    }
-
-    std::vector<std::string> headers;
-
     for (const auto& projection : projections) {
         const auto& userNamedHeader = projection.ColumnProjection.UserColumn;
-        headers.push_back(userNamedHeader);
+        data.Headers.push_back(userNamedHeader);
     }
-
-    return headers;
 }
 } // namespace tks::Services::Export
