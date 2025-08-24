@@ -93,7 +93,7 @@ std::string Wizard()
 } // namespace Resources
 namespace Static
 {
-std::vector<EnumClientData<DelimiterType>> DelimiterList()
+std::vector<EnumClientData<DelimiterType>> DelimitersList()
 {
     EnumClientData<DelimiterType> o1(",", DelimiterType::Comma);
     EnumClientData<DelimiterType> o2(";", DelimiterType::Semicolon);
@@ -104,7 +104,7 @@ std::vector<EnumClientData<DelimiterType>> DelimiterList()
     return std::vector<EnumClientData<DelimiterType>>{ o1, o2, o3, o4, o5 };
 }
 
-std::vector<EnumClientData<TextQualifierType>> TextQualifierList()
+std::vector<EnumClientData<TextQualifierType>> TextQualifiersList()
 {
     EnumClientData<TextQualifierType> o1("(none)", TextQualifierType::None);
     EnumClientData<TextQualifierType> o2("\"", TextQualifierType::DoubleQuotes);
@@ -113,19 +113,32 @@ std::vector<EnumClientData<TextQualifierType>> TextQualifierList()
     return std::vector<EnumClientData<TextQualifierType>>{ o1, o2, o3 };
 }
 
-std::vector<std::string> EmptyValueHandlerList()
+std::vector<EnumClientData<EmptyValues>> EmptyValuesList()
 {
-    return std::vector<std::string>{ "(blank)", "NULL" };
+    EnumClientData<EmptyValues> o1("(blank)", EmptyValues::Blank);
+    EnumClientData<EmptyValues> o2("NULL", EmptyValues::Null);
+
+    return std::vector<EnumClientData<EmptyValues>>{ o1, o2 };
 }
 
-std::vector<std::string> NewLinesHandlerList()
+std::vector<EnumClientData<NewLines>> NewLinesList()
 {
-    return std::vector<std::string>{ "Preserve", "Merge", "Merge (add space)" };
+    EnumClientData<NewLines> o1("Preserve", NewLines::Preserve);
+    EnumClientData<NewLines> o2("Merge", NewLines::Merge);
+    EnumClientData<NewLines> o3("Merge (add space)", NewLines::MergeAndAddSpace);
+
+    return std::vector<EnumClientData<NewLines>>{ o1, o2, o3 };
 }
 
-std::vector<std::string> BooleanHandlerList()
+std::vector<EnumClientData<BooleanHandler>> BooleanHandlerList()
 {
-    return std::vector<std::string>{ "1|0", "true|false", "yes|no", "True|False", "Yes|No" };
+    EnumClientData<BooleanHandler> o1("1|0", BooleanHandler::OneZero);
+    EnumClientData<BooleanHandler> o2("true|false", BooleanHandler::TrueFalseLowerCase);
+    EnumClientData<BooleanHandler> o3("yes|no", BooleanHandler::YesNoLowerCase);
+    EnumClientData<BooleanHandler> o4("True|False", BooleanHandler::TrueFalseTitleCase);
+    EnumClientData<BooleanHandler> o5("Yes|No", BooleanHandler::YesNoTitleCase);
+
+    return std::vector<EnumClientData<BooleanHandler>>{ o1, o2, o3, o4, o5 };
 }
 } // namespace Static
 } // namespace tks::Common

@@ -29,6 +29,7 @@
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
 #include "../../../common/enums.h"
+#include "../../../common/enumclientdata.h"
 
 #include "../../../services/export/availablecolumns.h"
 #include "../../../services/export/exportoptions.h"
@@ -481,9 +482,13 @@ void ExportToExcelDialog::FillControls()
     pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
     pNewLinesHandlerChoiceCtrl->SetSelection(0);
 
-    auto newLineHandlers = Common::Static::NewLinesHandlerList();
-    for (auto i = 0; i < newLineHandlers.size(); i++) {
-        pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i + 1));
+    pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pNewLinesHandlerChoiceCtrl->SetSelection(0);
+
+    auto newLines = Common::Static::NewLinesList();
+    for (auto i = 0; i < newLines.size(); i++) {
+        pNewLinesHandlerChoiceCtrl->Append(
+            newLines[i].Value, new ClientData<Common::EnumClientData<NewLines>>(newLines[i]));
     }
 
     pBooleanHanderChoiceCtrl->Append("(default)", new ClientData<int>(-1));
@@ -491,7 +496,8 @@ void ExportToExcelDialog::FillControls()
 
     auto booleanHandlers = Common::Static::BooleanHandlerList();
     for (auto i = 0; i < booleanHandlers.size(); i++) {
-        pBooleanHanderChoiceCtrl->Append(booleanHandlers[i], new ClientData<int>(i + 1));
+        pBooleanHanderChoiceCtrl->Append(booleanHandlers[i].Value,
+            new ClientData<Common::EnumClientData<BooleanHandler>>(booleanHandlers[i]));
     }
 
     /* Available Columns */
@@ -717,20 +723,22 @@ void ExportToExcelDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event
 {
     auto choice = event.GetString();
     int newLinesIndex = pNewLinesHandlerChoiceCtrl->GetSelection();
-    ClientData<int>* newLinesData = reinterpret_cast<ClientData<int>*>(
-        pNewLinesHandlerChoiceCtrl->GetClientObject(newLinesIndex));
+    ClientData<Common::EnumClientData<NewLines>>* newLinesData =
+        reinterpret_cast<ClientData<Common::EnumClientData<NewLines>>*>(
+            pNewLinesHandlerChoiceCtrl->GetClientObject(newLinesIndex));
 
-    mNewLinesOption = static_cast<NewLines>(newLinesData->GetValue());
+    mNewLinesOption = newLinesData->GetValue().Data;
 }
 
 void ExportToExcelDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
     int booleanHandlerIndex = pBooleanHanderChoiceCtrl->GetSelection();
-    ClientData<int>* booleanHandlerData = reinterpret_cast<ClientData<int>*>(
+    ClientData<Common::EnumClientData<BooleanHandler>>* booleanHandlerData =
+        reinterpret_cast<ClientData<Common::EnumClientData<BooleanHandler>>*>(
         pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
 
-    mBooleanOption = static_cast<BooleanHandler>(booleanHandlerData->GetValue());
+    mBooleanOption = booleanHandlerData->GetValue().Data;
 }
 
 void ExportToExcelDialog::OnFromDateSelection(wxDateEvent& event)

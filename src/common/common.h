@@ -98,12 +98,11 @@ std::string Wizard();
 
 namespace Static
 {
-std::vector<EnumClientData<DelimiterType>> DelimiterList();
-std::vector<EnumClientData<TextQualifierType>> TextQualifierList();
-
-std::vector<std::string> EmptyValueHandlerList();
-std::vector<std::string> NewLinesHandlerList();
-std::vector<std::string> BooleanHandlerList();
+std::vector<EnumClientData<DelimiterType>> DelimitersList();
+std::vector<EnumClientData<TextQualifierType>> TextQualifiersList();
+std::vector<EnumClientData<EmptyValues>> EmptyValuesList();
+std::vector<EnumClientData<NewLines>> NewLinesList();
+std::vector<EnumClientData<BooleanHandler>> BooleanHandlerList();
 } // namespace Static
 } // namespace Common
 } // namespace tks

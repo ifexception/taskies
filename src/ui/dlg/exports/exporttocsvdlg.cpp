@@ -538,7 +538,7 @@ void ExportToCsvDialog::FillControls()
     pDelimiterChoiceCtrl->Append("Please select", new ClientData<int>(-1));
     pDelimiterChoiceCtrl->SetSelection(0);
 
-    auto delimiters = Common::Static::DelimiterList();
+    auto delimiters = Common::Static::DelimitersList();
     for (auto i = 0; i < delimiters.size(); i++) {
         pDelimiterChoiceCtrl->Append(delimiters[i].Value,
             new ClientData<Common::EnumClientData<DelimiterType>>(delimiters[i]));
@@ -547,7 +547,7 @@ void ExportToCsvDialog::FillControls()
     pTextQualifierChoiceCtrl->Append("Please select", new ClientData<int>(-1));
     pTextQualifierChoiceCtrl->SetSelection(0);
 
-    auto textQualifiers = Common::Static::TextQualifierList();
+    auto textQualifiers = Common::Static::TextQualifiersList();
     for (auto i = 0; i < textQualifiers.size(); i++) {
         pTextQualifierChoiceCtrl->Append(textQualifiers[i].Value,
             new ClientData<Common::EnumClientData<TextQualifierType>>(textQualifiers[i]));
@@ -556,17 +556,19 @@ void ExportToCsvDialog::FillControls()
     pEmptyValueHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
     pEmptyValueHandlerChoiceCtrl->SetSelection(0);
 
-    auto emptyValueHandlers = Common::Static::EmptyValueHandlerList();
-    for (auto i = 0; i < emptyValueHandlers.size(); i++) {
-        pEmptyValueHandlerChoiceCtrl->Append(emptyValueHandlers[i], new ClientData<int>(i + 1));
+    auto emptyValues = Common::Static::EmptyValuesList();
+    for (auto i = 0; i < emptyValues.size(); i++) {
+        pEmptyValueHandlerChoiceCtrl->Append(emptyValues[i].Value,
+            new ClientData<Common::EnumClientData<EmptyValues>>(emptyValues[i]));
     }
 
     pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
     pNewLinesHandlerChoiceCtrl->SetSelection(0);
 
-    auto newLineHandlers = Common::Static::NewLinesHandlerList();
-    for (auto i = 0; i < newLineHandlers.size(); i++) {
-        pNewLinesHandlerChoiceCtrl->Append(newLineHandlers[i], new ClientData<int>(i + 1));
+    auto newLines = Common::Static::NewLinesList();
+    for (auto i = 0; i < newLines.size(); i++) {
+        pNewLinesHandlerChoiceCtrl->Append(
+            newLines[i].Value, new ClientData<Common::EnumClientData<NewLines>>(newLines[i]));
     }
 
     pBooleanHanderChoiceCtrl->Append("(default)", new ClientData<int>(-1));
@@ -574,7 +576,8 @@ void ExportToCsvDialog::FillControls()
 
     auto booleanHandlers = Common::Static::BooleanHandlerList();
     for (auto i = 0; i < booleanHandlers.size(); i++) {
-        pBooleanHanderChoiceCtrl->Append(booleanHandlers[i], new ClientData<int>(i + 1));
+        pBooleanHanderChoiceCtrl->Append(booleanHandlers[i].Value,
+            new ClientData<Common::EnumClientData<BooleanHandler>>(booleanHandlers[i]));
     }
 
     /* Dialog options */
@@ -827,8 +830,8 @@ void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
     int textQualifierIndex = pTextQualifierChoiceCtrl->GetSelection();
-    ClientData < Common::EnumClientData<TextQualifierType>>* textQualifierData =
-        reinterpret_cast < ClientData<Common::EnumClientData<TextQualifierType>>*>(
+    ClientData<Common::EnumClientData<TextQualifierType>>* textQualifierData =
+        reinterpret_cast<ClientData<Common::EnumClientData<TextQualifierType>>*>(
             pTextQualifierChoiceCtrl->GetClientObject(textQualifierIndex));
 
     mExportOptions.TextQualifier = textQualifierData->GetValue().Data;
@@ -839,30 +842,33 @@ void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event
     auto choice = event.GetString();
 
     int emptyValueIndex = pEmptyValueHandlerChoiceCtrl->GetSelection();
-    ClientData<int>* emptyValueData = reinterpret_cast<ClientData<int>*>(
-        pEmptyValueHandlerChoiceCtrl->GetClientObject(emptyValueIndex));
+    ClientData<Common::EnumClientData<EmptyValues>>* emptyValueData =
+        reinterpret_cast<ClientData<Common::EnumClientData<EmptyValues>>*>(
+            pEmptyValueHandlerChoiceCtrl->GetClientObject(emptyValueIndex));
 
-    mExportOptions.EmptyValuesHandler = static_cast<EmptyValues>(emptyValueData->GetValue());
+    mExportOptions.EmptyValuesHandler = static_cast<EmptyValues>(emptyValueData->GetValue().Data);
 }
 
 void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
     int newLinesIndex = pNewLinesHandlerChoiceCtrl->GetSelection();
-    ClientData<int>* newLinesData = reinterpret_cast<ClientData<int>*>(
-        pNewLinesHandlerChoiceCtrl->GetClientObject(newLinesIndex));
+    ClientData<Common::EnumClientData<NewLines>>* newLinesData =
+        reinterpret_cast<ClientData<Common::EnumClientData<NewLines>>*>(
+            pNewLinesHandlerChoiceCtrl->GetClientObject(newLinesIndex));
 
-    mExportOptions.NewLinesHandler = static_cast<NewLines>(newLinesData->GetValue());
+    mExportOptions.NewLinesHandler = static_cast<NewLines>(newLinesData->GetValue().Data);
 }
 
 void ExportToCsvDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
     int booleanHandlerIndex = pBooleanHanderChoiceCtrl->GetSelection();
-    ClientData<int>* booleanHandlerData = reinterpret_cast<ClientData<int>*>(
-        pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
+    ClientData<Common::EnumClientData<BooleanHandler>>* booleanHandlerData =
+        reinterpret_cast<ClientData<Common::EnumClientData<BooleanHandler>>*>(
+            pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
 
-    mExportOptions.BooleanHandler = static_cast<BooleanHandler>(booleanHandlerData->GetValue());
+    mExportOptions.BooleanHandler = booleanHandlerData->GetValue().Data;
 }
 
 void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)

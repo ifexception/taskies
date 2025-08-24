@@ -37,4 +37,4 @@ struct EnumClientData {
     }
     ~EnumClientData() = default;
 };
-}
+} // namespace tks::Common
