@@ -36,7 +36,7 @@
 #include "../../../common/enums.h"
 
 #include "../../../services/export/availablecolumns.h"
-#include "../../../services/export/csvexporter.h"
+#include "../../../services/export/csvexporterservice.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
@@ -1346,7 +1346,7 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporter csvExporter(pLogger, mExportOptions, mDatabaseFilePath, true);
+    Services::Export::CsvExporterService csvExporter(pLogger, mExportOptions, mDatabaseFilePath, true);
 
     std::string exportedDataPreview = "";
     bool success = csvExporter.ExportToCsv(
@@ -1395,7 +1395,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporter csvExporter(pLogger, mExportOptions, mDatabaseFilePath, false);
+    Services::Export::CsvExporterService csvExporter(pLogger, mExportOptions, mDatabaseFilePath, false);
 
     std::string exportedData = "";
     bool success =

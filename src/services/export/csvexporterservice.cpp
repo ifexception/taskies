@@ -17,13 +17,13 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "csvexporter.h"
+#include "csvexporterservice.h"
 
 #include "../../common/enums.h"
 
 namespace tks::Services::Export
 {
-CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger,
+CsvExporterService::CsvExporterService(std::shared_ptr<spdlog::logger> logger,
     ExportOptions options,
     const std::string& databaseFilePath,
     bool isPreview)
@@ -37,7 +37,7 @@ CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger,
         pLogger, mDatabaseFilePath, bIsPreview, mOptions.IncludeAttributes);
 }
 
-bool CsvExporter::ExportToCsv(const std::vector<Projection>& projections,
+bool CsvExporterService::ExportToCsv(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,

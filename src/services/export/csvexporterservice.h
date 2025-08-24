@@ -33,16 +33,16 @@
 
 namespace tks::Services::Export
 {
-struct CsvExporter final {
-    CsvExporter() = delete;
-    CsvExporter(const CsvExporter&) = delete;
-    CsvExporter(std::shared_ptr<spdlog::logger> logger,
+struct CsvExporterService final {
+    CsvExporterService() = delete;
+    CsvExporterService(const CsvExporterService&) = delete;
+    CsvExporterService(std::shared_ptr<spdlog::logger> logger,
         ExportOptions options,
         const std::string& databaseFilePath,
         bool isPreview);
-    ~CsvExporter() = default;
+    ~CsvExporterService() = default;
 
-    const CsvExporter& operator=(const CsvExporter&) = delete;
+    const CsvExporterService& operator=(const CsvExporterService&) = delete;
 
     bool ExportToCsv(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,

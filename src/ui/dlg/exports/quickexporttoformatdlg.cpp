@@ -31,7 +31,7 @@
 #include "../../../core/configuration.h"
 
 #include "../../../services/export/availablecolumns.h"
-#include "../../../services/export/csvexporter.h"
+#include "../../../services/export/csvexporterservice.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/excelinstancecheck.h"
@@ -624,7 +624,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
     std::string message = "";
 
     if (mExportFormat == ExportFormat::Csv) {
-        Services::Export::CsvExporter csvExporter(pLogger, mExportOptions, mDatabaseFilePath, false);
+        Services::Export::CsvExporterService csvExporter(pLogger, mExportOptions, mDatabaseFilePath, false);
 
         std::string exportedData = "";
         success =
