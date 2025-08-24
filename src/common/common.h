@@ -24,6 +24,7 @@
 #include <utility>
 
 #include "enums.h"
+#include "enumclientdata.h"
 
 namespace tks
 {
@@ -97,8 +98,9 @@ std::string Wizard();
 
 namespace Static
 {
-std::vector<std::pair<std::string, DelimiterType>> DelimiterList();
-std::vector<std::pair<std::string, TextQualifierType>> TextQualifierList();
+std::vector<EnumClientData<DelimiterType>> DelimiterList();
+std::vector<EnumClientData<TextQualifierType>> TextQualifierList();
+
 std::vector<std::string> EmptyValueHandlerList();
 std::vector<std::string> NewLinesHandlerList();
 std::vector<std::string> BooleanHandlerList();

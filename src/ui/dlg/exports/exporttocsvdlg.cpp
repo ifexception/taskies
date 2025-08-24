@@ -34,6 +34,7 @@
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
 #include "../../../common/enums.h"
+#include "../../../common/enumclientdata.h"
 
 #include "../../../services/export/availablecolumns.h"
 #include "../../../services/export/csvexporterservice.h"
@@ -539,8 +540,8 @@ void ExportToCsvDialog::FillControls()
 
     auto delimiters = Common::Static::DelimiterList();
     for (auto i = 0; i < delimiters.size(); i++) {
-        pDelimiterChoiceCtrl->Append(
-            delimiters[i].first, new ClientData<DelimiterType>(delimiters[i].second));
+        pDelimiterChoiceCtrl->Append(delimiters[i].Value,
+            new ClientData<Common::EnumClientData<DelimiterType>>(delimiters[i]));
     }
 
     pTextQualifierChoiceCtrl->Append("Please select", new ClientData<int>(-1));
@@ -548,8 +549,8 @@ void ExportToCsvDialog::FillControls()
 
     auto textQualifiers = Common::Static::TextQualifierList();
     for (auto i = 0; i < textQualifiers.size(); i++) {
-        pTextQualifierChoiceCtrl->Append(
-            textQualifiers[i].first, new ClientData<TextQualifierType>(textQualifiers[i].second));
+        pTextQualifierChoiceCtrl->Append(textQualifiers[i].Value,
+            new ClientData<Common::EnumClientData<TextQualifierType>>(textQualifiers[i]));
     }
 
     pEmptyValueHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
@@ -815,21 +816,22 @@ void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
     int delimiterIndex = pDelimiterChoiceCtrl->GetSelection();
-    ClientData<DelimiterType>* delimiterData = reinterpret_cast<ClientData<DelimiterType>*>(
-        pDelimiterChoiceCtrl->GetClientObject(delimiterIndex));
+    ClientData<Common::EnumClientData<DelimiterType>>* delimiterData =
+        reinterpret_cast<ClientData<Common::EnumClientData<DelimiterType>>*>(
+            pDelimiterChoiceCtrl->GetClientObject(delimiterIndex));
 
-    mExportOptions.Delimiter = delimiterData->GetValue();
+    mExportOptions.Delimiter = delimiterData->GetValue().Data;
 }
 
 void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
 {
     auto choice = event.GetString();
     int textQualifierIndex = pTextQualifierChoiceCtrl->GetSelection();
-    ClientData<TextQualifierType>* textQualifierData =
-        reinterpret_cast<ClientData<TextQualifierType>*>(
+    ClientData < Common::EnumClientData<TextQualifierType>>* textQualifierData =
+        reinterpret_cast < ClientData<Common::EnumClientData<TextQualifierType>>*>(
             pTextQualifierChoiceCtrl->GetClientObject(textQualifierIndex));
 
-    mExportOptions.TextQualifier = textQualifierData->GetValue();
+    mExportOptions.TextQualifier = textQualifierData->GetValue().Data;
 }
 
 void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event)
@@ -1346,7 +1348,8 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporterService csvExporter(pLogger, mExportOptions, mDatabaseFilePath, true);
+    Services::Export::CsvExporterService csvExporter(
+        pLogger, mExportOptions, mDatabaseFilePath, true);
 
     std::string exportedDataPreview = "";
     bool success = csvExporter.ExportToCsv(
@@ -1395,7 +1398,8 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporterService csvExporter(pLogger, mExportOptions, mDatabaseFilePath, false);
+    Services::Export::CsvExporterService csvExporter(
+        pLogger, mExportOptions, mDatabaseFilePath, false);
 
     std::string exportedData = "";
     bool success =

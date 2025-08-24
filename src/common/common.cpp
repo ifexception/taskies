@@ -93,24 +93,24 @@ std::string Wizard()
 } // namespace Resources
 namespace Static
 {
-std::vector<std::pair<std::string, DelimiterType>> DelimiterList()
+std::vector<EnumClientData<DelimiterType>> DelimiterList()
 {
-    auto o1 = std::make_pair(",", DelimiterType::Comma);
-    auto o2 = std::make_pair(";", DelimiterType::Semicolon);
-    auto o3 = std::make_pair("|", DelimiterType::Pipe);
-    auto o4 = std::make_pair("(tab)", DelimiterType::Tab);
-    auto o5 = std::make_pair("(space)", DelimiterType::Space);
+    EnumClientData<DelimiterType> o1(",", DelimiterType::Comma);
+    EnumClientData<DelimiterType> o2(";", DelimiterType::Semicolon);
+    EnumClientData<DelimiterType> o3("|", DelimiterType::Pipe);
+    EnumClientData<DelimiterType> o4("(tab)", DelimiterType::Tab);
+    EnumClientData<DelimiterType> o5("(space)", DelimiterType::Space);
 
-    return std::vector<std::pair<std::string, DelimiterType>>{ o1, o2, o3, o4, o5 };
+    return std::vector<EnumClientData<DelimiterType>>{ o1, o2, o3, o4, o5 };
 }
 
-std::vector<std::pair<std::string, TextQualifierType>> TextQualifierList()
+std::vector<EnumClientData<TextQualifierType>> TextQualifierList()
 {
-    auto o1 = std::make_pair("(none)", TextQualifierType::None);
-    auto o2 = std::make_pair("\"", TextQualifierType::DoubleQuotes);
-    auto o3 = std::make_pair("'", TextQualifierType::SingleQuotes);
+    EnumClientData<TextQualifierType> o1("(none)", TextQualifierType::None);
+    EnumClientData<TextQualifierType> o2("\"", TextQualifierType::DoubleQuotes);
+    EnumClientData<TextQualifierType> o3("'", TextQualifierType::SingleQuotes);
 
-    return std::vector<std::pair<std::string, TextQualifierType>>{ o1, o2, o3 };
+    return std::vector<EnumClientData<TextQualifierType>>{ o1, o2, o3 };
 }
 
 std::vector<std::string> EmptyValueHandlerList()
