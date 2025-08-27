@@ -36,11 +36,11 @@ ExcelExporterService::ExcelExporterService(std::shared_ptr<spdlog::logger> logge
     , pDataGenerator(nullptr)
     , mExportDataProcessor(newLinesOption, booleanHandlerOption)
 {
-    pDataGenerator = std::make_unique<DataGenerator>(
-        pLogger, mDatabaseFilePath, false, bIncludeAttributes);
+    pDataGenerator =
+        std::make_unique<DataGenerator>(pLogger, mDatabaseFilePath, false, bIncludeAttributes);
 }
 
-bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projections,
+ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
@@ -49,11 +49,11 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     /* `SData` is our main struct to store the headers and rows */
     SData exportData;
 
-    bool success = pDataGenerator->FillData(
-        projections, joinProjections, fromDate, toDate, exportData);
-    if (!success) {
+    auto result =
+        pDataGenerator->FillData(projections, joinProjections, fromDate, toDate, exportData);
+    if (!result.Success) {
         pLogger->error("Failed to generate export data. See earlier logs for detail");
-        return false;
+        return result;
     }
 
     /* begin OLE interaction, can take a while to start so wrap operation in a wxBusyCursor */
@@ -62,12 +62,13 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     wxAutomationObject excelInstance;
     if (!excelInstance.GetInstance("Excel.Application")) {
         pLogger->error("Could not create Excel object");
-        return false;
+        return { false, "Failed to open Excel application" };
     }
 
     if (!excelInstance.PutProperty("DisplayAlerts", false)) {
+        excelInstance.CallMethod("Quit");
         pLogger->error("Could not set \"DisplayAlerts\" property");
-        return false;
+        return { false, "Failed to toggle off \"DisplayAlert\" property" };
     }
 
 #if TKS_DEBUG
@@ -76,7 +77,7 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
         // running, so we close it
         excelInstance.CallMethod("Quit");
         wxMessageBox("Succeeded to start Excel, but failed to show it");
-        return false;
+        return { false, "" };
     }
 #endif // TKS_DEBUG
 
@@ -84,35 +85,35 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     if (!excelInstance.GetObject(workbooks, "Workbooks")) {
         pLogger->error("Could not obtain Workbooks object");
         excelInstance.CallMethod("Quit");
-        return false;
+        return { false, "Failed to obtain Excel \"Workbooks\" object" };
     }
 
     const wxVariant workbooksCountVariant = workbooks.GetProperty("Count");
     if (workbooksCountVariant.IsNull()) {
         pLogger->error("Could not get workbooks count");
         excelInstance.CallMethod("Quit");
-        return false;
+        return { false, "Failed to get count of workbooks" };
     }
 
     const wxVariant workbookVariant = workbooks.CallMethod("Add");
     if (workbookVariant.IsNull()) {
         pLogger->error("Could not create new Workbook");
         excelInstance.CallMethod("Quit");
-        return false;
+        return { false, "Failed to create new \"Workbook\"" };
     }
 
     wxAutomationObject workbook;
     if (!VariantToObject(workbookVariant, workbook)) {
         pLogger->error("Could not convert variant to workbook object");
         excelInstance.CallMethod("Quit");
-        return false;
+        return { false, "Conversion error occurred" };
     }
 
     wxAutomationObject worksheets;
     if (!workbook.GetObject(worksheets, "Worksheets")) {
         pLogger->error("Could not obtain Worksheets object");
         excelInstance.CallMethod("Quit");
-        return false;
+        return { false, "Failed to obtain Excel \"Worksheets\" object" };
     }
 
     wxAutomationObject worksheet;
@@ -120,7 +121,7 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     if (!worksheets.GetObject(worksheet, "Item", 1, &v1)) {
         pLogger->error("Could not obtain the first Worksheet object");
         excelInstance.CallMethod("Quit");
-        return false;
+        return { false, "Failed to obtain first \"Worksheet\" object" };
     }
 
     /* insert the headers into the first row from our `SData` struct */
@@ -133,12 +134,14 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
 
         if (!worksheet.GetObject(rangeObject, "Range", 1, &range)) {
             pLogger->error("Could not obtain the Range object");
-            return false;
+            return { false, "Failed to set range (column) [" + excelColumn + "]" };
         }
 
         if (!rangeObject.PutProperty("Value", exportData.Headers[i])) {
             pLogger->error("Failed to call PutProperty 'Value'");
-            return false;
+            return { false,
+                "Failed to set value \"" + exportData.Headers[i] + "\" in column [" + excelColumn +
+                    "]" };
         }
     }
 
@@ -151,7 +154,7 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
 
             if (!worksheet.GetObject(rangeObject, "Range", 1, &range)) {
                 pLogger->error("Could not obtain the Range object");
-                return false;
+                return { false, "Failed to set range (column) [" + excelColumn + "]" };
             }
 
             std::string value = row.Values[i];
@@ -159,7 +162,8 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
 
             if (!rangeObject.PutProperty("Value", value)) {
                 pLogger->error("Failed to call PutProperty 'Value'");
-                return false;
+                return { false,
+                    "Failed to set value \"" + value + "\" in column [" + excelColumn + "]" };
             }
         }
 
@@ -173,14 +177,14 @@ bool ExcelExporterService::ExportToExcel(const std::vector<Projection>& projecti
     if (!excelInstance.CallMethod("ActiveWorkbook.SaveAs", filename, fileFormat)) {
         pLogger->error("Failed to call 'SaveAs' method");
         excelInstance.CallMethod("Quit");
-        return false;
+        return { false, "Failed to save Excel file in \"" + saveLocation + "\"" };
     }
 
 #if !defined(TKS_DEBUG)
     excelInstance.CallMethod("Quit");
 #endif // DEBUG
 
-    return true;
+    return { true, "" };
 }
 
 bool ExcelExporterService::VariantToObject(const wxVariant& v, wxAutomationObject& o)

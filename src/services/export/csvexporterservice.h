@@ -30,6 +30,7 @@
 #include "exportoptions.h"
 #include "csvexportprocessor.h"
 #include "datagenerator.h"
+#include "exportresult.h"
 
 namespace tks::Services::Export
 {
@@ -44,7 +45,7 @@ struct CsvExporterService final {
 
     const CsvExporterService& operator=(const CsvExporterService&) = delete;
 
-    bool ExportToCsv(const std::vector<Projection>& projections,
+    ExportResult ExportToCsv(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,

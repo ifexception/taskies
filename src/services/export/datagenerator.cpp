@@ -39,7 +39,7 @@ DataGenerator::DataGenerator(std::shared_ptr<spdlog::logger> logger,
 {
 }
 
-bool DataGenerator::FillData(const std::vector<Projection>& projections,
+ExportResult DataGenerator::FillData(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
@@ -79,7 +79,7 @@ bool DataGenerator::FillData(const std::vector<Projection>& projections,
     if (rc != 0) {
         pLogger->error("Failed to filter projected export data from generated SQL query. See "
                        "earlier logs for error detail");
-        return false;
+        return { false, "A database error occurred when filtering task data for export" };
     }
 
     /* set the task row values into the `Rows` field of `SData` */
@@ -87,18 +87,18 @@ bool DataGenerator::FillData(const std::vector<Projection>& projections,
 
     if (bIncludeAttributes) {
         /* see `GenerateAndExportAttributes` for more detail */
-        bool attributeAddedSuccessfully = FillAttributes(fromDate, toDate, data);
-        if (!attributeAddedSuccessfully) {
+        auto result = FillAttributes(fromDate, toDate, data);
+        if (!result.Success) {
             pLogger->error("Failed to generate and attach attributes to export data. See earlier "
                            "logs for error detail");
-            return false;
+            return result;
         }
     }
 
-    return true;
+    return { true, "" };
 }
 
-bool DataGenerator::FillAttributes(const std::string& fromDate,
+ExportResult DataGenerator::FillAttributes(const std::string& fromDate,
     const std::string& toDate,
     SData& data)
 {
@@ -131,13 +131,13 @@ bool DataGenerator::FillAttributes(const std::string& fromDate,
     if (rc != 0) {
         pLogger->error(
             "Failed to get attribute names for date range. See earlier logs for error detail");
-        return false;
+        return { false, "Failed to get task attribute names for specified date range" };
     }
 
     /* we have not found any attributes associated with the task or tasks so we can return */
     if (attributeNames.empty()) {
         pLogger->warn("No attribute names were found for date range. Nothing to do");
-        return true;
+        return { true, "" };
     }
 
     /*
@@ -154,7 +154,7 @@ bool DataGenerator::FillAttributes(const std::string& fromDate,
     if (rc != 0) {
         pLogger->error("Failed to filter attribute data from generated attribute SQL query. See "
                        "earlier logs for more detail");
-        return false;
+        return { false, "A database error occurred when filtering task attribute data" };
     }
 
     /* append the attribute names (headers) to the `SData` field `Headers` (order is important) */
@@ -198,7 +198,7 @@ bool DataGenerator::FillAttributes(const std::string& fromDate,
         }
     }
 
-    return true;
+    return { true, "" };
 }
 
 void DataGenerator::FillHeadersFromProjections(const std::vector<Projection>& projections,

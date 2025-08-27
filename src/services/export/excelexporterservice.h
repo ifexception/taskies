@@ -36,6 +36,7 @@
 #include "data.h"
 #include "datagenerator.h"
 #include "excelexportprocessor.h"
+#include "exportresult.h"
 
 #include "../../utils/utils.h"
 
@@ -51,7 +52,7 @@ struct ExcelExporterService {
         BooleanHandler booleanHandlerOption);
     ~ExcelExporterService() = default;
 
-    bool ExportToExcel(const std::vector<Projection>& projections,
+    ExportResult ExportToExcel(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,

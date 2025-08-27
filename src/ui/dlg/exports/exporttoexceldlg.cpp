@@ -1196,10 +1196,10 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
         pLogger, mDatabaseFilePath, bIncludeAttributes, mNewLinesOption, mBooleanOption);
 
     const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
-    bool success = excelExporterService.ExportToExcel(
+    auto result = excelExporterService.ExportToExcel(
         projections, joinProjections, fromDate, toDate, saveLocation);
 
-    if (!success) {
+    if (!result.Success) {
         std::string message = "Failed to export data to Excel";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
@@ -1207,6 +1207,8 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
+
+        wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
 
         return;
     }

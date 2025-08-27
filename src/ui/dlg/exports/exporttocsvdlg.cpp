@@ -1358,10 +1358,10 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
         pLogger, mExportOptions, mDatabaseFilePath, true);
 
     std::string exportedDataPreview = "";
-    bool success = csvExporter.ExportToCsv(
+    auto result = csvExporter.ExportToCsv(
         projections, joinProjections, fromDate, toDate, exportedDataPreview);
 
-    if (!success) {
+    if (!result.Success) {
         std::string message = "Failed to export data";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
@@ -1369,6 +1369,8 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
+
+        wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
     }
 
     pDataExportPreviewTextCtrl->ChangeValue(exportedDataPreview);
@@ -1408,10 +1410,10 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
         pLogger, mExportOptions, mDatabaseFilePath, false);
 
     std::string exportedData = "";
-    bool success =
+    auto result =
         csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
 
-    if (!success) {
+    if (!result.Success) {
         std::string message = "Failed to export data";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
@@ -1419,6 +1421,8 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
+
+        wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
 
         return;
     }

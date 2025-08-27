@@ -30,6 +30,7 @@
 #include "projection.h"
 #include "sqliteexportquerybuilder.h"
 #include "data.h"
+#include "exportresult.h"
 
 namespace tks::Services::Export
 {
@@ -44,13 +45,13 @@ struct DataGenerator final {
 
     DataGenerator& operator=(const DataGenerator&) = delete;
 
-    bool FillData(const std::vector<Projection>& projections,
+    ExportResult FillData(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
         /*out*/ SData& data);
 
-    bool FillAttributes(const std::string& fromDate,
+    ExportResult FillAttributes(const std::string& fromDate,
         const std::string& toDate,
         /*out*/ SData& data);
 

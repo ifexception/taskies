@@ -37,7 +37,7 @@ CsvExporterService::CsvExporterService(std::shared_ptr<spdlog::logger> logger,
         pLogger, mDatabaseFilePath, bIsPreview, mOptions.IncludeAttributes);
 }
 
-bool CsvExporterService::ExportToCsv(const std::vector<Projection>& projections,
+ExportResult CsvExporterService::ExportToCsv(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
@@ -46,11 +46,11 @@ bool CsvExporterService::ExportToCsv(const std::vector<Projection>& projections,
     /* `SData` is our main struct to store the headers and rows */
     SData exportData;
 
-    bool success = pDataGenerator->FillData(
+    auto result = pDataGenerator->FillData(
         projections, joinProjections, fromDate, toDate, exportData);
-    if (!success) {
+    if (!result.Success) {
         pLogger->error("Failed to generate export data. See earlier logs for detail");
-        return false;
+        return result;
     }
 
     /*
@@ -104,11 +104,11 @@ bool CsvExporterService::ExportToCsv(const std::vector<Projection>& projections,
     /* verify the data in stringstream is in a good state */
     if (!exportedDataStringStream.good()) {
         pLogger->error("Exported data in stringstream object is not in a good state");
-        return false;
+        return { false, "An error occurred when writing exported data to output" };
     }
 
     /* set the out string and return */
     exportedData = exportedDataStringStream.str();
-    return true;
+    return { true, "" };
 }
 } // namespace tks::Services::Export

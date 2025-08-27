@@ -38,6 +38,7 @@
 #include "../../../services/export/excelexporterservice.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
+#include "../../../services/export/exportresult.h"
 
 #include "../../events.h"
 #include "../../common/clientdata.h"
@@ -620,17 +621,18 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    bool success = false;
+    Services::Export::ExportResult result;
     std::string message = "";
 
     if (mExportFormat == ExportFormat::Csv) {
-        Services::Export::CsvExporterService csvExporter(pLogger, mExportOptions, mDatabaseFilePath, false);
+        Services::Export::CsvExporterService csvExporter(
+            pLogger, mExportOptions, mDatabaseFilePath, false);
 
         std::string exportedData = "";
-        success =
+        result =
             csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
 
-        if (success) {
+        if (result.Success) {
             if (bExportToClipboard) {
                 auto canOpen = wxTheClipboard->Open();
                 if (canOpen) {
@@ -662,7 +664,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
             mExportOptions.BooleanHandler);
 
         const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
-        success = excelExporterService.ExportToExcel(
+        result = excelExporterService.ExportToExcel(
             projections, joinProjections, fromDate, toDate, saveLocation);
 
         message = "Successfully exported data to Excel";
@@ -671,7 +673,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
-    if (!success) {
+    if (!result.Success) {
         message = "Failed to export data";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
@@ -679,6 +681,8 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
+
+        wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
 
         return;
     }
