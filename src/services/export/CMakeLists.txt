@@ -22,5 +22,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/datagenerator.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/excelexportprocessor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/excelinstancecheck.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/exportresult.cpp"
     PARENT_SCOPE
 )
