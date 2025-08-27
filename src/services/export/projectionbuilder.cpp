@@ -84,10 +84,10 @@ std::vector<ColumnJoinProjection> ProjectionBuilder::BuildJoinProjections(
 
         if (availableColumnIterator != mAvailableColumns.end()) {
             const auto& availableColumn = *availableColumnIterator;
-            pLogger->info("ProjectionBuilder::BuildProjections - Matched column \"{0}\" with "
+            pLogger->info("ProjectionBuilder::BuildJoinProjections - Matched column \"{0}\" with "
                           "available column \"{1}\"",
                 column.OriginalColumn,
-                availableColumn.DatabaseColumn);
+                availableColumn.UserColumn);
 
             ColumnJoinProjection columnJoinProjection =
                 BuildJoinProjection(column, availableColumn);
