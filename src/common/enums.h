@@ -56,7 +56,7 @@ enum class BooleanHandler : int {
     YesNoTitleCase
 };
 
-enum class JoinType { None = 1, InnerJoin = 1, LeftJoin = 2 };
+enum class JoinType { None = 1, InnerJoin, LeftJoin };
 
 enum class FieldType { Default = 1, Formatted };
 
