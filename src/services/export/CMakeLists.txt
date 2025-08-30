@@ -23,5 +23,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/excelexportprocessor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/excelinstancecheck.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/exportresult.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/excelguard.cpp"
     PARENT_SCOPE
 )
