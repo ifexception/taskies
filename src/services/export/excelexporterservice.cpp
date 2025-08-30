@@ -159,7 +159,7 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
                 return { false, "Failed to get Cells property of Worksheet" };
             }
 
-            if (cellObject.PutProperty("Value", excelData[i][j])) {
+            if (!cellObject.PutProperty("Value", excelData[i][j])) {
                 pLogger->error("Failed to set property Cells(x,y).Value");
                 excelInstance.CallMethod("Quit");
                 return { false,
