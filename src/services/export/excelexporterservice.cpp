@@ -161,7 +161,7 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
                     "Failed to set property \"Cells[{0}][{1}].Value\" with value \"{2}\"",
                     i + 1,
                     j + 1,
-                    excelData[i][j]);;
+                    excelData[i][j]);
 
                 return ExportResult::Fail(fmt::format(
                     "Failed to set property \"Cells[{0}][{1}].Value\" with value \"{2}\"",
