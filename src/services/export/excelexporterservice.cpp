@@ -153,19 +153,26 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
             wxAutomationObject cellObject;
             wxVariant cellVar = worksheet.GetProperty("Cells", iVar, jVar);
             if (!VariantToObject(cellVar, cellObject)) {
-                pLogger->error("Could not get property Cells");
+                pLogger->error("Could not get property Cells[{0}][{1}]", i + 1, j + 1);
                 excelInstance.CallMethod("Quit");
-                return ExportResult::Fail("Failed to get Cells property of Worksheet");
+                return ExportResult::Fail(fmt::format(
+                    "Failed to get \"Cells[{0}][{1}]\" property of Worksheet", i + 1, j + 1));
             }
 
             if (!cellObject.PutProperty("Value", excelData[i][j])) {
-                pLogger->error("Failed to set property Cells(x,y).Value");
+                pLogger->error(
+                    "Failed to set property \"Cells[{0}][{1}].Value\" with value \"{2}\"",
+                    i + 1,
+                    j + 1,
+                    excelData[i][j]);
+
                 excelInstance.CallMethod("Quit");
-                return ExportResult::Fail(
-                    fmt::format("Failed to set property Cells[{0}][{1}].Value with value \"{3}\"",
-                        i,
-                        j,
-                        excelData[i][j]));
+
+                return ExportResult::Fail(fmt::format(
+                    "Failed to set property \"Cells[{0}][{1}].Value\" with value \"{2}\"",
+                    i + 1,
+                    j + 1,
+                    excelData[i][j]));
             }
         }
     }
