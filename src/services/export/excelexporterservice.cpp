@@ -19,7 +19,7 @@
 
 #include "excelexporterservice.h"
 
-#include <wx/string.h>
+#include <fmt/format.h>
 
 #include "../../utils/utils.h"
 
@@ -124,50 +124,51 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
         return { false, "Failed to obtain first \"Worksheet\" object" };
     }
 
-    /* insert the headers into the first row from our `SData` struct */
-    wxAutomationObject rangeObject;
-    wxVariant range;
-    int headerRowIndex = 1;
-    for (size_t i = 0; i < exportData.Headers.size(); i++) {
-        std::string excelColumn = Utils::ToExcelColumnName(i + 1);
-        range = excelColumn + std::to_string(headerRowIndex);
+    /* write a 2D array */
+    std::vector<std::vector<std::string>> excelData;
 
-        if (!worksheet.GetObject(rangeObject, "Range", 1, &range)) {
-            pLogger->error("Could not obtain the Range object");
-            return { false, "Failed to set range (column) [" + excelColumn + "]" };
-        }
+    // Add headers as first row
+    std::vector<std::string> headerRow;
+    for (const auto& header : exportData.Headers) {
+        headerRow.push_back(header);
+    }
+    excelData.push_back(headerRow);
 
-        if (!rangeObject.PutProperty("Value", exportData.Headers[i])) {
-            pLogger->error("Failed to call PutProperty 'Value'");
-            return { false,
-                "Failed to set value \"" + exportData.Headers[i] + "\" in column [" + excelColumn +
-                    "]" };
+    // Add values
+    for (const auto& [taskId, row] : exportData.Rows) {
+        std::vector<std::string> excelRow;
+        for (const auto& value : row.Values) {
+            std::string processedValue = value;
+            mExportDataProcessor.TryApplyOptionsAndProcessExportData(processedValue);
+            excelRow.push_back(processedValue);
         }
+        excelData.push_back(excelRow);
     }
 
-    /* insert the rows data from our `SData` struct */
-    int rowIndex = 2;
-    for (auto& [taskId, row] : exportData.Rows) {
-        for (size_t i = 0; i < row.Values.size(); i++) {
-            std::string excelColumn = Utils::ToExcelColumnName(i + 1);
-            range = excelColumn + std::to_string(rowIndex);
+    for (size_t i = 0; i < excelData.size(); ++i) {
+        for (size_t j = 0; j < excelData[i].size(); ++j) {
+            SPDLOG_LOGGER_TRACE(pLogger, "Cells[{0}][{1}]", (long) i + 1, (long) j + 1);
+            wxVariant iVar = (long) i + 1;
+            wxVariant jVar = (long) j + 1;
 
-            if (!worksheet.GetObject(rangeObject, "Range", 1, &range)) {
-                pLogger->error("Could not obtain the Range object");
-                return { false, "Failed to set range (column) [" + excelColumn + "]" };
+            wxAutomationObject cellObject;
+            wxVariant cellVar = worksheet.GetProperty("Cells", iVar, jVar);
+            if (!VariantToObject(cellVar, cellObject)) {
+                pLogger->error("Could not get property Cells");
+                excelInstance.CallMethod("Quit");
+                return { false, "Failed to get Cells property of Worksheet" };
             }
 
-            std::string value = row.Values[i];
-            mExportDataProcessor.TryApplyOptionsAndProcessExportData(value);
-
-            if (!rangeObject.PutProperty("Value", value)) {
-                pLogger->error("Failed to call PutProperty 'Value'");
+            if (cellObject.PutProperty("Value", excelData[i][j])) {
+                pLogger->error("Failed to set property Cells(x,y).Value");
+                excelInstance.CallMethod("Quit");
                 return { false,
-                    "Failed to set value \"" + value + "\" in column [" + excelColumn + "]" };
+                    fmt::format("Failed to set property Cells[{0}][{1}].Value with value \"{3}\"",
+                        i,
+                        j,
+                        excelData[i][j]) };
             }
         }
-
-        rowIndex++;
     }
 
     /* save the excel to specified location */
