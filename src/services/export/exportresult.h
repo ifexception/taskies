@@ -26,5 +26,8 @@ namespace tks::Services::Export
 struct ExportResult {
     bool Success;
     std::string ErrorMessage;
+
+    static ExportResult OK();
+    static ExportResult Fail(const std::string& errorMessage);
 };
 } // namespace tks::Services::Export

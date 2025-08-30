@@ -21,4 +21,13 @@
 
 namespace tks::Services::Export
 {
+ExportResult ExportResult::OK()
+{
+    return ExportResult{ true, "" };
 }
+
+ExportResult ExportResult::Fail(const std::string& errorMessage)
+{
+    return ExportResult{ false, errorMessage };
+}
+} // namespace tks::Services::Export

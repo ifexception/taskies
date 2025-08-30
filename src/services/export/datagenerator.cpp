@@ -79,7 +79,7 @@ ExportResult DataGenerator::FillData(const std::vector<Projection>& projections,
     if (rc != 0) {
         pLogger->error("Failed to filter projected export data from generated SQL query. See "
                        "earlier logs for error detail");
-        return { false, "A database error occurred when filtering task data for export" };
+        return ExportResult::Fail("A database error occurred when filtering task data for export");
     }
 
     /* set the task row values into the `Rows` field of `SData` */
@@ -95,7 +95,7 @@ ExportResult DataGenerator::FillData(const std::vector<Projection>& projections,
         }
     }
 
-    return { true, "" };
+    return ExportResult::OK();
 }
 
 ExportResult DataGenerator::FillAttributes(const std::string& fromDate,
@@ -131,13 +131,13 @@ ExportResult DataGenerator::FillAttributes(const std::string& fromDate,
     if (rc != 0) {
         pLogger->error(
             "Failed to get attribute names for date range. See earlier logs for error detail");
-        return { false, "Failed to get task attribute names for specified date range" };
+        return ExportResult::Fail("Failed to get task attribute names for specified date range");
     }
 
     /* we have not found any attributes associated with the task or tasks so we can return */
     if (attributeNames.empty()) {
         pLogger->warn("No attribute names were found for date range. Nothing to do");
-        return { true, "" };
+        return ExportResult::OK();
     }
 
     /*
@@ -154,7 +154,7 @@ ExportResult DataGenerator::FillAttributes(const std::string& fromDate,
     if (rc != 0) {
         pLogger->error("Failed to filter attribute data from generated attribute SQL query. See "
                        "earlier logs for more detail");
-        return { false, "A database error occurred when filtering task attribute data" };
+        return ExportResult::Fail("A database error occurred when filtering task attribute data");
     }
 
     /* append the attribute names (headers) to the `SData` field `Headers` (order is important) */
@@ -198,7 +198,7 @@ ExportResult DataGenerator::FillAttributes(const std::string& fromDate,
         }
     }
 
-    return { true, "" };
+    return ExportResult::OK();
 }
 
 void DataGenerator::FillHeadersFromProjections(const std::vector<Projection>& projections,
