@@ -44,13 +44,17 @@ namespace tks::Services::Export
 {
 constexpr int xlWorkbookDefaultSaveAs = 51;
 
-struct ExcelExporterService {
+struct ExcelExporterService final {
+    ExcelExporterService() = delete;
+    ExcelExporterService(const ExcelExporterService&) = delete;
     ExcelExporterService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool includeAttributes,
         NewLines newLinesOption,
         BooleanHandler booleanHandlerOption);
     ~ExcelExporterService() = default;
+
+    ExcelExporterService& operator=(const ExcelExporterService&) = delete;
 
     ExportResult ExportToExcel(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
