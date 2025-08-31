@@ -30,7 +30,7 @@ ExcelExportProcessor::ExcelExportProcessor(NewLines newLinesOption,
 {
 }
 
-void ExcelExportProcessor::TryApplyOptionsAndProcessExportData(std::string& value)
+void ExcelExportProcessor::ProcessData(std::string& value)
 {
     TryProcessNewLines(value);
     TryProcessBooleanHandler(value);

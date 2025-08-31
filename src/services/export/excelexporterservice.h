@@ -69,6 +69,6 @@ struct ExcelExporterService final {
     std::unique_ptr<DataGenerator> pDataGenerator;
     ExcelExportProcessor mExportDataProcessor;
 
-    bool VariantToObject(const wxVariant& v, wxAutomationObject& o);
+    bool VariantToObject(const wxVariant& v, wxAutomationObject& o) const;
 };
 } // namespace tks::Services::Export

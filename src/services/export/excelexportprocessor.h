@@ -33,7 +33,7 @@ public:
 
     const ExcelExportProcessor& operator=(const ExcelExportProcessor&) = delete;
 
-    void TryApplyOptionsAndProcessExportData(std::string& value);
+    void ProcessData(std::string& value);
 
 private:
     void TryProcessNewLines(std::string& value) const;

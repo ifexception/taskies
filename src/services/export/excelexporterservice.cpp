@@ -135,7 +135,7 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
         std::vector<std::string> excelRow;
         for (const auto& value : row.Values) {
             std::string processedValue = value;
-            mExportDataProcessor.TryApplyOptionsAndProcessExportData(processedValue);
+            mExportDataProcessor.ProcessData(processedValue);
             excelRow.push_back(processedValue);
         }
         excelData.push_back(excelRow);
@@ -191,7 +191,7 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
     return ExportResult::OK();
 }
 
-bool ExcelExporterService::VariantToObject(const wxVariant& v, wxAutomationObject& o)
+bool ExcelExporterService::VariantToObject(const wxVariant& v, wxAutomationObject& o) const
 {
     wxCHECK_MSG(!o.GetDispatchPtr(), false, "o already contains an object");
 
