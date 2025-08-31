@@ -17,7 +17,7 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "csvexportmappedoptions.h"
+#include "csvmappedoptions.h"
 
 #include "../../common/enums.h"
 

@@ -23,7 +23,7 @@
 #include <sstream>
 
 #include "exportoptions.h"
-#include "csvexportmappedoptions.h"
+#include "csvmappedoptions.h"
 
 namespace tks::Services::Export
 {

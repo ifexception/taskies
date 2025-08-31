@@ -12,7 +12,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/exportoptions.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/csvexportprocessor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/csvexporterservice.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/csvexportmappedoptions.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/csvmappedoptions.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/columnexportmodel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/headervaluepair.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/exportsservice.cpp"
