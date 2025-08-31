@@ -79,8 +79,6 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
     }
 
     if (!excelInstance.PutProperty("Visible", true)) {
-        // couldn't show it, we don't want to leave the function with hidden instance of Excel still
-        // running, so we close it
         return ExportResult::Fail("Succeeded to start Excel, but failed to show it");
     }
 #endif // TKS_DEBUG
