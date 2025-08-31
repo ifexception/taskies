@@ -1408,13 +1408,14 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
     Services::Export::ExportResult result;
+    std::string exportedData = "";
+
     {
         wxBusyCursor busy;
 
         Services::Export::CsvExporterService csvExporter(
             pLogger, mExportOptions, mDatabaseFilePath, false);
 
-        std::string exportedData = "";
         result =
             csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
     }
