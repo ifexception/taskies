@@ -58,9 +58,6 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
         return result;
     }
 
-    /* begin OLE interaction, can take a while to start so wrap operation in a wxBusyCursor */
-    wxBusyCursor busyCursor;
-
     wxAutomationObject excelInstance;
     ExcelGuard excelGuard{ excelInstance };
 
