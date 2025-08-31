@@ -375,6 +375,10 @@ void ExportToCsvDialog::CreateControls()
     dateRangeStaticBoxSizer->Add(
         pWorkWeekRangeCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
+    /* Horizontal Line */
+    auto line1 = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line1, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(4)).Expand());
+
     /* Header/Columns to Export Controls sizer */
     auto dataToExportStaticBox = new wxStaticBox(this, wxID_ANY, "Data to Export");
     auto dataToExportStaticBoxSizer = new wxStaticBoxSizer(dataToExportStaticBox, wxVERTICAL);
@@ -507,8 +511,8 @@ void ExportToCsvDialog::CreateControls()
         pShowPreviewButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
 
     /* Horizontal Line */
-    auto line1 = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line1, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(4)).Expand());
+    auto line2 = new wxStaticLine(this, wxID_ANY);
+    sizer->Add(line2, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(4)).Expand());
 
     /* Export|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
