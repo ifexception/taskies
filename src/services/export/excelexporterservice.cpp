@@ -76,6 +76,11 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
     }
 
 #if TKS_DEBUG
+    if (!excelInstance.PutProperty("ScreenUpdating", false)) {
+        pLogger->error("Failed to set \"ScreenUpdating\" property to false");
+        return ExportResult::Fail("Failed to toggle off \"ScreenUpdating\" property");
+    }
+
     if (!excelInstance.PutProperty("Visible", true)) {
         // couldn't show it, we don't want to leave the function with hidden instance of Excel still
         // running, so we close it
@@ -171,6 +176,13 @@ ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& 
             }
         }
     }
+
+#if TKS_DEBUG
+    if (!excelInstance.PutProperty("ScreenUpdating", true)) {
+        pLogger->error("Failed to set \"ScreenUpdating\" property to true");
+        return ExportResult::Fail("Failed to toggle on \"ScreenUpdating\" property");
+    }
+#endif // TKS_DEBUG
 
     /* save the excel to specified location */
     wxVariant filename = saveLocation;
