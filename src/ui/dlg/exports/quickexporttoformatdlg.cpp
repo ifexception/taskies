@@ -135,11 +135,6 @@ void QuickExportToFormatDialog::CreateControls()
     /* Main sizer window */
     auto mainSizer = new wxBoxSizer(wxVERTICAL);
 
-    /* Radio static box*/
-    /*auto exportFormatStaticBox = new wxStaticBox(this, wxID_ANY, "Export Format");
-    auto exportFormatStaticBoxSizer = new wxStaticBoxSizer(exportFormatStaticBox, wxHORIZONTAL);
-    mainSizer->Add(exportFormatStaticBoxSizer, wxSizerFlags().Expand());*/
-
     /* Radio box */
     pExportFormatRadioBoxCtrl = new wxRadioBox(this,
         tksIDC_EXPORTFORMATRADIOBOXCTRL,
@@ -149,6 +144,7 @@ void QuickExportToFormatDialog::CreateControls()
         mRadioExportOptions,
         1,
         wxRA_SPECIFY_ROWS);
+    pExportFormatRadioBoxCtrl->SetToolTip("Select an export formation option");
     mainSizer->Add(pExportFormatRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Output static box (top) */
@@ -167,10 +163,11 @@ void QuickExportToFormatDialog::CreateControls()
     /* Save to file text control */
     auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
     pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
+    pSaveToFileTextCtrl->SetToolTip("Set directory location to save file to");
 
     pBrowseExportPathButton =
         new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
-    pBrowseExportPathButton->SetToolTip("Set the directory to save the exported data to");
+    pBrowseExportPathButton->SetToolTip("Set directory location to save file to");
 
     outputFlexGridSizer->AddGrowableCol(1, 1);
 
@@ -198,7 +195,7 @@ void QuickExportToFormatDialog::CreateControls()
     /* To date control */
     auto toDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "To:");
     pToDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
-    pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data from");
+    pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data to");
 
     /* Export todays tasks check box control */
     pExportTodaysTasksCheckBoxCtrl = new wxCheckBox(
@@ -208,7 +205,7 @@ void QuickExportToFormatDialog::CreateControls()
     /* Set date range to work week (i.e. Mon - Fri) */
     pWorkWeekRangeCheckBoxCtrl = new wxCheckBox(
         dateRangeStaticBox, tksIDC_WORKWEEKRANGECHECKBOXCTRL, "Export work week tasks");
-    pWorkWeekRangeCheckBoxCtrl->SetToolTip("Export only tasks logged during a work week");
+    pWorkWeekRangeCheckBoxCtrl->SetToolTip("Export only tasks logged during the current work week");
 
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -237,6 +234,7 @@ void QuickExportToFormatDialog::CreateControls()
 
     auto presetsChoiceLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Preset");
     pPresetsChoiceCtrl = new wxChoice(presetsStaticBox, tksIDC_PRESET_CHOICE_CTRL);
+    pPresetsChoiceCtrl->SetToolTip("Select an export preset to apply");
 
     presetsStaticBoxSizer->Add(
         presetsChoiceLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
