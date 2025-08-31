@@ -35,6 +35,8 @@ struct ExportOptions {
     ExportOptions();
     ~ExportOptions() = default;
 
+    ExportOptions& operator=(const ExportOptions&) = delete;
+
     void Reset();
 };
 } // namespace tks::Services::Export
