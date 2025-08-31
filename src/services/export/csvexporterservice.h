@@ -49,7 +49,7 @@ struct CsvExporterService final {
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
         const std::string& toDate,
-        /*out*/ std::string& exportedData);
+        /*out*/ std::string& exportedData) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     ExportOptions mOptions;

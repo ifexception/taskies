@@ -41,7 +41,7 @@ ExportResult CsvExporterService::ExportToCsv(const std::vector<Projection>& proj
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
-    std::string& exportedData)
+    std::string& exportedData) const
 {
     /* `SData` is our main struct to store the headers and rows */
     SData exportData;
