@@ -29,7 +29,7 @@ CsvMappedOptions::CsvMappedOptions()
 {
 }
 
-CsvMappedOptions::CsvMappedOptions(ExportOptions options)
+CsvMappedOptions::CsvMappedOptions(const ExportOptions& options)
 {
     Delimiter = MapDelimiterEnumToValue(options.Delimiter)[0];
     TextQualifier = MapTextQualifierEnumToValue(options.TextQualifier)[0];

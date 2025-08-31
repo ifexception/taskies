@@ -32,7 +32,7 @@ class CsvExportProcessor final
 public:
     CsvExportProcessor() = delete;
     CsvExportProcessor(const CsvExportProcessor&) = delete;
-    CsvExportProcessor(ExportOptions options, CsvMappedOptions mappedOptions);
+    CsvExportProcessor(const ExportOptions& options, const CsvMappedOptions& mappedOptions);
     ~CsvExportProcessor() = default;
 
     const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;

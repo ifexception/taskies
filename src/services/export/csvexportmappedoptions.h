@@ -28,7 +28,7 @@ struct CsvMappedOptions {
     char TextQualifier;
 
     CsvMappedOptions();
-    CsvMappedOptions(ExportOptions options);
+    CsvMappedOptions(const ExportOptions& options);
     ~CsvMappedOptions() = default;
 };
 } // namespace tks::Services::Export
