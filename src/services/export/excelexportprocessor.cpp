@@ -54,33 +54,28 @@ void ExcelExportProcessor::TryProcessNewLines(std::string& value) const
 
 void ExcelExportProcessor::TryProcessBooleanHandler(std::string& value) const
 {
-    if (!value.empty() && value.size() == 1) {
-        if (value == "0" || value == "1" && mBooleanHandlerOption != BooleanHandler::OneZero) {
-            if (mBooleanHandlerOption == BooleanHandler::TrueFalseLowerCase) {
-                if (value == "1") {
-                    value = "true";
-                } else if (value == "0") {
-                    value = "false";
-                }
-            } else if (mBooleanHandlerOption == BooleanHandler::YesNoLowerCase) {
-                if (value == "1") {
-                    value = "yes";
-                } else if (value == "0") {
-                    value = "no";
-                }
-            } else if (mBooleanHandlerOption == BooleanHandler::TrueFalseTitleCase) {
-                if (value == "1") {
-                    value = "True";
-                } else if (value == "0") {
-                    value = "False";
-                }
-            } else if (mBooleanHandlerOption == BooleanHandler::YesNoTitleCase) {
-                if (value == "1") {
-                    value = "Yes";
-                } else if (value == "0") {
-                    value = "No";
-                }
-            }
+    if (
+        !value.empty() &&
+        value.size() == 1 &&
+        (value == "0" || value == "1") &&
+        mBooleanHandlerOption != BooleanHandler::OneZero
+    ) {
+        switch (mBooleanHandlerOption) {
+        case BooleanHandler::TrueFalseLowerCase:
+            value = (value == "1") ? "true" : "false";
+            break;
+        case BooleanHandler::YesNoLowerCase:
+            value = (value == "1") ? "yes" : "no";
+            break;
+        case BooleanHandler::TrueFalseTitleCase:
+            value = (value == "1") ? "True" : "False";
+            break;
+        case BooleanHandler::YesNoTitleCase:
+            value = (value == "1") ? "Yes" : "No";
+            break;
+        default:
+            // leave as-is for BooleanHandler::OneZero
+            break;
         }
     }
 }
