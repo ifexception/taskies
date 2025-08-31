@@ -234,7 +234,7 @@ void QuickExportToFormatDialog::CreateControls()
 
     auto presetsChoiceLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Preset");
     pPresetsChoiceCtrl = new wxChoice(presetsStaticBox, tksIDC_PRESET_CHOICE_CTRL);
-    pPresetsChoiceCtrl->SetToolTip("Select an export preset to apply");
+    pPresetsChoiceCtrl->SetToolTip("Select an existing export preset to apply (if any)");
 
     presetsStaticBoxSizer->Add(
         presetsChoiceLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());

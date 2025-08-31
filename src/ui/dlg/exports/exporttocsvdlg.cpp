@@ -163,10 +163,11 @@ void ExportToCsvDialog::CreateControls()
     /* Save to file text control */
     auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
     pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
+    pSaveToFileTextCtrl->SetToolTip("Set directory location to save file to");
 
     pBrowseExportPathButton =
         new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
-    pBrowseExportPathButton->SetToolTip("Set the directory to save the exported data to");
+    pBrowseExportPathButton->SetToolTip("Set directory location to save file to");
 
     /* Close dialog after export check box control */
     pCloseDialogAfterExportingCheckBoxCtrl = new wxCheckBox(
@@ -179,7 +180,7 @@ void ExportToCsvDialog::CreateControls()
         TKSIDC_OPENEXPLORERINEXPORTDIRECTORYCHECKBOXCTRL,
         "Open File Explorer after exporting");
     pOpenExplorerInExportDirectoryCheckBoxCtrl->SetToolTip(
-        "Open Explorer in export directory after successful export");
+        "Open File Explorer in export directory after successful export");
 
     auto outputFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     outputStaticBoxSizer->Add(outputFlexGridSizer, wxSizerFlags().Expand());
@@ -232,6 +233,7 @@ void ExportToCsvDialog::CreateControls()
     /* Presets selection controls */
     auto presetsChoiceLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Preset");
     pPresetsChoiceCtrl = new wxChoice(presetsStaticBox, tksIDC_PRESET_CHOICE_CTRL);
+    pPresetsChoiceCtrl->SetToolTip("Select an existing export preset to apply (if any)");
 
     /* Presets flex grid sizer */
     auto presetFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -353,7 +355,7 @@ void ExportToCsvDialog::CreateControls()
     /* Set date range to work week (i.e. Mon - Fri) */
     pWorkWeekRangeCheckBoxCtrl = new wxCheckBox(
         dateRangeStaticBox, tksIDC_WORKWEEKRANGECHECKBOXCTRL, "Export work week tasks");
-    pWorkWeekRangeCheckBoxCtrl->SetToolTip("Export only tasks logged during a work week");
+    pWorkWeekRangeCheckBoxCtrl->SetToolTip("Export only tasks logged during the current work week");
 
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -361,14 +363,12 @@ void ExportToCsvDialog::CreateControls()
 
     dateControlsHorizontalSizer->Add(
         fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateControlsHorizontalSizer->Add(pFromDatePickerCtrl,
-        wxSizerFlags() /*.Border(wxLEFT, FromDIP(1))*/.Border(
-            wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+    dateControlsHorizontalSizer->Add(
+        pFromDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
     dateControlsHorizontalSizer->Add(
         toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateControlsHorizontalSizer->Add(pToDatePickerCtrl,
-        wxSizerFlags() /*.Border(wxLEFT, FromDIP(1))*/.Border(
-            wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+    dateControlsHorizontalSizer->Add(
+        pToDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
 
     dateRangeStaticBoxSizer->Add(
         pExportTodaysTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -428,7 +428,7 @@ void ExportToCsvDialog::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxDV_SINGLE | wxDV_ROW_LINES);
-    pDataViewCtrl->SetToolTip("Headers to export to a file or clipboard");
+    pDataViewCtrl->SetToolTip("Selected headers to export to a CSV file or clipboard");
     headerControlsHorizontalSizer->Add(
         pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
