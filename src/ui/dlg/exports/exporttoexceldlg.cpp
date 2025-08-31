@@ -38,6 +38,7 @@
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
 #include "../../../services/export/excelexporterservice.h"
+#include "../../../services/export/exportresult.h"
 
 #include "../../../utils/utils.h"
 
@@ -736,7 +737,7 @@ void ExportToExcelDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
     int booleanHandlerIndex = pBooleanHanderChoiceCtrl->GetSelection();
     ClientData<Common::EnumClientData<BooleanHandler>>* booleanHandlerData =
         reinterpret_cast<ClientData<Common::EnumClientData<BooleanHandler>>*>(
-        pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
+            pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
 
     mBooleanOption = booleanHandlerData->GetValue().Data;
 }
@@ -1192,12 +1193,17 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::ExcelExporterService excelExporterService(
-        pLogger, mDatabaseFilePath, bIncludeAttributes, mNewLinesOption, mBooleanOption);
+    Services::Export::ExportResult result;
+    {
+        wxBusyCursor busy;
 
-    const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
-    auto result = excelExporterService.ExportToExcel(
-        projections, joinProjections, fromDate, toDate, saveLocation);
+        Services::Export::ExcelExporterService excelExporterService(
+            pLogger, mDatabaseFilePath, bIncludeAttributes, mNewLinesOption, mBooleanOption);
+
+        const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
+        result = excelExporterService.ExportToExcel(
+            projections, joinProjections, fromDate, toDate, saveLocation);
+    }
 
     if (!result.Success) {
         std::string message = "Failed to export data to Excel";

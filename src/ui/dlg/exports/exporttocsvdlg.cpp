@@ -42,6 +42,7 @@
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
+#include "../../../services/export/exportresult.h"
 
 #include "../../../utils/utils.h"
 
@@ -1406,12 +1407,17 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::CsvExporterService csvExporter(
-        pLogger, mExportOptions, mDatabaseFilePath, false);
+    Services::Export::ExportResult result;
+    {
+        wxBusyCursor busy;
 
-    std::string exportedData = "";
-    auto result =
-        csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
+        Services::Export::CsvExporterService csvExporter(
+            pLogger, mExportOptions, mDatabaseFilePath, false);
+
+        std::string exportedData = "";
+        result =
+            csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
+    }
 
     if (!result.Success) {
         std::string message = "Failed to export data";
