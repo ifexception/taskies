@@ -523,13 +523,12 @@ void MainFrame::DataToControls()
 {
     // Set InfoBar
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        auto infoBarMessage = fmt::format("{0} {1} - v{2}.{3}.{4}-{5}",
+        auto infoBarMessage = fmt::format("{0} {1} - v{2}.{3}.{4}",
             Common::GetProgramName(),
             BuildConfigurationToString(pEnv->GetBuildConfiguration()),
             TASKIES_MAJOR,
             TASKIES_MINOR,
-            TASKIES_PATCH,
-            TASKIES_SRLC);
+            TASKIES_PATCH);
         pInfoBar->ShowMessage(infoBarMessage, wxICON_INFORMATION);
     }
 

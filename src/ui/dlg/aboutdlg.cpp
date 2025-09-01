@@ -69,7 +69,7 @@ void AboutDialog::CreateControls()
 
     /* Taskies version */
     auto version = fmt::format(
-        "Taskies v{0}.{1}.{2}-{3}", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH, TASKIES_SRLC);
+        "Taskies v{0}.{1}.{2}", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH);
     auto versionLabel = new wxStaticText(this, wxID_ANY, version);
     sizer->Add(versionLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).Center());
 

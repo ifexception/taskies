@@ -1,7 +1,6 @@
 ; -- Install Taskies --
 
-#define TaskiesVersion "0.2.6"
-#define TaskiesLifeCycle "beta"
+#define TaskiesVersion "0.2.7"
 
 [Setup]
 AppName=Taskies
@@ -10,7 +9,7 @@ AppContact=szymonwelgus at gmail dot com
 AppCopyright=Copyright (C) 2025 Szymon Welgus
 AppPublisher=Szymon Welgus
 AppId={{f106cae9-8ca1-45e2-bbad-49caf39a7a2c}
-AppVerName=Taskies {#TaskiesVersion}-{#TaskiesLifeCycle}
+AppVerName=Taskies {#TaskiesVersion}
 DefaultDirName={autopf}\Taskies
 DefaultGroupName=Taskies
 UninstallDisplayIcon={app}\Taskies.exe
@@ -18,7 +17,7 @@ WizardStyle=modern
 Compression=lzma2
 SolidCompression=yes
 OutputDir=Installer
-OutputBaseFilename=Taskies-x64.{#TaskiesVersion}-{#TaskiesLifeCycle}-Installer
+OutputBaseFilename=Taskies-x64.{#TaskiesVersion}-Installer
 LicenseFile=License
 DisableWelcomePage=no
 ArchitecturesAllowed=x64compatible
