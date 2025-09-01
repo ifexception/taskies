@@ -17,21 +17,18 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "csvexportmappedoptions.h"
+#pragma once
 
-#include "../../common/enums.h"
+#include "exportoptions.h"
 
 namespace tks::Services::Export
 {
-CsvMappedOptions::CsvMappedOptions()
-    : Delimiter(',')
-    , TextQualifier('\"')
-{
-}
+struct CsvMappedOptions {
+    char Delimiter;
+    char TextQualifier;
 
-CsvMappedOptions::CsvMappedOptions(CsvExportOptions options)
-{
-    Delimiter = MapDelimiterEnumToValue(options.Delimiter)[0];
-    TextQualifier = MapTextQualifierEnumToValue(options.TextQualifier)[0];
-}
+    CsvMappedOptions();
+    CsvMappedOptions(const ExportOptions& options);
+    ~CsvMappedOptions() = default;
+};
 } // namespace tks::Services::Export

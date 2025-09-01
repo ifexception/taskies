@@ -24,7 +24,7 @@
 namespace tks
 {
 enum class EditListEntityType {
-    Employers,
+    Employers = 1,
     Clients,
     Projects,
     Categories,
@@ -39,16 +39,16 @@ enum class BuildConfiguration { Undefined, Debug, Release };
 
 enum class NotificationType { Information = 1, Error };
 
-enum class DelimiterType : int { None = 0, Comma, Semicolon, Pipe, Tab, Space };
+enum class DelimiterType : int { None = 1, Comma, Semicolon, Pipe, Tab, Space };
 
 enum class TextQualifierType : int { None = 1, DoubleQuotes, SingleQuotes };
 
-enum class EmptyValues : int { None = 0, Blank, Null };
+enum class EmptyValues : int { None = 1, Blank, Null };
 
-enum class NewLines : int { None = 0, Preserve, Merge, MergeAndAddSpace };
+enum class NewLines : int { None = 1, Preserve, Merge, MergeAndAddSpace };
 
 enum class BooleanHandler : int {
-    None = 0,
+    None = 1,
     OneZero,
     TrueFalseLowerCase,
     YesNoLowerCase,
@@ -56,15 +56,17 @@ enum class BooleanHandler : int {
     YesNoTitleCase
 };
 
-enum class JoinType { None = 0, InnerJoin = 1, LeftJoin = 2 };
+enum class JoinType { None = 1, InnerJoin, LeftJoin };
 
-enum class FieldType { Default = 0, Formatted };
+enum class FieldType { Default = 1, Formatted };
 
 enum class TaskDurationType { Default = 1, Billable };
 
 enum class TaskDurationField { Day = 1, Week, Month, Range = 10 };
 
 enum class AttributeTypes { Text = 1, Numeric, Boolean };
+
+enum class ExportFormat { Csv = 1, Excel };
 
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string WindowStateToString(WindowState windowState);

@@ -93,39 +93,52 @@ std::string Wizard()
 } // namespace Resources
 namespace Static
 {
-std::vector<std::pair<std::string, DelimiterType>> DelimiterList()
+std::vector<EnumClientData<DelimiterType>> DelimitersList()
 {
-    auto o1 = std::make_pair(",", DelimiterType::Comma);
-    auto o2 = std::make_pair(";", DelimiterType::Semicolon);
-    auto o3 = std::make_pair("|", DelimiterType::Pipe);
-    auto o4 = std::make_pair("(tab)", DelimiterType::Tab);
-    auto o5 = std::make_pair("(space)", DelimiterType::Space);
+    EnumClientData<DelimiterType> o1(",", DelimiterType::Comma);
+    EnumClientData<DelimiterType> o2(";", DelimiterType::Semicolon);
+    EnumClientData<DelimiterType> o3("|", DelimiterType::Pipe);
+    EnumClientData<DelimiterType> o4("(tab)", DelimiterType::Tab);
+    EnumClientData<DelimiterType> o5("(space)", DelimiterType::Space);
 
-    return std::vector<std::pair<std::string, DelimiterType>>{ o1, o2, o3, o4, o5 };
+    return std::vector<EnumClientData<DelimiterType>>{ o1, o2, o3, o4, o5 };
 }
 
-std::vector<std::pair<std::string, TextQualifierType>> TextQualifierList()
+std::vector<EnumClientData<TextQualifierType>> TextQualifiersList()
 {
-    auto o1 = std::make_pair("(none)", TextQualifierType::None);
-    auto o2 = std::make_pair("\"", TextQualifierType::DoubleQuotes);
-    auto o3 = std::make_pair("'", TextQualifierType::SingleQuotes);
+    EnumClientData<TextQualifierType> o1("(none)", TextQualifierType::None);
+    EnumClientData<TextQualifierType> o2("\"", TextQualifierType::DoubleQuotes);
+    EnumClientData<TextQualifierType> o3("'", TextQualifierType::SingleQuotes);
 
-    return std::vector<std::pair<std::string, TextQualifierType>>{ o1, o2, o3 };
+    return std::vector<EnumClientData<TextQualifierType>>{ o1, o2, o3 };
 }
 
-std::vector<std::string> EmptyValueHandlerList()
+std::vector<EnumClientData<EmptyValues>> EmptyValuesList()
 {
-    return std::vector<std::string>{ "(blank)", "NULL" };
+    EnumClientData<EmptyValues> o1("(blank)", EmptyValues::Blank);
+    EnumClientData<EmptyValues> o2("NULL", EmptyValues::Null);
+
+    return std::vector<EnumClientData<EmptyValues>>{ o1, o2 };
 }
 
-std::vector<std::string> NewLinesHandlerList()
+std::vector<EnumClientData<NewLines>> NewLinesList()
 {
-    return std::vector<std::string>{ "Preserve", "Merge", "Merge (add space)" };
+    EnumClientData<NewLines> o1("Preserve", NewLines::Preserve);
+    EnumClientData<NewLines> o2("Merge", NewLines::Merge);
+    EnumClientData<NewLines> o3("Merge (add space)", NewLines::MergeAndAddSpace);
+
+    return std::vector<EnumClientData<NewLines>>{ o1, o2, o3 };
 }
 
-std::vector<std::string> BooleanHandlerList()
+std::vector<EnumClientData<BooleanHandler>> BooleanHandlerList()
 {
-    return std::vector<std::string>{ "1|0", "true|false", "yes|no", "True|False", "Yes|No" };
+    EnumClientData<BooleanHandler> o1("1|0", BooleanHandler::OneZero);
+    EnumClientData<BooleanHandler> o2("true|false", BooleanHandler::TrueFalseLowerCase);
+    EnumClientData<BooleanHandler> o3("yes|no", BooleanHandler::YesNoLowerCase);
+    EnumClientData<BooleanHandler> o4("True|False", BooleanHandler::TrueFalseTitleCase);
+    EnumClientData<BooleanHandler> o5("Yes|No", BooleanHandler::YesNoTitleCase);
+
+    return std::vector<EnumClientData<BooleanHandler>>{ o1, o2, o3, o4, o5 };
 }
 } // namespace Static
 } // namespace tks::Common

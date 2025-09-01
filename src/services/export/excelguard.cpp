@@ -17,18 +17,19 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#pragma once
-
-#include "csvexportoptions.h"
+#include "excelguard.h"
 
 namespace tks::Services::Export
 {
-struct CsvMappedOptions {
-    char Delimiter;
-    char TextQualifier;
+ExcelGuard::~ExcelGuard()
+{
+    if (bIsActive) {
+        mExcelInstance.CallMethod("Quit");
+    }
+}
 
-    CsvMappedOptions();
-    CsvMappedOptions(CsvExportOptions options);
-    ~CsvMappedOptions() = default;
-};
+void ExcelGuard::Dispose()
+{
+    bIsActive = false;
+}
 } // namespace tks::Services::Export

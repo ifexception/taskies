@@ -156,11 +156,41 @@ std::string Uuid()
     return res;
 }
 
+std::vector<std::string> Split(std::string s, std::string delimiter)
+{
+    size_t pos_start = 0, pos_end, delimiter_len = delimiter.length();
+    std::string token;
+    std::vector<std::string> res;
+
+    while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+        token = s.substr(pos_start, pos_end - pos_start);
+        pos_start = pos_end + delimiter_len;
+        res.push_back(token);
+    }
+
+    res.push_back(s.substr(pos_start));
+    return res;
+}
+
 int ConvertMinutesToMilliseconds(const int valueInMinutes)
 {
     const int multiplier = 60000;
     int valueInMilliseconds = valueInMinutes * multiplier;
     return valueInMilliseconds;
+}
+
+std::string ToExcelColumnName(int columnNumber)
+{
+    std::string columnName = "";
+
+    while (columnNumber > 0) {
+        int modulo = (columnNumber - 1) % 26;
+        char name = 'A' + modulo;
+        columnName = std::string{name} + columnName;
+        columnNumber = (columnNumber - modulo) / 26;
+    }
+
+    return columnName;
 }
 
 std::string FormatSqlSearchTerm(const std::string& source)

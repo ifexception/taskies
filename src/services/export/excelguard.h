@@ -17,29 +17,23 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "csvexportoptions.h"
+#pragma once
+
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
+#include <wx/msw/ole/automtn.h>
 
 namespace tks::Services::Export
 {
-CsvExportOptions::CsvExportOptions()
-    : Delimiter(DelimiterType::Comma)
-    , TextQualifier(TextQualifierType::DoubleQuotes)
-    , EmptyValuesHandler(EmptyValues::Blank)
-    , NewLinesHandler(NewLines::Merge)
-    , BooleanHandler(BooleanHandler::OneZero)
-    , ExcludeHeaders(false)
-    , IncludeAttributes(false)
-{
-}
+struct ExcelGuard final {
+    ~ExcelGuard();
 
-void CsvExportOptions::Reset()
-{
-    Delimiter = DelimiterType::Comma;
-    TextQualifier = TextQualifierType::DoubleQuotes;
-    EmptyValuesHandler = EmptyValues::Blank;
-    NewLinesHandler = NewLines::Merge;
-    BooleanHandler = BooleanHandler::OneZero;
-    ExcludeHeaders = false;
-    IncludeAttributes = false;
-}
+    void Dispose();
+
+    wxAutomationObject& mExcelInstance;
+    bool bIsActive = true;
+};
 } // namespace tks::Services::Export

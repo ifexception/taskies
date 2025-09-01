@@ -45,7 +45,7 @@ public:
         const std::shared_ptr<spdlog::logger> logger);
     ~ExportsService();
 
-    int FilterExportCsvData(const std::string& sql,
+    int FilterExportDataFromGeneratedSql(const std::string& sql,
         const std::size_t valueCount,
         /*out*/ std::unordered_map<std::int64_t, Row<std::string>>& rows) const;
 

@@ -32,7 +32,7 @@
 #include "../utils/utils.h"
 
 #include "dlg/preferences/preferencesdlg.h"
-#include "dlg/exports/quickexporttocsvdlg.h"
+#include "dlg/exports/quickexporttoformatdlg.h"
 #include "dlg/taskdlg.h"
 
 namespace tks::UI
@@ -69,9 +69,9 @@ void TaskBarIcon::ConfigureEventBindings()
 
     Bind(
         wxEVT_MENU,
-        &TaskBarIcon::OnQuickExportToCsv,
+        &TaskBarIcon::OnQuickExport,
         this,
-        tksIDC_MENU_QUICKEXPORTTOCSV
+        tksIDC_MENU_QUICKEXPORT
     );
 
     Bind(
@@ -108,9 +108,8 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 
     menu->AppendSeparator();
 
-    auto quickExportMenuItem = menu->Append(tksIDC_MENU_QUICKEXPORTTOCSV,
-        "Q&uick Export to CSV",
-        "Export selected data to CSV format using existing presets");
+    auto quickExportMenuItem = menu->Append(
+        tksIDC_MENU_QUICKEXPORT, "&Quick Export", "Export tasks data to CSV or Excel");
 
     wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
     quickExportMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(quickExportBundle));
@@ -138,11 +137,10 @@ void TaskBarIcon::OnNewTask(wxCommandEvent& WXUNUSED(event))
     newTaskDialog.ShowModal();
 }
 
-void TaskBarIcon::OnQuickExportToCsv(wxCommandEvent& WXUNUSED(event))
+void TaskBarIcon::OnQuickExport(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::QuickExportToCsvDialog quickExportToCsvDialog(
-        pParent, pCfg, pLogger, mDatabaseFilePath);
-    quickExportToCsvDialog.ShowModal();
+    dlg::QuickExportToFormatDialog quickExportToDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
+    quickExportToDialog.ShowModal();
 }
 
 void TaskBarIcon::OnPreferences(wxCommandEvent& WXUNUSED(event))

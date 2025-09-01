@@ -17,15 +17,10 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "exporttocsvdlg.h"
+#include "exporttoexceldlg.h"
 
 #include <algorithm>
 
-#include <date/date.h>
-
-#include <fmt/format.h>
-
-#include <wx/clipbrd.h>
 #include <wx/dirdlg.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
@@ -37,11 +32,12 @@
 #include "../../../common/enumclientdata.h"
 
 #include "../../../services/export/availablecolumns.h"
-#include "../../../services/export/csvexporterservice.h"
+#include "../../../services/export/exportoptions.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
+#include "../../../services/export/excelexporterservice.h"
 #include "../../../services/export/exportresult.h"
 
 #include "../../../utils/utils.h"
@@ -69,14 +65,14 @@ wxDateTime MakeMaximumFromDate()
 
 namespace tks::UI::dlg
 {
-ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
+ExportToExcelDialog::ExportToExcelDialog(wxWindow* parent,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databasePath,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          "Export to CSV",
+          "Export to Excel",
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
@@ -86,16 +82,16 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pLogger(logger)
     , mDatabaseFilePath(databasePath)
     , pDateStore(nullptr)
-    , pDelimiterChoiceCtrl(nullptr)
-    , pTextQualifierChoiceCtrl(nullptr)
-    , pEmptyValueHandlerChoiceCtrl(nullptr)
-    , pNewLinesHandlerChoiceCtrl(nullptr)
-    , pBooleanHanderChoiceCtrl(nullptr)
-    , pExportToClipboardCheckBoxCtrl(nullptr)
     , pSaveToFileTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
+    , pCloseDialogAfterExportingCheckBoxCtrl(nullptr)
+    , pOpenExplorerInExportDirectoryCheckBoxCtrl(nullptr)
+    , pNewLinesHandlerChoiceCtrl(nullptr)
+    , pBooleanHanderChoiceCtrl(nullptr)
     , pFromDatePickerCtrl(nullptr)
     , pToDatePickerCtrl(nullptr)
+    , pExportTodaysTasksCheckBoxCtrl(nullptr)
+    , pWorkWeekRangeCheckBoxCtrl(nullptr)
     , pPresetNameTextCtrl(nullptr)
     , pPresetIsDefaultCheckBoxCtrl(nullptr)
     , pPresetSaveButton(nullptr)
@@ -105,20 +101,21 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
     , pDataViewCtrl(nullptr)
+    , pExportColumnListModel(nullptr)
     , pUpButton(nullptr)
     , pDownButton(nullptr)
-    , pExcludeHeadersCheckBoxCtrl(nullptr)
     , pIncludeAttributesCheckBoxCtrl(nullptr)
-    , pDataExportPreviewTextCtrl(nullptr)
-    , pShowPreviewButton(nullptr)
     , pExportButton(nullptr)
     , pCancelButton(nullptr)
     , mFromDate()
     , mToDate()
-    , mExportOptions()
-    , bExportToClipboard(false)
+    , mSelectedItemIndexes()
+    , mItemToSort()
     , bOpenExplorerInExportDirectory(false)
     , bExportTodaysTasksOnly(false)
+    , bIncludeAttributes(false)
+    , mNewLinesOption(NewLines::None)
+    , mBooleanOption(BooleanHandler::OneZero)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -127,21 +124,20 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
 
     Create();
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
-        SetSize(FromDIP(wxSize(500, 700)));
+        SetSize(FromDIP(wxSize(480, 600)));
     }
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 }
-
-void ExportToCsvDialog::Create()
+void ExportToExcelDialog::Create()
 {
     CreateControls();
     FillControls();
     ConfigureEventBindings();
 }
 
-void ExportToCsvDialog::CreateControls()
+void ExportToExcelDialog::CreateControls()
 {
     /* Main Window Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
@@ -155,23 +151,19 @@ void ExportToCsvDialog::CreateControls()
     outputAndPresetHorizontalSizer->Add(
         outputStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    /* Export to clipboard checkbox control */
-    pExportToClipboardCheckBoxCtrl =
-        new wxCheckBox(outputStaticBox, tksIDC_COPY_TO_CLIPBOARD_CTRL, "Copy to clipboard");
-    pExportToClipboardCheckBoxCtrl->SetToolTip("Exported data will be copied to the clipboard");
-
     /* Save to file text control */
     auto saveToFileLabel = new wxStaticText(outputStaticBox, wxID_ANY, "Save to File");
-    pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVE_TO_FILE_CTRL, wxEmptyString);
+    pSaveToFileTextCtrl = new wxTextCtrl(outputStaticBox, tksIDC_SAVETOFILETEXTCTRL, wxEmptyString);
     pSaveToFileTextCtrl->SetToolTip("Set directory location to save file to");
 
     pBrowseExportPathButton =
-        new wxButton(outputStaticBox, tksIDC_BROWSE_EXPORT_PATH_CTRL, "Browse...");
+        new wxButton(outputStaticBox, tksIDC_BROWSEEXPORTPATHBUTTON, "Browse...");
     pBrowseExportPathButton->SetToolTip("Set directory location to save file to");
 
     /* Close dialog after export check box control */
-    pCloseDialogAfterExportingCheckBoxCtrl = new wxCheckBox(
-        outputStaticBox, tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL, "Close dialog after exporting");
+    pCloseDialogAfterExportingCheckBoxCtrl = new wxCheckBox(outputStaticBox,
+        tksIDC_CLOSEDIALOGAFTEREXPORTINGCHECKBOXCTRL,
+        "Close dialog after exporting");
     pCloseDialogAfterExportingCheckBoxCtrl->SetToolTip(
         "The dialog will close automatically after a successful export");
 
@@ -187,9 +179,6 @@ void ExportToCsvDialog::CreateControls()
 
     outputFlexGridSizer->AddGrowableCol(1, 1);
 
-    outputFlexGridSizer->Add(0, 0);
-    outputFlexGridSizer->Add(
-        pExportToClipboardCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(2)));
     outputFlexGridSizer->Add(
         saveToFileLabel, wxSizerFlags().Border(wxALL, FromDIP(2)).CenterVertical());
     outputFlexGridSizer->Add(
@@ -214,25 +203,25 @@ void ExportToCsvDialog::CreateControls()
     auto presetNameLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Name");
 
     /* Preset name text control */
-    pPresetNameTextCtrl = new wxTextCtrl(presetsStaticBox, tksIDC_PRESET_NAME_TEXT_CTRL, "");
+    pPresetNameTextCtrl = new wxTextCtrl(presetsStaticBox, tksIDC_PRESETNAMETEXTCTRL, "");
     pPresetNameTextCtrl->SetHint("Preset name");
     pPresetNameTextCtrl->SetToolTip("Name of the preset");
 
     /* Preset is default checkbox control */
     pPresetIsDefaultCheckBoxCtrl =
-        new wxCheckBox(presetsStaticBox, tksIDC_PRESET_IS_DEFAULT_CTRL, "Is Default");
+        new wxCheckBox(presetsStaticBox, tksIDC_PRESETISDEFAULTCHECKBOXCTRL, "Is Default");
     pPresetIsDefaultCheckBoxCtrl->SetToolTip(
         "A default preset will be selected and applied automatically");
 
-    pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESET_SAVE_BUTTON, "Save");
+    pPresetSaveButton = new wxButton(presetsStaticBox, tksIDC_PRESETSAVEBUTTON, "Save");
     pPresetSaveButton->SetToolTip("Create new or update existing preset");
 
-    pPresetResetButton = new wxButton(presetsStaticBox, tksIDC_PRESET_RESET_BUTTON, "Reset");
+    pPresetResetButton = new wxButton(presetsStaticBox, tksIDC_PRESETRESETBUTTON, "Reset");
     pPresetResetButton->SetToolTip("Reset all options to their defaults");
 
     /* Presets selection controls */
     auto presetsChoiceLabel = new wxStaticText(presetsStaticBox, wxID_ANY, "Preset");
-    pPresetsChoiceCtrl = new wxChoice(presetsStaticBox, tksIDC_PRESET_CHOICE_CTRL);
+    pPresetsChoiceCtrl = new wxChoice(presetsStaticBox, tksIDC_PRESETCHOICECTRL);
     pPresetsChoiceCtrl->SetToolTip("Select an existing export preset to apply (if any)");
 
     /* Presets flex grid sizer */
@@ -281,21 +270,6 @@ void ExportToCsvDialog::CreateControls()
 
     optionsFlexGridSizer->AddGrowableCol(1, 1);
 
-    /* Delimiter choice control */
-    auto delimiterLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Delimiter");
-    pDelimiterChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_DELIMITER_CTRL);
-    pDelimiterChoiceCtrl->SetToolTip("Set the field separator character");
-
-    /* Text qualifiers choice control */
-    auto textQualifierLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Text Qualifier");
-    pTextQualifierChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_TEXT_QUALIFIER_CTRL);
-    pTextQualifierChoiceCtrl->SetToolTip("Set the text qualifier for field values");
-
-    /* Empty values choice control */
-    auto emptyValuesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Empty Values");
-    pEmptyValueHandlerChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_EMPTY_VALUE_HANDLER_CTRL);
-    pEmptyValueHandlerChoiceCtrl->SetToolTip("Set how to handle empty or blank field values");
-
     /* New lines choice control */
     auto newLinesLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "New Lines");
     pNewLinesHandlerChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_NEW_LINES_HANDLER_CTRL);
@@ -305,21 +279,6 @@ void ExportToCsvDialog::CreateControls()
     auto booleanHandlerLabel = new wxStaticText(optionsStaticBox, wxID_ANY, "Booleans");
     pBooleanHanderChoiceCtrl = new wxChoice(optionsStaticBox, tksIDC_BOOLEAN_HANDLER_CTRL);
     pBooleanHanderChoiceCtrl->SetToolTip("Set how to handle boolean field values");
-
-    optionsFlexGridSizer->Add(
-        delimiterLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    optionsFlexGridSizer->Add(
-        pDelimiterChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    optionsFlexGridSizer->Add(
-        textQualifierLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    optionsFlexGridSizer->Add(
-        pTextQualifierChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    optionsFlexGridSizer->Add(
-        emptyValuesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    optionsFlexGridSizer->Add(
-        pEmptyValueHandlerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     optionsFlexGridSizer->Add(
         newLinesLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
@@ -339,12 +298,12 @@ void ExportToCsvDialog::CreateControls()
 
     /* From date control */
     auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
-    pFromDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_FROM_CTRL);
+    pFromDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_FROMDATEPICKERCTRL);
     pFromDatePickerCtrl->SetToolTip("Set the earliest inclusive date to export the data from");
 
     /* To date control */
     auto toDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "To: ");
-    pToDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
+    pToDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_TODATEPICKERCTRL);
     pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data from");
 
     /* Export todays tasks check box control */
@@ -391,7 +350,7 @@ void ExportToCsvDialog::CreateControls()
 
     /* Default headers list view controls */
     pAvailableColumnsListView = new wxListView(dataToExportStaticBox,
-        tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
+        tksIDC_AVAILABLECOLUMNSLISTVIEW,
         wxDefaultPosition,
         wxDefaultSize,
         wxLC_SINGLE_SEL | wxLC_REPORT | wxLC_HRULES);
@@ -413,11 +372,11 @@ void ExportToCsvDialog::CreateControls()
     headerControlsHorizontalSizer->Add(chevronButtonSizer, wxSizerFlags());
 
     pRightChevronButton = new wxButton(
-        dataToExportStaticBox, tksIDC_RIGHT_CHEV_CTRL, ">", wxDefaultPosition, wxSize(32, -1));
-    pRightChevronButton->SetToolTip("Select a header to include in the export");
+        dataToExportStaticBox, tksIDC_RIGHTCHEVRONBUTTON, ">", wxDefaultPosition, wxSize(32, -1));
+    pRightChevronButton->SetToolTip("Select a header to include in export");
     pLeftChevronButton = new wxButton(
-        dataToExportStaticBox, tksIDC_LEFT_CHEV_CTRL, "<", wxDefaultPosition, wxSize(32, -1));
-    pLeftChevronButton->SetToolTip("Select a header to exclude in the export");
+        dataToExportStaticBox, tksIDC_LEFTCHEVRONBUTTON, "<", wxDefaultPosition, wxSize(32, -1));
+    pLeftChevronButton->SetToolTip("Select a header to exclude from export");
 
     chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
@@ -428,7 +387,7 @@ void ExportToCsvDialog::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxDV_SINGLE | wxDV_ROW_LINES);
-    pDataViewCtrl->SetToolTip("Selected headers to export to a CSV file or clipboard");
+    pDataViewCtrl->SetToolTip("Selected headers to export to an Excel file");
     headerControlsHorizontalSizer->Add(
         pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
@@ -467,48 +426,20 @@ void ExportToCsvDialog::CreateControls()
     headerControlsHorizontalSizer->Add(upDownButtonSizer, wxSizerFlags());
 
     /* Up|Down Buttons */
-    pUpButton = new wxButton(dataToExportStaticBox, tksIDC_UP_BUTTON, "Up");
+    pUpButton = new wxButton(dataToExportStaticBox, tksIDC_UPBUTTON, "Up");
     pUpButton->SetToolTip("Move the selected header up");
-    pDownButton = new wxButton(dataToExportStaticBox, tksIDC_DOWN_BUTTON, "Down");
+    pDownButton = new wxButton(dataToExportStaticBox, tksIDC_DOWNBUTTON, "Down");
     pDownButton->SetToolTip("Move the selected header down");
 
     upDownButtonSizer->Add(pUpButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     upDownButtonSizer->Add(pDownButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
 
     /* Export checkbox options */
-    pExcludeHeadersCheckBoxCtrl =
-        new wxCheckBox(dataToExportStaticBox, tksIDC_EXCLUDE_HEADERS_CTRL, "Exclude Headers");
-    pExcludeHeadersCheckBoxCtrl->SetToolTip("Headers are excluded from the CSV export");
-    dataToExportStaticBoxSizer->Add(
-        pExcludeHeadersCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
     pIncludeAttributesCheckBoxCtrl = new wxCheckBox(
         dataToExportStaticBox, tksIDC_INCLUDEATTRIBUTESCHECKBOXCTRL, "Include Attributes");
-    pIncludeAttributesCheckBoxCtrl->SetToolTip("Include task attributes in the CSV export");
+    pIncludeAttributesCheckBoxCtrl->SetToolTip("Include task attributes in the export");
     dataToExportStaticBoxSizer->Add(
         pIncludeAttributesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    /* Data Preview sizer and controls */
-    auto dataPreviewStaticBox = new wxStaticBox(this, wxID_ANY, "Preview");
-    auto dataPreviewStaticBoxSizer = new wxStaticBoxSizer(dataPreviewStaticBox, wxVERTICAL);
-    sizer->Add(dataPreviewStaticBoxSizer, wxSizerFlags().Expand().Border(wxALL, FromDIP(4)));
-
-    /* Data export preview text control */
-    pDataExportPreviewTextCtrl = new wxTextCtrl(dataPreviewStaticBox,
-        tksIDC_DATA_EXPORT_PREVIEW_CTRL,
-        wxEmptyString,
-        wxDefaultPosition,
-        wxDefaultSize,
-        wxTE_READONLY | wxTE_MULTILINE);
-    dataPreviewStaticBoxSizer->Add(
-        pDataExportPreviewTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    pShowPreviewButton =
-        new wxButton(dataPreviewStaticBox, tksIDC_SHOW_PREVIEW_BUTTON, "Show Preview");
-    pShowPreviewButton->SetToolTip("Show a preview of the data to be exported");
-
-    dataPreviewStaticBoxSizer->Add(
-        pShowPreviewButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
@@ -520,7 +451,7 @@ void ExportToCsvDialog::CreateControls()
 
     buttonsSizer->AddStretchSpacer();
 
-    pExportButton = new wxButton(this, tksIDC_EXPORT_BUTTON, "Export");
+    pExportButton = new wxButton(this, tksIDC_EXPORTBUTTON, "Export");
     pExportButton->SetDefault();
     pExportButton->SetFocus();
 
@@ -532,40 +463,25 @@ void ExportToCsvDialog::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-void ExportToCsvDialog::FillControls()
+void ExportToExcelDialog::FillControls()
 {
     /* Export File Controls */
     auto saveToFile = fmt::format(
-        "{0}\\taskies-export-{1}.csv", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
+        "{0}\\taskies-export-{1}.xlsx", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
     pSaveToFileTextCtrl->ChangeValue(saveToFile);
     pSaveToFileTextCtrl->SetToolTip(saveToFile);
 
-    pDelimiterChoiceCtrl->Append("Please select", new ClientData<int>(-1));
-    pDelimiterChoiceCtrl->SetSelection(0);
+    /* Dialog options */
+    pCloseDialogAfterExportingCheckBoxCtrl->SetValue(pCfg->CloseExportDialogAfterExporting());
 
-    auto delimiters = Common::Static::DelimitersList();
-    for (auto i = 0; i < delimiters.size(); i++) {
-        pDelimiterChoiceCtrl->Append(delimiters[i].Value,
-            new ClientData<Common::EnumClientData<DelimiterType>>(delimiters[i]));
-    }
+    /* Date Controls */
+    SetFromAndToDatePickerRanges();
 
-    pTextQualifierChoiceCtrl->Append("Please select", new ClientData<int>(-1));
-    pTextQualifierChoiceCtrl->SetSelection(0);
+    SetFromDateAndDatePicker();
+    SetToDateAndDatePicker();
 
-    auto textQualifiers = Common::Static::TextQualifiersList();
-    for (auto i = 0; i < textQualifiers.size(); i++) {
-        pTextQualifierChoiceCtrl->Append(textQualifiers[i].Value,
-            new ClientData<Common::EnumClientData<TextQualifierType>>(textQualifiers[i]));
-    }
-
-    pEmptyValueHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
-    pEmptyValueHandlerChoiceCtrl->SetSelection(0);
-
-    auto emptyValues = Common::Static::EmptyValuesList();
-    for (auto i = 0; i < emptyValues.size(); i++) {
-        pEmptyValueHandlerChoiceCtrl->Append(emptyValues[i].Value,
-            new ClientData<Common::EnumClientData<EmptyValues>>(emptyValues[i]));
-    }
+    pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
+    pNewLinesHandlerChoiceCtrl->SetSelection(0);
 
     pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
     pNewLinesHandlerChoiceCtrl->SetSelection(0);
@@ -584,15 +500,6 @@ void ExportToCsvDialog::FillControls()
         pBooleanHanderChoiceCtrl->Append(booleanHandlers[i].Value,
             new ClientData<Common::EnumClientData<BooleanHandler>>(booleanHandlers[i]));
     }
-
-    /* Dialog options */
-    pCloseDialogAfterExportingCheckBoxCtrl->SetValue(pCfg->CloseExportDialogAfterExporting());
-
-    /* Date Controls */
-    SetFromAndToDatePickerRanges();
-
-    SetFromDateAndDatePicker();
-    SetToDateAndDatePicker();
 
     /* Available Columns */
     for (auto& column : Services::Export::MakeAvailableColumns()) {
@@ -618,278 +525,170 @@ void ExportToCsvDialog::FillControls()
 }
 
 // clang-format off
-void ExportToCsvDialog::ConfigureEventBindings()
+void ExportToExcelDialog::ConfigureEventBindings()
 {
-    pExportToClipboardCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnExportToClipboardCheck,
-        this,
-        tksIDC_COPY_TO_CLIPBOARD_CTRL
-    );
-
     pCloseDialogAfterExportingCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnCloseDialogAfterExportingCheck,
+        &ExportToExcelDialog::OnCloseDialogAfterExportingCheck,
         this,
-        tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL
+        tksIDC_CLOSEDIALOGAFTEREXPORTINGCHECKBOXCTRL
     );
 
     pOpenExplorerInExportDirectoryCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnOpenExplorerInExportDirectoryCheck,
+        &ExportToExcelDialog::OnOpenExplorerInExportDirectoryCheck,
         this,
         TKSIDC_OPENEXPLORERINEXPORTDIRECTORYCHECKBOXCTRL
     );
 
     pBrowseExportPathButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation,
+        &ExportToExcelDialog::OnOpenDirectoryForSaveToFileLocation,
         this,
-        tksIDC_BROWSE_EXPORT_PATH_CTRL
-    );
-
-    pDelimiterChoiceCtrl->Bind(
-        wxEVT_CHOICE,
-        &ExportToCsvDialog::OnDelimiterChoiceSelection,
-        this
-    );
-
-    pTextQualifierChoiceCtrl->Bind(
-        wxEVT_CHOICE,
-        &ExportToCsvDialog::OnTextQualifierChoiceSelection,
-        this
-    );
-
-    pEmptyValueHandlerChoiceCtrl->Bind(
-        wxEVT_CHOICE,
-        &ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection,
-        this
+        tksIDC_BROWSEEXPORTPATHBUTTON
     );
 
     pNewLinesHandlerChoiceCtrl->Bind(
         wxEVT_CHOICE,
-        &ExportToCsvDialog::OnNewLinesHandlerChoiceSelection,
+        &ExportToExcelDialog::OnNewLinesHandlerChoiceSelection,
         this
     );
 
     pBooleanHanderChoiceCtrl->Bind(
         wxEVT_CHOICE,
-        &ExportToCsvDialog::OnBooleanHandlerChoiceSelection,
+        &ExportToExcelDialog::OnBooleanHandlerChoiceSelection,
         this
     );
 
     pFromDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
-        &ExportToCsvDialog::OnFromDateSelection,
+        &ExportToExcelDialog::OnFromDateSelection,
         this,
-        tksIDC_DATE_FROM_CTRL
+        tksIDC_FROMDATEPICKERCTRL
     );
 
     pToDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
-        &ExportToCsvDialog::OnToDateSelection,
+        &ExportToExcelDialog::OnToDateSelection,
         this,
-        tksIDC_DATE_TO_CTRL
+        tksIDC_TODATEPICKERCTRL
     );
 
     pExportTodaysTasksCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnExportTodaysTasksOnlyCheck,
+        &ExportToExcelDialog::OnExportTodaysTasksOnlyCheck,
         this,
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL
     );
 
     pWorkWeekRangeCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnWorkWeekRangeCheck,
+        &ExportToExcelDialog::OnWorkWeekRangeCheck,
         this,
         tksIDC_WORKWEEKRANGECHECKBOXCTRL
     );
 
     pPresetSaveButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnSavePreset,
+        &ExportToExcelDialog::OnSavePreset,
         this,
-        tksIDC_PRESET_SAVE_BUTTON
+        tksIDC_PRESETSAVEBUTTON
     );
 
     pPresetResetButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnResetPreset,
+        &ExportToExcelDialog::OnResetPreset,
         this,
-        tksIDC_PRESET_RESET_BUTTON
+        tksIDC_PRESETRESETBUTTON
     );
 
     pPresetsChoiceCtrl->Bind(
         wxEVT_CHOICE,
-        &ExportToCsvDialog::OnPresetChoice,
+        &ExportToExcelDialog::OnPresetChoice,
         this,
-        tksIDC_PRESET_CHOICE_CTRL
+        tksIDC_PRESETCHOICECTRL
     );
 
     pAvailableColumnsListView->Bind(
         wxEVT_LIST_ITEM_CHECKED,
-        &ExportToCsvDialog::OnAvailableColumnItemCheck,
+        &ExportToExcelDialog::OnAvailableColumnItemCheck,
         this,
-        tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL
+        tksIDC_AVAILABLECOLUMNSLISTVIEW
     );
 
     pAvailableColumnsListView->Bind(
         wxEVT_LIST_ITEM_UNCHECKED,
-        &ExportToCsvDialog::OnAvailableColumnItemUncheck,
+        &ExportToExcelDialog::OnAvailableColumnItemUncheck,
         this,
-        tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL
+        tksIDC_AVAILABLECOLUMNSLISTVIEW
     );
 
     pRightChevronButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnAddAvailableColumnToExportColumnListView,
+        &ExportToExcelDialog::OnAddAvailableColumnToExportColumnListView,
         this,
-        tksIDC_RIGHT_CHEV_CTRL
+        tksIDC_RIGHTCHEVRONBUTTON
     );
 
     pLeftChevronButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnRemoveExportColumnToAvailableColumnList,
+        &ExportToExcelDialog::OnRemoveExportColumnToAvailableColumnList,
         this,
-        tksIDC_LEFT_CHEV_CTRL
+        tksIDC_LEFTCHEVRONBUTTON
     );
 
     pDataViewCtrl->Bind(
         wxEVT_DATAVIEW_ITEM_EDITING_STARTED,
-        &ExportToCsvDialog::OnExportColumnEditingStart,
+        &ExportToExcelDialog::OnExportColumnEditingStart,
         this,
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
     );
 
     pDataViewCtrl->Bind(
         wxEVT_DATAVIEW_ITEM_EDITING_DONE,
-        &ExportToCsvDialog::OnExportColumnEditingDone,
+        &ExportToExcelDialog::OnExportColumnEditingDone,
         this,
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
     );
 
     pDataViewCtrl->Bind(
         wxEVT_DATAVIEW_SELECTION_CHANGED,
-        &ExportToCsvDialog::OnExportColumnSelectionChanged,
+        &ExportToExcelDialog::OnExportColumnSelectionChanged,
         this,
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL
     );
 
     pUpButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnUpButtonSort,
+        &ExportToExcelDialog::OnUpButtonSort,
         this,
-        tksIDC_UP_BUTTON
+        tksIDC_UPBUTTON
     );
 
     pDownButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnDownButtonSort,
+        &ExportToExcelDialog::OnDownButtonSort,
         this,
-        tksIDC_DOWN_BUTTON
-    );
-
-    pExcludeHeadersCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnExcludeHeadersCheck,
-        this,
-        tksIDC_EXCLUDE_HEADERS_CTRL
+        tksIDC_DOWNBUTTON
     );
 
     pIncludeAttributesCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnIncludeAttributesCheck,
+        &ExportToExcelDialog::OnIncludeAttributesCheck,
         this,
         tksIDC_INCLUDEATTRIBUTESCHECKBOXCTRL
     );
 
-    pShowPreviewButton->Bind(
-        wxEVT_BUTTON,
-        &ExportToCsvDialog::OnShowPreview,
-        this,
-        tksIDC_SHOW_PREVIEW_BUTTON
-    );
-
     pExportButton->Bind(
         wxEVT_BUTTON,
-        &ExportToCsvDialog::OnExport,
+        &ExportToExcelDialog::OnExport,
         this,
-        tksIDC_EXPORT_BUTTON
+        tksIDC_EXPORTBUTTON
     );
 }
 // clang-format on
 
-void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
-{
-    auto choice = event.GetString();
-    int delimiterIndex = pDelimiterChoiceCtrl->GetSelection();
-    ClientData<Common::EnumClientData<DelimiterType>>* delimiterData =
-        reinterpret_cast<ClientData<Common::EnumClientData<DelimiterType>>*>(
-            pDelimiterChoiceCtrl->GetClientObject(delimiterIndex));
-
-    mExportOptions.Delimiter = delimiterData->GetValue().Data;
-}
-
-void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
-{
-    auto choice = event.GetString();
-    int textQualifierIndex = pTextQualifierChoiceCtrl->GetSelection();
-    ClientData<Common::EnumClientData<TextQualifierType>>* textQualifierData =
-        reinterpret_cast<ClientData<Common::EnumClientData<TextQualifierType>>*>(
-            pTextQualifierChoiceCtrl->GetClientObject(textQualifierIndex));
-
-    mExportOptions.TextQualifier = textQualifierData->GetValue().Data;
-}
-
-void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event)
-{
-    auto choice = event.GetString();
-
-    int emptyValueIndex = pEmptyValueHandlerChoiceCtrl->GetSelection();
-    ClientData<Common::EnumClientData<EmptyValues>>* emptyValueData =
-        reinterpret_cast<ClientData<Common::EnumClientData<EmptyValues>>*>(
-            pEmptyValueHandlerChoiceCtrl->GetClientObject(emptyValueIndex));
-
-    mExportOptions.EmptyValuesHandler = static_cast<EmptyValues>(emptyValueData->GetValue().Data);
-}
-
-void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
-{
-    auto choice = event.GetString();
-    int newLinesIndex = pNewLinesHandlerChoiceCtrl->GetSelection();
-    ClientData<Common::EnumClientData<NewLines>>* newLinesData =
-        reinterpret_cast<ClientData<Common::EnumClientData<NewLines>>*>(
-            pNewLinesHandlerChoiceCtrl->GetClientObject(newLinesIndex));
-
-    mExportOptions.NewLinesHandler = static_cast<NewLines>(newLinesData->GetValue().Data);
-}
-
-void ExportToCsvDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
-{
-    auto choice = event.GetString();
-    int booleanHandlerIndex = pBooleanHanderChoiceCtrl->GetSelection();
-    ClientData<Common::EnumClientData<BooleanHandler>>* booleanHandlerData =
-        reinterpret_cast<ClientData<Common::EnumClientData<BooleanHandler>>*>(
-            pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
-
-    mExportOptions.BooleanHandler = booleanHandlerData->GetValue().Data;
-}
-
-void ExportToCsvDialog::OnExportToClipboardCheck(wxCommandEvent& event)
-{
-    bExportToClipboard = event.IsChecked();
-
-    if (bExportToClipboard) {
-        pSaveToFileTextCtrl->Disable();
-        pBrowseExportPathButton->Disable();
-    } else {
-        pSaveToFileTextCtrl->Enable();
-        pBrowseExportPathButton->Enable();
-    }
-}
-
-void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
+void ExportToExcelDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event)
 {
     auto openDirDialog = new wxDirDialog(this,
         "Select a directory to export the data to",
@@ -910,18 +709,40 @@ void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& eve
     openDirDialog->Destroy();
 }
 
-void ExportToCsvDialog::OnCloseDialogAfterExportingCheck(wxCommandEvent& event)
+void ExportToExcelDialog::OnCloseDialogAfterExportingCheck(wxCommandEvent& event)
 {
     pCfg->CloseExportDialogAfterExporting(event.IsChecked());
     pCfg->Save();
 }
 
-void ExportToCsvDialog::OnOpenExplorerInExportDirectoryCheck(wxCommandEvent& event)
+void ExportToExcelDialog::OnOpenExplorerInExportDirectoryCheck(wxCommandEvent& event)
 {
     bOpenExplorerInExportDirectory = event.IsChecked();
 }
 
-void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
+void ExportToExcelDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+    int newLinesIndex = pNewLinesHandlerChoiceCtrl->GetSelection();
+    ClientData<Common::EnumClientData<NewLines>>* newLinesData =
+        reinterpret_cast<ClientData<Common::EnumClientData<NewLines>>*>(
+            pNewLinesHandlerChoiceCtrl->GetClientObject(newLinesIndex));
+
+    mNewLinesOption = newLinesData->GetValue().Data;
+}
+
+void ExportToExcelDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
+{
+    auto choice = event.GetString();
+    int booleanHandlerIndex = pBooleanHanderChoiceCtrl->GetSelection();
+    ClientData<Common::EnumClientData<BooleanHandler>>* booleanHandlerData =
+        reinterpret_cast<ClientData<Common::EnumClientData<BooleanHandler>>*>(
+            pBooleanHanderChoiceCtrl->GetClientObject(booleanHandlerIndex));
+
+    mBooleanOption = booleanHandlerData->GetValue().Data;
+}
+
+void ExportToExcelDialog::OnFromDateSelection(wxDateEvent& event)
 {
     SPDLOG_LOGGER_TRACE(pLogger,
         "Received date (wxDateTime) with value \"{0}\"",
@@ -947,7 +768,7 @@ void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
     mFromDate = newFromDate;
 }
 
-void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
+void ExportToExcelDialog::OnToDateSelection(wxDateEvent& event)
 {
     SPDLOG_LOGGER_TRACE(pLogger,
         "Received date (wxDateTime) event with value \"{0}\"",
@@ -978,7 +799,7 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     mToDate = newToDate;
 }
 
-void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
+void ExportToExcelDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
 {
     bExportTodaysTasksOnly = event.IsChecked();
 
@@ -1002,7 +823,7 @@ void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
     }
 }
 
-void ExportToCsvDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
+void ExportToExcelDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         auto fridayDate = pDateStore->MondayDate + (pDateStore->MondayDate - date::Thursday);
@@ -1029,19 +850,14 @@ void ExportToCsvDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
     }
 }
 
-void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
+void ExportToExcelDialog::OnResetPreset(wxCommandEvent& event)
 {
-    mExportOptions.Reset();
-
-    pDelimiterChoiceCtrl->SetSelection(0);
-    pTextQualifierChoiceCtrl->SetSelection(0);
-    pEmptyValueHandlerChoiceCtrl->SetSelection(0);
-    pNewLinesHandlerChoiceCtrl->SetSelection(0);
-    pBooleanHanderChoiceCtrl->SetSelection(0);
-
     pPresetIsDefaultCheckBoxCtrl->SetValue(false);
     pPresetsChoiceCtrl->SetSelection(0);
     pPresetNameTextCtrl->ChangeValue("");
+
+    pNewLinesHandlerChoiceCtrl->SetSelection(0);
+    pBooleanHanderChoiceCtrl->SetSelection(0);
 
     auto columns = pExportColumnListModel->GetColumns();
 
@@ -1051,11 +867,10 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 
     pExportColumnListModel->Clear();
 
-    pExcludeHeadersCheckBoxCtrl->SetValue(false);
     pIncludeAttributesCheckBoxCtrl->SetValue(false);
 }
 
-void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
+void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
 {
     if (pCfg->GetPresetCount() == MAX_PRESET_COUNT) {
         auto valMsg = "Limit of 5 presets has been exceeded";
@@ -1092,13 +907,37 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         preset.Uuid = presetData->GetValue();
     }
 
+    const auto& presets = pCfg->GetPresets();
+    auto presetIterator = std::find_if(
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings cfgPreset) {
+            return cfgPreset.Uuid == preset.Uuid;
+        });
+
+    // even though this preset is loaded for Excel
+    // presets are shared between CSV and Excel dialogs so we need to preserve
+    // CSV options regardless and if not found, reset to the defaults
+    if (presetIterator == presets.end()) {
+        Services::Export::ExportOptions exportOptions;
+
+        preset.Delimiter = exportOptions.Delimiter;
+        preset.TextQualifier = exportOptions.TextQualifier;
+        preset.EmptyValuesHandler = exportOptions.EmptyValuesHandler;
+        preset.NewLinesHandler = exportOptions.NewLinesHandler;
+        preset.BooleanHandler = exportOptions.BooleanHandler;
+
+        preset.ExcludeHeaders = false;
+    } else {
+        preset.Delimiter = presetIterator->Delimiter;
+        preset.TextQualifier = presetIterator->TextQualifier;
+        preset.EmptyValuesHandler = presetIterator->EmptyValuesHandler;
+        preset.NewLinesHandler = mNewLinesOption;
+        preset.BooleanHandler = mBooleanOption;
+
+        preset.ExcludeHeaders = presetIterator->ExcludeHeaders;
+    }
+
     preset.Name = pPresetNameTextCtrl->GetValue().ToStdString();
     preset.IsDefault = pPresetIsDefaultCheckBoxCtrl->GetValue();
-    preset.Delimiter = mExportOptions.Delimiter;
-    preset.TextQualifier = mExportOptions.TextQualifier;
-    preset.EmptyValuesHandler = mExportOptions.EmptyValuesHandler;
-    preset.NewLinesHandler = mExportOptions.NewLinesHandler;
-    preset.BooleanHandler = mExportOptions.BooleanHandler;
 
     std::vector<Common::PresetColumn> columns;
 
@@ -1112,8 +951,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     preset.Columns = columns;
 
-    preset.ExcludeHeaders = mExportOptions.ExcludeHeaders;
-    preset.IncludeAttributes = mExportOptions.IncludeAttributes;
+    preset.IncludeAttributes = bIncludeAttributes;
 
     bool success = pCfg->TryUnsetDefaultPreset();
     if (!success) {
@@ -1134,7 +972,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     }
 }
 
-void ExportToCsvDialog::OnPresetChoice(wxCommandEvent& event)
+void ExportToExcelDialog::OnPresetChoice(wxCommandEvent& event)
 {
     int presetIndex = event.GetSelection();
     ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
@@ -1162,7 +1000,7 @@ void ExportToCsvDialog::OnPresetChoice(wxCommandEvent& event)
     ApplyPreset(selectedPresetToApply);
 }
 
-void ExportToCsvDialog::OnAvailableColumnItemCheck(wxListEvent& event)
+void ExportToExcelDialog::OnAvailableColumnItemCheck(wxListEvent& event)
 {
     long index = event.GetIndex();
 
@@ -1180,7 +1018,7 @@ void ExportToCsvDialog::OnAvailableColumnItemCheck(wxListEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Selected column name \"{0}\"", name);
 }
 
-void ExportToCsvDialog::OnAvailableColumnItemUncheck(wxListEvent& event)
+void ExportToExcelDialog::OnAvailableColumnItemUncheck(wxListEvent& event)
 {
     long index = event.GetIndex();
 
@@ -1206,7 +1044,8 @@ void ExportToCsvDialog::OnAvailableColumnItemUncheck(wxListEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Unselected column name \"{0}\"", name);
 }
 
-void ExportToCsvDialog::OnAddAvailableColumnToExportColumnListView(wxCommandEvent& WXUNUSED(event))
+void ExportToExcelDialog::OnAddAvailableColumnToExportColumnListView(
+    wxCommandEvent& WXUNUSED(event))
 {
     if (mSelectedItemIndexes.size() == 0) {
         return;
@@ -1240,7 +1079,7 @@ void ExportToCsvDialog::OnAddAvailableColumnToExportColumnListView(wxCommandEven
     }
 }
 
-void ExportToCsvDialog::OnRemoveExportColumnToAvailableColumnList(wxCommandEvent& WXUNUSED(event))
+void ExportToExcelDialog::OnRemoveExportColumnToAvailableColumnList(wxCommandEvent& WXUNUSED(event))
 {
     auto columnsToRemove = pExportColumnListModel->GetSelectedColumns();
 
@@ -1257,7 +1096,7 @@ void ExportToCsvDialog::OnRemoveExportColumnToAvailableColumnList(wxCommandEvent
     }
 }
 
-void ExportToCsvDialog::OnExportColumnEditingStart(wxDataViewEvent& event)
+void ExportToExcelDialog::OnExportColumnEditingStart(wxDataViewEvent& event)
 {
     const wxDataViewModel* model = event.GetModel();
 
@@ -1268,7 +1107,7 @@ void ExportToCsvDialog::OnExportColumnEditingStart(wxDataViewEvent& event)
         pLogger, "Editing started on export column \"{0}\"", value.GetString().ToStdString());
 }
 
-void ExportToCsvDialog::OnExportColumnEditingDone(wxDataViewEvent& event)
+void ExportToExcelDialog::OnExportColumnEditingDone(wxDataViewEvent& event)
 {
     if (event.IsEditCancelled()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Edit was cancelled");
@@ -1282,7 +1121,7 @@ void ExportToCsvDialog::OnExportColumnEditingDone(wxDataViewEvent& event)
     }
 }
 
-void ExportToCsvDialog::OnExportColumnSelectionChanged(wxDataViewEvent& event)
+void ExportToExcelDialog::OnExportColumnSelectionChanged(wxDataViewEvent& event)
 {
     auto item = event.GetItem();
     if (!item.IsOk()) {
@@ -1299,7 +1138,7 @@ void ExportToCsvDialog::OnExportColumnSelectionChanged(wxDataViewEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Selected item header: \"{0}\"", value.GetString().ToStdString());
 }
 
-void ExportToCsvDialog::OnUpButtonSort(wxCommandEvent& event)
+void ExportToExcelDialog::OnUpButtonSort(wxCommandEvent& event)
 {
     if (mItemToSort.IsOk()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Ordering selected header up");
@@ -1309,7 +1148,7 @@ void ExportToCsvDialog::OnUpButtonSort(wxCommandEvent& event)
     }
 }
 
-void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
+void ExportToExcelDialog::OnDownButtonSort(wxCommandEvent& event)
 {
     if (mItemToSort.IsOk()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Ordering selected header down");
@@ -1319,69 +1158,12 @@ void ExportToCsvDialog::OnDownButtonSort(wxCommandEvent& event)
     }
 }
 
-void ExportToCsvDialog::OnExcludeHeadersCheck(wxCommandEvent& event)
+void ExportToExcelDialog::OnIncludeAttributesCheck(wxCommandEvent& event)
 {
-    mExportOptions.ExcludeHeaders = event.IsChecked();
+    bIncludeAttributes = event.IsChecked();
 }
 
-void ExportToCsvDialog::OnIncludeAttributesCheck(wxCommandEvent& event)
-{
-    mExportOptions.IncludeAttributes = event.IsChecked();
-}
-
-void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
-{
-    SPDLOG_LOGGER_TRACE(pLogger, "Begin show preview");
-
-    const auto& columnsToExport = pExportColumnListModel->GetColumns();
-    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
-
-    if (columnsToExport.size() == 0) {
-        wxMessageBox("Please select at least one column to export",
-            Common::GetProgramName(),
-            wxOK_DEFAULT | wxICON_INFORMATION);
-        return;
-    }
-
-    auto columnExportModels = Services::Export::BuildFromList(columnsToExport);
-
-    Services::Export::ProjectionBuilder projectionBuilder(pLogger);
-
-    std::vector<Services::Export::Projection> projections =
-        projectionBuilder.BuildProjections(columnExportModels);
-    std::vector<Services::Export::ColumnJoinProjection> joinProjections =
-        projectionBuilder.BuildJoinProjections(columnExportModels);
-
-    const std::string fromDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
-    const std::string toDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
-
-    SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
-
-    Services::Export::CsvExporterService csvExporter(
-        pLogger, mExportOptions, mDatabaseFilePath, true);
-
-    std::string exportedDataPreview = "";
-    auto result = csvExporter.ExportToCsv(
-        projections, joinProjections, fromDate, toDate, exportedDataPreview);
-
-    if (!result.Success) {
-        std::string message = "Failed to export data";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
-        wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
-    }
-
-    pDataExportPreviewTextCtrl->ChangeValue(exportedDataPreview);
-}
-
-void ExportToCsvDialog::OnExport(wxCommandEvent& event)
+void ExportToExcelDialog::OnExport(wxCommandEvent& event)
 {
     SPDLOG_LOGGER_TRACE(pLogger, "Begin export");
 
@@ -1389,7 +1171,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
 
     if (columnsToExport.size() == 0) {
-        wxMessageBox("Please select at least one column to export!",
+        wxMessageBox("Please select at least one column to export.",
             Common::GetProgramName(),
             wxOK_DEFAULT | wxICON_INFORMATION);
         return;
@@ -1412,20 +1194,19 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
     Services::Export::ExportResult result;
-    std::string exportedData = "";
-
     {
         wxBusyCursor busy;
 
-        Services::Export::CsvExporterService csvExporter(
-            pLogger, mExportOptions, mDatabaseFilePath, false);
+        Services::Export::ExcelExporterService excelExporterService(
+            pLogger, mDatabaseFilePath, bIncludeAttributes, mNewLinesOption, mBooleanOption);
 
-        result =
-            csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
+        const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
+        result = excelExporterService.ExportToExcel(
+            projections, joinProjections, fromDate, toDate, saveLocation);
     }
 
     if (!result.Success) {
-        std::string message = "Failed to export data";
+        std::string message = "Failed to export data to Excel";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
@@ -1438,29 +1219,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
         return;
     }
 
-    if (bExportToClipboard) {
-        auto canOpen = wxTheClipboard->Open();
-        if (canOpen) {
-            auto textData = new wxTextDataObject(exportedData);
-            wxTheClipboard->SetData(textData);
-            wxTheClipboard->Close();
-        }
-    } else {
-        std::ofstream exportFile;
-        exportFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
-        if (!exportFile.is_open()) {
-            pLogger->error("Failed to open export file at path \"{0}\"",
-                pSaveToFileTextCtrl->GetValue().ToStdString());
-            return;
-        }
-
-        exportFile << exportedData;
-
-        exportFile.close();
-    }
-
-    std::string message = bExportToClipboard ? "Successfully exported data to clipboard"
-                                             : "Successfully exported data to file";
+    std::string message = "Successfully exported data to Excel";
 
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
 
@@ -1490,7 +1249,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     }
 }
 
-void ExportToCsvDialog::SetFromAndToDatePickerRanges()
+void ExportToExcelDialog::SetFromAndToDatePickerRanges()
 {
     pFromDatePickerCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
 
@@ -1501,30 +1260,30 @@ void ExportToCsvDialog::SetFromAndToDatePickerRanges()
     mToLatestPossibleDate = wxDateTime(pDateStore->SundayDateSeconds);
 }
 
-void ExportToCsvDialog::SetFromDateAndDatePicker()
+void ExportToExcelDialog::SetFromDateAndDatePicker()
 {
     pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
 
     mFromCtrlDate = pDateStore->MondayDateSeconds;
 }
 
-void ExportToCsvDialog::SetToDateAndDatePicker()
+void ExportToExcelDialog::SetToDateAndDatePicker()
 {
     pToDatePickerCtrl->SetValue(pDateStore->SundayDateSeconds);
 
     mToCtrlDate = pDateStore->SundayDateSeconds;
 }
 
-void ExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSettings& presetSettings)
+void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSettings& presetSettings)
 {
-    pDelimiterChoiceCtrl->SetSelection(static_cast<int>(presetSettings.Delimiter));
-    pTextQualifierChoiceCtrl->SetSelection(static_cast<int>(presetSettings.TextQualifier));
-    pEmptyValueHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.EmptyValuesHandler));
+    pPresetNameTextCtrl->ChangeValue(presetSettings.Name);
+    pPresetIsDefaultCheckBoxCtrl->SetValue(presetSettings.IsDefault);
+
     pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.NewLinesHandler));
     pBooleanHanderChoiceCtrl->SetSelection(static_cast<int>(presetSettings.BooleanHandler));
 
-    pPresetNameTextCtrl->ChangeValue(presetSettings.Name);
-    pPresetIsDefaultCheckBoxCtrl->SetValue(presetSettings.IsDefault);
+    mNewLinesOption = presetSettings.NewLinesHandler;
+    mBooleanOption = presetSettings.BooleanHandler;
 
     // apply selected columns
     for (long i = (pAvailableColumnsListView->GetItemCount() - 1); 0 <= i; i--) {
@@ -1558,16 +1317,7 @@ void ExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSettings& p
 
     pExportColumnListModel->AppendFromStaging();
 
-    pExcludeHeadersCheckBoxCtrl->SetValue(presetSettings.ExcludeHeaders);
     pIncludeAttributesCheckBoxCtrl->SetValue(presetSettings.IncludeAttributes);
-
-    mExportOptions.Delimiter = presetSettings.Delimiter;
-    mExportOptions.TextQualifier = presetSettings.TextQualifier;
-    mExportOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
-    mExportOptions.NewLinesHandler = presetSettings.NewLinesHandler;
-    mExportOptions.BooleanHandler = presetSettings.BooleanHandler;
-
-    mExportOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
-    mExportOptions.IncludeAttributes = presetSettings.IncludeAttributes;
+    bIncludeAttributes = presetSettings.IncludeAttributes;
 }
 } // namespace tks::UI::dlg

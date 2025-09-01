@@ -19,22 +19,22 @@
 
 #pragma once
 
-#include "../../common/enums.h"
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
+#include <wx/msw/registry.h>
 
 namespace tks::Services::Export
 {
-struct CsvExportOptions {
-    DelimiterType Delimiter;
-    TextQualifierType TextQualifier;
-    EmptyValues EmptyValuesHandler;
-    NewLines NewLinesHandler;
-    BooleanHandler BooleanHandler;
-    bool ExcludeHeaders;
-    bool IncludeAttributes;
+struct ExcelInstanceCheck {
+    ExcelInstanceCheck();
+    ~ExcelInstanceCheck() = default;
 
-    CsvExportOptions();
-    ~CsvExportOptions() = default;
+    bool operator()() const;
 
-    void Reset();
+    std::string mRegPath;
+    wxRegKey mKey;
 };
 } // namespace tks::Services::Export

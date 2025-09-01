@@ -17,61 +17,33 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "csvexporter.h"
+#include "datagenerator.h"
 
 #include <cassert>
 #include <unordered_map>
 
 #include "exportsservice.h"
+#include "row.h"
 
 namespace tks::Services::Export
 {
-CsvExporter::CsvExporter(std::shared_ptr<spdlog::logger> logger,
-    CsvExportOptions options,
-    const std::string& databaseFilePath)
+DataGenerator::DataGenerator(std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath,
+    bool isPreview,
+    bool includeAttributes)
     : pLogger(logger)
-    , mOptions(options)
     , mDatabaseFilePath(databaseFilePath)
-    , bIsPreview(false)
+    , bIsPreview(isPreview)
+    , bIncludeAttributes(includeAttributes)
+    , mQueryBuilder(isPreview)
 {
-    pQueryBuilder = std::make_unique<SQLiteExportQueryBuilder>(false);
 }
 
-bool CsvExporter::GeneratePreview(const std::vector<Projection>& projections,
+ExportResult DataGenerator::FillData(const std::vector<Projection>& projections,
     const std::vector<ColumnJoinProjection>& joinProjections,
     const std::string& fromDate,
     const std::string& toDate,
-    std::string& exportedDataPreview)
-{
-    bIsPreview = true;
-    pQueryBuilder->IsPreview(true);
-
-    bool success =
-        GenerateExport(projections, joinProjections, fromDate, toDate, exportedDataPreview);
-
-    return success;
-}
-
-bool CsvExporter::Generate(const std::vector<Projection>& projections,
-    const std::vector<ColumnJoinProjection>& joinProjections,
-    const std::string& fromDate,
-    const std::string& toDate,
-    std::string& exportedDataPreview)
-{
-    bIsPreview = false;
-    pQueryBuilder->IsPreview(false);
-
-    bool success =
-        GenerateExport(projections, joinProjections, fromDate, toDate, exportedDataPreview);
-
-    return success;
-}
-
-bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
-    const std::vector<ColumnJoinProjection>& joinProjections,
-    const std::string& fromDate,
-    const std::string& toDate,
-    std::string& exportedDataPreview)
+    /*out*/ SData& data)
 {
     /* initialize variables */
     int rc = -1;
@@ -83,17 +55,14 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
      * use the `UserColumn` as this is what the user renamed a potential header to
      * if a user did not rename a header, then it defaults to the "display" name
      */
-    std::vector<std::string> headers = GetHeadersFromProjections(projections);
-    if (headers.empty()) {
-        pLogger->warn("No headers were found in the projections. Nothing further to do");
-        return true;
-    }
+    FillHeadersFromProjections(projections, data);
 
     /*
      * build the dynamic query factoring the projections built out from the selected items
      * from the list view, including the computed join projection, plus the from and to date range
      */
-    const auto& sql = pQueryBuilder->BuildQuery(projections, joinProjections, fromDate, toDate);
+    const std::string& sql =
+        mQueryBuilder.BuildQuery(projections, joinProjections, fromDate, toDate);
 
     /*
      * get the actual values (in the order the projections were built from the user selected items)
@@ -106,94 +75,30 @@ bool CsvExporter::GenerateExport(const std::vector<Projection>& projections,
      * each std::string contains the corresponding value relating to the headers position
      * see the function `FilterExportCsvData` for more detail
      */
-    rc = exportsService.FilterExportCsvData(sql, headers.size(), rows);
+    rc = exportsService.FilterExportDataFromGeneratedSql(sql, data.Headers.size(), rows);
     if (rc != 0) {
         pLogger->error("Failed to filter projected export data from generated SQL query. See "
                        "earlier logs for error detail");
-        return false;
-    }
-
-    /* `SData` is our main struct to store the headers and rows */
-    SData exportData;
-
-    /* insert the headers we got from the projections into the `Headers` field of `SData` */
-    for (auto& header : headers) {
-        exportData.Headers.push_back(header);
+        return ExportResult::Fail("A database error occurred when filtering task data for export");
     }
 
     /* set the task row values into the `Rows` field of `SData` */
-    exportData.Rows = rows;
+    data.Rows = rows;
 
-    if (mOptions.IncludeAttributes) {
-        /* see `GenerateAttributes` for more detail */
-        bool attributeAddedSuccessfully = GenerateAttributes(fromDate, toDate, exportData);
-        if (!attributeAddedSuccessfully) {
+    if (bIncludeAttributes) {
+        /* see `GenerateAndExportAttributes` for more detail */
+        auto result = FillAttributes(fromDate, toDate, data);
+        if (!result.Success) {
             pLogger->error("Failed to generate and attach attributes to export data. See earlier "
                            "logs for error detail");
-            return false;
+            return result;
         }
     }
 
-    /*
-     * initialize the csv mapped options object to map delimiter and text qualifier options
-     * to a char value to be used in the processor
-     */
-    CsvMappedOptions mappedOptions(mOptions);
-
-    /* initialize the export value processor with the csv options and their mapped options */
-    CsvExportProcessor exportProcessor(mOptions, mappedOptions);
-
-    std::stringstream exportedData;
-
-    /* check if the user opted out to include headers */
-    if (!mOptions.ExcludeHeaders) {
-        /* append all headers from the `SData` `Headers` field to our stringstream object */
-        for (auto i = 0; i < exportData.Headers.size(); i++) {
-            exportedData << exportData.Headers[i];
-            if (i < exportData.Headers.size() - 1) {
-                exportedData << mappedOptions.Delimiter;
-            }
-        }
-        exportedData << "\n";
-    }
-
-    /*
-     * loop over row from our `SData` struct `Rows` field
-     */
-    for (const auto& row : exportData.Rows) {
-        /* get our row values std::vector */
-        const auto& rowValues = row.second.Values;
-        for (size_t i = 0; i < rowValues.size(); i++) {
-            /*
-             * process / modify each value individually through the export processor
-             * and apply the csv options where applicable and alter the value accordingly
-             */
-            std::string value = rowValues[i];
-            exportProcessor.ProcessData(value);
-
-            /* append the processed value to our stringstream object */
-            exportedData << value;
-
-            if (i < rowValues.size() - 1) {
-                exportedData << mappedOptions.Delimiter;
-            }
-        }
-
-        exportedData << "\n";
-    }
-
-    /* verify the data in stringstream is in a good state */
-    if (!exportedData.good()) {
-        pLogger->error("Exported data in stringstream object is not in a good state");
-        return false;
-    }
-
-    /* set the out string and return */
-    exportedDataPreview = exportedData.str();
-    return true;
+    return ExportResult::OK();
 }
 
-bool CsvExporter::GenerateAttributes(const std::string& fromDate,
+ExportResult DataGenerator::FillAttributes(const std::string& fromDate,
     const std::string& toDate,
     SData& data)
 {
@@ -225,21 +130,21 @@ bool CsvExporter::GenerateAttributes(const std::string& fromDate,
     rc = exportsService.GetAttributeNames(fromDate, toDate, taskId, bIsPreview, attributeNames);
     if (rc != 0) {
         pLogger->error(
-            "Failed to get attribute names for data range. See earlier logs for error detail");
-        return false;
+            "Failed to get attribute names for date range. See earlier logs for error detail");
+        return ExportResult::Fail("Failed to get task attribute names for specified date range");
     }
 
     /* we have not found any attributes associated with the task or tasks so we can return */
     if (attributeNames.empty()) {
-        pLogger->warn("No attribute names were found for data range. Nothing to do");
-        return true;
+        pLogger->warn("No attribute names were found for date range. Nothing to do");
+        return ExportResult::OK();
     }
 
     /*
      * generate the query to get the attributes as a "header-value pair for from and to range
      * and if we are in preview mode, where `taskId` matches
      */
-    const std::string& attributeSql = pQueryBuilder->BuildAttributesQuery(fromDate, toDate, taskId);
+    const std::string& attributeSql = mQueryBuilder.BuildAttributesQuery(fromDate, toDate, taskId);
 
     /*
      * get the actual attribute names (headers) and their values and insert the pair into
@@ -249,7 +154,7 @@ bool CsvExporter::GenerateAttributes(const std::string& fromDate,
     if (rc != 0) {
         pLogger->error("Failed to filter attribute data from generated attribute SQL query. See "
                        "earlier logs for more detail");
-        return false;
+        return ExportResult::Fail("A database error occurred when filtering task attribute data");
     }
 
     /* append the attribute names (headers) to the `SData` field `Headers` (order is important) */
@@ -293,23 +198,15 @@ bool CsvExporter::GenerateAttributes(const std::string& fromDate,
         }
     }
 
-    return true;
+    return ExportResult::OK();
 }
 
-std::vector<std::string> CsvExporter::GetHeadersFromProjections(
-    const std::vector<Projection>& projections)
+void DataGenerator::FillHeadersFromProjections(const std::vector<Projection>& projections,
+    SData& data)
 {
-    if (projections.empty()) {
-        return std::vector<std::string>();
-    }
-
-    std::vector<std::string> headers;
-
     for (const auto& projection : projections) {
         const auto& userNamedHeader = projection.ColumnProjection.UserColumn;
-        headers.push_back(userNamedHeader);
+        data.Headers.push_back(userNamedHeader);
     }
-
-    return headers;
 }
 } // namespace tks::Services::Export

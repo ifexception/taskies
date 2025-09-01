@@ -23,63 +23,45 @@
 #include <string>
 #include <vector>
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
-
-#include "../../common/enums.h"
 
 #include "columnjoinprojection.h"
 #include "projection.h"
 #include "sqliteexportquerybuilder.h"
-#include "csvexportoptions.h"
-#include "csvexportprocessor.h"
 #include "data.h"
+#include "exportresult.h"
 
 namespace tks::Services::Export
 {
-class CsvExporter
-{
-public:
-    CsvExporter() = delete;
-    CsvExporter(const CsvExporter&) = delete;
-    CsvExporter(std::shared_ptr<spdlog::logger> logger,
-        CsvExportOptions options,
-        const std::string& databaseFilePath);
-    ~CsvExporter() = default;
+struct DataGenerator final {
+    DataGenerator() = delete;
+    DataGenerator(const DataGenerator&) = delete;
+    DataGenerator(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath,
+        bool isPreview,
+        bool includeAttributes);
+    ~DataGenerator() = default;
 
-    const CsvExporter& operator=(const CsvExporter&) = delete;
+    DataGenerator& operator=(const DataGenerator&) = delete;
 
-    bool GeneratePreview(const std::vector<Projection>& projections,
+    ExportResult FillData(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
         const std::string& fromDate,
-        const std::string& toDate,
-        /*out*/ std::string& exportedDataPreview);
-
-    bool Generate(const std::vector<Projection>& projections,
-        const std::vector<ColumnJoinProjection>& joinProjections,
-        const std::string& fromDate,
-        const std::string& toDate,
-        /*out*/ std::string& exportedDataPreview);
-
-private:
-    bool GenerateExport(const std::vector<Projection>& projections,
-        const std::vector<ColumnJoinProjection>& joinProjections,
-        const std::string& fromDate,
-        const std::string& toDate,
-        /*out*/ std::string& exportedDataPreview);
-
-    bool GenerateAttributes(const std::string& fromDate,
         const std::string& toDate,
         /*out*/ SData& data);
 
-    std::vector<std::string> GetHeadersFromProjections(const std::vector<Projection>& projections);
+    ExportResult FillAttributes(const std::string& fromDate,
+        const std::string& toDate,
+        /*out*/ SData& data);
+
+    static void FillHeadersFromProjections(const std::vector<Projection>& projections, SData& data);
 
     std::shared_ptr<spdlog::logger> pLogger;
-
-    std::unique_ptr<SQLiteExportQueryBuilder> pQueryBuilder;
-
-    CsvExportOptions mOptions;
-
     std::string mDatabaseFilePath;
     bool bIsPreview;
+    bool bIncludeAttributes;
+
+    SQLiteExportQueryBuilder mQueryBuilder;
 };
 } // namespace tks::Services::Export

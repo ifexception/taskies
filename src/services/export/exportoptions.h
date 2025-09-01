@@ -19,33 +19,24 @@
 
 #pragma once
 
-#include <string>
-#include <sstream>
-
-#include "exportoptions.h"
-#include "csvmappedoptions.h"
+#include "../../common/enums.h"
 
 namespace tks::Services::Export
 {
-class CsvExportProcessor final
-{
-public:
-    CsvExportProcessor() = delete;
-    CsvExportProcessor(const CsvExportProcessor&) = delete;
-    CsvExportProcessor(const ExportOptions& options, const CsvMappedOptions& mappedOptions);
-    ~CsvExportProcessor() = default;
+struct ExportOptions {
+    DelimiterType Delimiter;
+    TextQualifierType TextQualifier;
+    EmptyValues EmptyValuesHandler;
+    NewLines NewLinesHandler;
+    BooleanHandler BooleanHandler;
+    bool ExcludeHeaders;
+    bool IncludeAttributes;
 
-    const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;
+    ExportOptions();
+    ~ExportOptions() = default;
 
-    void ProcessData(std::string& value);
+    ExportOptions& operator=(const ExportOptions&) = delete;
 
-private:
-    void TryProcessNewLines(std::string& value) const;
-    void TryProcessEmptyValues(std::string& value) const;
-    void TryProcessBooleanHandler(std::string& value) const;
-    void TryProcessTextQualifier(std::string& value) const;
-
-    ExportOptions mOptions;
-    CsvMappedOptions mMappedOptions;
+    void Reset();
 };
 } // namespace tks::Services::Export

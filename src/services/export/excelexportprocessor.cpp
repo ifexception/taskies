@@ -17,32 +17,28 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "csvexportprocessor.h"
-
-#include <algorithm>
+#include "excelexportprocessor.h"
 
 #include "../../utils/utils.h"
 
 namespace tks::Services::Export
 {
-CsvExportProcessor::CsvExportProcessor(const ExportOptions& options,
-    const CsvMappedOptions& mappedOptions)
-    : mOptions(options)
-    , mMappedOptions(mappedOptions)
+ExcelExportProcessor::ExcelExportProcessor(NewLines newLinesOption,
+    BooleanHandler booleanHandlerOption)
+    : mNewLinesOption(newLinesOption)
+    , mBooleanHandlerOption(booleanHandlerOption)
 {
 }
 
-void CsvExportProcessor::ProcessData(std::string& value)
+void ExcelExportProcessor::ProcessData(std::string& value)
 {
-    TryProcessEmptyValues(value);
     TryProcessNewLines(value);
     TryProcessBooleanHandler(value);
-    TryProcessTextQualifier(value);
 }
 
-void CsvExportProcessor::TryProcessNewLines(std::string& value) const
+void ExcelExportProcessor::TryProcessNewLines(std::string& value) const
 {
-    if (mOptions.NewLinesHandler == NewLines::Merge) {
+    if (mNewLinesOption == NewLines::Merge) {
         // clang-format off
         value.erase(
             std::remove(
@@ -51,25 +47,20 @@ void CsvExportProcessor::TryProcessNewLines(std::string& value) const
                 '\n'),
             value.end());
         // clang-format on
-    } else if (mOptions.NewLinesHandler == NewLines::MergeAndAddSpace) {
+    } else if (mNewLinesOption == NewLines::MergeAndAddSpace) {
         value = Utils::ReplaceAll(value, "\n", " ");
     }
 }
 
-void CsvExportProcessor::TryProcessEmptyValues(std::string& value) const
+void ExcelExportProcessor::TryProcessBooleanHandler(std::string& value) const
 {
-    if (value.empty()) {
-        if (mOptions.EmptyValuesHandler == EmptyValues::Null) {
-            value = "NULL";
-        }
-    }
-}
-
-void CsvExportProcessor::TryProcessBooleanHandler(std::string& value) const
-{
-    if (!value.empty() && value.size() == 1 && (value == "0" || value == "1") &&
-        mOptions.BooleanHandler != BooleanHandler::OneZero) {
-        switch (mOptions.BooleanHandler) {
+    if (
+        !value.empty() &&
+        value.size() == 1 &&
+        (value == "0" || value == "1") &&
+        mBooleanHandlerOption != BooleanHandler::OneZero
+    ) {
+        switch (mBooleanHandlerOption) {
         case BooleanHandler::TrueFalseLowerCase:
             value = (value == "1") ? "true" : "false";
             break;
@@ -85,20 +76,6 @@ void CsvExportProcessor::TryProcessBooleanHandler(std::string& value) const
         default:
             // leave as-is for BooleanHandler::OneZero
             break;
-        }
-    }
-}
-
-void CsvExportProcessor::TryProcessTextQualifier(std::string& value) const
-{
-    std::string quote = "\"";
-
-    if (mOptions.TextQualifier != TextQualifierType::None) {
-        value =
-            Utils::ReplaceAll(value, quote, MapTextQualifierEnumToValue(mOptions.TextQualifier));
-
-        if (value.find(mMappedOptions.Delimiter) != std::string::npos) {
-            value = mMappedOptions.TextQualifier + value + mMappedOptions.TextQualifier;
         }
     }
 }

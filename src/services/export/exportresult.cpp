@@ -17,35 +17,17 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#pragma once
-
-#include <string>
-#include <sstream>
-
-#include "exportoptions.h"
-#include "csvmappedoptions.h"
+#include "exportresult.h"
 
 namespace tks::Services::Export
 {
-class CsvExportProcessor final
+ExportResult ExportResult::OK()
 {
-public:
-    CsvExportProcessor() = delete;
-    CsvExportProcessor(const CsvExportProcessor&) = delete;
-    CsvExportProcessor(const ExportOptions& options, const CsvMappedOptions& mappedOptions);
-    ~CsvExportProcessor() = default;
+    return ExportResult{ true, "" };
+}
 
-    const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;
-
-    void ProcessData(std::string& value);
-
-private:
-    void TryProcessNewLines(std::string& value) const;
-    void TryProcessEmptyValues(std::string& value) const;
-    void TryProcessBooleanHandler(std::string& value) const;
-    void TryProcessTextQualifier(std::string& value) const;
-
-    ExportOptions mOptions;
-    CsvMappedOptions mMappedOptions;
-};
+ExportResult ExportResult::Fail(const std::string& errorMessage)
+{
+    return ExportResult{ false, errorMessage };
+}
 } // namespace tks::Services::Export

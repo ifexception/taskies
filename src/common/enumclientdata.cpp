@@ -17,20 +17,8 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#pragma once
+#include "enumclientdata.h"
 
-#include <string>
-#include <unordered_map>
-
-#include "row.h"
-
-namespace tks::Services::Export
+namespace tks::Common
 {
-struct SData {
-    SData();
-    ~SData() = default;
-
-    std::vector<std::string> Headers;
-    std::unordered_map<std::int64_t, Row<std::string>> Rows;
-};
-} // namespace tks::Services::Export
+}

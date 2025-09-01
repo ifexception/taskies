@@ -17,35 +17,21 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#pragma once
-
-#include <string>
-#include <sstream>
-
-#include "exportoptions.h"
 #include "csvmappedoptions.h"
+
+#include "../../common/enums.h"
 
 namespace tks::Services::Export
 {
-class CsvExportProcessor final
+CsvMappedOptions::CsvMappedOptions()
+    : Delimiter(',')
+    , TextQualifier('\"')
 {
-public:
-    CsvExportProcessor() = delete;
-    CsvExportProcessor(const CsvExportProcessor&) = delete;
-    CsvExportProcessor(const ExportOptions& options, const CsvMappedOptions& mappedOptions);
-    ~CsvExportProcessor() = default;
+}
 
-    const CsvExportProcessor& operator=(const CsvExportProcessor&) = delete;
-
-    void ProcessData(std::string& value);
-
-private:
-    void TryProcessNewLines(std::string& value) const;
-    void TryProcessEmptyValues(std::string& value) const;
-    void TryProcessBooleanHandler(std::string& value) const;
-    void TryProcessTextQualifier(std::string& value) const;
-
-    ExportOptions mOptions;
-    CsvMappedOptions mMappedOptions;
-};
+CsvMappedOptions::CsvMappedOptions(const ExportOptions& options)
+{
+    Delimiter = MapDelimiterEnumToValue(options.Delimiter)[0];
+    TextQualifier = MapTextQualifierEnumToValue(options.TextQualifier)[0];
+}
 } // namespace tks::Services::Export

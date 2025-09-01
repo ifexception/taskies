@@ -40,24 +40,22 @@
 
 #include "../../../core/configuration.h"
 
-#include "../../../services/export/exportoptions.h"
-
 #include "../../../utils/datestore.h"
 
 namespace tks::UI::dlg
 {
-class ExportToCsvDialog final : public wxDialog
+class ExportToExcelDialog : public wxDialog
 {
 public:
-    ExportToCsvDialog() = delete;
-    ExportToCsvDialog(const ExportToCsvDialog&) = delete;
-    ExportToCsvDialog(wxWindow* parent,
+    ExportToExcelDialog() = delete;
+    ExportToExcelDialog(const ExportToExcelDialog&) = delete;
+    ExportToExcelDialog(wxWindow* parent,
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databasePath,
-        const wxString& name = "exporttocsvdlg");
+        const wxString& name = "exporttoexceldlg");
 
-    const ExportToCsvDialog& operator=(const ExportToCsvDialog&) = delete;
+    const ExportToExcelDialog& operator=(const ExportToExcelDialog&) = delete;
 
 private:
     void Create();
@@ -66,14 +64,10 @@ private:
     void FillControls();
     void ConfigureEventBindings();
 
-    void OnExportToClipboardCheck(wxCommandEvent& event);
     void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
     void OnCloseDialogAfterExportingCheck(wxCommandEvent& event);
     void OnOpenExplorerInExportDirectoryCheck(wxCommandEvent& event);
 
-    void OnDelimiterChoiceSelection(wxCommandEvent& event);
-    void OnTextQualifierChoiceSelection(wxCommandEvent& event);
-    void OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event);
     void OnNewLinesHandlerChoiceSelection(wxCommandEvent& event);
     void OnBooleanHandlerChoiceSelection(wxCommandEvent& event);
 
@@ -98,7 +92,6 @@ private:
     void OnExcludeHeadersCheck(wxCommandEvent& event);
     void OnIncludeAttributesCheck(wxCommandEvent& event);
 
-    void OnShowPreview(wxCommandEvent& event);
     void OnExport(wxCommandEvent& event);
 
     void SetFromAndToDatePickerRanges();
@@ -115,15 +108,11 @@ private:
 
     wxWindow* pParent;
 
-    wxCheckBox* pExportToClipboardCheckBoxCtrl;
     wxTextCtrl* pSaveToFileTextCtrl;
     wxButton* pBrowseExportPathButton;
     wxCheckBox* pCloseDialogAfterExportingCheckBoxCtrl;
     wxCheckBox* pOpenExplorerInExportDirectoryCheckBoxCtrl;
 
-    wxChoice* pDelimiterChoiceCtrl;
-    wxChoice* pTextQualifierChoiceCtrl;
-    wxChoice* pEmptyValueHandlerChoiceCtrl;
     wxChoice* pNewLinesHandlerChoiceCtrl;
     wxChoice* pBooleanHanderChoiceCtrl;
 
@@ -152,11 +141,7 @@ private:
     wxButton* pUpButton;
     wxButton* pDownButton;
 
-    wxCheckBox* pExcludeHeadersCheckBoxCtrl;
     wxCheckBox* pIncludeAttributesCheckBoxCtrl;
-
-    wxTextCtrl* pDataExportPreviewTextCtrl;
-    wxButton* pShowPreviewButton;
 
     wxButton* pExportButton;
     wxButton* pCancelButton;
@@ -167,44 +152,37 @@ private:
     std::vector<long> mSelectedItemIndexes;
     wxDataViewItem mItemToSort;
 
-    Services::Export::ExportOptions mExportOptions;
-
-    bool bExportToClipboard;
     bool bOpenExplorerInExportDirectory;
     bool bExportTodaysTasksOnly;
+    bool bIncludeAttributes;
+
+    NewLines mNewLinesOption;
+    BooleanHandler mBooleanOption;
 
     enum {
-        tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
-        tksIDC_SAVE_TO_FILE_CTRL,
-        tksIDC_BROWSE_EXPORT_PATH_CTRL,
-        tksIDC_CLOSE_DIALOG_AFTER_EXPORT_CTRL,
+        tksIDC_SAVETOFILETEXTCTRL = wxID_HIGHEST + 100,
+        tksIDC_BROWSEEXPORTPATHBUTTON,
+        tksIDC_CLOSEDIALOGAFTEREXPORTINGCHECKBOXCTRL,
         TKSIDC_OPENEXPLORERINEXPORTDIRECTORYCHECKBOXCTRL,
-        tksIDC_DELIMITER_CTRL,
-        tksIDC_TEXT_QUALIFIER_CTRL,
-        tksIDC_EOL_TERMINATOR_CTRL,
-        tksIDC_EMPTY_VALUE_HANDLER_CTRL,
         tksIDC_NEW_LINES_HANDLER_CTRL,
         tksIDC_BOOLEAN_HANDLER_CTRL,
-        tksIDC_DATE_FROM_CTRL,
-        tksIDC_DATE_TO_CTRL,
+        tksIDC_FROMDATEPICKERCTRL,
+        tksIDC_TODATEPICKERCTRL,
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
         tksIDC_WORKWEEKRANGECHECKBOXCTRL,
-        tksIDC_PRESET_RESET_BUTTON,
-        tksIDC_PRESET_NAME_TEXT_CTRL,
-        tksIDC_PRESET_SAVE_BUTTON,
-        tksIDC_PRESET_IS_DEFAULT_CTRL,
-        tksIDC_PRESET_CHOICE_CTRL,
-        tksIDC_DEFAULT_HEADERS_LISTVIEW_CTRL,
-        tksIDC_RIGHT_CHEV_CTRL,
-        tksIDC_LEFT_CHEV_CTRL,
+        tksIDC_PRESETNAMETEXTCTRL,
+        tksIDC_PRESETISDEFAULTCHECKBOXCTRL,
+        tksIDC_PRESETSAVEBUTTON,
+        tksIDC_PRESETRESETBUTTON,
+        tksIDC_PRESETCHOICECTRL,
+        tksIDC_AVAILABLECOLUMNSLISTVIEW,
+        tksIDC_RIGHTCHEVRONBUTTON,
+        tksIDC_LEFTCHEVRONBUTTON,
         tksIDC_EXPORT_HEADERS_DATAVIEW_CTRL,
-        tksIDC_UP_BUTTON,
-        tksIDC_DOWN_BUTTON,
-        tksIDC_EXCLUDE_HEADERS_CTRL,
+        tksIDC_UPBUTTON,
+        tksIDC_DOWNBUTTON,
         tksIDC_INCLUDEATTRIBUTESCHECKBOXCTRL,
-        tksIDC_DATA_EXPORT_PREVIEW_CTRL,
-        tksIDC_SHOW_PREVIEW_BUTTON,
-        tksIDC_EXPORT_BUTTON,
+        tksIDC_EXPORTBUTTON,
     };
 };
 } // namespace tks::UI::dlg

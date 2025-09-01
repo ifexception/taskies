@@ -22,6 +22,7 @@
 #include <memory>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include "availablecolumns.h"
 #include "projection.h"
@@ -34,8 +35,11 @@ class ProjectionBuilder final
 {
 public:
     ProjectionBuilder() = delete;
+    ProjectionBuilder(const ProjectionBuilder&) = delete;
     ProjectionBuilder(std::shared_ptr<spdlog::logger> logger);
     ~ProjectionBuilder() = default;
+
+    ProjectionBuilder& operator=(const ProjectionBuilder&) = delete;
 
     std::vector<Projection> BuildProjections(const std::vector<ColumnExportModel>& columns);
     std::vector<ColumnJoinProjection> BuildJoinProjections(

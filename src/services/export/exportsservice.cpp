@@ -94,7 +94,7 @@ ExportsService::~ExportsService()
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
-int ExportsService::FilterExportCsvData(const std::string& sql,
+int ExportsService::FilterExportDataFromGeneratedSql(const std::string& sql,
     const std::size_t valueCount,
     std::unordered_map<std::int64_t, Row<std::string>>& rows) const
 {
