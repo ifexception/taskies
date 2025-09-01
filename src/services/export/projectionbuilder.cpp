@@ -46,8 +46,8 @@ std::vector<Projection> ProjectionBuilder::BuildProjections(
 
         if (availableColumnIterator != mAvailableColumns.end()) {
             const auto& availableColumn = *availableColumnIterator;
-            pLogger->info("ProjectionBuilder::BuildProjections - Matched column \"{0}\" with "
-                          "available column \"{1}\"",
+            SPDLOG_LOGGER_TRACE(pLogger,
+                "Matched column \"{0}\" with available column \"{1}\"",
                 column.OriginalColumn,
                 availableColumn.DatabaseColumn);
 
@@ -84,8 +84,8 @@ std::vector<ColumnJoinProjection> ProjectionBuilder::BuildJoinProjections(
 
         if (availableColumnIterator != mAvailableColumns.end()) {
             const auto& availableColumn = *availableColumnIterator;
-            pLogger->info("ProjectionBuilder::BuildJoinProjections - Matched column \"{0}\" with "
-                          "available column \"{1}\"",
+            SPDLOG_LOGGER_TRACE(pLogger,
+                "Matched column \"{0}\" with available column \"{1}\"",
                 column.OriginalColumn,
                 availableColumn.UserColumn);
 
@@ -117,8 +117,7 @@ Projection ProjectionBuilder::BuildProjection(const ColumnExportModel& column,
 
 void ProjectionBuilder::SortProjectionsByOrderDescending(std::vector<Projection>& projections)
 {
-    pLogger->info(
-        "ProjectionBuilder::SortProjectionsByOrder - Sort projections by order index ascending");
+    SPDLOG_LOGGER_TRACE(pLogger, "Sort projections by order index ascending");
 
     // clang-format off
     std::sort(
@@ -147,7 +146,7 @@ ColumnJoinProjection ProjectionBuilder::BuildRequiredProjectTableJoinProjection(
         const auto& projectColumn = *projectColumnIterator;
         ColumnJoinProjection cjp(
             projectColumn.TableName, projectColumn.IdColumn, projectColumn.Join);
-        pLogger->info("ProjectionBuilder::BuildJoinProjections - Insert projects table to join on");
+        SPDLOG_LOGGER_TRACE(pLogger, "Insert projects table to join on");
 
         return cjp;
     }
@@ -162,8 +161,8 @@ ColumnJoinProjection ProjectionBuilder::BuildJoinProjection(const ColumnExportMo
         ColumnJoinProjection cjp(
             availableColumn.TableName, availableColumn.IdColumn, JoinType::InnerJoin);
 
-        pLogger->info("ProjectionBuilder::BuildJoinProjection - First level join on \"{0}\" with "
-                      "join \"{1}\"",
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "First level join on \"{0}\" with join type \"{1}\"",
             availableColumn.TableName,
             "INNER");
 
@@ -179,8 +178,8 @@ ColumnJoinProjection ProjectionBuilder::BuildJoinProjection(const ColumnExportMo
             cjp.Join = JoinType::InnerJoin;
         }
 
-        pLogger->info("ProjectionBuilder::BuildJoinProjection - Second level join on \"{0}\" with "
-                      "join \"{1}\"",
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Second level join on \"{0}\" with join type \"{1}\"",
             availableColumn.TableName,
             cjp.Join == JoinType::InnerJoin ? "INNER" : "LEFT");
 
