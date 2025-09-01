@@ -24,7 +24,7 @@ add_executable (
 target_compile_options (
     ${PROJECT_NAME}
     PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/W3 /permissive- /TP /EHsc /MP /RTCs /GS->
+    $<$<CXX_COMPILER_ID:MSVC>:/W3 /permissive- /TP /EHsc /MP $<$<CONFIG:Debug>:/RTCs /GS->>
 )
 
 target_compile_features (
