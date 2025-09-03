@@ -41,7 +41,7 @@ enum class NotificationType { Information = 1, Error };
 
 enum class DelimiterType : int { None = 0, Comma, Semicolon, Pipe, Tab, Space };
 
-enum class TextQualifierType : int { None = 0, DoubleQuotes, SingleQuotes };
+enum class TextQualifierType : int { None = 1, DoubleQuotes, SingleQuotes };
 
 enum class EmptyValues : int { None = 0, Blank, Null };
 
