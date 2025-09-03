@@ -402,6 +402,7 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
             preset["booleans"] = static_cast<int>(presetToUpdate.BooleanHandler);
             preset["excludeHeaders"] = presetToUpdate.ExcludeHeaders;
             preset["includeAttributes"] = presetToUpdate.IncludeAttributes;
+            preset["columns"] = toml::array{};
 
             auto& columns = preset.at("columns");
             columns.as_array_fmt().fmt = toml::array_format::array_of_tables;
