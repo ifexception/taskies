@@ -95,7 +95,6 @@ std::string MapDelimiterEnumToValue(DelimiterType delimiter)
 {
     switch (delimiter) {
     case tks::DelimiterType::None:
-        return "";
     case tks::DelimiterType::Comma:
         return ",";
     case tks::DelimiterType::Semicolon:

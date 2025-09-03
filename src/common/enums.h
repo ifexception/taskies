@@ -39,16 +39,16 @@ enum class BuildConfiguration { Undefined, Debug, Release };
 
 enum class NotificationType { Information = 1, Error };
 
-enum class DelimiterType : int { None = 1, Comma, Semicolon, Pipe, Tab, Space };
+enum class DelimiterType : int { None = 0, Comma, Semicolon, Pipe, Tab, Space };
 
-enum class TextQualifierType : int { None = 1, DoubleQuotes, SingleQuotes };
+enum class TextQualifierType : int { None = 0, DoubleQuotes, SingleQuotes };
 
-enum class EmptyValues : int { None = 1, Blank, Null };
+enum class EmptyValues : int { None = 0, Blank, Null };
 
-enum class NewLines : int { None = 1, Preserve, Merge, MergeAndAddSpace };
+enum class NewLines : int { None = 0, Preserve, Merge, MergeAndAddSpace };
 
 enum class BooleanHandler : int {
-    None = 1,
+    None = 0,
     OneZero,
     TrueFalseLowerCase,
     YesNoLowerCase,
