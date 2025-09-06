@@ -3,7 +3,7 @@
 Taskies is a small, minimalist, and easy-to-use desktop program to help you track your tasks and their duration
 
 ---
-# _Taskies is an alpha state. There are bugs!_
+### _Taskies is still in a development phase. There are bugs!_
 ---
 
 ## Do you find yourself?
@@ -20,16 +20,13 @@ Download an installer executable from [here](https://github.com/ifexception/task
 * Manage employers, clients, projects, and categories
 * Preferences
 * Task addition/modification/deletion
+* Task attrbutes
 * Status bar task durations
 * Export to CSV
+* Export to Excel (Windows only)
+* Reminders
 * Database backups
 * Open source (GPL-3 license, see [LICENSE](LICENSE) for more)
-
-### Upcoming features
-* Outlook integration
-* Stopwatch/Timer
-* Reminders
-* Portable installation
 
 ### Bugs and/or Suggestions
 * Found a bug?
