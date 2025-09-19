@@ -19,6 +19,8 @@
 
 #include "outlookintegratorservice.h"
 
+#include "outlookguard.h"
+
 namespace tks::Services::Integrations
 {
 OutlookResult OutlookResult::OK()
@@ -32,19 +34,22 @@ OutlookResult OutlookResult::Fail(const std::string& errorMessage)
 }
 
 OutlookIntegratorService::OutlookIntegratorService(std::shared_ptr<spdlog::logger> logger)
-    : mOutlookInstance()
+    : pLogger(logger)
 {
 }
 
 OutlookResult OutlookIntegratorService::GetAllCalendarMeetings()
 {
-    if (!mOutlookInstance.GetInstance("Outlook.Application")) {
+    wxAutomationObject outlookInstance;
+    OutlookGuard outlookGuard{ outlookInstance };
+
+    if (!outlookInstance.GetInstance("Outlook.Application")) {
         pLogger->error("Could not create Outlook instance");
         return OutlookResult::Fail("Failed to open Outlook application");
     }
 
     wxVariant mapiVariant("MAPI");
-    const wxVariant namespaceDispatchPtr = mOutlookInstance.CallMethod("GetNamespace", mapiVariant);
+    const wxVariant namespaceDispatchPtr = outlookInstance.CallMethod("GetNamespace", mapiVariant);
 
     if (namespaceDispatchPtr.IsNull()) {
         pLogger->error("Failed to call \"GetNamespace\" method");

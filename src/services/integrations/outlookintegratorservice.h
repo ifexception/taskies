@@ -45,7 +45,6 @@ struct OutlookIntegratorService {
     OutlookResult GetAllCalendarMeetings();
 
     std::shared_ptr<spdlog::logger> pLogger;
-    wxAutomationObject mOutlookInstance;
 
     bool VariantToObject(const wxVariant& v, wxAutomationObject& o) const;
 };
