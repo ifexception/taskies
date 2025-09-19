@@ -49,6 +49,7 @@
 #include "../persistence/taskspersistence.h"
 
 #include "../services/export/excelinstancecheck.h"
+#include "../services/integrations/outlookintegratorservice.h"
 #include "../services/tasks/taskviewmodel.h"
 #include "../services/tasks/tasksservice.h"
 
@@ -147,6 +148,8 @@ EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnContextMenu)
 EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionChanged)
+/* Test */
+EVT_BUTTON(tksIDC_OUTLOOKTEST, MainFrame::OnOutlookTest)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -424,6 +427,9 @@ void MainFrame::CreateControls()
     topSizer->Add(pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     topSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     topSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    topSizer->Add(new wxButton(framePanel, tksIDC_OUTLOOKTEST, "Test Outlook"),
+        wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     topSizer->AddStretchSpacer();
 
@@ -1611,6 +1617,18 @@ void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
+}
+
+void MainFrame::OnOutlookTest(wxCommandEvent& event)
+{
+    Services::Integrations::OutlookIntegratorService integratorService(pLogger);
+    auto result = integratorService.FetchCalendarMeetings();
+    if (!result.Success) {
+        wxMessageBox(result.Message, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+    } else {
+        wxMessageBox(
+            "Success, no errors!", Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
+    }
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()
