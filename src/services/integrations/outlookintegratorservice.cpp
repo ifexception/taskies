@@ -38,7 +38,7 @@ OutlookIntegratorService::OutlookIntegratorService(std::shared_ptr<spdlog::logge
 {
 }
 
-OutlookResult OutlookIntegratorService::GetAllCalendarMeetings()
+OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
 {
     wxAutomationObject outlookInstance;
     OutlookGuard outlookGuard{ outlookInstance };
@@ -62,25 +62,37 @@ OutlookResult OutlookIntegratorService::GetAllCalendarMeetings()
         return OutlookResult::Fail("Conversion error occurred");
     }
 
-    const wxVariant missingArgument(new wxVariantDataErrorCode(DISP_E_PARAMNOTFOUND));
+    /*const wxVariant missingArgument(new wxVariantDataErrorCode(DISP_E_PARAMNOTFOUND));
     const wxVariant logonCall =
         namespaceObject.CallMethod("Logon", missingArgument, missingArgument, true, true);
     if (logonCall.IsNull()) {
         pLogger->error("Failed to call \"Logon\" method");
         return OutlookResult::Fail("Failed to logon to Outlook namespace");
-    }
+    }*/
 
     const wxVariant accountsDispatchPtr = namespaceObject.GetProperty("Accounts");
     if (accountsDispatchPtr.IsNull()) {
         pLogger->error("Failed to get \"Accounts\" property");
-        return OutlookResult::Fail("Failed to get to Outlook \"Accounts\" property");
+        return OutlookResult::Fail("Failed to get to Outlook \"Namespace.Accounts\" property");
     }
 
     wxAutomationObject accountsObject;
     if (!VariantToObject(accountsDispatchPtr, accountsObject)) {
-        pLogger->error("Could not convert variant to Accounts object");
+        pLogger->error("Could not convert variant to \"Accounts\" object");
         return OutlookResult::Fail("Conversion error occurred");
     }
+
+    const wxVariant accountCountProperty = accountsObject.GetProperty("Count");
+    if (accountCountProperty.IsNull()) {
+        pLogger->error("Failed to get \"Count\" property");
+        return OutlookResult::Fail("Failed to get \"Accounts.Count\" property");
+    }
+
+    if (!(accountCountProperty.IsType("long") && accountCountProperty.GetLong() > 0)) {
+        return OutlookResult::Fail("Type is incorrect or no accounts found in Outlook");
+    }
+
+    const long accountCount = accountCountProperty.GetLong();
 
     return OutlookResult::OK();
 }
