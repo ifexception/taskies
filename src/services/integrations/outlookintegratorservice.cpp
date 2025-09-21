@@ -193,14 +193,8 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
             return OutlookResult::Fail("Conversion error occurred");
         }
 
-        const wxVariant filteredItemsCount = filteredItemsObject.GetProperty("Count");
-        if (filteredItemsCount.IsNull() && !filteredItemsCount.IsType("long")) {
-            pLogger->error("Failed to get \"Count\" property");
-            return OutlookResult::Fail("Failed to get \"Items.Count\" property");
-        }
-
-        const long itemsCount = filteredItemsCount.GetLong();
-
+        // Handle case if there are no meetings
+        // the below call will fail if there are no meetings
         wxVariant itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetFirst");
         if (itemObjectDispatchPtr.IsNull()) {
             pLogger->error("Error calling \"GetFirst\" method");
@@ -263,59 +257,6 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
 
             itemObject.SetDispatchPtr(itemObjectDispatchPtr);
         } while (true);
-
-        /*for (long i = 0; i < itemsCount; i++) {
-            if (!itemObject.IsOk()) {
-                pLogger->error("\"Item\" object is an invalid state");
-                return OutlookResult::Fail("\"Item\" object is an invalid state");
-            }
-
-            pLogger->info("=== MEETING INFO ===");
-            pLogger->info(
-                "=== === === === === === === === === === === === === === === === === ===");
-
-            wxVariant entryIDProperty = itemObject.GetProperty("EntryID");
-            if (!entryIDProperty.IsNull()) {
-                pLogger->info("EntryID\t|\t{0}", entryIDProperty.GetString().ToStdString());
-            }
-            wxVariant subjectProperty = itemObject.GetProperty("Subject");
-            if (!subjectProperty.IsNull()) {
-                pLogger->info("Subject\t|\t{0}", subjectProperty.GetString().ToStdString());
-            }
-            wxVariant bodyProperty = itemObject.GetProperty("Body");
-            if (!bodyProperty.IsNull()) {
-                pLogger->info("Body\t\t|\t{0}", bodyProperty.GetString().ToStdString());
-            }
-            wxVariant startProperty = itemObject.GetProperty("Start");
-            if (!startProperty.IsNull()) {
-                pLogger->info("Start\t|\t{0}", startProperty.GetString().ToStdString());
-            }
-            wxVariant endProperty = itemObject.GetProperty("End");
-            if (!endProperty.IsNull()) {
-                pLogger->info("End\t\t|\t0}", endProperty.GetString().ToStdString());
-            }
-            wxVariant durationProperty = itemObject.GetProperty("Duration");
-            if (!durationProperty.IsNull()) {
-                pLogger->info("Duration\t|\t{0}", durationProperty.GetString().ToStdString());
-            }
-            wxVariant locationProperty = itemObject.GetProperty("Location");
-            if (!locationProperty.IsNull()) {
-                pLogger->info("Location\t|\t{0}", locationProperty.GetString().ToStdString());
-            }
-
-            pLogger->info("=== ENDS ===");
-
-            itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetNext");
-            if (itemObjectDispatchPtr.IsNull()) {
-                pLogger->error("Failed to call \"GetNext\" method");
-                return OutlookResult::Fail("Failed to call method \"Items.GetNext\"");
-            }
-
-            if (!VariantToObject(itemObjectDispatchPtr, itemObject)) {
-                pLogger->error("Could not convert variant to \"Item\" object");
-                return OutlookResult::Fail("Conversion error occurred");
-            }
-        }*/
     }
 
     return OutlookResult::OK();
