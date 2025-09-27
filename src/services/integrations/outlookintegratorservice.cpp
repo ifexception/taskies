@@ -194,7 +194,7 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
         }
 
         // Handle case if there are no meetings
-        // the below call will fail if there are no meetings
+        // the below call will "fail" if there are no meetings
         wxVariant itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetFirst");
         if (itemObjectDispatchPtr.IsNull()) {
             pLogger->error("Error calling \"GetFirst\" method");
