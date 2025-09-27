@@ -622,53 +622,58 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
     Services::Export::ExportResult result;
     std::string message = "";
 
-    if (mExportFormat == ExportFormat::Csv) {
-        Services::Export::CsvExporterService csvExporter(
-            pLogger, mExportOptions, mDatabaseFilePath, false);
+    wxBusyCursor busy;
 
-        std::string exportedData = "";
-        result =
-            csvExporter.ExportToCsv(projections, joinProjections, fromDate, toDate, exportedData);
+    {
+        if (mExportFormat == ExportFormat::Csv) {
+            Services::Export::CsvExporterService csvExporter(
+                pLogger, mExportOptions, mDatabaseFilePath, false);
 
-        if (result.Success) {
-            if (bExportToClipboard) {
-                auto canOpen = wxTheClipboard->Open();
-                if (canOpen) {
-                    auto textData = new wxTextDataObject(exportedData);
-                    wxTheClipboard->SetData(textData);
-                    wxTheClipboard->Close();
+            std::string exportedData = "";
+            result = csvExporter.ExportToCsv(
+                projections, joinProjections, fromDate, toDate, exportedData);
+
+            if (result.Success) {
+                if (bExportToClipboard) {
+                    auto canOpen = wxTheClipboard->Open();
+                    if (canOpen) {
+                        auto textData = new wxTextDataObject(exportedData);
+                        wxTheClipboard->SetData(textData);
+                        wxTheClipboard->Close();
+                    }
+                } else {
+                    std::ofstream exportFile;
+                    exportFile.open(
+                        pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
+                    if (!exportFile.is_open()) {
+                        pLogger->error("Failed to open export file at path \"{0}\"",
+                            pSaveToFileTextCtrl->GetValue().ToStdString());
+                        return;
+                    }
+
+                    exportFile << exportedData;
+
+                    exportFile.close();
                 }
-            } else {
-                std::ofstream exportFile;
-                exportFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
-                if (!exportFile.is_open()) {
-                    pLogger->error("Failed to open export file at path \"{0}\"",
-                        pSaveToFileTextCtrl->GetValue().ToStdString());
-                    return;
-                }
-
-                exportFile << exportedData;
-
-                exportFile.close();
+                message = bExportToClipboard ? "Successfully exported data to clipboard"
+                                             : "Successfully exported data to file";
             }
-            message = bExportToClipboard ? "Successfully exported data to clipboard"
-                                         : "Successfully exported data to file";
+        } else if (mExportFormat == ExportFormat::Excel) {
+            Services::Export::ExcelExporterService excelExporterService(pLogger,
+                mDatabaseFilePath,
+                mExportOptions.IncludeAttributes,
+                mExportOptions.NewLinesHandler,
+                mExportOptions.BooleanHandler);
+
+            const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
+            result = excelExporterService.ExportToExcel(
+                projections, joinProjections, fromDate, toDate, saveLocation);
+
+            message = "Successfully exported data to Excel";
+        } else {
+            pLogger->error("Unmatched or invalid enum value of ExportFormat");
+            result = Services::Export::ExportResult::Fail("Invalid export format selected");
         }
-    } else if (mExportFormat == ExportFormat::Excel) {
-        Services::Export::ExcelExporterService excelExporterService(pLogger,
-            mDatabaseFilePath,
-            mExportOptions.IncludeAttributes,
-            mExportOptions.NewLinesHandler,
-            mExportOptions.BooleanHandler);
-
-        const std::string& saveLocation = pSaveToFileTextCtrl->GetValue().ToStdString();
-        result = excelExporterService.ExportToExcel(
-            projections, joinProjections, fromDate, toDate, saveLocation);
-
-        message = "Successfully exported data to Excel";
-    } else {
-        pLogger->error("Unmatched or invalid enum value of ExportFormat");
-        return;
     }
 
     if (!result.Success) {
