@@ -20,7 +20,6 @@
 #pragma once
 
 #include <memory>
-#include <string>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -35,9 +34,7 @@ namespace Core
 {
 class Configuration;
 } // namespace Core
-namespace UI
-{
-namespace dlg
+namespace UI::dlg
 {
 class PreferencesTasksViewPage : public wxPanel
 {
@@ -66,10 +63,7 @@ private:
 
     wxCheckBox* pTodayAlwaysExpanded;
 
-    enum {
-        tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100
-    };
+    enum { tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100 };
 };
-} // namespace dlg
-} // namespace UI
+} // namespace UI::dlg
 } // namespace tks
