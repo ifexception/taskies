@@ -41,7 +41,7 @@ OutlookIntegratorService::OutlookIntegratorService(std::shared_ptr<spdlog::logge
 OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
 {
     wxAutomationObject outlookInstance;
-    //OutlookGuard outlookGuard{ outlookInstance };
+    // OutlookGuard outlookGuard{ outlookInstance };
 
     if (!outlookInstance.GetInstance("Outlook.Application")) {
         pLogger->error("Could not create Outlook instance");
@@ -61,14 +61,6 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
         pLogger->error("Could not convert variant to Namespace object");
         return OutlookResult::Fail("Conversion error occurred");
     }
-
-    /*const wxVariant missingArgument(new wxVariantDataErrorCode(DISP_E_PARAMNOTFOUND));
-    const wxVariant logonCall =
-        namespaceObject.CallMethod("Logon", missingArgument, missingArgument, true, true);
-    if (logonCall.IsNull()) {
-        pLogger->error("Failed to call \"Logon\" method");
-        return OutlookResult::Fail("Failed to logon to Outlook namespace");
-    }*/
 
     const wxVariant accountsDispatchPtr = namespaceObject.GetProperty("Accounts");
     if (accountsDispatchPtr.IsNull()) {
@@ -160,7 +152,8 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
         }
 
         wxVariant sortByStartParam = "[Start]";
-        /*const wxVariant sortResult = */calendarFolderItemsObject.CallMethod("Sort", sortByStartParam);
+        /*const wxVariant sortResult = */
+        calendarFolderItemsObject.CallMethod("Sort", sortByStartParam);
         /*if (sortResult.GetVoidPtr() == nullptr) {
             pLogger->error("Failed to call \"Sort\" with {0} parameter",
                 sortByStartParam.GetString().ToStdString());
@@ -193,12 +186,19 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
             return OutlookResult::Fail("Conversion error occurred");
         }
 
-        // Handle case if there are no meetings
-        // the below call will "fail" if there are no meetings
         wxVariant itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetFirst");
         if (itemObjectDispatchPtr.IsNull()) {
             pLogger->error("Error calling \"GetFirst\" method");
             return OutlookResult::Fail("Failed to call method \"Items.GetFirst\"");
+        }
+
+        // Method "GetFirst" will "fail" if there are no meeting items for this account
+        // Checking if there is a void ptr in our variant tells us GetFirst could not get
+        // any meeting items (this is for now an assumption, but works)
+        if (!itemObjectDispatchPtr.GetVoidPtr()) {
+            pLogger->info("\"GetFirst\" method did not return a valid void ptr because most likely "
+                          "there are no meetings for this account");
+            return OutlookResult::Fail("No meetings found");
         }
 
         wxAutomationObject itemObject;
@@ -209,8 +209,8 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
 
         do {
             if (!itemObject.IsOk()) {
-                pLogger->info("Retrieved all meetings for \"{0}\"",
-                    displayName.GetString().ToStdString());
+                pLogger->info(
+                    "Retrieved all meetings for \"{0}\"", displayName.GetString().ToStdString());
                 break;
             }
 
