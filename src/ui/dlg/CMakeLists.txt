@@ -4,6 +4,7 @@ project ("Taskies")
 add_subdirectory("attributes")
 add_subdirectory("preferences")
 add_subdirectory("exports")
+add_subdirectory("outlook")
 
 set (
     SRC_DIALOGS
@@ -23,6 +24,7 @@ set (
     ${SRC_ATTR_DLG}
     ${SRC_PREFERENCES_DLG}
     ${SRC_EXPORT_DIALOGS}
+    ${SRC_OUTLOOKVIEW_DLG}
     ${SRC_DIALOGS}
     PARENT_SCOPE
 )
