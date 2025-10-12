@@ -50,6 +50,7 @@
 
 #include "../services/export/excelinstancecheck.h"
 #include "../services/integrations/outlookintegratorservice.h"
+#include "../services/integrations/outlookmeetingmodel.h"
 #include "../services/tasks/taskviewmodel.h"
 #include "../services/tasks/tasksservice.h"
 
@@ -350,9 +351,8 @@ void MainFrame::CreateControls()
             ID_TASKS_EXPORTTOEXCEL, "Ex&port to Excel", "Export tasks data to Excel");
     }
 
-    auto quickExportMenuItem = fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
-        "&Quick Export",
-        "Export tasks data to CSV or Excel");
+    auto quickExportMenuItem = fileTasksMenu->Append(
+        ID_TASKS_QUICKEXPORTTOCSV, "&Quick Export", "Export tasks data to CSV or Excel");
 
     wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
     quickExportMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(quickExportBundle));
@@ -1621,13 +1621,15 @@ void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnOutlookTest(wxCommandEvent& event)
 {
+    std::vector<Services::Integrations::OutlookMeetingModel> meetingModels;
+
     Services::Integrations::OutlookIntegratorService integratorService(pLogger);
-    auto result = integratorService.FetchCalendarMeetings();
+    auto result = integratorService.FetchCalendarMeetings(meetingModels);
     if (!result.Success) {
         wxMessageBox(result.Message, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
     } else {
-        wxMessageBox(
-            "Success, no errors!", Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
+        auto message = fmt::format("Retreived {0} Outlook meetings", meetingModels.size());
+        wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
     }
 }
 
