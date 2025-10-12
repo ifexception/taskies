@@ -26,8 +26,57 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/activityindicator.h>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
 
 namespace tks::UI::dlg
 {
+class OutlookMeetingsViewDialog : public wxDialog
+{
+public:
+    OutlookMeetingsViewDialog() = delete;
+    OutlookMeetingsViewDialog(const OutlookMeetingsViewDialog&) = delete;
+    OutlookMeetingsViewDialog(wxWindow* parent,
+        std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath,
+        const wxString& name = "outlookmeetingsviewdlg");
+    virtual ~OutlookMeetingsViewDialog() = default;
 
-}
+private:
+    void Create();
+
+    void CreateControls();
+    void ConfigureEventBindings();
+    void FillControls();
+
+    void OnRefresh(wxCommandEvent& event);
+
+    void OnAttendedCheckboxCheck(wxCommandEvent& event);
+    void FeedbackLabel(const wxString& message);
+
+    void OnCancel(wxCommandEvent& event);
+
+    void QueueErrorNotificationEvent(const std::string& message);
+
+    std::shared_ptr<spdlog::logger> pLogger;
+    std::string mDatabaseFilePath;
+
+    wxWindow* pParent;
+    wxBoxSizer* pMainSizer;
+    wxScrolledWindow* pScrolledWindow;
+
+    wxButton* pRefreshButton;
+    wxStaticText* pTodayDateLabel;
+    wxActivityIndicator* pActivityIndicator;
+
+    wxButton* pCancelButton;
+
+    enum {
+        tksIDC_REFRESH_BUTTON = wxID_HIGHEST + 1001,
+        tksIDC_TODAYDATELABEL,
+        tksIDC_ACTIVITYINDICATOR
+    };
+};
+} // namespace tks::UI::dlg
