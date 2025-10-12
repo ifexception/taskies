@@ -38,7 +38,8 @@ OutlookIntegratorService::OutlookIntegratorService(std::shared_ptr<spdlog::logge
 {
 }
 
-OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
+OutlookResult OutlookIntegratorService::FetchCalendarMeetings(
+    std::vector<OutlookMeetingModel>& meetingModels) const
 {
     wxAutomationObject outlookInstance;
     // OutlookGuard outlookGuard{ outlookInstance };
@@ -197,7 +198,7 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
         // any meeting items (this is for now an assumption, but works)
         if (!itemObjectDispatchPtr.GetVoidPtr()) {
             pLogger->info("\"GetFirst\" method did not return a valid void ptr because most likely "
-                          "there are no meetings for this account");
+                          "there are NO meetings for this account");
             return OutlookResult::Fail("No meetings found");
         }
 
@@ -218,36 +219,46 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings() const
             pLogger->info(
                 "=== === === === === === === === === === === === === === === === === ===");
 
+            OutlookMeetingModel model;
             wxVariant entryIDProperty = itemObject.GetProperty("EntryID");
             if (!entryIDProperty.IsNull()) {
                 pLogger->info("EntryID\t|\t{0}", entryIDProperty.GetString().ToStdString());
+                model.EntryId = entryIDProperty.GetString().ToStdString();
             }
             wxVariant subjectProperty = itemObject.GetProperty("Subject");
             if (!subjectProperty.IsNull()) {
                 pLogger->info("Subject\t|\t{0}", subjectProperty.GetString().ToStdString());
+                model.Subject = subjectProperty.GetString().ToStdString();
             }
             wxVariant bodyProperty = itemObject.GetProperty("Body");
             if (!bodyProperty.IsNull()) {
                 pLogger->info("Body\t\t|\t{0}", bodyProperty.GetString().ToStdString());
+                model.Body = bodyProperty.GetString().ToStdString();
             }
             wxVariant startProperty = itemObject.GetProperty("Start");
             if (!startProperty.IsNull()) {
                 pLogger->info("Start\t\t|\t{0}", startProperty.GetString().ToStdString());
+                model.Start = startProperty.GetString().ToStdString();
             }
             wxVariant endProperty = itemObject.GetProperty("End");
             if (!endProperty.IsNull()) {
                 pLogger->info("End\t\t|\t{0}", endProperty.GetString().ToStdString());
+                model.End = endProperty.GetString().ToStdString();
             }
             wxVariant durationProperty = itemObject.GetProperty("Duration");
             if (!durationProperty.IsNull()) {
                 pLogger->info("Duration\t|\t{0}", durationProperty.GetString().ToStdString());
+                model.Duration = durationProperty.GetString().ToStdString();
             }
             wxVariant locationProperty = itemObject.GetProperty("Location");
             if (!locationProperty.IsNull()) {
                 pLogger->info("Location\t|\t{0}", locationProperty.GetString().ToStdString());
+                model.Location = locationProperty.GetString().ToStdString();
             }
 
             pLogger->info("=== ENDS ===");
+
+            meetingModels.push_back(model);
 
             itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetNext");
             if (itemObjectDispatchPtr.IsNull()) {

@@ -21,12 +21,15 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <wx/msw/ole/automtn.h>
 #include <wx/msw/ole/oleutils.h>
 
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
+
+#include "outlookmeetingmodel.h"
 
 namespace tks::Services::Integrations
 {
@@ -42,7 +45,7 @@ struct OutlookIntegratorService {
     OutlookIntegratorService(std::shared_ptr<spdlog::logger> logger);
     ~OutlookIntegratorService() = default;
 
-    OutlookResult FetchCalendarMeetings() const;
+    OutlookResult FetchCalendarMeetings(std::vector<OutlookMeetingModel>& meetingModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
 
