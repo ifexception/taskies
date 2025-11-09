@@ -53,8 +53,7 @@ private:
 
     void OnRefresh(wxCommandEvent& event);
 
-    void OnAttendedCheckboxCheck(wxCommandEvent& event);
-    void FeedbackLabel(const wxString& message);
+    void SetFeedbackLabelOnEvent(const std::string& message);
 
     void OnCancel(wxCommandEvent& event);
 

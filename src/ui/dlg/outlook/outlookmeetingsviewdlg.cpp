@@ -102,13 +102,14 @@ void OutlookMeetingsViewDialog::CreateControls()
 
 void OutlookMeetingsViewDialog::ConfigureEventBindings() {}
 
-void OutlookMeetingsViewDialog::FillControls() {}
+void OutlookMeetingsViewDialog::FillControls()
+{
+    pAccountsChoiceCtrl->Append("Select account");
+}
 
 void OutlookMeetingsViewDialog::OnRefresh(wxCommandEvent& event) {}
 
-void OutlookMeetingsViewDialog::OnAttendedCheckboxCheck(wxCommandEvent& event) {}
-
-void OutlookMeetingsViewDialog::FeedbackLabel(const wxString& message) {}
+void OutlookMeetingsViewDialog::SetFeedbackLabelOnEvent(const std::string& message) {}
 
 void OutlookMeetingsViewDialog::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
 
