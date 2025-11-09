@@ -19,6 +19,8 @@
 
 #include "outlookmeetingsviewdlg.h"
 
+#include <wx/artprov.h>
+
 #include "../../../common/common.h"
 
 namespace tks::UI::dlg
@@ -38,9 +40,10 @@ OutlookMeetingsViewDialog::OutlookMeetingsViewDialog(wxWindow* parent,
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , pMainSizer(nullptr)
-    , pScrolledWindow(nullptr)
     , pRefreshButton(nullptr)
-    , pActivityIndicator(nullptr)
+    , pAccountsChoiceCtrl(nullptr)
+    , pFeedbackLabel(nullptr)
+    , pScrolledWindow(nullptr)
     , pCancelButton(nullptr)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
@@ -62,23 +65,28 @@ void OutlookMeetingsViewDialog::CreateControls()
     /* Main dialog sizer for controls */
     pMainSizer = new wxBoxSizer(wxVERTICAL);
 
+    /* Refresh button */
+    auto providedRefreshBitmap = wxArtProvider::GetBitmapBundle(
+        wxART_REFRESH, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    pRefreshButton = new wxBitmapButton(this, tksIDC_REFRESH_BUTTON, providedRefreshBitmap);
+    pRefreshButton->SetToolTip("Refresh meetings of selected account");
+    pMainSizer->AddStretchSpacer();
+    pMainSizer->Add(pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* Account choice */
+    pAccountsChoiceCtrl = new wxChoice(this, tksIDC_ACCOUNT_CHOICE_CTRL);
+    pMainSizer->Add(pAccountsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* Feedback label */
+    pFeedbackLabel = new wxStaticText(this, tksIDC_FEEDBACKLABEL, "No meetings found");
+    pMainSizer->Add(pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
+
     /* Main Scrolled Window */
     pScrolledWindow = new wxScrolledWindow(this, wxID_ANY);
     pMainSizer->Add(pScrolledWindow, wxSizerFlags(1).Expand());
 
     auto scrolledSizer = new wxBoxSizer(wxVERTICAL);
     pScrolledWindow->SetSizer(scrolledSizer);
-
-    /* Today Date Label */
-    pTodayDateLabel = new wxStaticText(pScrolledWindow, tksIDC_TODAYDATELABEL, wxGetEmptyString());
-    auto todayDateLabelFont = pTodayDateLabel->GetFont();
-    todayDateLabelFont.SetPointSize(14);
-    pTodayDateLabel->SetFont(todayDateLabelFont);
-    scrolledSizer->Add(pTodayDateLabel, wxSizerFlags().CenterHorizontal().Border(wxALL, 5).Top());
-
-    /* Activity Indicator */
-    pActivityIndicator = new wxActivityIndicator(pScrolledWindow, tksIDC_ACTIVITYINDICATOR);
-    scrolledSizer->Add(pActivityIndicator, wxSizerFlags(1).Center());
 }
 
 void OutlookMeetingsViewDialog::ConfigureEventBindings() {}

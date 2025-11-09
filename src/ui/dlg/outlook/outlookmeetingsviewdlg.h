@@ -64,19 +64,22 @@ private:
     std::string mDatabaseFilePath;
 
     wxWindow* pParent;
-    wxBoxSizer* pMainSizer;
-    wxScrolledWindow* pScrolledWindow;
 
-    wxButton* pRefreshButton;
-    wxStaticText* pTodayDateLabel;
-    wxActivityIndicator* pActivityIndicator;
+    wxBoxSizer* pMainSizer;
+
+    wxBitmapButton* pRefreshButton;
+    wxChoice* pAccountsChoiceCtrl;
+
+    wxStaticText* pFeedbackLabel;
+
+    wxScrolledWindow* pScrolledWindow;
 
     wxButton* pCancelButton;
 
     enum {
         tksIDC_REFRESH_BUTTON = wxID_HIGHEST + 1001,
-        tksIDC_TODAYDATELABEL,
-        tksIDC_ACTIVITYINDICATOR
+        tksIDC_ACCOUNT_CHOICE_CTRL,
+        tksIDC_FEEDBACKLABEL
     };
 };
 } // namespace tks::UI::dlg
