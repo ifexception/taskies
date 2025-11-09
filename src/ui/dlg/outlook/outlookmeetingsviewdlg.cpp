@@ -31,7 +31,7 @@ OutlookMeetingsViewDialog::OutlookMeetingsViewDialog(wxWindow* parent,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
-          "Outlook Meetings View",
+          "Outlook Meetings",
           wxDefaultPosition,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
@@ -65,17 +65,26 @@ void OutlookMeetingsViewDialog::CreateControls()
     /* Main dialog sizer for controls */
     pMainSizer = new wxBoxSizer(wxVERTICAL);
 
+    /* Refresh button sizer */
+    auto refreshButtonHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    pMainSizer->Add(refreshButtonHorizontalSizer, wxSizerFlags().Expand());
+
     /* Refresh button */
     auto providedRefreshBitmap = wxArtProvider::GetBitmapBundle(
         wxART_REFRESH, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pRefreshButton = new wxBitmapButton(this, tksIDC_REFRESH_BUTTON, providedRefreshBitmap);
     pRefreshButton->SetToolTip("Refresh meetings of selected account");
-    pMainSizer->AddStretchSpacer();
-    pMainSizer->Add(pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    refreshButtonHorizontalSizer->AddStretchSpacer();
+    refreshButtonHorizontalSizer->Add(pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    /* Account choice */
+    /* Account label and choice control */
+    auto accountLabel = new wxStaticText(this, wxID_ANY, "Account");
+
     pAccountsChoiceCtrl = new wxChoice(this, tksIDC_ACCOUNT_CHOICE_CTRL);
-    pMainSizer->Add(pAccountsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    pAccountsChoiceCtrl->SetToolTip("Select an account to display meetings for");
+
+    pMainSizer->Add(accountLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    pMainSizer->Add(pAccountsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Feedback label */
     pFeedbackLabel = new wxStaticText(this, tksIDC_FEEDBACKLABEL, "No meetings found");
@@ -87,6 +96,8 @@ void OutlookMeetingsViewDialog::CreateControls()
 
     auto scrolledSizer = new wxBoxSizer(wxVERTICAL);
     pScrolledWindow->SetSizer(scrolledSizer);
+
+    SetSizerAndFit(pMainSizer);
 }
 
 void OutlookMeetingsViewDialog::ConfigureEventBindings() {}
