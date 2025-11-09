@@ -71,6 +71,7 @@
 #include "../ui/dlg/attributes/attributegroupdlg.h"
 #include "../ui/dlg/attributes/attributedlg.h"
 #include "../ui/dlg/attributes/staticattributevaluesdlg.h"
+#include "../ui/dlg/outlook/outlookmeetingsviewdlg.h"
 
 #include "events.h"
 #include "common/notificationclientdata.h"
@@ -124,6 +125,7 @@ EVT_MENU(ID_EDIT_ATTRIBUTE, MainFrame::OnEditAttribute)
 EVT_MENU(ID_EDIT_STATIC_ATTRIBUTE_VALUES, MainFrame::OnEditStaticAttributeValues)
 EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_EXPAND, MainFrame::OnViewExpand)
+EVT_MENU(ID_VIEW_OUTLOOK, MainFrame::OnViewOutlook)
 // EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
@@ -381,6 +383,8 @@ void MainFrame::CreateControls()
     auto viewMenu = new wxMenu();
     viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current week");
     viewMenu->Append(ID_VIEW_EXPAND, "&Expand\tCtrl-E", "Expand date procedure");
+    viewMenu->AppendSeparator();
+    viewMenu->Append(ID_VIEW_OUTLOOK, "&Outlook\tAlt-O", "View Outlook meetings");
     // viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
     viewMenu->AppendSeparator();
     auto preferencesMenuItem =
@@ -505,10 +509,11 @@ void MainFrame::CreateControls()
     pDataViewCtrl->SetFocus();
 
     /* Accelerator Table */
-    wxAcceleratorEntry entries[5];
+    wxAcceleratorEntry entries[4];
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
     entries[2].Set(wxACCEL_CTRL, (int) 'E', ID_VIEW_EXPAND);
+    entries[3].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
     SetAcceleratorTable(table);
@@ -913,6 +918,12 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
     }
 
     TryUpdateSelectedDateAndAllTaskDurations(pDateStore->PrintTodayDate);
+}
+
+void MainFrame::OnViewOutlook(wxCommandEvent& event)
+{
+    dlg::OutlookMeetingsViewDialog meetingsViewDlg(this, pLogger, mDatabaseFilePath);
+    meetingsViewDlg.ShowModal();
 }
 
 // void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
