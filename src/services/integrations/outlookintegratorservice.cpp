@@ -36,6 +36,83 @@ OutlookIntegratorService::OutlookIntegratorService(std::shared_ptr<spdlog::logge
 {
 }
 
+OutlookResult OutlookIntegratorService::FetchAccountNames(std::vector<std::string>& accountNames)
+{
+    wxAutomationObject outlookInstance;
+
+    if (!outlookInstance.GetInstance("Outlook.Application")) {
+        pLogger->error("Could not create Outlook instance");
+        return OutlookResult::Fail("Failed to open Outlook application");
+    }
+
+    wxVariant mapiVariant("MAPI");
+    const wxVariant namespaceDispatchPtr = outlookInstance.CallMethod("GetNamespace", mapiVariant);
+
+    if (namespaceDispatchPtr.IsNull()) {
+        pLogger->error("Failed to call \"GetNamespace\" method");
+        return OutlookResult::Fail("Failed to get Outlook namespace");
+    }
+
+    wxAutomationObject namespaceObject;
+    if (!VariantToObject(namespaceDispatchPtr, namespaceObject)) {
+        pLogger->error("Could not convert variant to Namespace object");
+        return OutlookResult::Fail("Conversion error occurred");
+    }
+
+    const wxVariant accountsDispatchPtr = namespaceObject.GetProperty("Accounts");
+    if (accountsDispatchPtr.IsNull()) {
+        pLogger->error("Failed to get \"Accounts\" property");
+        return OutlookResult::Fail("Failed to get to Outlook \"Namespace.Accounts\" property");
+    }
+
+    wxAutomationObject accountsObject;
+    if (!VariantToObject(accountsDispatchPtr, accountsObject)) {
+        pLogger->error("Could not convert variant to \"Accounts\" object");
+        return OutlookResult::Fail("Conversion error occurred");
+    }
+
+    const wxVariant accountCountProperty = accountsObject.GetProperty("Count");
+    if (accountCountProperty.IsNull()) {
+        pLogger->error("Failed to get \"Count\" property");
+        return OutlookResult::Fail("Failed to get \"Accounts.Count\" property");
+    }
+
+    if (!(accountCountProperty.IsType("long") && accountCountProperty.GetLong() > 0)) {
+        return OutlookResult::Fail("Type is incorrect or no accounts found in Outlook");
+    }
+
+    const long accountCount = accountCountProperty.GetLong();
+
+    for (long i = 1; i <= accountCount; ++i) {
+        wxVariant indexParam = i;
+        const wxVariant accountDispatchPtr = accountsObject.CallMethod("Item", indexParam);
+        if (accountDispatchPtr.IsNull()) {
+            pLogger->error("Failed to call method \"Item\" with index {0:d}", i);
+            return OutlookResult::Fail(
+                fmt::format("Failed to call method \"Accounts.Item\" with index \"{0:d}\"", i));
+        }
+
+        wxAutomationObject accountObject;
+        if (!VariantToObject(accountDispatchPtr, accountObject)) {
+            pLogger->error("Could not convert variant to \"Account\" object");
+            return OutlookResult::Fail("Conversion error occurred");
+        }
+
+        const wxVariant displayName = accountObject.GetProperty("DisplayName");
+        if (displayName.IsNull()) {
+            pLogger->error("Failed to get property \"DisplayName\"");
+            return OutlookResult::Fail(
+                fmt::format("Failed to get property \"DisplayName\" at index \"{0:d}\"", i));
+        } else {
+            pLogger->info("Account.DisplayName = {0}", displayName.GetString().ToStdString());
+        }
+
+        accountNames.push_back(displayName.GetString().ToStdString());
+    }
+
+    return OutlookResult::OK();
+}
+
 OutlookResult OutlookIntegratorService::FetchCalendarMeetings(
     std::vector<OutlookMeetingModel>& meetingModels) const
 {

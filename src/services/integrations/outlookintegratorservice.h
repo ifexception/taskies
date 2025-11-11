@@ -51,6 +51,7 @@ struct OutlookIntegratorService {
     OutlookIntegratorService(std::shared_ptr<spdlog::logger> logger);
     ~OutlookIntegratorService() = default;
 
+    OutlookResult FetchAccountNames(std::vector<std::string>& accountNames);
     OutlookResult FetchCalendarMeetings(std::vector<OutlookMeetingModel>& meetingModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
