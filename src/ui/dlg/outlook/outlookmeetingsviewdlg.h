@@ -50,6 +50,7 @@ private:
     void CreateControls();
     void ConfigureEventBindings();
     void FillControls();
+    void DataToControls();
 
     void OnRefresh(wxCommandEvent& event);
 

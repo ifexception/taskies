@@ -21,7 +21,13 @@
 
 #include <wx/artprov.h>
 
+#include "../../events.h"
+#include "../../common/clientdata.h"
+#include "../../common/notificationclientdata.h"
+
 #include "../../../common/common.h"
+
+#include "../../../services/integrations/outlookintegratorservice.h"
 
 namespace tks::UI::dlg
 {
@@ -105,6 +111,33 @@ void OutlookMeetingsViewDialog::ConfigureEventBindings() {}
 void OutlookMeetingsViewDialog::FillControls()
 {
     pAccountsChoiceCtrl->Append("Select account");
+}
+
+void OutlookMeetingsViewDialog::DataToControls()
+{
+    std::vector<std::string> accountNames;
+
+    Services::Integrations::OutlookIntegratorService service(pLogger);
+    Services::Integrations::OutlookResult result;
+    {
+        wxBusyCursor cursor;
+
+        result = service.FetchAccountNames(accountNames);
+    }
+
+    if (!result.Success) {
+        std::string message = "Failed to fetch Outlook accounts";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+
+        wxMessageBox(result.Message, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+
+        return;
+    }
 }
 
 void OutlookMeetingsViewDialog::OnRefresh(wxCommandEvent& event) {}
