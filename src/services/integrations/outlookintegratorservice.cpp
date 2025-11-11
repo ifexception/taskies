@@ -19,8 +19,6 @@
 
 #include "outlookintegratorservice.h"
 
-#include "outlookguard.h"
-
 namespace tks::Services::Integrations
 {
 OutlookResult OutlookResult::OK()
@@ -42,7 +40,6 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings(
     std::vector<OutlookMeetingModel>& meetingModels) const
 {
     wxAutomationObject outlookInstance;
-    // OutlookGuard outlookGuard{ outlookInstance };
 
     if (!outlookInstance.GetInstance("Outlook.Application")) {
         pLogger->error("Could not create Outlook instance");
