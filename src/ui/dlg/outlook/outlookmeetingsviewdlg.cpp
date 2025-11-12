@@ -227,6 +227,61 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Removed feedback static text from main sizer");
 
     // loop to add meetings
+    const int LengthCutoff = 64;
+    int s = 0;
+    for (const auto& meetingModel : meetingModels) {
+        if (s++ == 4) {
+            break;
+        }
+        // static box for meeting controls
+        auto staticBox = new wxStaticBox(this, wxID_ANY, "");
+        auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
+        pMainSizer->Add(staticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+        auto flexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+        flexGridSizer->AddGrowableCol(1, 1);
+        staticBoxSizer->Add(flexGridSizer, wxSizerFlags().Expand().Proportion(1));
+
+        auto meetingIdLabel = new wxStaticText(staticBox, wxID_ANY, "Entry ID");
+        auto meetingIdLabelValue = new wxStaticText(staticBox, wxID_ANY, meetingModel.EntryId);
+
+        auto subjectLabel = new wxStaticText(staticBox, wxID_ANY, "Subject");
+        auto subjectText = new wxTextCtrl(staticBox,
+            wxID_ANY,
+            meetingModel.Subject,
+            wxDefaultPosition,
+            wxDefaultSize,
+            wxTE_READONLY);
+
+        auto durationWithTimeLabel = new wxStaticText(staticBox, wxID_ANY, "Duration");
+        auto formattedValue = fmt::format(
+            "{0} ({1} - {2})", meetingModel.Duration, meetingModel.Start, meetingModel.End);
+        auto durationWithTimeLabelValue = new wxStaticText(staticBox, wxID_ANY, formattedValue);
+
+        auto locationLabel = new wxStaticText(staticBox, wxID_ANY, "Location");
+        auto locationLabelValue = new wxStaticText(staticBox, wxID_ANY, meetingModel.Location);
+
+        flexGridSizer->Add(
+            meetingIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        flexGridSizer->Add(
+            meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+        flexGridSizer->Add(subjectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        flexGridSizer->Add(
+            subjectText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+        flexGridSizer->Add(
+            durationWithTimeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        flexGridSizer->Add(
+            durationWithTimeLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+        flexGridSizer->Add(
+            locationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        flexGridSizer->Add(locationLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    }
+
+    pMainSizer->Layout();
+    Fit();
 }
 
 void OutlookMeetingsViewDialog::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
