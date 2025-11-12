@@ -172,6 +172,15 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
     int selection = event.GetSelection();
     if (selection == 0) {
         mSelectedAccount = "";
+
+        pFeedbackLabel = new wxStaticText(this, tksIDC_FEEDBACKLABEL, "No meetings found");
+        pMainSizer->Add(
+            pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
+
+        pMainSizer->Layout();
+        Fit();
+
+        return;
     } else {
         mSelectedAccount = pAccountsChoiceCtrl->GetString(selection).ToStdString();
     }
@@ -179,6 +188,45 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger,
         "Outlook account name selected \"{0}\"",
         mSelectedAccount.empty() ? "(none)" : mSelectedAccount);
+
+    std::vector<Services::Integrations::OutlookMeetingModel> meetingModels;
+
+    Services::Integrations::OutlookIntegratorService service(pLogger);
+    Services::Integrations::OutlookResult result;
+    {
+        wxBusyCursor cursor;
+
+        result = service.FetchCalendarMeetings(meetingModels);
+    }
+
+    if (!result.Success) {
+        std::string message = "Failed to fetch Outlook meetings";
+
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(pParent, addNotificationEvent);
+
+        SetFeedbackLabelOnEvent(message);
+
+        return;
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Retrieved \"{0}\" meetings", meetingModels.size());
+
+    if (meetingModels.size() == 0) {
+        SetFeedbackLabelOnEvent("No meetings found");
+        return;
+    }
+
+    pMainSizer->Detach(pFeedbackLabel);
+    pFeedbackLabel->Destroy();
+    pMainSizer->Layout();
+    SPDLOG_LOGGER_TRACE(pLogger, "Removed feedback static text from main sizer");
+
+    // loop to add meetings
 }
 
 void OutlookMeetingsViewDialog::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
