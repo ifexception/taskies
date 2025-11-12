@@ -20,6 +20,7 @@
 #include "outlookmeetingsviewdlg.h"
 
 #include <wx/artprov.h>
+#include <wx/statline.h>
 
 #include "../../events.h"
 #include "../../common/clientdata.h"
@@ -64,6 +65,8 @@ void OutlookMeetingsViewDialog::Create()
 {
     CreateControls();
     ConfigureEventBindings();
+    FillControls();
+    DataToControls();
 }
 
 void OutlookMeetingsViewDialog::CreateControls()
@@ -82,6 +85,10 @@ void OutlookMeetingsViewDialog::CreateControls()
     pRefreshButton->SetToolTip("Refresh meetings of selected account");
     refreshButtonHorizontalSizer->AddStretchSpacer();
     refreshButtonHorizontalSizer->Add(pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    /* Horizontal Line */
+    auto line0 = new wxStaticLine(this, wxID_ANY);
+    pMainSizer->Add(line0, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Account label and choice control */
     auto accountLabel = new wxStaticText(this, wxID_ANY, "Account");
@@ -111,6 +118,7 @@ void OutlookMeetingsViewDialog::ConfigureEventBindings() {}
 void OutlookMeetingsViewDialog::FillControls()
 {
     pAccountsChoiceCtrl->Append("Select account");
+    pAccountsChoiceCtrl->SetSelection(0);
 }
 
 void OutlookMeetingsViewDialog::DataToControls()
@@ -127,6 +135,7 @@ void OutlookMeetingsViewDialog::DataToControls()
 
     if (!result.Success) {
         std::string message = "Failed to fetch Outlook accounts";
+
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
@@ -134,15 +143,24 @@ void OutlookMeetingsViewDialog::DataToControls()
 
         wxQueueEvent(pParent, addNotificationEvent);
 
-        wxMessageBox(result.Message, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+        SetFeedbackLabelOnEvent(message);
 
         return;
     }
+
+    for (const std::string& accountName : accountNames) {
+        pAccountsChoiceCtrl->Append(accountName);
+    }
+
+    Fit();
 }
 
 void OutlookMeetingsViewDialog::OnRefresh(wxCommandEvent& event) {}
 
-void OutlookMeetingsViewDialog::SetFeedbackLabelOnEvent(const std::string& message) {}
+void OutlookMeetingsViewDialog::SetFeedbackLabelOnEvent(const std::string& message)
+{
+    pFeedbackLabel->SetLabel(message);
+}
 
 void OutlookMeetingsViewDialog::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
 
