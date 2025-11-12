@@ -52,6 +52,7 @@ OutlookMeetingsViewDialog::OutlookMeetingsViewDialog(wxWindow* parent,
     , pFeedbackLabel(nullptr)
     , pScrolledWindow(nullptr)
     , pCancelButton(nullptr)
+    , mSelectedAccount()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -113,7 +114,16 @@ void OutlookMeetingsViewDialog::CreateControls()
     SetSizerAndFit(pMainSizer);
 }
 
-void OutlookMeetingsViewDialog::ConfigureEventBindings() {}
+// clang-format off
+void OutlookMeetingsViewDialog::ConfigureEventBindings()
+{
+    pAccountsChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &OutlookMeetingsViewDialog::OnAccountChoice,
+        this
+    );
+}
+// clang-format on
 
 void OutlookMeetingsViewDialog::FillControls()
 {
@@ -157,12 +167,26 @@ void OutlookMeetingsViewDialog::DataToControls()
 
 void OutlookMeetingsViewDialog::OnRefresh(wxCommandEvent& event) {}
 
+void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
+{
+    int selection = event.GetSelection();
+    if (selection == 0) {
+        mSelectedAccount = "";
+    } else {
+        mSelectedAccount = pAccountsChoiceCtrl->GetString(selection).ToStdString();
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Outlook account name selected \"{0}\"",
+        mSelectedAccount.empty() ? "(none)" : mSelectedAccount);
+}
+
+void OutlookMeetingsViewDialog::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
+
 void OutlookMeetingsViewDialog::SetFeedbackLabelOnEvent(const std::string& message)
 {
     pFeedbackLabel->SetLabel(message);
 }
-
-void OutlookMeetingsViewDialog::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
 
 void OutlookMeetingsViewDialog::QueueErrorNotificationEvent(const std::string& message) {}
 } // namespace tks::UI::dlg

@@ -53,10 +53,11 @@ private:
     void DataToControls();
 
     void OnRefresh(wxCommandEvent& event);
-
-    void SetFeedbackLabelOnEvent(const std::string& message);
+    void OnAccountChoice(wxCommandEvent& event);
 
     void OnCancel(wxCommandEvent& event);
+
+    void SetFeedbackLabelOnEvent(const std::string& message);
 
     void QueueErrorNotificationEvent(const std::string& message);
 
@@ -75,6 +76,8 @@ private:
     wxScrolledWindow* pScrolledWindow;
 
     wxButton* pCancelButton;
+
+    std::string mSelectedAccount;
 
     enum {
         tksIDC_REFRESH_BUTTON = wxID_HIGHEST + 1001,
