@@ -113,7 +113,7 @@ OutlookResult OutlookIntegratorService::FetchAccountNames(std::vector<std::strin
     return OutlookResult::OK();
 }
 
-OutlookResult OutlookIntegratorService::FetchCalendarMeetings(
+OutlookResult OutlookIntegratorService::FetchCalendarMeetings(const std::string& accountName,
     std::vector<OutlookMeetingModel>& meetingModels) const
 {
     wxAutomationObject outlookInstance;
@@ -179,8 +179,13 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings(
         const wxVariant displayName = accountObject.GetProperty("DisplayName");
         if (displayName.IsNull()) {
             pLogger->error("Failed to get property \"DisplayName\"");
+            return OutlookResult::Fail("Failed to get \"DisplayName\" property");
         } else {
             pLogger->info("Account.DisplayName = {0}", displayName.GetString().ToStdString());
+        }
+
+        if (displayName.GetString().ToStdString() != accountName) {
+            continue;
         }
 
         const wxVariant deliveryStoreDispatchPtr = accountObject.GetProperty("DeliveryStore");
