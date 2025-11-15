@@ -151,8 +151,6 @@ EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnContextMenu)
 EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionChanged)
-/* Test */
-EVT_BUTTON(tksIDC_OUTLOOKTEST, MainFrame::OnOutlookTest)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -1628,20 +1626,6 @@ void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
-}
-
-void MainFrame::OnOutlookTest(wxCommandEvent& event)
-{
-    std::vector<Services::Integrations::OutlookMeetingModel> meetingModels;
-
-    Services::Integrations::OutlookIntegratorService integratorService(pLogger);
-    auto result = integratorService.FetchCalendarMeetings(meetingModels);
-    if (!result.Success) {
-        wxMessageBox(result.Message, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
-    } else {
-        auto message = fmt::format("Retreived {0} Outlook meetings", meetingModels.size());
-        wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
-    }
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()

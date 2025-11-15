@@ -225,9 +225,6 @@ private:
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
 
-    /* Test Outlook */
-    void OnOutlookTest(wxCommandEvent& event);
-
     void DoResetToCurrentWeekAndOrToday();
     void ResetDateRange();
     void ResetDatePickerValues();
