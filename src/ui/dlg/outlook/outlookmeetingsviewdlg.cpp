@@ -212,13 +212,13 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
         SetFeedbackLabelOnEvent(message);
 
         return;
-    }
+    } else if (result.Success && !result.Message.empty()) {
+        SPDLOG_LOGGER_TRACE(pLogger, "Retrieved \"{0}\" meetings", meetingModels.size());
 
-    SPDLOG_LOGGER_TRACE(pLogger, "Retrieved \"{0}\" meetings", meetingModels.size());
-
-    if (meetingModels.size() == 0) {
-        SetFeedbackLabelOnEvent("No meetings found");
-        return;
+        if (meetingModels.size() == 0) {
+            SetFeedbackLabelOnEvent("No meetings found");
+            return;
+        }
     }
 
     pMainSizer->Detach(pFeedbackLabel);
