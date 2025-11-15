@@ -38,6 +38,7 @@ struct OutlookResult {
     std::string Message;
 
     static OutlookResult OK();
+    static OutlookResult PartialOK(const std::string& message);
     static OutlookResult Fail(const std::string& errorMessage);
 };
 

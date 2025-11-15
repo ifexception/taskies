@@ -26,6 +26,11 @@ OutlookResult OutlookResult::OK()
     return OutlookResult{ true, "" };
 }
 
+OutlookResult OutlookResult::PartialOK(const std::string& message)
+{
+    return OutlookResult{ true, message };
+}
+
 OutlookResult OutlookResult::Fail(const std::string& errorMessage)
 {
     return OutlookResult{ false, errorMessage };
@@ -267,18 +272,18 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings(const std::string&
         }
 
         wxVariant itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetFirst");
-        if (itemObjectDispatchPtr.IsNull()) {
+        /*if (itemObjectDispatchPtr.IsNull()) {
             pLogger->error("Error calling \"GetFirst\" method");
             return OutlookResult::Fail("Failed to call method \"Items.GetFirst\"");
-        }
+        }*/
 
         // Method "GetFirst" will "fail" if there are no meeting items for this account
         // Checking if there is a void ptr in our variant tells us GetFirst could not get
         // any meeting items (this is for now an assumption, but works)
-        if (!itemObjectDispatchPtr.GetVoidPtr()) {
-            pLogger->info("\"GetFirst\" method did not return a valid void ptr because most likely "
-                          "there are NO meetings for this account");
-            return OutlookResult::Fail("No meetings found");
+        if (!itemObjectDispatchPtr.GetVoidPtr() || itemObjectDispatchPtr.IsNull()) {
+            pLogger->info("\"GetFirst\" method did not return a valid void ptr or is null, because "
+                          "most likely there are NO meetings for this account");
+            return OutlookResult::PartialOK("No meetings found");
         }
 
         wxAutomationObject itemObject;
