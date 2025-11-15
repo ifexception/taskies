@@ -196,7 +196,7 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
     {
         wxBusyCursor cursor;
 
-        result = service.FetchCalendarMeetings(meetingModels);
+        result = service.FetchCalendarMeetings(mSelectedAccount, meetingModels);
     }
 
     if (!result.Success) {
@@ -228,11 +228,7 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
 
     // loop to add meetings
     const int LengthCutoff = 64;
-    int s = 0;
     for (const auto& meetingModel : meetingModels) {
-        if (s++ == 4) {
-            break;
-        }
         // static box for meeting controls
         auto staticBox = new wxStaticBox(this, wxID_ANY, "");
         auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
@@ -263,8 +259,7 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
 
         flexGridSizer->Add(
             meetingIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-        flexGridSizer->Add(
-            meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        flexGridSizer->Add(meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
         flexGridSizer->Add(subjectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
         flexGridSizer->Add(

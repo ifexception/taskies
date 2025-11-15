@@ -43,7 +43,6 @@ struct OutlookResult {
 
 /*
  TODO(SW)
- - Method to get account names linked to Outlook
  - Update `FetchCalendarMeetings` to get meetings by account name
 */
 
@@ -52,10 +51,11 @@ struct OutlookIntegratorService {
     ~OutlookIntegratorService() = default;
 
     OutlookResult FetchAccountNames(std::vector<std::string>& accountNames);
-    OutlookResult FetchCalendarMeetings(std::vector<OutlookMeetingModel>& meetingModels) const;
+    OutlookResult FetchCalendarMeetings(const std::string& accountName,
+        std::vector<OutlookMeetingModel>& meetingModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
 
     bool VariantToObject(const wxVariant& v, wxAutomationObject& o) const;
 };
-}
+} // namespace tks::Services::Integrations
