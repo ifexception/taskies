@@ -430,9 +430,6 @@ void MainFrame::CreateControls()
     topSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     topSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    topSizer->Add(new wxButton(framePanel, tksIDC_OUTLOOKTEST, "Test Outlook"),
-        wxSizerFlags().Border(wxALL, FromDIP(4)));
-
     topSizer->AddStretchSpacer();
 
     pNotificationButton = new wxBitmapButton(framePanel, tksIDC_NOTIFICATIONBUTTON, mBellBitmap);
