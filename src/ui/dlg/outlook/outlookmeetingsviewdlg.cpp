@@ -226,8 +226,6 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
     pMainSizer->Layout();
     SPDLOG_LOGGER_TRACE(pLogger, "Removed feedback static text from main sizer");
 
-    // loop to add meetings
-    const int LengthCutoff = 64;
     for (const auto& meetingModel : meetingModels) {
         // static box for meeting controls
         auto staticBox = new wxStaticBox(this, wxID_ANY, "");
@@ -239,7 +237,10 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
         staticBoxSizer->Add(flexGridSizer, wxSizerFlags().Expand().Proportion(1));
 
         auto meetingIdLabel = new wxStaticText(staticBox, wxID_ANY, "Entry ID");
-        auto meetingIdLabelValue = new wxStaticText(staticBox, wxID_ANY, meetingModel.EntryId);
+        auto providedInfoBitmap = wxArtProvider::GetBitmapBundle(
+            wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+        auto meetingIdLabelValue = new wxStaticBitmap(staticBox, wxID_ANY, providedInfoBitmap);
+        meetingIdLabelValue->SetToolTip(meetingModel.EntryId);
 
         auto subjectLabel = new wxStaticText(staticBox, wxID_ANY, "Subject");
         auto subjectText = new wxTextCtrl(staticBox,
@@ -259,7 +260,7 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
 
         flexGridSizer->Add(
             meetingIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-        flexGridSizer->Add(meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        flexGridSizer->Add(meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Left());
 
         flexGridSizer->Add(subjectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
         flexGridSizer->Add(
