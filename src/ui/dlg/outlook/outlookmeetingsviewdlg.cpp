@@ -51,6 +51,8 @@ OutlookMeetingsViewDialog::OutlookMeetingsViewDialog(wxWindow* parent,
     , pAccountsChoiceCtrl(nullptr)
     , pFeedbackLabel(nullptr)
     , pScrolledWindow(nullptr)
+    , pScrolledWindowSizer(nullptr)
+    , pActiveMeetingsPanel(nullptr)
     , pCancelButton(nullptr)
     , mSelectedAccount()
 {
@@ -108,8 +110,8 @@ void OutlookMeetingsViewDialog::CreateControls()
     pScrolledWindow = new wxScrolledWindow(this, wxID_ANY);
     pMainSizer->Add(pScrolledWindow, wxSizerFlags(1).Expand());
 
-    auto scrolledSizer = new wxBoxSizer(wxVERTICAL);
-    pScrolledWindow->SetSizer(scrolledSizer);
+    pScrolledWindowSizer = new wxBoxSizer(wxVERTICAL);
+    pScrolledWindow->SetSizer(pScrolledWindowSizer);
 
     SetSizerAndFit(pMainSizer);
 }
@@ -169,6 +171,14 @@ void OutlookMeetingsViewDialog::OnRefresh(wxCommandEvent& event) {}
 
 void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
 {
+    if (pActiveMeetingsPanel != nullptr) {
+        pScrolledWindowSizer->Detach(pActiveMeetingsPanel);
+        pActiveMeetingsPanel->Destroy();
+
+        pScrolledWindowSizer->Layout();
+        pMainSizer->Layout();
+    }
+
     int selection = event.GetSelection();
     if (selection == 0) {
         mSelectedAccount = "";
@@ -226,11 +236,18 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
     pMainSizer->Layout();
     SPDLOG_LOGGER_TRACE(pLogger, "Removed feedback static text from main sizer");
 
+    /* Panel Sizer */
+    auto panelSizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Panel */
+    pActiveMeetingsPanel = new wxPanel(pScrolledWindow, wxID_ANY);
+    pActiveMeetingsPanel->SetSizer(panelSizer);
+
     for (const auto& meetingModel : meetingModels) {
         // static box for meeting controls
-        auto staticBox = new wxStaticBox(this, wxID_ANY, "");
+        auto staticBox = new wxStaticBox(pActiveMeetingsPanel, wxID_ANY, "");
         auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
-        pMainSizer->Add(staticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        panelSizer->Add(staticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
         auto flexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
         flexGridSizer->AddGrowableCol(1, 1);
@@ -275,6 +292,9 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
             locationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
         flexGridSizer->Add(locationLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
     }
+
+    pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
+    pScrolledWindowSizer->Layout();
 
     pMainSizer->Layout();
     Fit();

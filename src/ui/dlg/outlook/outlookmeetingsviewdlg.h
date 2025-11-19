@@ -74,6 +74,8 @@ private:
     wxStaticText* pFeedbackLabel;
 
     wxScrolledWindow* pScrolledWindow;
+    wxSizer* pScrolledWindowSizer;
+    wxPanel* pActiveMeetingsPanel;
 
     wxButton* pCancelButton;
 
