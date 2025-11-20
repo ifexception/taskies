@@ -23,8 +23,8 @@ namespace tks::Services::Integrations
 {
 OutlookMeetingModel::OutlookMeetingModel()
     : EntryId("")
-    , Subject("")
-    , Body("")
+    , Subject(L"")
+    , Body(L"")
     , Start("")
     , End("")
     , Duration("")

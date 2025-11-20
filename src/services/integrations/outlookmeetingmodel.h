@@ -25,8 +25,8 @@ namespace tks::Services::Integrations
 {
 struct OutlookMeetingModel {
     std::string EntryId;
-    std::string Subject;
-    std::string Body;
+    std::wstring Subject; // using wstring to display emoji's (if any) correctly
+    std::wstring Body;
     std::string Start;
     std::string End;
     std::string Duration;

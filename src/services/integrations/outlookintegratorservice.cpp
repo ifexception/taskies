@@ -312,12 +312,12 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings(const std::string&
             wxVariant subjectProperty = itemObject.GetProperty("Subject");
             if (!subjectProperty.IsNull()) {
                 pLogger->info("Subject\t|\t{0}", subjectProperty.GetString().ToStdString());
-                model.Subject = subjectProperty.GetString().ToStdString();
+                model.Subject = subjectProperty.GetString().ToStdWstring();
             }
             wxVariant bodyProperty = itemObject.GetProperty("Body");
             if (!bodyProperty.IsNull()) {
                 pLogger->info("Body\t\t|\t{0}", bodyProperty.GetString().ToStdString());
-                model.Body = bodyProperty.GetString().ToStdString();
+                model.Body = bodyProperty.GetString().ToStdWstring();
             }
             wxVariant startProperty = itemObject.GetProperty("Start");
             if (!startProperty.IsNull()) {
