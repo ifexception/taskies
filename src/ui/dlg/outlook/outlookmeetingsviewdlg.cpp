@@ -231,10 +231,13 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
         }
     }
 
-    pMainSizer->Detach(pFeedbackLabel);
-    pFeedbackLabel->Destroy();
-    pMainSizer->Layout();
-    SPDLOG_LOGGER_TRACE(pLogger, "Removed feedback static text from main sizer");
+    if (pFeedbackLabel != nullptr) {
+        pMainSizer->Detach(pFeedbackLabel);
+        pFeedbackLabel->Destroy();
+        pFeedbackLabel = nullptr;
+        pMainSizer->Layout();
+        SPDLOG_LOGGER_TRACE(pLogger, "Removed feedback static text from main sizer");
+    }
 
     /* Panel Sizer */
     auto panelSizer = new wxBoxSizer(wxVERTICAL);
