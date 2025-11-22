@@ -86,6 +86,7 @@ void OutlookMeetingsViewDialog::CreateControls()
         wxART_REFRESH, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pRefreshButton = new wxBitmapButton(this, tksIDC_REFRESH_BUTTON, providedRefreshBitmap);
     pRefreshButton->SetToolTip("Refresh meetings of selected account");
+    pRefreshButton->Disable();
     refreshButtonHorizontalSizer->AddStretchSpacer();
     refreshButtonHorizontalSizer->Add(pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
@@ -173,26 +174,40 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
 {
     if (pActiveMeetingsPanel != nullptr) {
         pScrolledWindowSizer->Detach(pActiveMeetingsPanel);
-        pActiveMeetingsPanel->Destroy();
+        bool windowDelete = pActiveMeetingsPanel->Destroy();
+        if (!windowDelete) {
+            pLogger->warn("Failed to delete active meetings panel and its child controls");
+        }
 
         pScrolledWindowSizer->Layout();
         pMainSizer->Layout();
+
+        SPDLOG_LOGGER_TRACE(pLogger, "Removed active meetings panel from scrolled window");
     }
 
     int selection = event.GetSelection();
     if (selection == 0) {
         mSelectedAccount = "";
 
-        pFeedbackLabel = new wxStaticText(this, tksIDC_FEEDBACKLABEL, "No meetings found");
-        pMainSizer->Add(
-            pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
+        if (pFeedbackLabel == nullptr) {
+            pFeedbackLabel = new wxStaticText(this, tksIDC_FEEDBACKLABEL, "No meetings found");
+            pMainSizer->Add(
+                pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
 
-        pMainSizer->Layout();
-        Fit();
+            pMainSizer->Layout();
+            Fit();
+        }
+
+        if (pRefreshButton->IsEnabled()) {
+            pRefreshButton->Disable();
+        }
 
         return;
     } else {
         mSelectedAccount = pAccountsChoiceCtrl->GetString(selection).ToStdString();
+        if (!pRefreshButton->IsEnabled()) {
+            pRefreshButton->Enable();
+        }
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
