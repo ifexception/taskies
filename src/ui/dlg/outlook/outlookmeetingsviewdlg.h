@@ -55,6 +55,8 @@ private:
     void OnRefresh(wxCommandEvent& event);
     void OnAccountChoice(wxCommandEvent& event);
 
+    void OnAttendedCheckBoxCheck(wxCommandEvent& event);
+
     void OnCancel(wxCommandEvent& event);
 
     void SetFeedbackLabelOnEvent(const std::string& message);
@@ -84,7 +86,8 @@ private:
     enum {
         tksIDC_REFRESH_BUTTON = wxID_HIGHEST + 1001,
         tksIDC_ACCOUNT_CHOICE_CTRL,
-        tksIDC_FEEDBACKLABEL
+        tksIDC_FEEDBACKLABEL,
+        tksIDC_ATTENDEDCHECKBOX_BASE
     };
 };
 } // namespace tks::UI::dlg

@@ -261,6 +261,8 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
     pActiveMeetingsPanel = new wxPanel(pScrolledWindow, wxID_ANY);
     pActiveMeetingsPanel->SetSizer(panelSizer);
 
+    int attendedCheckBoxControlId = tksIDC_ATTENDEDCHECKBOX_BASE;
+
     for (const auto& meetingModel : meetingModels) {
         // static box for meeting controls
         auto staticBox = new wxStaticBox(pActiveMeetingsPanel, wxID_ANY, "");
@@ -309,6 +311,20 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
         flexGridSizer->Add(
             locationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
         flexGridSizer->Add(locationLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+        /* Horizontal line */
+        auto line = new wxStaticLine(staticBox, wxID_ANY);
+        staticBoxSizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+        /* Attended checkbox */
+        auto attendedCheckBox = new wxCheckBox(staticBox, attendedCheckBoxControlId, "Attended");
+        attendedCheckBox->Bind(wxEVT_CHECKBOX,
+            &OutlookMeetingsViewDialog::OnAttendedCheckBoxCheck,
+            this,
+            attendedCheckBoxControlId);
+
+        attendedCheckBoxControlId++;
+        staticBoxSizer->Add(attendedCheckBox, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
     }
 
     pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
@@ -316,6 +332,11 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
 
     pMainSizer->Layout();
     Fit();
+}
+
+void OutlookMeetingsViewDialog::OnAttendedCheckBoxCheck(wxCommandEvent& event)
+{
+    SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" checked", event.GetId());
 }
 
 void OutlookMeetingsViewDialog::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
