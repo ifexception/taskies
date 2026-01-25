@@ -70,6 +70,16 @@ void OutlookMeetingsViewDialog::Create()
     ConfigureEventBindings();
     FillControls();
     DataToControls();
+
+    wxSize parentWindowSize = pParent->GetSize();
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Parent size ({0},{1})",
+        parentWindowSize.GetHeight(),
+        parentWindowSize.GetWidth());
+    wxSize dialogMaxSize;
+    dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
+    dialogMaxSize.SetWidth(-1);
+    SetMaxSize(dialogMaxSize);
 }
 
 void OutlookMeetingsViewDialog::CreateControls()
@@ -109,10 +119,12 @@ void OutlookMeetingsViewDialog::CreateControls()
 
     /* Main Scrolled Window */
     pScrolledWindow = new wxScrolledWindow(this, wxID_ANY);
-    pMainSizer->Add(pScrolledWindow, wxSizerFlags(1).Expand());
-
     pScrolledWindowSizer = new wxBoxSizer(wxVERTICAL);
     pScrolledWindow->SetSizer(pScrolledWindowSizer);
+    pScrolledWindow->SetScrollRate(0, 20);
+    pScrolledWindowSizer->FitInside(pScrolledWindow);
+
+    pMainSizer->Add(pScrolledWindow, wxSizerFlags(1).Expand());
 
     SetSizerAndFit(pMainSizer);
 }
@@ -318,6 +330,9 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
 
         /* Attended checkbox */
         auto attendedCheckBox = new wxCheckBox(staticBox, attendedCheckBoxControlId, "Attended");
+        wxStringClientData* meetingEntryIdData = new wxStringClientData(meetingModel.EntryId);
+        attendedCheckBox->SetClientObject(meetingEntryIdData);
+
         attendedCheckBox->Bind(wxEVT_CHECKBOX,
             &OutlookMeetingsViewDialog::OnAttendedCheckBoxCheck,
             this,
@@ -332,11 +347,33 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
 
     pMainSizer->Layout();
     Fit();
+
+    wxSize parentWindowSize = pParent->GetSize();
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Parent size ({0},{1})",
+        parentWindowSize.GetHeight(),
+        parentWindowSize.GetWidth());
+    wxSize dialogMaxSize;
+    dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
+    dialogMaxSize.SetWidth(-1);
+    SetSize(dialogMaxSize);
 }
 
 void OutlookMeetingsViewDialog::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" checked", event.GetId());
+    if (event.IsChecked()) {
+        SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" checked", event.GetId());
+        wxWindow* wnd = dynamic_cast<wxWindow*>(event.GetEventObject());
+        wxStringClientData* scd = dynamic_cast<wxStringClientData*>(wnd->GetClientObject());
+        if (scd) {
+            auto& s = scd->GetData();
+            auto ss = s.ToStdString();
+            SPDLOG_LOGGER_TRACE(
+                pLogger, "Checkbox with ID \"{0}\" EntryID -> \n{1}", event.GetId(), ss);
+        }
+    } else {
+        SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" unchecked", event.GetId());
+    }
 }
 
 void OutlookMeetingsViewDialog::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
