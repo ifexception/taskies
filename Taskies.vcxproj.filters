@@ -75,6 +75,12 @@
     <Filter Include="Resource Files\migrations">
       <UniqueIdentifier>{a2dd7864-16d1-4fc4-bdfc-56299e7c8eda}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ui\dialogs\outlook">
+      <UniqueIdentifier>{521f1f0d-a65e-42ee-824a-0dc9c345427e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\services\integrations">
+      <UniqueIdentifier>{f31f582e-e81c-43bc-b3f7-39a6ee77d126}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\ui\persistencemanager.cpp">
@@ -392,6 +398,15 @@
     <ClCompile Include="src\ui\taskbaricon.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\dlg\outlook\outlookmeetingsviewdlg.cpp">
+      <Filter>Source Files\ui\dialogs\outlook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\services\integrations\outlookintegratorservice.cpp">
+      <Filter>Source Files\services\integrations</Filter>
+    </ClCompile>
+    <ClCompile Include="src\services\integrations\outlookmeetingmodel.cpp">
+      <Filter>Source Files\services\integrations</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -708,6 +723,15 @@
     </ClInclude>
     <ClInclude Include="src\ui\persistencemanager.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\dlg\outlook\outlookmeetingsviewdlg.h">
+      <Filter>Source Files\ui\dialogs\outlook</Filter>
+    </ClInclude>
+    <ClInclude Include="src\services\integrations\outlookintegratorservice.h">
+      <Filter>Source Files\services\integrations</Filter>
+    </ClInclude>
+    <ClInclude Include="src\services\integrations\outlookmeetingmodel.h">
+      <Filter>Source Files\services\integrations</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

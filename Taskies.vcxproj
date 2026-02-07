@@ -223,6 +223,8 @@
     <ClCompile Include="src\services\export\projectionbuilder.cpp" />
     <ClCompile Include="src\services\export\row.cpp" />
     <ClCompile Include="src\services\export\sqliteexportquerybuilder.cpp" />
+    <ClCompile Include="src\services\integrations\outlookintegratorservice.cpp" />
+    <ClCompile Include="src\services\integrations\outlookmeetingmodel.cpp" />
     <ClCompile Include="src\services\setupwizard\setupwizardservice.cpp" />
     <ClCompile Include="src\services\taskduration\taskdurationservice.cpp" />
     <ClCompile Include="src\services\taskduration\taskdurationviewmodel.cpp" />
@@ -249,6 +251,7 @@
     <ClCompile Include="src\ui\dlg\exports\exporttocsvdlg.cpp" />
     <ClCompile Include="src\ui\dlg\exports\exporttoexceldlg.cpp" />
     <ClCompile Include="src\ui\dlg\exports\quickexporttoformatdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\outlook\outlookmeetingsviewdlg.cpp" />
     <ClCompile Include="src\ui\dlg\preferences\preferencesdatabasepage.cpp" />
     <ClCompile Include="src\ui\dlg\preferences\preferencesdlg.cpp" />
     <ClCompile Include="src\ui\dlg\preferences\preferencesexportpage.cpp" />
@@ -330,6 +333,8 @@
     <ClInclude Include="src\services\export\projectionbuilder.h" />
     <ClInclude Include="src\services\export\row.h" />
     <ClInclude Include="src\services\export\sqliteexportquerybuilder.h" />
+    <ClInclude Include="src\services\integrations\outlookintegratorservice.h" />
+    <ClInclude Include="src\services\integrations\outlookmeetingmodel.h" />
     <ClInclude Include="src\services\setupwizard\setupwizardservice.h" />
     <ClInclude Include="src\services\taskduration\taskdurationservice.h" />
     <ClInclude Include="src\services\taskduration\taskdurationviewmodel.h" />
@@ -356,6 +361,7 @@
     <ClInclude Include="src\ui\dlg\exports\exporttocsvdlg.h" />
     <ClInclude Include="src\ui\dlg\exports\exporttoexceldlg.h" />
     <ClInclude Include="src\ui\dlg\exports\quickexporttoformatdlg.h" />
+    <ClInclude Include="src\ui\dlg\outlook\outlookmeetingsviewdlg.h" />
     <ClInclude Include="src\ui\dlg\preferences\preferencesdatabasepage.h" />
     <ClInclude Include="src\ui\dlg\preferences\preferencesdlg.h" />
     <ClInclude Include="src\ui\dlg\preferences\preferencesexportpage.h" />
