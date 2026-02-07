@@ -44,3 +44,20 @@ Log an issue [here](https://github.com/ifexception/taskies/issues/new) for the d
 * nlohmann_json
 
 See [Attributions](docs/ATTRIBUTIONS.md) for artwork
+
+##### Development
+###### vcpkg (broken)
+Taskies by default uses [vcpkg](https://github.com/microsoft/vcpkg) package manager to help manage dependencies.
+`vcpkg` is configured using the _classic_ mode (note the file `CMakeSettings.json`)
+
+However as of 21 January 2026 `libjpeg-turbo` build through CMake is broken. `libjpeg-turbo` is a dependency for wxWidgets.
+
+An issue has been logged [here](https://github.com/microsoft/vcpkg/issues/49532) and there is no timeline for a fix :(
+
+###### conan (current)
+Taskies has thus shifted to using [conan](https://conan.io/) to manage dependencies.
+An option to develop Taskies via `.sln` file has been added and because MSBuild is being used, the Conan Visual Studio extension is being leveraged to manage dependencies.
+
+[Blog announcement](https://blog.conan.io//2024/03/21/Introducing-new-conan-visual-studio-extension.html)
+
+The extension is *required**

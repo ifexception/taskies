@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="ConanVariables">
+    <Conanspdlog_libspdlogRootFolder>C:\Users\szymon.welgus\.conan2\p\spdlo3aa64e17bd7f1\p</Conanspdlog_libspdlogRootFolder>
+    <Conanspdlog_libspdlogBinaryDirectories></Conanspdlog_libspdlogBinaryDirectories>
+    <Conanspdlog_libspdlogCompilerFlags></Conanspdlog_libspdlogCompilerFlags>
+    <Conanspdlog_libspdlogLinkerFlags></Conanspdlog_libspdlogLinkerFlags>
+    <Conanspdlog_libspdlogPreprocessorDefinitions>SPDLOG_FMT_EXTERNAL;SPDLOG_COMPILED_LIB;</Conanspdlog_libspdlogPreprocessorDefinitions>
+    <Conanspdlog_libspdlogIncludeDirectories>$(Conanspdlog_libspdlogRootFolder)/include;</Conanspdlog_libspdlogIncludeDirectories>
+    <Conanspdlog_libspdlogResourceDirectories></Conanspdlog_libspdlogResourceDirectories>
+    <Conanspdlog_libspdlogLibraryDirectories>$(Conanspdlog_libspdlogRootFolder)/lib;</Conanspdlog_libspdlogLibraryDirectories>
+    <Conanspdlog_libspdlogLibraries>spdlog.lib;</Conanspdlog_libspdlogLibraries>
+    <Conanspdlog_libspdlogSystemLibs></Conanspdlog_libspdlogSystemLibs>
+  </PropertyGroup>
+</Project>

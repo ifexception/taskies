@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="ConanVariables">
+    <Conantoml11RootFolder>C:\Users\szymon.welgus\.conan2\p\toml1905d17a169b52\p</Conantoml11RootFolder>
+    <Conantoml11BinaryDirectories></Conantoml11BinaryDirectories>
+    <Conantoml11CompilerFlags></Conantoml11CompilerFlags>
+    <Conantoml11LinkerFlags></Conantoml11LinkerFlags>
+    <Conantoml11PreprocessorDefinitions></Conantoml11PreprocessorDefinitions>
+    <Conantoml11IncludeDirectories>$(Conantoml11RootFolder)/include;$(Conantoml11RootFolder)/include\toml11;</Conantoml11IncludeDirectories>
+    <Conantoml11ResourceDirectories></Conantoml11ResourceDirectories>
+    <Conantoml11LibraryDirectories></Conantoml11LibraryDirectories>
+    <Conantoml11Libraries></Conantoml11Libraries>
+    <Conantoml11SystemLibs></Conantoml11SystemLibs>
+  </PropertyGroup>
+</Project>

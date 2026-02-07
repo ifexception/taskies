@@ -28,4 +28,5 @@ exportPath=""
 closeExportDialogAfterExporting=false
 presetCount=0
 
-[[presets]]
+# commented out as on start config shouldn't have any presets
+# [[presets]]

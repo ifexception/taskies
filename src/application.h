@@ -35,7 +35,7 @@ namespace Core
 {
 class Environment;
 class Configuration;
-}
+} // namespace Core
 
 namespace UI
 {
@@ -55,7 +55,7 @@ private:
     void InitializeLogger();
     bool InitializeConfiguration();
     bool RunMigrations();
-    bool InitializeTranslations();
+    // bool InitializeTranslations();
 
     bool FirstStartupProcedure(wxFrame* frame);
 
