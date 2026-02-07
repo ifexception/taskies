@@ -1,0 +1,32 @@
+[general]
+lang="en-US"
+startOnBoot=false
+startPosition=1
+showInTray=false
+minimizeToTray=false
+closeToTray=false
+
+[database]
+databasePath=""
+backupDatabase=false
+backupPath=""
+
+[tasks]
+minutesIncrement=15
+showProjectAssociatedCategories=false
+useReminders=false
+useNotificationBanners=false
+useTaskbarFlashing=false
+reminderInterval=0
+openTaskDialogOnReminderClick=false
+
+[tasksView]
+todayAlwaysExpanded=false
+
+[export]
+exportPath=""
+closeExportDialogAfterExporting=false
+presetCount=0
+
+# commented out as on start config shouldn't have any presets
+# [[presets]]
