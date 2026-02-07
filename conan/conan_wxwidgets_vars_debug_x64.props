@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="ConanVariables">
+    <ConanwxwidgetsRootFolder>C:\Users\szymon.welgus\.conan2\p\b\wxwidd5ec0cf3bf2c2\p</ConanwxwidgetsRootFolder>
+    <ConanwxwidgetsBinaryDirectories></ConanwxwidgetsBinaryDirectories>
+    <ConanwxwidgetsCompilerFlags></ConanwxwidgetsCompilerFlags>
+    <ConanwxwidgetsLinkerFlags></ConanwxwidgetsLinkerFlags>
+    <ConanwxwidgetsPreprocessorDefinitions>wxUSE_GUI=1;__WXDEBUG__;__WXMSW__;wxNO_NET_LIB;wxNO_XML_LIB;wxNO_REGEX_LIB;wxNO_ZLIB_LIB;wxNO_JPEG_LIB;wxNO_PNG_LIB;wxNO_TIFF_LIB;wxNO_ADV_LIB;wxNO_HTML_LIB;wxNO_GL_LIB;wxNO_QA_LIB;wxNO_XRC_LIB;wxNO_AUI_LIB;wxNO_PROPGRID_LIB;wxNO_RIBBON_LIB;wxNO_RICHTEXT_LIB;wxNO_MEDIA_LIB;wxNO_STC_LIB;wxNO_WEBVIEW_LIB;</ConanwxwidgetsPreprocessorDefinitions>
+    <ConanwxwidgetsIncludeDirectories>$(ConanwxwidgetsRootFolder)/include;$(ConanwxwidgetsRootFolder)/include\msvc;</ConanwxwidgetsIncludeDirectories>
+    <ConanwxwidgetsResourceDirectories></ConanwxwidgetsResourceDirectories>
+    <ConanwxwidgetsLibraryDirectories>$(ConanwxwidgetsRootFolder)/lib;$(ConanwxwidgetsRootFolder)/lib\vc_x64_lib;</ConanwxwidgetsLibraryDirectories>
+    <ConanwxwidgetsLibraries>wxmsw32ud_xrc.lib;wxmsw32ud_stc.lib;wxscintillad.lib;wxmsw32ud_richtext.lib;wxmsw32ud_ribbon.lib;wxmsw32ud_qa.lib;wxmsw32ud_propgrid.lib;wxmsw32ud_html.lib;wxmsw32ud_gl.lib;wxmsw32ud_aui.lib;wxbase32ud_xml.lib;wxbase32ud_net.lib;wxmsw32ud_adv.lib;wxmsw32ud_core.lib;wxbase32ud.lib;</ConanwxwidgetsLibraries>
+    <ConanwxwidgetsSystemLibs>kernel32.lib;user32.lib;gdi32.lib;comdlg32.lib;winspool.lib;shell32.lib;comctl32.lib;ole32.lib;oleaut32.lib;imm32.lib;uuid.lib;wininet.lib;rpcrt4.lib;winmm.lib;advapi32.lib;msimg32.lib;opengl32.lib;ws2_32.lib;wsock32.lib;</ConanwxwidgetsSystemLibs>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{de5115a0-9f2c-43d7-aa5c-b2aff95f7cc8}</ProjectGuid>
+    <RootNamespace>Taskies</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="conan\conandeps.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="conan\conandeps.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\bin\</OutDir>
+    <IntDir>$(SolutionDir)build\$(Platform)\$(Configuration)\obj\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\bin\</OutDir>
+    <IntDir>$(SolutionDir)build\$(Platform)\$(Configuration)\obj\</IntDir>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+				set CONAN_BUILD_CONFIG="$(Configuration)_$(Platform)" &amp;&amp; "$(ProjectDir).conan\conan_install.bat" . -pr:h=.conan/$(Configuration)_$(Platform) -pr:b=default --build=missing
+			</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+				set CONAN_BUILD_CONFIG="$(Configuration)_$(Platform)" &amp;&amp; "$(ProjectDir).conan\conan_install.bat" . -pr:h=.conan/$(Configuration)_$(Platform) -pr:b=default --build=missing
+			</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CRT_SECURE_NO_WARNINGS;SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE;TKS_DEBUG;WXDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableModules>false</EnableModules>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+				set CONAN_BUILD_CONFIG="$(Configuration)_$(Platform)" &amp;&amp; "$(ProjectDir).conan\conan_install.bat" . -pr:h=.conan/$(Configuration)_$(Platform) -pr:b=default --build=missing
+			</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_WARNINGS;wxUSE_GUI=1
+;wxUSE_DATEPICKCTRL=1
+;wxNO_UNSAFE_WXSTRING_CONV=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+				set CONAN_BUILD_CONFIG="$(Configuration)_$(Platform)" &amp;&amp; "$(ProjectDir).conan\conan_install.bat" . -pr:h=.conan/$(Configuration)_$(Platform) -pr:b=default --build=missing
+			</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\application.cpp" />
+    <ClCompile Include="src\common\common.cpp" />
+    <ClCompile Include="src\common\constants.cpp" />
+    <ClCompile Include="src\common\enumclientdata.cpp" />
+    <ClCompile Include="src\common\enums.cpp" />
+    <ClCompile Include="src\common\logmessages.cpp" />
+    <ClCompile Include="src\common\queryhelper.cpp" />
+    <ClCompile Include="src\common\validator.cpp" />
+    <ClCompile Include="src\core\configuration.cpp" />
+    <ClCompile Include="src\core\database_migration.cpp" />
+    <ClCompile Include="src\core\environment.cpp" />
+    <ClCompile Include="src\ipc\applicationoptionsconnection.cpp" />
+    <ClCompile Include="src\ipc\server.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\models\attributegroupmodel.cpp" />
+    <ClCompile Include="src\models\attributemodel.cpp" />
+    <ClCompile Include="src\models\attributetypemodel.cpp" />
+    <ClCompile Include="src\models\categorymodel.cpp" />
+    <ClCompile Include="src\models\clientmodel.cpp" />
+    <ClCompile Include="src\models\employermodel.cpp" />
+    <ClCompile Include="src\models\projectmodel.cpp" />
+    <ClCompile Include="src\models\staticattributevaluemodel.cpp" />
+    <ClCompile Include="src\models\taskattributevaluemodel.cpp" />
+    <ClCompile Include="src\models\taskmodel.cpp" />
+    <ClCompile Include="src\models\workdaymodel.cpp" />
+    <ClCompile Include="src\persistence\attributegroupspersistence.cpp" />
+    <ClCompile Include="src\persistence\attributespersistence.cpp" />
+    <ClCompile Include="src\persistence\attributetypespersistence.cpp" />
+    <ClCompile Include="src\persistence\categoriespersistence.cpp" />
+    <ClCompile Include="src\persistence\clientspersistence.cpp" />
+    <ClCompile Include="src\persistence\employerspersistence.cpp" />
+    <ClCompile Include="src\persistence\projectspersistence.cpp" />
+    <ClCompile Include="src\persistence\staticattributevaluespersistence.cpp" />
+    <ClCompile Include="src\persistence\taskattributevaluespersistence.cpp" />
+    <ClCompile Include="src\persistence\taskspersistence.cpp" />
+    <ClCompile Include="src\persistence\workdayspersistence.cpp" />
+    <ClCompile Include="src\services\attributes\staticattributegroupsservice.cpp" />
+    <ClCompile Include="src\services\attributes\staticattributegroupviewmodel.cpp" />
+    <ClCompile Include="src\services\categories\categoryservice.cpp" />
+    <ClCompile Include="src\services\categories\categoryviewmodel.cpp" />
+    <ClCompile Include="src\services\export\availablecolumns.cpp" />
+    <ClCompile Include="src\services\export\columnexportmodel.cpp" />
+    <ClCompile Include="src\services\export\columnjoinprojection.cpp" />
+    <ClCompile Include="src\services\export\columnprojection.cpp" />
+    <ClCompile Include="src\services\export\csvexporterservice.cpp" />
+    <ClCompile Include="src\services\export\csvexportprocessor.cpp" />
+    <ClCompile Include="src\services\export\csvmappedoptions.cpp" />
+    <ClCompile Include="src\services\export\data.cpp" />
+    <ClCompile Include="src\services\export\datagenerator.cpp" />
+    <ClCompile Include="src\services\export\excelexporterservice.cpp" />
+    <ClCompile Include="src\services\export\excelexportprocessor.cpp" />
+    <ClCompile Include="src\services\export\excelguard.cpp" />
+    <ClCompile Include="src\services\export\excelinstancecheck.cpp" />
+    <ClCompile Include="src\services\export\exportoptions.cpp" />
+    <ClCompile Include="src\services\export\exportresult.cpp" />
+    <ClCompile Include="src\services\export\exportsservice.cpp" />
+    <ClCompile Include="src\services\export\headervaluepair.cpp" />
+    <ClCompile Include="src\services\export\projection.cpp" />
+    <ClCompile Include="src\services\export\projectionbuilder.cpp" />
+    <ClCompile Include="src\services\export\row.cpp" />
+    <ClCompile Include="src\services\export\sqliteexportquerybuilder.cpp" />
+    <ClCompile Include="src\services\setupwizard\setupwizardservice.cpp" />
+    <ClCompile Include="src\services\taskduration\taskdurationservice.cpp" />
+    <ClCompile Include="src\services\taskduration\taskdurationviewmodel.cpp" />
+    <ClCompile Include="src\services\tasks\tasksservice.cpp" />
+    <ClCompile Include="src\services\tasks\taskviewmodel.cpp" />
+    <ClCompile Include="src\ui\common\clientdata.cpp" />
+    <ClCompile Include="src\ui\common\notificationclientdata.cpp" />
+    <ClCompile Include="src\ui\common\taskattributevalueclientdata.cpp" />
+    <ClCompile Include="src\ui\dataview\columnlistitemmodel.cpp" />
+    <ClCompile Include="src\ui\dataview\columnlistmodel.cpp" />
+    <ClCompile Include="src\ui\dataview\tasklistmodel.cpp" />
+    <ClCompile Include="src\ui\dataview\tasktreemodel.cpp" />
+    <ClCompile Include="src\ui\dataview\tasktreemodelnode.cpp" />
+    <ClCompile Include="src\ui\dlg\aboutdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\attributes\attributedlg.cpp" />
+    <ClCompile Include="src\ui\dlg\attributes\attributegroupdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\attributes\staticattributevaluesdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\categoriesdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\categorydlg.cpp" />
+    <ClCompile Include="src\ui\dlg\clientdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\editlistdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\employerdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\errordlg.cpp" />
+    <ClCompile Include="src\ui\dlg\exports\exporttocsvdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\exports\exporttoexceldlg.cpp" />
+    <ClCompile Include="src\ui\dlg\exports\quickexporttoformatdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\preferences\preferencesdatabasepage.cpp" />
+    <ClCompile Include="src\ui\dlg\preferences\preferencesdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\preferences\preferencesexportpage.cpp" />
+    <ClCompile Include="src\ui\dlg\preferences\preferencesgeneralpage.cpp" />
+    <ClCompile Include="src\ui\dlg\preferences\preferencestaskspage.cpp" />
+    <ClCompile Include="src\ui\dlg\preferences\preferencestasksviewpage.cpp" />
+    <ClCompile Include="src\ui\dlg\projectdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\taskdlg.cpp" />
+    <ClCompile Include="src\ui\dlg\taskmanageattributesdlg.cpp" />
+    <ClCompile Include="src\ui\events.cpp" />
+    <ClCompile Include="src\ui\mainframe.cpp" />
+    <ClCompile Include="src\ui\notificationpopupwindow.cpp" />
+    <ClCompile Include="src\ui\persistencemanager.cpp" />
+    <ClCompile Include="src\ui\statusbar.cpp" />
+    <ClCompile Include="src\ui\taskbaricon.cpp" />
+    <ClCompile Include="src\ui\wizards\setupwizard.cpp" />
+    <ClCompile Include="src\utils\datestore.cpp" />
+    <ClCompile Include="src\utils\utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\application.h" />
+    <ClInclude Include="src\common\common.h" />
+    <ClInclude Include="src\common\constants.h" />
+    <ClInclude Include="src\common\enumclientdata.h" />
+    <ClInclude Include="src\common\enums.h" />
+    <ClInclude Include="src\common\logmessages.h" />
+    <ClInclude Include="src\common\queryhelper.h" />
+    <ClInclude Include="src\common\validator.h" />
+    <ClInclude Include="src\common\version.h" />
+    <ClInclude Include="src\core\configuration.h" />
+    <ClInclude Include="src\core\database_migration.h" />
+    <ClInclude Include="src\core\environment.h" />
+    <ClInclude Include="src\ipc\applicationoptionsconnection.h" />
+    <ClInclude Include="src\ipc\server.h" />
+    <ClInclude Include="src\models\attributegroupmodel.h" />
+    <ClInclude Include="src\models\attributemodel.h" />
+    <ClInclude Include="src\models\attributetypemodel.h" />
+    <ClInclude Include="src\models\categorymodel.h" />
+    <ClInclude Include="src\models\clientmodel.h" />
+    <ClInclude Include="src\models\employermodel.h" />
+    <ClInclude Include="src\models\projectmodel.h" />
+    <ClInclude Include="src\models\staticattributevaluemodel.h" />
+    <ClInclude Include="src\models\taskattributevaluemodel.h" />
+    <ClInclude Include="src\models\taskmodel.h" />
+    <ClInclude Include="src\models\workdaymodel.h" />
+    <ClInclude Include="src\persistence\attributegroupspersistence.h" />
+    <ClInclude Include="src\persistence\attributespersistence.h" />
+    <ClInclude Include="src\persistence\attributetypespersistence.h" />
+    <ClInclude Include="src\persistence\categoriespersistence.h" />
+    <ClInclude Include="src\persistence\clientspersistence.h" />
+    <ClInclude Include="src\persistence\employerspersistence.h" />
+    <ClInclude Include="src\persistence\projectspersistence.h" />
+    <ClInclude Include="src\persistence\staticattributevaluespersistence.h" />
+    <ClInclude Include="src\persistence\taskattributevaluespersistence.h" />
+    <ClInclude Include="src\persistence\taskspersistence.h" />
+    <ClInclude Include="src\persistence\workdayspersistence.h" />
+    <ClInclude Include="src\services\attributes\staticattributegroupsservice.h" />
+    <ClInclude Include="src\services\attributes\staticattributegroupviewmodel.h" />
+    <ClInclude Include="src\services\categories\categoryservice.h" />
+    <ClInclude Include="src\services\categories\categoryviewmodel.h" />
+    <ClInclude Include="src\services\export\availablecolumns.h" />
+    <ClInclude Include="src\services\export\columnexportmodel.h" />
+    <ClInclude Include="src\services\export\columnjoinprojection.h" />
+    <ClInclude Include="src\services\export\columnprojection.h" />
+    <ClInclude Include="src\services\export\csvexporterservice.h" />
+    <ClInclude Include="src\services\export\csvexportprocessor.h" />
+    <ClInclude Include="src\services\export\csvmappedoptions.h" />
+    <ClInclude Include="src\services\export\data.h" />
+    <ClInclude Include="src\services\export\datagenerator.h" />
+    <ClInclude Include="src\services\export\excelexporterservice.h" />
+    <ClInclude Include="src\services\export\excelexportprocessor.h" />
+    <ClInclude Include="src\services\export\excelguard.h" />
+    <ClInclude Include="src\services\export\excelinstancecheck.h" />
+    <ClInclude Include="src\services\export\exportoptions.h" />
+    <ClInclude Include="src\services\export\exportresult.h" />
+    <ClInclude Include="src\services\export\exportsservice.h" />
+    <ClInclude Include="src\services\export\headervaluepair.h" />
+    <ClInclude Include="src\services\export\projection.h" />
+    <ClInclude Include="src\services\export\projectionbuilder.h" />
+    <ClInclude Include="src\services\export\row.h" />
+    <ClInclude Include="src\services\export\sqliteexportquerybuilder.h" />
+    <ClInclude Include="src\services\setupwizard\setupwizardservice.h" />
+    <ClInclude Include="src\services\taskduration\taskdurationservice.h" />
+    <ClInclude Include="src\services\taskduration\taskdurationviewmodel.h" />
+    <ClInclude Include="src\services\tasks\tasksservice.h" />
+    <ClInclude Include="src\services\tasks\taskviewmodel.h" />
+    <ClInclude Include="src\ui\common\clientdata.h" />
+    <ClInclude Include="src\ui\common\notificationclientdata.h" />
+    <ClInclude Include="src\ui\common\taskattributevalueclientdata.h" />
+    <ClInclude Include="src\ui\dataview\columnlistitemmodel.h" />
+    <ClInclude Include="src\ui\dataview\columnlistmodel.h" />
+    <ClInclude Include="src\ui\dataview\tasklistmodel.h" />
+    <ClInclude Include="src\ui\dataview\tasktreemodel.h" />
+    <ClInclude Include="src\ui\dataview\tasktreemodelnode.h" />
+    <ClInclude Include="src\ui\dlg\aboutdlg.h" />
+    <ClInclude Include="src\ui\dlg\attributes\attributedlg.h" />
+    <ClInclude Include="src\ui\dlg\attributes\attributegroupdlg.h" />
+    <ClInclude Include="src\ui\dlg\attributes\staticattributevaluesdlg.h" />
+    <ClInclude Include="src\ui\dlg\categoriesdlg.h" />
+    <ClInclude Include="src\ui\dlg\categorydlg.h" />
+    <ClInclude Include="src\ui\dlg\clientdlg.h" />
+    <ClInclude Include="src\ui\dlg\editlistdlg.h" />
+    <ClInclude Include="src\ui\dlg\employerdlg.h" />
+    <ClInclude Include="src\ui\dlg\errordlg.h" />
+    <ClInclude Include="src\ui\dlg\exports\exporttocsvdlg.h" />
+    <ClInclude Include="src\ui\dlg\exports\exporttoexceldlg.h" />
+    <ClInclude Include="src\ui\dlg\exports\quickexporttoformatdlg.h" />
+    <ClInclude Include="src\ui\dlg\preferences\preferencesdatabasepage.h" />
+    <ClInclude Include="src\ui\dlg\preferences\preferencesdlg.h" />
+    <ClInclude Include="src\ui\dlg\preferences\preferencesexportpage.h" />
+    <ClInclude Include="src\ui\dlg\preferences\preferencesgeneralpage.h" />
+    <ClInclude Include="src\ui\dlg\preferences\preferencestaskspage.h" />
+    <ClInclude Include="src\ui\dlg\preferences\preferencestasksviewpage.h" />
+    <ClInclude Include="src\ui\dlg\projectdlg.h" />
+    <ClInclude Include="src\ui\dlg\taskdlg.h" />
+    <ClInclude Include="src\ui\dlg\taskmanageattributesdlg.h" />
+    <ClInclude Include="src\ui\events.h" />
+    <ClInclude Include="src\ui\mainframe.h" />
+    <ClInclude Include="src\ui\notificationpopupwindow.h" />
+    <ClInclude Include="src\ui\persistencemanager.h" />
+    <ClInclude Include="src\ui\statusbar.h" />
+    <ClInclude Include="src\ui\taskbaricon.h" />
+    <ClInclude Include="src\ui\wizards\setupwizard.h" />
+    <ClInclude Include="src\utils\datestore.h" />
+    <ClInclude Include="src\utils\utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="src\application.manifest">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+    </Manifest>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\resources.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format" />
+    <None Include=".editorconfig" />
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include="CHANGELOG.md" />
+    <None Include="LICENSE" />
+    <None Include="README.md" />
+    <None Include="res\install-wizard.svg" />
+    <None Include="res\migrations\20230104084922_create_persistent_objects_table.sql" />
+    <None Include="res\migrations\20230122215058_create_employers_table.sql" />
+    <None Include="res\migrations\20230408192035_create_clients_table.sql" />
+    <None Include="res\migrations\20230414235012_create_projects_table.sql" />
+    <None Include="res\migrations\20230506183926_create_categories_table.sql" />
+    <None Include="res\migrations\20230722190512_create_workdays_table.sql" />
+    <None Include="res\migrations\20230730153709_create_tasks_table.sql" />
+    <None Include="res\migrations\20241210183740_add_is_default_column_to_employers_table.sql" />
+    <None Include="res\migrations\20250316124112_create_attribute_groups_table.sql" />
+    <None Include="res\migrations\20250319101632_create_attribute_types_table.sql" />
+    <None Include="res\migrations\20250319102328_seed_attribute_types_table.sql" />
+    <None Include="res\migrations\20250319204504_create_attributes_table.sql" />
+    <None Include="res\migrations\20250412112647_add_attribute_group_id_column_to_tasks_table.sql" />
+    <None Include="res\migrations\20250414190324_create_task_attribute_values_table.sql" />
+    <None Include="res\migrations\20250427164010_create_static_attribute_values_table.sql" />
+    <CopyFileToFolders Include="taskies.toml">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\about.ico" />
+    <Image Include="res\add_task.ico" />
+    <Image Include="res\exit.ico" />
+    <Image Include="res\preferences.ico" />
+    <Image Include="res\quick_export.ico" />
+    <Image Include="res\taskies.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ItemGroup>
+    <None Include="res\bell16x16.png" />
+    <None Include="res\bellnotification16x16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="res\bell16x16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="res\bellnotification16x16.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

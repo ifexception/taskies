@@ -23,9 +23,9 @@
 #include <map>
 #include <string>
 
-#define i18n(key) tks::UI::Translator::GetInstance().Translate(key)
+#define i18n(key) tks::Core::Translator::GetInstance().Translate(key)
 
-namespace tks::UI
+namespace tks::Core
 {
 class Translator
 {

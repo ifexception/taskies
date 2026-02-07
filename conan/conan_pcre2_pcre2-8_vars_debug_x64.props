@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="ConanVariables">
+    <Conanpcre2_pcre2-8RootFolder>C:\Users\szymon.welgus\.conan2\p\b\pcre2ce32748f9f207\p</Conanpcre2_pcre2-8RootFolder>
+    <Conanpcre2_pcre2-8BinaryDirectories></Conanpcre2_pcre2-8BinaryDirectories>
+    <Conanpcre2_pcre2-8CompilerFlags></Conanpcre2_pcre2-8CompilerFlags>
+    <Conanpcre2_pcre2-8LinkerFlags></Conanpcre2_pcre2-8LinkerFlags>
+    <Conanpcre2_pcre2-8PreprocessorDefinitions>PCRE2_STATIC;</Conanpcre2_pcre2-8PreprocessorDefinitions>
+    <Conanpcre2_pcre2-8IncludeDirectories></Conanpcre2_pcre2-8IncludeDirectories>
+    <Conanpcre2_pcre2-8ResourceDirectories></Conanpcre2_pcre2-8ResourceDirectories>
+    <Conanpcre2_pcre2-8LibraryDirectories>$(Conanpcre2_pcre2-8RootFolder)/lib;</Conanpcre2_pcre2-8LibraryDirectories>
+    <Conanpcre2_pcre2-8Libraries>pcre2-8-staticd.lib;</Conanpcre2_pcre2-8Libraries>
+    <Conanpcre2_pcre2-8SystemLibs></Conanpcre2_pcre2-8SystemLibs>
+  </PropertyGroup>
+</Project>

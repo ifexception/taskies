@@ -35,3 +35,6 @@
 .vs/
 .vscode/
 build/
+
+# conan generated files
+.conan/

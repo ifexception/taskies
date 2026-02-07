@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+	<ImportGroup Label="PropertySheets">
+		<Import Condition="'$(conan_pcre2_pcre2-8_props_imported)' != 'True'" Project="conan_pcre2_pcre2-8.props"/>
+		<Import Condition="'$(conan_pcre2_pcre2-posix_props_imported)' != 'True'" Project="conan_pcre2_pcre2-posix.props"/>
+		<Import Condition="'$(conan_pcre2_pcre2-16_props_imported)' != 'True'" Project="conan_pcre2_pcre2-16.props"/>
+		<Import Condition="'$(conan_pcre2_pcre2-32_props_imported)' != 'True'" Project="conan_pcre2_pcre2-32.props"/>
+	</ImportGroup>
+	<PropertyGroup>
+		<conan_pcre2_props_imported>True</conan_pcre2_props_imported>
+	</PropertyGroup>
+</Project>

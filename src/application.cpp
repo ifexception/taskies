@@ -33,11 +33,11 @@
 #include "core/environment.h"
 #include "core/configuration.h"
 #include "core/database_migration.h"
+// #include "core/translator.h"
 
 #include "ui/wizards/setupwizard.h"
 
 #include "ui/persistencemanager.h"
-#include "ui/translator.h"
 #include "ui/mainframe.h"
 
 #define LOGGER_NAME "TaskiesLogger"
@@ -99,13 +99,13 @@ bool Application::OnInit()
         return false;
     }
 
-    if (!InitializeTranslations()) {
+    /*if (!InitializeTranslations()) {
         pLogger->error("Failed to initialize translations");
         wxMessageBox("Failed to initialize translations.",
             Common::GetProgramName(),
             wxICON_ERROR | wxOK_DEFAULT);
         return false;
-    }
+    }*/
 
     pLogger->info("Application - Initialize MainFrame with WindowState \"{0}\"",
         WindowStateToString(pCfg->GetWindowState()));
@@ -209,11 +209,11 @@ bool Application::RunMigrations()
     return migrations.Migrate();
 }
 
-bool Application::InitializeTranslations()
-{
-    return UI::Translator::GetInstance().Load(
-        pCfg->GetUserInterfaceLanguage(), pEnv->GetLanguagesPath());
-}
+// bool Application::InitializeTranslations()
+// {
+//     return UI::Translator::GetInstance().Load(
+//         pCfg->GetUserInterfaceLanguage(), pEnv->GetLanguagesPath());
+// }
 
 bool Application::FirstStartupProcedure(wxFrame* frame)
 {
