@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+	<ImportGroup Label="PropertySheets">
+		<Import Condition="'$(conan_sqlite3_sqlite_props_imported)' != 'True'" Project="conan_sqlite3_sqlite.props"/>
+	</ImportGroup>
+	<PropertyGroup>
+		<conan_sqlite3_props_imported>True</conan_sqlite3_props_imported>
+	</PropertyGroup>
+</Project>

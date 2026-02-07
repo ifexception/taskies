@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+	<ImportGroup Label="PropertySheets">
+		<Import Condition="'$(conan_spdlog_libspdlog_props_imported)' != 'True'" Project="conan_spdlog_libspdlog.props"/>
+	</ImportGroup>
+	<PropertyGroup>
+		<conan_spdlog_props_imported>True</conan_spdlog_props_imported>
+	</PropertyGroup>
+</Project>
