@@ -25,7 +25,7 @@
 
 #include <nlohmann/json.hpp>
 
-namespace tks::UI
+namespace tks::Core
 {
 
 const std::string Translator::DefaultLanguage = "en-US";
