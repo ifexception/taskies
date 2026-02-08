@@ -75,6 +75,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\bin\</OutDir>
     <IntDir>$(SolutionDir)build\$(Platform)\$(Configuration)\obj\</IntDir>
+    <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\bin\</OutDir>
@@ -132,12 +133,16 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ManifestFile>$(SolutionDir)src\application.manifest</ManifestFile>
     </Link>
     <PreBuildEvent>
       <Command>
 				set CONAN_BUILD_CONFIG="$(Configuration)_$(Platform)" &amp;&amp; "$(ProjectDir).conan\conan_install.bat" . -pr:h=.conan/$(Configuration)_$(Platform) -pr:b=default --build=missing
 			</Command>
     </PreBuildEvent>
+    <Manifest>
+      <AdditionalManifestFiles>$(SolutionDir)src\application.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -382,12 +387,6 @@
     <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="src\application.manifest">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
-    </Manifest>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="src\resources.rc" />
   </ItemGroup>
   <ItemGroup>
@@ -442,5 +441,8 @@
     <Content Include="res\bellnotification16x16.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="src\application.manifest" />
   </ItemGroup>
 </Project>

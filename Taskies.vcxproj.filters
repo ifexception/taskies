@@ -83,9 +83,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\ui\persistencemanager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\application.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -407,6 +404,9 @@
     <ClCompile Include="src\services\integrations\outlookmeetingmodel.cpp">
       <Filter>Source Files\services\integrations</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\persistencemanager.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -721,9 +721,6 @@
     <ClInclude Include="src\application.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\persistencemanager.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\ui\dlg\outlook\outlookmeetingsviewdlg.h">
       <Filter>Source Files\ui\dialogs\outlook</Filter>
     </ClInclude>
@@ -732,6 +729,9 @@
     </ClInclude>
     <ClInclude Include="src\services\integrations\outlookmeetingmodel.h">
       <Filter>Source Files\services\integrations</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\persistencemanager.h">
+      <Filter>Source Files\ui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -823,11 +823,9 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="src\application.manifest">
-      <Filter>Source Files</Filter>
-    </Manifest>
+    <CopyFileToFolders Include="taskies.toml" />
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="taskies.toml" />
+    <Manifest Include="src\application.manifest" />
   </ItemGroup>
 </Project>
