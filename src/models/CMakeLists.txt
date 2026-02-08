@@ -14,5 +14,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/attributemodel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/taskattributevaluemodel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/staticattributevaluemodel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/attendedmeetingmodel.cpp"
     PARENT_SCOPE
 )

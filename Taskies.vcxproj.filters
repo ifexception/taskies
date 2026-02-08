@@ -407,6 +407,9 @@
     <ClCompile Include="src\ui\persistencemanager.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
+    <ClCompile Include="src\models\attendedmeetingmodel.cpp">
+      <Filter>Source Files\models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -733,6 +736,9 @@
     <ClInclude Include="src\ui\persistencemanager.h">
       <Filter>Source Files\ui</Filter>
     </ClInclude>
+    <ClInclude Include="src\models\attendedmeetingmodel.h">
+      <Filter>Source Files\models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc">
@@ -800,6 +806,9 @@
     </None>
     <None Include="res\bellnotification16x16.png">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql">
+      <Filter>Resource Files\migrations</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

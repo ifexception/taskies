@@ -181,6 +181,7 @@
     <ClCompile Include="src\ipc\applicationoptionsconnection.cpp" />
     <ClCompile Include="src\ipc\server.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\models\attendedmeetingmodel.cpp" />
     <ClCompile Include="src\models\attributegroupmodel.cpp" />
     <ClCompile Include="src\models\attributemodel.cpp" />
     <ClCompile Include="src\models\attributetypemodel.cpp" />
@@ -291,6 +292,7 @@
     <ClInclude Include="src\core\environment.h" />
     <ClInclude Include="src\ipc\applicationoptionsconnection.h" />
     <ClInclude Include="src\ipc\server.h" />
+    <ClInclude Include="src\models\attendedmeetingmodel.h" />
     <ClInclude Include="src\models\attributegroupmodel.h" />
     <ClInclude Include="src\models\attributemodel.h" />
     <ClInclude Include="src\models\attributetypemodel.h" />
@@ -418,6 +420,7 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <FileType>Document</FileType>
     </CopyFileToFolders>
+    <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\about.ico" />
