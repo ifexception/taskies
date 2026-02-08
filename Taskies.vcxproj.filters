@@ -410,6 +410,9 @@
     <ClCompile Include="src\models\attendedmeetingmodel.cpp">
       <Filter>Source Files\models</Filter>
     </ClCompile>
+    <ClCompile Include="src\persistence\attendedmeetingspersistence.cpp">
+      <Filter>Source Files\persistence</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -738,6 +741,9 @@
     </ClInclude>
     <ClInclude Include="src\models\attendedmeetingmodel.h">
       <Filter>Source Files\models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\persistence\attendedmeetingspersistence.h">
+      <Filter>Source Files\persistence</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

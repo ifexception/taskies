@@ -167,6 +167,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\persistence\attendedmeetingspersistence.cpp" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\common\common.cpp" />
     <ClCompile Include="src\common\constants.cpp" />
@@ -278,6 +279,7 @@
     <ClCompile Include="src\utils\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\persistence\attendedmeetingspersistence.h" />
     <ClInclude Include="src\application.h" />
     <ClInclude Include="src\common\common.h" />
     <ClInclude Include="src\common\constants.h" />
