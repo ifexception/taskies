@@ -20,8 +20,6 @@
 #include "utils.h"
 
 #include <chrono>
-#include <codecvt>
-#include <locale>
 #include <numeric>
 #include <random>
 
@@ -268,12 +266,7 @@ std::string RemoveEmoticons(const std::wstring& input)
         }
     }
 
-    // https://stackoverflow.com/a/18374698/7277716
-    // setup converter
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
-
-    // use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
-    std::string convertedResult = converter.to_bytes(result);
+    std::string convertedResult = ToStdString(result);
     return convertedResult;
 }
 } // namespace tks::Utils
