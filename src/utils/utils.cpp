@@ -22,6 +22,8 @@
 #include <chrono>
 #include <numeric>
 #include <random>
+#include <regex>
+#include <sstream>
 
 #include <date/date.h>
 
@@ -204,5 +206,15 @@ std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t>
         std::begin(ids), std::end(ids), std::string(), [](std::string s, std::int64_t i) {
             return s.empty() ? std::to_string(i) : s + "," + std::to_string(i);
         });
+}
+
+std::string RemoveEmoticons(const std::wstring& value)
+{
+    const std::regex emoji("[\\u1F600|U+1F604]");
+
+    std::stringstream result;
+    std::regex_replace(std::ostream_iterator<char>(result), value.begin(), value.end(), emoji, "");
+
+    return result.str();
 }
 } // namespace tks::Utils

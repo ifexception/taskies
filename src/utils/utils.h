@@ -61,4 +61,6 @@ std::string ToExcelColumnName(int columnNumber);
 std::string FormatSqlSearchTerm(const std::string& source);
 
 std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t> ids);
+
+std::string RemoveEmoticons(const std::wstring& value);
 } // namespace tks::Utils
