@@ -38,7 +38,13 @@ struct AttendedMeetingsPersistence final {
         const std::string& databaseFilePath);
     ~AttendedMeetingsPersistence();
 
+    int GetById(const std::int64_t attributeGroupId,
+        /*out*/ Model::AttendedMeetingModel& attendedMeetingModel) const;
+    std::int64_t Create(const Model::AttendedMeetingModel& attendedMeetingModel) const;
+
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
+
+    static std::string create;
 };
 } // namespace tks::Persistence
