@@ -20,10 +20,10 @@
 #include "utils.h"
 
 #include <chrono>
+#include <codecvt>
+#include <locale>
 #include <numeric>
 #include <random>
-#include <regex>
-#include <sstream>
 
 #include <date/date.h>
 
@@ -188,7 +188,7 @@ std::string ToExcelColumnName(int columnNumber)
     while (columnNumber > 0) {
         int modulo = (columnNumber - 1) % 26;
         char name = 'A' + modulo;
-        columnName = std::string{name} + columnName;
+        columnName = std::string{ name } + columnName;
         columnNumber = (columnNumber - modulo) / 26;
     }
 
@@ -208,13 +208,72 @@ std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t>
         });
 }
 
-std::string RemoveEmoticons(const std::wstring& value)
+// This method and the subsequent one below was generated using CoPilot
+// https://github.com/copilot/c/f8e039ed-8725-4130-a8c2-830c2c5e020a
+bool IsEmoji(wchar_t ch)
 {
-    const std::regex emoji("[\\u1F600|U+1F604]");
+    unsigned int codepoint = static_cast<unsigned int>(ch);
 
-    std::stringstream result;
-    std::regex_replace(std::ostream_iterator<char>(result), value.begin(), value.end(), emoji, "");
+    // Common emoji Unicode ranges:
+    // Emoticons: U+1F600 to U+1F64F
+    // Symbols: U+1F300 to U+1F5FF
+    // Pictographs: U+1F900 to U+1F9FF
+    // Miscellaneous Symbols and Pictographs: U+1F300 to U+1F6FF
 
-    return result.str();
+    if ((codepoint >= 0x1F300 && codepoint <= 0x1F6FF) || // Misc Symbols & Pictographs
+        (codepoint >= 0x1F900 && codepoint <= 0x1F9FF) || // Supplemental Symbols & Pictographs
+        (codepoint >= 0x1FA00 && codepoint <= 0x1FA6F)) { // Chess Symbols & Emoji
+        return true;
+    }
+
+    return false;
+}
+
+// Remove all emoji from a std::wstring
+std::string RemoveEmoticons(const std::wstring& input)
+{
+    std::wstring result;
+
+    for (size_t i = 0; i < input.length(); ++i) {
+        wchar_t ch = input[i];
+
+        // Skip surrogate pairs (used for characters outside BMP)
+        if (ch >= 0xD800 && ch <= 0xDBFF && i + 1 < input.length()) {
+            wchar_t next = input[i + 1];
+            if (next >= 0xDC00 && next <= 0xDFFF) {
+                // Calculate the actual codepoint
+                unsigned int codepoint =
+                    0x10000 +
+                    ((static_cast<unsigned int>(ch) & 0x3FF) << 10) +
+                    (static_cast<unsigned int>(next) & 0x3FF);
+
+                // Check if it's an emoji
+                if ((codepoint >= 0x1F300 && codepoint <= 0x1F6FF) ||
+                    (codepoint >= 0x1F900 && codepoint <= 0x1F9FF) ||
+                    (codepoint >= 0x1FA00 && codepoint <= 0x1FA6F)) {
+                    ++i; // Skip the next character (surrogate pair)
+                    continue;
+                }
+
+                result += ch;
+                result += next;
+                ++i;
+                continue;
+            }
+        }
+
+        // Check single characters
+        if (!IsEmoji(ch)) {
+            result += ch;
+        }
+    }
+
+    // https://stackoverflow.com/a/18374698/7277716
+    // setup converter
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+
+    // use converter (.to_bytes: wstr->str, .from_bytes: str->wstr)
+    std::string convertedResult = converter.to_bytes(result);
+    return convertedResult;
 }
 } // namespace tks::Utils
