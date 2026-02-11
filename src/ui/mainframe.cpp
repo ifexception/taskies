@@ -917,7 +917,7 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnViewOutlook(wxCommandEvent& event)
 {
-    dlg::OutlookMeetingsViewDialog meetingsViewDlg(this, pLogger, mDatabaseFilePath);
+    dlg::OutlookMeetingsViewDialog meetingsViewDlg(this, pCfg, pLogger, mDatabaseFilePath);
     meetingsViewDlg.ShowModal();
 }
 
