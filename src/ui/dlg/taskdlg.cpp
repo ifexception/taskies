@@ -134,6 +134,13 @@ TaskDialog::TaskDialog(wxWindow* parent,
     SetIcons(iconBundle);
 }
 
+void TaskDialog::SetAttendedMeetingData(const std::string& subject,
+    const std::string& duration,
+    const std::string& additionalData)
+{
+
+}
+
 void TaskDialog::Create()
 {
     CreateControls();

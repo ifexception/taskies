@@ -64,6 +64,10 @@ public:
 
     TaskDialog& operator=(const TaskDialog&) = delete;
 
+    void SetAttendedMeetingData(const std::string& subject,
+        const std::string& duration,
+        const std::string& additionalData);
+
 private:
     void Create();
 
