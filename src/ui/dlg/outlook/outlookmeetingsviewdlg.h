@@ -31,6 +31,11 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
+namespace tks::Core
+{
+class Configuration;
+}
+
 namespace tks::UI::dlg
 {
 class OutlookMeetingsViewDialog : public wxDialog
@@ -39,6 +44,7 @@ public:
     OutlookMeetingsViewDialog() = delete;
     OutlookMeetingsViewDialog(const OutlookMeetingsViewDialog&) = delete;
     OutlookMeetingsViewDialog(wxWindow* parent,
+        std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         const wxString& name = "outlookmeetingsviewdlg");
@@ -63,6 +69,7 @@ private:
 
     void QueueErrorNotificationEvent(const std::string& message);
 
+    std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 

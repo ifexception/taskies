@@ -22,17 +22,20 @@
 #include <wx/artprov.h>
 #include <wx/statline.h>
 
+#include "../taskdlg.h"
+
 #include "../../events.h"
 #include "../../common/clientdata.h"
 #include "../../common/notificationclientdata.h"
 
 #include "../../../common/common.h"
-
+#include "../../../core/configuration.h"
 #include "../../../services/integrations/outlookintegratorservice.h"
 
 namespace tks::UI::dlg
 {
 OutlookMeetingsViewDialog::OutlookMeetingsViewDialog(wxWindow* parent,
+    std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     const wxString& name)
@@ -44,6 +47,7 @@ OutlookMeetingsViewDialog::OutlookMeetingsViewDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
+    , pCfg(cfg)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , pMainSizer(nullptr)
@@ -80,6 +84,12 @@ void OutlookMeetingsViewDialog::Create()
     dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
     dialogMaxSize.SetWidth(-1);
     SetMaxSize(dialogMaxSize);
+
+    wxPoint screenPos = pParent->GetScreenPosition();
+    int screenX = screenPos.x + parentWindowSize.x;
+    int screenY = screenPos.y;
+    wxPoint topRightScreen(screenX, screenY);
+    SetPosition(topRightScreen);
 }
 
 void OutlookMeetingsViewDialog::CreateControls()
@@ -370,6 +380,8 @@ void OutlookMeetingsViewDialog::OnAttendedCheckBoxCheck(wxCommandEvent& event)
             auto ss = s.ToStdString();
             SPDLOG_LOGGER_TRACE(
                 pLogger, "Checkbox with ID \"{0}\" EntryID -> \n{1}", event.GetId(), ss);
+
+            TaskDialog meetingTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
         }
     } else {
         SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" unchecked", event.GetId());
