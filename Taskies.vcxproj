@@ -423,6 +423,7 @@
       <FileType>Document</FileType>
     </CopyFileToFolders>
     <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql" />
+    <None Include="res\migrations\20260210185522_add_attended_meeting_id_column_to_tasks_table.sql" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\about.ico" />

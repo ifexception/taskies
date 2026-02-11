@@ -41,6 +41,7 @@ struct TaskModel {
     std::int64_t CategoryId;
     std::int64_t WorkdayId;
     std::optional<std::int64_t> AttributeGroupId;
+    std::optional<std::int64_t> AttendedMeetingId;
 
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;

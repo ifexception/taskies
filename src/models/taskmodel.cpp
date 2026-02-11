@@ -37,6 +37,7 @@ TaskModel::TaskModel()
     , CategoryId(-1)
     , WorkdayId(-1)
     , AttributeGroupId()
+    , AttendedMeetingId()
 {
 }
 
