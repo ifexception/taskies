@@ -19,6 +19,8 @@
 
 #include "outlookmeetingmodel.h"
 
+#include "../../utils/utils.h"
+
 namespace tks::Services::Integrations
 {
 OutlookMeetingModel::OutlookMeetingModel()
@@ -27,9 +29,15 @@ OutlookMeetingModel::OutlookMeetingModel()
     , Body(L"")
     , Start("")
     , End("")
-    , Duration("")
+    , Duration()
     , Location("")
 {
+}
+
+const std::string OutlookMeetingModel::TrimmedSubject() const
+{
+    std::string trimmedSubject = Utils::RemoveEmoticons(Subject);
+    return trimmedSubject;
 }
 
 bool OutlookMeetingModel::operator==(const OutlookMeetingModel& other)

@@ -29,12 +29,14 @@ struct OutlookMeetingModel {
     std::wstring Body;
     std::string Start;
     std::string End;
-    std::string Duration;
+    int Duration;
     std::string Location;
 
     OutlookMeetingModel();
     ~OutlookMeetingModel() = default;
 
+    const std::string TrimmedSubject() const;
+
     bool operator==(const OutlookMeetingModel& other);
 };
-}
+} // namespace tks::Services::Integrations

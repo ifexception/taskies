@@ -332,7 +332,7 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings(const std::string&
             wxVariant durationProperty = itemObject.GetProperty("Duration");
             if (!durationProperty.IsNull()) {
                 pLogger->info("Duration\t|\t{0}", durationProperty.GetString().ToStdString());
-                model.Duration = durationProperty.GetString().ToStdString();
+                model.Duration = durationProperty.GetLong();
             }
             wxVariant locationProperty = itemObject.GetProperty("Location");
             if (!locationProperty.IsNull()) {
