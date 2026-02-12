@@ -135,10 +135,20 @@ TaskDialog::TaskDialog(wxWindow* parent,
 }
 
 void TaskDialog::SetAttendedMeetingData(const std::string& subject,
-    const std::string& duration,
+    const int duration,
     const std::string& additionalData)
 {
+    std::string taskDescription = "";
+    if (additionalData.empty()) {
+        taskDescription = subject;
+    } else {
+        taskDescription = subject + "\n\n" + additionalData;
+    }
 
+    pTaskDescriptionTextCtrl->ChangeValue(taskDescription);
+
+    // TODO: figure out if time is greater than 60 to set hours and minutes spin ctrl appropriately
+    pTimeMinutesSpinCtrl->SetValue(duration);
 }
 
 void TaskDialog::Create()
