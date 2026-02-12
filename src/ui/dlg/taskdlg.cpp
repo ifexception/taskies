@@ -148,8 +148,11 @@ void TaskDialog::SetAttendedMeetingData(const std::string& subject,
 
     pTaskDescriptionTextCtrl->ChangeValue(taskDescription);
 
-    // TODO: figure out if time is greater than 60 to set hours and minutes spin ctrl appropriately
-    pTimeMinutesSpinCtrl->SetValue(duration);
+    int minutes = 0;
+    int hours = 0;
+    Utils::DeconstructDurationTimePeriod(duration, hours, minutes);
+    pTimeHoursSpinCtrl->SetValue(hours);
+    pTimeMinutesSpinCtrl->SetValue(minutes);
 }
 
 void TaskDialog::Create()

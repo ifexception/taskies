@@ -63,4 +63,6 @@ std::string FormatSqlSearchTerm(const std::string& source);
 std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t> ids);
 
 std::string RemoveEmoticons(const std::wstring& value);
+
+void DeconstructDurationTimePeriod(const int value, int& hours, int& minutes);
 } // namespace tks::Utils

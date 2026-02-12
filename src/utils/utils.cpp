@@ -208,7 +208,7 @@ std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t>
 
 // This method and the subsequent one below was generated using CoPilot
 // https://github.com/copilot/c/f8e039ed-8725-4130-a8c2-830c2c5e020a
-bool IsEmoji(wchar_t ch)
+static bool IsEmoji(wchar_t ch)
 {
     unsigned int codepoint = static_cast<unsigned int>(ch);
 
@@ -240,10 +240,8 @@ std::string RemoveEmoticons(const std::wstring& input)
             wchar_t next = input[i + 1];
             if (next >= 0xDC00 && next <= 0xDFFF) {
                 // Calculate the actual codepoint
-                unsigned int codepoint =
-                    0x10000 +
-                    ((static_cast<unsigned int>(ch) & 0x3FF) << 10) +
-                    (static_cast<unsigned int>(next) & 0x3FF);
+                unsigned int codepoint = 0x10000 + ((static_cast<unsigned int>(ch) & 0x3FF) << 10) +
+                                         (static_cast<unsigned int>(next) & 0x3FF);
 
                 // Check if it's an emoji
                 if ((codepoint >= 0x1F300 && codepoint <= 0x1F6FF) ||
@@ -268,5 +266,11 @@ std::string RemoveEmoticons(const std::wstring& input)
 
     std::string convertedResult = ToStdString(result);
     return convertedResult;
+}
+
+void DeconstructDurationTimePeriod(const int value, int& hours, int& minutes)
+{
+    minutes = value % 60;
+    hours = value / 60;
 }
 } // namespace tks::Utils
