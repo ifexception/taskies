@@ -77,7 +77,7 @@ void OutlookMeetingsViewDialog::Create()
 
     wxSize parentWindowSize = pParent->GetSize();
     SPDLOG_LOGGER_TRACE(pLogger,
-        "Parent size ({0},{1})",
+        "PARENT SIZE ({0},{1})",
         parentWindowSize.GetHeight(),
         parentWindowSize.GetWidth());
     wxSize dialogMaxSize;
@@ -88,6 +88,7 @@ void OutlookMeetingsViewDialog::Create()
     wxPoint screenPos = pParent->GetScreenPosition();
     int screenX = screenPos.x + parentWindowSize.x;
     int screenY = screenPos.y;
+    SPDLOG_LOGGER_TRACE(pLogger, "PARENT POSITION ({0},{1})", screenX, screenY);
     wxPoint topRightScreen(screenX, screenY);
     SetPosition(topRightScreen);
 }
