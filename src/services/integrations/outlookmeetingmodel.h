@@ -38,5 +38,7 @@ struct OutlookMeetingModel {
     const std::string TrimmedSubject() const;
 
     bool operator==(const OutlookMeetingModel& other);
+
+    std::string DebugPrint() const;
 };
 } // namespace tks::Services::Integrations
