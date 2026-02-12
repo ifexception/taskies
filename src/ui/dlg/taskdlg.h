@@ -148,6 +148,7 @@ private:
     std::int64_t mEmployerId;
     std::int64_t mAttributeGroupId;
     bool bIsClone;
+    bool bIsMeeting;
 
     Model::TaskModel mTaskModel;
     bool bHasTaskAttributeValues;
