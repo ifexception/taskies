@@ -47,6 +47,7 @@
 #include "../../models/attributegroupmodel.h"
 #include "../../models/attributemodel.h"
 #include "../../models/staticattributevaluemodel.h"
+#include "../../models/attendedmeetingmodel.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
@@ -57,6 +58,7 @@
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/taskattributevaluespersistence.h"
 #include "../../persistence/staticattributevaluespersistence.h"
+#include "../../persistence/attendedmeetingspersistence.h"
 
 #include "../../services/categories/categoryviewmodel.h"
 #include "../../services/categories/categoryservice.h"
@@ -139,6 +141,8 @@ void TaskDialog::SetAttendedMeetingData(const std::string& subject,
     const int duration,
     const std::string& additionalData)
 {
+    bIsMeeting = true;
+
     std::string taskDescription = "";
     if (additionalData.empty()) {
         taskDescription = subject;
@@ -153,6 +157,22 @@ void TaskDialog::SetAttendedMeetingData(const std::string& subject,
     Utils::DeconstructDurationTimePeriod(duration, hours, minutes);
     pTimeHoursSpinCtrl->SetValue(hours);
     pTimeMinutesSpinCtrl->SetValue(minutes);
+}
+
+void TaskDialog::SetAttendedMeetingDataEx(const std::string& entryId,
+    const std::string& subject,
+    const std::string& start,
+    const std::string& end,
+    const int duration,
+    const std::string& location)
+{
+    Model::AttendedMeetingModel newAttendedMeeting;
+    newAttendedMeeting.EntryId = entryId;
+    newAttendedMeeting.Subject = subject;
+    newAttendedMeeting.Start = start;
+    newAttendedMeeting.End = end;
+    newAttendedMeeting.Duration = duration;
+    newAttendedMeeting.Location = location;
 }
 
 void TaskDialog::Create()

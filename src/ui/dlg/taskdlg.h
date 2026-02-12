@@ -67,6 +67,12 @@ public:
     void SetAttendedMeetingData(const std::string& subject,
         const int duration,
         const std::string& additionalData = "");
+    void SetAttendedMeetingDataEx(const std::string& entryId,
+        const std::string& subject,
+        const std::string& start,
+        const std::string& end,
+        const int duration,
+        const std::string& location);
 
 private:
     void Create();
