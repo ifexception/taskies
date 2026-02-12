@@ -258,7 +258,6 @@
     <ClCompile Include="src\ui\dlg\exports\exporttocsvdlg.cpp" />
     <ClCompile Include="src\ui\dlg\exports\exporttoexceldlg.cpp" />
     <ClCompile Include="src\ui\dlg\exports\quickexporttoformatdlg.cpp" />
-    <ClCompile Include="src\ui\dlg\outlook\outlookmeetingsviewdlg.cpp" />
     <ClCompile Include="src\ui\dlg\preferences\preferencesdatabasepage.cpp" />
     <ClCompile Include="src\ui\dlg\preferences\preferencesdlg.cpp" />
     <ClCompile Include="src\ui\dlg\preferences\preferencesexportpage.cpp" />
@@ -269,6 +268,7 @@
     <ClCompile Include="src\ui\dlg\taskdlg.cpp" />
     <ClCompile Include="src\ui\dlg\taskmanageattributesdlg.cpp" />
     <ClCompile Include="src\ui\events.cpp" />
+    <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp" />
     <ClCompile Include="src\ui\mainframe.cpp" />
     <ClCompile Include="src\ui\notificationpopupwindow.cpp" />
     <ClCompile Include="src\ui\persistencemanager.cpp" />
@@ -370,7 +370,6 @@
     <ClInclude Include="src\ui\dlg\exports\exporttocsvdlg.h" />
     <ClInclude Include="src\ui\dlg\exports\exporttoexceldlg.h" />
     <ClInclude Include="src\ui\dlg\exports\quickexporttoformatdlg.h" />
-    <ClInclude Include="src\ui\dlg\outlook\outlookmeetingsviewdlg.h" />
     <ClInclude Include="src\ui\dlg\preferences\preferencesdatabasepage.h" />
     <ClInclude Include="src\ui\dlg\preferences\preferencesdlg.h" />
     <ClInclude Include="src\ui\dlg\preferences\preferencesexportpage.h" />
@@ -381,6 +380,7 @@
     <ClInclude Include="src\ui\dlg\taskdlg.h" />
     <ClInclude Include="src\ui\dlg\taskmanageattributesdlg.h" />
     <ClInclude Include="src\ui\events.h" />
+    <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h" />
     <ClInclude Include="src\ui\mainframe.h" />
     <ClInclude Include="src\ui\notificationpopupwindow.h" />
     <ClInclude Include="src\ui\persistencemanager.h" />

@@ -36,19 +36,19 @@ namespace tks::Core
 class Configuration;
 }
 
-namespace tks::UI::dlg
+namespace tks::UI::frames
 {
-class OutlookMeetingsViewDialog : public wxDialog
+class OutlookMeetingsViewFrame : public wxFrame
 {
 public:
-    OutlookMeetingsViewDialog() = delete;
-    OutlookMeetingsViewDialog(const OutlookMeetingsViewDialog&) = delete;
-    OutlookMeetingsViewDialog(wxWindow* parent,
+    OutlookMeetingsViewFrame() = delete;
+    OutlookMeetingsViewFrame(const OutlookMeetingsViewFrame&) = delete;
+    OutlookMeetingsViewFrame(wxWindow* parent,
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         const wxString& name = "outlookmeetingsviewdlg");
-    virtual ~OutlookMeetingsViewDialog() = default;
+    virtual ~OutlookMeetingsViewFrame() = default;
 
 private:
     void Create();
@@ -74,6 +74,7 @@ private:
     std::string mDatabaseFilePath;
 
     wxWindow* pParent;
+    wxPanel* pThisPanel;
 
     wxBoxSizer* pMainSizer;
 
@@ -97,4 +98,4 @@ private:
         tksIDC_ATTENDEDCHECKBOX_BASE
     };
 };
-} // namespace tks::UI::dlg
+} // namespace tks::UI::frames

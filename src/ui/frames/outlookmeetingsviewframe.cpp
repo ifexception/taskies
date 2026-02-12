@@ -17,29 +17,28 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "outlookmeetingsviewdlg.h"
+#include "outlookmeetingsviewframe.h"
 
 #include <wx/artprov.h>
 #include <wx/statline.h>
 
-#include "../taskdlg.h"
+#include "../events.h"
+#include "../common/clientdata.h"
+#include "../common/notificationclientdata.h"
+#include "../dlg/taskdlg.h"
 
-#include "../../events.h"
-#include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
+#include "../../common/common.h"
+#include "../../core/configuration.h"
+#include "../../services/integrations/outlookintegratorservice.h"
 
-#include "../../../common/common.h"
-#include "../../../core/configuration.h"
-#include "../../../services/integrations/outlookintegratorservice.h"
-
-namespace tks::UI::dlg
+namespace tks::UI::frames
 {
-OutlookMeetingsViewDialog::OutlookMeetingsViewDialog(wxWindow* parent,
+OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     const wxString& name)
-    : wxDialog(parent,
+    : wxFrame(parent,
           wxID_ANY,
           "Outlook Meetings",
           wxDefaultPosition,
@@ -47,6 +46,7 @@ OutlookMeetingsViewDialog::OutlookMeetingsViewDialog(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pParent(parent)
+    , pThisPanel(nullptr)
     , pCfg(cfg)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
@@ -68,7 +68,7 @@ OutlookMeetingsViewDialog::OutlookMeetingsViewDialog(wxWindow* parent,
     SetIcons(iconBundle);
 }
 
-void OutlookMeetingsViewDialog::Create()
+void OutlookMeetingsViewFrame::Create()
 {
     CreateControls();
     ConfigureEventBindings();
@@ -93,10 +93,14 @@ void OutlookMeetingsViewDialog::Create()
     SetPosition(topRightScreen);
 }
 
-void OutlookMeetingsViewDialog::CreateControls()
+void OutlookMeetingsViewFrame::CreateControls()
 {
     /* Main dialog sizer for controls */
     pMainSizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Main panel for the frame */
+    pThisPanel = new wxPanel(this, wxID_ANY);
+    pThisPanel->SetSizer(pMainSizer);
 
     /* Refresh button sizer */
     auto refreshButtonHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -105,31 +109,31 @@ void OutlookMeetingsViewDialog::CreateControls()
     /* Refresh button */
     auto providedRefreshBitmap = wxArtProvider::GetBitmapBundle(
         wxART_REFRESH, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    pRefreshButton = new wxBitmapButton(this, tksIDC_REFRESH_BUTTON, providedRefreshBitmap);
+    pRefreshButton = new wxBitmapButton(pThisPanel, tksIDC_REFRESH_BUTTON, providedRefreshBitmap);
     pRefreshButton->SetToolTip("Refresh meetings of selected account");
     pRefreshButton->Disable();
     refreshButtonHorizontalSizer->AddStretchSpacer();
     refreshButtonHorizontalSizer->Add(pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
-    auto line0 = new wxStaticLine(this, wxID_ANY);
+    auto line0 = new wxStaticLine(pThisPanel, wxID_ANY);
     pMainSizer->Add(line0, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Account label and choice control */
-    auto accountLabel = new wxStaticText(this, wxID_ANY, "Account");
+    auto accountLabel = new wxStaticText(pThisPanel, wxID_ANY, "Account");
 
-    pAccountsChoiceCtrl = new wxChoice(this, tksIDC_ACCOUNT_CHOICE_CTRL);
+    pAccountsChoiceCtrl = new wxChoice(pThisPanel, tksIDC_ACCOUNT_CHOICE_CTRL);
     pAccountsChoiceCtrl->SetToolTip("Select an account to display meetings for");
 
     pMainSizer->Add(accountLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     pMainSizer->Add(pAccountsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Feedback label */
-    pFeedbackLabel = new wxStaticText(this, tksIDC_FEEDBACKLABEL, "No meetings found");
+    pFeedbackLabel = new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No meetings found");
     pMainSizer->Add(pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
 
     /* Main Scrolled Window */
-    pScrolledWindow = new wxScrolledWindow(this, wxID_ANY);
+    pScrolledWindow = new wxScrolledWindow(pThisPanel, wxID_ANY);
     pScrolledWindowSizer = new wxBoxSizer(wxVERTICAL);
     pScrolledWindow->SetSizer(pScrolledWindowSizer);
     pScrolledWindow->SetScrollRate(0, 20);
@@ -137,27 +141,27 @@ void OutlookMeetingsViewDialog::CreateControls()
 
     pMainSizer->Add(pScrolledWindow, wxSizerFlags(1).Expand());
 
-    SetSizerAndFit(pMainSizer);
+    // SetSizerAndFit(pMainSizer);
 }
 
 // clang-format off
-void OutlookMeetingsViewDialog::ConfigureEventBindings()
+void OutlookMeetingsViewFrame::ConfigureEventBindings()
 {
     pAccountsChoiceCtrl->Bind(
         wxEVT_CHOICE,
-        &OutlookMeetingsViewDialog::OnAccountChoice,
+        &OutlookMeetingsViewFrame::OnAccountChoice,
         this
     );
 }
 // clang-format on
 
-void OutlookMeetingsViewDialog::FillControls()
+void OutlookMeetingsViewFrame::FillControls()
 {
     pAccountsChoiceCtrl->Append("Select account");
     pAccountsChoiceCtrl->SetSelection(0);
 }
 
-void OutlookMeetingsViewDialog::DataToControls()
+void OutlookMeetingsViewFrame::DataToControls()
 {
     std::vector<std::string> accountNames;
 
@@ -188,12 +192,12 @@ void OutlookMeetingsViewDialog::DataToControls()
         pAccountsChoiceCtrl->Append(accountName);
     }
 
-    Fit();
+    pMainSizer->Fit(pThisPanel);
 }
 
-void OutlookMeetingsViewDialog::OnRefresh(wxCommandEvent& event) {}
+void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event) {}
 
-void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
+void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 {
     if (pActiveMeetingsPanel != nullptr) {
         pScrolledWindowSizer->Detach(pActiveMeetingsPanel);
@@ -213,7 +217,8 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
         mSelectedAccount = "";
 
         if (pFeedbackLabel == nullptr) {
-            pFeedbackLabel = new wxStaticText(this, tksIDC_FEEDBACKLABEL, "No meetings found");
+            pFeedbackLabel =
+                new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No meetings found");
             pMainSizer->Add(
                 pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
 
@@ -345,7 +350,7 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
         attendedCheckBox->SetClientObject(meetingEntryIdData);
 
         attendedCheckBox->Bind(wxEVT_CHECKBOX,
-            &OutlookMeetingsViewDialog::OnAttendedCheckBoxCheck,
+            &OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck,
             this,
             attendedCheckBoxControlId);
 
@@ -357,7 +362,6 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
     pScrolledWindowSizer->Layout();
 
     pMainSizer->Layout();
-    Fit();
 
     wxSize parentWindowSize = pParent->GetSize();
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -370,7 +374,7 @@ void OutlookMeetingsViewDialog::OnAccountChoice(wxCommandEvent& event)
     SetSize(dialogMaxSize);
 }
 
-void OutlookMeetingsViewDialog::OnAttendedCheckBoxCheck(wxCommandEvent& event)
+void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" checked", event.GetId());
@@ -382,19 +386,19 @@ void OutlookMeetingsViewDialog::OnAttendedCheckBoxCheck(wxCommandEvent& event)
             SPDLOG_LOGGER_TRACE(
                 pLogger, "Checkbox with ID \"{0}\" EntryID -> \n{1}", event.GetId(), ss);
 
-            TaskDialog meetingTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+            // dlg::TaskDialog meetingTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
         }
     } else {
         SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" unchecked", event.GetId());
     }
 }
 
-void OutlookMeetingsViewDialog::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
+void OutlookMeetingsViewFrame::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
 
-void OutlookMeetingsViewDialog::SetFeedbackLabelOnEvent(const std::string& message)
+void OutlookMeetingsViewFrame::SetFeedbackLabelOnEvent(const std::string& message)
 {
     pFeedbackLabel->SetLabel(message);
 }
 
-void OutlookMeetingsViewDialog::QueueErrorNotificationEvent(const std::string& message) {}
-} // namespace tks::UI::dlg
+void OutlookMeetingsViewFrame::QueueErrorNotificationEvent(const std::string& message) {}
+} // namespace tks::UI::frames

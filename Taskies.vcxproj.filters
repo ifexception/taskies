@@ -75,11 +75,11 @@
     <Filter Include="Resource Files\migrations">
       <UniqueIdentifier>{a2dd7864-16d1-4fc4-bdfc-56299e7c8eda}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\ui\dialogs\outlook">
-      <UniqueIdentifier>{521f1f0d-a65e-42ee-824a-0dc9c345427e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\services\integrations">
       <UniqueIdentifier>{f31f582e-e81c-43bc-b3f7-39a6ee77d126}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\frames">
+      <UniqueIdentifier>{b8f17078-4f2a-4b44-b9a1-cf4af50f0340}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -395,9 +395,6 @@
     <ClCompile Include="src\ui\taskbaricon.cpp">
       <Filter>Source Files\ui</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\dlg\outlook\outlookmeetingsviewdlg.cpp">
-      <Filter>Source Files\ui\dialogs\outlook</Filter>
-    </ClCompile>
     <ClCompile Include="src\services\integrations\outlookintegratorservice.cpp">
       <Filter>Source Files\services\integrations</Filter>
     </ClCompile>
@@ -412,6 +409,9 @@
     </ClCompile>
     <ClCompile Include="src\persistence\attendedmeetingspersistence.cpp">
       <Filter>Source Files\persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp">
+      <Filter>Source Files\ui\frames</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -727,9 +727,6 @@
     <ClInclude Include="src\application.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\dlg\outlook\outlookmeetingsviewdlg.h">
-      <Filter>Source Files\ui\dialogs\outlook</Filter>
-    </ClInclude>
     <ClInclude Include="src\services\integrations\outlookintegratorservice.h">
       <Filter>Source Files\services\integrations</Filter>
     </ClInclude>
@@ -744,6 +741,9 @@
     </ClInclude>
     <ClInclude Include="src\persistence\attendedmeetingspersistence.h">
       <Filter>Source Files\persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h">
+      <Filter>Source Files\ui\frames</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -71,7 +71,7 @@
 #include "../ui/dlg/attributes/attributegroupdlg.h"
 #include "../ui/dlg/attributes/attributedlg.h"
 #include "../ui/dlg/attributes/staticattributevaluesdlg.h"
-#include "../ui/dlg/outlook/outlookmeetingsviewdlg.h"
+#include "../ui/frames/outlookmeetingsviewframe.h"
 
 #include "events.h"
 #include "common/notificationclientdata.h"
@@ -917,8 +917,9 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnViewOutlook(wxCommandEvent& event)
 {
-    dlg::OutlookMeetingsViewDialog meetingsViewDlg(this, pCfg, pLogger, mDatabaseFilePath);
-    meetingsViewDlg.ShowModal();
+    frames::OutlookMeetingsViewFrame* meetingsViewFrame =
+        new frames::OutlookMeetingsViewFrame(this, pCfg, pLogger, mDatabaseFilePath);
+    meetingsViewFrame->Show();
 }
 
 // void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
