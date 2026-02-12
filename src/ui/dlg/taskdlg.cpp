@@ -112,6 +112,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mTaskModel()
     , bHasTaskAttributeValues(false)
     , mTaskAttributeValueModels()
+    , bIsMeeting(false)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
