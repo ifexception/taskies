@@ -36,6 +36,11 @@ namespace tks::Core
 class Configuration;
 }
 
+namespace tks::Services::Integrations
+{
+struct OutlookMeetingModel;
+}
+
 namespace tks::UI::frames
 {
 class OutlookMeetingsViewFrame : public wxFrame
@@ -90,6 +95,8 @@ private:
     wxButton* pCancelButton;
 
     std::string mSelectedAccount;
+
+    std::vector<Services::Integrations::OutlookMeetingModel> mMeetingModels;
 
     enum {
         tksIDC_REFRESH_BUTTON = wxID_HIGHEST + 1001,

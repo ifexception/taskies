@@ -19,6 +19,8 @@
 
 #include "outlookmeetingsviewframe.h"
 
+#include <algorithm>
+
 #include <wx/artprov.h>
 #include <wx/statline.h>
 
@@ -59,6 +61,7 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     , pActiveMeetingsPanel(nullptr)
     , pCancelButton(nullptr)
     , mSelectedAccount()
+    , mMeetingModels()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -199,6 +202,8 @@ void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event) {}
 
 void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 {
+    mMeetingModels.clear();
+
     if (pActiveMeetingsPanel != nullptr) {
         pScrolledWindowSizer->Detach(pActiveMeetingsPanel);
         bool windowDelete = pActiveMeetingsPanel->Destroy();
@@ -242,14 +247,12 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         "Outlook account name selected \"{0}\"",
         mSelectedAccount.empty() ? "(none)" : mSelectedAccount);
 
-    std::vector<Services::Integrations::OutlookMeetingModel> meetingModels;
-
     Services::Integrations::OutlookIntegratorService service(pLogger);
     Services::Integrations::OutlookResult result;
     {
         wxBusyCursor cursor;
 
-        result = service.FetchCalendarMeetings(mSelectedAccount, meetingModels);
+        result = service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
     }
 
     if (!result.Success) {
@@ -266,9 +269,9 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 
         return;
     } else if (result.Success && !result.Message.empty()) {
-        SPDLOG_LOGGER_TRACE(pLogger, "Retrieved \"{0}\" meetings", meetingModels.size());
+        SPDLOG_LOGGER_TRACE(pLogger, "Retrieved \"{0}\" meetings", mMeetingModels.size());
 
-        if (meetingModels.size() == 0) {
+        if (mMeetingModels.size() == 0) {
             SetFeedbackLabelOnEvent("No meetings found");
             return;
         }
@@ -291,7 +294,7 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 
     int attendedCheckBoxControlId = tksIDC_ATTENDEDCHECKBOX_BASE;
 
-    for (const auto& meetingModel : meetingModels) {
+    for (const auto& meetingModel : mMeetingModels) {
         // static box for meeting controls
         auto staticBox = new wxStaticBox(pActiveMeetingsPanel, wxID_ANY, "");
         auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
@@ -386,7 +389,22 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
             SPDLOG_LOGGER_TRACE(
                 pLogger, "Checkbox with ID \"{0}\" EntryID -> \n{1}", event.GetId(), ss);
 
-            // dlg::TaskDialog meetingTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+            const auto& foundMeetingIterator = std::find_if(mMeetingModels.begin(),
+                mMeetingModels.end(),
+                [=](const Services::Integrations::OutlookMeetingModel& model) {
+                    return model.EntryId == ss;
+                });
+
+            if (foundMeetingIterator != mMeetingModels.end()) {
+                auto& meetingModel = *foundMeetingIterator;
+                SPDLOG_LOGGER_TRACE(
+                    pLogger, "Meeting found with detail: \n{0}", meetingModel.DebugPrint());
+
+                dlg::TaskDialog meetingTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+                meetingTaskDialog.SetAttendedMeetingData(
+                    meetingModel.TrimmedSubject(), meetingModel.Duration, meetingModel.Location);
+                meetingTaskDialog.ShowModal();
+            }
         }
     } else {
         SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" unchecked", event.GetId());
