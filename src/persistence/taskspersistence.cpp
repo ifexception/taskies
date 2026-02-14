@@ -342,6 +342,24 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         return -1;
     }
 
+    bindIndex++;
+
+    // attended_meeting_id
+    if (taskModel.AttendedMeetingId.has_value()) {
+        rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.AttendedMeetingId.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "attended_meeting_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
@@ -848,9 +866,10 @@ std::string TasksPersistence::create = "INSERT INTO "
                                        "project_id, "
                                        "category_id, "
                                        "workday_id, "
-                                       "attribute_group_id "
+                                       "attribute_group_id, "
+                                       "attended_meeting_id "
                                        ") "
-                                       "VALUES (?,?,?,?,?,?,?,?,?)";
+                                       "VALUES (?,?,?,?,?,?,?,?,?,?)";
 
 std::string TasksPersistence::update = "UPDATE tasks "
                                        "SET "
