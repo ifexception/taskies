@@ -415,7 +415,7 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                 SPDLOG_LOGGER_TRACE(
                     pLogger, "Meeting found with detail: \n{0}", meetingModel.DebugPrint());
 
-                dlg::TaskDialog meetingTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+                dlg::TaskDialog meetingTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
                 meetingTaskDialog.SetAttendedMeetingData(
                     meetingModel.TrimmedSubject(), meetingModel.Duration, meetingModel.Location);
                 meetingTaskDialog.SetAttendedMeetingDataEx(meetingModel.EntryId,
