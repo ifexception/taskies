@@ -37,6 +37,7 @@
 
 #include "../../models/taskmodel.h"
 #include "../../models/taskattributevaluemodel.h"
+#include "../../models/attendedmeetingmodel.h"
 
 namespace tks
 {
@@ -157,6 +158,7 @@ private:
     bool bIsMeeting;
 
     Model::TaskModel mTaskModel;
+    Model::AttendedMeetingModel mAttendedMeetingModel;
     bool bHasTaskAttributeValues;
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 

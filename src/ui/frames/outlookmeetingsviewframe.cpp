@@ -387,7 +387,7 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
             auto& s = scd->GetData();
             auto ss = s.ToStdString();
             SPDLOG_LOGGER_TRACE(
-                pLogger, "Checkbox with ID \"{0}\" EntryID -> \n{1}", event.GetId(), ss);
+                pLogger, "Checkbox with ID \"{0}\" ENTRY_ID -> \n{1}", event.GetId(), ss);
 
             const auto& foundMeetingIterator = std::find_if(mMeetingModels.begin(),
                 mMeetingModels.end(),
@@ -403,6 +403,12 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                 dlg::TaskDialog meetingTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
                 meetingTaskDialog.SetAttendedMeetingData(
                     meetingModel.TrimmedSubject(), meetingModel.Duration, meetingModel.Location);
+                meetingTaskDialog.SetAttendedMeetingDataEx(meetingModel.EntryId,
+                    meetingModel.TrimmedSubject(),
+                    meetingModel.Start,
+                    meetingModel.End,
+                    meetingModel.Duration,
+                    meetingModel.Location);
                 meetingTaskDialog.ShowModal();
             }
         }

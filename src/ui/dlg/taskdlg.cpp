@@ -155,6 +155,7 @@ void TaskDialog::SetAttendedMeetingData(const std::string& subject,
     int minutes = 0;
     int hours = 0;
     Utils::DeconstructDurationTimePeriod(duration, hours, minutes);
+
     pTimeHoursSpinCtrl->SetValue(hours);
     pTimeMinutesSpinCtrl->SetValue(minutes);
 }
@@ -166,13 +167,12 @@ void TaskDialog::SetAttendedMeetingDataEx(const std::string& entryId,
     const int duration,
     const std::string& location)
 {
-    Model::AttendedMeetingModel newAttendedMeeting;
-    newAttendedMeeting.EntryId = entryId;
-    newAttendedMeeting.Subject = subject;
-    newAttendedMeeting.Start = start;
-    newAttendedMeeting.End = end;
-    newAttendedMeeting.Duration = duration;
-    newAttendedMeeting.Location = location;
+    mAttendedMeetingModel.EntryId = entryId;
+    mAttendedMeetingModel.Subject = subject;
+    mAttendedMeetingModel.Start = start;
+    mAttendedMeetingModel.End = end;
+    mAttendedMeetingModel.Duration = duration;
+    mAttendedMeetingModel.Location = location;
 }
 
 void TaskDialog::Create()
@@ -1232,8 +1232,24 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
+    Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
+        pLogger, mDatabaseFilePath);
 
     if (!bIsEdit) {
+        if (bIsMeeting) {
+            std::int64_t attendedMeetingId =
+                attendedMeetingsPersistence.Create(mAttendedMeetingModel);
+            ret = attendedMeetingId > 0 ? 0 : -1;
+            ret == -1 ? message = "Failed to create attended meeting entry"
+                      : message = "Successfully created attended meeting entry";
+
+            QueueNotificationEvent(ret, message);
+
+            if (ret == 0) {
+                mTaskModel.AttendedMeetingId = std::make_optional(attendedMeetingId);
+            }
+        }
+
         std::int64_t taskId = taskPersistence.Create(mTaskModel);
         ret = taskId > 0 ? 0 : -1;
         mTaskId = taskId;
