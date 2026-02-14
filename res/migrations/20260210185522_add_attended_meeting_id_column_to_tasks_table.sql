@@ -1,9 +1,6 @@
 PRAGMA foreign_keys=off;
 
-ALTER TABLE tasks
-    RENAME TO tasks2;
-
-CREATE TABLE IF NOT EXISTS tasks
+CREATE TABLE IF NOT EXISTS tasks_new
 (
     task_id INTEGER PRIMARY KEY NOT NULL,
     billable INTEGER NOT NULL,
@@ -28,7 +25,22 @@ CREATE TABLE IF NOT EXISTS tasks
     FOREIGN KEY (attended_meeting_id) REFERENCES attended_meetings(attended_meeting_id)
 );
 
-INSERT INTO tasks
+INSERT INTO tasks_new
+(
+    task_id,
+    billable,
+    unique_identifier,
+    hours,
+    minutes,
+    description,
+    date_created,
+    date_modified,
+    is_active,
+    project_id,
+    category_id,
+    workday_id,
+    attribute_group_id
+)
     SELECT
         task_id,
         billable,
@@ -42,10 +54,11 @@ INSERT INTO tasks
         project_id,
         category_id,
         workday_id,
-        attribute_group_id,
-        NULL
-    FROM tasks2;
+        attribute_group_id
+    FROM tasks;
 
-DROP TABLE IF EXISTS tasks2;
+DROP TABLE tasks;
+
+ALTER TABLE tasks_new RENAME TO tasks;
 
 PRAGMA foreign_keys=on;
