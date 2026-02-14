@@ -372,10 +372,12 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
     }
 
     pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
+    pScrolledWindowSizer->SetSizeHints(pActiveMeetingsPanel);
     pScrolledWindowSizer->Layout();
 
-    pMainSizer->Fit(pThisPanel);
     pMainSizer->Layout();
+    pMainSizer->SetSizeHints(pThisPanel);
+    Fit();
 
     wxSize parentWindowSize = pParent->GetSize();
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -384,12 +386,10 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         parentWindowSize.GetWidth());
 
     auto currentDialogHeight = GetSize().GetHeight();
-    if (currentDialogHeight > parentWindowSize.GetHeight()) {
-        wxSize dialogMaxSize;
-        dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
-        dialogMaxSize.SetWidth(-1);
-        SetSize(dialogMaxSize);
-    }
+    wxSize dialogMaxSize;
+    dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
+    dialogMaxSize.SetWidth(-1);
+    SetSize(dialogMaxSize);
 }
 
 void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
