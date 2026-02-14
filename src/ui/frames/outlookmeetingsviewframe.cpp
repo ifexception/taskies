@@ -79,14 +79,14 @@ void OutlookMeetingsViewFrame::Create()
     DataToControls();
 
     wxSize parentWindowSize = pParent->GetSize();
-    SPDLOG_LOGGER_TRACE(pLogger,
+    /* SPDLOG_LOGGER_TRACE(pLogger,
         "PARENT SIZE ({0},{1})",
         parentWindowSize.GetHeight(),
         parentWindowSize.GetWidth());
     wxSize dialogMaxSize;
     dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
     dialogMaxSize.SetWidth(-1);
-    SetMaxSize(dialogMaxSize);
+    SetMaxSize(dialogMaxSize);*/
 
     wxPoint screenPos = pParent->GetScreenPosition();
     int screenX = screenPos.x + parentWindowSize.x;
@@ -94,6 +94,9 @@ void OutlookMeetingsViewFrame::Create()
     SPDLOG_LOGGER_TRACE(pLogger, "PARENT POSITION ({0},{1})", screenX, screenY);
     wxPoint topRightScreen(screenX, screenY);
     SetPosition(topRightScreen);
+
+    SetMinSize(wxSize(240, 180));
+    SetSize(wxSize(240, 180));
 }
 
 void OutlookMeetingsViewFrame::CreateControls()
@@ -132,7 +135,7 @@ void OutlookMeetingsViewFrame::CreateControls()
     pMainSizer->Add(pAccountsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Feedback label */
-    pFeedbackLabel = new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No meetings found");
+    pFeedbackLabel = new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No account selected");
     pMainSizer->Add(pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
 
     /* Main Scrolled Window */
@@ -143,8 +146,6 @@ void OutlookMeetingsViewFrame::CreateControls()
     pScrolledWindowSizer->FitInside(pScrolledWindow);
 
     pMainSizer->Add(pScrolledWindow, wxSizerFlags(1).Expand());
-
-    // SetSizerAndFit(pMainSizer);
 }
 
 // clang-format off
@@ -186,7 +187,7 @@ void OutlookMeetingsViewFrame::DataToControls()
 
         wxQueueEvent(pParent, addNotificationEvent);
 
-        SetFeedbackLabelOnEvent(message);
+        pFeedbackLabel->SetLabel(message);
 
         return;
     }
@@ -194,8 +195,6 @@ void OutlookMeetingsViewFrame::DataToControls()
     for (const std::string& accountName : accountNames) {
         pAccountsChoiceCtrl->Append(accountName);
     }
-
-    pMainSizer->Fit(pThisPanel);
 }
 
 void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event) {}
@@ -228,7 +227,6 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
                 pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
 
             pMainSizer->Layout();
-            Fit();
         }
 
         if (pRefreshButton->IsEnabled()) {
@@ -265,14 +263,26 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 
         wxQueueEvent(pParent, addNotificationEvent);
 
-        SetFeedbackLabelOnEvent(message);
+        pFeedbackLabel->SetLabel(message);
 
         return;
     } else if (result.Success && !result.Message.empty()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Retrieved \"{0}\" meetings", mMeetingModels.size());
 
         if (mMeetingModels.size() == 0) {
-            SetFeedbackLabelOnEvent("No meetings found");
+            if (pFeedbackLabel == nullptr) {
+                pFeedbackLabel =
+                    new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No meetings found");
+                pMainSizer->Add(
+                    pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
+
+                pMainSizer->Layout();
+                Fit();
+            }
+
+            if (pRefreshButton->IsEnabled()) {
+                pRefreshButton->Disable();
+            }
             return;
         }
     }
@@ -364,6 +374,7 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
     pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
     pScrolledWindowSizer->Layout();
 
+    pMainSizer->Fit(pThisPanel);
     pMainSizer->Layout();
 
     wxSize parentWindowSize = pParent->GetSize();
@@ -371,10 +382,14 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         "Parent size ({0},{1})",
         parentWindowSize.GetHeight(),
         parentWindowSize.GetWidth());
-    wxSize dialogMaxSize;
-    dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
-    dialogMaxSize.SetWidth(-1);
-    SetSize(dialogMaxSize);
+
+    auto currentDialogHeight = GetSize().GetHeight();
+    if (currentDialogHeight > parentWindowSize.GetHeight()) {
+        wxSize dialogMaxSize;
+        dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
+        dialogMaxSize.SetWidth(-1);
+        SetSize(dialogMaxSize);
+    }
 }
 
 void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
@@ -418,11 +433,6 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 }
 
 void OutlookMeetingsViewFrame::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
-
-void OutlookMeetingsViewFrame::SetFeedbackLabelOnEvent(const std::string& message)
-{
-    pFeedbackLabel->SetLabel(message);
-}
 
 void OutlookMeetingsViewFrame::QueueErrorNotificationEvent(const std::string& message) {}
 } // namespace tks::UI::frames

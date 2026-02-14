@@ -70,8 +70,6 @@ private:
 
     void OnCancel(wxCommandEvent& event);
 
-    void SetFeedbackLabelOnEvent(const std::string& message);
-
     void QueueErrorNotificationEvent(const std::string& message);
 
     std::shared_ptr<Core::Configuration> pCfg;
