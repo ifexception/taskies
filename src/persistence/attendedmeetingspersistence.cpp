@@ -478,6 +478,7 @@ std::int64_t AttendedMeetingsPersistence::Create(
 }
 
 std::string AttendedMeetingsPersistence::getByEntryId = "SELECT "
+                                                        "attended_meeting_id, "
                                                         "entry_id, "
                                                         "subject, "
                                                         "start, "
@@ -492,6 +493,7 @@ std::string AttendedMeetingsPersistence::getByEntryId = "SELECT "
                                                         "AND is_active = 1;";
 
 std::string AttendedMeetingsPersistence::getByTodaysDate = "SELECT "
+                                                           "attended_meeting_id, "
                                                            "entry_id, "
                                                            "subject, "
                                                            "start, "
