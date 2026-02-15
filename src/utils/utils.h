@@ -31,6 +31,10 @@ std::string ToStdString(const std::wstring& input);
 
 std::int64_t UnixTimestamp();
 
+std::int64_t UnixTimestampTodayMidnight();
+
+std::int64_t UnixTimestampTomorrowMidnight();
+
 std::string ToISODateTime(std::int64_t unixTimestamp);
 
 int VoidPointerToInt(void* value);

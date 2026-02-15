@@ -24,6 +24,7 @@
 #include <random>
 
 #include <date/date.h>
+#include <date/tz.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -47,6 +48,26 @@ std::int64_t UnixTimestamp()
 {
     auto tp = std::chrono::system_clock::now();
     auto dur = tp.time_since_epoch();
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(dur).count();
+    return seconds;
+}
+
+std::int64_t UnixTimestampTodayMidnight()
+{
+    auto tp = date::make_zoned(date::current_zone(), std::chrono::system_clock::now());
+    auto midnightTime =
+        date::make_zoned(date::current_zone(), date::floor<date::days>(tp.get_local_time()));
+    auto dur = midnightTime.get_sys_time().time_since_epoch();
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(dur).count();
+    return seconds;
+}
+
+std::int64_t UnixTimestampTomorrowMidnight()
+{
+    auto tp = date::make_zoned(date::current_zone(), std::chrono::system_clock::now());
+    auto midnightTime =
+        date::make_zoned(date::current_zone(), date::ceil<date::days>(tp.get_local_time()));
+    auto dur = midnightTime.get_sys_time().time_since_epoch();
     auto seconds = std::chrono::duration_cast<std::chrono::seconds>(dur).count();
     return seconds;
 }
