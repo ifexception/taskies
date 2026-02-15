@@ -199,6 +199,17 @@ void OutlookMeetingsViewFrame::DataToControls()
     }
 }
 
+void OutlookMeetingsViewFrame::OnParentFrameMove()
+{
+    wxSize parentWindowSize = pParent->GetSize();
+    wxPoint screenPos = pParent->GetScreenPosition();
+    int screenX = screenPos.x + parentWindowSize.x;
+    int screenY = screenPos.y;
+    SPDLOG_LOGGER_TRACE(pLogger, "PARENT POSITION CHANGED!\nNew position => ({0},{1})", screenX, screenY);
+    wxPoint topRightScreen(screenX, screenY);
+    SetPosition(topRightScreen);
+}
+
 void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event) {}
 
 void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)

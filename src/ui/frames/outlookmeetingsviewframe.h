@@ -55,6 +55,8 @@ public:
         const wxString& name = "outlookmeetingsviewdlg");
     virtual ~OutlookMeetingsViewFrame() = default;
 
+    void OnParentFrameMove();
+
 private:
     void Create();
 

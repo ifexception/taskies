@@ -43,6 +43,7 @@
 
 #include "../ui/dataview/tasktreemodel.h"
 #include "../ui/dataview/tasklistmodel.h"
+#include "../ui/frames/outlookmeetingsviewframe.h"
 
 #include "../models/taskmodel.h"
 
@@ -170,6 +171,7 @@ private:
     void OnIconize(wxIconizeEvent& event);
     void OnResize(wxSizeEvent& event);
     void OnTaskReminder(wxTimerEvent& event);
+    void OnMove(wxMoveEvent& event);
     /* Taskbar Button Event Handlers */
     void OnThumbBarNewTask(wxCommandEvent& event);
     void OnThumbBarQuickExport(wxCommandEvent& event);
@@ -256,6 +258,8 @@ private:
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
     std::string mDatabaseFilePath;
+
+    frames::OutlookMeetingsViewFrame* pMeetingsViewFrame;
 
     wxThumbBarButton* pThumbBarNewTaskButton;
     wxThumbBarButton* pThumbBarQuickExportButton;

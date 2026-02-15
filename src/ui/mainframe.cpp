@@ -71,7 +71,6 @@
 #include "../ui/dlg/attributes/attributegroupdlg.h"
 #include "../ui/dlg/attributes/attributedlg.h"
 #include "../ui/dlg/attributes/staticattributevaluesdlg.h"
-#include "../ui/frames/outlookmeetingsviewframe.h"
 
 #include "events.h"
 #include "common/notificationclientdata.h"
@@ -99,6 +98,7 @@ EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
 EVT_SIZE(MainFrame::OnResize)
 EVT_TIMER(tksIDC_TASKREMINDERTIMER, MainFrame::OnTaskReminder)
+EVT_MOVE(MainFrame::OnMove)
 /* Taskbar Button Event Handlers */
 EVT_BUTTON(tksIDC_THUMBBAR_NEWTASK, MainFrame::OnThumbBarNewTask)
 EVT_BUTTON(tksIDC_THUMBBAR_QUICKEXPORT, MainFrame::OnThumbBarQuickExport)
@@ -196,6 +196,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pThumbBarNewTaskButton(nullptr)
     , pThumbBarQuickExportButton(nullptr)
     , mThumbBarDialogOpenCounter(0)
+    , pMeetingsViewFrame(nullptr)
 // clang-format on
 {
     SPDLOG_LOGGER_TRACE(pLogger, "Initialization of MainFrame");
@@ -638,6 +639,19 @@ void MainFrame::OnTaskReminder(wxTimerEvent& event)
     pLogger->info("{0} - Task reminder notification finished", TAG);
 }
 
+void MainFrame::OnMove(wxMoveEvent& event)
+{
+    if (pMeetingsViewFrame) {
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Main frame move event and Outlook frame is open!\nNew position => ({0},{1})",
+            event.GetPosition().x,
+            event.GetPosition().y);
+        pMeetingsViewFrame->OnParentFrameMove();
+    }
+
+    event.Skip();
+}
+
 void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
 {
     if (IsIconized()) {
@@ -917,9 +931,9 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnViewOutlook(wxCommandEvent& event)
 {
-    frames::OutlookMeetingsViewFrame* meetingsViewFrame =
+    pMeetingsViewFrame =
         new frames::OutlookMeetingsViewFrame(this, pCfg, pLogger, mDatabaseFilePath);
-    meetingsViewFrame->Show();
+    pMeetingsViewFrame->Show();
 }
 
 // void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
