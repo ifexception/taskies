@@ -1297,6 +1297,13 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
+        if (mTaskModel.AttendedMeetingId.has_value()) {
+            ret = attendedMeetingsPersistence.Delete(mTaskModel.AttendedMeetingId.value());
+            ret == -1 ? message = "Failed to delete task attended meeting"
+                      : message = "Successfully deleted task attended meeting";
+            QueueNotificationEvent(ret, message);
+        }
+
         ret = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
 
         ret == -1 ? message = "Failed to delete task attribute values"

@@ -174,6 +174,15 @@ int TasksPersistence::GetById(const std::int64_t taskId, Model::TaskModel& taskM
 
     columnIndex++;
 
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        taskModel.AttendedMeetingId = std::nullopt;
+    } else {
+        taskModel.AttendedMeetingId =
+            std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
+    }
+
+    columnIndex++;
+
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
@@ -851,7 +860,8 @@ std::string TasksPersistence::getById = "SELECT "
                                         "project_id, "
                                         "category_id, "
                                         "workday_id, "
-                                        "attribute_group_id "
+                                        "attribute_group_id, "
+                                        "attended_meeting_id "
                                         "FROM tasks "
                                         "WHERE task_id = ?;";
 

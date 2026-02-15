@@ -44,6 +44,7 @@ struct AttendedMeetingsPersistence final {
         const std::int32_t unixToDateTime,
         /*out*/ std::vector<Model::AttendedMeetingModel>& attendedMeetingModels) const;
     std::int64_t Create(const Model::AttendedMeetingModel& attendedMeetingModel) const;
+    int Delete(const std::int64_t attendedMeetingId) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
@@ -51,5 +52,6 @@ struct AttendedMeetingsPersistence final {
     static std::string getByEntryId;
     static std::string getByTodaysDate;
     static std::string create;
+    static std::string isActive;
 };
 } // namespace tks::Persistence

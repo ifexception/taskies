@@ -1159,17 +1159,17 @@ std::string AttributeGroupsPersistence::checkAttributeGroupStaticAttributesUsage
     "WHERE attribute_groups.attribute_group_id = ? "
     "AND attribute_groups.is_static = 1";
 
-    std::string AttributeGroupsPersistence::selectDefault = "SELECT "
-                                                            "attribute_group_id, "
-                                                            "name, "
-                                                            "description, "
-                                                            "is_static, "
-                                                            "is_default, "
-                                                            "date_created, "
-                                                            "date_modified, "
-                                                            "is_active "
-                                                            "FROM attribute_groups "
-                                                            "WHERE is_default = 1";
+std::string AttributeGroupsPersistence::selectDefault = "SELECT "
+                                                        "attribute_group_id, "
+                                                        "name, "
+                                                        "description, "
+                                                        "is_static, "
+                                                        "is_default, "
+                                                        "date_created, "
+                                                        "date_modified, "
+                                                        "is_active "
+                                                        "FROM attribute_groups "
+                                                        "WHERE is_default = 1";
 
 std::string AttributeGroupsPersistence::unsetDefault = "UPDATE attribute_groups "
                                                        "SET "

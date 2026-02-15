@@ -477,6 +477,70 @@ std::int64_t AttendedMeetingsPersistence::Create(
     return rowId;
 }
 
+int AttendedMeetingsPersistence::Delete(const std::int64_t attendedMeetingId) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttendedMeetingsPersistence::isActive.c_str(),
+        static_cast<int>(AttendedMeetingsPersistence::isActive.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            AttendedMeetingsPersistence::isActive,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, attendedMeetingId);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "attended_meeting_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, AttendedMeetingsPersistence::isActive, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::EntityDeleted, "attended_meetings", attendedMeetingId);
+
+    return 0;
+}
+
 std::string AttendedMeetingsPersistence::getByEntryId = "SELECT "
                                                         "attended_meeting_id, "
                                                         "entry_id, "
@@ -519,4 +583,10 @@ std::string AttendedMeetingsPersistence::create = "INSERT INTO "
                                                   "location "
                                                   ") "
                                                   "VALUES (?,?,?,?,?,?);";
+
+std::string AttendedMeetingsPersistence::isActive = "UPDATE attended_meetings "
+                                                    "SET "
+                                                    "is_active = 0, "
+                                                    "date_modified = ? "
+                                                    "WHERE attended_meeting_id = ?";
 } // namespace tks::Persistence
