@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS attended_meetings
     subject TEXT NOT NULL,
     start TEXT NOT NULL,
     end TEXT NOT NULL,
-    duration TEXT NOT NULL,
+    duration INTEGER NOT NULL,
     location TEXT NOT NULL,
 
     date_created INTEGER NOT NULL DEFAULT (strftime('%s','now', 'localtime')),

@@ -34,7 +34,7 @@ struct AttendedMeetingModel {
     std::string Subject;
     std::string Start;
     std::string End;
-    std::string Duration;
+    int Duration;
     std::string Location;
 
     std::uint32_t DateCreated;
