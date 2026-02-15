@@ -94,9 +94,239 @@ AttendedMeetingsPersistence::~AttendedMeetingsPersistence()
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
 }
 
-int AttendedMeetingsPersistence::GetById(const std::int64_t attributeGroupId,
+int AttendedMeetingsPersistence::GetByEntryId(const std::string& entryId,
     Model::AttendedMeetingModel& attendedMeetingModel) const
 {
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttendedMeetingsPersistence::getByEntryId.c_str(),
+        static_cast<int>(AttendedMeetingsPersistence::getByEntryId.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            "AttendedMeetingsPersistence",
+            AttendedMeetingsPersistence::getByEntryId,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    // entry_id
+    rc = sqlite3_bind_text(
+        stmt, bindIndex, entryId.c_str(), static_cast<int>(entryId.size()), SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate,
+            "AttendedMeetingsPersistence",
+            "entry_id",
+            bindIndex,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            int columnIndex = 0;
+            attendedMeetingModel.AttendedMeetingId = sqlite3_column_int64(stmt, columnIndex++);
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.EntryId = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.Subject = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.Start = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.End = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            attendedMeetingModel.Duration = sqlite3_column_int(stmt, columnIndex++);
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.Location = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            attendedMeetingModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            attendedMeetingModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            attendedMeetingModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate,
+            "AttendedMeetingsPersistence",
+            AttendedMeetingsPersistence::getByEntryId,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "attended_meetings", entryId);
+
+    return 0;
+}
+
+int AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t unixFromDateTime,
+    const std::int32_t unixToDateTime,
+    std::vector<Model::AttendedMeetingModel>& attendedMeetingModels) const
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        AttendedMeetingsPersistence::getByTodaysDate.c_str(),
+        static_cast<int>(AttendedMeetingsPersistence::getByTodaysDate.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            "AttendedMeetingsPersistence",
+            AttendedMeetingsPersistence::getByTodaysDate,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    int bindIndex = 1;
+
+    // date_created >=
+    rc = sqlite3_bind_int(stmt, bindIndex, unixFromDateTime);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate,
+            "AttendedMeetingsPersistence",
+            "date_created",
+            bindIndex,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // date_created <=
+    rc = sqlite3_bind_int(stmt, bindIndex, unixToDateTime);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate,
+            "AttendedMeetingsPersistence",
+            "date_created",
+            bindIndex,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+            Model::AttendedMeetingModel attendedMeetingModel;
+
+            int columnIndex = 0;
+            attendedMeetingModel.AttendedMeetingId = sqlite3_column_int64(stmt, columnIndex++);
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.EntryId = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.Subject = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.Start = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.End = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            attendedMeetingModel.Duration = sqlite3_column_int(stmt, columnIndex++);
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            attendedMeetingModel.Location = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            attendedMeetingModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            attendedMeetingModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            attendedMeetingModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+
+            attendedMeetingModels.push_back(attendedMeetingModel);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate,
+            "AttendedMeetingsPersistence",
+            AttendedMeetingsPersistence::getByTodaysDate,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    std::string searchFmt = "date_created >= " + std::to_string(unixFromDateTime) +
+                            "date_created <= " + std::to_string(unixToDateTime);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, "attended_meetings", searchFmt);
+
     return 0;
 }
 
@@ -191,11 +421,7 @@ std::int64_t AttendedMeetingsPersistence::Create(
     bindIndex++;
 
     // duration
-    rc = sqlite3_bind_text(stmt,
-        bindIndex,
-        attendedMeetingModel.Duration.c_str(),
-        static_cast<int>(attendedMeetingModel.Duration.size()),
-        SQLITE_TRANSIENT);
+    rc = sqlite3_bind_int(stmt, bindIndex, attendedMeetingModel.Duration);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
@@ -250,6 +476,35 @@ std::int64_t AttendedMeetingsPersistence::Create(
 
     return rowId;
 }
+
+std::string AttendedMeetingsPersistence::getByEntryId = "SELECT "
+                                                        "entry_id, "
+                                                        "subject, "
+                                                        "start, "
+                                                        "end, "
+                                                        "duration, "
+                                                        "location, "
+                                                        "date_created, "
+                                                        "date_modified, "
+                                                        "is_active "
+                                                        "FROM attended_meetings "
+                                                        "WHERE entry_id = ? "
+                                                        "AND is_active = 1;";
+
+std::string AttendedMeetingsPersistence::getByTodaysDate = "SELECT "
+                                                           "entry_id, "
+                                                           "subject, "
+                                                           "start, "
+                                                           "end, "
+                                                           "duration, "
+                                                           "location, "
+                                                           "date_created, "
+                                                           "date_modified, "
+                                                           "is_active "
+                                                           "FROM attended_meetings "
+                                                           "WHERE date_created >= ? "
+                                                           "AND date_created <= ?"
+                                                           "AND is_active = 1;";
 
 std::string AttendedMeetingsPersistence::create = "INSERT INTO "
                                                   "attended_meetings "

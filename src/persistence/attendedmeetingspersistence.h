@@ -38,13 +38,18 @@ struct AttendedMeetingsPersistence final {
         const std::string& databaseFilePath);
     ~AttendedMeetingsPersistence();
 
-    int GetById(const std::int64_t attributeGroupId,
+    int GetByEntryId(const std::string& entryId,
         /*out*/ Model::AttendedMeetingModel& attendedMeetingModel) const;
+    int GetByTodaysDate(const std::int32_t unixFromDateTime,
+        const std::int32_t unixToDateTime,
+        /*out*/ std::vector<Model::AttendedMeetingModel>& attendedMeetingModels) const;
     std::int64_t Create(const Model::AttendedMeetingModel& attendedMeetingModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
 
+    static std::string getByEntryId;
+    static std::string getByTodaysDate;
     static std::string create;
 };
 } // namespace tks::Persistence
