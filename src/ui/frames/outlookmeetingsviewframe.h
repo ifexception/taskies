@@ -90,7 +90,7 @@ private:
     wxSizer* pScrolledWindowSizer;
     wxPanel* pActiveMeetingsPanel;
 
-    wxButton* pCancelButton;
+    std::vector<wxCheckBox*> pAttendedCheckBoxes;
 
     std::string mSelectedAccount;
 

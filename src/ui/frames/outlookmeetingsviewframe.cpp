@@ -31,7 +31,9 @@
 
 #include "../../common/common.h"
 #include "../../core/configuration.h"
+#include "../../persistence/attendedmeetingspersistence.h"
 #include "../../services/integrations/outlookintegratorservice.h"
+#include "../../utils/utils.h"
 
 namespace tks::UI::frames
 {
@@ -59,7 +61,7 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     , pScrolledWindow(nullptr)
     , pScrolledWindowSizer(nullptr)
     , pActiveMeetingsPanel(nullptr)
-    , pCancelButton(nullptr)
+    , pAttendedCheckBoxes()
     , mSelectedAccount()
     , mMeetingModels()
 {
@@ -295,6 +297,19 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         SPDLOG_LOGGER_TRACE(pLogger, "Removed feedback static text from main sizer");
     }
 
+    Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
+        pLogger, mDatabaseFilePath);
+
+    std::vector<Model::AttendedMeetingModel> attendedMeetingModels;
+    int ret = attendedMeetingsPersistence.GetByTodaysDate(Utils::UnixTimestampTodayMidnight(),
+        Utils::UnixTimestampTomorrowMidnight(),
+        attendedMeetingModels);
+
+    if (ret != 0) {
+        std::string message = "Failed to get employer";
+        QueueErrorNotificationEvent(message);
+    }
+
     /* Panel Sizer */
     auto panelSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -369,6 +384,17 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 
         attendedCheckBoxControlId++;
         staticBoxSizer->Add(attendedCheckBox, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
+
+        auto attendedMeetingFoundIterator = std::find_if(attendedMeetingModels.begin(),
+            attendedMeetingModels.end(),
+            [&](const Model::AttendedMeetingModel& model) {
+                return model.EntryId == meetingModel.EntryId;
+            });
+
+        if (attendedMeetingFoundIterator != attendedMeetingModels.end()) {
+            attendedCheckBox->SetValue(true);
+            attendedCheckBox->Disable();
+        }
     }
 
     pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
@@ -400,14 +426,14 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
         wxStringClientData* scd = dynamic_cast<wxStringClientData*>(wnd->GetClientObject());
         if (scd) {
             auto& s = scd->GetData();
-            auto ss = s.ToStdString();
+            auto eventEntryId = s.ToStdString();
             SPDLOG_LOGGER_TRACE(
-                pLogger, "Checkbox with ID \"{0}\" ENTRY_ID -> \n{1}", event.GetId(), ss);
+                pLogger, "Checkbox with ID \"{0}\" ENTRY_ID -> \n{1}", event.GetId(), eventEntryId);
 
             const auto& foundMeetingIterator = std::find_if(mMeetingModels.begin(),
                 mMeetingModels.end(),
                 [=](const Services::Integrations::OutlookMeetingModel& model) {
-                    return model.EntryId == ss;
+                    return model.EntryId == eventEntryId;
                 });
 
             if (foundMeetingIterator != mMeetingModels.end()) {
@@ -424,7 +450,14 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                     meetingModel.End,
                     meetingModel.Duration,
                     meetingModel.Location);
-                meetingTaskDialog.ShowModal();
+                int ret = meetingTaskDialog.ShowModal();
+                if (ret != wxID_OK) {
+                    auto* attendedCheckBoxCtrl =
+                        dynamic_cast<wxCheckBox*>(FindWindowById(event.GetId()));
+                    if (attendedCheckBoxCtrl) {
+                        attendedCheckBoxCtrl->SetValue(false);
+                    }
+                }
             }
         }
     } else {
@@ -434,5 +467,13 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 
 void OutlookMeetingsViewFrame::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
 
-void OutlookMeetingsViewFrame::QueueErrorNotificationEvent(const std::string& message) {}
+void OutlookMeetingsViewFrame::QueueErrorNotificationEvent(const std::string& message)
+{
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    NotificationClientData* clientData =
+        new NotificationClientData(NotificationType::Error, message);
+    addNotificationEvent->SetClientObject(clientData);
+
+    wxQueueEvent(pParent, addNotificationEvent);
+}
 } // namespace tks::UI::frames
