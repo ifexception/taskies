@@ -441,6 +441,8 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                 SPDLOG_LOGGER_TRACE(
                     pLogger, "Meeting found with detail: \n{0}", meetingModel.DebugPrint());
 
+                auto* attendedCheckBoxCtrl = reinterpret_cast<wxCheckBox*>(wnd);
+
                 dlg::TaskDialog meetingTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
                 meetingTaskDialog.SetAttendedMeetingData(
                     meetingModel.TrimmedSubject(), meetingModel.Duration, meetingModel.Location);
@@ -450,12 +452,14 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                     meetingModel.End,
                     meetingModel.Duration,
                     meetingModel.Location);
+
                 int ret = meetingTaskDialog.ShowModal();
-                if (ret != wxID_OK) {
-                    auto* attendedCheckBoxCtrl =
-                        dynamic_cast<wxCheckBox*>(FindWindowById(event.GetId()));
-                    if (attendedCheckBoxCtrl) {
+
+                if (attendedCheckBoxCtrl) {
+                    if (ret != wxID_OK) {
                         attendedCheckBoxCtrl->SetValue(false);
+                    } else {
+                        attendedCheckBoxCtrl->Disable();
                     }
                 }
             }
