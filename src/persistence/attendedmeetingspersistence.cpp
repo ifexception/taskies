@@ -569,7 +569,7 @@ std::string AttendedMeetingsPersistence::getByTodaysDate = "SELECT "
                                                            "is_active "
                                                            "FROM attended_meetings "
                                                            "WHERE date_created >= ? "
-                                                           "AND date_created <= ?"
+                                                           "AND date_created <= ? "
                                                            "AND is_active = 1;";
 
 std::string AttendedMeetingsPersistence::create = "INSERT INTO "
