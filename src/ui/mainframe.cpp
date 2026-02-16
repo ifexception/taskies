@@ -47,6 +47,7 @@
 #include "../core/configuration.h"
 
 #include "../persistence/taskspersistence.h"
+#include "../persistence/attendedmeetingspersistence.h"
 
 #include "../services/export/excelinstancecheck.h"
 #include "../services/integrations/outlookintegratorservice.h"
@@ -1168,16 +1169,54 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     }
 
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
-
-    int rc = taskPersistence.Delete(mTaskIdToModify);
+    Model::TaskModel taskModel;
+    int rc = taskPersistence.GetById(mTaskIdToModify, taskModel);
     if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+        std::string message = "Failed to fetch task";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(this, addNotificationEvent);
+
+        ResetTaskContextMenuVariables();
+        return;
+    }
+
+    if (taskModel.AttendedMeetingId.has_value()) {
+        Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
+            pLogger, mDatabaseFilePath);
+        rc = attendedMeetingsPersistence.Delete(taskModel.AttendedMeetingId.value());
+        if (rc != 0) {
+            std::string message = "Failed to delete attended meeting associated to task";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData =
+                new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(this, addNotificationEvent);
+
+            ResetTaskContextMenuVariables();
+            return;
+        }
+    }
+
+    rc = taskPersistence.Delete(mTaskIdToModify);
+    if (rc != 0) {
+        std::string message = "Failed to delete selected task";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(this, addNotificationEvent);
     } else {
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
 
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
 
-        auto message = "Successfully deleted task";
+        std::string message = "Successfully deleted task";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
