@@ -317,7 +317,7 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         attendedMeetingModels);
 
     if (ret != 0) {
-        std::string message = "Failed to get employer";
+        std::string message = "Failed to get attended meetings";
         QueueErrorNotificationEvent(message);
     }
 
