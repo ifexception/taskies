@@ -933,7 +933,7 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnViewOutlook(wxCommandEvent& event)
 {
     pMeetingsViewFrame =
-        new frames::OutlookMeetingsViewFrame(this, pCfg, pLogger, mDatabaseFilePath);
+        new frames::OutlookMeetingsViewFrame(this, pCfg, pLogger, mDatabaseFilePath, IsMaximized());
     pMeetingsViewFrame->Show();
 }
 
@@ -1183,6 +1183,8 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         ResetTaskContextMenuVariables();
         return;
     }
+
+    // TODO: task attribute values need to be deleted as well
 
     if (taskModel.AttendedMeetingId.has_value()) {
         Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(

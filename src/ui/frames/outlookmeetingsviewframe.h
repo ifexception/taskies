@@ -52,6 +52,7 @@ public:
         std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
+        bool isMainFrameMaximized,
         const wxString& name = "outlookmeetingsviewdlg");
     virtual ~OutlookMeetingsViewFrame() = default;
 
@@ -69,8 +70,6 @@ private:
     void OnAccountChoice(wxCommandEvent& event);
 
     void OnAttendedCheckBoxCheck(wxCommandEvent& event);
-
-    void OnCancel(wxCommandEvent& event);
 
     void QueueErrorNotificationEvent(const std::string& message);
 
@@ -92,11 +91,10 @@ private:
     wxSizer* pScrolledWindowSizer;
     wxPanel* pActiveMeetingsPanel;
 
-    std::vector<wxCheckBox*> pAttendedCheckBoxes;
-
     std::string mSelectedAccount;
 
     std::vector<Services::Integrations::OutlookMeetingModel> mMeetingModels;
+    bool bIsMainFrameMaximized;
 
     enum {
         tksIDC_REFRESH_BUTTON = wxID_HIGHEST + 1001,

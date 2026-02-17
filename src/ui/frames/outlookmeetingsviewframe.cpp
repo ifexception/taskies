@@ -41,6 +41,7 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
+    bool isMainFrameMaximized,
     const wxString& name)
     : wxFrame(parent,
           wxID_ANY,
@@ -61,9 +62,9 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     , pScrolledWindow(nullptr)
     , pScrolledWindowSizer(nullptr)
     , pActiveMeetingsPanel(nullptr)
-    , pAttendedCheckBoxes()
     , mSelectedAccount()
     , mMeetingModels()
+    , bIsMainFrameMaximized(isMainFrameMaximized)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -81,24 +82,27 @@ void OutlookMeetingsViewFrame::Create()
     DataToControls();
 
     wxSize parentWindowSize = pParent->GetSize();
-    /* SPDLOG_LOGGER_TRACE(pLogger,
+    SPDLOG_LOGGER_TRACE(pLogger,
         "PARENT SIZE ({0},{1})",
         parentWindowSize.GetHeight(),
         parentWindowSize.GetWidth());
     wxSize dialogMaxSize;
     dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
     dialogMaxSize.SetWidth(-1);
-    SetMaxSize(dialogMaxSize);*/
+    SetMaxSize(dialogMaxSize);
 
-    wxPoint screenPos = pParent->GetScreenPosition();
-    int screenX = screenPos.x + parentWindowSize.x;
-    int screenY = screenPos.y;
-    SPDLOG_LOGGER_TRACE(pLogger, "PARENT POSITION ({0},{1})", screenX, screenY);
-    wxPoint topRightScreen(screenX, screenY);
-    SetPosition(topRightScreen);
+    if (!bIsMainFrameMaximized) {
+        SetSize(dialogMaxSize);
 
-    SetMinSize(wxSize(240, 180));
-    SetSize(wxSize(240, 180));
+        wxPoint screenPosition = pParent->GetScreenPosition();
+        int screenX = screenPosition.x + parentWindowSize.x;
+        int screenY = screenPosition.y;
+        SPDLOG_LOGGER_TRACE(pLogger, "PARENT POSITION ({0},{1})", screenX, screenY);
+        wxPoint topRightScreen(screenX, screenY);
+        SetPosition(topRightScreen);
+
+        SetMinSize(wxSize(240, 180));
+    }
 }
 
 void OutlookMeetingsViewFrame::CreateControls()
@@ -138,7 +142,8 @@ void OutlookMeetingsViewFrame::CreateControls()
 
     /* Feedback label */
     pFeedbackLabel = new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No account selected");
-    pMainSizer->Add(pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
+    pMainSizer->Add(
+        pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
 
     /* Main Scrolled Window */
     pScrolledWindow = new wxScrolledWindow(pThisPanel, wxID_ANY);
@@ -205,7 +210,8 @@ void OutlookMeetingsViewFrame::OnParentFrameMove()
     wxPoint screenPos = pParent->GetScreenPosition();
     int screenX = screenPos.x + parentWindowSize.x;
     int screenY = screenPos.y;
-    SPDLOG_LOGGER_TRACE(pLogger, "PARENT POSITION CHANGED!\nNew position => ({0},{1})", screenX, screenY);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "PARENT POSITION CHANGED!\nNew position => ({0},{1})", screenX, screenY);
     wxPoint topRightScreen(screenX, screenY);
     SetPosition(topRightScreen);
 }
@@ -214,6 +220,8 @@ void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event) {}
 
 void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 {
+    wxBusyCursor cursor;
+
     mMeetingModels.clear();
 
     if (pActiveMeetingsPanel != nullptr) {
@@ -237,7 +245,7 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
             pFeedbackLabel =
                 new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No meetings found");
             pMainSizer->Add(
-                pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
+                pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
 
             pMainSizer->Layout();
         }
@@ -259,12 +267,8 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         mSelectedAccount.empty() ? "(none)" : mSelectedAccount);
 
     Services::Integrations::OutlookIntegratorService service(pLogger);
-    Services::Integrations::OutlookResult result;
-    {
-        wxBusyCursor cursor;
-
-        result = service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
-    }
+    Services::Integrations::OutlookResult result =
+        service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
 
     if (!result.Success) {
         std::string message = "Failed to fetch Outlook meetings";
@@ -416,17 +420,18 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
     pMainSizer->SetSizeHints(pThisPanel);
     Fit();
 
-    wxSize parentWindowSize = pParent->GetSize();
-    SPDLOG_LOGGER_TRACE(pLogger,
-        "Parent size ({0},{1})",
-        parentWindowSize.GetHeight(),
-        parentWindowSize.GetWidth());
+    if (!bIsMainFrameMaximized) {
+        wxSize parentWindowSize = pParent->GetSize();
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Parent size ({0},{1})",
+            parentWindowSize.GetHeight(),
+            parentWindowSize.GetWidth());
 
-    auto currentDialogHeight = GetSize().GetHeight();
-    wxSize dialogMaxSize;
-    dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
-    dialogMaxSize.SetWidth(-1);
-    SetSize(dialogMaxSize);
+        wxSize dialogMaxSize;
+        dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
+        dialogMaxSize.SetWidth(-1);
+        SetSize(dialogMaxSize);
+    }
 }
 
 void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
@@ -479,8 +484,6 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
         SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" unchecked", event.GetId());
     }
 }
-
-void OutlookMeetingsViewFrame::OnCancel(wxCommandEvent& WXUNUSED(event)) {}
 
 void OutlookMeetingsViewFrame::QueueErrorNotificationEvent(const std::string& message)
 {
