@@ -158,6 +158,13 @@ void OutlookMeetingsViewFrame::CreateControls()
 // clang-format off
 void OutlookMeetingsViewFrame::ConfigureEventBindings()
 {
+    pRefreshButton->Bind(
+        wxEVT_BUTTON,
+        &OutlookMeetingsViewFrame::OnRefresh,
+        this,
+        tksIDC_REFRESH_BUTTON
+    );
+
     pAccountsChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &OutlookMeetingsViewFrame::OnAccountChoice,
@@ -218,7 +225,115 @@ void OutlookMeetingsViewFrame::OnParentFrameMove()
     SetPosition(topRightScreen);
 }
 
-void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event) {}
+void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
+{
+    if (mSelectedAccount.empty()) {
+        ResetFeedbackLabelOnNoData();
+
+        return;
+    }
+
+    wxBusyCursor cursor;
+
+    mMeetingModels.clear();
+
+    if (pActiveMeetingsPanel != nullptr) {
+        RemoveActiveMeetingsPanel();
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Outlook account name selected \"{0}\"",
+        mSelectedAccount.empty() ? "(none)" : mSelectedAccount);
+
+    Services::Integrations::OutlookIntegratorService service(pLogger);
+    Services::Integrations::OutlookResult result =
+        service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
+
+    if (!result.Success) {
+        std::string message = "Failed to fetch Outlook meetings";
+        QueueErrorNotificationEvent(message);
+
+        pFeedbackLabel->SetLabel(message);
+
+        return;
+    } else if (result.Success && !result.Message.empty()) {
+        SPDLOG_LOGGER_TRACE(pLogger, "Retrieved \"{0}\" meetings", mMeetingModels.size());
+
+        if (mMeetingModels.size() == 0) {
+            ResetFeedbackLabelOnNoData();
+
+            return;
+        }
+    }
+
+    if (pFeedbackLabel != nullptr) {
+        pMainSizer->Detach(pFeedbackLabel);
+        pFeedbackLabel->Destroy();
+        pFeedbackLabel = nullptr;
+        pMainSizer->Layout();
+        SPDLOG_LOGGER_TRACE(pLogger, "Removed feedback static text from main sizer");
+    }
+
+    Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
+        pLogger, mDatabaseFilePath);
+
+    std::vector<Model::AttendedMeetingModel> attendedMeetingModels;
+    int ret = attendedMeetingsPersistence.GetByTodaysDate(Utils::UnixTimestampTodayMidnight(),
+        Utils::UnixTimestampTomorrowMidnight(),
+        attendedMeetingModels);
+
+    if (ret != 0) {
+        std::string message = "Failed to get attended meetings";
+        QueueErrorNotificationEvent(message);
+    }
+
+    /* Panel Sizer */
+    auto panelSizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Panel */
+    pActiveMeetingsPanel = new wxPanel(pScrolledWindow, wxID_ANY);
+    pActiveMeetingsPanel->SetSizer(panelSizer);
+
+    int attendedCheckBoxControlId = tksIDC_ATTENDEDCHECKBOX_BASE;
+
+    for (const auto& meetingModel : mMeetingModels) {
+        bool meetingAttended = false;
+
+        auto attendedMeetingFoundIterator = std::find_if(attendedMeetingModels.begin(),
+            attendedMeetingModels.end(),
+            [&](const Model::AttendedMeetingModel& model) {
+                return model.EntryId == meetingModel.EntryId;
+            });
+
+        if (attendedMeetingFoundIterator != attendedMeetingModels.end()) {
+            meetingAttended = true;
+        }
+
+        AddMeetingControlsToPanel(
+            panelSizer, &attendedCheckBoxControlId, meetingModel, meetingAttended);
+    }
+
+    pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
+    pScrolledWindowSizer->SetSizeHints(pActiveMeetingsPanel);
+    pScrolledWindowSizer->Layout();
+
+    pMainSizer->Layout();
+    pMainSizer->SetSizeHints(pThisPanel);
+    Fit();
+
+    if (!bIsMainFrameMaximized) {
+        wxSize parentWindowSize = pParent->GetSize();
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Parent size ({0},{1})",
+            parentWindowSize.GetHeight(),
+            parentWindowSize.GetWidth());
+
+        wxSize dialogMaxSize;
+        dialogMaxSize.SetHeight(parentWindowSize.GetHeight());
+        dialogMaxSize.SetWidth(-1);
+        SetSize(dialogMaxSize);
+    }
+}
 
 void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 {
