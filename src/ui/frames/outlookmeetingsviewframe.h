@@ -73,6 +73,14 @@ private:
 
     void QueueErrorNotificationEvent(const std::string& message);
 
+    void RemoveActiveMeetingsPanel();
+    void ResetFeedbackLabelOnNoData();
+
+    void AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
+        int* attendedCheckBoxControlId,
+        const Services::Integrations::OutlookMeetingModel& meetingModel,
+        bool meetingAttended);
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;

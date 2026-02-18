@@ -210,8 +210,10 @@ void OutlookMeetingsViewFrame::OnParentFrameMove()
     wxPoint screenPos = pParent->GetScreenPosition();
     int screenX = screenPos.x + parentWindowSize.x;
     int screenY = screenPos.y;
+
     SPDLOG_LOGGER_TRACE(
         pLogger, "PARENT POSITION CHANGED!\nNew position => ({0},{1})", screenX, screenY);
+
     wxPoint topRightScreen(screenX, screenY);
     SetPosition(topRightScreen);
 }
@@ -225,34 +227,12 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
     mMeetingModels.clear();
 
     if (pActiveMeetingsPanel != nullptr) {
-        pScrolledWindowSizer->Detach(pActiveMeetingsPanel);
-        bool windowDelete = pActiveMeetingsPanel->Destroy();
-        if (!windowDelete) {
-            pLogger->warn("Failed to delete active meetings panel and its child controls");
-        }
-
-        pScrolledWindowSizer->Layout();
-        pMainSizer->Layout();
-
-        SPDLOG_LOGGER_TRACE(pLogger, "Removed active meetings panel from scrolled window");
+        RemoveActiveMeetingsPanel();
     }
 
     int selection = event.GetSelection();
     if (selection == 0) {
-        mSelectedAccount = "";
-
-        if (pFeedbackLabel == nullptr) {
-            pFeedbackLabel =
-                new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No meetings found");
-            pMainSizer->Add(
-                pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
-
-            pMainSizer->Layout();
-        }
-
-        if (pRefreshButton->IsEnabled()) {
-            pRefreshButton->Disable();
-        }
+        ResetFeedbackLabelOnNoData();
 
         return;
     } else {
@@ -272,13 +252,7 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 
     if (!result.Success) {
         std::string message = "Failed to fetch Outlook meetings";
-
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
+        QueueErrorNotificationEvent(message);
 
         pFeedbackLabel->SetLabel(message);
 
@@ -287,19 +261,8 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         SPDLOG_LOGGER_TRACE(pLogger, "Retrieved \"{0}\" meetings", mMeetingModels.size());
 
         if (mMeetingModels.size() == 0) {
-            if (pFeedbackLabel == nullptr) {
-                pFeedbackLabel =
-                    new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No meetings found");
-                pMainSizer->Add(
-                    pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal());
+            ResetFeedbackLabelOnNoData();
 
-                pMainSizer->Layout();
-                Fit();
-            }
-
-            if (pRefreshButton->IsEnabled()) {
-                pRefreshButton->Disable();
-            }
             return;
         }
     }
@@ -335,70 +298,7 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
     int attendedCheckBoxControlId = tksIDC_ATTENDEDCHECKBOX_BASE;
 
     for (const auto& meetingModel : mMeetingModels) {
-        // static box for meeting controls
-        auto staticBox = new wxStaticBox(pActiveMeetingsPanel, wxID_ANY, "");
-        auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
-        panelSizer->Add(staticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-        auto flexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
-        flexGridSizer->AddGrowableCol(1, 1);
-        staticBoxSizer->Add(flexGridSizer, wxSizerFlags().Expand().Proportion(1));
-
-        auto meetingIdLabel = new wxStaticText(staticBox, wxID_ANY, "Entry ID");
-        auto providedInfoBitmap = wxArtProvider::GetBitmapBundle(
-            wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-        auto meetingIdLabelValue = new wxStaticBitmap(staticBox, wxID_ANY, providedInfoBitmap);
-        meetingIdLabelValue->SetToolTip(meetingModel.EntryId);
-
-        auto subjectLabel = new wxStaticText(staticBox, wxID_ANY, "Subject");
-        auto subjectText = new wxTextCtrl(staticBox,
-            wxID_ANY,
-            meetingModel.Subject,
-            wxDefaultPosition,
-            wxDefaultSize,
-            wxTE_READONLY);
-
-        auto durationWithTimeLabel = new wxStaticText(staticBox, wxID_ANY, "Duration");
-        auto formattedValue = fmt::format(
-            "{0} ({1} - {2})", meetingModel.Duration, meetingModel.Start, meetingModel.End);
-        auto durationWithTimeLabelValue = new wxStaticText(staticBox, wxID_ANY, formattedValue);
-
-        auto locationLabel = new wxStaticText(staticBox, wxID_ANY, "Location");
-        auto locationLabelValue = new wxStaticText(staticBox, wxID_ANY, meetingModel.Location);
-
-        flexGridSizer->Add(
-            meetingIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-        flexGridSizer->Add(meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Left());
-
-        flexGridSizer->Add(subjectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-        flexGridSizer->Add(
-            subjectText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-
-        flexGridSizer->Add(
-            durationWithTimeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-        flexGridSizer->Add(
-            durationWithTimeLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-        flexGridSizer->Add(
-            locationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-        flexGridSizer->Add(locationLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-        /* Horizontal line */
-        auto line = new wxStaticLine(staticBox, wxID_ANY);
-        staticBoxSizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-        /* Attended checkbox */
-        auto attendedCheckBox = new wxCheckBox(staticBox, attendedCheckBoxControlId, "Attended");
-        wxStringClientData* meetingEntryIdData = new wxStringClientData(meetingModel.EntryId);
-        attendedCheckBox->SetClientObject(meetingEntryIdData);
-
-        attendedCheckBox->Bind(wxEVT_CHECKBOX,
-            &OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck,
-            this,
-            attendedCheckBoxControlId);
-
-        attendedCheckBoxControlId++;
-        staticBoxSizer->Add(attendedCheckBox, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
+        bool meetingAttended = false;
 
         auto attendedMeetingFoundIterator = std::find_if(attendedMeetingModels.begin(),
             attendedMeetingModels.end(),
@@ -407,9 +307,11 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
             });
 
         if (attendedMeetingFoundIterator != attendedMeetingModels.end()) {
-            attendedCheckBox->SetValue(true);
-            attendedCheckBox->Disable();
+            meetingAttended = true;
         }
+
+        AddMeetingControlsToPanel(
+            panelSizer, &attendedCheckBoxControlId, meetingModel, meetingAttended);
     }
 
     pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
@@ -494,4 +396,106 @@ void OutlookMeetingsViewFrame::QueueErrorNotificationEvent(const std::string& me
 
     wxQueueEvent(pParent, addNotificationEvent);
 }
+
+void OutlookMeetingsViewFrame::RemoveActiveMeetingsPanel()
+{
+    pScrolledWindowSizer->Detach(pActiveMeetingsPanel);
+    bool windowDelete = pActiveMeetingsPanel->Destroy();
+    if (!windowDelete) {
+        pLogger->warn("Failed to delete active meetings panel and its child controls");
+    }
+
+    pScrolledWindowSizer->Layout();
+    pMainSizer->Layout();
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Removed active meetings panel from scrolled window");
+}
+
+void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData()
+{
+    mSelectedAccount = "";
+
+    if (pFeedbackLabel == nullptr) {
+        pFeedbackLabel = new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No account selected");
+        pMainSizer->Add(
+            pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
+
+        pMainSizer->Layout();
+    }
+
+    if (pRefreshButton->IsEnabled()) {
+        pRefreshButton->Disable();
+    }
+}
+
+void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
+    int* attendedCheckBoxControlId,
+    const Services::Integrations::OutlookMeetingModel& meetingModel,
+    bool meetingAttended)
+{
+    // static box for meeting controls
+    auto staticBox = new wxStaticBox(pActiveMeetingsPanel, wxID_ANY, "");
+    auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
+    panelSizer->Add(staticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    auto flexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    flexGridSizer->AddGrowableCol(1, 1);
+    staticBoxSizer->Add(flexGridSizer, wxSizerFlags().Expand().Proportion(1));
+
+    auto meetingIdLabel = new wxStaticText(staticBox, wxID_ANY, "Entry ID");
+    auto providedInfoBitmap = wxArtProvider::GetBitmapBundle(
+        wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+    auto meetingIdLabelValue = new wxStaticBitmap(staticBox, wxID_ANY, providedInfoBitmap);
+    meetingIdLabelValue->SetToolTip(meetingModel.EntryId);
+
+    auto subjectLabel = new wxStaticText(staticBox, wxID_ANY, "Subject");
+    auto subjectText = new wxTextCtrl(
+        staticBox, wxID_ANY, meetingModel.Subject, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+
+    auto durationWithTimeLabel = new wxStaticText(staticBox, wxID_ANY, "Duration");
+    auto formattedValue =
+        fmt::format("{0} ({1} - {2})", meetingModel.Duration, meetingModel.Start, meetingModel.End);
+    auto durationWithTimeLabelValue = new wxStaticText(staticBox, wxID_ANY, formattedValue);
+
+    auto locationLabel = new wxStaticText(staticBox, wxID_ANY, "Location");
+    auto locationLabelValue = new wxStaticText(staticBox, wxID_ANY, meetingModel.Location);
+
+    flexGridSizer->Add(meetingIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridSizer->Add(meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Left());
+
+    flexGridSizer->Add(subjectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridSizer->Add(
+        subjectText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    flexGridSizer->Add(
+        durationWithTimeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridSizer->Add(
+        durationWithTimeLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    flexGridSizer->Add(locationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridSizer->Add(locationLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Horizontal line */
+    auto line = new wxStaticLine(staticBox, wxID_ANY);
+    staticBoxSizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Attended checkbox */
+    auto attendedCheckBox = new wxCheckBox(staticBox, *attendedCheckBoxControlId, "Attended");
+    wxStringClientData* meetingEntryIdData = new wxStringClientData(meetingModel.EntryId);
+    attendedCheckBox->SetClientObject(meetingEntryIdData);
+
+    attendedCheckBox->Bind(wxEVT_CHECKBOX,
+        &OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck,
+        this,
+        *attendedCheckBoxControlId);
+
+    *attendedCheckBoxControlId++;
+    staticBoxSizer->Add(attendedCheckBox, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
+
+    if (meetingAttended) {
+        attendedCheckBox->SetValue(true);
+        attendedCheckBox->Disable();
+    }
+}
+
 } // namespace tks::UI::frames
