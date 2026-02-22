@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="ConanVariables">
-    <ConanlibtiffRootFolder>C:\Users\szymon.welgus\.conan2\p\libti9bcd8c042d1a9\p</ConanlibtiffRootFolder>
-    <ConanlibtiffBinaryDirectories></ConanlibtiffBinaryDirectories>
+    <ConanlibtiffRootFolder>C:\Users\szymon.welgus\.conan2\p\libti183ecb9d6939b\p</ConanlibtiffRootFolder>
+    <ConanlibtiffBinaryDirectories>$(ConanlibtiffRootFolder)/bin;</ConanlibtiffBinaryDirectories>
     <ConanlibtiffCompilerFlags></ConanlibtiffCompilerFlags>
     <ConanlibtiffLinkerFlags></ConanlibtiffLinkerFlags>
     <ConanlibtiffPreprocessorDefinitions></ConanlibtiffPreprocessorDefinitions>
     <ConanlibtiffIncludeDirectories></ConanlibtiffIncludeDirectories>
     <ConanlibtiffResourceDirectories></ConanlibtiffResourceDirectories>
-    <ConanlibtiffLibraryDirectories>$(ConanlibtiffRootFolder)/lib;</ConanlibtiffLibraryDirectories>
-    <ConanlibtiffLibraries>tiffxx.lib;tiff.lib;</ConanlibtiffLibraries>
+    <ConanlibtiffLibraryDirectories></ConanlibtiffLibraryDirectories>
+    <ConanlibtiffLibraries></ConanlibtiffLibraries>
     <ConanlibtiffSystemLibs></ConanlibtiffSystemLibs>
   </PropertyGroup>
 </Project>

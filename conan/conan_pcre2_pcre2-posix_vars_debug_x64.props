@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="ConanVariables">
-    <Conanpcre2_pcre2-posixRootFolder>C:\Users\szymon.welgus\.conan2\p\b\pcre2ce32748f9f207\p</Conanpcre2_pcre2-posixRootFolder>
-    <Conanpcre2_pcre2-posixBinaryDirectories></Conanpcre2_pcre2-posixBinaryDirectories>
+    <Conanpcre2_pcre2-posixRootFolder>C:\Users\szymon.welgus\.conan2\p\b\pcre2dedd3daf86cc1\p</Conanpcre2_pcre2-posixRootFolder>
+    <Conanpcre2_pcre2-posixBinaryDirectories>$(Conanpcre2_pcre2-posixRootFolder)/bin;</Conanpcre2_pcre2-posixBinaryDirectories>
     <Conanpcre2_pcre2-posixCompilerFlags></Conanpcre2_pcre2-posixCompilerFlags>
     <Conanpcre2_pcre2-posixLinkerFlags></Conanpcre2_pcre2-posixLinkerFlags>
     <Conanpcre2_pcre2-posixPreprocessorDefinitions></Conanpcre2_pcre2-posixPreprocessorDefinitions>
     <Conanpcre2_pcre2-posixIncludeDirectories></Conanpcre2_pcre2-posixIncludeDirectories>
     <Conanpcre2_pcre2-posixResourceDirectories></Conanpcre2_pcre2-posixResourceDirectories>
-    <Conanpcre2_pcre2-posixLibraryDirectories>$(Conanpcre2_pcre2-posixRootFolder)/lib;</Conanpcre2_pcre2-posixLibraryDirectories>
-    <Conanpcre2_pcre2-posixLibraries>pcre2-posix-staticd.lib;</Conanpcre2_pcre2-posixLibraries>
+    <Conanpcre2_pcre2-posixLibraryDirectories></Conanpcre2_pcre2-posixLibraryDirectories>
+    <Conanpcre2_pcre2-posixLibraries></Conanpcre2_pcre2-posixLibraries>
     <Conanpcre2_pcre2-posixSystemLibs></Conanpcre2_pcre2-posixSystemLibs>
   </PropertyGroup>
 </Project>

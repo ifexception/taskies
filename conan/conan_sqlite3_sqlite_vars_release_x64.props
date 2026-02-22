@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="ConanVariables">
-    <Conansqlite3_sqliteRootFolder>C:\Users\szymon.welgus\.conan2\p\sqlit4a4a2e03c7467\p</Conansqlite3_sqliteRootFolder>
-    <Conansqlite3_sqliteBinaryDirectories></Conansqlite3_sqliteBinaryDirectories>
+    <Conansqlite3_sqliteRootFolder>C:\Users\szymon.welgus\.conan2\p\sqlit64327c3d1a7ec\p</Conansqlite3_sqliteRootFolder>
+    <Conansqlite3_sqliteBinaryDirectories>$(Conansqlite3_sqliteRootFolder)/bin;</Conansqlite3_sqliteBinaryDirectories>
     <Conansqlite3_sqliteCompilerFlags></Conansqlite3_sqliteCompilerFlags>
     <Conansqlite3_sqliteLinkerFlags></Conansqlite3_sqliteLinkerFlags>
-    <Conansqlite3_sqlitePreprocessorDefinitions></Conansqlite3_sqlitePreprocessorDefinitions>
+    <Conansqlite3_sqlitePreprocessorDefinitions>SQLITE_API=__declspec(dllimport);</Conansqlite3_sqlitePreprocessorDefinitions>
     <Conansqlite3_sqliteIncludeDirectories>$(Conansqlite3_sqliteRootFolder)/include;</Conansqlite3_sqliteIncludeDirectories>
     <Conansqlite3_sqliteResourceDirectories></Conansqlite3_sqliteResourceDirectories>
     <Conansqlite3_sqliteLibraryDirectories>$(Conansqlite3_sqliteRootFolder)/lib;</Conansqlite3_sqliteLibraryDirectories>

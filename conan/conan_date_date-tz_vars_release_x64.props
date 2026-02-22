@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="ConanVariables">
-    <Conandate_date-tzRootFolder>C:\Users\szymon.welgus\.conan2\p\dateb188a4117db92\p</Conandate_date-tzRootFolder>
-    <Conandate_date-tzBinaryDirectories></Conandate_date-tzBinaryDirectories>
+    <Conandate_date-tzRootFolder>C:\Users\szymon.welgus\.conan2\p\date73845b282d91f\p</Conandate_date-tzRootFolder>
+    <Conandate_date-tzBinaryDirectories>$(Conandate_date-tzRootFolder)/bin;</Conandate_date-tzBinaryDirectories>
     <Conandate_date-tzCompilerFlags></Conandate_date-tzCompilerFlags>
     <Conandate_date-tzLinkerFlags></Conandate_date-tzLinkerFlags>
-    <Conandate_date-tzPreprocessorDefinitions></Conandate_date-tzPreprocessorDefinitions>
+    <Conandate_date-tzPreprocessorDefinitions>DATE_BUILD_DLL=1;</Conandate_date-tzPreprocessorDefinitions>
     <Conandate_date-tzIncludeDirectories>$(Conandate_date-tzRootFolder)/include;</Conandate_date-tzIncludeDirectories>
     <Conandate_date-tzResourceDirectories></Conandate_date-tzResourceDirectories>
     <Conandate_date-tzLibraryDirectories>$(Conandate_date-tzRootFolder)/lib;</Conandate_date-tzLibraryDirectories>
