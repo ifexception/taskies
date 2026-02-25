@@ -804,9 +804,6 @@
     <None Include="res\migrations\20250427164010_create_static_attribute_values_table.sql">
       <Filter>Resource Files\migrations</Filter>
     </None>
-    <None Include="res\install-wizard.svg">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\bell16x16.png">
       <Filter>Resource Files</Filter>
     </None>
@@ -844,6 +841,9 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="taskies.toml" />
+    <CopyFileToFolders Include="res\install-wizard.svg">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="src\application.manifest" />

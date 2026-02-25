@@ -18,8 +18,8 @@
 //     szymonwelgus at gmail dot com
 
 #define TASKIES_MAJOR 0
-#define TASKIES_MINOR 2
-#define TASKIES_PATCH 8
+#define TASKIES_MINOR 3
+#define TASKIES_PATCH 0
 
 #define TASKIES_VERSION (TASKIES_MAJOR * 1000 + TASKIES_MINOR * 100 + TASKIES_PATCH)
 
