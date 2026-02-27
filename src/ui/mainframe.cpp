@@ -55,6 +55,7 @@
 #include "../services/tasks/taskviewmodel.h"
 #include "../services/tasks/tasksservice.h"
 
+#include "../utils/mswutils.h"
 #include "../utils/utils.h"
 
 #include "../ui/dlg/employerdlg.h"
@@ -384,7 +385,12 @@ void MainFrame::CreateControls()
     viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current week");
     viewMenu->Append(ID_VIEW_EXPAND, "&Expand\tCtrl-E", "Expand date procedure");
     viewMenu->AppendSeparator();
-    viewMenu->Append(ID_VIEW_OUTLOOK, "&Outlook\tAlt-O", "View Outlook meetings");
+    auto outlookViewMenuItem =
+        viewMenu->Append(ID_VIEW_OUTLOOK, "&Outlook\tAlt-O", "View Outlook meetings");
+    if (!MswUtils::IsOutlookRunning()) {
+        outlookViewMenuItem->Enable(false);
+    }
+
     // viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
     viewMenu->AppendSeparator();
     auto preferencesMenuItem =
@@ -510,7 +516,9 @@ void MainFrame::CreateControls()
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
     entries[2].Set(wxACCEL_CTRL, (int) 'E', ID_VIEW_EXPAND);
-    entries[3].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
+    if (!MswUtils::IsOutlookRunning()) {
+        entries[3].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
+    }
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
     SetAcceleratorTable(table);

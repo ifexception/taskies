@@ -413,6 +413,9 @@
     <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp">
       <Filter>Source Files\ui\frames</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\mswutils.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -745,6 +748,7 @@
     <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h">
       <Filter>Source Files\ui\frames</Filter>
     </ClInclude>
+    <ClInclude Include="src\utils\mswutils.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc">
@@ -818,6 +822,7 @@
     </None>
     <None Include="conandata.yml" />
     <None Include="conanfile.py" />
+    <None Include="res\install-wizard.svg" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\about.ico">
@@ -841,9 +846,6 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="taskies.toml" />
-    <CopyFileToFolders Include="res\install-wizard.svg">
-      <Filter>Resource Files</Filter>
-    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="src\application.manifest" />
