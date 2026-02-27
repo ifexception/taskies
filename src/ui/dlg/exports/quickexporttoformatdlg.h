@@ -39,9 +39,9 @@
 #include "../../../core/configuration.h"
 
 #include "../../../services/export/exportoptions.h"
-#include "../../../services/export/excelinstancecheck.h"
 
 #include "../../../utils/datestore.h"
+#include "../../../utils/mswutils.h"
 
 namespace tks::UI::dlg
 {
@@ -119,7 +119,7 @@ private:
     bool bExportToClipboard;
     bool bExportTodaysTasksOnly;
 
-    Services::Export::ExcelInstanceCheck mIsExcelInstalled;
+    MswUtils::ExcelInstanceCheck mIsExcelInstalled;
     Services::Export::ExportOptions mExportOptions;
     ExportFormat mExportFormat;
     wxArrayString mRadioExportOptions;

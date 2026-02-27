@@ -49,7 +49,6 @@
 #include "../persistence/taskspersistence.h"
 #include "../persistence/attendedmeetingspersistence.h"
 
-#include "../services/export/excelinstancecheck.h"
 #include "../services/integrations/outlookintegratorservice.h"
 #include "../services/integrations/outlookmeetingmodel.h"
 #include "../services/tasks/taskviewmodel.h"
@@ -348,7 +347,7 @@ void MainFrame::CreateControls()
     fileTasksMenu->Append(
         ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export tasks data to CSV file/clipboard");
 
-    Services::Export::ExcelInstanceCheck isExcelInstalled;
+    MswUtils::ExcelInstanceCheck isExcelInstalled;
     if (isExcelInstalled()) {
         fileTasksMenu->Append(
             ID_TASKS_EXPORTTOEXCEL, "Ex&port to Excel", "Export tasks data to Excel");

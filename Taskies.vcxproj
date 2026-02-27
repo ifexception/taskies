@@ -226,7 +226,6 @@
     <ClCompile Include="src\services\export\excelexporterservice.cpp" />
     <ClCompile Include="src\services\export\excelexportprocessor.cpp" />
     <ClCompile Include="src\services\export\excelguard.cpp" />
-    <ClCompile Include="src\services\export\excelinstancecheck.cpp" />
     <ClCompile Include="src\services\export\exportoptions.cpp" />
     <ClCompile Include="src\services\export\exportresult.cpp" />
     <ClCompile Include="src\services\export\exportsservice.cpp" />
@@ -339,7 +338,6 @@
     <ClInclude Include="src\services\export\excelexporterservice.h" />
     <ClInclude Include="src\services\export\excelexportprocessor.h" />
     <ClInclude Include="src\services\export\excelguard.h" />
-    <ClInclude Include="src\services\export\excelinstancecheck.h" />
     <ClInclude Include="src\services\export\exportoptions.h" />
     <ClInclude Include="src\services\export\exportresult.h" />
     <ClInclude Include="src\services\export\exportsservice.h" />

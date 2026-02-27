@@ -34,7 +34,6 @@
 #include "../../../services/export/csvexporterservice.h"
 #include "../../../services/export/columnexportmodel.h"
 #include "../../../services/export/columnjoinprojection.h"
-#include "../../../services/export/excelinstancecheck.h"
 #include "../../../services/export/excelexporterservice.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"

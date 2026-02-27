@@ -27,6 +27,23 @@
 
 namespace tks::MswUtils
 {
+// https://stackoverflow.com/a/3948377/7277716
+ExcelInstanceCheck::ExcelInstanceCheck()
+    : mRegPath("Excel.Application\\CurVer")
+    , mKey(wxRegKey::HKCR, wxString(mRegPath))
+{
+}
+
+bool ExcelInstanceCheck::operator()() const
+{
+    if (mKey.Exists()) {
+        wxString value = mKey.QueryDefaultValue();
+        return !value.empty();
+    }
+
+    return false;
+}
+
 // https://stackoverflow.com/a/29285933/7277716
 OutlookInstanceCheck::OutlookInstanceCheck()
     : mRegPath("Outlook.Application\\CurVer")

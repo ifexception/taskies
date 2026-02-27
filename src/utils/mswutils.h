@@ -30,6 +30,16 @@
 
 namespace tks::MswUtils
 {
+struct ExcelInstanceCheck {
+    ExcelInstanceCheck();
+    ~ExcelInstanceCheck() = default;
+
+    bool operator()() const;
+
+    std::string mRegPath;
+    wxRegKey mKey;
+};
+
 struct OutlookInstanceCheck {
     OutlookInstanceCheck();
     ~OutlookInstanceCheck() = default;
