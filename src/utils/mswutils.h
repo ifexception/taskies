@@ -19,7 +19,26 @@
 
 #pragma once
 
+#include <string>
+
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
+
+#include <wx/msw/registry.h>
+
 namespace tks::MswUtils
 {
+struct OutlookInstanceCheck {
+    OutlookInstanceCheck();
+    ~OutlookInstanceCheck() = default;
+
+    bool operator()() const;
+
+    std::string mRegPath;
+    wxRegKey mKey;
+};
+
 bool IsOutlookRunning();
 }

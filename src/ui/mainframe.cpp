@@ -385,10 +385,14 @@ void MainFrame::CreateControls()
     viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current week");
     viewMenu->Append(ID_VIEW_EXPAND, "&Expand\tCtrl-E", "Expand date procedure");
     viewMenu->AppendSeparator();
-    auto outlookViewMenuItem =
-        viewMenu->Append(ID_VIEW_OUTLOOK, "&Outlook\tAlt-O", "View Outlook meetings");
-    if (!MswUtils::IsOutlookRunning()) {
-        outlookViewMenuItem->Enable(false);
+
+    MswUtils::OutlookInstanceCheck isOutlookInstalled;
+    if (isOutlookInstalled()) {
+        auto outlookViewMenuItem =
+            viewMenu->Append(ID_VIEW_OUTLOOK, "&Outlook\tAlt-O", "View Outlook meetings");
+        if (!MswUtils::IsOutlookRunning()) {
+            outlookViewMenuItem->Enable(false);
+        }
     }
 
     // viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
@@ -516,7 +520,7 @@ void MainFrame::CreateControls()
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
     entries[2].Set(wxACCEL_CTRL, (int) 'E', ID_VIEW_EXPAND);
-    if (!MswUtils::IsOutlookRunning()) {
+    if (isOutlookInstalled() && !MswUtils::IsOutlookRunning()) {
         entries[3].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
     }
 

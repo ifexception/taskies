@@ -748,7 +748,9 @@
     <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h">
       <Filter>Source Files\ui\frames</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils\mswutils.h" />
+    <ClInclude Include="src\utils\mswutils.h">
+      <Filter>Source Files\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc">

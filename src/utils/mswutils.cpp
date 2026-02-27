@@ -27,6 +27,23 @@
 
 namespace tks::MswUtils
 {
+// https://stackoverflow.com/a/29285933/7277716
+OutlookInstanceCheck::OutlookInstanceCheck()
+    : mRegPath("Outlook.Application\\CurVer")
+    , mKey(wxRegKey::HKCR, wxString(mRegPath))
+{
+}
+
+bool OutlookInstanceCheck::operator()() const
+{
+    if (mKey.Exists()) {
+        wxString value = mKey.QueryDefaultValue();
+        return !value.empty();
+    }
+
+    return false;
+}
+
 bool IsOutlookRunning()
 {
     DWORD aProcesses[1024], cbNeeded, cProcesses;
