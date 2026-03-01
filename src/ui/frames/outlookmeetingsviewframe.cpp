@@ -569,18 +569,24 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
 
     auto durationWithTimeLabel = new wxStaticText(staticBox, wxID_ANY, "Duration");
     auto formattedValue =
-        fmt::format("{0} ({1} - {2})", meetingModel.Duration, meetingModel.Start, meetingModel.End);
-    auto durationWithTimeLabelValue = new wxStaticText(staticBox, wxID_ANY, formattedValue);
+        fmt::format("{0} ({1} -- {2})", meetingModel.Duration, meetingModel.Start, meetingModel.End);
+    auto durationWithTimeLabelValue = new wxTextCtrl(
+        staticBox, wxID_ANY, formattedValue, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 
     auto locationLabel = new wxStaticText(staticBox, wxID_ANY, "Location");
-    auto locationLabelValue = new wxStaticText(staticBox, wxID_ANY, meetingModel.Location);
+    auto locationLabelValue = new wxTextCtrl(staticBox,
+        wxID_ANY,
+        meetingModel.Location,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_READONLY);
 
     flexGridSizer->Add(meetingIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     flexGridSizer->Add(meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Left());
 
     flexGridSizer->Add(subjectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     flexGridSizer->Add(
-        subjectText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+        subjectText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     flexGridSizer->Add(
         durationWithTimeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
