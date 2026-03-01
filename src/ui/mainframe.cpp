@@ -1247,7 +1247,7 @@ void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
     assert(mTaskIdToModify != -1);
 
     dlg::TaskDialog cloneTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate, true);
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, "", true);
     cloneTaskDialog.ShowModal();
 
     ResetTaskContextMenuVariables();

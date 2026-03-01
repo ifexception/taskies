@@ -1673,7 +1673,10 @@ void TaskDialog::SetDataWhenTaskCloned()
     pTaskDescriptionTextCtrl->ChangeValue(clonedTaskDescription);
 
     // set date to today regardless from when task was cloned
-    pDateContextDatePickerCtrl->SetValue(wxDateTime::Now());
+    wxDateTime dateTaskContext = wxDateTime::Now();
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Date Context = {0}", dateTaskContext.FormatISODate().ToStdString());
+    pDateContextDatePickerCtrl->SetValue(dateTaskContext);
 
     // set date variables to today also
     auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
@@ -1685,6 +1688,9 @@ void TaskDialog::SetDataWhenTaskCloned()
 
     // set is edit flag to false
     bIsEdit = false;
+
+    pIsActiveCheckBoxCtrl->SetValue(false);
+    pIsActiveCheckBoxCtrl->Disable();
 }
 
 std::string TaskDialog::AttributeValuesCapturedLabel = "\"{0}\" attribute values captured";
