@@ -152,9 +152,11 @@ void TaskDialog::SetAttendedMeetingData(const std::string& subject,
 
     pTaskDescriptionTextCtrl->ChangeValue(taskDescription);
 
+    int roundedDuration = Utils::RoundUpToMultiple(duration, pCfg->GetMinutesIncrement());
+
     int minutes = 0;
     int hours = 0;
-    Utils::DeconstructDurationTimePeriod(duration, hours, minutes);
+    Utils::DeconstructDurationTimePeriod(roundedDuration, hours, minutes);
 
     pTimeHoursSpinCtrl->SetValue(hours);
     pTimeMinutesSpinCtrl->SetValue(minutes);
