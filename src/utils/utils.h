@@ -68,5 +68,7 @@ std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t>
 
 std::string RemoveEmoticons(const std::wstring& value);
 
+int RoundUpToMultiple(int number, int multiple);
+
 void DeconstructDurationTimePeriod(const int value, int& hours, int& minutes);
 } // namespace tks::Utils

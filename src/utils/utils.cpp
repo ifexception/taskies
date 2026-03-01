@@ -289,6 +289,13 @@ std::string RemoveEmoticons(const std::wstring& input)
     return convertedResult;
 }
 
+int RoundUpToMultiple(int number, int multiple)
+{
+    int result = number + multiple / 2;
+    result -= result % multiple;
+    return result;
+}
+
 void DeconstructDurationTimePeriod(const int value, int& hours, int& minutes)
 {
     minutes = value % 60;
