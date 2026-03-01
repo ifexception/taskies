@@ -42,11 +42,6 @@ struct OutlookResult {
     static OutlookResult Fail(const std::string& errorMessage);
 };
 
-/*
- TODO(SW)
- - Update `FetchCalendarMeetings` to get meetings by account name
-*/
-
 struct OutlookIntegratorService {
     OutlookIntegratorService(std::shared_ptr<spdlog::logger> logger);
     ~OutlookIntegratorService() = default;

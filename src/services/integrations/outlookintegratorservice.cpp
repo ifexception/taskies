@@ -19,6 +19,8 @@
 
 #include "outlookintegratorservice.h"
 
+#include "../../utils/mswutils.h"
+
 namespace tks::Services::Integrations
 {
 OutlookResult OutlookResult::OK()
@@ -281,7 +283,7 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings(const std::string&
         // Checking if there is a void ptr in our variant tells us GetFirst could not get
         // any meeting items (this is for now an assumption, but works)
         if (!itemObjectDispatchPtr.GetVoidPtr() || itemObjectDispatchPtr.IsNull()) {
-            pLogger->info("\"GetFirst\" method did not return a valid void ptr or is null, because "
+            pLogger->warn("\"GetFirst\" method did not return a valid void ptr or is null, because "
                           "most likely there are NO meetings for this account");
             return OutlookResult::PartialOK("No meetings found");
         }
@@ -309,25 +311,30 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings(const std::string&
                 pLogger->info("EntryID\t|\t{0}", entryIDProperty.GetString().ToStdString());
                 model.EntryId = entryIDProperty.GetString().ToStdString();
             }
+
             wxVariant subjectProperty = itemObject.GetProperty("Subject");
             if (!subjectProperty.IsNull()) {
                 pLogger->info("Subject\t|\t{0}", subjectProperty.GetString().ToStdString());
                 model.Subject = subjectProperty.GetString().ToStdWstring();
             }
-            wxVariant bodyProperty = itemObject.GetProperty("Body");
-            if (!bodyProperty.IsNull()) {
-                pLogger->info("Body\t\t|\t{0}", bodyProperty.GetString().ToStdString());
-                model.Body = bodyProperty.GetString().ToStdWstring();
-            }
+
             wxVariant startProperty = itemObject.GetProperty("Start");
             if (!startProperty.IsNull()) {
-                pLogger->info("Start\t\t|\t{0}", startProperty.GetString().ToStdString());
-                model.Start = startProperty.GetString().ToStdString();
+                pLogger->info("[VT_DATE] Start\t|\t{0}", startProperty.GetString().ToStdString());
+
+                auto formattedStart = MswUtils::ConvertAppointmentItemDateTimeToISODateTime(
+                    startProperty.GetString().ToStdString());
+                pLogger->info("[ISO] Start\t|\t{0}", formattedStart);
+                model.Start = formattedStart;
             }
             wxVariant endProperty = itemObject.GetProperty("End");
             if (!endProperty.IsNull()) {
-                pLogger->info("End\t\t|\t{0}", endProperty.GetString().ToStdString());
-                model.End = endProperty.GetString().ToStdString();
+                pLogger->info("[VT_DATE] End\t|\t{0}", endProperty.GetString().ToStdString());
+
+                auto formattedEnd = MswUtils::ConvertAppointmentItemDateTimeToISODateTime(
+                    endProperty.GetString().ToStdString());
+                pLogger->info("[ISO] End\t\t|\t{0}", formattedEnd);
+                model.End = formattedEnd;
             }
             wxVariant durationProperty = itemObject.GetProperty("Duration");
             if (!durationProperty.IsNull()) {
