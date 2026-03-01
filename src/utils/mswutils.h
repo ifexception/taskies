@@ -51,4 +51,6 @@ struct OutlookInstanceCheck {
 };
 
 bool IsOutlookRunning();
-}
+
+std::string ConvertAppointmentItemDateTimeToISODateTime(std::string appointmentItemDateTime);
+} // namespace tks::MswUtils

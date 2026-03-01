@@ -19,6 +19,10 @@
 
 #include "mswutils.h"
 
+#include <sstream>
+#include <iomanip>
+#include <ctime>
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -97,5 +101,18 @@ bool IsOutlookRunning()
         }
     }
     return FALSE;
+}
+
+std::string ConvertAppointmentItemDateTimeToISODateTime(std::string appointmentItemDateTime)
+{
+    std::tm tm = {};
+
+    std::istringstream ss(appointmentItemDateTime);
+    ss >> std::get_time(&tm, "%a %b %d %H:%M:%S %Y");
+
+    std::ostringstream oss;
+    oss << std::put_time(&tm, "%Y-%m-%d %H:%M");
+    std::string output = oss.str();
+    return output;
 }
 } // namespace tks::MswUtils
