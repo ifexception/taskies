@@ -376,7 +376,7 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         SPDLOG_LOGGER_TRACE(pLogger, "Retrieved \"{0}\" meetings", mMeetingModels.size());
 
         if (mMeetingModels.size() == 0) {
-            ResetFeedbackLabelOnNoData();
+            ResetFeedbackLabelOnNoData("No meetings found");
 
             return;
         }
@@ -526,12 +526,13 @@ void OutlookMeetingsViewFrame::RemoveActiveMeetingsPanel()
     SPDLOG_LOGGER_TRACE(pLogger, "Removed active meetings panel from scrolled window");
 }
 
-void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData()
+void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& message)
 {
     mSelectedAccount = "";
 
     if (pFeedbackLabel == nullptr) {
-        pFeedbackLabel = new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, "No account selected");
+        pFeedbackLabel = new wxStaticText(
+            pThisPanel, tksIDC_FEEDBACKLABEL, message.empty() ? "No account selected" : message);
         pMainSizer->Add(
             pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
 
@@ -568,8 +569,8 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
         staticBox, wxID_ANY, meetingModel.Subject, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 
     auto durationWithTimeLabel = new wxStaticText(staticBox, wxID_ANY, "Duration");
-    auto formattedValue =
-        fmt::format("{0} ({1} -- {2})", meetingModel.Duration, meetingModel.Start, meetingModel.End);
+    auto formattedValue = fmt::format(
+        "{0} ({1} -- {2})", meetingModel.Duration, meetingModel.Start, meetingModel.End);
     auto durationWithTimeLabelValue = new wxTextCtrl(
         staticBox, wxID_ANY, formattedValue, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 
@@ -585,8 +586,7 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
     flexGridSizer->Add(meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Left());
 
     flexGridSizer->Add(subjectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    flexGridSizer->Add(
-        subjectText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    flexGridSizer->Add(subjectText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     flexGridSizer->Add(
         durationWithTimeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());

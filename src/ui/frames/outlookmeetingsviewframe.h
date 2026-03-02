@@ -74,7 +74,7 @@ private:
     void QueueErrorNotificationEvent(const std::string& message);
 
     void RemoveActiveMeetingsPanel();
-    void ResetFeedbackLabelOnNoData();
+    void ResetFeedbackLabelOnNoData(const std::string& message = "");
 
     void AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
         int* attendedCheckBoxControlId,
