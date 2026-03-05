@@ -533,8 +533,11 @@ void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& mes
     if (pFeedbackLabel == nullptr) {
         pFeedbackLabel = new wxStaticText(
             pThisPanel, tksIDC_FEEDBACKLABEL, message.empty() ? "No account selected" : message);
-        pMainSizer->Add(
-            pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
+        // insert the feedback label above the scrolled window
+        const int FeedbackLabelSizerIndex = 4;
+        pMainSizer->Insert(FeedbackLabelSizerIndex,
+            pFeedbackLabel,
+            wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
 
         pMainSizer->Layout();
     }
