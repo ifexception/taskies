@@ -57,6 +57,7 @@ public:
     virtual ~OutlookMeetingsViewFrame() = default;
 
     void OnParentFrameMove();
+    void OnParentFrameResize();
 
 private:
     void Create();

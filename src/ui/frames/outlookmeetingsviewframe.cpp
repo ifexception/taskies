@@ -225,6 +225,25 @@ void OutlookMeetingsViewFrame::OnParentFrameMove()
     SetPosition(topRightScreen);
 }
 
+void OutlookMeetingsViewFrame::OnParentFrameResize()
+{
+    wxSize parentWindowSize = pParent->GetSize();
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "PARENT SIZE ({0},{1})",
+        parentWindowSize.GetHeight(),
+        parentWindowSize.GetWidth());
+
+    wxSize dialogSize;
+    dialogSize.SetHeight(parentWindowSize.GetHeight());
+    dialogSize.SetWidth(-1);
+    SetSize(dialogSize);
+    SetMaxSize(dialogSize);
+
+    if (!bIsMainFrameMaximized) {
+        OnParentFrameMove();
+    }
+}
+
 void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
 {
     if (mSelectedAccount.empty()) {

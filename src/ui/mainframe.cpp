@@ -619,6 +619,9 @@ void MainFrame::OnResize(wxSizeEvent& event)
     if (pNotificationPopupWindow) {
         pNotificationPopupWindow->OnResize();
     }
+    if (pMeetingsViewFrame) {
+        pMeetingsViewFrame->OnParentFrameResize();
+    }
 
     event.Skip();
 }
