@@ -161,7 +161,7 @@ void Application::InitializeLogger()
 #ifdef TKS_DEBUG
     auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_st>();
     msvcSink->set_level(spdlog::level::trace);
-    msvcSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
+    msvcSink->set_pattern("*** [%Y-%m-%d %H:%M:%S.%e] [%l] [%!:%#] %v");
 
     auto dailyFileSink =
         std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 5, 0, false, 5);
