@@ -246,7 +246,6 @@
     <ClCompile Include="src\ui\common\taskattributevalueclientdata.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistitemmodel.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistmodel.cpp" />
-    <ClCompile Include="src\ui\dataview\tasklistmodel.cpp" />
     <ClCompile Include="src\ui\dataview\tasktreemodel.cpp" />
     <ClCompile Include="src\ui\dataview\tasktreemodelnode.cpp" />
     <ClCompile Include="src\ui\dlg\aboutdlg.cpp" />
@@ -358,7 +357,6 @@
     <ClInclude Include="src\ui\common\taskattributevalueclientdata.h" />
     <ClInclude Include="src\ui\dataview\columnlistitemmodel.h" />
     <ClInclude Include="src\ui\dataview\columnlistmodel.h" />
-    <ClInclude Include="src\ui\dataview\tasklistmodel.h" />
     <ClInclude Include="src\ui\dataview\tasktreemodel.h" />
     <ClInclude Include="src\ui\dataview\tasktreemodelnode.h" />
     <ClInclude Include="src\ui\dlg\aboutdlg.h" />

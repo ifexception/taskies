@@ -290,9 +290,6 @@
     <ClCompile Include="src\ui\dataview\columnlistmodel.cpp">
       <Filter>Source\ui\dataview</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\dataview\tasklistmodel.cpp">
-      <Filter>Source\ui\dataview</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui\dataview\tasktreemodel.cpp">
       <Filter>Source\ui\dataview</Filter>
     </ClCompile>
@@ -626,9 +623,6 @@
       <Filter>Source\ui\dataview</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dataview\columnlistmodel.h">
-      <Filter>Source\ui\dataview</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\dataview\tasklistmodel.h">
       <Filter>Source\ui\dataview</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dataview\tasktreemodel.h">

@@ -62,7 +62,6 @@
 #include "../ui/dlg/categoriesdlg.h"
 #include "../ui/dlg/aboutdlg.h"
 #include "../ui/dlg/preferences/preferencesdlg.h"
-// #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exports/exporttocsvdlg.h"
 #include "../ui/dlg/exports/exporttoexceldlg.h"
 #include "../ui/dlg/exports/quickexporttoformatdlg.h"
@@ -125,7 +124,6 @@ EVT_MENU(ID_EDIT_STATIC_ATTRIBUTE_VALUES, MainFrame::OnEditStaticAttributeValues
 EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_EXPAND, MainFrame::OnViewExpand)
 EVT_MENU(ID_VIEW_OUTLOOK, MainFrame::OnViewOutlook)
-// EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Popup Menu Event Handlers */
@@ -392,7 +390,6 @@ void MainFrame::CreateControls()
         }
     }
 
-    // viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
     viewMenu->AppendSeparator();
     auto preferencesMenuItem =
         viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
@@ -955,16 +952,6 @@ void MainFrame::OnViewOutlook(wxCommandEvent& event)
         new frames::OutlookMeetingsViewFrame(this, pCfg, pLogger, mDatabaseFilePath, IsMaximized());
     pMeetingsViewFrame->Show();
 }
-
-// void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
-//{
-//     UI::dlg::DayTaskViewDialog dayTaskView(this,
-//         pLogger,
-//         pEnv,
-//         mDatabaseFilePath,
-//         mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
-//     dayTaskView.ShowModal();
-// }
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
