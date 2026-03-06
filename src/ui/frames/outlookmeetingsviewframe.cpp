@@ -337,8 +337,6 @@ void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
     pScrolledWindowSizer->Layout();
 
     pMainSizer->Layout();
-    pMainSizer->SetSizeHints(pThisPanel);
-    Fit();
 
     if (!bIsMainFrameMaximized) {
         wxSize parentWindowSize = pParent->GetSize();
@@ -453,8 +451,6 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
     pScrolledWindowSizer->Layout();
 
     pMainSizer->Layout();
-    pMainSizer->SetSizeHints(pThisPanel);
-    Fit();
 
     if (!bIsMainFrameMaximized) {
         wxSize parentWindowSize = pParent->GetSize();
