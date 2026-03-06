@@ -538,6 +538,7 @@ void OutlookMeetingsViewFrame::RemoveActiveMeetingsPanel()
     if (!windowDelete) {
         pLogger->warn("Failed to delete active meetings panel and its child controls");
     }
+    pActiveMeetingsPanel = nullptr;
 
     pScrolledWindowSizer->Layout();
     pMainSizer->Layout();
