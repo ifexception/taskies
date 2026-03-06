@@ -577,6 +577,10 @@ void MainFrame::OnClose(wxCloseEvent& event)
         SPDLOG_LOGGER_TRACE(pLogger, "Closing program to tray area");
         Hide();
         MSWGetTaskBarButton()->Hide();
+
+        if (pMeetingsViewFrame) {
+            pMeetingsViewFrame->Hide();
+        }
     } else {
         // Call Hide() in case closing of program takes longer than expected and causes
         // a bad experience for the user
@@ -607,10 +611,13 @@ void MainFrame::OnClose(wxCloseEvent& event)
 
 void MainFrame::OnIconize(wxIconizeEvent& event)
 {
-    pLogger->info("MainFrame::OnIconize - Iconize program");
     if (event.IsIconized() && pCfg->ShowInTray() && pCfg->MinimizeToTray()) {
         pLogger->info("MainFrame::OnIconize - Iconize program to tray area");
         MSWGetTaskBarButton()->Hide();
+
+        if (pMeetingsViewFrame) {
+            pMeetingsViewFrame->Hide();
+        }
     }
 }
 
