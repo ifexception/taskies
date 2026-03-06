@@ -21,7 +21,7 @@
 
 #include <string>
 
-namespace tks::Services::Integrations
+namespace tks::Services::Outlook
 {
 struct OutlookMeetingModel {
     std::string EntryId;

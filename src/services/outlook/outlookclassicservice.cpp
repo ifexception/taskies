@@ -17,11 +17,11 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "outlookintegratorservice.h"
+#include "outlookclassicservice.h"
 
 #include "../../utils/mswutils.h"
 
-namespace tks::Services::Integrations
+namespace tks::Services::Outlook
 {
 OutlookResult OutlookResult::OK()
 {
@@ -38,12 +38,12 @@ OutlookResult OutlookResult::Fail(const std::string& errorMessage)
     return OutlookResult{ false, errorMessage };
 }
 
-OutlookIntegratorService::OutlookIntegratorService(std::shared_ptr<spdlog::logger> logger)
+OutlookClassicService::OutlookClassicService(std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
 {
 }
 
-OutlookResult OutlookIntegratorService::FetchAccountNames(std::vector<std::string>& accountNames)
+OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>& accountNames)
 {
     wxAutomationObject outlookInstance;
 
@@ -120,7 +120,7 @@ OutlookResult OutlookIntegratorService::FetchAccountNames(std::vector<std::strin
     return OutlookResult::OK();
 }
 
-OutlookResult OutlookIntegratorService::FetchCalendarMeetings(const std::string& accountName,
+OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& accountName,
     std::vector<OutlookMeetingModel>& meetingModels) const
 {
     wxAutomationObject outlookInstance;
@@ -364,7 +364,7 @@ OutlookResult OutlookIntegratorService::FetchCalendarMeetings(const std::string&
     return OutlookResult::OK();
 }
 
-bool OutlookIntegratorService::VariantToObject(const wxVariant& v, wxAutomationObject& o) const
+bool OutlookClassicService::VariantToObject(const wxVariant& v, wxAutomationObject& o) const
 {
     wxCHECK_MSG(!o.GetDispatchPtr(), false, "o already contains an object");
 

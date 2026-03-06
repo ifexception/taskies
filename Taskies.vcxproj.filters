@@ -48,9 +48,6 @@
     <Filter Include="Source\services\tasks">
       <UniqueIdentifier>{d6daa2e4-048a-4723-a794-88b7dd508e76}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\services\integrations">
-      <UniqueIdentifier>{f31f582e-e81c-43bc-b3f7-39a6ee77d126}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\ui">
       <UniqueIdentifier>{3a9785ee-e225-4d3a-9576-069899f53d7c}</UniqueIdentifier>
     </Filter>
@@ -80,6 +77,9 @@
     </Filter>
     <Filter Include="Source\utils">
       <UniqueIdentifier>{43d0389a-71a5-4c18-adcc-c1a2ed2883db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\services\outlook">
+      <UniqueIdentifier>{f31f582e-e81c-43bc-b3f7-39a6ee77d126}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -392,11 +392,11 @@
     <ClCompile Include="src\ui\taskbaricon.cpp">
       <Filter>Source\ui</Filter>
     </ClCompile>
-    <ClCompile Include="src\services\integrations\outlookintegratorservice.cpp">
-      <Filter>Source\services\integrations</Filter>
+    <ClCompile Include="src\services\outlook\outlookclassicservice.cpp">
+      <Filter>Source\services\outlook</Filter>
     </ClCompile>
-    <ClCompile Include="src\services\integrations\outlookmeetingmodel.cpp">
-      <Filter>Source\services\integrations</Filter>
+    <ClCompile Include="src\services\outlook\outlookmeetingmodel.cpp">
+      <Filter>Source\services\outlook</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\persistencemanager.cpp">
       <Filter>Source\ui</Filter>
@@ -724,11 +724,11 @@
     <ClInclude Include="src\application.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="src\services\integrations\outlookintegratorservice.h">
-      <Filter>Source\services\integrations</Filter>
+    <ClInclude Include="src\services\outlook\outlookclassicservice.h">
+      <Filter>Source\services\outlook</Filter>
     </ClInclude>
-    <ClInclude Include="src\services\integrations\outlookmeetingmodel.h">
-      <Filter>Source\services\integrations</Filter>
+    <ClInclude Include="src\services\outlook\outlookmeetingmodel.h">
+      <Filter>Source\services\outlook</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\persistencemanager.h">
       <Filter>Source\ui</Filter>

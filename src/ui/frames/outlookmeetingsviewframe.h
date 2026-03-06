@@ -36,7 +36,7 @@ namespace tks::Core
 class Configuration;
 }
 
-namespace tks::Services::Integrations
+namespace tks::Services::Outlook
 {
 struct OutlookMeetingModel;
 }
@@ -79,7 +79,7 @@ private:
 
     void AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
         int* attendedCheckBoxControlId,
-        const Services::Integrations::OutlookMeetingModel& meetingModel,
+        const Services::Outlook::OutlookMeetingModel& meetingModel,
         bool meetingAttended);
 
     std::shared_ptr<Core::Configuration> pCfg;
@@ -102,7 +102,7 @@ private:
 
     std::string mSelectedAccount;
 
-    std::vector<Services::Integrations::OutlookMeetingModel> mMeetingModels;
+    std::vector<Services::Outlook::OutlookMeetingModel> mMeetingModels;
     bool bIsMainFrameMaximized;
 
     enum {

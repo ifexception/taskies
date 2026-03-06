@@ -49,8 +49,6 @@
 #include "../persistence/taskspersistence.h"
 #include "../persistence/attendedmeetingspersistence.h"
 
-#include "../services/integrations/outlookintegratorservice.h"
-#include "../services/integrations/outlookmeetingmodel.h"
 #include "../services/tasks/taskviewmodel.h"
 #include "../services/tasks/tasksservice.h"
 

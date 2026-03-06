@@ -4,7 +4,7 @@ project ("Taskies")
 add_subdirectory("attributes")
 add_subdirectory("categories")
 add_subdirectory("export")
-add_subdirectory("integrations")
+add_subdirectory("outlook")
 add_subdirectory("setupwizard")
 add_subdirectory("taskduration")
 add_subdirectory("tasks")
@@ -16,7 +16,7 @@ set(
     ${SRC_SERVICE_EXPORT}
     ${SRC_SERVICE_TASKS}
     ${SRC_SERVICE_STATICATTRIBUTEGROUPS}
-    ${SRC_SERVICE_INTEGRATIONS}
+    ${SRC_SERVICE_OUTLOOK}
     ${SRC_SERVICE_TASKDURATION}
     PARENT_SCOPE
 )

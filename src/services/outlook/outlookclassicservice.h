@@ -31,7 +31,7 @@
 
 #include "outlookmeetingmodel.h"
 
-namespace tks::Services::Integrations
+namespace tks::Services::Outlook
 {
 struct OutlookResult {
     bool Success;
@@ -42,9 +42,9 @@ struct OutlookResult {
     static OutlookResult Fail(const std::string& errorMessage);
 };
 
-struct OutlookIntegratorService {
-    OutlookIntegratorService(std::shared_ptr<spdlog::logger> logger);
-    ~OutlookIntegratorService() = default;
+struct OutlookClassicService {
+    OutlookClassicService(std::shared_ptr<spdlog::logger> logger);
+    ~OutlookClassicService() = default;
 
     OutlookResult FetchAccountNames(std::vector<std::string>& accountNames);
     OutlookResult FetchCalendarMeetings(const std::string& accountName,

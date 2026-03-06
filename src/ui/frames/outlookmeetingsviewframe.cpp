@@ -32,7 +32,7 @@
 #include "../../common/common.h"
 #include "../../core/configuration.h"
 #include "../../persistence/attendedmeetingspersistence.h"
-#include "../../services/integrations/outlookintegratorservice.h"
+#include "../../services/outlook/outlookclassicservice.h"
 #include "../../utils/utils.h"
 
 namespace tks::UI::frames
@@ -183,8 +183,8 @@ void OutlookMeetingsViewFrame::DataToControls()
 {
     std::vector<std::string> accountNames;
 
-    Services::Integrations::OutlookIntegratorService service(pLogger);
-    Services::Integrations::OutlookResult result;
+    Services::Outlook::OutlookClassicService service(pLogger);
+    Services::Outlook::OutlookResult result;
     {
         wxBusyCursor cursor;
 
@@ -264,8 +264,8 @@ void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
         "Outlook account name selected \"{0}\"",
         mSelectedAccount.empty() ? "(none)" : mSelectedAccount);
 
-    Services::Integrations::OutlookIntegratorService service(pLogger);
-    Services::Integrations::OutlookResult result =
+    Services::Outlook::OutlookClassicService service(pLogger);
+    Services::Outlook::OutlookResult result =
         service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
 
     if (!result.Success) {
@@ -378,8 +378,8 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         "Outlook account name selected \"{0}\"",
         mSelectedAccount.empty() ? "(none)" : mSelectedAccount);
 
-    Services::Integrations::OutlookIntegratorService service(pLogger);
-    Services::Integrations::OutlookResult result =
+    Services::Outlook::OutlookClassicService service(pLogger);
+    Services::Outlook::OutlookResult result =
         service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
 
     if (!result.Success) {
@@ -480,7 +480,7 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 
             const auto& foundMeetingIterator = std::find_if(mMeetingModels.begin(),
                 mMeetingModels.end(),
-                [=](const Services::Integrations::OutlookMeetingModel& model) {
+                [=](const Services::Outlook::OutlookMeetingModel& model) {
                     return model.EntryId == eventEntryId;
                 });
 
@@ -565,7 +565,7 @@ void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& mes
 
 void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
     int* attendedCheckBoxControlId,
-    const Services::Integrations::OutlookMeetingModel& meetingModel,
+    const Services::Outlook::OutlookMeetingModel& meetingModel,
     bool meetingAttended)
 {
     // static box for meeting controls

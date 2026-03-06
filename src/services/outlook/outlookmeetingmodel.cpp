@@ -21,7 +21,7 @@
 
 #include "../../utils/utils.h"
 
-namespace tks::Services::Integrations
+namespace tks::Services::Outlook
 {
 OutlookMeetingModel::OutlookMeetingModel()
     : EntryId("")
