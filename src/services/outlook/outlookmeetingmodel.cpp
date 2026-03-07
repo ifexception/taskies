@@ -46,8 +46,7 @@ bool OutlookMeetingModel::operator==(const OutlookMeetingModel& other)
 std::string OutlookMeetingModel::DebugPrint() const
 {
     std::string debugPrint = "Subject\n" + TrimmedSubject() + "\nStart: " + Start + " End: " + End +
-                             "\nDuration: " + std::to_string(Duration) + "\nLocation:\n" +
-                             Location;
+                             "\nDuration: " + std::to_string(Duration) + "\nLocation:\n" + Location;
     return "\n==DEBUG PRINT==\n\n" + debugPrint;
 }
-} // namespace tks::Services::Integrations
+} // namespace tks::Services::Outlook

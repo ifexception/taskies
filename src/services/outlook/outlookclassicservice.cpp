@@ -43,7 +43,7 @@ OutlookClassicService::OutlookClassicService(std::shared_ptr<spdlog::logger> log
 {
 }
 
-OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>& accountNames)
+OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>& accountNames) const
 {
     wxAutomationObject outlookInstance;
 
@@ -126,7 +126,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
     wxAutomationObject outlookInstance;
 
     if (!outlookInstance.GetInstance("Outlook.Application")) {
-        pLogger->error("Could not create Outlook instance");
+        pLogger->error("Could not open/find Outlook instance");
         return OutlookResult::Fail("Failed to open Outlook application");
     }
 
@@ -140,7 +140,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
 
     wxAutomationObject namespaceObject;
     if (!VariantToObject(namespaceDispatchPtr, namespaceObject)) {
-        pLogger->error("Could not convert variant to Namespace object");
+        pLogger->error("Could not convert variant to \"Namespace\" object");
         return OutlookResult::Fail("Conversion error occurred");
     }
 
@@ -239,16 +239,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         }
 
         wxVariant sortByStartParam = "[Start]";
-        /*const wxVariant sortResult = */
         calendarFolderItemsObject.CallMethod("Sort", sortByStartParam);
-        /*if (sortResult.GetVoidPtr() == nullptr) {
-            pLogger->error("Failed to call \"Sort\" with {0} parameter",
-                sortByStartParam.GetString().ToStdString());
-
-            return OutlookResult::Fail(fmt::format(
-                "Failed to call method \"GetDefaultFolder.Sort\" with parameter \"{0}\"",
-                sortByStartParam.GetString().ToStdString()));
-        }*/
 
         wxDateTime today = wxDateTime::Now();
         wxString todaysDateString = today.Format("%Y/%m/%d");
@@ -274,10 +265,6 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         }
 
         wxVariant itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetFirst");
-        /*if (itemObjectDispatchPtr.IsNull()) {
-            pLogger->error("Error calling \"GetFirst\" method");
-            return OutlookResult::Fail("Failed to call method \"Items.GetFirst\"");
-        }*/
 
         // Method "GetFirst" will "fail" if there are no meeting items for this account
         // Checking if there is a void ptr in our variant tells us GetFirst could not get
@@ -374,4 +361,4 @@ bool OutlookClassicService::VariantToObject(const wxVariant& v, wxAutomationObje
     o.SetDispatchPtr(v.GetVoidPtr());
     return true;
 }
-} // namespace tks::Services::Integrations
+} // namespace tks::Services::Outlook

@@ -46,7 +46,7 @@ struct OutlookClassicService {
     OutlookClassicService(std::shared_ptr<spdlog::logger> logger);
     ~OutlookClassicService() = default;
 
-    OutlookResult FetchAccountNames(std::vector<std::string>& accountNames);
+    OutlookResult FetchAccountNames(std::vector<std::string>& accountNames) const;
     OutlookResult FetchCalendarMeetings(const std::string& accountName,
         std::vector<OutlookMeetingModel>& meetingModels) const;
 
@@ -54,4 +54,4 @@ struct OutlookClassicService {
 
     bool VariantToObject(const wxVariant& v, wxAutomationObject& o) const;
 };
-} // namespace tks::Services::Integrations
+} // namespace tks::Services::Outlook

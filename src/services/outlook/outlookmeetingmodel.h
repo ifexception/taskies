@@ -40,4 +40,4 @@ struct OutlookMeetingModel {
 
     std::string DebugPrint() const;
 };
-} // namespace tks::Services::Integrations
+} // namespace tks::Services::Outlook
