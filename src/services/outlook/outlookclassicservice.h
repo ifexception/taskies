@@ -56,7 +56,8 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     wxAutomationObject mOutlookInstance;
 
-    OutlookResult LoginAndInitializeAccountsObject(wxAutomationObject& accountsObject);
+    OutlookResult GetOutlookInstance();
+    OutlookResult GetAccountsObject(wxAutomationObject& accountsObject);
     void ReadMeetings(wxAutomationObject& itemObject,
         std::vector<OutlookMeetingModel>& meetingModels);
 

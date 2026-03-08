@@ -46,8 +46,13 @@ OutlookClassicService::OutlookClassicService(std::shared_ptr<spdlog::logger> log
 
 OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>& accountNames)
 {
+    OutlookResult result = GetOutlookInstance();
+    if (!result.Success) {
+        return result;
+    }
+
     wxAutomationObject accountsObject;
-    OutlookResult result = LoginAndInitializeAccountsObject(accountsObject);
+    result = GetAccountsObject(accountsObject);
     if (!result.Success) {
         return result;
     }
@@ -97,8 +102,13 @@ OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>&
 OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& accountName,
     std::vector<OutlookMeetingModel>& meetingModels)
 {
+    OutlookResult result = GetOutlookInstance();
+    if (!result.Success) {
+        return result;
+    }
+
     wxAutomationObject accountsObject;
-    OutlookResult result = LoginAndInitializeAccountsObject(accountsObject);
+    result = GetAccountsObject(accountsObject);
     if (!result.Success) {
         return result;
     }
@@ -127,7 +137,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         wxAutomationObject accountObject;
         if (!VariantToObject(accountDispatchPtr, accountObject)) {
             pLogger->error("Could not convert variant to \"Account\" object");
-            return OutlookResult::Fail("Conversion error occurred");
+            return OutlookResult::Fail("Failed to convert to \"Account\" object");
         }
 
         const wxVariant displayName = accountObject.GetProperty("DisplayName");
@@ -151,7 +161,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         wxAutomationObject deliveryStoreObject;
         if (!VariantToObject(deliveryStoreDispatchPtr, deliveryStoreObject)) {
             pLogger->error("Could not convert variant to \"DeliveryStore\" object");
-            return OutlookResult::Fail("Conversion error occurred");
+            return OutlookResult::Fail("Failed to convert to \"DeliveryStore\" object");
         }
 
         wxVariant calendarFolderParam = olFolderCalendar;
@@ -169,7 +179,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         wxAutomationObject calendarFolderObject;
         if (!VariantToObject(calendarFolderDispatchPtr, calendarFolderObject)) {
             pLogger->error("Could not convert variant to \"CalendarFolder\" object");
-            return OutlookResult::Fail("Conversion error occurred");
+            return OutlookResult::Fail("Failed to convert to \"CalendarFolder\" object");
         }
 
         wxAutomationObject calendarFolderItemsObject;
@@ -250,14 +260,18 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
     return OutlookResult::OK();
 }
 
-OutlookResult OutlookClassicService::LoginAndInitializeAccountsObject(
-    wxAutomationObject& accountsObject)
+OutlookResult OutlookClassicService::GetOutlookInstance()
 {
     if (!mOutlookInstance.GetInstance("Outlook.Application")) {
         pLogger->error("Could not create Outlook instance");
         return OutlookResult::Fail("Failed to open Outlook application");
     }
 
+    return OutlookResult::OK();
+}
+
+OutlookResult OutlookClassicService::GetAccountsObject(wxAutomationObject& accountsObject)
+{
     wxVariant mapiVariant("MAPI");
     const wxVariant namespaceDispatchPtr = mOutlookInstance.CallMethod("GetNamespace", mapiVariant);
 
@@ -268,8 +282,8 @@ OutlookResult OutlookClassicService::LoginAndInitializeAccountsObject(
 
     wxAutomationObject namespaceObject;
     if (!VariantToObject(namespaceDispatchPtr, namespaceObject)) {
-        pLogger->error("Could not convert variant to Namespace object");
-        return OutlookResult::Fail("Conversion error occurred");
+        pLogger->error("Could not convert variant to \"Namespace\" object");
+        return OutlookResult::Fail("Failed to convert to \"Namespace\" object");
     }
 
     const wxVariant accountsDispatchPtr = namespaceObject.GetProperty("Accounts");
@@ -280,7 +294,7 @@ OutlookResult OutlookClassicService::LoginAndInitializeAccountsObject(
 
     if (!VariantToObject(accountsDispatchPtr, accountsObject)) {
         pLogger->error("Could not convert variant to \"Accounts\" object");
-        return OutlookResult::Fail("Conversion error occurred");
+        return OutlookResult::Fail("Failed to convert to \"Accounts\" object");
     }
 
     return OutlookResult::OK();
