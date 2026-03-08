@@ -42,16 +42,26 @@ struct OutlookResult {
     static OutlookResult Fail(const std::string& errorMessage);
 };
 
-struct OutlookClassicService {
+class OutlookClassicService
+{
+public:
     OutlookClassicService(std::shared_ptr<spdlog::logger> logger);
     ~OutlookClassicService() = default;
 
-    OutlookResult FetchAccountNames(std::vector<std::string>& accountNames) const;
+    OutlookResult FetchAccountNames(std::vector<std::string>& accountNames);
     OutlookResult FetchCalendarMeetings(const std::string& accountName,
-        std::vector<OutlookMeetingModel>& meetingModels) const;
+        std::vector<OutlookMeetingModel>& meetingModels);
 
+private:
     std::shared_ptr<spdlog::logger> pLogger;
+    wxAutomationObject mOutlookInstance;
+
+    OutlookResult LoginAndInitializeAccountsObject(wxAutomationObject& accountsObject);
+    void ReadMeetings(wxAutomationObject& itemObject,
+        std::vector<OutlookMeetingModel>& meetingModels);
 
     bool VariantToObject(const wxVariant& v, wxAutomationObject& o) const;
+
+    static const int olFolderCalendar = 9;
 };
 } // namespace tks::Services::Outlook

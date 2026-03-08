@@ -40,42 +40,16 @@ OutlookResult OutlookResult::Fail(const std::string& errorMessage)
 
 OutlookClassicService::OutlookClassicService(std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
+    , mOutlookInstance()
 {
 }
 
-OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>& accountNames) const
+OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>& accountNames)
 {
-    wxAutomationObject outlookInstance;
-
-    if (!outlookInstance.GetInstance("Outlook.Application")) {
-        pLogger->error("Could not create Outlook instance");
-        return OutlookResult::Fail("Failed to open Outlook application");
-    }
-
-    wxVariant mapiVariant("MAPI");
-    const wxVariant namespaceDispatchPtr = outlookInstance.CallMethod("GetNamespace", mapiVariant);
-
-    if (namespaceDispatchPtr.IsNull()) {
-        pLogger->error("Failed to call \"GetNamespace\" method");
-        return OutlookResult::Fail("Failed to get Outlook namespace");
-    }
-
-    wxAutomationObject namespaceObject;
-    if (!VariantToObject(namespaceDispatchPtr, namespaceObject)) {
-        pLogger->error("Could not convert variant to Namespace object");
-        return OutlookResult::Fail("Conversion error occurred");
-    }
-
-    const wxVariant accountsDispatchPtr = namespaceObject.GetProperty("Accounts");
-    if (accountsDispatchPtr.IsNull()) {
-        pLogger->error("Failed to get \"Accounts\" property");
-        return OutlookResult::Fail("Failed to get to Outlook \"Namespace.Accounts\" property");
-    }
-
     wxAutomationObject accountsObject;
-    if (!VariantToObject(accountsDispatchPtr, accountsObject)) {
-        pLogger->error("Could not convert variant to \"Accounts\" object");
-        return OutlookResult::Fail("Conversion error occurred");
+    OutlookResult result = LoginAndInitializeAccountsObject(accountsObject);
+    if (!result.Success) {
+        return result;
     }
 
     const wxVariant accountCountProperty = accountsObject.GetProperty("Count");
@@ -121,39 +95,12 @@ OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>&
 }
 
 OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& accountName,
-    std::vector<OutlookMeetingModel>& meetingModels) const
+    std::vector<OutlookMeetingModel>& meetingModels)
 {
-    wxAutomationObject outlookInstance;
-
-    if (!outlookInstance.GetInstance("Outlook.Application")) {
-        pLogger->error("Could not open/find Outlook instance");
-        return OutlookResult::Fail("Failed to open Outlook application");
-    }
-
-    wxVariant mapiVariant("MAPI");
-    const wxVariant namespaceDispatchPtr = outlookInstance.CallMethod("GetNamespace", mapiVariant);
-
-    if (namespaceDispatchPtr.IsNull()) {
-        pLogger->error("Failed to call \"GetNamespace\" method");
-        return OutlookResult::Fail("Failed to get Outlook namespace");
-    }
-
-    wxAutomationObject namespaceObject;
-    if (!VariantToObject(namespaceDispatchPtr, namespaceObject)) {
-        pLogger->error("Could not convert variant to \"Namespace\" object");
-        return OutlookResult::Fail("Conversion error occurred");
-    }
-
-    const wxVariant accountsDispatchPtr = namespaceObject.GetProperty("Accounts");
-    if (accountsDispatchPtr.IsNull()) {
-        pLogger->error("Failed to get \"Accounts\" property");
-        return OutlookResult::Fail("Failed to get to Outlook \"Namespace.Accounts\" property");
-    }
-
     wxAutomationObject accountsObject;
-    if (!VariantToObject(accountsDispatchPtr, accountsObject)) {
-        pLogger->error("Could not convert variant to \"Accounts\" object");
-        return OutlookResult::Fail("Conversion error occurred");
+    OutlookResult result = LoginAndInitializeAccountsObject(accountsObject);
+    if (!result.Success) {
+        return result;
     }
 
     const wxVariant accountCountProperty = accountsObject.GetProperty("Count");
@@ -207,7 +154,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
             return OutlookResult::Fail("Conversion error occurred");
         }
 
-        wxVariant calendarFolderParam = 9; // olFolderCalendar
+        wxVariant calendarFolderParam = olFolderCalendar;
         wxVariant calendarFolderDispatchPtr =
             deliveryStoreObject.CallMethod("GetDefaultFolder", calendarFolderParam);
         if (calendarFolderDispatchPtr.IsNull()) {
@@ -288,55 +235,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
                 break;
             }
 
-            pLogger->info("=== MEETING INFO ===");
-            pLogger->info(
-                "=== === === === === === === === === === === === === === === === === ===");
-
-            OutlookMeetingModel model;
-            wxVariant entryIDProperty = itemObject.GetProperty("EntryID");
-            if (!entryIDProperty.IsNull()) {
-                pLogger->info("EntryID\t|\t{0}", entryIDProperty.GetString().ToStdString());
-                model.EntryId = entryIDProperty.GetString().ToStdString();
-            }
-
-            wxVariant subjectProperty = itemObject.GetProperty("Subject");
-            if (!subjectProperty.IsNull()) {
-                pLogger->info("Subject\t|\t{0}", subjectProperty.GetString().ToStdString());
-                model.Subject = subjectProperty.GetString().ToStdWstring();
-            }
-
-            wxVariant startProperty = itemObject.GetProperty("Start");
-            if (!startProperty.IsNull()) {
-                pLogger->info("[VT_DATE] Start\t|\t{0}", startProperty.GetString().ToStdString());
-
-                auto formattedStart = MswUtils::ConvertAppointmentItemDateTimeToISODateTime(
-                    startProperty.GetString().ToStdString());
-                pLogger->info("[ISO] Start\t|\t{0}", formattedStart);
-                model.Start = formattedStart;
-            }
-            wxVariant endProperty = itemObject.GetProperty("End");
-            if (!endProperty.IsNull()) {
-                pLogger->info("[VT_DATE] End\t|\t{0}", endProperty.GetString().ToStdString());
-
-                auto formattedEnd = MswUtils::ConvertAppointmentItemDateTimeToISODateTime(
-                    endProperty.GetString().ToStdString());
-                pLogger->info("[ISO] End\t\t|\t{0}", formattedEnd);
-                model.End = formattedEnd;
-            }
-            wxVariant durationProperty = itemObject.GetProperty("Duration");
-            if (!durationProperty.IsNull()) {
-                pLogger->info("Duration\t|\t{0}", durationProperty.GetString().ToStdString());
-                model.Duration = durationProperty.GetLong();
-            }
-            wxVariant locationProperty = itemObject.GetProperty("Location");
-            if (!locationProperty.IsNull()) {
-                pLogger->info("Location\t|\t{0}", locationProperty.GetString().ToStdString());
-                model.Location = locationProperty.GetString().ToStdString();
-            }
-
-            pLogger->info("=== ENDS ===");
-
-            meetingModels.push_back(model);
+            ReadMeetings(itemObject, meetingModels);
 
             itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetNext");
             if (itemObjectDispatchPtr.IsNull()) {
@@ -351,12 +250,104 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
     return OutlookResult::OK();
 }
 
+OutlookResult OutlookClassicService::LoginAndInitializeAccountsObject(
+    wxAutomationObject& accountsObject)
+{
+    if (!mOutlookInstance.GetInstance("Outlook.Application")) {
+        pLogger->error("Could not create Outlook instance");
+        return OutlookResult::Fail("Failed to open Outlook application");
+    }
+
+    wxVariant mapiVariant("MAPI");
+    const wxVariant namespaceDispatchPtr = mOutlookInstance.CallMethod("GetNamespace", mapiVariant);
+
+    if (namespaceDispatchPtr.IsNull()) {
+        pLogger->error("Failed to call \"GetNamespace\" method");
+        return OutlookResult::Fail("Failed to get Outlook namespace");
+    }
+
+    wxAutomationObject namespaceObject;
+    if (!VariantToObject(namespaceDispatchPtr, namespaceObject)) {
+        pLogger->error("Could not convert variant to Namespace object");
+        return OutlookResult::Fail("Conversion error occurred");
+    }
+
+    const wxVariant accountsDispatchPtr = namespaceObject.GetProperty("Accounts");
+    if (accountsDispatchPtr.IsNull()) {
+        pLogger->error("Failed to get \"Accounts\" property");
+        return OutlookResult::Fail("Failed to get to Outlook \"Namespace.Accounts\" property");
+    }
+
+    if (!VariantToObject(accountsDispatchPtr, accountsObject)) {
+        pLogger->error("Could not convert variant to \"Accounts\" object");
+        return OutlookResult::Fail("Conversion error occurred");
+    }
+
+    return OutlookResult::OK();
+}
+
+void OutlookClassicService::ReadMeetings(wxAutomationObject& itemObject,
+    std::vector<OutlookMeetingModel>& meetingModels)
+{
+    pLogger->info("=== MEETING INFO ===");
+
+    OutlookMeetingModel model;
+    wxVariant entryIDProperty = itemObject.GetProperty("EntryID");
+    if (!entryIDProperty.IsNull()) {
+        pLogger->info("EntryID\t|\t{0}", entryIDProperty.GetString().ToStdString());
+        model.EntryId = entryIDProperty.GetString().ToStdString();
+    }
+
+    wxVariant subjectProperty = itemObject.GetProperty("Subject");
+    if (!subjectProperty.IsNull()) {
+        pLogger->info("Subject\t|\t{0}", subjectProperty.GetString().ToStdString());
+        model.Subject = subjectProperty.GetString().ToStdWstring();
+    }
+
+    wxVariant startProperty = itemObject.GetProperty("Start");
+    if (!startProperty.IsNull()) {
+        pLogger->info("[VT_DATE] Start\t|\t{0}", startProperty.GetString().ToStdString());
+
+        auto formattedStart = MswUtils::ConvertAppointmentItemDateTimeToISODateTime(
+            startProperty.GetString().ToStdString());
+        pLogger->info("[ISO] Start\t|\t{0}", formattedStart);
+        model.Start = formattedStart;
+    }
+
+    wxVariant endProperty = itemObject.GetProperty("End");
+    if (!endProperty.IsNull()) {
+        pLogger->info("[VT_DATE] End\t|\t{0}", endProperty.GetString().ToStdString());
+
+        auto formattedEnd = MswUtils::ConvertAppointmentItemDateTimeToISODateTime(
+            endProperty.GetString().ToStdString());
+        pLogger->info("[ISO] End\t\t|\t{0}", formattedEnd);
+        model.End = formattedEnd;
+    }
+
+    wxVariant durationProperty = itemObject.GetProperty("Duration");
+    if (!durationProperty.IsNull()) {
+        pLogger->info("Duration\t|\t{0}", durationProperty.GetString().ToStdString());
+        model.Duration = durationProperty.GetLong();
+    }
+
+    wxVariant locationProperty = itemObject.GetProperty("Location");
+    if (!locationProperty.IsNull()) {
+        pLogger->info("Location\t|\t{0}", locationProperty.GetString().ToStdString());
+        model.Location = locationProperty.GetString().ToStdString();
+    }
+
+    pLogger->info("=== ENDS ===");
+
+    meetingModels.push_back(model);
+}
+
 bool OutlookClassicService::VariantToObject(const wxVariant& v, wxAutomationObject& o) const
 {
     wxCHECK_MSG(!o.GetDispatchPtr(), false, "o already contains an object");
 
-    if (!v.GetVoidPtr())
+    if (!v.GetVoidPtr()) {
         return false;
+    }
 
     o.SetDispatchPtr(v.GetVoidPtr());
     return true;
