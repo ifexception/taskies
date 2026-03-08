@@ -31,6 +31,8 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
+#include "../../models/attendedmeetingmodel.h"
+
 namespace tks::Core
 {
 class Configuration;
@@ -43,7 +45,7 @@ struct OutlookMeetingModel;
 
 namespace tks::UI::frames
 {
-class OutlookMeetingsViewFrame : public wxFrame
+class OutlookMeetingsViewFrame final : public wxFrame
 {
 public:
     OutlookMeetingsViewFrame() = delete;
@@ -71,6 +73,12 @@ private:
     void OnAccountChoice(wxCommandEvent& event);
 
     void OnAttendedCheckBoxCheck(wxCommandEvent& event);
+
+    void FetchOutlookMeetingsAndUpdateFeedbackLabel();
+    std::vector<Model::AttendedMeetingModel> FetchAttendedMeetings();
+    void AddAttendedMeetingsPanel(
+        const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels);
+    void SetDialogSizeFromParent();
 
     void QueueErrorNotificationEvent(const std::string& message);
 
