@@ -144,8 +144,6 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         if (displayName.IsNull()) {
             pLogger->error("Failed to get property \"DisplayName\"");
             return OutlookResult::Fail("Failed to get \"DisplayName\" property");
-        } else {
-            pLogger->info("Account.DisplayName = {0}", displayName.GetString().ToStdString());
         }
 
         if (displayName.GetString().ToStdString() != accountName) {
