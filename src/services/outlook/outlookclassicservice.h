@@ -42,6 +42,8 @@ struct OutlookResult {
     static OutlookResult Fail(const std::string& errorMessage);
 };
 
+constexpr int olFolderCalendar = 9;
+
 class OutlookClassicService
 {
 public:
@@ -62,7 +64,5 @@ private:
         std::vector<OutlookMeetingModel>& meetingModels);
 
     bool VariantToObject(const wxVariant& v, wxAutomationObject& o) const;
-
-    static const int olFolderCalendar = 9;
 };
 } // namespace tks::Services::Outlook

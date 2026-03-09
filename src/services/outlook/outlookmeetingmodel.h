@@ -36,7 +36,7 @@ struct OutlookMeetingModel {
 
     const std::string TrimmedSubject() const;
 
-    bool operator==(const OutlookMeetingModel& other);
+    bool operator==(const OutlookMeetingModel& other) const;
 
     std::string DebugPrint() const;
 };

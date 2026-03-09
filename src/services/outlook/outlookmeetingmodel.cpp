@@ -39,10 +39,11 @@ const std::string OutlookMeetingModel::TrimmedSubject() const
     return trimmedSubject;
 }
 
-bool OutlookMeetingModel::operator==(const OutlookMeetingModel& other)
+bool OutlookMeetingModel::operator==(const OutlookMeetingModel& other) const
 {
     return EntryId == other.EntryId;
 }
+
 std::string OutlookMeetingModel::DebugPrint() const
 {
     std::string debugPrint = "Subject\n" + TrimmedSubject() + "\nStart: " + Start + " End: " + End +

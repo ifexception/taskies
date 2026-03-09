@@ -65,6 +65,7 @@ bool OutlookInstanceCheck::operator()() const
     return false;
 }
 
+// https://learn.microsoft.com/en-us/windows/win32/psapi/enumerating-all-processes?redirectedfrom=MSDN
 bool IsOutlookRunning()
 {
     DWORD aProcesses[1024], cbNeeded, cProcesses;
