@@ -362,10 +362,9 @@ void OutlookMeetingsViewFrame::FetchOutlookMeetingsAndUpdateFeedbackLabel()
         service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
 
     if (!result.Success) {
-        std::string message = "Failed to fetch Outlook meetings";
-        QueueErrorNotificationEvent(message);
+        QueueErrorNotificationEvent(result.Message);
 
-        pFeedbackLabel->SetLabel(message);
+        pFeedbackLabel->SetLabel(result.Message);
 
         return;
     } else if (result.Success && !result.Message.empty()) {

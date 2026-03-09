@@ -63,8 +63,8 @@ OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>&
         return OutlookResult::Fail("Failed to get \"Accounts.Count\" property");
     }
 
-    if (!(accountCountProperty.IsType("long") && accountCountProperty.GetLong() > 0)) {
-        return OutlookResult::Fail("Type is incorrect or no accounts found in Outlook");
+    if (accountCountProperty.GetLong() == 0) {
+        return OutlookResult::Fail("No accounts found in Outlook");
     }
 
     const long accountCount = accountCountProperty.GetLong();
@@ -81,7 +81,7 @@ OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>&
         wxAutomationObject accountObject;
         if (!VariantToObject(accountDispatchPtr, accountObject)) {
             pLogger->error("Could not convert variant to \"Account\" object");
-            return OutlookResult::Fail("Conversion error occurred");
+            return OutlookResult::Fail("Failed to convert to \"Account\" object");
         }
 
         const wxVariant displayName = accountObject.GetProperty("DisplayName");
@@ -119,8 +119,8 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         return OutlookResult::Fail("Failed to get \"Accounts.Count\" property");
     }
 
-    if (!(accountCountProperty.IsType("long") && accountCountProperty.GetLong() > 0)) {
-        return OutlookResult::Fail("Type is incorrect or no accounts found in Outlook");
+    if (accountCountProperty.GetLong() == 0) {
+        return OutlookResult::Fail("No accounts found in Outlook");
     }
 
     const long accountCount = accountCountProperty.GetLong();
@@ -218,7 +218,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         wxAutomationObject filteredItemsObject;
         if (!VariantToObject(filteredItemsDispatchPtr, filteredItemsObject)) {
             pLogger->error("Could not convert variant to \"Items.Restrict\" object");
-            return OutlookResult::Fail("Conversion error occurred");
+            return OutlookResult::Fail("Failed to convert to \"Items.Restrict\" object");
         }
 
         wxVariant itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetFirst");
@@ -235,7 +235,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         wxAutomationObject itemObject;
         if (!VariantToObject(itemObjectDispatchPtr, itemObject)) {
             pLogger->error("Could not convert variant to \"Item\" object");
-            return OutlookResult::Fail("Conversion error occurred");
+            return OutlookResult::Fail("Failed to convert to \"Namespace\" object");
         }
 
         do {
