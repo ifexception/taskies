@@ -341,7 +341,7 @@ void OutlookClassicService::ReadMeetings(wxAutomationObject& itemObject,
     wxVariant durationProperty = itemObject.GetProperty("Duration");
     if (!durationProperty.IsNull()) {
         pLogger->info("Duration\t|\t{0}", durationProperty.GetString().ToStdString());
-        model.Duration = durationProperty.GetLong();
+        model.Duration = static_cast<int>(durationProperty.GetLong());
     }
 
     wxVariant locationProperty = itemObject.GetProperty("Location");
