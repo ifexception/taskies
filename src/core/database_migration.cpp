@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -96,14 +96,9 @@ DatabaseMigration::DatabaseMigration(std::shared_ptr<spdlog::logger> logger,
         return;
     }
 
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
+    // PRAGMA=foreign_keys is omitted in database migration
+    // migration scripts may need to toggle the PRAGMA themselves
+    // and setting it here overrides the migration script
 
     rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
 

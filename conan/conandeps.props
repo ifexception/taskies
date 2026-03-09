@@ -3,9 +3,9 @@
 	<ImportGroup Label="PropertySheets">
 		<Import Condition="'$(conan_date_props_imported)' != 'True'" Project="conan_date.props"/>
 		<Import Condition="'$(conan_sqlite3_props_imported)' != 'True'" Project="conan_sqlite3.props"/>
-		<Import Condition="'$(conan_toml11_props_imported)' != 'True'" Project="conan_toml11.props"/>
 		<Import Condition="'$(conan_spdlog_props_imported)' != 'True'" Project="conan_spdlog.props"/>
 		<Import Condition="'$(conan_fmt_props_imported)' != 'True'" Project="conan_fmt.props"/>
 		<Import Condition="'$(conan_wxwidgets_props_imported)' != 'True'" Project="conan_wxwidgets.props"/>
+		<Import Condition="'$(conan_toml11_props_imported)' != 'True'" Project="conan_toml11.props"/>
 	</ImportGroup>
 </Project>

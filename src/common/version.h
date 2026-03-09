@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
 //     szymonwelgus at gmail dot com
 
 #define TASKIES_MAJOR 0
-#define TASKIES_MINOR 2
-#define TASKIES_PATCH 8
+#define TASKIES_MINOR 3
+#define TASKIES_PATCH 0
 
 #define TASKIES_VERSION (TASKIES_MAJOR * 1000 + TASKIES_MINOR * 100 + TASKIES_PATCH)
 

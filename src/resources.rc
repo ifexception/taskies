@@ -33,6 +33,8 @@ QUICK_EXPORT_ICO ICON "..\\res\\quick_export.ico"
 20250412112647_add_attribute_group_id_column_to_tasks_table MIGRATION "..\\res\\migrations\\20250412112647_add_attribute_group_id_column_to_tasks_table.sql"
 20250414190324_create_task_attribute_values_table MIGRATION "..\\res\\migrations\\20250414190324_create_task_attribute_values_table.sql"
 20250427164010_create_static_attribute_values_table MIGRATION "..\\res\\migrations\\20250427164010_create_static_attribute_values_table.sql"
+20260208152025_create_attended_meetings_table MIGRATION "..\\res\\migrations\\20260208152025_create_attended_meetings_table.sql"
+20260210185522_add_attended_meeting_id_column_to_tasks_table MIGRATION "..\\res\\migrations\\20260210185522_add_attended_meeting_id_column_to_tasks_table.sql"
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION        TASKIES_FILE_VERSION

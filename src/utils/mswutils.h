@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,24 +17,40 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "excelinstancecheck.h"
+#pragma once
 
-namespace tks::Services::Export
-{
-// https://stackoverflow.com/a/3948377/7277716
-ExcelInstanceCheck::ExcelInstanceCheck()
-    : mRegPath("Excel.Application\\CurVer")
-    , mKey(wxRegKey::HKCR, wxString(mRegPath))
-{
-}
+#include <string>
 
-bool ExcelInstanceCheck::operator()() const
-{
-    if (mKey.Exists()) {
-        wxString value = mKey.QueryDefaultValue();
-        return !value.empty();
-    }
+#include <wx/wxprec.h>
+#ifndef WX_PRECOMP
+#include <wx/wx.h>
+#endif
 
-    return false;
-}
-} // namespace tks::Services::Export
+#include <wx/msw/registry.h>
+
+namespace tks::MswUtils
+{
+struct ExcelInstanceCheck {
+    ExcelInstanceCheck();
+    ~ExcelInstanceCheck() = default;
+
+    bool operator()() const;
+
+    std::string mRegPath;
+    wxRegKey mKey;
+};
+
+struct OutlookInstanceCheck {
+    OutlookInstanceCheck();
+    ~OutlookInstanceCheck() = default;
+
+    bool operator()() const;
+
+    std::string mRegPath;
+    wxRegKey mKey;
+};
+
+bool IsOutlookRunning();
+
+std::string ConvertAppointmentItemDateTimeToISODateTime(std::string appointmentItemDateTime);
+} // namespace tks::MswUtils

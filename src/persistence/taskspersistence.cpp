@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -174,6 +174,15 @@ int TasksPersistence::GetById(const std::int64_t taskId, Model::TaskModel& taskM
 
     columnIndex++;
 
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        taskModel.AttendedMeetingId = std::nullopt;
+    } else {
+        taskModel.AttendedMeetingId =
+            std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
+    }
+
+    columnIndex++;
+
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
@@ -337,6 +346,24 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    bindIndex++;
+
+    // attended_meeting_id
+    if (taskModel.AttendedMeetingId.has_value()) {
+        rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.AttendedMeetingId.value());
+    } else {
+        rc = sqlite3_bind_null(stmt, bindIndex);
+    }
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "attended_meeting_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -833,7 +860,8 @@ std::string TasksPersistence::getById = "SELECT "
                                         "project_id, "
                                         "category_id, "
                                         "workday_id, "
-                                        "attribute_group_id "
+                                        "attribute_group_id, "
+                                        "attended_meeting_id "
                                         "FROM tasks "
                                         "WHERE task_id = ?;";
 
@@ -848,9 +876,10 @@ std::string TasksPersistence::create = "INSERT INTO "
                                        "project_id, "
                                        "category_id, "
                                        "workday_id, "
-                                       "attribute_group_id "
+                                       "attribute_group_id, "
+                                       "attended_meeting_id "
                                        ") "
-                                       "VALUES (?,?,?,?,?,?,?,?,?)";
+                                       "VALUES (?,?,?,?,?,?,?,?,?,?)";
 
 std::string TasksPersistence::update = "UPDATE tasks "
                                        "SET "

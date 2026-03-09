@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -161,7 +161,7 @@ void Application::InitializeLogger()
 #ifdef TKS_DEBUG
     auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_st>();
     msvcSink->set_level(spdlog::level::trace);
-    msvcSink->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%l] %v");
+    msvcSink->set_pattern("*** [%Y-%m-%d %H:%M:%S.%e] [%l] [%!:%#] %v");
 
     auto dailyFileSink =
         std::make_shared<spdlog::sinks::daily_file_sink_st>(logDirectory, 5, 0, false, 5);

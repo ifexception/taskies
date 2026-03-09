@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="ConanVariables">
-    <Conanopenssl_cryptoRootFolder>C:\Users\szymon.welgus\.conan2\p\b\opens3601adf93bac9\p</Conanopenssl_cryptoRootFolder>
-    <Conanopenssl_cryptoBinaryDirectories></Conanopenssl_cryptoBinaryDirectories>
+    <Conanopenssl_cryptoRootFolder>C:\Users\szymon.welgus\.conan2\p\b\opens222d0551f3e37\p</Conanopenssl_cryptoRootFolder>
+    <Conanopenssl_cryptoBinaryDirectories>$(Conanopenssl_cryptoRootFolder)/bin;</Conanopenssl_cryptoBinaryDirectories>
     <Conanopenssl_cryptoCompilerFlags></Conanopenssl_cryptoCompilerFlags>
     <Conanopenssl_cryptoLinkerFlags></Conanopenssl_cryptoLinkerFlags>
     <Conanopenssl_cryptoPreprocessorDefinitions></Conanopenssl_cryptoPreprocessorDefinitions>
     <Conanopenssl_cryptoIncludeDirectories></Conanopenssl_cryptoIncludeDirectories>
     <Conanopenssl_cryptoResourceDirectories></Conanopenssl_cryptoResourceDirectories>
-    <Conanopenssl_cryptoLibraryDirectories>$(Conanopenssl_cryptoRootFolder)/lib;</Conanopenssl_cryptoLibraryDirectories>
-    <Conanopenssl_cryptoLibraries>libcrypto.lib;</Conanopenssl_cryptoLibraries>
+    <Conanopenssl_cryptoLibraryDirectories></Conanopenssl_cryptoLibraryDirectories>
+    <Conanopenssl_cryptoLibraries></Conanopenssl_cryptoLibraries>
     <Conanopenssl_cryptoSystemLibs>crypt32.lib;ws2_32.lib;advapi32.lib;user32.lib;bcrypt.lib;</Conanopenssl_cryptoSystemLibs>
   </PropertyGroup>
 </Project>

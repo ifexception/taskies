@@ -64,22 +64,22 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="conan\conandeps.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="conan\conandeps.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\bin\</OutDir>
     <IntDir>$(SolutionDir)build\$(Platform)\$(Configuration)\obj\</IntDir>
+    <GenerateManifest>true</GenerateManifest>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)build\$(Platform)\$(Configuration)\bin\</OutDir>
     <IntDir>$(SolutionDir)build\$(Platform)\$(Configuration)\obj\</IntDir>
-    <GenerateManifest>false</GenerateManifest>
+    <GenerateManifest>true</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -121,7 +121,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CRT_SECURE_NO_WARNINGS;SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE;TKS_DEBUG;WXDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CRT_SECURE_NO_WARNINGS;SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_TRACE;TKS_DEBUG;WXDEBUG;wxUSE_DATEPICKCTRL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
@@ -132,7 +132,11 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ManifestFile>$(SolutionDir)src\application.manifest</ManifestFile>
     </Link>
+    <Manifest>
+      <AdditionalManifestFiles>$(SolutionDir)src\application.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
     <PreBuildEvent>
       <Command>
 				set CONAN_BUILD_CONFIG="$(Configuration)_$(Platform)" &amp;&amp; "$(ProjectDir).conan\conan_install.bat" . -pr:h=.conan/$(Configuration)_$(Platform) -pr:b=default --build=missing
@@ -145,15 +149,21 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_WARNINGS;wxUSE_GUI=1
-;wxUSE_DATEPICKCTRL=1
-;wxNO_UNSAFE_WXSTRING_CONV=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>
+				NDEBUG;
+				_CRT_SECURE_NO_WARNINGS;
+				wxUSE_GUI=1;
+				wxUSE_DATEPICKCTRL=1;
+				wxNO_UNSAFE_WXSTRING_CONV=1;
+				%(PreprocessorDefinitions)
+			</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ManifestFile>$(SolutionDir)src\application.manifest</ManifestFile>
     </Link>
     <PreBuildEvent>
       <Command>
@@ -162,6 +172,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\persistence\attendedmeetingspersistence.cpp" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\common\common.cpp" />
     <ClCompile Include="src\common\constants.cpp" />
@@ -176,6 +187,7 @@
     <ClCompile Include="src\ipc\applicationoptionsconnection.cpp" />
     <ClCompile Include="src\ipc\server.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\models\attendedmeetingmodel.cpp" />
     <ClCompile Include="src\models\attributegroupmodel.cpp" />
     <ClCompile Include="src\models\attributemodel.cpp" />
     <ClCompile Include="src\models\attributetypemodel.cpp" />
@@ -214,7 +226,6 @@
     <ClCompile Include="src\services\export\excelexporterservice.cpp" />
     <ClCompile Include="src\services\export\excelexportprocessor.cpp" />
     <ClCompile Include="src\services\export\excelguard.cpp" />
-    <ClCompile Include="src\services\export\excelinstancecheck.cpp" />
     <ClCompile Include="src\services\export\exportoptions.cpp" />
     <ClCompile Include="src\services\export\exportresult.cpp" />
     <ClCompile Include="src\services\export\exportsservice.cpp" />
@@ -223,6 +234,8 @@
     <ClCompile Include="src\services\export\projectionbuilder.cpp" />
     <ClCompile Include="src\services\export\row.cpp" />
     <ClCompile Include="src\services\export\sqliteexportquerybuilder.cpp" />
+    <ClCompile Include="src\services\outlook\outlookclassicservice.cpp" />
+    <ClCompile Include="src\services\outlook\outlookmeetingmodel.cpp" />
     <ClCompile Include="src\services\setupwizard\setupwizardservice.cpp" />
     <ClCompile Include="src\services\taskduration\taskdurationservice.cpp" />
     <ClCompile Include="src\services\taskduration\taskdurationviewmodel.cpp" />
@@ -233,7 +246,6 @@
     <ClCompile Include="src\ui\common\taskattributevalueclientdata.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistitemmodel.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistmodel.cpp" />
-    <ClCompile Include="src\ui\dataview\tasklistmodel.cpp" />
     <ClCompile Include="src\ui\dataview\tasktreemodel.cpp" />
     <ClCompile Include="src\ui\dataview\tasktreemodelnode.cpp" />
     <ClCompile Include="src\ui\dlg\aboutdlg.cpp" />
@@ -259,6 +271,7 @@
     <ClCompile Include="src\ui\dlg\taskdlg.cpp" />
     <ClCompile Include="src\ui\dlg\taskmanageattributesdlg.cpp" />
     <ClCompile Include="src\ui\events.cpp" />
+    <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp" />
     <ClCompile Include="src\ui\mainframe.cpp" />
     <ClCompile Include="src\ui\notificationpopupwindow.cpp" />
     <ClCompile Include="src\ui\persistencemanager.cpp" />
@@ -266,9 +279,11 @@
     <ClCompile Include="src\ui\taskbaricon.cpp" />
     <ClCompile Include="src\ui\wizards\setupwizard.cpp" />
     <ClCompile Include="src\utils\datestore.cpp" />
+    <ClCompile Include="src\utils\mswutils.cpp" />
     <ClCompile Include="src\utils\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\persistence\attendedmeetingspersistence.h" />
     <ClInclude Include="src\application.h" />
     <ClInclude Include="src\common\common.h" />
     <ClInclude Include="src\common\constants.h" />
@@ -283,6 +298,7 @@
     <ClInclude Include="src\core\environment.h" />
     <ClInclude Include="src\ipc\applicationoptionsconnection.h" />
     <ClInclude Include="src\ipc\server.h" />
+    <ClInclude Include="src\models\attendedmeetingmodel.h" />
     <ClInclude Include="src\models\attributegroupmodel.h" />
     <ClInclude Include="src\models\attributemodel.h" />
     <ClInclude Include="src\models\attributetypemodel.h" />
@@ -321,7 +337,6 @@
     <ClInclude Include="src\services\export\excelexporterservice.h" />
     <ClInclude Include="src\services\export\excelexportprocessor.h" />
     <ClInclude Include="src\services\export\excelguard.h" />
-    <ClInclude Include="src\services\export\excelinstancecheck.h" />
     <ClInclude Include="src\services\export\exportoptions.h" />
     <ClInclude Include="src\services\export\exportresult.h" />
     <ClInclude Include="src\services\export\exportsservice.h" />
@@ -330,6 +345,8 @@
     <ClInclude Include="src\services\export\projectionbuilder.h" />
     <ClInclude Include="src\services\export\row.h" />
     <ClInclude Include="src\services\export\sqliteexportquerybuilder.h" />
+    <ClInclude Include="src\services\outlook\outlookclassicservice.h" />
+    <ClInclude Include="src\services\outlook\outlookmeetingmodel.h" />
     <ClInclude Include="src\services\setupwizard\setupwizardservice.h" />
     <ClInclude Include="src\services\taskduration\taskdurationservice.h" />
     <ClInclude Include="src\services\taskduration\taskdurationviewmodel.h" />
@@ -340,7 +357,6 @@
     <ClInclude Include="src\ui\common\taskattributevalueclientdata.h" />
     <ClInclude Include="src\ui\dataview\columnlistitemmodel.h" />
     <ClInclude Include="src\ui\dataview\columnlistmodel.h" />
-    <ClInclude Include="src\ui\dataview\tasklistmodel.h" />
     <ClInclude Include="src\ui\dataview\tasktreemodel.h" />
     <ClInclude Include="src\ui\dataview\tasktreemodelnode.h" />
     <ClInclude Include="src\ui\dlg\aboutdlg.h" />
@@ -366,6 +382,7 @@
     <ClInclude Include="src\ui\dlg\taskdlg.h" />
     <ClInclude Include="src\ui\dlg\taskmanageattributesdlg.h" />
     <ClInclude Include="src\ui\events.h" />
+    <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h" />
     <ClInclude Include="src\ui\mainframe.h" />
     <ClInclude Include="src\ui\notificationpopupwindow.h" />
     <ClInclude Include="src\ui\persistencemanager.h" />
@@ -373,13 +390,8 @@
     <ClInclude Include="src\ui\taskbaricon.h" />
     <ClInclude Include="src\ui\wizards\setupwizard.h" />
     <ClInclude Include="src\utils\datestore.h" />
+    <ClInclude Include="src\utils\mswutils.h" />
     <ClInclude Include="src\utils\utils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="src\application.manifest">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
-    </Manifest>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc" />
@@ -390,9 +402,10 @@
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
     <None Include="CHANGELOG.md" />
+    <None Include="conandata.yml" />
+    <None Include="conanfile.py" />
     <None Include="LICENSE" />
     <None Include="README.md" />
-    <None Include="res\install-wizard.svg" />
     <None Include="res\migrations\20230104084922_create_persistent_objects_table.sql" />
     <None Include="res\migrations\20230122215058_create_employers_table.sql" />
     <None Include="res\migrations\20230408192035_create_clients_table.sql" />
@@ -408,6 +421,10 @@
     <None Include="res\migrations\20250412112647_add_attribute_group_id_column_to_tasks_table.sql" />
     <None Include="res\migrations\20250414190324_create_task_attribute_values_table.sql" />
     <None Include="res\migrations\20250427164010_create_static_attribute_values_table.sql" />
+    <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql" />
+    <None Include="res\migrations\20260210185522_add_attended_meeting_id_column_to_tasks_table.sql" />
+  </ItemGroup>
+  <ItemGroup>
     <CopyFileToFolders Include="taskies.toml">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
@@ -428,6 +445,7 @@
   <ItemGroup>
     <None Include="res\bell16x16.png" />
     <None Include="res\bellnotification16x16.png" />
+    <None Include="res\install-wizard.svg" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="res\bell16x16.png">
@@ -436,5 +454,14 @@
     <Content Include="res\bellnotification16x16.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="res\install-wizard.svg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="LICENSE">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="src\application.manifest" />
   </ItemGroup>
 </Project>

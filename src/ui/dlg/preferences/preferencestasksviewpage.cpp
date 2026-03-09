@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -21,9 +21,10 @@
 
 #include <wx/richtooltip.h>
 
+#include "../../common/clientdata.h"
+
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
-#include "../../common/clientdata.h"
 
 namespace tks::UI::dlg
 {
@@ -61,13 +62,14 @@ void PreferencesTasksViewPage::CreateControls()
     /* Base Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    /* Time Increment box */
+    /* Tasks view box */
     auto tasksViewBox = new wxStaticBox(this, wxID_ANY, "Tasks View");
     auto tasksViewBoxSizer = new wxStaticBoxSizer(tasksViewBox, wxHORIZONTAL);
     sizer->Add(tasksViewBoxSizer, wxSizerFlags().Expand());
 
     /* Today always expanded control */
-    pTodayAlwaysExpanded = new wxCheckBox(this, tksIDC_TODAYALWAYSEXPANDED, "Today's date always expanded");
+    pTodayAlwaysExpanded =
+        new wxCheckBox(tasksViewBox, tksIDC_TODAYALWAYSEXPANDED, "Today's date always expanded");
     pTodayAlwaysExpanded->SetToolTip("When selecting other dates, keep today's date expanded too");
     tasksViewBoxSizer->Add(pTodayAlwaysExpanded, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
 

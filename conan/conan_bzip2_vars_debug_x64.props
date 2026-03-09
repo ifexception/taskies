@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="ConanVariables">
-    <Conanbzip2RootFolder>C:\Users\szymon.welgus\.conan2\p\b\bzip2cde566e0d7e9b\p</Conanbzip2RootFolder>
-    <Conanbzip2BinaryDirectories></Conanbzip2BinaryDirectories>
+    <Conanbzip2RootFolder>C:\Users\szymon.welgus\.conan2\p\b\bzip252a7cbf785c24\p</Conanbzip2RootFolder>
+    <Conanbzip2BinaryDirectories>$(Conanbzip2RootFolder)/bin;</Conanbzip2BinaryDirectories>
     <Conanbzip2CompilerFlags></Conanbzip2CompilerFlags>
     <Conanbzip2LinkerFlags></Conanbzip2LinkerFlags>
     <Conanbzip2PreprocessorDefinitions></Conanbzip2PreprocessorDefinitions>
     <Conanbzip2IncludeDirectories></Conanbzip2IncludeDirectories>
     <Conanbzip2ResourceDirectories></Conanbzip2ResourceDirectories>
-    <Conanbzip2LibraryDirectories>$(Conanbzip2RootFolder)/lib;</Conanbzip2LibraryDirectories>
-    <Conanbzip2Libraries>bz2.lib;</Conanbzip2Libraries>
+    <Conanbzip2LibraryDirectories></Conanbzip2LibraryDirectories>
+    <Conanbzip2Libraries></Conanbzip2Libraries>
     <Conanbzip2SystemLibs></Conanbzip2SystemLibs>
   </PropertyGroup>
 </Project>

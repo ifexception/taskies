@@ -4,6 +4,7 @@ project ("Taskies")
 add_subdirectory("common")
 add_subdirectory("dataview")
 add_subdirectory("dlg")
+add_subdirectory("frames")
 add_subdirectory("wizards")
 
 set(
@@ -19,5 +20,6 @@ set(
     ${SRC_UI_DATAVIEW}
     ${SRC_DLG}
     ${SRC_WIZARDS}
+	${SRC_FRMS}
     PARENT_SCOPE
 )

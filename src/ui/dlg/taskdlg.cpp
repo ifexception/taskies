@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@
 #include "../../models/attributegroupmodel.h"
 #include "../../models/attributemodel.h"
 #include "../../models/staticattributevaluemodel.h"
+#include "../../models/attendedmeetingmodel.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
@@ -57,6 +58,7 @@
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/taskattributevaluespersistence.h"
 #include "../../persistence/staticattributevaluespersistence.h"
+#include "../../persistence/attendedmeetingspersistence.h"
 
 #include "../../services/categories/categoryviewmodel.h"
 #include "../../services/categories/categoryservice.h"
@@ -112,6 +114,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mTaskModel()
     , bHasTaskAttributeValues(false)
     , mTaskAttributeValueModels()
+    , bIsMeeting(false)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -132,6 +135,46 @@ TaskDialog::TaskDialog(wxWindow* parent,
 
     wxIconBundle iconBundle(tks::Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
+}
+
+void TaskDialog::SetAttendedMeetingData(const std::string& subject,
+    const int duration,
+    const std::string& additionalData)
+{
+    bIsMeeting = true;
+
+    std::string taskDescription = "";
+    if (additionalData.empty()) {
+        taskDescription = subject;
+    } else {
+        taskDescription = subject + "\n\n" + additionalData;
+    }
+
+    pTaskDescriptionTextCtrl->ChangeValue(taskDescription);
+
+    int roundedDuration = Utils::RoundUpToMultiple(duration, pCfg->GetMinutesIncrement());
+
+    int minutes = 0;
+    int hours = 0;
+    Utils::DeconstructDurationTimePeriod(roundedDuration, hours, minutes);
+
+    pTimeHoursSpinCtrl->SetValue(hours);
+    pTimeMinutesSpinCtrl->SetValue(minutes);
+}
+
+void TaskDialog::SetAttendedMeetingDataEx(const std::string& entryId,
+    const std::string& subject,
+    const std::string& start,
+    const std::string& end,
+    const int duration,
+    const std::string& location)
+{
+    mAttendedMeetingModel.EntryId = entryId;
+    mAttendedMeetingModel.Subject = subject;
+    mAttendedMeetingModel.Start = start;
+    mAttendedMeetingModel.End = end;
+    mAttendedMeetingModel.Duration = duration;
+    mAttendedMeetingModel.Location = location;
 }
 
 void TaskDialog::Create()
@@ -1191,8 +1234,24 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
+    Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
+        pLogger, mDatabaseFilePath);
 
     if (!bIsEdit) {
+        if (bIsMeeting) {
+            std::int64_t attendedMeetingId =
+                attendedMeetingsPersistence.Create(mAttendedMeetingModel);
+            ret = attendedMeetingId > 0 ? 0 : -1;
+            ret == -1 ? message = "Failed to create attended meeting entry"
+                      : message = "Successfully created attended meeting entry";
+
+            QueueNotificationEvent(ret, message);
+
+            if (ret == 0) {
+                mTaskModel.AttendedMeetingId = std::make_optional(attendedMeetingId);
+            }
+        }
+
         std::int64_t taskId = taskPersistence.Create(mTaskModel);
         ret = taskId > 0 ? 0 : -1;
         mTaskId = taskId;
@@ -1240,6 +1299,13 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
+        if (mTaskModel.AttendedMeetingId.has_value()) {
+            ret = attendedMeetingsPersistence.Delete(mTaskModel.AttendedMeetingId.value());
+            ret == -1 ? message = "Failed to delete task attended meeting"
+                      : message = "Successfully deleted task attended meeting";
+            QueueNotificationEvent(ret, message);
+        }
+
         ret = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
 
         ret == -1 ? message = "Failed to delete task attribute values"
@@ -1607,7 +1673,10 @@ void TaskDialog::SetDataWhenTaskCloned()
     pTaskDescriptionTextCtrl->ChangeValue(clonedTaskDescription);
 
     // set date to today regardless from when task was cloned
-    pDateContextDatePickerCtrl->SetValue(wxDateTime::Now());
+    wxDateTime dateTaskContext = wxDateTime::Now();
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Date Context = {0}", dateTaskContext.FormatISODate().ToStdString());
+    pDateContextDatePickerCtrl->SetValue(dateTaskContext);
 
     // set date variables to today also
     auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
@@ -1619,6 +1688,9 @@ void TaskDialog::SetDataWhenTaskCloned()
 
     // set is edit flag to false
     bIsEdit = false;
+
+    pIsActiveCheckBoxCtrl->SetValue(false);
+    pIsActiveCheckBoxCtrl->Disable();
 }
 
 std::string TaskDialog::AttributeValuesCapturedLabel = "\"{0}\" attribute values captured";

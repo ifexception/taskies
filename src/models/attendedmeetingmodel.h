@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,22 +19,29 @@
 
 #pragma once
 
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
+#include <cstdint>
+#include <string>
 
-#include <wx/msw/registry.h>
-
-namespace tks::Services::Export
+namespace tks::Model
 {
-struct ExcelInstanceCheck {
-    ExcelInstanceCheck();
-    ~ExcelInstanceCheck() = default;
+struct AttendedMeetingModel {
+    AttendedMeetingModel();
+    ~AttendedMeetingModel() = default;
 
-    bool operator()() const;
+    std::int64_t AttendedMeetingId;
 
-    std::string mRegPath;
-    wxRegKey mKey;
+    std::string EntryId;
+    std::string Subject;
+    std::string Start;
+    std::string End;
+    int Duration;
+    std::string Location;
+
+    std::uint32_t DateCreated;
+    std::uint32_t DateModified;
+    bool IsActive;
+
+    const std::string GetDateCreatedString() const;
+    const std::string GetDateModifiedString() const;
 };
-} // namespace tks::Services::Export
+} // namespace tks::Model

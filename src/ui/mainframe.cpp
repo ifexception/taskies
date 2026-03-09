@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -47,11 +47,12 @@
 #include "../core/configuration.h"
 
 #include "../persistence/taskspersistence.h"
+#include "../persistence/attendedmeetingspersistence.h"
 
-#include "../services/export/excelinstancecheck.h"
 #include "../services/tasks/taskviewmodel.h"
 #include "../services/tasks/tasksservice.h"
 
+#include "../utils/mswutils.h"
 #include "../utils/utils.h"
 
 #include "../ui/dlg/employerdlg.h"
@@ -61,7 +62,6 @@
 #include "../ui/dlg/categoriesdlg.h"
 #include "../ui/dlg/aboutdlg.h"
 #include "../ui/dlg/preferences/preferencesdlg.h"
-// #include "../ui/dlg/daytaskviewdlg.h"
 #include "../ui/dlg/exports/exporttocsvdlg.h"
 #include "../ui/dlg/exports/exporttoexceldlg.h"
 #include "../ui/dlg/exports/quickexporttoformatdlg.h"
@@ -96,6 +96,7 @@ EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
 EVT_SIZE(MainFrame::OnResize)
 EVT_TIMER(tksIDC_TASKREMINDERTIMER, MainFrame::OnTaskReminder)
+EVT_MOVE(MainFrame::OnMove)
 /* Taskbar Button Event Handlers */
 EVT_BUTTON(tksIDC_THUMBBAR_NEWTASK, MainFrame::OnThumbBarNewTask)
 EVT_BUTTON(tksIDC_THUMBBAR_QUICKEXPORT, MainFrame::OnThumbBarQuickExport)
@@ -122,7 +123,7 @@ EVT_MENU(ID_EDIT_ATTRIBUTE, MainFrame::OnEditAttribute)
 EVT_MENU(ID_EDIT_STATIC_ATTRIBUTE_VALUES, MainFrame::OnEditStaticAttributeValues)
 EVT_MENU(ID_VIEW_RESET, MainFrame::OnViewReset)
 EVT_MENU(ID_VIEW_EXPAND, MainFrame::OnViewExpand)
-// EVT_MENU(ID_VIEW_DAY, MainFrame::OnViewDay)
+EVT_MENU(ID_VIEW_OUTLOOK, MainFrame::OnViewOutlook)
 EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Popup Menu Event Handlers */
@@ -192,6 +193,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pThumbBarNewTaskButton(nullptr)
     , pThumbBarQuickExportButton(nullptr)
     , mThumbBarDialogOpenCounter(0)
+    , pMeetingsViewFrame(nullptr)
 // clang-format on
 {
     SPDLOG_LOGGER_TRACE(pLogger, "Initialization of MainFrame");
@@ -341,15 +343,14 @@ void MainFrame::CreateControls()
     fileTasksMenu->Append(
         ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export tasks data to CSV file/clipboard");
 
-    Services::Export::ExcelInstanceCheck isExcelInstalled;
+    MswUtils::ExcelInstanceCheck isExcelInstalled;
     if (isExcelInstalled()) {
         fileTasksMenu->Append(
             ID_TASKS_EXPORTTOEXCEL, "Ex&port to Excel", "Export tasks data to Excel");
     }
 
-    auto quickExportMenuItem = fileTasksMenu->Append(ID_TASKS_QUICKEXPORTTOCSV,
-        "&Quick Export",
-        "Export tasks data to CSV or Excel");
+    auto quickExportMenuItem = fileTasksMenu->Append(
+        ID_TASKS_QUICKEXPORTTOCSV, "&Quick Export", "Export tasks data to CSV or Excel");
 
     wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
     quickExportMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(quickExportBundle));
@@ -378,7 +379,17 @@ void MainFrame::CreateControls()
     auto viewMenu = new wxMenu();
     viewMenu->Append(ID_VIEW_RESET, "&Reset View\tCtrl-R", "Reset task view to current week");
     viewMenu->Append(ID_VIEW_EXPAND, "&Expand\tCtrl-E", "Expand date procedure");
-    // viewMenu->Append(ID_VIEW_DAY, "Day View", "See task view for the selected day");
+    viewMenu->AppendSeparator();
+
+    MswUtils::OutlookInstanceCheck isOutlookInstalled;
+    if (isOutlookInstalled()) {
+        auto outlookViewMenuItem =
+            viewMenu->Append(ID_VIEW_OUTLOOK, "&Outlook\tAlt-O", "View Outlook meetings");
+        if (!MswUtils::IsOutlookRunning()) {
+            outlookViewMenuItem->Enable(false);
+        }
+    }
+
     viewMenu->AppendSeparator();
     auto preferencesMenuItem =
         viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
@@ -499,10 +510,13 @@ void MainFrame::CreateControls()
     pDataViewCtrl->SetFocus();
 
     /* Accelerator Table */
-    wxAcceleratorEntry entries[5];
+    wxAcceleratorEntry entries[4];
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
     entries[2].Set(wxACCEL_CTRL, (int) 'E', ID_VIEW_EXPAND);
+    if (isOutlookInstalled() && !MswUtils::IsOutlookRunning()) {
+        entries[3].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
+    }
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
     SetAcceleratorTable(table);
@@ -558,6 +572,10 @@ void MainFrame::OnClose(wxCloseEvent& event)
         SPDLOG_LOGGER_TRACE(pLogger, "Closing program to tray area");
         Hide();
         MSWGetTaskBarButton()->Hide();
+
+        if (pMeetingsViewFrame) {
+            pMeetingsViewFrame->Hide();
+        }
     } else {
         // Call Hide() in case closing of program takes longer than expected and causes
         // a bad experience for the user
@@ -588,10 +606,13 @@ void MainFrame::OnClose(wxCloseEvent& event)
 
 void MainFrame::OnIconize(wxIconizeEvent& event)
 {
-    pLogger->info("MainFrame::OnIconize - Iconize program");
     if (event.IsIconized() && pCfg->ShowInTray() && pCfg->MinimizeToTray()) {
         pLogger->info("MainFrame::OnIconize - Iconize program to tray area");
         MSWGetTaskBarButton()->Hide();
+
+        if (pMeetingsViewFrame) {
+            pMeetingsViewFrame->Hide();
+        }
     }
 }
 
@@ -599,6 +620,9 @@ void MainFrame::OnResize(wxSizeEvent& event)
 {
     if (pNotificationPopupWindow) {
         pNotificationPopupWindow->OnResize();
+    }
+    if (pMeetingsViewFrame) {
+        pMeetingsViewFrame->OnParentFrameResize();
     }
 
     event.Skip();
@@ -630,6 +654,19 @@ void MainFrame::OnTaskReminder(wxTimerEvent& event)
         }
     }
     pLogger->info("{0} - Task reminder notification finished", TAG);
+}
+
+void MainFrame::OnMove(wxMoveEvent& event)
+{
+    if (pMeetingsViewFrame) {
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Main frame move event and Outlook frame is open!\nNew position => ({0},{1})",
+            event.GetPosition().x,
+            event.GetPosition().y);
+        pMeetingsViewFrame->OnParentFrameMove();
+    }
+
+    event.Skip();
 }
 
 void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
@@ -909,15 +946,12 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
     TryUpdateSelectedDateAndAllTaskDurations(pDateStore->PrintTodayDate);
 }
 
-// void MainFrame::OnViewDay(wxCommandEvent& WXUNUSED(event))
-//{
-//     UI::dlg::DayTaskViewDialog dayTaskView(this,
-//         pLogger,
-//         pEnv,
-//         mDatabaseFilePath,
-//         mTaskDate.empty() ? pDateStore->PrintTodayDate : mTaskDate);
-//     dayTaskView.ShowModal();
-// }
+void MainFrame::OnViewOutlook(wxCommandEvent& event)
+{
+    pMeetingsViewFrame =
+        new frames::OutlookMeetingsViewFrame(this, pCfg, pLogger, mDatabaseFilePath, IsMaximized());
+    pMeetingsViewFrame->Show();
+}
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
@@ -1141,16 +1175,56 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     }
 
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
-
-    int rc = taskPersistence.Delete(mTaskIdToModify);
+    Model::TaskModel taskModel;
+    int rc = taskPersistence.GetById(mTaskIdToModify, taskModel);
     if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+        std::string message = "Failed to fetch task";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(this, addNotificationEvent);
+
+        ResetTaskContextMenuVariables();
+        return;
+    }
+
+    // TODO: task attribute values need to be deleted as well
+
+    if (taskModel.AttendedMeetingId.has_value()) {
+        Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
+            pLogger, mDatabaseFilePath);
+        rc = attendedMeetingsPersistence.Delete(taskModel.AttendedMeetingId.value());
+        if (rc != 0) {
+            std::string message = "Failed to delete attended meeting associated to task";
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            NotificationClientData* clientData =
+                new NotificationClientData(NotificationType::Error, message);
+            addNotificationEvent->SetClientObject(clientData);
+
+            wxQueueEvent(this, addNotificationEvent);
+
+            ResetTaskContextMenuVariables();
+            return;
+        }
+    }
+
+    rc = taskPersistence.Delete(mTaskIdToModify);
+    if (rc != 0) {
+        std::string message = "Failed to delete selected task";
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        NotificationClientData* clientData =
+            new NotificationClientData(NotificationType::Error, message);
+        addNotificationEvent->SetClientObject(clientData);
+
+        wxQueueEvent(this, addNotificationEvent);
     } else {
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
 
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
 
-        auto message = "Successfully deleted task";
+        std::string message = "Successfully deleted task";
         wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
@@ -1168,7 +1242,7 @@ void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
     assert(mTaskIdToModify != -1);
 
     dlg::TaskDialog cloneTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate, true);
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, "", true);
     cloneTaskDialog.ShowModal();
 
     ResetTaskContextMenuVariables();

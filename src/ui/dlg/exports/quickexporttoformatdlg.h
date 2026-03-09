@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -39,9 +39,9 @@
 #include "../../../core/configuration.h"
 
 #include "../../../services/export/exportoptions.h"
-#include "../../../services/export/excelinstancecheck.h"
 
 #include "../../../utils/datestore.h"
+#include "../../../utils/mswutils.h"
 
 namespace tks::UI::dlg
 {
@@ -119,7 +119,7 @@ private:
     bool bExportToClipboard;
     bool bExportTodaysTasksOnly;
 
-    Services::Export::ExcelInstanceCheck mIsExcelInstalled;
+    MswUtils::ExcelInstanceCheck mIsExcelInstalled;
     Services::Export::ExportOptions mExportOptions;
     ExportFormat mExportFormat;
     wxArrayString mRadioExportOptions;

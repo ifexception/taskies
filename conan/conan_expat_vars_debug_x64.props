@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="ConanVariables">
-    <ConanexpatRootFolder>C:\Users\szymon.welgus\.conan2\p\b\expat6d0b72d23900f\p</ConanexpatRootFolder>
-    <ConanexpatBinaryDirectories></ConanexpatBinaryDirectories>
+    <ConanexpatRootFolder>C:\Users\szymon.welgus\.conan2\p\b\expat0c4464e0540d8\p</ConanexpatRootFolder>
+    <ConanexpatBinaryDirectories>$(ConanexpatRootFolder)/bin;</ConanexpatBinaryDirectories>
     <ConanexpatCompilerFlags></ConanexpatCompilerFlags>
     <ConanexpatLinkerFlags></ConanexpatLinkerFlags>
-    <ConanexpatPreprocessorDefinitions>XML_STATIC;</ConanexpatPreprocessorDefinitions>
+    <ConanexpatPreprocessorDefinitions></ConanexpatPreprocessorDefinitions>
     <ConanexpatIncludeDirectories></ConanexpatIncludeDirectories>
     <ConanexpatResourceDirectories></ConanexpatResourceDirectories>
-    <ConanexpatLibraryDirectories>$(ConanexpatRootFolder)/lib;</ConanexpatLibraryDirectories>
-    <ConanexpatLibraries>libexpatdMD.lib;</ConanexpatLibraries>
+    <ConanexpatLibraryDirectories></ConanexpatLibraryDirectories>
+    <ConanexpatLibraries></ConanexpatLibraries>
     <ConanexpatSystemLibs></ConanexpatSystemLibs>
   </PropertyGroup>
 </Project>

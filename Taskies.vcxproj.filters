@@ -1,713 +1,743 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\common">
-      <UniqueIdentifier>{8283d938-c704-4939-bd4b-def8dd9f8629}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\core">
-      <UniqueIdentifier>{733b6785-5e5c-4dde-8678-dc0b0f69e54b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ipc">
-      <UniqueIdentifier>{0b738d08-8658-4e97-93ba-c24b4238534c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\models">
-      <UniqueIdentifier>{1dbf10ad-c65b-43a9-a95a-525f2f93fb0b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\persistence">
-      <UniqueIdentifier>{de0257f6-1589-4303-b99e-eba200e23b75}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\services">
-      <UniqueIdentifier>{a0476725-b84f-464e-9c76-9c034e24095f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ui">
-      <UniqueIdentifier>{3a9785ee-e225-4d3a-9576-069899f53d7c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\utils">
-      <UniqueIdentifier>{43d0389a-71a5-4c18-adcc-c1a2ed2883db}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\services\attributes">
-      <UniqueIdentifier>{9013863f-d289-4f21-af06-91453a52832b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\services\categories">
-      <UniqueIdentifier>{fb45328d-8ac4-46dd-828f-a6ee926572d1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\services\export">
-      <UniqueIdentifier>{9f0fc922-3965-4b90-95b5-b7c2277831d4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\services\setupwizard">
-      <UniqueIdentifier>{3770b661-c5f5-445b-90ea-9c1a974071e5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\services\taskduration">
-      <UniqueIdentifier>{d5082ad8-9949-4101-a5f0-dfb4d4f54dda}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\services\tasks">
-      <UniqueIdentifier>{d6daa2e4-048a-4723-a794-88b7dd508e76}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ui\common">
-      <UniqueIdentifier>{93d20c09-85ad-4957-b330-c91ef624bfe6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ui\dataview">
-      <UniqueIdentifier>{5e3f5280-76b0-4ea6-b843-fd86ecd0907d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ui\wizard">
-      <UniqueIdentifier>{15a7c95b-c557-4cd6-a511-4038e923e879}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ui\dialogs">
-      <UniqueIdentifier>{49f17734-cadd-46ca-a137-ec687c1018d1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ui\dialogs\attributes">
-      <UniqueIdentifier>{6be221bb-4b16-41f7-8429-d59b24e4ebb2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ui\dialogs\exports">
-      <UniqueIdentifier>{f8c2943a-c823-40ad-8d72-0f9461912d57}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\ui\dialogs\preferences">
-      <UniqueIdentifier>{5fafd90a-4837-4d78-b4e5-e8902ef9eb29}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\migrations">
       <UniqueIdentifier>{a2dd7864-16d1-4fc4-bdfc-56299e7c8eda}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source\common">
+      <UniqueIdentifier>{8283d938-c704-4939-bd4b-def8dd9f8629}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\core">
+      <UniqueIdentifier>{733b6785-5e5c-4dde-8678-dc0b0f69e54b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ipc">
+      <UniqueIdentifier>{0b738d08-8658-4e97-93ba-c24b4238534c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\models">
+      <UniqueIdentifier>{1dbf10ad-c65b-43a9-a95a-525f2f93fb0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\persistence">
+      <UniqueIdentifier>{de0257f6-1589-4303-b99e-eba200e23b75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\services">
+      <UniqueIdentifier>{a0476725-b84f-464e-9c76-9c034e24095f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\services\attributes">
+      <UniqueIdentifier>{9013863f-d289-4f21-af06-91453a52832b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\services\categories">
+      <UniqueIdentifier>{fb45328d-8ac4-46dd-828f-a6ee926572d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\services\export">
+      <UniqueIdentifier>{9f0fc922-3965-4b90-95b5-b7c2277831d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\services\setupwizard">
+      <UniqueIdentifier>{3770b661-c5f5-445b-90ea-9c1a974071e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\services\taskduration">
+      <UniqueIdentifier>{d5082ad8-9949-4101-a5f0-dfb4d4f54dda}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\services\tasks">
+      <UniqueIdentifier>{d6daa2e4-048a-4723-a794-88b7dd508e76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui">
+      <UniqueIdentifier>{3a9785ee-e225-4d3a-9576-069899f53d7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui\common">
+      <UniqueIdentifier>{93d20c09-85ad-4957-b330-c91ef624bfe6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui\dataview">
+      <UniqueIdentifier>{5e3f5280-76b0-4ea6-b843-fd86ecd0907d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui\wizard">
+      <UniqueIdentifier>{15a7c95b-c557-4cd6-a511-4038e923e879}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui\dialogs">
+      <UniqueIdentifier>{49f17734-cadd-46ca-a137-ec687c1018d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui\dialogs\attributes">
+      <UniqueIdentifier>{6be221bb-4b16-41f7-8429-d59b24e4ebb2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui\dialogs\exports">
+      <UniqueIdentifier>{f8c2943a-c823-40ad-8d72-0f9461912d57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui\dialogs\preferences">
+      <UniqueIdentifier>{5fafd90a-4837-4d78-b4e5-e8902ef9eb29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui\frames">
+      <UniqueIdentifier>{b8f17078-4f2a-4b44-b9a1-cf4af50f0340}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\utils">
+      <UniqueIdentifier>{43d0389a-71a5-4c18-adcc-c1a2ed2883db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\services\outlook">
+      <UniqueIdentifier>{f31f582e-e81c-43bc-b3f7-39a6ee77d126}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\ui\persistencemanager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\application.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="src\common\common.cpp">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClCompile>
     <ClCompile Include="src\common\constants.cpp">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClCompile>
     <ClCompile Include="src\common\enumclientdata.cpp">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClCompile>
     <ClCompile Include="src\common\enums.cpp">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClCompile>
     <ClCompile Include="src\common\logmessages.cpp">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClCompile>
     <ClCompile Include="src\common\queryhelper.cpp">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClCompile>
     <ClCompile Include="src\common\validator.cpp">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClCompile>
     <ClCompile Include="src\core\configuration.cpp">
-      <Filter>Source Files\core</Filter>
+      <Filter>Source\core</Filter>
     </ClCompile>
     <ClCompile Include="src\core\database_migration.cpp">
-      <Filter>Source Files\core</Filter>
+      <Filter>Source\core</Filter>
     </ClCompile>
     <ClCompile Include="src\core\environment.cpp">
-      <Filter>Source Files\core</Filter>
+      <Filter>Source\core</Filter>
     </ClCompile>
     <ClCompile Include="src\ipc\applicationoptionsconnection.cpp">
-      <Filter>Source Files\ipc</Filter>
+      <Filter>Source\ipc</Filter>
     </ClCompile>
     <ClCompile Include="src\ipc\server.cpp">
-      <Filter>Source Files\ipc</Filter>
+      <Filter>Source\ipc</Filter>
     </ClCompile>
     <ClCompile Include="src\models\attributegroupmodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\attributemodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\attributetypemodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\categorymodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\clientmodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\employermodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\projectmodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\staticattributevaluemodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\taskattributevaluemodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\taskmodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\models\workdaymodel.cpp">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\attributegroupspersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\attributespersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\attributetypespersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\categoriespersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\clientspersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\employerspersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\projectspersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\staticattributevaluespersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\taskattributevaluespersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\workdayspersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\persistence\taskspersistence.cpp">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClCompile>
     <ClCompile Include="src\services\attributes\staticattributegroupsservice.cpp">
-      <Filter>Source Files\services\attributes</Filter>
+      <Filter>Source\services\attributes</Filter>
     </ClCompile>
     <ClCompile Include="src\services\attributes\staticattributegroupviewmodel.cpp">
-      <Filter>Source Files\services\attributes</Filter>
+      <Filter>Source\services\attributes</Filter>
     </ClCompile>
     <ClCompile Include="src\services\categories\categoryservice.cpp">
-      <Filter>Source Files\services\categories</Filter>
+      <Filter>Source\services\categories</Filter>
     </ClCompile>
     <ClCompile Include="src\services\categories\categoryviewmodel.cpp">
-      <Filter>Source Files\services\categories</Filter>
+      <Filter>Source\services\categories</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\availablecolumns.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\columnjoinprojection.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\columnprojection.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\csvexporterservice.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\csvexportprocessor.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\csvmappedoptions.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\data.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\datagenerator.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\excelexporterservice.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\excelexportprocessor.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\excelguard.cpp">
-      <Filter>Source Files\services\export</Filter>
-    </ClCompile>
-    <ClCompile Include="src\services\export\excelinstancecheck.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\exportresult.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\exportsservice.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\headervaluepair.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\projectionbuilder.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\row.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\sqliteexportquerybuilder.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\setupwizard\setupwizardservice.cpp">
-      <Filter>Source Files\services\setupwizard</Filter>
+      <Filter>Source\services\setupwizard</Filter>
     </ClCompile>
     <ClCompile Include="src\services\taskduration\taskdurationservice.cpp">
-      <Filter>Source Files\services\taskduration</Filter>
+      <Filter>Source\services\taskduration</Filter>
     </ClCompile>
     <ClCompile Include="src\services\taskduration\taskdurationviewmodel.cpp">
-      <Filter>Source Files\services\taskduration</Filter>
+      <Filter>Source\services\taskduration</Filter>
     </ClCompile>
     <ClCompile Include="src\services\tasks\taskviewmodel.cpp">
-      <Filter>Source Files\services\tasks</Filter>
+      <Filter>Source\services\tasks</Filter>
     </ClCompile>
     <ClCompile Include="src\services\tasks\tasksservice.cpp">
-      <Filter>Source Files\services\tasks</Filter>
+      <Filter>Source\services\tasks</Filter>
     </ClCompile>
     <ClCompile Include="src\utils\utils.cpp">
-      <Filter>Source Files\utils</Filter>
+      <Filter>Source\utils</Filter>
     </ClCompile>
     <ClCompile Include="src\utils\datestore.cpp">
-      <Filter>Source Files\utils</Filter>
+      <Filter>Source\utils</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\common\clientdata.cpp">
-      <Filter>Source Files\ui\common</Filter>
+      <Filter>Source\ui\common</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\common\notificationclientdata.cpp">
-      <Filter>Source Files\ui\common</Filter>
+      <Filter>Source\ui\common</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\common\taskattributevalueclientdata.cpp">
-      <Filter>Source Files\ui\common</Filter>
+      <Filter>Source\ui\common</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dataview\columnlistitemmodel.cpp">
-      <Filter>Source Files\ui\dataview</Filter>
+      <Filter>Source\ui\dataview</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dataview\columnlistmodel.cpp">
-      <Filter>Source Files\ui\dataview</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ui\dataview\tasklistmodel.cpp">
-      <Filter>Source Files\ui\dataview</Filter>
+      <Filter>Source\ui\dataview</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dataview\tasktreemodel.cpp">
-      <Filter>Source Files\ui\dataview</Filter>
+      <Filter>Source\ui\dataview</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dataview\tasktreemodelnode.cpp">
-      <Filter>Source Files\ui\dataview</Filter>
+      <Filter>Source\ui\dataview</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\columnexportmodel.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\wizards\setupwizard.cpp">
-      <Filter>Source Files\ui\wizard</Filter>
+      <Filter>Source\ui\wizard</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\attributes\attributedlg.cpp">
-      <Filter>Source Files\ui\dialogs\attributes</Filter>
+      <Filter>Source\ui\dialogs\attributes</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\attributes\attributegroupdlg.cpp">
-      <Filter>Source Files\ui\dialogs\attributes</Filter>
+      <Filter>Source\ui\dialogs\attributes</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\attributes\staticattributevaluesdlg.cpp">
-      <Filter>Source Files\ui\dialogs\attributes</Filter>
+      <Filter>Source\ui\dialogs\attributes</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\exports\exporttocsvdlg.cpp">
-      <Filter>Source Files\ui\dialogs\exports</Filter>
+      <Filter>Source\ui\dialogs\exports</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\exports\exporttoexceldlg.cpp">
-      <Filter>Source Files\ui\dialogs\exports</Filter>
+      <Filter>Source\ui\dialogs\exports</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\exports\quickexporttoformatdlg.cpp">
-      <Filter>Source Files\ui\dialogs\exports</Filter>
+      <Filter>Source\ui\dialogs\exports</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\preferences\preferencesdatabasepage.cpp">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\preferences\preferencesdlg.cpp">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\preferences\preferencesexportpage.cpp">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\preferences\preferencesgeneralpage.cpp">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\preferences\preferencestaskspage.cpp">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\preferences\preferencestasksviewpage.cpp">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\aboutdlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\categoriesdlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\categorydlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\clientdlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\editlistdlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\employerdlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\errordlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\projectdlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\taskdlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\dlg\taskmanageattributesdlg.cpp">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\exportoptions.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\services\export\projection.cpp">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\events.cpp">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\mainframe.cpp">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\notificationpopupwindow.cpp">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\statusbar.cpp">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\taskbaricon.cpp">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\services\outlook\outlookclassicservice.cpp">
+      <Filter>Source\services\outlook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\services\outlook\outlookmeetingmodel.cpp">
+      <Filter>Source\services\outlook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\persistencemanager.cpp">
+      <Filter>Source\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\models\attendedmeetingmodel.cpp">
+      <Filter>Source\models</Filter>
+    </ClCompile>
+    <ClCompile Include="src\persistence\attendedmeetingspersistence.cpp">
+      <Filter>Source\persistence</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp">
+      <Filter>Source\ui\frames</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\mswutils.cpp">
+      <Filter>Source\utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClInclude>
     <ClInclude Include="src\common\constants.h">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClInclude>
     <ClInclude Include="src\common\enumclientdata.h">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClInclude>
     <ClInclude Include="src\common\enums.h">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClInclude>
     <ClInclude Include="src\common\logmessages.h">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClInclude>
     <ClInclude Include="src\common\validator.h">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClInclude>
     <ClInclude Include="src\common\version.h">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClInclude>
     <ClInclude Include="src\core\configuration.h">
-      <Filter>Source Files\core</Filter>
+      <Filter>Source\core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\database_migration.h">
-      <Filter>Source Files\core</Filter>
+      <Filter>Source\core</Filter>
     </ClInclude>
     <ClInclude Include="src\core\environment.h">
-      <Filter>Source Files\core</Filter>
+      <Filter>Source\core</Filter>
     </ClInclude>
     <ClInclude Include="src\common\queryhelper.h">
-      <Filter>Source Files\common</Filter>
+      <Filter>Source\common</Filter>
     </ClInclude>
     <ClInclude Include="src\models\projectmodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\ipc\applicationoptionsconnection.h">
-      <Filter>Source Files\ipc</Filter>
+      <Filter>Source\ipc</Filter>
     </ClInclude>
     <ClInclude Include="src\ipc\server.h">
-      <Filter>Source Files\ipc</Filter>
+      <Filter>Source\ipc</Filter>
     </ClInclude>
     <ClInclude Include="src\models\attributegroupmodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\models\attributetypemodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\models\categorymodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\models\attributemodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\models\clientmodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\models\employermodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\models\staticattributevaluemodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\models\taskattributevaluemodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\models\taskmodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\models\workdaymodel.h">
-      <Filter>Source Files\models</Filter>
+      <Filter>Source\models</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\attributegroupspersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\attributetypespersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\attributespersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\categoriespersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\employerspersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\projectspersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\staticattributevaluespersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\taskattributevaluespersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\workdayspersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\clientspersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\taskspersistence.h">
-      <Filter>Source Files\persistence</Filter>
+      <Filter>Source\persistence</Filter>
     </ClInclude>
     <ClInclude Include="src\services\attributes\staticattributegroupsservice.h">
-      <Filter>Source Files\services\attributes</Filter>
+      <Filter>Source\services\attributes</Filter>
     </ClInclude>
     <ClInclude Include="src\services\attributes\staticattributegroupviewmodel.h">
-      <Filter>Source Files\services\attributes</Filter>
+      <Filter>Source\services\attributes</Filter>
     </ClInclude>
     <ClInclude Include="src\services\categories\categoryservice.h">
-      <Filter>Source Files\services\categories</Filter>
+      <Filter>Source\services\categories</Filter>
     </ClInclude>
     <ClInclude Include="src\services\categories\categoryviewmodel.h">
-      <Filter>Source Files\services\categories</Filter>
+      <Filter>Source\services\categories</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\availablecolumns.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\columnexportmodel.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\columnjoinprojection.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\columnprojection.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\csvexporterservice.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\csvexportprocessor.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\csvmappedoptions.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\data.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\datagenerator.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\excelexporterservice.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\excelexportprocessor.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\excelguard.h">
-      <Filter>Source Files\services\export</Filter>
-    </ClInclude>
-    <ClInclude Include="src\services\export\excelinstancecheck.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\exportoptions.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\exportresult.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\exportsservice.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\headervaluepair.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\projection.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\projectionbuilder.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\row.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\sqliteexportquerybuilder.h">
-      <Filter>Source Files\services\export</Filter>
+      <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\setupwizard\setupwizardservice.h">
-      <Filter>Source Files\services\setupwizard</Filter>
+      <Filter>Source\services\setupwizard</Filter>
     </ClInclude>
     <ClInclude Include="src\services\taskduration\taskdurationservice.h">
-      <Filter>Source Files\services\taskduration</Filter>
+      <Filter>Source\services\taskduration</Filter>
     </ClInclude>
     <ClInclude Include="src\services\taskduration\taskdurationviewmodel.h">
-      <Filter>Source Files\services\taskduration</Filter>
+      <Filter>Source\services\taskduration</Filter>
     </ClInclude>
     <ClInclude Include="src\services\tasks\tasksservice.h">
-      <Filter>Source Files\services\tasks</Filter>
+      <Filter>Source\services\tasks</Filter>
     </ClInclude>
     <ClInclude Include="src\services\tasks\taskviewmodel.h">
-      <Filter>Source Files\services\tasks</Filter>
+      <Filter>Source\services\tasks</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\datestore.h">
-      <Filter>Source Files\utils</Filter>
+      <Filter>Source\utils</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\utils.h">
-      <Filter>Source Files\utils</Filter>
+      <Filter>Source\utils</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\common\clientdata.h">
-      <Filter>Source Files\ui\common</Filter>
+      <Filter>Source\ui\common</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\common\notificationclientdata.h">
-      <Filter>Source Files\ui\common</Filter>
+      <Filter>Source\ui\common</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\common\taskattributevalueclientdata.h">
-      <Filter>Source Files\ui\common</Filter>
+      <Filter>Source\ui\common</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dataview\columnlistitemmodel.h">
-      <Filter>Source Files\ui\dataview</Filter>
+      <Filter>Source\ui\dataview</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dataview\columnlistmodel.h">
-      <Filter>Source Files\ui\dataview</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\dataview\tasklistmodel.h">
-      <Filter>Source Files\ui\dataview</Filter>
+      <Filter>Source\ui\dataview</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dataview\tasktreemodel.h">
-      <Filter>Source Files\ui\dataview</Filter>
+      <Filter>Source\ui\dataview</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dataview\tasktreemodelnode.h">
-      <Filter>Source Files\ui\dataview</Filter>
+      <Filter>Source\ui\dataview</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\wizards\setupwizard.h">
-      <Filter>Source Files\ui\wizard</Filter>
+      <Filter>Source\ui\wizard</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\attributes\attributedlg.h">
-      <Filter>Source Files\ui\dialogs\attributes</Filter>
+      <Filter>Source\ui\dialogs\attributes</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\attributes\attributegroupdlg.h">
-      <Filter>Source Files\ui\dialogs\attributes</Filter>
+      <Filter>Source\ui\dialogs\attributes</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\attributes\staticattributevaluesdlg.h">
-      <Filter>Source Files\ui\dialogs\attributes</Filter>
+      <Filter>Source\ui\dialogs\attributes</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\exports\exporttocsvdlg.h">
-      <Filter>Source Files\ui\dialogs\exports</Filter>
+      <Filter>Source\ui\dialogs\exports</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\exports\exporttoexceldlg.h">
-      <Filter>Source Files\ui\dialogs\exports</Filter>
+      <Filter>Source\ui\dialogs\exports</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\exports\quickexporttoformatdlg.h">
-      <Filter>Source Files\ui\dialogs\exports</Filter>
+      <Filter>Source\ui\dialogs\exports</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\preferences\preferencesdatabasepage.h">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\preferences\preferencesdlg.h">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\preferences\preferencesexportpage.h">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\preferences\preferencesgeneralpage.h">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\preferences\preferencestaskspage.h">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\preferences\preferencestasksviewpage.h">
-      <Filter>Source Files\ui\dialogs\preferences</Filter>
+      <Filter>Source\ui\dialogs\preferences</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\aboutdlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\categoriesdlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\categorydlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\clientdlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\editlistdlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\employerdlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\errordlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\projectdlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\taskdlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dlg\taskmanageattributesdlg.h">
-      <Filter>Source Files\ui\dialogs</Filter>
+      <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\events.h">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\mainframe.h">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\notificationpopupwindow.h">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\taskbaricon.h">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\statusbar.h">
-      <Filter>Source Files\ui</Filter>
+      <Filter>Source\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\application.h">
-      <Filter>Source Files</Filter>
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="src\services\outlook\outlookclassicservice.h">
+      <Filter>Source\services\outlook</Filter>
+    </ClInclude>
+    <ClInclude Include="src\services\outlook\outlookmeetingmodel.h">
+      <Filter>Source\services\outlook</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\persistencemanager.h">
-      <Filter>Source Files</Filter>
+      <Filter>Source\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\models\attendedmeetingmodel.h">
+      <Filter>Source\models</Filter>
+    </ClInclude>
+    <ClInclude Include="src\persistence\attendedmeetingspersistence.h">
+      <Filter>Source\persistence</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h">
+      <Filter>Source\ui\frames</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\mswutils.h">
+      <Filter>Source\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -768,15 +798,21 @@
     <None Include="res\migrations\20250427164010_create_static_attribute_values_table.sql">
       <Filter>Resource Files\migrations</Filter>
     </None>
-    <None Include="res\install-wizard.svg">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\bell16x16.png">
       <Filter>Resource Files</Filter>
     </None>
     <None Include="res\bellnotification16x16.png">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql">
+      <Filter>Resource Files\migrations</Filter>
+    </None>
+    <None Include="res\migrations\20260210185522_add_attended_meeting_id_column_to_tasks_table.sql">
+      <Filter>Resource Files\migrations</Filter>
+    </None>
+    <None Include="conandata.yml" />
+    <None Include="conanfile.py" />
+    <None Include="res\install-wizard.svg" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\about.ico">
@@ -799,11 +835,9 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="src\application.manifest">
-      <Filter>Source Files</Filter>
-    </Manifest>
+    <CopyFileToFolders Include="taskies.toml" />
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="taskies.toml" />
+    <Manifest Include="src\application.manifest" />
   </ItemGroup>
 </Project>

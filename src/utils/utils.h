@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -31,6 +31,10 @@ std::string ToStdString(const std::wstring& input);
 
 std::int64_t UnixTimestamp();
 
+std::int64_t UnixTimestampTodayMidnight();
+
+std::int64_t UnixTimestampTomorrowMidnight();
+
 std::string ToISODateTime(std::int64_t unixTimestamp);
 
 int VoidPointerToInt(void* value);
@@ -61,4 +65,10 @@ std::string ToExcelColumnName(int columnNumber);
 std::string FormatSqlSearchTerm(const std::string& source);
 
 std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t> ids);
+
+std::string RemoveEmoticons(const std::wstring& value);
+
+int RoundUpToMultiple(int number, int multiple);
+
+void DeconstructDurationTimePeriod(const int value, int& hours, int& minutes);
 } // namespace tks::Utils

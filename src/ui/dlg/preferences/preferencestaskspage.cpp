@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 
 #include "preferencestaskspage.h"
 
-#include <wx/artprov.h>
 #include <wx/richtooltip.h>
 
 #include "../../common/clientdata.h"
@@ -166,18 +165,6 @@ void PreferencesTasksPage::CreateControls()
 
     auto infoLabelSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(infoLabelSizer, wxSizerFlags().Expand());
-
-    /* Legacy task dialog status */
-    auto providedInfoBitmap = wxArtProvider::GetBitmapBundle(
-        wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    auto infoStaticBitmap = new wxStaticBitmap(this, wxID_ANY, providedInfoBitmap);
-    infoLabelSizer->Add(infoStaticBitmap, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    auto legacyTaskDialogStatusLabel =
-        new wxStaticText(this, wxID_ANY, "Legacy task dialog has been retired and cannot be used");
-    legacyTaskDialogStatusLabel->SetFont(
-        wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_ITALIC, wxFONTWEIGHT_NORMAL));
-    infoLabelSizer->Add(legacyTaskDialogStatusLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Reminders box */
     auto remindersBox = new wxStaticBox(this, wxID_ANY, "Reminders");

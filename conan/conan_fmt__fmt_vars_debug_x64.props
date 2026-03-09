@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="ConanVariables">
-    <Conanfmt__fmtRootFolder>C:\Users\szymon.welgus\.conan2\p\b\fmt038a0af48fa99\p</Conanfmt__fmtRootFolder>
-    <Conanfmt__fmtBinaryDirectories></Conanfmt__fmtBinaryDirectories>
+    <Conanfmt__fmtRootFolder>C:\Users\szymon.welgus\.conan2\p\b\fmt36238934bb2c3\p</Conanfmt__fmtRootFolder>
+    <Conanfmt__fmtBinaryDirectories>$(Conanfmt__fmtRootFolder)/bin;</Conanfmt__fmtBinaryDirectories>
     <Conanfmt__fmtCompilerFlags>/utf-8</Conanfmt__fmtCompilerFlags>
     <Conanfmt__fmtLinkerFlags></Conanfmt__fmtLinkerFlags>
-    <Conanfmt__fmtPreprocessorDefinitions></Conanfmt__fmtPreprocessorDefinitions>
+    <Conanfmt__fmtPreprocessorDefinitions>FMT_SHARED;</Conanfmt__fmtPreprocessorDefinitions>
     <Conanfmt__fmtIncludeDirectories>$(Conanfmt__fmtRootFolder)/include;</Conanfmt__fmtIncludeDirectories>
     <Conanfmt__fmtResourceDirectories></Conanfmt__fmtResourceDirectories>
     <Conanfmt__fmtLibraryDirectories>$(Conanfmt__fmtRootFolder)/lib;</Conanfmt__fmtLibraryDirectories>

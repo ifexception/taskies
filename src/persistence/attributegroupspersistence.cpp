@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -1159,17 +1159,17 @@ std::string AttributeGroupsPersistence::checkAttributeGroupStaticAttributesUsage
     "WHERE attribute_groups.attribute_group_id = ? "
     "AND attribute_groups.is_static = 1";
 
-    std::string AttributeGroupsPersistence::selectDefault = "SELECT "
-                                                            "attribute_group_id, "
-                                                            "name, "
-                                                            "description, "
-                                                            "is_static, "
-                                                            "is_default, "
-                                                            "date_created, "
-                                                            "date_modified, "
-                                                            "is_active "
-                                                            "FROM attribute_groups "
-                                                            "WHERE is_default = 1";
+std::string AttributeGroupsPersistence::selectDefault = "SELECT "
+                                                        "attribute_group_id, "
+                                                        "name, "
+                                                        "description, "
+                                                        "is_static, "
+                                                        "is_default, "
+                                                        "date_created, "
+                                                        "date_modified, "
+                                                        "is_active "
+                                                        "FROM attribute_groups "
+                                                        "WHERE is_default = 1";
 
 std::string AttributeGroupsPersistence::unsetDefault = "UPDATE attribute_groups "
                                                        "SET "

@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 
 #include "../../models/taskmodel.h"
 #include "../../models/taskattributevaluemodel.h"
+#include "../../models/attendedmeetingmodel.h"
 
 namespace tks
 {
@@ -63,6 +64,16 @@ public:
     virtual ~TaskDialog() = default;
 
     TaskDialog& operator=(const TaskDialog&) = delete;
+
+    void SetAttendedMeetingData(const std::string& subject,
+        const int duration,
+        const std::string& additionalData = "");
+    void SetAttendedMeetingDataEx(const std::string& entryId,
+        const std::string& subject,
+        const std::string& start,
+        const std::string& end,
+        const int duration,
+        const std::string& location);
 
 private:
     void Create();
@@ -144,8 +155,10 @@ private:
     std::int64_t mEmployerId;
     std::int64_t mAttributeGroupId;
     bool bIsClone;
+    bool bIsMeeting;
 
     Model::TaskModel mTaskModel;
+    Model::AttendedMeetingModel mAttendedMeetingModel;
     bool bHasTaskAttributeValues;
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 

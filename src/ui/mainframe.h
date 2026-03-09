@@ -1,5 +1,5 @@
 // Productivity tool to help you track the time you spend on tasks
-// Copyright (C) 2025 Szymon Welgus
+// Copyright (C) 2026 Szymon Welgus
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@
 #include "../common/enums.h"
 
 #include "../ui/dataview/tasktreemodel.h"
-#include "../ui/dataview/tasklistmodel.h"
+#include "../ui/frames/outlookmeetingsviewframe.h"
 
 #include "../models/taskmodel.h"
 
@@ -78,6 +78,7 @@ enum class MenuIds : int {
     Edit_StaticAttributeValues,
     View_Reset,
     View_Expand,
+    View_Outlook,
     // View_Day,
     View_Preferences,
     Help_About,
@@ -117,7 +118,7 @@ static const int ID_EDIT_STATIC_ATTRIBUTE_VALUES =
 /* View */
 static const int ID_VIEW_RESET = static_cast<int>(MenuIds::View_Reset);
 static const int ID_VIEW_EXPAND = static_cast<int>(MenuIds::View_Expand);
-// static const int ID_VIEW_DAY = static_cast<int>(MenuIds::View_Day);
+static const int ID_VIEW_OUTLOOK = static_cast<int>(MenuIds::View_Outlook);
 static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preferences);
 
 /* Help */
@@ -168,6 +169,7 @@ private:
     void OnIconize(wxIconizeEvent& event);
     void OnResize(wxSizeEvent& event);
     void OnTaskReminder(wxTimerEvent& event);
+    void OnMove(wxMoveEvent& event);
     /* Taskbar Button Event Handlers */
     void OnThumbBarNewTask(wxCommandEvent& event);
     void OnThumbBarQuickExport(wxCommandEvent& event);
@@ -194,7 +196,7 @@ private:
     void OnEditStaticAttributeValues(wxCommandEvent& event);
     void OnViewReset(wxCommandEvent& event);
     void OnViewExpand(wxCommandEvent& event);
-    // void OnViewDay(wxCommandEvent& event);
+    void OnViewOutlook(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     /* Popup Menu Event Handlers */
@@ -254,6 +256,8 @@ private:
     std::shared_ptr<Core::Configuration> pCfg;
     std::string mDatabaseFilePath;
 
+    frames::OutlookMeetingsViewFrame* pMeetingsViewFrame;
+
     wxThumbBarButton* pThumbBarNewTaskButton;
     wxThumbBarButton* pThumbBarQuickExportButton;
 
@@ -305,6 +309,7 @@ private:
         tksIDC_TASKDATAVIEWCTRL,
         tksIDC_DAY_TASKDATAVIEW,
         tksIDC_TASKREMINDERTIMER
+        ,tksIDC_OUTLOOKTEST
     };
 };
 } // namespace UI
