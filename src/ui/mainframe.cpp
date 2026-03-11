@@ -141,6 +141,7 @@ EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDFROM, MainFrame::OnTaskDateChangedFrom)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDTO, MainFrame::OnTaskDateChangedTo)
+EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeetingViewClose)
 /* Control Event Handlers */
 EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
@@ -154,15 +155,13 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const wxString& name)
-    : wxFrame(
-        nullptr,
+    : wxFrame(nullptr,
         wxID_ANY,
         Common::GetProgramName(),
         wxDefaultPosition,
         wxDefaultSize,
         wxDEFAULT_FRAME_STYLE,
-        name
-    )
+        name)
     , pLogger(logger)
     , pEnv(env)
     , pCfg(cfg)
@@ -193,6 +192,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pThumbBarNewTaskButton(nullptr)
     , pThumbBarQuickExportButton(nullptr)
     , mThumbBarDialogOpenCounter(0)
+    , mOutlookMeetingViewFrameOpenCounter(0)
     , pMeetingsViewFrame(nullptr)
 // clang-format on
 {
@@ -946,11 +946,17 @@ void MainFrame::OnViewExpand(wxCommandEvent& WXUNUSED(event))
     TryUpdateSelectedDateAndAllTaskDurations(pDateStore->PrintTodayDate);
 }
 
-void MainFrame::OnViewOutlook(wxCommandEvent& event)
+void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event))
 {
-    pMeetingsViewFrame =
-        new frames::OutlookMeetingsViewFrame(this, pCfg, pLogger, mDatabaseFilePath, IsMaximized());
-    pMeetingsViewFrame->Show();
+    if (mOutlookMeetingViewFrameOpenCounter == 0) {
+        mOutlookMeetingViewFrameOpenCounter++;
+        pMeetingsViewFrame = new frames::OutlookMeetingsViewFrame(
+            this, pCfg, pLogger, mDatabaseFilePath, IsMaximized());
+        pMeetingsViewFrame->Show();
+    } else {
+        SPDLOG_LOGGER_TRACE(pLogger, "Outlook meetings frame already open -> call Raise()");
+        pMeetingsViewFrame->Raise();
+    }
 }
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
@@ -1685,6 +1691,14 @@ void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
+}
+
+void MainFrame::OnOutlookMeetingViewClose(wxCommandEvent& event)
+{
+    mOutlookMeetingViewFrameOpenCounter--;
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Outlook meetings frame closed, frame counter = {0}",
+        mOutlookMeetingViewFrameOpenCounter);
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()

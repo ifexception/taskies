@@ -214,6 +214,7 @@ private:
     void OnTaskDeletedOnDate(wxCommandEvent& event);
     void OnTaskDateChangedFrom(wxCommandEvent& event);
     void OnTaskDateChangedTo(wxCommandEvent& event);
+    void OnOutlookMeetingViewClose(wxCommandEvent& event);
     /* Control Event Handlers */
     void OnNotificationClick(wxCommandEvent& event);
     void OnFromDateSelection(wxDateEvent& event);
@@ -296,6 +297,7 @@ private:
      * the thumb bar allows a user to open an as many dialogs as they want so we cap at 1
      */
     int mThumbBarDialogOpenCounter;
+    int mOutlookMeetingViewFrameOpenCounter;
 
     std::unique_ptr<wxTimer> pTaskReminderTimer;
     std::shared_ptr<wxNotificationMessage> pTaskReminderNotification;
