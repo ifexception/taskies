@@ -170,6 +170,13 @@ void OutlookMeetingsViewFrame::ConfigureEventBindings()
         &OutlookMeetingsViewFrame::OnAccountChoice,
         this
     );
+
+    Bind(
+        wxEVT_CLOSE_WINDOW,
+        &OutlookMeetingsViewFrame::OnClose,
+        this,
+        wxID_ANY
+    );
 }
 // clang-format on
 
@@ -244,6 +251,12 @@ void OutlookMeetingsViewFrame::OnParentFrameResize()
     }
 }
 
+void OutlookMeetingsViewFrame::OnParentFrameActivate()
+{
+    Show();
+    Raise();
+}
+
 void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
 {
     if (mSelectedAccount.empty()) {
@@ -298,6 +311,13 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
     AddAttendedMeetingsPanel(attendedMeetingModels);
 
     SetDialogSizeFromParent();
+}
+
+void OutlookMeetingsViewFrame::OnClose(wxCloseEvent& event)
+{
+    wxCommandEvent* cmdEvent = new wxCommandEvent(tksEVT_OUTLOOKMEETINGSFRMCLOSED);
+    wxQueueEvent(pParent, cmdEvent);
+    event.Skip();
 }
 
 void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)

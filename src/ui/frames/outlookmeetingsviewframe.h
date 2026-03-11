@@ -60,6 +60,7 @@ public:
 
     void OnParentFrameMove();
     void OnParentFrameResize();
+    void OnParentFrameActivate();
 
 private:
     void Create();
@@ -71,7 +72,7 @@ private:
 
     void OnRefresh(wxCommandEvent& event);
     void OnAccountChoice(wxCommandEvent& event);
-
+    void OnClose(wxCloseEvent& event);
     void OnAttendedCheckBoxCheck(wxCommandEvent& event);
 
     void FetchOutlookMeetingsAndUpdateFeedbackLabel();
