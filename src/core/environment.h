@@ -31,7 +31,7 @@ namespace tks::Core
 class Environment final
 {
 public:
-    enum class InstallFolder { Undefined, Portable, ProgramFiles };
+    enum class InstallLocation { Undefined, Portable, ProgramFiles };
 
     Environment();
     Environment(const Environment&) = delete;
@@ -54,7 +54,6 @@ public:
     std::filesystem::path ApplicationDatabasePath();
     std::filesystem::path ApplicationLogPath();
 
-    void SetInstallFolder();
     bool IsSetup();
     bool SetIsSetup();
 
@@ -73,6 +72,6 @@ private:
     std::string GetRegistryKey();
 
     BuildConfiguration mBuildConfig;
-    InstallFolder mInstallFolder;
+    InstallLocation mInstallLocation;
 };
 } // namespace tks::Core
