@@ -515,6 +515,8 @@ void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& mes
             wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
 
         pMainSizer->Layout();
+    } else {
+        pFeedbackLabel->SetLabel(message.empty() ? "No account selected" : message);
     }
 
     if (pRefreshButton->IsEnabled()) {

@@ -1699,6 +1699,12 @@ void MainFrame::OnOutlookMeetingViewClose(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger,
         "Outlook meetings frame closed, frame counter = {0}",
         mOutlookMeetingViewFrameOpenCounter);
+
+    bool destroyStatus = pMeetingsViewFrame->Destroy();
+    if (!destroyStatus) {
+        pLogger->error("Unsuccessful destroy of meeting view frame");
+    }
+    pMeetingsViewFrame = nullptr;
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()
