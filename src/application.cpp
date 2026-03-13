@@ -149,8 +149,11 @@ bool Application::OnInit()
 
 int Application::OnExit()
 {
+#ifdef TKS_DEBUG
     // Under VisualStudio, this must be called before main finishes to workaround a known VS issue
     spdlog::drop_all();
+#endif // TKS_DEBUG
+
     return wxApp::OnExit();
 }
 
@@ -190,7 +193,7 @@ void Application::InitializeLogger()
 
 bool Application::InitializeConfiguration()
 {
-    /* we attempt to load and/or recreate the configuration file (if we cannot locate it) */
+    /* we attempt to load and/or recreate the configuration file or we cannot locate it */
     bool loadSuccess = pCfg->LoadAndOrRecreate();
     /*
      * we then save the file just in case the file didn't exist or a setting(s) was missing
@@ -227,11 +230,9 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
         if (result) {
             return true;
         }
-        pLogger->error("Application::FirstStartupProcedure - Error occured when setting 'IsSetup' "
-                       "Windows registry key.");
+        pLogger->error("Error occured when setting 'IsSetup' registry key");
     }
-    pLogger->error(
-        "Application::FirstStartupProcedure - Wizard canceled or unexpected error occured");
+    pLogger->error("Wizard canceled or unexpected error occured when setting registry key");
 
     return false;
 }

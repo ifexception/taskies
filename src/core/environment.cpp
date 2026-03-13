@@ -160,11 +160,11 @@ std::filesystem::path Environment::GetApplicationDatabasePath()
         case InstallLocation::Undefined:
             [[fallthrough]];
         case InstallLocation::Portable:
-            appDataPath =
-                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / data;
+            appDataPath = std::filesystem::path(GetApplicationPath()) / data;
             break;
         case InstallLocation::ProgramFiles:
-            appDataPath = std::filesystem::path(GetApplicationPath()) / data;
+            appDataPath =
+                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / data;
             break;
         default:
             break;
@@ -193,11 +193,11 @@ std::filesystem::path Environment::GetApplicationLogPath()
         case InstallLocation::Undefined:
             [[fallthrough]];
         case InstallLocation::Portable:
-            appLogPath =
-                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / logs;
+            appLogPath = std::filesystem::path(GetApplicationPath()) / logs;
             break;
         case InstallLocation::ProgramFiles:
-            appLogPath = std::filesystem::path(GetApplicationPath()) / logs;
+            appLogPath =
+                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / logs;
             break;
         default:
             break;
@@ -229,12 +229,12 @@ std::filesystem::path Environment::GetApplicationLanguagesPath()
         case InstallLocation::Undefined:
             [[fallthrough]];
         case InstallLocation::Portable:
+            appLangPath = std::filesystem::path(GetApplicationPath()) / lang;
+            break;
+        case InstallLocation::ProgramFiles:
             appLangPath =
                 std::filesystem::path(wxStandardPaths::Get().GetResourcesDir().ToStdString()) /
                 lang;
-            break;
-        case InstallLocation::ProgramFiles:
-            appLangPath = std::filesystem::path(GetApplicationPath()) / lang;
             break;
         default:
             break;
@@ -260,11 +260,11 @@ std::filesystem::path Environment::GetApplicationConfigurationPath()
         case InstallLocation::Undefined:
             [[fallthrough]];
         case InstallLocation::Portable:
-            appConfigPath =
-                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString());
+            appConfigPath = std::filesystem::path(GetApplicationPath());
             break;
         case InstallLocation::ProgramFiles:
-            appConfigPath = std::filesystem::path(GetApplicationPath());
+            appConfigPath =
+                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString());
             break;
         default:
             break;
@@ -291,11 +291,11 @@ std::filesystem::path Environment::GetApplicationResourcesPath()
         case InstallLocation::Undefined:
             [[fallthrough]];
         case InstallLocation::Portable:
-            appResPath =
-                std::filesystem::path(wxStandardPaths::Get().GetResourcesDir().ToStdString()) / res;
+            appResPath = std::filesystem::path(GetApplicationPath()) / res;
             break;
         case InstallLocation::ProgramFiles:
-            appResPath = std::filesystem::path(GetApplicationPath()) / res;
+            appResPath =
+                std::filesystem::path(wxStandardPaths::Get().GetResourcesDir().ToStdString()) / res;
             break;
         default:
             break;
@@ -322,11 +322,11 @@ std::filesystem::path Environment::GetApplicationExportPath()
         case InstallLocation::Undefined:
             [[fallthrough]];
         case InstallLocation::Portable:
-            exportPath =
-                std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
+            exportPath = std::filesystem::path(GetApplicationPath()) / defaultExportPath;
             break;
         case InstallLocation::ProgramFiles:
-            exportPath = std::filesystem::path(GetApplicationPath()) / defaultExportPath;
+            exportPath =
+                std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
             break;
         default:
             break;
