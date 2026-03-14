@@ -201,11 +201,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;
-				_CRT_SECURE_NO_WARNINGS;
-				wxUSE_GUI=1;
-				wxUSE_DATEPICKCTRL=1;
-				wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_WARNINGS;
+wxUSE_GUI=1;
+wxUSE_DATEPICKCTRL=1;
+wxNO_UNSAFE_WXSTRING_CONV=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>

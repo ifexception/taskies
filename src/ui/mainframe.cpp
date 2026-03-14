@@ -992,7 +992,7 @@ void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 {
-    UI::dlg::AboutDialog aboutDlg(this);
+    dlg::AboutDialog aboutDlg(this, pEnv);
     aboutDlg.ShowModal();
 }
 

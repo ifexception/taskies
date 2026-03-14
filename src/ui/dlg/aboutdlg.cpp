@@ -303,7 +303,6 @@ std::string AboutDialog::BuildVersionString()
     auto installLocation = pEnv->GetInstallLocation();
     switch (installLocation) {
     case tks::InstallLocation::Undefined:
-    [[fallthrough]]
     case tks::InstallLocation::Portable:
         return fmt::format(
             "Taskies v{0}.{1}.{2} (Portable)", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH);
