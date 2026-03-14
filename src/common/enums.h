@@ -37,6 +37,8 @@ enum class WindowState : int { Normal = 1, Minimized = 2, Hidden = 3, Maximized 
 
 enum class BuildConfiguration { Undefined, Debug, Release };
 
+enum class InstallLocation { Undefined, Portable, ProgramFiles };
+
 enum class NotificationType { Information = 1, Error };
 
 enum class DelimiterType : int { None = 0, Comma, Semicolon, Pipe, Tab, Space };
@@ -69,6 +71,7 @@ enum class AttributeTypes { Text = 1, Numeric, Boolean };
 enum class ExportFormat { Csv = 1, Excel };
 
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
+std::string InstallLocationToString(InstallLocation installLocation);
 std::string WindowStateToString(WindowState windowState);
 std::string NotificationTypeToString(NotificationType notificationType);
 std::string AttributeTypeToString(AttributeTypes attributeType);
