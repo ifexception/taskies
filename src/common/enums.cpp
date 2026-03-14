@@ -35,6 +35,20 @@ std::string BuildConfigurationToString(BuildConfiguration buildConfiguration)
     }
 }
 
+std::string InstallLocationToString(InstallLocation installLocation)
+{
+    switch (installLocation) {
+    case tks::InstallLocation::Undefined:
+        return "Undefined";
+    case tks::InstallLocation::Portable:
+        return "Portable";
+    case tks::InstallLocation::ProgramFiles:
+        return "ProgramFiles";
+    default:
+        return "";
+    }
+}
+
 std::string WindowStateToString(WindowState windowState)
 {
     switch (windowState) {

@@ -33,23 +33,28 @@ namespace tks::Core
 {
 Environment::Environment()
     : mBuildConfig(BuildConfiguration::Undefined)
-    , mInstallFolder(InstallFolder::Undefined)
+    , mInstallLocation(InstallLocation::Undefined)
 {
 #ifdef TKS_DEBUG
     mBuildConfig = BuildConfiguration::Debug;
 #else
     mBuildConfig = BuildConfiguration::Release;
+#ifdef TKS_PORTABLEREL
+    mInstallLocation = InstallLocation::Portable;
+#else
+    mInstallLocation = InstallLocation::ProgramFiles;
+#endif // TKS_PORTABLEREL
 #endif // TKS_DEBUG
-}
-
-std::filesystem::path Environment::GetApplicationPath()
-{
-    return wxPathOnly(wxStandardPaths::Get().GetExecutablePath()).ToStdString();
 }
 
 BuildConfiguration Environment::GetBuildConfiguration() const
 {
     return mBuildConfig;
+}
+
+InstallLocation Environment::GetInstallLocation() const
+{
+    return mInstallLocation;
 }
 
 std::filesystem::path Environment::GetLogFilePath()
@@ -100,10 +105,10 @@ std::string Environment::GetCurrentLocale()
     return std::string(Utils::ToStdString(std::wstring(name)));
 #endif // _WIN32
 
-#ifdef __linux__
-    setlocale(LC_ALL, NULL);
-    return std::string(std::locale().name());
-#endif // __linux__
+    // #ifdef __linux__
+    //     setlocale(LC_ALL, NULL);
+    //     return std::string(std::locale().name());
+    // #endif // __linux__
 }
 
 std::filesystem::path Environment::ApplicationDatabasePath()
@@ -114,18 +119,6 @@ std::filesystem::path Environment::ApplicationDatabasePath()
 std::filesystem::path Environment::ApplicationLogPath()
 {
     return GetApplicationLogPath();
-}
-
-void Environment::SetInstallFolder()
-{
-    const std::string ProgramFilesSubstring = "Program Files";
-    const std::string ApplicationPath = GetApplicationPath().string();
-
-    if (ApplicationPath.find(ProgramFilesSubstring) != std::string::npos) {
-        mInstallFolder = InstallFolder::ProgramFiles;
-    } else {
-        mInstallFolder = InstallFolder::Portable;
-    }
 }
 
 bool Environment::IsSetup()
@@ -151,6 +144,13 @@ bool Environment::SetIsSetup()
     return key.SetValue("IsSetup", true);
 }
 
+// -private
+
+std::filesystem::path Environment::GetApplicationPath()
+{
+    return wxPathOnly(wxStandardPaths::Get().GetExecutablePath()).ToStdString();
+}
+
 std::filesystem::path Environment::GetApplicationDatabasePath()
 {
     std::filesystem::path appDataPath;
@@ -160,9 +160,22 @@ std::filesystem::path Environment::GetApplicationDatabasePath()
     case BuildConfiguration::Debug:
         appDataPath = GetApplicationPath() / data;
         break;
-    case BuildConfiguration::Release:
-        appDataPath = std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / data;
+    case BuildConfiguration::Release: {
+        switch (mInstallLocation) {
+        case InstallLocation::Undefined:
+            [[fallthrough]];
+        case InstallLocation::Portable:
+            appDataPath = std::filesystem::path(GetApplicationPath()) / data;
+            break;
+        case InstallLocation::ProgramFiles:
+            appDataPath =
+                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / data;
+            break;
+        default:
+            break;
+        }
         break;
+    }
     default:
         break;
     }
@@ -181,7 +194,19 @@ std::filesystem::path Environment::GetApplicationLogPath()
         appLogPath = GetApplicationPath() / logs;
         break;
     case BuildConfiguration::Release:
-        appLogPath = std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / logs;
+        switch (mInstallLocation) {
+        case InstallLocation::Undefined:
+            [[fallthrough]];
+        case InstallLocation::Portable:
+            appLogPath = std::filesystem::path(GetApplicationPath()) / logs;
+            break;
+        case InstallLocation::ProgramFiles:
+            appLogPath =
+                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / logs;
+            break;
+        default:
+            break;
+        }
         break;
     default:
         break;
@@ -205,7 +230,20 @@ std::filesystem::path Environment::GetApplicationLanguagesPath()
         appLangPath = GetApplicationPath() / lang;
         break;
     case BuildConfiguration::Release:
-        appLangPath = std::filesystem::path(wxStandardPaths::Get().GetResourcesDir().ToStdString()) / lang;
+        switch (mInstallLocation) {
+        case InstallLocation::Undefined:
+            [[fallthrough]];
+        case InstallLocation::Portable:
+            appLangPath = std::filesystem::path(GetApplicationPath()) / lang;
+            break;
+        case InstallLocation::ProgramFiles:
+            appLangPath =
+                std::filesystem::path(wxStandardPaths::Get().GetResourcesDir().ToStdString()) /
+                lang;
+            break;
+        default:
+            break;
+        }
         break;
     default:
         break;
@@ -217,12 +255,25 @@ std::filesystem::path Environment::GetApplicationLanguagesPath()
 std::filesystem::path Environment::GetApplicationConfigurationPath()
 {
     std::filesystem::path appConfigPath;
+
     switch (mBuildConfig) {
     case BuildConfiguration::Debug:
         appConfigPath = GetApplicationPath();
         break;
     case BuildConfiguration::Release:
-        appConfigPath = std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString());
+        switch (mInstallLocation) {
+        case InstallLocation::Undefined:
+            [[fallthrough]];
+        case InstallLocation::Portable:
+            appConfigPath = std::filesystem::path(GetApplicationPath());
+            break;
+        case InstallLocation::ProgramFiles:
+            appConfigPath =
+                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString());
+            break;
+        default:
+            break;
+        }
         break;
     default:
         break;
@@ -234,34 +285,64 @@ std::filesystem::path Environment::GetApplicationConfigurationPath()
 std::filesystem::path Environment::GetApplicationResourcesPath()
 {
     std::filesystem::path appResPath;
+    const std::string res = "res";
+
     switch (mBuildConfig) {
     case tks::BuildConfiguration::Debug:
-        appResPath = GetApplicationPath() / "res";
+        appResPath = GetApplicationPath() / res;
         break;
     case tks::BuildConfiguration::Release:
-        appResPath = std::filesystem::path(wxStandardPaths::Get().GetResourcesDir().ToStdString()) / "res";
+        switch (mInstallLocation) {
+        case InstallLocation::Undefined:
+            [[fallthrough]];
+        case InstallLocation::Portable:
+            appResPath = std::filesystem::path(GetApplicationPath()) / res;
+            break;
+        case InstallLocation::ProgramFiles:
+            appResPath =
+                std::filesystem::path(wxStandardPaths::Get().GetResourcesDir().ToStdString()) / res;
+            break;
+        default:
+            break;
+        }
         break;
     default:
         break;
     }
+
     return appResPath;
 }
 
 std::filesystem::path Environment::GetApplicationExportPath()
 {
     std::filesystem::path exportPath;
+    const std::string defaultExportPath = "exports";
+
     switch (mBuildConfig) {
     case BuildConfiguration::Debug:
         exportPath = GetApplicationPath();
         break;
     case BuildConfiguration::Release: {
-        exportPath = std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
-        std::filesystem::create_directories(exportPath);
+        switch (mInstallLocation) {
+        case InstallLocation::Undefined:
+            [[fallthrough]];
+        case InstallLocation::Portable:
+            exportPath = std::filesystem::path(GetApplicationPath()) / defaultExportPath;
+            break;
+        case InstallLocation::ProgramFiles:
+            exportPath =
+                std::filesystem::path(wxStandardPaths::Get().GetAppDocumentsDir().ToStdString());
+            break;
+        default:
+            break;
+        }
         break;
     }
     default:
         break;
     }
+
+    std::filesystem::create_directories(exportPath);
 
     return exportPath;
 }

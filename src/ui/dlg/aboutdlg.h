@@ -28,6 +28,11 @@
 #endif
 #include <wx/listctrl.h>
 
+namespace tks::Core
+{
+class Environment;
+}
+
 namespace tks::UI::dlg
 {
 class AboutDialog final : public wxDialog
@@ -35,7 +40,9 @@ class AboutDialog final : public wxDialog
 public:
     AboutDialog() = delete;
     AboutDialog(const AboutDialog&) = delete;
-    AboutDialog(wxWindow* parent, const wxString& name = "aboutdlg");
+    AboutDialog(wxWindow* parent,
+        std::shared_ptr<Core::Environment> env,
+        const wxString& name = "aboutdlg");
     virtual ~AboutDialog() = default;
 
     AboutDialog& operator=(const AboutDialog&) = delete;
@@ -48,6 +55,10 @@ private:
 
     void OnItemRightClick(wxListEvent& event);
     void OnOpen(wxCommandEvent& event);
+
+    std::string BuildVersionString();
+
+    std::shared_ptr<Core::Environment> pEnv;
 
     wxListView* pAttributionsListView;
     std::string mAttrAuthorLink;
