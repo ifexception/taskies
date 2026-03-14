@@ -43,13 +43,18 @@ Environment::Environment()
     mInstallLocation = InstallLocation::Portable;
 #else
     mInstallLocation = InstallLocation::ProgramFiles;
-#endif
+#endif // TKS_PORTABLEREL
 #endif // TKS_DEBUG
 }
 
 BuildConfiguration Environment::GetBuildConfiguration() const
 {
     return mBuildConfig;
+}
+
+InstallLocation Environment::GetInstallLocation() const
+{
+    return mInstallLocation;
 }
 
 std::filesystem::path Environment::GetLogFilePath()

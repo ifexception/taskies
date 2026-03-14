@@ -31,8 +31,6 @@ namespace tks::Core
 class Environment final
 {
 public:
-    enum class InstallLocation { Undefined, Portable, ProgramFiles };
-
     Environment();
     Environment(const Environment&) = delete;
     ~Environment() = default;
@@ -40,6 +38,7 @@ public:
     Environment& operator=(const Environment&) = delete;
 
     BuildConfiguration GetBuildConfiguration() const;
+    InstallLocation GetInstallLocation() const;
 
     std::filesystem::path GetLogFilePath();
     std::filesystem::path GetLanguagesPath();
