@@ -31,15 +31,20 @@
 #include "../../common/common.h"
 #include "../../common/version.h"
 
+#include "../../core/environment.h"
+
 namespace tks::UI::dlg
 {
-AboutDialog::AboutDialog(wxWindow* parent, const wxString& name)
+AboutDialog::AboutDialog(wxWindow* parent,
+    std::shared_ptr<Core::Environment> env,
+    const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
           "About",
           wxDefaultPosition,
           wxDefaultSize,
           wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)
+    , pEnv(env)
     , pAttributionsListView(nullptr)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
@@ -68,8 +73,7 @@ void AboutDialog::CreateControls()
     sizer->Add(staticBmp, wxSizerFlags().Border(wxLEFT | wxRIGHT, FromDIP(8)).Center());
 
     /* Taskies version */
-    auto version = fmt::format(
-        "Taskies v{0}.{1}.{2}", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH);
+    auto version = BuildVersionString();
     auto versionLabel = new wxStaticText(this, wxID_ANY, version);
     sizer->Add(versionLabel, wxSizerFlags().Border(wxALL, FromDIP(5)).Center());
 
@@ -292,5 +296,21 @@ void AboutDialog::OnItemRightClick(wxListEvent& event)
 void AboutDialog::OnOpen(wxCommandEvent& event)
 {
     wxLaunchDefaultBrowser(mAttrAuthorLink);
+}
+
+std::string AboutDialog::BuildVersionString()
+{
+    auto installLocation = pEnv->GetInstallLocation();
+    switch (installLocation) {
+    case tks::InstallLocation::Undefined:
+    [[fallthrough]]
+    case tks::InstallLocation::Portable:
+        return fmt::format(
+            "Taskies v{0}.{1}.{2} (Portable)", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH);
+    case tks::InstallLocation::ProgramFiles:
+        return fmt::format("Taskies v{0}.{1}.{2}", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH);
+    default:
+        return "";
+    }
 }
 } // namespace tks::UI::dlg
