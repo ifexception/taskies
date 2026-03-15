@@ -1243,8 +1243,10 @@ void MainFrame::OnErrorNotification(wxCommandEvent& event)
     if (notificationClientData->Type == NotificationType::Error) {
         wxMessageDialog dialog(this,
             notificationClientData->Message,
-            "Please try again or click \"OK\" to open your browser to log an issue",
+            Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(
+            "Please try again or click \"OK\" to open your browser to log an issue");
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
