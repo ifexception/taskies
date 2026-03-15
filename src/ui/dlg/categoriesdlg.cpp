@@ -243,7 +243,7 @@ void CategoriesDialog::FillControls()
     int rc = projectPersistence.Filter(defaultSearchTerm, projects);
     if (rc != 0) {
         std::string message = "Failed to get projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -458,7 +458,7 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
     ret == -1 ? message = "Failed to create categories"
               : message = "Successfully created categories";
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     if (ret == -1) {
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);

@@ -289,7 +289,7 @@ void ClientDialog::OnOK(wxCommandEvent& event)
 
         pOkButton->Enable();
     } else {
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -386,7 +386,7 @@ void ClientDialog::TransferDataFromControls()
 
 void ClientDialog::QueueErrorNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);

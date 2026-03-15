@@ -566,7 +566,7 @@ void TaskManageAttributesDialog::AppendAttributeControl(const Model::AttributeMo
 
 void TaskManageAttributesDialog::QueueErrorNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);

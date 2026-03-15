@@ -286,7 +286,7 @@ void EditListDialog::EmployerDataToControls()
     int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {
         std::string message = "Failed to filter employers";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -311,7 +311,7 @@ void EditListDialog::ClientDataToControls()
     int rc = ClientsPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
         std::string message = "Failed to filter clients";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -336,7 +336,7 @@ void EditListDialog::ProjectDataToControls()
     int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
         std::string message = "Failed to filter projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -361,7 +361,7 @@ void EditListDialog::CategoryDataToControls()
     int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
         std::string message = "Failed to filter categories";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -387,7 +387,7 @@ void EditListDialog::AttributeGroupDataToControls()
     int rc = attributeGroupPersistence.Filter(mSearchTerm, attributeGroups);
     if (rc == -1) {
         std::string message = "Failed to filter attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -413,7 +413,7 @@ void EditListDialog::AttributeDataToControls()
     int rc = attributesPersistence.Filter(mSearchTerm, attributes);
     if (rc == -1) {
         std::string message = "Failed to filter attributes";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -440,7 +440,7 @@ void EditListDialog::StaticAttributeGroupsDataToControls()
         /*searchTerm,*/ staticAttributeGroups);
     if (rc == -1) {
         std::string message = "Failed to filter static attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -594,7 +594,7 @@ void EditListDialog::SearchEmployers()
     int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {
         std::string message = "Failed to filter employers";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -624,7 +624,7 @@ void EditListDialog::SearchClients()
     int rc = ClientsPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
         std::string message = "Failed to filter clients";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -654,7 +654,7 @@ void EditListDialog::SearchProjects()
     int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
         std::string message = "Failed to filter projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -684,7 +684,7 @@ void EditListDialog::SearchCategories()
     int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
         std::string message = "Failed to filter categories";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -714,7 +714,7 @@ void EditListDialog::SearchAttributeGroups()
     int rc = attributeGroupsPersistence.Filter(mSearchTerm, attributeGroups);
     if (rc == -1) {
         std::string message = "Failed to filter attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -744,7 +744,7 @@ void EditListDialog::SearchAttributes()
     int rc = attributesPersistence.Filter(mSearchTerm, attributes);
     if (rc == -1) {
         std::string message = "Failed to filter attributes";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -775,7 +775,7 @@ void EditListDialog::SearchStaticAttributeGroups()
         /*searchTerm,*/ staticAttributeGroups);
     if (rc == -1) {
         std::string message = "Failed to filter static attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);

@@ -1647,7 +1647,7 @@ void TaskDialog::QueueNotificationEvent(int ret, const std::string& message)
 
 void TaskDialog::QueueErrorNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);
@@ -1657,7 +1657,7 @@ void TaskDialog::QueueErrorNotificationEvent(const std::string& message)
 
 void TaskDialog::QueueInformationNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);

@@ -215,7 +215,7 @@ void AttributeGroupDialog::DataToControls()
     int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
     if (rc == -1) {
         std::string message = "Failed to get attribute group";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -242,7 +242,7 @@ void AttributeGroupDialog::DataToControls()
     rc = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
     if (rc == -1) {
         std::string message = "Failed to check attribute group usage";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -261,7 +261,7 @@ void AttributeGroupDialog::DataToControls()
         mAttributeGroupId, bIsInUseStatic);
     if (rc == -1) {
         std::string message = "Failed to check attribute group static usage";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -379,7 +379,7 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
                   : message = "Successfully deleted attribute group";
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     if (ret == -1) {
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
@@ -461,7 +461,7 @@ void AttributeGroupDialog::TransferDataFromControls()
 
 void AttributeGroupDialog::QueueErrorNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);

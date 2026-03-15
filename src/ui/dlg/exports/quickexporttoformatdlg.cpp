@@ -677,7 +677,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 
     if (!result.Success) {
         message = "Failed to export data";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -691,7 +691,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);

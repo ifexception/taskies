@@ -395,7 +395,7 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
 
         pOkButton->Enable();
     } else {
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -563,7 +563,7 @@ void ProjectDialog::FillClientChoiceControl(const std::int64_t employerId)
 
 void ProjectDialog::QueueErrorNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);

@@ -201,7 +201,7 @@ void OutlookMeetingsViewFrame::DataToControls()
     if (!result.Success) {
         std::string message = "Failed to fetch Outlook accounts";
 
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -478,7 +478,7 @@ void OutlookMeetingsViewFrame::SetDialogSizeFromParent()
 
 void OutlookMeetingsViewFrame::QueueErrorNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);

@@ -268,7 +268,7 @@ void AttributeDialog::FillControls()
     int rc = attributeGroupsPersistence.Filter("", attributeGroups);
     if (rc == -1) {
         std::string message = "Failed to get attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -290,7 +290,7 @@ void AttributeDialog::FillControls()
     rc = attributeTypesPersistence.Filter("", attributeTypes);
     if (rc == -1) {
         std::string message = "Failed to get attribute types";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -317,7 +317,7 @@ void AttributeDialog::DataToControls()
     int rc = attributesPersistence.GetById(mAttributeId, mAttributeModel);
     if (rc == -1) {
         std::string message = "Failed to get attribute group";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -348,7 +348,7 @@ void AttributeDialog::DataToControls()
             mAttributeModel.AttributeGroupId, attributeGroupModel);
         if (rc == -1) {
             std::string message = "Failed to get attribute group";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
             NotificationClientData* clientData =
                 new NotificationClientData(NotificationType::Error, message);
             addNotificationEvent->SetClientObject(clientData);
@@ -500,7 +500,7 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         message = ret == -1 ? "Failed to delete attribute" : "Successfully deleted attribute";
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     if (ret == -1) {
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
@@ -644,7 +644,7 @@ void AttributeDialog::DisableChoiceControlsIfUsed()
 
 void AttributeDialog::QueueErrorNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);

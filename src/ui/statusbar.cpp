@@ -198,7 +198,7 @@ void StatusBar::UpdateBillableHoursRange(const std::string& fromDate, const std:
 void StatusBar::QueueErrorNotificationEventToParentWindow()
 {
     std::string message = "Failed to get/calculate task durations";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);

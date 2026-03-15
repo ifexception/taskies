@@ -646,7 +646,7 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
         clientData = ret == -1 ? new NotificationClientData(NotificationType::Error, message)
                                : new NotificationClientData(NotificationType::Information, message);
 
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         addNotificationEvent->SetClientObject(clientData);
 
         wxQueueEvent(pParent, addNotificationEvent);
@@ -778,7 +778,7 @@ void StaticAttributeValuesDialog::CreateControlsWithData(
 
 void StaticAttributeValuesDialog::QueueErrorNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);

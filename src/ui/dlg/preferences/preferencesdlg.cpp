@@ -179,7 +179,7 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
     pExportPage->Reset();
 
     std::string message = "Preferences restored to defaults";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);
 
@@ -230,7 +230,7 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
 
     // Post success notification event
     std::string message = "Preferences updated";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);
 
