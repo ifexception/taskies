@@ -18,7 +18,3 @@
 //     szymonwelgus at gmail dot com
 
 #include "enumclientdata.h"
-
-namespace tks::Common
-{
-}

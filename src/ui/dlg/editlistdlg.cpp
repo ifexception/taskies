@@ -40,7 +40,7 @@
 #include "../../common/common.h"
 
 #include "../../persistence/employerspersistence.h"
-#include "../../persistence/ClientsPersistence.h"
+#include "../../persistence/clientspersistence.h"
 #include "../../persistence/projectspersistence.h"
 #include "../../persistence/categoriespersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
@@ -80,14 +80,14 @@ EditListDialog::EditListDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
-    , mDatabaseFilePath(databaseFilePath)
-    , mType(editListEntityType)
     , pSearchTextCtrl(nullptr)
     , pSearchButton(nullptr)
     , pResetButton(nullptr)
     , pListCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mDatabaseFilePath(databaseFilePath)
+    , mType(editListEntityType)
     , mSearchTerm()
     , mEntityId(-1)
 {
@@ -143,7 +143,7 @@ void EditListDialog::CreateControls()
         wxEmptyString,
         wxDefaultPosition,
         wxDefaultSize,
-        wxTE_LEFT /* | wxTE_PROCESS_ENTER*/);
+        wxTE_LEFT);
     pSearchTextCtrl->SetHint(GetSearchHintText());
     pSearchTextCtrl->SetToolTip("Enter a search term");
     searchBoxSizer->Add(
@@ -179,11 +179,11 @@ void EditListDialog::CreateControls()
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line2, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    sizer->Add(line2, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     buttonsSizer->AddStretchSpacer();
 

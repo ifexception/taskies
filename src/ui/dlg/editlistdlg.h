@@ -58,6 +58,7 @@ public:
 
 private:
     std::string GetEditTitle();
+
     void Create();
 
     void CreateControls();
@@ -92,12 +93,8 @@ private:
 
     std::string GetSearchHintText();
 
-    std::shared_ptr<spdlog::logger> pLogger;
-
-    std::string mDatabaseFilePath;
-    EditListEntityType mType;
-
     wxWindow* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
 
     wxTextCtrl* pSearchTextCtrl;
     wxBitmapButton* pSearchButton;
@@ -107,6 +104,9 @@ private:
 
     wxButton* pOkButton;
     wxButton* pCancelButton;
+
+    std::string mDatabaseFilePath;
+    EditListEntityType mType;
 
     std::string mSearchTerm;
     std::int64_t mEntityId;
