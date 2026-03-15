@@ -32,6 +32,7 @@
 #include <wx/clrpicker.h>
 
 #include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
 
 #include "../../models/categorymodel.h"
 
@@ -58,8 +59,8 @@ private:
     void ConfigureEventBindings();
     void FillControls(const Model::CategoryModel& category);
 
-    void Append(Model::CategoryModel category);
-    void Update(Model::CategoryModel category);
+    void AppendCategory(Model::CategoryModel category);
+    void UpdateCategory(Model::CategoryModel category);
 
     void OnAdd(wxCommandEvent& event);
     void OnEdit(wxCommandEvent& event);
@@ -73,6 +74,8 @@ private:
     void OnItemRightClick(wxListEvent& event);
 
     void ResetControlValues();
+
+    void QueueErrorNotificationEvent(const std::string& message);
 
     std::string ExtractNameFromListIndex(long itemIndex);
 
