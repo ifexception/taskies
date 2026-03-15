@@ -57,21 +57,21 @@ CategoriesDialog::CategoriesDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
-    , mDatabaseFilePath(databaseFilePath)
     , pNameTextCtrl(nullptr)
     , pColorPickerCtrl(nullptr)
     , pBillableCheckBoxCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pProjectChoiceCtrl(nullptr)
-    , pListCtrl(nullptr)
     , pAddButton(nullptr)
     , pRemoveButton(nullptr)
     , pRemoveAllButton(nullptr)
+    , pListCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
-    , bEditFromListCtrl(false)
-    , mCategoryIndexEdit(-1)
+    , mDatabaseFilePath(databaseFilePath)
     , mListItemIndex(-1)
+    , mCategoryIndexEdit(-1)
+    , bEditFromListCtrl(false)
     , mListItemIndexes()
     , mCategoryToAdd()
     , mCategoriesToAdd()
@@ -392,6 +392,7 @@ void CategoriesDialog::OnAdd(wxCommandEvent& event)
 
     mCategoryToAdd = Model::CategoryModel();
     mCategoryIndexEdit = -1;
+    bEditFromListCtrl = false;
     ResetControlValues();
 }
 

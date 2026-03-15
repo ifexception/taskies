@@ -79,9 +79,9 @@ private:
     bool Validate();
     void TransferDataFromControls();
 
-    std::shared_ptr<spdlog::logger> pLogger;
-
     wxWindow* pParent;
+
+    std::shared_ptr<spdlog::logger> pLogger;
 
     wxTextCtrl* pNameTextCtrl;
 
