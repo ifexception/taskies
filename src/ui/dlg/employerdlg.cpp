@@ -231,28 +231,33 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 
         if (ret == -1) {
             message = "Failed to unset default employer";
+            QueueErrorNotificationEvent(message);
         }
     }
 
-    if (ret != -1) {
-        if (!bIsEdit) {
-            std::int64_t employerId = employerPersistence.Create(employerModel);
-            ret = employerId > 0 ? 1 : -1;
+    if (!bIsEdit) {
+        std::int64_t employerId = employerPersistence.Create(employerModel);
+        ret = employerId > 0 ? 1 : -1;
 
-            ret == -1 ? message = "Failed to create employer"
-                      : message = "Successfully created employer";
+        if (ret == -1) {
+            message = "Failed to create employer";
+            QueueErrorNotificationEvent(message);
         }
-        if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-            ret = employerPersistence.Update(employerModel);
+    }
+    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = employerPersistence.Update(employerModel);
 
-            ret == -1 ? message = "Failed to update employer"
-                      : message = "Successfully updated employer";
+        if (ret == -1) {
+            message = "Failed to update employer";
+            QueueErrorNotificationEvent(message);
         }
-        if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
-            ret = employerPersistence.Delete(mEmployerId);
+    }
+    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        ret = employerPersistence.Delete(mEmployerId);
 
-            ret == -1 ? message = "Failed to delete employer"
-                      : message = "Successfully deleted employer";
+        if (ret == -1) {
+            message = "Failed to delete employer";
+            QueueErrorNotificationEvent(message);
         }
     }
 
@@ -261,15 +266,6 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 
         pOkButton->Enable();
     } else {
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
         EndModal(wxID_OK);
     }
 }
@@ -367,13 +363,12 @@ Model::EmployerModel EmployerDialog::TransferDataFromControls()
 
 void EmployerDialog::QueueErrorNotificationEvent(const std::string& message)
 {
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
+    wxCommandEvent* errorNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
+    NotificationClientData* clientData = new NotificationClientData(message);
+    errorNotificationEvent->SetClientObject(clientData);
 
     // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
     // we have wxFrame
-    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, errorNotificationEvent);
 }
 } // namespace tks::UI::dlg
