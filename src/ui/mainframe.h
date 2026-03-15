@@ -38,6 +38,7 @@
 #include <wx/taskbarbutton.h>
 
 #include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
 
 #include "../common/enums.h"
 
