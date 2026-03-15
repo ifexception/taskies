@@ -230,7 +230,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         ret = employerPersistence.UnsetDefault();
 
         if (ret == -1) {
-            message = "Failed to unset default employer";
+            message = "A database error occured while trying unset the default employer";
             QueueErrorNotificationEvent(message);
         }
     }
@@ -240,7 +240,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         ret = employerId > 0 ? 1 : -1;
 
         if (ret == -1) {
-            message = "Failed to create employer";
+            message = "A database error occured when trying to create an employer";
             QueueErrorNotificationEvent(message);
         }
     }
@@ -248,7 +248,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         ret = employerPersistence.Update(employerModel);
 
         if (ret == -1) {
-            message = "Failed to update employer";
+            message = "A database error occured when trying update the employer";
             QueueErrorNotificationEvent(message);
         }
     }
@@ -256,18 +256,12 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         ret = employerPersistence.Delete(mEmployerId);
 
         if (ret == -1) {
-            message = "Failed to delete employer";
+            message = "A database error occured when trying to delete the employer";
             QueueErrorNotificationEvent(message);
         }
     }
 
-    if (ret == -1) {
-        QueueErrorNotificationEvent(message);
-
-        pOkButton->Enable();
-    } else {
-        EndModal(wxID_OK);
-    }
+    EndModal(wxID_OK);
 }
 
 void EmployerDialog::OnCancel(wxCommandEvent& event)
