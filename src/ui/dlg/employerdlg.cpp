@@ -225,17 +225,19 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     std::string message = "";
 
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
+    bool canContinue = true;
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
         ret = employerPersistence.UnsetDefault();
 
         if (ret == -1) {
+            canContinue = false;
             message = "A database error occured while trying unset the default employer";
             QueueErrorNotificationEvent(message);
         }
     }
 
-    if (!bIsEdit) {
+    if (!bIsEdit && canContinue) {
         std::int64_t employerId = employerPersistence.Create(employerModel);
         ret = employerId > 0 ? 1 : -1;
 
@@ -244,7 +246,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             QueueErrorNotificationEvent(message);
         }
     }
-    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
         ret = employerPersistence.Update(employerModel);
 
         if (ret == -1) {
@@ -252,7 +254,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
             QueueErrorNotificationEvent(message);
         }
     }
-    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
         ret = employerPersistence.Delete(mEmployerId);
 
         if (ret == -1) {
