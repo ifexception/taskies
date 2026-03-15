@@ -343,8 +343,6 @@ void ProjectDialog::DataToControls()
                 }
             }
         }
-
-        Fit();
     }
 }
 
