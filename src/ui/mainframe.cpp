@@ -32,6 +32,7 @@
 
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
+#include <wx/msgdlg.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/taskbarbutton.h>
