@@ -181,7 +181,7 @@ void ClientDialog::FillControls()
 
     int rc = employerPersistence.Filter(defaultSearchTerm, employers);
     if (rc == -1) {
-        std::string message = "A database error occured when trying to get employers";
+        std::string message = "A database error occured when fetching employers";
         wxMessageDialog dialog(this,
             message,
             Common::GetProgramName(),

@@ -28,6 +28,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
 #include "../../models/employermodel.h"
