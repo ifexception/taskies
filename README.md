@@ -14,7 +14,7 @@ _Taskies is still under active development_
 
 
 ## Installation
-Download an installer executable from [here](https://github.com/ifexception/taskies/releases)
+Download an installer executable or portable version from [here](https://github.com/ifexception/taskies/releases)
 
 ## Features
 * Manage employers, clients, projects, and categories
