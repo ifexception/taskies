@@ -195,8 +195,20 @@ void EmployerDialog::DataToControls()
 
     int rc = employerPersistence.GetById(mEmployerId, employerModel);
     if (rc == -1) {
-        std::string message = "Failed to get employer";
-        QueueErrorNotificationEvent(message);
+        std::string message = "A database error occured when fetching the employer";
+        wxMessageDialog dialog(this,
+            message,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(
+            "Please try again or click \"OK\" to open your browser to log an issue");
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+        }
+
+        EndModal(wxID_OK);
     } else {
         pNameTextCtrl->SetValue(employerModel.Name);
         pIsDefaultCheckBoxCtrl->SetValue(employerModel.IsDefault);
@@ -216,8 +228,6 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     if (!Validate()) {
         return;
     }
-
-    pOkButton->Disable();
 
     Model::EmployerModel employerModel = TransferDataFromControls();
 
