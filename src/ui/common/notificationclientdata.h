@@ -32,10 +32,11 @@ namespace tks::UI
 {
 struct NotificationClientData final : public wxClientData {
     NotificationClientData() = delete;
+    NotificationClientData(std::string message);
     NotificationClientData(NotificationType notificationType, std::string message);
     ~NotificationClientData() = default;
 
     NotificationType Type;
     std::string Message;
 };
-}
+} // namespace tks::UI

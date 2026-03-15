@@ -21,7 +21,14 @@
 
 namespace tks::UI
 {
-NotificationClientData::NotificationClientData(NotificationType notificationType, std::string message)
+NotificationClientData::NotificationClientData(std::string message)
+    : Type(NotificationType::Error)
+    , Message(message)
+{
+}
+
+NotificationClientData::NotificationClientData(NotificationType notificationType,
+    std::string message)
     : Type(notificationType)
     , Message(message)
 {

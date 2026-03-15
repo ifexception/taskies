@@ -1235,7 +1235,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnErrorNotification(wxCommandEvent& event)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, "Received notification event");
+    SPDLOG_LOGGER_TRACE(pLogger, "Received error notification event");
 
     NotificationClientData* notificationClientData =
         reinterpret_cast<NotificationClientData*>(event.GetClientObject());
