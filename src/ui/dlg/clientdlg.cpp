@@ -19,9 +19,11 @@
 
 #include "clientdlg.h"
 
+#include <fmt/format.h>
+
+#include <wx/msgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
-#include <fmt/format.h>
 
 #include "../events.h"
 #include "../common/clientdata.h"
@@ -32,7 +34,7 @@
 #include "../../common/validator.h"
 
 #include "../../persistence/employerspersistence.h"
-#include "../../persistence/ClientsPersistence.h"
+#include "../../persistence/clientspersistence.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -56,15 +58,15 @@ ClientDialog::ClientDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
-    , mDatabaseFilePath(databaseFilePath)
-    , bIsEdit(isEdit)
-    , mClientId(clientId)
     , pNameTextCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pEmployerChoiceCtrl(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mDatabaseFilePath(databaseFilePath)
+    , bIsEdit(isEdit)
+    , mClientId(clientId)
     , mClientModel()
 {
     Create();
@@ -172,15 +174,25 @@ void ClientDialog::FillControls()
     pEmployerChoiceCtrl->Append("Select an employer", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);
 
-    std::string defaultSearhTerm = "";
+    std::string defaultSearchTerm = "";
 
     std::vector<Model::EmployerModel> employers;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.Filter(defaultSearhTerm, employers);
+    int rc = employerPersistence.Filter(defaultSearchTerm, employers);
     if (rc == -1) {
-        std::string message = "Failed to get employers";
+        std::string message = "A database error occured when trying to get employers";
+        wxMessageDialog dialog(this,
+            message,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(
+            "Please try again or click \"OK\" to open your browser to log an issue");
 
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+        }
     } else {
         for (auto& employer : employers) {
             pEmployerChoiceCtrl->Append(
@@ -227,8 +239,20 @@ void ClientDialog::DataToControls()
     int rc = ClientsPersistence.GetById(mClientId, mClientModel);
 
     if (rc == -1) {
-        std::string message = "Failed to get client";
-        QueueErrorNotificationEvent(message);
+        std::string message = "A database error occured when fetching the client";
+        wxMessageDialog dialog(this,
+            message,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(
+            "Please try again or click \"OK\" to open your browser to log an issue");
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+        }
+
+        EndModal(wxID_OK);
     } else {
         pNameTextCtrl->ChangeValue(mClientModel.Name);
 
@@ -257,8 +281,6 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
-    pOkButton->Disable();
-
     TransferDataFromControls();
 
     Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
@@ -270,36 +292,30 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         std::int64_t clientId = ClientsPersistence.Create(mClientModel);
         ret = clientId > 0 ? 1 : -1;
 
-        ret == -1 ? message = "Failed to create client" : message = "Successfully created client";
+        if (ret == -1) {
+            message = "A database error occured when trying to create a client";
+            QueueErrorNotificationEvent(message);
+        }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
         ret = ClientsPersistence.Update(mClientModel);
 
-        ret == -1 ? message = "Failed to update client" : message = "Successfully updated client";
+        if (ret == -1) {
+            message = "A database error occured when trying to update the client";
+            QueueErrorNotificationEvent(message);
+        }
     }
 
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
         ret = ClientsPersistence.Delete(mClientId);
 
-        ret == -1 ? message = "Failed to delete client" : message = "Successfully deleted client";
+        if (ret == -1) {
+            message = "A database error occured when trying to delete the client";
+            QueueErrorNotificationEvent(message);
+        }
     }
 
-    if (ret == -1) {
-        QueueErrorNotificationEvent(message);
-
-        pOkButton->Enable();
-    } else {
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
-        // we have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
-        EndModal(wxID_OK);
-    }
+    EndModal(wxID_OK);
 }
 
 void ClientDialog::OnCancel(wxCommandEvent& event)
@@ -387,8 +403,7 @@ void ClientDialog::TransferDataFromControls()
 void ClientDialog::QueueErrorNotificationEvent(const std::string& message)
 {
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
+    NotificationClientData* clientData = new NotificationClientData(message);
     addNotificationEvent->SetClientObject(clientData);
 
     // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
