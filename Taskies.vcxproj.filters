@@ -380,9 +380,6 @@
     <ClCompile Include="src\ui\mainframe.cpp">
       <Filter>Source\ui</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\notificationpopupwindow.cpp">
-      <Filter>Source\ui</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui\statusbar.cpp">
       <Filter>Source\ui</Filter>
     </ClCompile>
@@ -704,9 +701,6 @@
       <Filter>Source\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\mainframe.h">
-      <Filter>Source\ui</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\notificationpopupwindow.h">
       <Filter>Source\ui</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\taskbaricon.h">

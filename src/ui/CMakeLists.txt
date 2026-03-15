@@ -14,12 +14,11 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/mainframe.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/events.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/taskbaricon.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/notificationpopupwindow.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/statusbar.cpp"
     ${SRC_UI_COMMON}
     ${SRC_UI_DATAVIEW}
     ${SRC_DLG}
     ${SRC_WIZARDS}
-	${SRC_FRMS}
+    ${SRC_FRMS}
     PARENT_SCOPE
 )

@@ -344,7 +344,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\ui\events.cpp" />
     <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp" />
     <ClCompile Include="src\ui\mainframe.cpp" />
-    <ClCompile Include="src\ui\notificationpopupwindow.cpp" />
     <ClCompile Include="src\ui\persistencemanager.cpp" />
     <ClCompile Include="src\ui\statusbar.cpp" />
     <ClCompile Include="src\ui\taskbaricon.cpp" />
@@ -455,7 +454,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\ui\events.h" />
     <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h" />
     <ClInclude Include="src\ui\mainframe.h" />
-    <ClInclude Include="src\ui\notificationpopupwindow.h" />
     <ClInclude Include="src\ui\persistencemanager.h" />
     <ClInclude Include="src\ui\statusbar.h" />
     <ClInclude Include="src\ui\taskbaricon.h" />

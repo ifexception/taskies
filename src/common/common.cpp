@@ -74,23 +74,15 @@ std::string GetLicense()
            "You should have received a copy of the GNU General Public License\n"
            "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
 }
+
 namespace Resources
 {
-std::string Bell()
-{
-    return "bell16x16.png";
-}
-
-std::string BellNotification()
-{
-    return "bellnotification16x16.png";
-}
-
 std::string Wizard()
 {
     return "install-wizard.svg";
 }
 } // namespace Resources
+
 namespace Static
 {
 std::vector<EnumClientData<DelimiterType>> DelimitersList()

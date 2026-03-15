@@ -20,7 +20,7 @@
 #include "events.h"
 
 wxDEFINE_EVENT(tksEVT_ERROR, wxCommandEvent);
-wxDEFINE_EVENT(tksEVT_ADDNOTIFICATION, wxCommandEvent);
+wxDEFINE_EVENT(tksEVT_ERRORNOTIFICATION, wxCommandEvent);
 wxDEFINE_EVENT(tksEVT_TASKDATEADDED, wxCommandEvent);
 wxDEFINE_EVENT(tksEVT_TASKDATEDELETED, wxCommandEvent);
 wxDEFINE_EVENT(tksEVT_TASKDATEDCHANGEDTO, wxCommandEvent);

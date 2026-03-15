@@ -136,14 +136,13 @@ EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
 EVT_MENU(ID_POP_CLONE_TASK, MainFrame::OnCloneTask)
 EVT_MENU(wxID_ADD, MainFrame::OnAddMinutes)
 /* Custom Event Handlers */
-EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
+EVT_COMMAND(wxID_ANY, tksEVT_ERRORNOTIFICATION, MainFrame::OnErrorNotification)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDFROM, MainFrame::OnTaskDateChangedFrom)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDTO, MainFrame::OnTaskDateChangedTo)
 EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeetingViewClose)
 /* Control Event Handlers */
-EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
 EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
@@ -169,12 +168,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pInfoBar(nullptr)
     , pTaskBarIcon(nullptr)
     , pStatusBar(nullptr)
-    , pNotificationPopupWindow(nullptr)
     , pFromDatePickerCtrl(nullptr)
     , pToDatePickerCtrl(nullptr)
-    , pNotificationButton(nullptr)
-    , mBellBitmap(wxNullBitmap)
-    , mBellNotificationBitmap(wxNullBitmap)
     , pDateStore(nullptr)
     , mFromDate()
     , mToDate()
@@ -206,17 +201,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
             600);
         SetSize(FromDIP(wxSize(800, 600)));
     }
-
-    // Initialize image handlers and images
-    wxPNGHandler* pngHandler = new wxPNGHandler();
-    wxImage::AddHandler(pngHandler);
-
-    auto bellImagePath = pEnv->GetResourcesPath() / Common::Resources::Bell();
-    auto bellNotificationImagePath =
-        pEnv->GetResourcesPath() / Common::Resources::BellNotification();
-
-    mBellBitmap.LoadFile(bellImagePath.string(), wxBITMAP_TYPE_PNG);
-    mBellNotificationBitmap.LoadFile(bellNotificationImagePath.string(), wxBITMAP_TYPE_PNG);
 
     // Set main icon in titlebar
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
@@ -266,9 +250,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
     // Create controls
     Create();
-
-    // Create the notification popup window
-    pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
 }
 
 MainFrame::~MainFrame()
@@ -290,11 +271,6 @@ MainFrame::~MainFrame()
         pLogger->info("{0} - Reminders enabled and timer is running", TAG);
         pTaskReminderTimer->Stop();
         pLogger->info("{0} - Timer stopped", TAG);
-    }
-
-    if (pNotificationPopupWindow) {
-        pLogger->info("{0} - Delete notification popup window pointer", TAG);
-        delete pNotificationPopupWindow;
     }
 
     pLogger->info("{0} - Destructor complete", TAG);
@@ -435,12 +411,6 @@ void MainFrame::CreateControls()
     topSizer->Add(pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
     topSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     topSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    topSizer->AddStretchSpacer();
-
-    pNotificationButton = new wxBitmapButton(framePanel, tksIDC_NOTIFICATIONBUTTON, mBellBitmap);
-    pNotificationButton->SetToolTip("View notifications");
-    topSizer->Add(pNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
@@ -618,9 +588,6 @@ void MainFrame::OnIconize(wxIconizeEvent& event)
 
 void MainFrame::OnResize(wxSizeEvent& event)
 {
-    if (pNotificationPopupWindow) {
-        pNotificationPopupWindow->OnResize();
-    }
     if (pMeetingsViewFrame) {
         pMeetingsViewFrame->OnParentFrameResize();
     }
@@ -703,24 +670,6 @@ void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 
         mThumbBarDialogOpenCounter--;
     }
-}
-
-void MainFrame::OnNotificationClick(wxCommandEvent& event)
-{
-    pNotificationButton->SetBitmap(mBellBitmap);
-
-    wxWindow* btn = (wxWindow*) event.GetEventObject();
-
-    auto y = GetClientSize().GetWidth();
-    auto xPositionOffset = (GetClientSize().GetWidth() + 4) * 0.25;
-    if (GetClientSize().GetWidth() < 800) {
-        xPositionOffset = 200; // cap notification window width at 200
-    }
-
-    wxPoint pos = btn->ClientToScreen(wxPoint(xPositionOffset * -1, 0));
-    wxSize size = btn->GetSize();
-    pNotificationPopupWindow->Position(pos, size);
-    pNotificationPopupWindow->Popup();
 }
 
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
@@ -821,7 +770,7 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
     sqlite3_close(backupDb);
 
     std::string message = "Backup successful";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Information, message);
     addNotificationEvent->SetClientObject(clientData);
@@ -1185,7 +1134,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     int rc = taskPersistence.GetById(mTaskIdToModify, taskModel);
     if (rc != 0) {
         std::string message = "Failed to fetch task";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -1204,7 +1153,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         rc = attendedMeetingsPersistence.Delete(taskModel.AttendedMeetingId.value());
         if (rc != 0) {
             std::string message = "Failed to delete attended meeting associated to task";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
             NotificationClientData* clientData =
                 new NotificationClientData(NotificationType::Error, message);
             addNotificationEvent->SetClientObject(clientData);
@@ -1219,7 +1168,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     rc = taskPersistence.Delete(mTaskIdToModify);
     if (rc != 0) {
         std::string message = "Failed to delete selected task";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Error, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -1231,7 +1180,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
 
         std::string message = "Successfully deleted task";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
         NotificationClientData* clientData =
             new NotificationClientData(NotificationType::Information, message);
         addNotificationEvent->SetClientObject(clientData);
@@ -1284,17 +1233,24 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnAddNotification(wxCommandEvent& event)
+void MainFrame::OnErrorNotification(wxCommandEvent& event)
 {
-    pLogger->info("MainFrame::OnAddNotification - Received notification event");
-
-    pNotificationButton->SetBitmap(mBellNotificationBitmap);
+    SPDLOG_LOGGER_TRACE(pLogger, "Received notification event");
 
     NotificationClientData* notificationClientData =
         reinterpret_cast<NotificationClientData*>(event.GetClientObject());
 
-    pNotificationPopupWindow->AddNotification(
-        notificationClientData->Message, notificationClientData->Type);
+    if (notificationClientData->Type == NotificationType::Error) {
+        wxMessageDialog dialog(this,
+            notificationClientData->Message,
+            "Please try again or click \"OK\" to open your browser to log an issue",
+            wxCENTER | wxNO_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+        }
+    }
 
     if (notificationClientData) {
         delete notificationClientData;
@@ -1868,7 +1824,7 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 void MainFrame::QueueFetchTasksErrorNotificationEvent()
 {
     std::string message = "Failed to fetch tasks";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
+    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
     NotificationClientData* clientData =
         new NotificationClientData(NotificationType::Error, message);
     addNotificationEvent->SetClientObject(clientData);
