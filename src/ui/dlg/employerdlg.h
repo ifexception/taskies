@@ -63,10 +63,9 @@ private:
 
     void QueueErrorNotificationEvent(const std::string& message);
 
-    std::shared_ptr<spdlog::logger> pLogger;
-    std::string mDatabaseFilePath;
-
     wxWindow* pParent;
+
+    std::shared_ptr<spdlog::logger> pLogger;
 
     wxTextCtrl* pNameTextCtrl;
     wxCheckBox* pIsDefaultCheckBoxCtrl;
@@ -78,6 +77,7 @@ private:
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
+    std::string mDatabaseFilePath;
     bool bIsEdit;
     std::int64_t mEmployerId;
 
