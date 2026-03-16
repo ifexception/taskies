@@ -407,6 +407,9 @@
     <ClCompile Include="src\utils\mswutils.cpp">
       <Filter>Source\utils</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\usererrormessages.cpp">
+      <Filter>Source\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -732,6 +735,9 @@
     </ClInclude>
     <ClInclude Include="src\utils\mswutils.h">
       <Filter>Source\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\usererrormessages.h">
+      <Filter>Source\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
