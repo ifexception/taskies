@@ -379,8 +379,6 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
-    pOkButton->Disable();
-
     TransferDataFromControls();
 
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);

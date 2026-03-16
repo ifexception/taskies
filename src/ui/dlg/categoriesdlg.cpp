@@ -448,8 +448,6 @@ void CategoriesDialog::OnRemoveAll(wxCommandEvent& event)
 
 void CategoriesDialog::OnOK(wxCommandEvent& event)
 {
-    pOkButton->Disable();
-
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
