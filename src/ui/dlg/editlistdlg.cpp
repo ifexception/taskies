@@ -22,6 +22,7 @@
 #include <vector>
 
 #include <wx/artprov.h>
+#include <wx/msgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -38,6 +39,7 @@
 #include "../common/notificationclientdata.h"
 
 #include "../../common/common.h"
+#include "../../common/usererrormessages.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
@@ -285,13 +287,16 @@ void EditListDialog::EmployerDataToControls()
 
     int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {
-        std::string message = "Failed to filter employers";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterEmployersMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     } else {
         for (auto& employer : employers) {
             ListCtrlData data(employer.EmployerId, employer.Name);
@@ -310,13 +315,16 @@ void EditListDialog::ClientDataToControls()
 
     int rc = ClientsPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
-        std::string message = "Failed to filter clients";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterClientsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);
@@ -335,13 +343,16 @@ void EditListDialog::ProjectDataToControls()
 
     int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
-        std::string message = "Failed to filter projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterProjectsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);
@@ -360,13 +371,16 @@ void EditListDialog::CategoryDataToControls()
 
     int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
-        std::string message = "Failed to filter categories";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterCategoriesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);
@@ -593,13 +607,16 @@ void EditListDialog::SearchEmployers()
 
     int rc = employerPersistence.Filter(mSearchTerm, employers);
     if (rc == -1) {
-        std::string message = "Failed to filter employers";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterEmployersMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     } else {
         for (auto& employer : employers) {
             ListCtrlData data(employer.EmployerId, employer.Name);
@@ -623,13 +640,16 @@ void EditListDialog::SearchClients()
 
     int rc = ClientsPersistence.Filter(mSearchTerm, clients);
     if (rc == -1) {
-        std::string message = "Failed to filter clients";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterClientsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);
@@ -653,13 +673,16 @@ void EditListDialog::SearchProjects()
 
     int rc = projectPersistence.Filter(mSearchTerm, projects);
     if (rc == -1) {
-        std::string message = "Failed to filter projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterProjectsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);
@@ -683,13 +706,16 @@ void EditListDialog::SearchCategories()
 
     int rc = categoryPersistence.Filter(mSearchTerm, categories);
     if (rc == -1) {
-        std::string message = "Failed to filter categories";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterCategoriesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);

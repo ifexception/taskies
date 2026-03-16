@@ -69,6 +69,7 @@ const std::string UpdateCategoryMessage =
     "A database error occured when trying to update the category";
 const std::string DeleteCategoryMessage =
     "A database error occured when trying to delete the category";
+const std::string FilterCategoriesMessage = "A database error occured when fetching categories";
 #pragma endregion
 
 } // namespace tks::ErrorMessages
