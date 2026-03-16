@@ -24,6 +24,7 @@
 
 #include <fmt/format.h>
 
+#include <wx/msgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 

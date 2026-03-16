@@ -19,6 +19,7 @@
 
 #include "employerdlg.h"
 
+#include <wx/msgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
