@@ -31,6 +31,7 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
 
 #include "../../persistence/projectspersistence.h"
@@ -254,18 +255,15 @@ void CategoryDialog::DataToControls()
 
     rc = categoryPersistence.GetById(mCategoryId, mCategoryModel);
     if (rc != 0) {
-        std::string message = "A database error occured when fetching the category";
-
         wxMessageDialog dialog(this,
-            message,
+            ErrorMessages::EditCategoryMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
         }
     } else {
         pNameTextCtrl->ChangeValue(mCategoryModel.Name);
@@ -291,8 +289,6 @@ void CategoryDialog::DataToControls()
             }
         }
     }
-
-    pOkButton->Enable();
 }
 
 void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)
@@ -325,22 +321,19 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
-    std::string message = "";
 
     if (pIsActiveCheckBoxCtrl->IsChecked()) {
         ret = categoryPersistence.Update(mCategoryModel);
 
         if (ret == -1) {
-            message = "A database error occured when trying to update the category";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(ErrorMessages::UpdateCategoryMessage);
         }
     }
     if (!pIsActiveCheckBoxCtrl->IsChecked()) {
         ret = categoryPersistence.Delete(mCategoryId);
 
         if (ret == -1) {
-            message = "A database error occured when trying to delete the category";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(ErrorMessages::DeleteCategoryMessage);
         }
     }
 

@@ -34,6 +34,7 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
 
 #include "../../persistence/projectspersistence.h"
@@ -244,17 +245,15 @@ void CategoriesDialog::FillControls()
 
     int rc = projectPersistence.Filter(defaultSearchTerm, projects);
     if (rc != 0) {
-        std::string message = "A database error occured when fetching projects";
         wxMessageDialog dialog(this,
-            message,
+            ErrorMessages::FilterProjectsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
         }
     } else {
         if (!projects.empty()) {
@@ -452,15 +451,24 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
-    std::string message = "";
     for (const auto& category : mCategoriesToAdd) {
         std::int64_t categoryId = categoryPersistence.Create(category);
         ret = categoryId > 0 ? 1 : -1;
         if (ret == -1) {
-            message = fmt::format(
-                "A database error occured when trying to create a category with name: \"{0}\"",
+            std::string message = fmt::format(
+                ErrorMessages::CreateCategoryMessage,
                 category.Name);
-            QueueErrorNotificationEvent(message);
+
+            wxMessageDialog dialog(this,
+                message,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+            int ret = dialog.ShowModal();
+            if (ret == wxID_OK) {
+                wxLaunchDefaultBrowser(Common::GetIssuesLink());
+            }
             break;
         }
     }

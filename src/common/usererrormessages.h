@@ -58,5 +58,17 @@ const std::string UpdateProjectMessage =
     "A database error occured when trying to update the project";
 const std::string DeleteProjectMessage =
     "A database error occured when trying to delete the project";
+const std::string FilterProjectsMessage = "A database error occured when fetching projects";
 #pragma endregion
+
+#pragma region Categories
+const std::string CreateCategoryMessage =
+    "A database error occured when trying to create a category with name: \"{0}\"";
+const std::string EditCategoryMessage = "A database error occured when fetching the category";
+const std::string UpdateCategoryMessage =
+    "A database error occured when trying to update the category";
+const std::string DeleteCategoryMessage =
+    "A database error occured when trying to delete the category";
+#pragma endregion
+
 } // namespace tks::ErrorMessages
