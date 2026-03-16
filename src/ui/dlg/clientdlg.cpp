@@ -31,6 +31,7 @@
 
 #include "../../common/constants.h"
 #include "../../common/common.h"
+#include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
 
 #include "../../persistence/employerspersistence.h"
@@ -181,17 +182,15 @@ void ClientDialog::FillControls()
 
     int rc = employerPersistence.Filter(defaultSearchTerm, employers);
     if (rc == -1) {
-        std::string message = "A database error occured when fetching employers";
         wxMessageDialog dialog(this,
-            message,
+            Messages::FilterEmployersMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
+        dialog.SetExtendedMessage(Messages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
         }
     } else {
         for (auto& employer : employers) {
@@ -239,20 +238,16 @@ void ClientDialog::DataToControls()
     int rc = ClientsPersistence.GetById(mClientId, mClientModel);
 
     if (rc == -1) {
-        std::string message = "A database error occured when fetching the client";
         wxMessageDialog dialog(this,
-            message,
+            Messages::EditClientMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
+        dialog.SetExtendedMessage(Messages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
         }
-
-        EndModal(wxID_OK);
     } else {
         pNameTextCtrl->ChangeValue(mClientModel.Name);
 
@@ -286,23 +281,20 @@ void ClientDialog::OnOK(wxCommandEvent& event)
     Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
-    std::string message = "";
 
     if (!bIsEdit) {
         std::int64_t clientId = ClientsPersistence.Create(mClientModel);
         ret = clientId > 0 ? 1 : -1;
 
         if (ret == -1) {
-            message = "A database error occured when trying to create a client";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(Messages::CreateClientMessage);
         }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
         ret = ClientsPersistence.Update(mClientModel);
 
         if (ret == -1) {
-            message = "A database error occured when trying to update the client";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(Messages::UpdateClientMessage);
         }
     }
 
@@ -310,8 +302,7 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         ret = ClientsPersistence.Delete(mClientId);
 
         if (ret == -1) {
-            message = "A database error occured when trying to delete the client";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(Messages::DeleteClientMessage);
         }
     }
 

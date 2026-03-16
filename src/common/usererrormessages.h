@@ -38,6 +38,14 @@ const std::string DeleteEmployerMessage =
     "A database error occured when trying to delete the employer";
 const std::string FindDefaultEmployerMessage =
     "A database error occured when trying to find default employer";
+const std::string FilterEmployersMessage = "A database error occured when fetching employers";
+#pragma endregion
+
+#pragma region Client
+const std::string EditClientMessage = "A database error occured when fetching the client";
+const std::string CreateClientMessage = "A database error occured when trying to create a client";
+const std::string UpdateClientMessage = "A database error occured when trying to update the client";
+const std::string DeleteClientMessage = "A database error occured when trying to delete the client";
 #pragma endregion
 
 } // namespace tks::Messages
