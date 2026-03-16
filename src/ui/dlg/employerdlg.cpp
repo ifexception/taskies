@@ -207,8 +207,6 @@ void EmployerDialog::DataToControls()
         if (ret == wxID_OK) {
             wxLaunchDefaultBrowser(Common::GetIssuesLink());
         }
-
-        EndModal(wxID_OK);
     } else {
         pNameTextCtrl->SetValue(employerModel.Name);
         pIsDefaultCheckBoxCtrl->SetValue(employerModel.IsDefault);
