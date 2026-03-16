@@ -30,6 +30,7 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
 
 #include "../../persistence/employerspersistence.h"
@@ -196,17 +197,15 @@ void EmployerDialog::DataToControls()
 
     int rc = employerPersistence.GetById(mEmployerId, employerModel);
     if (rc == -1) {
-        std::string message = "A database error occured when fetching the employer";
         wxMessageDialog dialog(this,
-            message,
+            Messages::EditEmployerMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
+        dialog.SetExtendedMessage(Messages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
         }
 
         EndModal(wxID_OK);
@@ -233,7 +232,6 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     Model::EmployerModel employerModel = TransferDataFromControls();
 
     int ret = 0;
-    std::string message = "";
 
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
     bool canContinue = true;
@@ -243,8 +241,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 
         if (ret == -1) {
             canContinue = false;
-            message = "A database error occured while trying unset the default employer";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(Messages::UnsetDefaultEmployerMessage);
         }
     }
 
@@ -253,24 +250,21 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         ret = employerId > 0 ? 1 : -1;
 
         if (ret == -1) {
-            message = "A database error occured when trying to create an employer";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(Messages::CreateEmployerMessage);
         }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
         ret = employerPersistence.Update(employerModel);
 
         if (ret == -1) {
-            message = "A database error occured when trying update the employer";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(Messages::UpdateEmployerMessage);
         }
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
         ret = employerPersistence.Delete(mEmployerId);
 
         if (ret == -1) {
-            message = "A database error occured when trying to delete the employer";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(Messages::DeleteEmployerMessage);
         }
     }
 
@@ -335,11 +329,19 @@ bool EmployerDialog::Validate()
         int rc = employerPersistence.SelectDefault(model);
 
         if (rc == -1) {
-            std::string message = "Failed to get default employer";
-            QueueErrorNotificationEvent(message);
+            wxMessageDialog dialog(this,
+                Messages::FindDefaultEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(Messages::MessageDialogExtendedMessage);
+
+            int ret = dialog.ShowModal();
+            if (ret == wxID_OK) {
+                wxLaunchDefaultBrowser(Common::GetIssuesLink());
+            }
         } else {
             if (!model.IsDefault) {
-                std::string validationMessage = "Required default employer not found";
+                std::string validationMessage = "An employer is required to be default";
                 wxRichToolTip toolTip("Validation", validationMessage);
                 toolTip.SetIcon(wxICON_WARNING);
                 toolTip.ShowFor(pIsDefaultCheckBoxCtrl);
