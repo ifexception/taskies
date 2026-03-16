@@ -183,10 +183,10 @@ void ClientDialog::FillControls()
     int rc = employerPersistence.Filter(defaultSearchTerm, employers);
     if (rc == -1) {
         wxMessageDialog dialog(this,
-            Messages::FilterEmployersMessage,
+            ErrorMessages::FilterEmployersMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(Messages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
@@ -239,10 +239,10 @@ void ClientDialog::DataToControls()
 
     if (rc == -1) {
         wxMessageDialog dialog(this,
-            Messages::EditClientMessage,
+            ErrorMessages::EditClientMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(Messages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
@@ -287,14 +287,14 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         ret = clientId > 0 ? 1 : -1;
 
         if (ret == -1) {
-            QueueErrorNotificationEvent(Messages::CreateClientMessage);
+            QueueErrorNotificationEvent(ErrorMessages::CreateClientMessage);
         }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
         ret = ClientsPersistence.Update(mClientModel);
 
         if (ret == -1) {
-            QueueErrorNotificationEvent(Messages::UpdateClientMessage);
+            QueueErrorNotificationEvent(ErrorMessages::UpdateClientMessage);
         }
     }
 
@@ -302,7 +302,7 @@ void ClientDialog::OnOK(wxCommandEvent& event)
         ret = ClientsPersistence.Delete(mClientId);
 
         if (ret == -1) {
-            QueueErrorNotificationEvent(Messages::DeleteClientMessage);
+            QueueErrorNotificationEvent(ErrorMessages::DeleteClientMessage);
         }
     }
 

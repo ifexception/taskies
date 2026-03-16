@@ -198,10 +198,10 @@ void EmployerDialog::DataToControls()
     int rc = employerPersistence.GetById(mEmployerId, employerModel);
     if (rc == -1) {
         wxMessageDialog dialog(this,
-            Messages::EditEmployerMessage,
+            ErrorMessages::EditEmployerMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(Messages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
@@ -239,7 +239,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 
         if (ret == -1) {
             canContinue = false;
-            QueueErrorNotificationEvent(Messages::UnsetDefaultEmployerMessage);
+            QueueErrorNotificationEvent(ErrorMessages::UnsetDefaultEmployerMessage);
         }
     }
 
@@ -248,21 +248,21 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         ret = employerId > 0 ? 1 : -1;
 
         if (ret == -1) {
-            QueueErrorNotificationEvent(Messages::CreateEmployerMessage);
+            QueueErrorNotificationEvent(ErrorMessages::CreateEmployerMessage);
         }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
         ret = employerPersistence.Update(employerModel);
 
         if (ret == -1) {
-            QueueErrorNotificationEvent(Messages::UpdateEmployerMessage);
+            QueueErrorNotificationEvent(ErrorMessages::UpdateEmployerMessage);
         }
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
         ret = employerPersistence.Delete(mEmployerId);
 
         if (ret == -1) {
-            QueueErrorNotificationEvent(Messages::DeleteEmployerMessage);
+            QueueErrorNotificationEvent(ErrorMessages::DeleteEmployerMessage);
         }
     }
 
@@ -328,10 +328,10 @@ bool EmployerDialog::Validate()
 
         if (rc == -1) {
             wxMessageDialog dialog(this,
-                Messages::FindDefaultEmployerMessage,
+                ErrorMessages::FindDefaultEmployerMessage,
                 Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(Messages::MessageDialogExtendedMessage);
+            dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
             int ret = dialog.ShowModal();
             if (ret == wxID_OK) {

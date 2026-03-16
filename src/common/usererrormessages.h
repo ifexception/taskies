@@ -21,7 +21,7 @@
 
 #include <string>
 
-namespace tks::Messages
+namespace tks::ErrorMessages
 {
 const std::string MessageDialogExtendedMessage =
     "Please try again or click \"OK\" to open your browser to log an issue";
