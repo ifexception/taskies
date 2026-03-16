@@ -59,7 +59,7 @@ std::string GetQuickExportIconBundleName()
 std::string GetLicense()
 {
     return "Taskies is a time tracking productivity tool.\n"
-           "Copyright (C) 2025  Szymon Welgus\n"
+           "Copyright (C) 2026  Szymon Welgus\n"
            "\n"
            "This program is free software: you can redistribute it and/or modify\n"
            "it under the terms of the GNU General Public License as published by\n"
