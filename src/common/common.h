@@ -46,6 +46,8 @@ std::string GetQuickExportIconBundleName();
 
 std::string GetLicense();
 
+std::string GetIssuesLink();
+
 struct PresetColumn {
     std::string Column;
     std::string OriginalColumn;
