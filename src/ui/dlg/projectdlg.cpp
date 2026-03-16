@@ -33,6 +33,7 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
+#include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
 
 #include "../../persistence/employerspersistence.h"
@@ -219,17 +220,15 @@ void ProjectDialog::FillControls()
 
     int rc = employerPersistence.Filter(defaultSearchTerm, employers);
     if (rc != 0) {
-        std::string message = "A database error occured when trying to get employers";
         wxMessageDialog dialog(this,
-            message,
+            ErrorMessages::FilterEmployersMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
         }
     } else {
         for (const auto& employer : employers) {
@@ -296,18 +295,15 @@ void ProjectDialog::DataToControls()
 
     int rc = projectPersistence.GetById(mProjectId, mProjectModel);
     if (rc != 0) {
-        std::string message = "A database error occured when fetching the project";
-
         wxMessageDialog dialog(this,
-            message,
+            ErrorMessages::EditProjectMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
         }
     } else {
         pNameTextCtrl->ChangeValue(mProjectModel.Name);
@@ -385,7 +381,6 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
-    std::string message = "";
     bool canContinue = true;
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
@@ -393,8 +388,7 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
 
         if (ret == -1) {
             canContinue = false;
-            message = "A database error occured while trying unset the default project";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(ErrorMessages::UnsetDefaultProjectMessage);
         }
     }
 
@@ -403,24 +397,21 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
         ret = projectId > 0 ? 0 : -1;
 
         if (ret == -1) {
-            message = "A database error occured when trying to create a project";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(ErrorMessages::CreateProjectMessage);
         }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
         ret = projectPersistence.Update(mProjectModel);
 
         if (ret == -1) {
-            message = "A database error occured when trying update the project";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(ErrorMessages::UpdateProjectMessage);
         }
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
         ret = projectPersistence.Delete(mProjectId);
 
         if (ret == -1) {
-            message = "A database error occured when trying delete the project";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(ErrorMessages::DeleteProjectMessage);
         }
     }
 
@@ -566,20 +557,16 @@ void ProjectDialog::FillClientChoiceControl(const std::int64_t employerId)
 
     int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
     if (rc == -1) {
-        std::string message = "A database error occured when fetching clients";
         wxMessageDialog dialog(this,
-            message,
+            ErrorMessages::FilterClientsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
         }
-
-        EndModal(wxID_OK);
     } else {
         if (!clients.empty()) {
             pClientChoiceCtrl->Enable();

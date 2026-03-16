@@ -33,7 +33,7 @@ const std::string UnsetDefaultEmployerMessage =
 const std::string CreateEmployerMessage =
     "A database error occured when trying to create an employer";
 const std::string UpdateEmployerMessage =
-    "A database error occured when trying update the employer";
+    "A database error occured when trying to update the employer";
 const std::string DeleteEmployerMessage =
     "A database error occured when trying to delete the employer";
 const std::string FindDefaultEmployerMessage =
@@ -46,6 +46,17 @@ const std::string EditClientMessage = "A database error occured when fetching th
 const std::string CreateClientMessage = "A database error occured when trying to create a client";
 const std::string UpdateClientMessage = "A database error occured when trying to update the client";
 const std::string DeleteClientMessage = "A database error occured when trying to delete the client";
+const std::string FilterClientsMessage = "A database error occured when fetching clients";
 #pragma endregion
 
-} // namespace tks::Messages
+#pragma region Project
+const std::string EditProjectMessage = "A database error occured when fetching the project";
+const std::string UnsetDefaultProjectMessage =
+    "A database error occured while trying unset the default project";
+const std::string CreateProjectMessage = "A database error occured when trying to create a project";
+const std::string UpdateProjectMessage =
+    "A database error occured when trying to update the project";
+const std::string DeleteProjectMessage =
+    "A database error occured when trying to delete the project";
+#pragma endregion
+} // namespace tks::ErrorMessages
