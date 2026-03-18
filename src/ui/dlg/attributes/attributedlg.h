@@ -78,9 +78,8 @@ private:
     void DisableChoiceControlsIfUsed();
     void QueueErrorNotificationEvent(const std::string& message);
 
-    std::shared_ptr<spdlog::logger> pLogger;
-
     wxWindow* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
 
     wxTextCtrl* pNameTextCtrl;
     wxCheckBox* pIsRequiredCheckBoxCtrl;

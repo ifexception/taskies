@@ -23,6 +23,7 @@
 
 #include <fmt/format.h>
 
+#include <wx/msgdlg.h>
 #include <wx/statline.h>
 #include <wx/richtooltip.h>
 
@@ -32,6 +33,7 @@
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
+#include "../../../common/usererrormessages.h"
 
 #include "../../../persistence/attributespersistence.h"
 #include "../../../persistence/attributegroupspersistence.h"
@@ -59,9 +61,6 @@ AttributeDialog::AttributeDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
-    , mDatabaseFilePath(databaseFilePath)
-    , bIsEdit(isEdit)
-    , mAttributeId(attributeId)
     , pNameTextCtrl(nullptr)
     , pIsRequiredCheckBoxCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
@@ -71,6 +70,9 @@ AttributeDialog::AttributeDialog(wxWindow* parent,
     , pAddAnotherCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mDatabaseFilePath(databaseFilePath)
+    , bIsEdit(isEdit)
+    , mAttributeId(attributeId)
     , mAttributeModel()
     , bAddAnotherAttribute(false)
 {
