@@ -24,6 +24,7 @@
 #include <string>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP

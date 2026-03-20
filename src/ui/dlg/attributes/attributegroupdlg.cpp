@@ -107,11 +107,12 @@ void AttributeGroupDialog::CreateControls()
     /* Attribute group is static check box control */
     pIsStaticCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISSTATICCHECKBOXCTRL, "Is Static");
     pIsStaticCheckBoxCtrl->SetToolTip(
-        "Attributes captured if this is enabled will use the provided static values");
+        "Enabling this option will use linked static values for attributes");
 
     /* Attribute group is default check box control */
     pIsDefaultCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULTCHECKBOXCTRL, "Is Default");
-    pIsStaticCheckBoxCtrl->SetToolTip("Enabling this option will auto-select it where applicable");
+    pIsDefaultCheckBoxCtrl->SetToolTip(
+        "Enabling this option will auto-select it when creating a task");
 
     /* Grid sizer for attribute group name controls */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
