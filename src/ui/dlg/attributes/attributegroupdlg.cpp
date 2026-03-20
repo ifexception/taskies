@@ -285,14 +285,12 @@ void AttributeGroupDialog::DataToControls()
 void AttributeGroupDialog::OnIsActiveCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
-        if (!bIsInUse) {
-            pNameTextCtrl->Enable();
-        }
-        if (!bIsInUseStatic) {
+        pNameTextCtrl->Enable();
+        pDescriptionTextCtrl->Enable();
+        if (!bIsInUseStatic || !bIsInUse) {
             pIsStaticCheckBoxCtrl->Enable();
         }
         pIsDefaultCheckBoxCtrl->Enable();
-        pDescriptionTextCtrl->Enable();
     } else {
         pNameTextCtrl->Disable();
         pIsStaticCheckBoxCtrl->Disable();
