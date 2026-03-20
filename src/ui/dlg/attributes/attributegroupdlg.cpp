@@ -240,7 +240,6 @@ void AttributeGroupDialog::DataToControls()
 
     pIsActiveCheckBoxCtrl->Enable();
 
-    // combine this check
     rc = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
     if (rc == -1) {
         wxMessageDialog dialog(this,
@@ -260,7 +259,6 @@ void AttributeGroupDialog::DataToControls()
         pIsStaticCheckBoxCtrl->Disable();
     }
 
-    // with this potentially
     rc = attributeGroupsPersistence.CheckAttributeGroupStaticAttributesUsage(
         mAttributeGroupId, bIsInUseStatic);
     if (rc == -1) {
