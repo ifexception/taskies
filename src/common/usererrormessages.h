@@ -87,6 +87,22 @@ const std::string UpdateAttributeGroupMessage =
     "A database error occured when trying to update the attribute group";
 const std::string DeleteAttributeGroupMessage =
     "A database error occured when trying to delete the attribute group";
+const std::string FilterAttributeGroupsMessage =
+    "A database error occured when fetching attribute groups";
+#pragma endregion
+
+#pragma region Attribute
+const std::string FilterAttributeTypesMessage =
+    "A database error occured when fetching attribute types";
+const std::string EditAttributesMessage = "A database error occured when fetching the attribute";
+const std::string CreateAttributeMessage =
+    "A database error occured when trying create an attribute";
+const std::string UpdateAttributeMessage =
+    "A database error occured when trying update the attribute";
+const std::string DeleteAttributeMessage =
+    "A database error occured when trying delete the attribute";
+const std::string AttributeUsageMessage =
+    "A database error occured when checking attribute usage";
 #pragma endregion
 
 } // namespace tks::ErrorMessages

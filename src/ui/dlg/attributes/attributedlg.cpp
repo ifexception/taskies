@@ -269,15 +269,18 @@ void AttributeDialog::FillControls()
 
     int rc = attributeGroupsPersistence.Filter("", attributeGroups);
     if (rc == -1) {
-        std::string message = "Failed to get attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterAttributeGroupsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
+
+        return;
     } else {
         for (const auto& attributeGroup : attributeGroups) {
             pAttributeGroupChoiceCtrl->Append(
@@ -291,15 +294,18 @@ void AttributeDialog::FillControls()
 
     rc = attributeTypesPersistence.Filter("", attributeTypes);
     if (rc == -1) {
-        std::string message = "Failed to get attribute types";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterAttributeTypesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
+
+        return;
     } else {
         for (const auto& attributeType : attributeTypes) {
             pAttributeTypeChoiceCtrl->Append(
@@ -318,15 +324,16 @@ void AttributeDialog::DataToControls()
 
     int rc = attributesPersistence.GetById(mAttributeId, mAttributeModel);
     if (rc == -1) {
-        std::string message = "Failed to get attribute group";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::EditAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     } else {
         pNameTextCtrl->ChangeValue(mAttributeModel.Name);
         pIsRequiredCheckBoxCtrl->SetValue(mAttributeModel.IsRequired);
@@ -348,16 +355,19 @@ void AttributeDialog::DataToControls()
             pLogger, mDatabaseFilePath);
         rc = attributeGroupsPersistence.GetById(
             mAttributeModel.AttributeGroupId, attributeGroupModel);
-        if (rc == -1) {
-            std::string message = "Failed to get attribute group";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-            NotificationClientData* clientData =
-                new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
 
-            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
-            // we have wxFrame
-            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        if (rc == -1) {
+            wxMessageDialog dialog(this,
+                ErrorMessages::EditAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+            int ret = dialog.ShowModal();
+            if (ret == wxID_OK) {
+                wxLaunchDefaultBrowser(Common::GetIssuesLink());
+            }
+            return;
         }
 
         if (attributeGroupModel.IsStatic) {
@@ -397,8 +407,17 @@ void AttributeDialog::OnAttributeGroupSelection(wxCommandEvent& event)
 
     int rc = attributeGroupsPersistence.GetById(attributeGroupId, attributeGroupModel);
     if (rc != 0) {
-        std::string message = "Failed to get attribute group";
-        QueueErrorNotificationEvent(message);
+        wxMessageDialog dialog(this,
+            ErrorMessages::EditAttributeGroupMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
+
         return;
     }
 
@@ -452,13 +471,14 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
             mAttributeModel.AttributeGroupId, isAttributeGroupAlreadyAssociated);
 
         if (ret == -1) {
-            message = "Failed to check attribute group associations";
-            QueueErrorNotificationEvent(message);
+            QueueErrorNotificationEvent(ErrorMessages::AttributeGroupUsageMessage);
+            EndModal(wxID_OK);
             return;
         }
 
         if (isAttributeGroupAlreadyAssociated) {
-            wxMessageBox("Selected attribute group is already associated with attribute values",
+            wxMessageBox("The selected attribute group is already associated with attribute "
+                         "values. Please choose another attribute group",
                 Common::GetProgramName(),
                 wxOK_DEFAULT | wxICON_WARNING);
             return;
@@ -467,8 +487,9 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         std::int64_t attributeId = attributesPersistence.Create(mAttributeModel);
         ret = attributeId > 0 ? 1 : -1;
 
-        message =
-            attributeId == -1 ? "Failed to create attribute" : "Successfully created attribute";
+        if (ret == -1) {
+            QueueErrorNotificationEvent(ErrorMessages::CreateAttributeMessage);
+        }
     }
 
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
@@ -486,7 +507,9 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
             ret = attributesPersistence.Update(mAttributeModel);
         }
 
-        message = ret == -1 ? "Failed to update attribute" : "Successfully updated attribute";
+        if (ret == -1) {
+            QueueErrorNotificationEvent(ErrorMessages::UpdateAttributeMessage);
+        }
     }
 
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
@@ -499,40 +522,22 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         }
         ret = attributesPersistence.Delete(mAttributeId);
 
-        message = ret == -1 ? "Failed to delete attribute" : "Successfully deleted attribute";
+        if (ret == -1) {
+            QueueErrorNotificationEvent(ErrorMessages::DeleteAttributeMessage);
+        }
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
+    if (!bAddAnotherAttribute) {
+        EndModal(wxID_OK);
     } else {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        pNameTextCtrl->ChangeValue("");
+        pIsRequiredCheckBoxCtrl->SetValue(false);
+        pDescriptionTextCtrl->ChangeValue("");
+        pDescriptionTextCtrl->SetHint("Attribute description");
+        pAttributeGroupChoiceCtrl->SetSelection(0);
+        pAttributeTypeChoiceCtrl->SetSelection(0);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
-        if (!bAddAnotherAttribute) {
-            EndModal(wxID_OK);
-        } else {
-            pNameTextCtrl->ChangeValue("");
-            pIsRequiredCheckBoxCtrl->SetValue(false);
-            pDescriptionTextCtrl->ChangeValue("");
-            pDescriptionTextCtrl->SetHint("Attribute description");
-            pAttributeGroupChoiceCtrl->SetSelection(0);
-            pAttributeTypeChoiceCtrl->SetSelection(0);
-
-            pIsStaticCheckBoxCtrl->SetValue(false);
-        }
+        pIsStaticCheckBoxCtrl->SetValue(false);
     }
 }
 
@@ -630,8 +635,18 @@ bool AttributeDialog::CheckAttributeUsage(Persistence::AttributesPersistence& at
     int ret = attributesPersistence.CheckAttributeUsage(mAttributeId, value);
 
     if (ret == -1) {
-        std::string message = "Failed to check attribute usage";
-        QueueErrorNotificationEvent(message);
+        wxMessageDialog dialog(this,
+            ErrorMessages::AttributeUsageMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
+
+        return false;
     }
 
     return value;
@@ -647,8 +662,7 @@ void AttributeDialog::DisableChoiceControlsIfUsed()
 void AttributeDialog::QueueErrorNotificationEvent(const std::string& message)
 {
     wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
+    NotificationClientData* clientData = new NotificationClientData(message);
     addNotificationEvent->SetClientObject(clientData);
 
     // if we are editing, pParent is EditListDlg. We need to get parent of pParent and

@@ -24,6 +24,7 @@
 #include <string>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -37,7 +38,7 @@ namespace tks
 namespace Persistence
 {
 struct AttributesPersistence;
-}
+} // namespace Persistence
 namespace UI::dlg
 {
 class AttributeDialog final : public wxDialog
