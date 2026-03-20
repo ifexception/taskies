@@ -209,8 +209,6 @@ void AttributeGroupDialog::ConfigureEventBindings()
 
 void AttributeGroupDialog::DataToControls()
 {
-    pOkButton->Disable();
-
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
@@ -242,6 +240,7 @@ void AttributeGroupDialog::DataToControls()
 
     pIsActiveCheckBoxCtrl->Enable();
 
+    // combine this check
     rc = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
     if (rc == -1) {
         wxMessageDialog dialog(this,
@@ -258,9 +257,10 @@ void AttributeGroupDialog::DataToControls()
     }
 
     if (bIsInUse) {
-        pNameTextCtrl->Disable();
+        pIsStaticCheckBoxCtrl->Disable();
     }
 
+    // with this potentially
     rc = attributeGroupsPersistence.CheckAttributeGroupStaticAttributesUsage(
         mAttributeGroupId, bIsInUseStatic);
     if (rc == -1) {
@@ -281,7 +281,6 @@ void AttributeGroupDialog::DataToControls()
         pIsStaticCheckBoxCtrl->Disable();
     }
 
-    pOkButton->Enable();
     pOkButton->SetFocus();
 }
 
