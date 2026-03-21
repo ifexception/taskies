@@ -1,8 +1,11 @@
 cmake_minimum_required (VERSION 3.22)
 project ("Taskies")
 
+add_subdirectory("base")
+
 set(
     SRC_PERSISTENCE
+    ${SRC_PERSISTENCEBASE}
     "${CMAKE_CURRENT_SOURCE_DIR}/employerspersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/clientspersistence.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/projectspersistence.cpp"

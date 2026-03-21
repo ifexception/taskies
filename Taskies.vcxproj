@@ -277,6 +277,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\persistence\categoriespersistence.cpp" />
     <ClCompile Include="src\persistence\clientspersistence.cpp" />
     <ClCompile Include="src\persistence\employerspersistence.cpp" />
+    <ClCompile Include="src\persistence\base\persistencebase.cpp" />
     <ClCompile Include="src\persistence\projectspersistence.cpp" />
     <ClCompile Include="src\persistence\staticattributevaluespersistence.cpp" />
     <ClCompile Include="src\persistence\taskattributevaluespersistence.cpp" />
@@ -388,6 +389,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\persistence\categoriespersistence.h" />
     <ClInclude Include="src\persistence\clientspersistence.h" />
     <ClInclude Include="src\persistence\employerspersistence.h" />
+    <ClInclude Include="src\persistence\base\persistencebase.h" />
     <ClInclude Include="src\persistence\projectspersistence.h" />
     <ClInclude Include="src\persistence\staticattributevaluespersistence.h" />
     <ClInclude Include="src\persistence\taskattributevaluespersistence.h" />

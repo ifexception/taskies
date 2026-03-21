@@ -81,6 +81,9 @@
     <Filter Include="Source\services\outlook">
       <UniqueIdentifier>{f31f582e-e81c-43bc-b3f7-39a6ee77d126}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\persistence\base">
+      <UniqueIdentifier>{06813853-a9fa-420d-a5ac-0100ae006938}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -410,6 +413,9 @@
     <ClCompile Include="src\common\usererrormessages.cpp">
       <Filter>Source\common</Filter>
     </ClCompile>
+    <ClCompile Include="src\persistence\base\persistencebase.cpp">
+      <Filter>Source\persistence\base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -738,6 +744,9 @@
     </ClInclude>
     <ClInclude Include="src\common\usererrormessages.h">
       <Filter>Source\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\persistence\base\persistencebase.h">
+      <Filter>Source\persistence\base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
