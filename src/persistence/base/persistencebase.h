@@ -30,7 +30,7 @@ namespace tks::Persistence
 {
 struct PersistenceBase {
     PersistenceBase(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~PersistenceBase();
+    virtual ~PersistenceBase();
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
