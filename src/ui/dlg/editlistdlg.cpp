@@ -155,7 +155,7 @@ void EditListDialog::CreateControls()
     auto providedFindBitmap = wxArtProvider::GetBitmapBundle(
         wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pSearchButton = new wxBitmapButton(searchBox, tksIDC_SEARCHBUTTON, providedFindBitmap);
-    pSearchButton->SetToolTip("Search for an entity by entered criteria");
+    pSearchButton->SetToolTip("Search for an entity");
     searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Reset Button */
