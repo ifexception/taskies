@@ -101,8 +101,23 @@ const std::string UpdateAttributeMessage =
     "A database error occured when trying update the attribute";
 const std::string DeleteAttributeMessage =
     "A database error occured when trying delete the attribute";
-const std::string AttributeUsageMessage =
-    "A database error occured when checking attribute usage";
+const std::string AttributeUsageMessage = "A database error occured when checking attribute usage";
+const std::string FilterAttributesMessage = "A database error occured when fetching attributes";
+#pragma endregion
+
+#pragma region StaticAttributes
+const std::string FilterStaticAttributeGroupsMessage =
+    "A database error occured when fetching static attribute groups";
+const std::string EditStaticAttributesMessage =
+    "A database error occured when fetching the static attributes";
+const std::string CreateStaticAttributesMessage =
+    "A database error occured when trying to create static attributes";
+const std::string UpdateStaticAttributesMessage =
+    "A database error occured when trying to update static attributes";
+const std::string DeleteStaticAttributesMessage =
+    "A database error occured when trying to delete static attributes";
+const std::string StaticAttributeUsageMessage =
+    "A database error occured when checking static attribute usage";
 #pragma endregion
 
 } // namespace tks::ErrorMessages

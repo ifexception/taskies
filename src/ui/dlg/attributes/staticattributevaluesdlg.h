@@ -24,6 +24,7 @@
 #include <string>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -67,11 +68,6 @@ private:
 
     bool Validate();
     std::vector<Model::StaticAttributeValueModel> TransferDataFromControls();
-
-    void CreateControlsWithData(
-        std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels);
-
-    void QueueErrorNotificationEvent(const std::string& message);
 
     std::shared_ptr<spdlog::logger> pLogger;
 

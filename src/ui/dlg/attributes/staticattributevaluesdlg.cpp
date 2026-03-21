@@ -33,6 +33,7 @@
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
+#include "../../../common/usererrormessages.h"
 #include "../../../common/validator.h"
 
 #include "../../../persistence/attributegroupspersistence.h"
@@ -131,8 +132,6 @@ void StaticAttributeValuesDialog::CreateControls()
     auto line2 = new wxStaticLine(this, wxID_ANY);
     pMainSizer->Add(line2, wxSizerFlags().Expand());
 
-    /* Begin Button Controls */
-
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -163,9 +162,17 @@ void StaticAttributeValuesDialog::FillControls()
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
     int rc = attributeGroupsPersistence.FilterByStaticFlag(attributeGroups);
-    if (rc != 0) {
-        std::string message = "Failed to get static attribute groups";
-        QueueErrorNotificationEvent(message);
+    if (rc == -1) {
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterStaticAttributeGroupsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
 
         return;
     }
@@ -225,8 +232,17 @@ void StaticAttributeValuesDialog::DataToControls()
         mAttributeGroupId, attributeModels);
 
     if (rc != 0) {
-        std::string message = "Failed to fetch attributes";
-        QueueErrorNotificationEvent(message);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
+
         return;
     }
 
@@ -344,7 +360,17 @@ void StaticAttributeValuesDialog::DataToControls()
         mAttributeGroupId, staticAttributeValueModels);
     if (rc != 0) {
         std::string message = "Failed to fetch static attribute values";
-        QueueErrorNotificationEvent(message);
+        wxMessageDialog dialog(this,
+            ErrorMessages::EditStaticAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
+
         return;
     }
 
@@ -409,8 +435,17 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
         mAttributeGroupId, attributeModels);
 
     if (rc != 0) {
-        std::string message = "Failed to fetch attributes";
-        QueueErrorNotificationEvent(message);
+        wxMessageDialog dialog(this,
+            ErrorMessages::FilterAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
+
         return;
     }
 
@@ -541,7 +576,7 @@ void StaticAttributeValuesDialog::OnIsActiveCheck(wxCommandEvent& event)
                 break;
             }
             default:
-                pLogger->error("Unmatched attribute type, cannot set control values");
+                pLogger->warn("Unmatched attribute type, cannot set control values");
                 break;
             }
         }
@@ -563,7 +598,7 @@ void StaticAttributeValuesDialog::OnIsActiveCheck(wxCommandEvent& event)
                 break;
             }
             default:
-                pLogger->error("Unmatched attribute type, cannot set control values");
+                pLogger->warn("Unmatched attribute type, cannot set control values");
                 break;
             }
         }
@@ -583,18 +618,37 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
 
         int ret = -1;
         std::string message = "";
-        NotificationClientData* clientData = nullptr;
 
         if (!bIsEdit) {
             ret = staticAttributeValuesPersistence.CreateMultiple(staticAttributeValueModels);
 
-            message = ret == -1 ? "Failed to create static attribute values"
-                                : "Successfully created static attribute values";
+            if (ret == -1) {
+                wxMessageDialog dialog(this,
+                    ErrorMessages::CreateStaticAttributesMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+                int ret = dialog.ShowModal();
+                if (ret == wxID_OK) {
+                    wxLaunchDefaultBrowser(Common::GetIssuesLink());
+                }
+            }
         } else if (bIsEdit && pIsActiveCheckBoxCtrl->GetValue()) {
             ret = staticAttributeValuesPersistence.UpdateMultiple(staticAttributeValueModels);
 
-            message = ret == -1 ? "Failed to update static attribute values"
-                                : "Successfully updated static attribute values";
+            if (ret == -1) {
+                wxMessageDialog dialog(this,
+                    ErrorMessages::UpdateStaticAttributesMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+                int ret = dialog.ShowModal();
+                if (ret == wxID_OK) {
+                    wxLaunchDefaultBrowser(Common::GetIssuesLink());
+                }
+            }
         } else if (bIsEdit && !pIsActiveCheckBoxCtrl->GetValue()) {
             bool areStaticAttributeValuesUsed = false;
             std::vector<std::int64_t> attributeIds;
@@ -612,9 +666,18 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
 
             ret = staticAttributeValuesPersistence.CheckUsage(
                 attributeIds, areStaticAttributeValuesUsed);
+
             if (ret == -1) {
-                message = "Failed to check static attribute value usage";
-                QueueErrorNotificationEvent(message);
+                wxMessageDialog dialog(this,
+                    ErrorMessages::StaticAttributeUsageMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+                int ret = dialog.ShowModal();
+                if (ret == wxID_OK) {
+                    wxLaunchDefaultBrowser(Common::GetIssuesLink());
+                }
                 return;
             }
 
@@ -639,17 +702,21 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
             // clang-format on
 
             ret = staticAttributeValuesPersistence.Delete(staticAttributeValueIds);
-            message = ret == -1 ? "Failed to delete static attribute values"
-                                : "Successfully deleted static attribute values";
+
+            if (ret == -1) {
+                wxMessageDialog dialog(this,
+                    ErrorMessages::DeleteStaticAttributesMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+                int ret = dialog.ShowModal();
+                if (ret == wxID_OK) {
+                    wxLaunchDefaultBrowser(Common::GetIssuesLink());
+                }
+                return;
+            }
         }
-
-        clientData = ret == -1 ? new NotificationClientData(NotificationType::Error, message)
-                               : new NotificationClientData(NotificationType::Information, message);
-
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
     }
 
     EndModal(wxID_OK);
@@ -769,20 +836,5 @@ std::vector<Model::StaticAttributeValueModel>
     }
 
     return staticAttributeValueModels;
-}
-
-void StaticAttributeValuesDialog::CreateControlsWithData(
-    std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels)
-{
-}
-
-void StaticAttributeValuesDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg
