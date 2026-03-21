@@ -22,6 +22,8 @@
 #include "../common/logmessages.h"
 #include "../common/queryhelper.h"
 
+#include "../common/messages/persistencemessages.h"
+
 #include "../utils/utils.h"
 
 namespace tks::Persistence
@@ -32,7 +34,7 @@ EmployersPersistence::EmployersPersistence(std::shared_ptr<spdlog::logger> logge
 {
 }
 
-int EmployersPersistence::Filter(const std::string& searchTerm,
+Common::SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::EmployerModel>& employerModels) const
 {
     auto formatedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
@@ -51,7 +53,8 @@ int EmployersPersistence::Filter(const std::string& searchTerm,
             LogMessages::PrepareStatementTemplate, EmployersPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::CreateEmployerPrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;

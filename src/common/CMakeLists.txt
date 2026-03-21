@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 3.22)
 project ("Taskies")
 
+add_subdirectory("results")
+add_subdirectory("messages")
+
 set(
     SRC_COMMON
     "${CMAKE_CURRENT_SOURCE_DIR}/common.cpp"
@@ -11,5 +14,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/queryhelper.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/enumclientdata.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/usererrormessages.cpp"
+    ${SRC_COMMON_RESULTS}
+    ${SRC_COMMON_MESSAGES}
     PARENT_SCOPE
 )

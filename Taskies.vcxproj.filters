@@ -84,6 +84,15 @@
     <Filter Include="Source\persistence\base">
       <UniqueIdentifier>{06813853-a9fa-420d-a5ac-0100ae006938}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\results">
+      <UniqueIdentifier>{828c6afc-d400-4ec0-bedb-1702f24e3443}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\common\results">
+      <UniqueIdentifier>{c9e2af56-c816-4fef-8c44-396b71a4987c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\common\messages">
+      <UniqueIdentifier>{71416d9f-b9e2-4593-b433-50d7dfe14f09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -416,6 +425,12 @@
     <ClCompile Include="src\persistence\base\persistencebase.cpp">
       <Filter>Source\persistence\base</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\results\sqliteresult.cpp">
+      <Filter>Source\common\results</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\messages\persistencemessages.cpp">
+      <Filter>Source\common\messages</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -747,6 +762,12 @@
     </ClInclude>
     <ClInclude Include="src\persistence\base\persistencebase.h">
       <Filter>Source\persistence\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\results\sqliteresult.h">
+      <Filter>Source\common\results</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\messages\persistencemessages.h">
+      <Filter>Source\common\messages</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

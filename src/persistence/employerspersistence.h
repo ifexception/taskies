@@ -29,9 +29,11 @@
 
 #include <sqlite3.h>
 
+#include "base/persistencebase.h"
+
 #include "../models/employermodel.h"
 
-#include "base/persistencebase.h"
+#include "../common/results/sqliteresult.h"
 
 namespace tks
 {
@@ -42,7 +44,7 @@ struct EmployersPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     ~EmployersPersistence() = default;
 
-    int Filter(const std::string& searchTerm,
+    Common::SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::EmployerModel>& employerModels) const;
     int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employerModel) const;
     std::int64_t Create(const Model::EmployerModel& employerModel) const;
