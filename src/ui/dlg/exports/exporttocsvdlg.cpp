@@ -352,11 +352,6 @@ void ExportToCsvDialog::CreateControls()
         dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks");
     pExportTodaysTasksCheckBoxCtrl->SetToolTip("Export tasks logged during today's date");
 
-    /* Set date range to work week (i.e. Mon - Fri) */
-    pWorkWeekRangeCheckBoxCtrl = new wxCheckBox(
-        dateRangeStaticBox, tksIDC_WORKWEEKRANGECHECKBOXCTRL, "Export work week tasks");
-    pWorkWeekRangeCheckBoxCtrl->SetToolTip("Export only tasks logged during the current work week");
-
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     dateRangeStaticBoxSizer->Add(dateControlsHorizontalSizer, wxSizerFlags().Expand());
@@ -372,8 +367,6 @@ void ExportToCsvDialog::CreateControls()
 
     dateRangeStaticBoxSizer->Add(
         pExportTodaysTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    dateRangeStaticBoxSizer->Add(
-        pWorkWeekRangeCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line1 = new wxStaticLine(this, wxID_ANY);
@@ -699,13 +692,6 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL
     );
 
-    pWorkWeekRangeCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnWorkWeekRangeCheck,
-        this,
-        tksIDC_WORKWEEKRANGECHECKBOXCTRL
-    );
-
     pPresetSaveButton->Bind(
         wxEVT_BUTTON,
         &ExportToCsvDialog::OnSavePreset,
@@ -1001,34 +987,6 @@ void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
         pToDatePickerCtrl->Enable();
     }
 }
-
-void ExportToCsvDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
-{
-    if (event.IsChecked()) {
-        auto fridayDate = pDateStore->MondayDate + (pDateStore->MondayDate - date::Thursday);
-        auto fridayTimestamp = fridayDate.time_since_epoch();
-        auto fridaySeconds =
-            std::chrono::duration_cast<std::chrono::seconds>(fridayTimestamp).count();
-
-        pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
-        mFromCtrlDate = pDateStore->MondayDateSeconds;
-
-        pToDatePickerCtrl->SetValue(fridaySeconds);
-        mToCtrlDate = fridaySeconds;
-
-        pFromDatePickerCtrl->Disable();
-        pToDatePickerCtrl->Disable();
-    } else {
-        SetFromAndToDatePickerRanges();
-
-        SetFromDateAndDatePicker();
-        SetToDateAndDatePicker();
-
-        pFromDatePickerCtrl->Enable();
-        pToDatePickerCtrl->Enable();
-    }
-}
-
 void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 {
     mExportOptions.Reset();
@@ -1121,15 +1079,12 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     }
 
     if (presetData->GetValue().empty()) {
-        // save preset
         pCfg->SaveExportPreset(preset);
 
-        // set as the active preset
         int selection =
             pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
         pPresetsChoiceCtrl->SetSelection(selection);
     } else {
-        // update preset
         pCfg->UpdateExportPreset(preset);
     }
 }
