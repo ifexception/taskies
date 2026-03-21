@@ -31,14 +31,16 @@
 
 #include "../models/employermodel.h"
 
+#include "base/persistencebase.h"
+
 namespace tks
 {
 namespace Persistence
 {
-struct EmployersPersistence final {
+struct EmployersPersistence final : public PersistenceBase {
     EmployersPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~EmployersPersistence();
+    ~EmployersPersistence() = default;
 
     int Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::EmployerModel>& employerModels) const;
@@ -48,9 +50,6 @@ struct EmployersPersistence final {
     int Delete(const std::int64_t employerId) const;
     int UnsetDefault() const;
     int SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string filter;
     static std::string getById;
