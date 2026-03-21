@@ -120,4 +120,10 @@ const std::string StaticAttributeUsageMessage =
     "A database error occured when checking static attribute usage";
 #pragma endregion
 
+#pragma region Exports
+const std::string UnsetPresetDefaultMessage = "An error occured when trying to unset the default preset";
+const std::string CsvExportErrorMessage = "An error occured when trying to export to CSV";
+#pragma endregion
+
+
 } // namespace tks::ErrorMessages

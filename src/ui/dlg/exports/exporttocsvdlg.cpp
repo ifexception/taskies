@@ -27,6 +27,7 @@
 
 #include <wx/clipbrd.h>
 #include <wx/dirdlg.h>
+#include <wx/msgdlg.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
@@ -35,6 +36,7 @@
 #include "../../../common/constants.h"
 #include "../../../common/enums.h"
 #include "../../../common/enumclientdata.h"
+#include "../../../common/usererrormessages.h"
 
 #include "../../../services/export/availablecolumns.h"
 #include "../../../services/export/csvexporterservice.h"
@@ -48,7 +50,6 @@
 
 #include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 namespace
 {
@@ -1075,6 +1076,16 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     bool success = pCfg->TryUnsetDefaultPreset();
     if (!success) {
+        wxMessageDialog dialog(this,
+            ErrorMessages::UnsetPresetDefaultMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
         pLogger->warn("Failed to unset default preset on preset save");
     }
 
@@ -1322,15 +1333,18 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
         projections, joinProjections, fromDate, toDate, exportedDataPreview);
 
     if (!result.Success) {
-        std::string message = "Failed to export data";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::CsvExportErrorMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        std::string extendedMessage =
+            result.ErrorMessage + "\n\n" + ErrorMessages::MessageDialogExtendedMessage;
+        dialog.SetExtendedMessage(extendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
-
-        wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+        }
     }
 
     pDataExportPreviewTextCtrl->ChangeValue(exportedDataPreview);
@@ -1380,17 +1394,19 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     }
 
     if (!result.Success) {
-        std::string message = "Failed to export data";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+        wxMessageDialog dialog(this,
+            ErrorMessages::CsvExportErrorMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        std::string extendedMessage =
+            result.ErrorMessage + "\n\n" + ErrorMessages::MessageDialogExtendedMessage;
+        dialog.SetExtendedMessage(extendedMessage);
 
-        wxQueueEvent(pParent, addNotificationEvent);
-
-        wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
-
-        return;
+        int ret = dialog.ShowModal();
+        if (ret == wxID_OK) {
+            wxLaunchDefaultBrowser(Common::GetIssuesLink());
+            EndModal(wxID_EXIT);
+        }
     }
 
     if (bExportToClipboard) {
@@ -1402,7 +1418,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
         }
     } else {
         std::ofstream exportFile;
-        exportFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios_base::out);
+        exportFile.open(pSaveToFileTextCtrl->GetValue().ToStdString(), std::ios::out);
         if (!exportFile.is_open()) {
             pLogger->error("Failed to open export file at path \"{0}\"",
                 pSaveToFileTextCtrl->GetValue().ToStdString());
@@ -1418,13 +1434,6 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
                                              : "Successfully exported data to file";
 
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
-
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 
     if (bOpenExplorerInExportDirectory) {
         {
