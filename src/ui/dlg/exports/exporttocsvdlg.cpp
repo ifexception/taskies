@@ -1079,13 +1079,10 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         wxMessageDialog dialog(this,
             ErrorMessages::UnsetPresetDefaultMessage,
             Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_WARNING);
+        dialog.SetExtendedMessage(ErrorMessages::UnsetPresetDefaultExtendedMessage);
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
         pLogger->warn("Failed to unset default preset on preset save");
     }
 
@@ -1398,15 +1395,17 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
             ErrorMessages::CsvExportErrorMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+
         std::string extendedMessage =
             result.ErrorMessage + "\n\n" + ErrorMessages::MessageDialogExtendedMessage;
+
         dialog.SetExtendedMessage(extendedMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
             EndModal(wxID_EXIT);
         }
+        return;
     }
 
     if (bExportToClipboard) {
@@ -1422,6 +1421,20 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
         if (!exportFile.is_open()) {
             pLogger->error("Failed to open export file at path \"{0}\"",
                 pSaveToFileTextCtrl->GetValue().ToStdString());
+
+            wxMessageDialog dialog(this,
+                ErrorMessages::CannotOpenFileMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+
+            dialog.SetExtendedMessage(
+                fmt::format("Unable to open file for exporting at location \"{0}\"",
+                    pSaveToFileTextCtrl->GetValue().ToStdString()));
+
+            int ret = dialog.ShowModal();
+            if (ret == wxID_OK) {
+                EndModal(wxID_EXIT);
+            }
             return;
         }
 
