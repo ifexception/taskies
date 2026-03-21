@@ -1083,7 +1083,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
         dialog.SetExtendedMessage(ErrorMessages::UnsetPresetDefaultExtendedMessage);
 
         dialog.ShowModal();
-        pLogger->warn("Failed to unset default preset on preset save");
+        pLogger->warn("Failed to unset default preset when saving preset(s)");
     }
 
     if (presetData->GetValue().empty()) {
