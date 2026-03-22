@@ -24,6 +24,7 @@
 #include <fmt/format.h>
 
 #include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -35,6 +36,9 @@
 #include "../../common/constants.h"
 #include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
+
+#include "../../common/results/sqliteresult.h"
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
@@ -218,18 +222,16 @@ void ProjectDialog::FillControls()
 
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.Filter(defaultSearchTerm, employers);
-    if (rc != 0) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterEmployersMessage,
+    auto sqliteResult = employerPersistence.Filter(defaultSearchTerm, employers);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterEmployerPrepareStatementMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         for (const auto& employer : employers) {
             pEmployerChoiceCtrl->Append(

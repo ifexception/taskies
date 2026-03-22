@@ -24,6 +24,7 @@
 
 #include <wx/artprov.h>
 #include <wx/persist/toplevel.h>
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -37,6 +38,9 @@
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
+
+#include "../../common/results/sqliteresult.h"
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../core/configuration.h"
 
@@ -480,7 +484,7 @@ void TaskDialog::FillControls()
             mDate);
     }
 
-    std::string defaultSearhTerm = "";
+    std::string defaultSearchTerm = "";
 
     pAttributeGroupChoiceCtrl->Append("Select attribute group", new ClientData<std::int64_t>(-1));
     pAttributeGroupChoiceCtrl->SetSelection(0);
@@ -502,7 +506,7 @@ void TaskDialog::FillControls()
     std::vector<Model::AttributeGroupModel> attributeGroupModels;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.Filter(defaultSearhTerm, attributeGroupModels);
+    int rc = attributeGroupsPersistence.Filter(defaultSearchTerm, attributeGroupModels);
     if (rc != 0) {
         std::string message = "Failed to get attribute groups";
         QueueErrorNotificationEvent(message);
@@ -560,10 +564,16 @@ void TaskDialog::FillControls()
     std::vector<Model::EmployerModel> employers;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    rc = employerPersistence.Filter(defaultSearhTerm, employers);
-    if (rc != 0) {
-        std::string message = "Failed to get employers";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = employerPersistence.Filter(defaultSearchTerm, employers);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterEmployerPrepareStatementMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         for (auto& employer : employers) {
             pEmployerChoiceCtrl->Append(

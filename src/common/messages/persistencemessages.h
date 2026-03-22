@@ -24,13 +24,18 @@
 namespace tks::Messages
 {
 #pragma region Common
-const std::string PrepareStatementExtMessage =
-    "A database error occured, and your data could not be "
-    "saved. Please try again or check your input";
+const std::string PrepareStatementMessage = "A database error occurred, and your data could not be "
+                                            "saved. Please try again or check your inputs";
+const std::string BindStatementMessage =
+    "Unable to process the data provided. Please check your inputs and try again";
+const std::string StepStatementMessage =
+    "A database error occurred while querying/saving your data";
 #pragma endregion
 
 #pragma region Employer
+const std::string FilterEmployerPrepareStatementMessage =
+    "Something went wrong while trying to filter employers";
 const std::string CreateEmployerPrepareStatementMessage =
-    "Something went wrong when while trying save an employer";
+    "Something went wrong while trying to save an employer";
 #pragma endregion
 } // namespace tks::Messages

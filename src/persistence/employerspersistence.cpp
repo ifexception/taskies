@@ -54,7 +54,7 @@ Common::SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
 
         sqlite3_finalize(stmt);
         return Common::SqliteResult::FailDetailed(
-            Messages::CreateEmployerPrepareStatementMessage, rc, std::string(error));
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -71,7 +71,8 @@ Common::SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -88,7 +89,8 @@ Common::SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -143,13 +145,14 @@ Common::SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, employerModels.size(), searchTerm);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
 int EmployersPersistence::GetById(const std::int64_t employerId,
