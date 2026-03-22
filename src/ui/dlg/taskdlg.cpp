@@ -765,17 +765,23 @@ void TaskDialog::DataToControls()
 
     if (!employerSelected) {
         // load employer
-        Model::EmployerModel employer;
+        Model::EmployerModel employerModel;
         Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-        ret = employerPersistence.GetById(projectModel.EmployerId, employer);
-        if (ret == -1) {
-            std::string message = "Failed to get employer";
-            QueueErrorNotificationEvent(message);
+        auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateEmployerPrepareStatementMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
 
             isSuccess = false;
         } else {
-            pEmployerChoiceCtrl->SetStringSelection(employer.Name);
+            pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
             isSuccess = true;
         }
     }

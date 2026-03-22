@@ -155,7 +155,7 @@ Common::SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
     return Common::SqliteResult::OK();
 }
 
-int EmployersPersistence::GetById(const std::int64_t employerId,
+Common::SqliteResult EmployersPersistence::GetById(const std::int64_t employerId,
     Model::EmployerModel& employerModel) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -173,7 +173,8 @@ int EmployersPersistence::GetById(const std::int64_t employerId,
             LogMessages::PrepareStatementTemplate, EmployersPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -185,7 +186,8 @@ int EmployersPersistence::GetById(const std::int64_t employerId,
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -195,7 +197,8 @@ int EmployersPersistence::GetById(const std::int64_t employerId,
         pLogger->error(LogMessages::ExecStepTemplate, EmployersPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -229,13 +232,15 @@ int EmployersPersistence::GetById(const std::int64_t employerId,
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "employers", employerId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
 std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerModel) const

@@ -38,8 +38,6 @@
 #include "../../common/results/sqliteresult.h"
 #include "../../common/messages/persistencemessages.h"
 
-#include "../../common/results/sqliteresult.h"
-
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
 

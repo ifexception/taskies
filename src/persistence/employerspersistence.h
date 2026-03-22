@@ -46,7 +46,8 @@ struct EmployersPersistence final : public PersistenceBase {
 
     Common::SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::EmployerModel>& employerModels) const;
-    int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employerModel) const;
+    Common::SqliteResult GetById(const std::int64_t employerId,
+        /*out*/ Model::EmployerModel& employerModel) const;
     std::int64_t Create(const Model::EmployerModel& employerModel) const;
     int Update(const Model::EmployerModel& employerModel) const;
     int Delete(const std::int64_t employerId) const;

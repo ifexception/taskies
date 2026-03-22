@@ -19,8 +19,14 @@
 
 #include "setupwizardservice.h"
 
+#include <wx/richmsgdlg.h>
+
+#include "../../common/common.h"
 #include "../../common/logmessages.h"
 #include "../../common/queryhelper.h"
+
+#include "../../common/messages/persistencemessages.h"
+#include "../../common/results/sqliteresult.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
@@ -173,8 +179,19 @@ int SetupWizardService::GetByEmployerId(const std::int64_t employerId,
     Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
-    int rc = employersPersistence.GetById(employerId, employerModel);
-    return rc;
+    auto sqliteResult = employersPersistence.GetById(employerId, employerModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(NULL,
+            Messages::CreateEmployerPrepareStatementMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return -1;
+    }
+    return 0;
 }
 
 int SetupWizardService::UpdateEmployer(const Model::EmployerModel& employerModel) const
