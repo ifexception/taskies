@@ -258,8 +258,8 @@ OptionPage::OptionPage(SetupWizard* parent,
     , pParent(parent)
     , pSetupWizardService(setupWizardService)
     , pLogger(logger)
-    , pPrev(prev)
     , pNextOption1(nextOption1)
+    , pPrev(prev)
     , pNextOption2(nextOption2)
     , pNextOption3(nextOption3)
 {
@@ -430,6 +430,7 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
 
     Model::EmployerModel employerModel;
     employerModel.Name = Utils::TrimWhitespace(employerName);
+    employerModel.IsDefault = true;
 
     if (pParent->GetEmployerId() > 0) {
         int rc = pSetupWizardService->UpdateEmployer(employerModel);
@@ -508,6 +509,11 @@ void CreateEmployerAndClientPage::CreateControls()
     pEmployerNameTextCtrl->SetToolTip("Enter a name for an employer");
 
     pEmployerNameTextCtrl->SetValidator(NameValidator());
+
+    pDefaultEmployerCheckBoxCtrl = new wxCheckBox(employerBox, wxID_ANY, "Is Default");
+    pDefaultEmployerCheckBoxCtrl->SetToolTip("One employer is required to be default");
+    pDefaultEmployerCheckBoxCtrl->SetValue(true);
+    pDefaultEmployerCheckBoxCtrl->Disable();
 
     auto employerDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     employerDetailsGridSizer->AddGrowableCol(1, 1);
