@@ -170,8 +170,22 @@ int SetupWizardService::RollbackTransaction()
 
 std::int64_t SetupWizardService::CreateEmployer(const Model::EmployerModel& employerModel) const
 {
+    std::int64_t rowId = -1;
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t rowId = employersPersistence.Create(employerModel);
+
+    auto sqliteResult = employersPersistence.Create(rowId, employerModel);
+
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(NULL,
+            Messages::CreateEmployerMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return -1;
+    }
     return rowId;
 }
 
@@ -182,7 +196,7 @@ int SetupWizardService::GetByEmployerId(const std::int64_t employerId,
     auto sqliteResult = employersPersistence.GetById(employerId, employerModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(NULL,
-            Messages::CreateEmployerPrepareStatementMessage,
+            Messages::CreateEmployerMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -197,8 +211,19 @@ int SetupWizardService::GetByEmployerId(const std::int64_t employerId,
 int SetupWizardService::UpdateEmployer(const Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
-    int rc = employersPersistence.Update(employerModel);
-    return rc;
+    auto sqliteResult = employersPersistence.Update(employerModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(NULL,
+            Messages::UpdateEmployerMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return -1;
+    }
+    return 0;
 }
 
 std::int64_t SetupWizardService::CreateClient(const Model::ClientModel& clientModel) const

@@ -35,9 +35,13 @@ const std::string StepStatementReturnedMultipleRowsMessage =
 #pragma endregion
 
 #pragma region Employer
-const std::string FilterEmployerPrepareStatementMessage =
-    "Something went wrong while trying to filter employers";
-const std::string CreateEmployerPrepareStatementMessage =
-    "Something went wrong while trying to save an employer";
+const std::string FilterEmployersMessage = "Something went wrong while trying to filter employers";
+const std::string CreateEmployerMessage = "Something went wrong while trying to save an employer";
+const std::string UpdateEmployerMessage =
+    "Something went wrong while trying to update the employer";
+const std::string DeleteEmployerMessage =
+    "Something went wrong while trying to update the employer";
+const std::string UnsetDefaultEmployerMessage =
+    "Something went wrong while trying to unset default employer";
 #pragma endregion
 } // namespace tks::Messages

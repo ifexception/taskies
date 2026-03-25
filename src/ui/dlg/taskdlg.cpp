@@ -567,7 +567,7 @@ void TaskDialog::FillControls()
     auto sqliteResult = employerPersistence.Filter(defaultSearchTerm, employers);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterEmployerPrepareStatementMessage,
+            Messages::FilterEmployersMessage,
             tks::Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -771,7 +771,7 @@ void TaskDialog::DataToControls()
         auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,
-                Messages::CreateEmployerPrepareStatementMessage,
+                Messages::CreateEmployerMessage,
                 tks::Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
             dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);

@@ -202,7 +202,7 @@ void EmployerDialog::DataToControls()
     auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::CreateEmployerPrepareStatementMessage,
+            Messages::CreateEmployerMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -231,40 +231,84 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
 
     Model::EmployerModel employerModel = TransferDataFromControls();
 
-    int ret = 0;
-
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-    bool canContinue = true;
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
-        ret = employerPersistence.UnsetDefault();
+        auto result = employerPersistence.UnsetDefault();
 
-        if (ret == -1) {
-            canContinue = false;
-            QueueErrorNotificationEvent(ErrorMessages::UnsetDefaultEmployerMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when unsetting a default "
+                           "employer, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UnsetDefaultEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
-    if (!bIsEdit && canContinue) {
-        std::int64_t employerId = employerPersistence.Create(employerModel);
-        ret = employerId > 0 ? 1 : -1;
+    if (!bIsEdit) {
+        std::int64_t employerId = -1;
+        auto result = employerPersistence.Create(employerId, employerModel);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::CreateEmployerMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when creating an "
+                           "employer, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::CreateEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
-    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
-        ret = employerPersistence.Update(employerModel);
+    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        auto result = employerPersistence.Update(employerModel);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::UpdateEmployerMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when updating an "
+                           "employer, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
-    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
-        ret = employerPersistence.Delete(mEmployerId);
+    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        auto result = employerPersistence.Delete(mEmployerId);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::DeleteEmployerMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when deleting an "
+                           "employer, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
@@ -326,19 +370,21 @@ bool EmployerDialog::Validate()
     if (!pIsDefaultCheckBoxCtrl->IsChecked()) {
         Model::EmployerModel model;
         Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-        int rc = employerPersistence.SelectDefault(model);
+        auto result = employerPersistence.SelectDefault(model);
 
-        if (rc == -1) {
-            wxMessageDialog dialog(this,
-                ErrorMessages::FindDefaultEmployerMessage,
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when querying for default "
+                           "employers, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteEmployerMessage,
                 Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-            int ret = dialog.ShowModal();
-            if (ret == wxID_OK) {
-                wxLaunchDefaultBrowser(Common::GetIssuesLink());
-            }
+            dialog.ShowModal();
         } else {
             if (!model.IsDefault) {
                 std::string validationMessage = "An employer is required to be default";

@@ -243,7 +243,8 @@ Common::SqliteResult EmployersPersistence::GetById(const std::int64_t employerId
     return Common::SqliteResult::OK();
 }
 
-std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerModel) const
+Common::SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
+    const Model::EmployerModel& employerModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -260,7 +261,8 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerMo
             LogMessages::PrepareStatementTemplate, EmployersPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -277,7 +279,8 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerMo
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -289,7 +292,8 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerMo
         pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -309,7 +313,8 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerMo
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -323,18 +328,20 @@ std::int64_t EmployersPersistence::Create(const Model::EmployerModel& employerMo
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
 
     auto rowId = sqlite3_last_insert_rowid(pDb);
+    employerId = rowId;
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "employer", rowId);
 
-    return rowId;
+    return Common::SqliteResult::OK();
 }
 
-int EmployersPersistence::Update(const Model::EmployerModel& employerModel) const
+Common::SqliteResult EmployersPersistence::Update(const Model::EmployerModel& employerModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -350,7 +357,8 @@ int EmployersPersistence::Update(const Model::EmployerModel& employerModel) cons
             LogMessages::PrepareStatementTemplate, EmployersPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -366,7 +374,8 @@ int EmployersPersistence::Update(const Model::EmployerModel& employerModel) cons
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -378,7 +387,8 @@ int EmployersPersistence::Update(const Model::EmployerModel& employerModel) cons
         pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -398,7 +408,8 @@ int EmployersPersistence::Update(const Model::EmployerModel& employerModel) cons
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -410,7 +421,8 @@ int EmployersPersistence::Update(const Model::EmployerModel& employerModel) cons
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -422,7 +434,8 @@ int EmployersPersistence::Update(const Model::EmployerModel& employerModel) cons
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -432,16 +445,17 @@ int EmployersPersistence::Update(const Model::EmployerModel& employerModel) cons
         pLogger->error(LogMessages::ExecStepTemplate, EmployersPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityUpdated, "employer", employerModel.EmployerId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int EmployersPersistence::Delete(const std::int64_t employerId) const
+Common::SqliteResult EmployersPersistence::Delete(const std::int64_t employerId) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -457,7 +471,8 @@ int EmployersPersistence::Delete(const std::int64_t employerId) const
             LogMessages::PrepareStatementTemplate, EmployersPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -469,7 +484,8 @@ int EmployersPersistence::Delete(const std::int64_t employerId) const
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -481,7 +497,8 @@ int EmployersPersistence::Delete(const std::int64_t employerId) const
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -491,16 +508,18 @@ int EmployersPersistence::Delete(const std::int64_t employerId) const
         pLogger->error(LogMessages::ExecStepTemplate, EmployersPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityDeleted, "employer", employerId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int EmployersPersistence::UnsetDefault() const
+Common::SqliteResult EmployersPersistence::UnsetDefault() const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -516,7 +535,9 @@ int EmployersPersistence::UnsetDefault() const
             LogMessages::PrepareStatementTemplate, EmployersPersistence::unsetDefault, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -527,7 +548,8 @@ int EmployersPersistence::UnsetDefault() const
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -538,17 +560,18 @@ int EmployersPersistence::UnsetDefault() const
             LogMessages::ExecStepTemplate, EmployersPersistence::unsetDefault, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Unsetted default \"employer\"");
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int EmployersPersistence::SelectDefault(Model::EmployerModel& employerModel) const
+Common::SqliteResult EmployersPersistence::SelectDefault(Model::EmployerModel& employerModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -565,7 +588,8 @@ int EmployersPersistence::SelectDefault(Model::EmployerModel& employerModel) con
             LogMessages::PrepareStatementTemplate, EmployersPersistence::selectDefault, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -574,7 +598,7 @@ int EmployersPersistence::SelectDefault(Model::EmployerModel& employerModel) con
         SPDLOG_LOGGER_TRACE(pLogger, "No default employer found");
 
         sqlite3_finalize(stmt);
-        return 0;
+        return Common::SqliteResult::OK();
     } else if (rc != SQLITE_ROW) {
         const char* error = sqlite3_errmsg(pDb);
 
@@ -582,7 +606,8 @@ int EmployersPersistence::SelectDefault(Model::EmployerModel& employerModel) con
             LogMessages::ExecStepTemplate, EmployersPersistence::selectDefault, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -617,7 +642,9 @@ int EmployersPersistence::SelectDefault(Model::EmployerModel& employerModel) con
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -625,7 +652,7 @@ int EmployersPersistence::SelectDefault(Model::EmployerModel& employerModel) con
     SPDLOG_LOGGER_TRACE(
         pLogger, "Retreived default \"employer\" with ID \"{0}\"", employerModel.EmployerId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
 std::string EmployersPersistence::filter = "SELECT "

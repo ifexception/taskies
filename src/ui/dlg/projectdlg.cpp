@@ -225,7 +225,7 @@ void ProjectDialog::FillControls()
     auto sqliteResult = employerPersistence.Filter(defaultSearchTerm, employers);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterEmployerPrepareStatementMessage,
+            Messages::FilterEmployersMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);

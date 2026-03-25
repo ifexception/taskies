@@ -48,11 +48,12 @@ struct EmployersPersistence final : public PersistenceBase {
         /*out*/ std::vector<Model::EmployerModel>& employerModels) const;
     Common::SqliteResult GetById(const std::int64_t employerId,
         /*out*/ Model::EmployerModel& employerModel) const;
-    std::int64_t Create(const Model::EmployerModel& employerModel) const;
-    int Update(const Model::EmployerModel& employerModel) const;
-    int Delete(const std::int64_t employerId) const;
-    int UnsetDefault() const;
-    int SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
+    Common::SqliteResult Create(/*out*/ std::int64_t& employerId,
+        const Model::EmployerModel& employerModel) const;
+    Common::SqliteResult Update(const Model::EmployerModel& employerModel) const;
+    Common::SqliteResult Delete(const std::int64_t employerId) const;
+    Common::SqliteResult UnsetDefault() const;
+    Common::SqliteResult SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
 
     static std::string filter;
     static std::string getById;

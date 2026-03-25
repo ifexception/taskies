@@ -292,7 +292,7 @@ void EditListDialog::EmployerDataToControls()
     auto sqliteResult = employerPersistence.Filter(mSearchTerm, employers);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterEmployerPrepareStatementMessage,
+            Messages::FilterEmployersMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -610,7 +610,7 @@ void EditListDialog::SearchEmployers()
     auto sqliteResult = employerPersistence.Filter(mSearchTerm, employers);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterEmployerPrepareStatementMessage,
+            Messages::FilterEmployersMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
