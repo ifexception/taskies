@@ -596,6 +596,7 @@ Common::SqliteResult EmployersPersistence::SelectDefault(Model::EmployerModel& e
 
     if (rc == SQLITE_DONE) {
         SPDLOG_LOGGER_TRACE(pLogger, "No default employer found");
+        pLogger->warn("No default employer found!");
 
         sqlite3_finalize(stmt);
         return Common::SqliteResult::OK();
