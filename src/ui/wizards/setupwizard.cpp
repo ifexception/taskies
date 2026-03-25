@@ -259,9 +259,9 @@ OptionPage::OptionPage(SetupWizard* parent,
     , pSetupWizardService(setupWizardService)
     , pLogger(logger)
     , pNextOption1(nextOption1)
-    , pPrev(prev)
     , pNextOption2(nextOption2)
     , pNextOption3(nextOption3)
+    , pPrev(prev)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -510,6 +510,7 @@ void CreateEmployerAndClientPage::CreateControls()
 
     pEmployerNameTextCtrl->SetValidator(NameValidator());
 
+    /* Employer default checkbox control */
     pDefaultEmployerCheckBoxCtrl = new wxCheckBox(employerBox, wxID_ANY, "Is Default");
     pDefaultEmployerCheckBoxCtrl->SetToolTip("One employer is required to be default");
     pDefaultEmployerCheckBoxCtrl->SetValue(true);
