@@ -47,4 +47,14 @@ const std::string SelectDefaultEmployerMessage =
     "Something went wrong while trying get a default employer";
 const std::string GetByIdEmployerMessage = "Something went wrong while trying get an employer";
 #pragma endregion
+
+#pragma region Client
+const std::string FilterClientsMessage = "Something went wrong while trying to filter clients";
+const std::string CreateClientMessage = "Something went wrong while trying to save a client";
+const std::string UpdateClientMessage = "Something went wrong while trying to update the client";
+const std::string DeleteClientMessage = "Something went wrong while trying to update the client";
+const std::string GetByIdClientMessage = "Something went wrong while trying get a client";
+const std::string FilterClientsByEmployerMessage =
+    "Something went wrong while trying get clients filtered by employer";
+#pragma endregion
 } // namespace tks::Messages

@@ -195,26 +195,30 @@ Common::SqliteResult SetupWizardService::UpdateEmployer(
     return sqliteResult;
 }
 
-std::int64_t SetupWizardService::CreateClient(const Model::ClientModel& clientModel) const
+Common::SqliteResult SetupWizardService::CreateClient(
+    /*out*/ std::int64_t& clientId,
+    const Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t rowId = clientsPersistence.Create(clientModel);
-    return rowId;
+
+    std::int64_t rowId = -1;
+    auto sqliteResult = clientsPersistence.Create(rowId, clientModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::GetByClientId(const std::int64_t clientId,
+Common::SqliteResult SetupWizardService::GetByClientId(const std::int64_t clientId,
     Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
-    int rc = clientsPersistence.GetById(clientId, clientModel);
-    return rc;
+    auto sqliteResult = clientsPersistence.GetById(clientId, clientModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::UpdateClient(const Model::ClientModel& clientModel) const
+Common::SqliteResult SetupWizardService::UpdateClient(const Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
-    int rc = clientsPersistence.Update(clientModel);
-    return rc;
+    auto sqliteResult = clientsPersistence.Update(clientModel);
+    return sqliteResult;
 }
 
 std::int64_t SetupWizardService::CreateProject(const Model::ProjectModel& projectModel) const

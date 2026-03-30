@@ -473,21 +473,30 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
     // TODO: Handle client delete scenario
 
     if (pParent->GetClientId() > 0) {
-        int rc = pSetupWizardService->UpdateClient(clientModel);
-        if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        auto sqliteResult = pSetupWizardService->UpdateClient(clientModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateClientMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return false;
         }
     } else if (!clientName.empty()) {
-        std::int64_t clientId = pSetupWizardService->CreateClient(clientModel);
-        if (clientId == -1) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        std::int64_t clientId = -1;
+        auto sqliteResult = pSetupWizardService->CreateClient(clientId, clientModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateClientMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return false;
         } else {
             pParent->SetClientId(clientId);
@@ -612,14 +621,17 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
 
     if (pParent->GetClientId() > 0) {
         Model::ClientModel client;
-        int rc = 0;
 
-        rc = pSetupWizardService->GetByClientId(pParent->GetClientId(), client);
-        if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        auto sqliteResult = pSetupWizardService->GetByClientId(pParent->GetClientId(), client);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateClientMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
 

@@ -313,20 +313,18 @@ void EditListDialog::ClientDataToControls()
 {
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = ClientsPersistence.Filter(mSearchTerm, clients);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterClientsMessage,
+    auto result = clientsPersistence.Filter(mSearchTerm, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);
@@ -636,20 +634,18 @@ void EditListDialog::SearchClients()
 
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = ClientsPersistence.Filter(mSearchTerm, clients);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterClientsMessage,
+    auto result = clientsPersistence.Filter(mSearchTerm, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);

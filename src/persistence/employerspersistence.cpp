@@ -447,7 +447,7 @@ Common::SqliteResult EmployersPersistence::Update(const Model::EmployerModel& em
 
         sqlite3_finalize(stmt);
         return Common::SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -509,7 +509,6 @@ Common::SqliteResult EmployersPersistence::Delete(const std::int64_t employerId)
         pLogger->error(LogMessages::ExecStepTemplate, EmployersPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
-
         return Common::SqliteResult::FailDetailed(
             Messages::StepStatementMessage, rc, std::string(error));
     }

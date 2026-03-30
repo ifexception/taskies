@@ -551,24 +551,23 @@ void ProjectDialog::TransferDataFromControls()
         }
     }
 }
+
 void ProjectDialog::FillClientChoiceControl(const std::int64_t employerId)
 {
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
     std::string defaultSearchTerm = "";
 
-    int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterClientsMessage,
+    auto result = clientsPersistence.FilterByEmployerId(employerId, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsByEmployerMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         if (!clients.empty()) {
             pClientChoiceCtrl->Enable();

@@ -52,9 +52,12 @@ struct SetupWizardService final {
         /*out*/ Model::EmployerModel& employerModel) const;
     Common::SqliteResult UpdateEmployer(const Model::EmployerModel& employerModel) const;
 
-    std::int64_t CreateClient(const Model::ClientModel& clientModel) const;
-    int GetByClientId(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel) const;
-    int UpdateClient(const Model::ClientModel& clientModel) const;
+    Common::SqliteResult CreateClient(
+        /*out*/ std::int64_t& clientId,
+        const Model::ClientModel& clientModel) const;
+    Common::SqliteResult GetByClientId(const std::int64_t clientId,
+        /*out*/ Model::ClientModel& clientModel) const;
+    Common::SqliteResult UpdateClient(const Model::ClientModel& clientModel) const;
 
     std::int64_t CreateProject(const Model::ProjectModel& projectModel) const;
     int GetByProjectId(const std::int64_t projectId,

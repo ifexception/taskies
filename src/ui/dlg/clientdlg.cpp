@@ -235,21 +235,18 @@ void ClientDialog::ConfigureEventBindings()
 
 void ClientDialog::DataToControls()
 {
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = ClientsPersistence.GetById(mClientId, mClientModel);
-
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::EditClientMessage,
+    auto sqliteResult = clientsPersistence.GetById(mClientId, mClientModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdClientMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         pNameTextCtrl->ChangeValue(mClientModel.Name);
 
@@ -280,31 +277,64 @@ void ClientDialog::OnOK(wxCommandEvent& event)
 
     TransferDataFromControls();
 
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
-
-    int ret = 0;
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
     if (!bIsEdit) {
-        std::int64_t clientId = ClientsPersistence.Create(mClientModel);
-        ret = clientId > 0 ? 1 : -1;
+        std::int64_t clientId = -1;
+        auto result = clientsPersistence.Create(clientId, mClientModel);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when creating a "
+                           "client, see earlier logs for details",
+                result.ReturnCode);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::CreateClientMessage);
+            wxRichMessageDialog dialog(this,
+                Messages::CreateClientMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = ClientsPersistence.Update(mClientModel);
+        auto result = clientsPersistence.Update(mClientModel);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::UpdateClientMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when updating a "
+                           "client, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateClientMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = ClientsPersistence.Delete(mClientId);
+        auto result = clientsPersistence.Delete(mClientId);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::DeleteClientMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when deleting a "
+                           "client, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteClientMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 

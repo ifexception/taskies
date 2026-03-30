@@ -587,13 +587,18 @@ void TaskDialog::FillControls()
     }
 
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    rc = ClientsPersistence.FilterByEmployerId(mEmployerId, clients);
+    auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsByEmployerMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-    if (rc != 0) {
-        std::string message = "Failed to get clients";
-        QueueErrorNotificationEvent(message);
+        dialog.ShowModal();
     } else {
         if (!clients.empty()) {
             if (!pClientChoiceCtrl->IsEnabled()) {
@@ -787,17 +792,22 @@ void TaskDialog::DataToControls()
     }
 
     // load clients
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
     if (!employerSelected) {
         std::vector<Model::ClientModel> clients;
         std::string defaultSearchTerm = "";
-        ret = ClientsPersistence.FilterByEmployerId(projectModel.EmployerId, clients);
-        if (ret == -1) {
-            std::string message = "Failed to get clients";
-            QueueErrorNotificationEvent(message);
 
-            isSuccess = false;
+        auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
+        if (!result.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterClientsByEmployerMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         } else {
             // load client
             if (!clients.empty()) {
@@ -808,11 +818,18 @@ void TaskDialog::DataToControls()
 
                 if (projectModel.ClientId.has_value()) {
                     Model::ClientModel client;
-                    ret = ClientsPersistence.GetById(projectModel.ClientId.value(), client);
-                    if (ret == -1) {
-                        std::string message = "Failed to get client";
-                        QueueErrorNotificationEvent(message);
 
+                    auto sqliteResult =
+                        clientsPersistence.GetById(projectModel.ClientId.value(), client);
+                    if (!sqliteResult.Success) {
+                        wxRichMessageDialog dialog(this,
+                            Messages::GetByIdClientMessage,
+                            tks::Common::GetProgramName(),
+                            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                        dialog.ShowModal();
                         isSuccess = false;
                     } else {
                         pClientChoiceCtrl->SetStringSelection(client.Name);
@@ -826,11 +843,17 @@ void TaskDialog::DataToControls()
     } else {
         if (projectModel.ClientId.has_value()) {
             Model::ClientModel client;
-            ret = ClientsPersistence.GetById(projectModel.ClientId.value(), client);
-            if (ret == -1) {
-                std::string message = "Failed to get client";
-                QueueErrorNotificationEvent(message);
 
+            auto sqliteResult = clientsPersistence.GetById(projectModel.ClientId.value(), client);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::GetByIdClientMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
                 isSuccess = false;
             } else {
                 pClientChoiceCtrl->SetStringSelection(client.Name);
@@ -1552,13 +1575,18 @@ void TaskDialog::ResetCategoryChoiceControl(bool disable)
 void TaskDialog::FetchClientEntitiesByEmployer(const std::int64_t employerId)
 {
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
+    auto result = clientsPersistence.FilterByEmployerId(employerId, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsByEmployerMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-    if (rc != 0) {
-        std::string message = "Failed to get clients";
-        QueueErrorNotificationEvent(message);
+        dialog.ShowModal();
     } else {
         if (!clients.empty()) {
             if (!pClientChoiceCtrl->IsEnabled()) {
