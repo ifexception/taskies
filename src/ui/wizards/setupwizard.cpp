@@ -460,7 +460,7 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
             dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
             dialog.ShowModal();
-            return -1;
+            return false;
         } else {
             pParent->SetEmployerId(employerId);
         }
