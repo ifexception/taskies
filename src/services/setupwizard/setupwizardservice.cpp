@@ -25,7 +25,6 @@
 #include "../../common/logmessages.h"
 #include "../../common/queryhelper.h"
 
-#include "../../common/messages/persistencemessages.h"
 #include "../../common/results/sqliteresult.h"
 
 #include "../../persistence/employerspersistence.h"
@@ -168,62 +167,32 @@ int SetupWizardService::RollbackTransaction()
     return rc;
 }
 
-std::int64_t SetupWizardService::CreateEmployer(const Model::EmployerModel& employerModel) const
+Common::SqliteResult SetupWizardService::CreateEmployer(/*out*/ std::int64_t& employerId,
+    const Model::EmployerModel& employerModel) const
 {
     std::int64_t rowId = -1;
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
 
     auto sqliteResult = employersPersistence.Create(rowId, employerModel);
-
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(NULL,
-            Messages::CreateEmployerMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
-        return -1;
-    }
-    return rowId;
+    return sqliteResult;
 }
 
-int SetupWizardService::GetByEmployerId(const std::int64_t employerId,
+Common::SqliteResult SetupWizardService::GetByEmployerId(const std::int64_t employerId,
     Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
     auto sqliteResult = employersPersistence.GetById(employerId, employerModel);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(NULL,
-            Messages::CreateEmployerMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        dialog.ShowModal();
-        return -1;
-    }
-    return 0;
+    return sqliteResult;
 }
 
-int SetupWizardService::UpdateEmployer(const Model::EmployerModel& employerModel) const
+Common::SqliteResult SetupWizardService::UpdateEmployer(
+    const Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
     auto sqliteResult = employersPersistence.Update(employerModel);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(NULL,
-            Messages::UpdateEmployerMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        dialog.ShowModal();
-        return -1;
-    }
-    return 0;
+    return sqliteResult;
 }
 
 std::int64_t SetupWizardService::CreateClient(const Model::ClientModel& clientModel) const

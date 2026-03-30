@@ -28,6 +28,8 @@
 
 #include <sqlite3.h>
 
+#include "../../common/results/sqliteresult.h"
+
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
 #include "../../models/projectmodel.h"
@@ -44,21 +46,24 @@ struct SetupWizardService final {
     int CommitTransaction();
     int RollbackTransaction();
 
-    std::int64_t CreateEmployer(const Model::EmployerModel& employerModel) const;
-    int GetByEmployerId(const std::int64_t employerId,
+    Common::SqliteResult CreateEmployer(/*out*/ std::int64_t& employerId,
+        const Model::EmployerModel& employerModel) const;
+    Common::SqliteResult GetByEmployerId(const std::int64_t employerId,
         /*out*/ Model::EmployerModel& employerModel) const;
-    int UpdateEmployer(const Model::EmployerModel& employerModel) const;
+    Common::SqliteResult UpdateEmployer(const Model::EmployerModel& employerModel) const;
 
     std::int64_t CreateClient(const Model::ClientModel& clientModel) const;
     int GetByClientId(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel) const;
     int UpdateClient(const Model::ClientModel& clientModel) const;
 
     std::int64_t CreateProject(const Model::ProjectModel& projectModel) const;
-    int GetByProjectId(const std::int64_t projectId, /*out*/ Model::ProjectModel& projectModel) const;
+    int GetByProjectId(const std::int64_t projectId,
+        /*out*/ Model::ProjectModel& projectModel) const;
     int UpdateProject(const Model::ProjectModel& projectModel) const;
 
     std::int64_t CreateCategory(const Model::CategoryModel& categoryModel) const;
-    int GetByCategoryId(const std::int64_t categoryId, /*out*/ Model::CategoryModel& categoryModel) const;
+    int GetByCategoryId(const std::int64_t categoryId,
+        /*out*/ Model::CategoryModel& categoryModel) const;
     int UpdateCategory(const Model::CategoryModel& categoryModel) const;
 
     bool IsInTransaction() const;
