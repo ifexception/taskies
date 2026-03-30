@@ -42,7 +42,7 @@ namespace Persistence
 struct EmployersPersistence final : public PersistenceBase {
     EmployersPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~EmployersPersistence() = default;
+    virtual ~EmployersPersistence() = default;
 
     Common::SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::EmployerModel>& employerModels) const;
@@ -54,6 +54,8 @@ struct EmployersPersistence final : public PersistenceBase {
     Common::SqliteResult Delete(const std::int64_t employerId) const;
     Common::SqliteResult UnsetDefault() const;
     Common::SqliteResult SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
+
+    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filter;
     static std::string getById;
