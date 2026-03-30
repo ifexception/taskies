@@ -378,7 +378,7 @@ bool EmployerDialog::Validate()
                 result.ReturnCode);
 
             wxRichMessageDialog dialog(this,
-                Messages::DeleteEmployerMessage,
+                Messages::SelectDefaultEmployerMessage,
                 Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
             dialog.SetExtendedMessage(result.FriendlyErrorMessage);

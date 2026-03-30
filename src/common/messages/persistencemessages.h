@@ -31,7 +31,7 @@ const std::string BindStatementMessage =
 const std::string StepStatementMessage =
     "A database error occurred while querying/saving your data";
 const std::string StepStatementReturnedMultipleRowsMessage =
-    "Operation returned more rows than expected when trying to find data";
+    "Operation returned more rows than expected when trying to find your data";
 #pragma endregion
 
 #pragma region Employer
@@ -43,6 +43,8 @@ const std::string DeleteEmployerMessage =
     "Something went wrong while trying to update the employer";
 const std::string UnsetDefaultEmployerMessage =
     "Something went wrong while trying to unset default employer";
+const std::string SelectDefaultEmployerMessage =
+    "Something went wrong while trying get a default employer";
 const std::string GetByIdEmployerMessage = "Something went wrong while trying get an employer";
 #pragma endregion
 } // namespace tks::Messages
