@@ -59,10 +59,11 @@ struct SetupWizardService final {
         /*out*/ Model::ClientModel& clientModel) const;
     Common::SqliteResult UpdateClient(const Model::ClientModel& clientModel) const;
 
-    std::int64_t CreateProject(const Model::ProjectModel& projectModel) const;
-    int GetByProjectId(const std::int64_t projectId,
+    Common::SqliteResult CreateProject(/*out*/ std::int64_t& projectId,
+        const Model::ProjectModel& projectModel) const;
+    Common::SqliteResult GetByProjectId(const std::int64_t projectId,
         /*out*/ Model::ProjectModel& projectModel) const;
-    int UpdateProject(const Model::ProjectModel& projectModel) const;
+    Common::SqliteResult UpdateProject(const Model::ProjectModel& projectModel) const;
 
     std::int64_t CreateCategory(const Model::CategoryModel& categoryModel) const;
     int GetByCategoryId(const std::int64_t categoryId,

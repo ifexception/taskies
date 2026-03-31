@@ -341,18 +341,16 @@ void EditListDialog::ProjectDataToControls()
     std::vector<ListCtrlData> entries;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.Filter(mSearchTerm, projects);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterProjectsMessage,
+    auto sqliteResult = projectPersistence.Filter(mSearchTerm, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);
@@ -667,18 +665,16 @@ void EditListDialog::SearchProjects()
     std::vector<ListCtrlData> entries;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.Filter(mSearchTerm, projects);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterProjectsMessage,
+    auto sqliteResult = projectPersistence.Filter(mSearchTerm, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);

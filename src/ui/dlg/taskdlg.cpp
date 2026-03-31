@@ -732,25 +732,38 @@ void TaskDialog::DataToControls()
     Model::ProjectModel projectModel;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    ret = projectPersistence.GetById(taskModel.ProjectId, projectModel);
-    if (ret != 0) {
-        std::string message = "Failed to get project";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = projectPersistence.GetById(taskModel.ProjectId, projectModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
+        dialog.ShowModal();
         return;
     }
 
     if (!employerSelected) {
         // load projects
         std::vector<Model::ProjectModel> projects;
-        ret = projectPersistence.FilterByEmployerIdOrClientId(
+
+        auto sqliteResult = projectPersistence.FilterByEmployerIdOrClientId(
             std::make_optional(projectModel.EmployerId),
             projectModel.ClientId.has_value() ? projectModel.ClientId : std::nullopt,
             projects);
-        if (ret != 0) {
-            std::string message = "Failed to get projects";
-            QueueErrorNotificationEvent(message);
-            isSuccess = false;
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterProjectsMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+
+            return;
         } else {
             if (!projects.empty()) {
                 if (!pProjectChoiceCtrl->IsEnabled()) {
@@ -1610,11 +1623,17 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
     std::vector<Model::ProjectModel> projects;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.FilterByEmployerIdOrClientId(employerId, clientId, projects);
-    if (rc != 0) {
-        std::string message = "Failed to get projects";
-        QueueErrorNotificationEvent(message);
-        return;
+    auto sqliteResult =
+        projectPersistence.FilterByEmployerIdOrClientId(employerId, clientId, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     if (!projects.empty()) {

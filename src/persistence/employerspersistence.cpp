@@ -233,7 +233,6 @@ Common::SqliteResult EmployersPersistence::GetById(const std::int64_t employerId
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-
         return Common::SqliteResult::FailDetailed(
             Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
@@ -257,7 +256,6 @@ Common::SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::create, rc, error);
 
@@ -330,7 +328,7 @@ Common::SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
 
         sqlite3_finalize(stmt);
         return Common::SqliteResult::FailDetailed(
-            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -535,7 +533,6 @@ Common::SqliteResult EmployersPersistence::UnsetDefault() const
             LogMessages::PrepareStatementTemplate, EmployersPersistence::unsetDefault, rc, error);
 
         sqlite3_finalize(stmt);
-
         return Common::SqliteResult::FailDetailed(
             Messages::PrepareStatementMessage, rc, std::string(error));
     }

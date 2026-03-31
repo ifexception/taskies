@@ -221,26 +221,29 @@ Common::SqliteResult SetupWizardService::UpdateClient(const Model::ClientModel& 
     return sqliteResult;
 }
 
-std::int64_t SetupWizardService::CreateProject(const Model::ProjectModel& projectModel) const
+Common::SqliteResult SetupWizardService::CreateProject(std::int64_t& projectId,
+    const Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t rowId = projectsPersistence.Create(projectModel);
-    return rowId;
+    std::int64_t rowId = -1;
+    auto sqliteResult = projectsPersistence.Create(rowId, projectModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::GetByProjectId(const std::int64_t projectId,
+Common::SqliteResult SetupWizardService::GetByProjectId(const std::int64_t projectId,
     Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
-    int rc = projectsPersistence.GetById(projectId, projectModel);
-    return rc;
+    auto sqliteResult = projectsPersistence.GetById(projectId, projectModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::UpdateProject(const Model::ProjectModel& projectModel) const
+Common::SqliteResult SetupWizardService::UpdateProject(
+    const Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
-    int rc = projectsPersistence.Update(projectModel);
-    return rc;
+    auto sqliteResult = projectsPersistence.Update(projectModel);
+    return sqliteResult;
 }
 
 std::int64_t SetupWizardService::CreateCategory(const Model::CategoryModel& categoryModel) const

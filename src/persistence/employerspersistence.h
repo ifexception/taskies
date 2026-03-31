@@ -27,8 +27,6 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
-#include <sqlite3.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/employermodel.h"

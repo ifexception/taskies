@@ -23,7 +23,6 @@
 
 #include <fmt/format.h>
 
-#include <wx/msgdlg.h>
 #include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
@@ -295,18 +294,16 @@ void ProjectDialog::DataToControls()
 {
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.GetById(mProjectId, mProjectModel);
-    if (rc != 0) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::EditProjectMessage,
+    auto sqliteResult = projectPersistence.GetById(mProjectId, mProjectModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdProjectMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         pNameTextCtrl->ChangeValue(mProjectModel.Name);
         pDisplayNameCtrl->ChangeValue(mProjectModel.DisplayName);
@@ -386,34 +383,62 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
     bool canContinue = true;
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
-        ret = projectPersistence.UnsetDefault();
+        auto sqliteResult = projectPersistence.UnsetDefault();
 
-        if (ret == -1) {
+        if (!sqliteResult.Success) {
             canContinue = false;
-            QueueErrorNotificationEvent(ErrorMessages::UnsetDefaultProjectMessage);
+            wxRichMessageDialog dialog(this,
+                Messages::UnsetDefaultProjectMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
     }
 
     if (!bIsEdit && canContinue) {
-        std::int64_t projectId = projectPersistence.Create(mProjectModel);
-        ret = projectId > 0 ? 0 : -1;
+        std::int64_t projectId = -1;
+        auto sqliteResult = projectPersistence.Create(projectId, mProjectModel);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::CreateProjectMessage);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateProjectMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
-        ret = projectPersistence.Update(mProjectModel);
+        auto sqliteResult = projectPersistence.Update(mProjectModel);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::UpdateProjectMessage);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateProjectMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
-        ret = projectPersistence.Delete(mProjectId);
+        auto sqliteResult = projectPersistence.Delete(mProjectId);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::DeleteProjectMessage);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteProjectMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
     }
 
@@ -578,16 +603,5 @@ void ProjectDialog::FillClientChoiceControl(const std::int64_t employerId)
             }
         }
     }
-}
-
-void ProjectDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-    // have wxFrame
-    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

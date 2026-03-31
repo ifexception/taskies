@@ -21,7 +21,7 @@
 
 #include <fmt/format.h>
 
-#include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -33,6 +33,8 @@
 #include "../../common/constants.h"
 #include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
+
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/projectspersistence.h"
 #include "../../persistence/categoriespersistence.h"
@@ -195,20 +197,16 @@ void CategoryDialog::FillControls()
     std::vector<Model::ProjectModel> projects;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.Filter(defaultSearchTerm, projects);
-    if (rc != 0) {
-        std::string message = "A database error occured when trying to get projects";
-        wxMessageDialog dialog(this,
-            message,
+    auto sqliteResult = projectPersistence.Filter(defaultSearchTerm, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
-        }
+        dialog.ShowModal();
     } else {
         if (!projects.empty()) {
             if (!pProjectChoiceCtrl->IsEnabled()) {

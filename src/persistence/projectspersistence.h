@@ -27,30 +27,32 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/projectmodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct ProjectsPersistence final {
+struct ProjectsPersistence final : public PersistenceBase {
     ProjectsPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~ProjectsPersistence();
+    virtual ~ProjectsPersistence() = default;
 
-    int Filter(const std::string& searchTerm,
+    Common::SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
-    int FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
+    Common::SqliteResult FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
         std::optional<std::int64_t> clientId,
         /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
-    int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& projectModel) const;
-    std::int64_t Create(const Model::ProjectModel& projectModel);
-    int Update(const Model::ProjectModel& projectModel) const;
-    int Delete(const std::int64_t projectId) const;
-    int UnsetDefault() const;
+    Common::SqliteResult GetById(const std::int64_t projectId,
+        /*out*/ Model::ProjectModel& projectModel) const;
+    Common::SqliteResult Create(std::int64_t& projectId, const Model::ProjectModel& projectModel);
+    Common::SqliteResult Update(const Model::ProjectModel& projectModel) const;
+    Common::SqliteResult Delete(const std::int64_t projectId) const;
+    Common::SqliteResult UnsetDefault() const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string filter;
     static std::string getById;

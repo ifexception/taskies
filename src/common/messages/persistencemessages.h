@@ -57,4 +57,16 @@ const std::string GetByIdClientMessage = "Something went wrong while trying get 
 const std::string FilterClientsByEmployerMessage =
     "Something went wrong while trying get clients filtered by employer";
 #pragma endregion
+
+#pragma region Project
+const std::string FilterProjectsMessage = "Something went wrong while trying to filter projects";
+const std::string CreateProjectMessage = "Something went wrong while trying to save a project";
+const std::string UpdateProjectMessage = "Something went wrong while trying to update the project";
+const std::string DeleteProjectMessage = "Something went wrong while trying to update the project";
+const std::string GetByIdProjectMessage = "Something went wrong while trying get a project";
+const std::string FilterProjectsByEmployerMessage =
+    "Something went wrong while trying get projects filtered by employer";
+const std::string UnsetDefaultProjectMessage =
+    "Something went wrong while trying to unset default employer";
+#pragma endregion
 } // namespace tks::Messages
