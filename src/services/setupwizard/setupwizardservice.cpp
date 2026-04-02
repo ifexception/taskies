@@ -170,10 +170,9 @@ int SetupWizardService::RollbackTransaction()
 Common::SqliteResult SetupWizardService::CreateEmployer(/*out*/ std::int64_t& employerId,
     const Model::EmployerModel& employerModel) const
 {
-    std::int64_t rowId = -1;
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = employersPersistence.Create(rowId, employerModel);
+    auto sqliteResult = employersPersistence.Create(employerId, employerModel);
     return sqliteResult;
 }
 
@@ -201,8 +200,7 @@ Common::SqliteResult SetupWizardService::CreateClient(
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    std::int64_t rowId = -1;
-    auto sqliteResult = clientsPersistence.Create(rowId, clientModel);
+    auto sqliteResult = clientsPersistence.Create(clientId, clientModel);
     return sqliteResult;
 }
 
@@ -210,6 +208,7 @@ Common::SqliteResult SetupWizardService::GetByClientId(const std::int64_t client
     Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
+
     auto sqliteResult = clientsPersistence.GetById(clientId, clientModel);
     return sqliteResult;
 }
@@ -217,6 +216,7 @@ Common::SqliteResult SetupWizardService::GetByClientId(const std::int64_t client
 Common::SqliteResult SetupWizardService::UpdateClient(const Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
+
     auto sqliteResult = clientsPersistence.Update(clientModel);
     return sqliteResult;
 }
@@ -225,8 +225,8 @@ Common::SqliteResult SetupWizardService::CreateProject(std::int64_t& projectId,
     const Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t rowId = -1;
-    auto sqliteResult = projectsPersistence.Create(rowId, projectModel);
+
+    auto sqliteResult = projectsPersistence.Create(projectId, projectModel);
     return sqliteResult;
 }
 
@@ -234,6 +234,7 @@ Common::SqliteResult SetupWizardService::GetByProjectId(const std::int64_t proje
     Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
+
     auto sqliteResult = projectsPersistence.GetById(projectId, projectModel);
     return sqliteResult;
 }
@@ -242,30 +243,36 @@ Common::SqliteResult SetupWizardService::UpdateProject(
     const Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
+
     auto sqliteResult = projectsPersistence.Update(projectModel);
     return sqliteResult;
 }
 
-std::int64_t SetupWizardService::CreateCategory(const Model::CategoryModel& categoryModel) const
+Common::SqliteResult SetupWizardService::CreateCategory(std::int64_t& categoryId,
+    const Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t rowId = categoriesPersistence.Create(categoryModel);
-    return rowId;
+
+    auto sqliteResult = categoriesPersistence.Create(categoryId, categoryModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::GetByCategoryId(const std::int64_t categoryId,
+Common::SqliteResult SetupWizardService::GetByCategoryId(const std::int64_t categoryId,
     Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);
-    int rc = categoriesPersistence.GetById(categoryId, categoryModel);
-    return rc;
+
+    auto sqliteResult = categoriesPersistence.GetById(categoryId, categoryModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::UpdateCategory(const Model::CategoryModel& categoryModel) const
+Common::SqliteResult SetupWizardService::UpdateCategory(
+    const Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);
-    int rc = categoriesPersistence.Update(categoryModel);
-    return rc;
+
+    auto sqliteResult = categoriesPersistence.Update(categoryModel);
+    return sqliteResult;
 }
 
 bool SetupWizardService::IsInTransaction() const

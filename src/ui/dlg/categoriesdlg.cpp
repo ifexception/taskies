@@ -450,26 +450,26 @@ void CategoriesDialog::OnOK(wxCommandEvent& event)
 {
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int ret = 0;
     for (const auto& category : mCategoriesToAdd) {
-        std::int64_t categoryId = categoryPersistence.Create(category);
-        ret = categoryId > 0 ? 1 : -1;
-        if (ret == -1) {
-            std::string message = fmt::format(
-                ErrorMessages::CreateCategoryMessage,
-                category.Name);
+        std::int64_t categoryId = -1;
+        auto result = categoryPersistence.Create(categoryId, category);
 
-            wxMessageDialog dialog(this,
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when creating \"{1}\" "
+                           "category, see earlier logs for details",
+                result.ReturnCode,
+                category.Name);
+            std::string message = fmt::format(Messages::CreateCategoryMessage, category.Name);
+
+            wxRichMessageDialog dialog(this,
                 message,
                 Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-            int ret = dialog.ShowModal();
-            if (ret == wxID_OK) {
-                wxLaunchDefaultBrowser(Common::GetIssuesLink());
-            }
-            break;
+            dialog.ShowModal();
+            return;
         }
     }
 

@@ -1212,10 +1212,16 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
     int ret = 0;
 
-    ret = categoryPersistence.GetById(categoryId, model);
-    if (ret == -1) {
-        std::string message = "Failed to get category";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = categoryPersistence.GetById(categoryId, model);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterCategoriesMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         if (model.Billable) {
             pBillableCheckBoxCtrl->SetValue(true);

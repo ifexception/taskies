@@ -52,7 +52,7 @@ const std::string GetByIdEmployerMessage = "Something went wrong while trying ge
 const std::string FilterClientsMessage = "Something went wrong while trying to filter clients";
 const std::string CreateClientMessage = "Something went wrong while trying to save a client";
 const std::string UpdateClientMessage = "Something went wrong while trying to update the client";
-const std::string DeleteClientMessage = "Something went wrong while trying to update the client";
+const std::string DeleteClientMessage = "Something went wrong while trying to delete the client";
 const std::string GetByIdClientMessage = "Something went wrong while trying get a client";
 const std::string FilterClientsByEmployerMessage =
     "Something went wrong while trying get clients filtered by employer";
@@ -68,5 +68,15 @@ const std::string FilterProjectsByEmployerMessage =
     "Something went wrong while trying get projects filtered by employer";
 const std::string UnsetDefaultProjectMessage =
     "Something went wrong while trying to unset default employer";
+#pragma endregion
+
+#pragma region Category
+const std::string FilterCategoriesMessage = "Something went wrong while trying to filter categories";
+const std::string CreateCategoryMessage = "Something went wrong while trying to save a \"{0}\" category";
+const std::string UpdateCategoryMessage = "Something went wrong while trying to update the category";
+const std::string DeleteCategoryMessage = "Something went wrong while trying to delete the category";
+const std::string GetByIdCategoryMessage = "Something went wrong while trying get a category";
+const std::string FilterCategoriesByProjectMessage =
+    "Something went wrong while trying get categories filtered by project";
 #pragma endregion
 } // namespace tks::Messages

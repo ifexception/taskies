@@ -65,10 +65,11 @@ struct SetupWizardService final {
         /*out*/ Model::ProjectModel& projectModel) const;
     Common::SqliteResult UpdateProject(const Model::ProjectModel& projectModel) const;
 
-    std::int64_t CreateCategory(const Model::CategoryModel& categoryModel) const;
-    int GetByCategoryId(const std::int64_t categoryId,
+    Common::SqliteResult CreateCategory(std::int64_t& categoryId,
+        const Model::CategoryModel& categoryModel) const;
+    Common::SqliteResult GetByCategoryId(const std::int64_t categoryId,
         /*out*/ Model::CategoryModel& categoryModel) const;
-    int UpdateCategory(const Model::CategoryModel& categoryModel) const;
+    Common::SqliteResult UpdateCategory(const Model::CategoryModel& categoryModel) const;
 
     bool IsInTransaction() const;
 

@@ -625,7 +625,7 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
         auto sqliteResult = pSetupWizardService->GetByClientId(pParent->GetClientId(), client);
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,
-                Messages::CreateClientMessage,
+                Messages::GetByIdClientMessage,
                 Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
             dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -752,12 +752,17 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     category.Billable = pCategoryBillableCtrl->GetValue();
     category.ProjectId = std::make_optional<std::int64_t>(projectId);
 
-    std::int64_t categoryId = pSetupWizardService->CreateCategory(category);
-    if (categoryId == -1) {
-        wxMessageBox("The setup wizard encountered an unexpected error",
-            "Setup Error",
-            wxOK_DEFAULT | wxICON_ERROR,
-            this);
+    std::int64_t categoryId = -1;
+    sqliteResult = pSetupWizardService->CreateCategory(categoryId, category);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CreateCategoryMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return false;
     } else {
         pParent->SetCategoryId(categoryId);
@@ -909,7 +914,7 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
         auto sqliteResult = pSetupWizardService->GetByProjectId(pParent->GetProjectId(), project);
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,
-                Messages::CreateProjectMessage,
+                Messages::GetByIdProjectMessage,
                 Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
             dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -926,14 +931,18 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
 
     if (pParent->GetCategoryId() > 0) {
         Model::CategoryModel category;
-        int rc = 0;
 
-        rc = pSetupWizardService->GetByCategoryId(pParent->GetCategoryId(), category);
-        if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        auto sqliteResult =
+            pSetupWizardService->GetByCategoryId(pParent->GetCategoryId(), category);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdCategoryMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
 

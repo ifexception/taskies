@@ -27,28 +27,31 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/categorymodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct CategoriesPersistence final {
+struct CategoriesPersistence final : public PersistenceBase {
     CategoriesPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~CategoriesPersistence();
+    virtual ~CategoriesPersistence() = default;
 
     CategoriesPersistence& operator=(const CategoriesPersistence&) = delete;
 
-    int Filter(const std::string& searchTerm,
+    Common::SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::CategoryModel>& categoryModels) const;
-    int GetById(const std::int64_t categoryId, /*out*/ Model::CategoryModel& categoryModel) const;
-    std::int64_t Create(const Model::CategoryModel& categoryModel) const;
-    int Update(const Model::CategoryModel& categoryModel) const;
-    int Delete(const std::int64_t categoryId) const;
+    Common::SqliteResult GetById(const std::int64_t categoryId,
+        /*out*/ Model::CategoryModel& categoryModel) const;
+    Common::SqliteResult Create(std::int64_t& categoryId,
+        const Model::CategoryModel& categoryModel) const;
+    Common::SqliteResult Update(const Model::CategoryModel& categoryModel) const;
+    Common::SqliteResult Delete(const std::int64_t categoryId) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string filter;
     static std::string getById;

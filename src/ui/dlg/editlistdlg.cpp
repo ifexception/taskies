@@ -367,18 +367,16 @@ void EditListDialog::CategoryDataToControls()
     std::vector<ListCtrlData> entries;
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = categoryPersistence.Filter(mSearchTerm, categories);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterCategoriesMessage,
+    auto sqliteResult = categoryPersistence.Filter(mSearchTerm, categories);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterCategoriesMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);
@@ -696,18 +694,16 @@ void EditListDialog::SearchCategories()
     std::vector<ListCtrlData> entries;
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = categoryPersistence.Filter(mSearchTerm, categories);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterCategoriesMessage,
+    auto sqliteResult = categoryPersistence.Filter(mSearchTerm, categories);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterCategoriesMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);

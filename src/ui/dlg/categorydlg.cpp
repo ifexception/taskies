@@ -249,20 +249,17 @@ void CategoryDialog::ConfigureEventBindings()
 void CategoryDialog::DataToControls()
 {
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
-    int rc = 0;
 
-    rc = categoryPersistence.GetById(mCategoryId, mCategoryModel);
-    if (rc != 0) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::EditCategoryMessage,
+    auto sqliteResult = categoryPersistence.GetById(mCategoryId, mCategoryModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CreateEmployerMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         pNameTextCtrl->ChangeValue(mCategoryModel.Name);
 
@@ -318,20 +315,42 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
 
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int ret = 0;
-
     if (pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = categoryPersistence.Update(mCategoryModel);
+        auto result = categoryPersistence.Update(mCategoryModel);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::UpdateCategoryMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when updating a category, "
+                           "see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateCategoryMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
     if (!pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = categoryPersistence.Delete(mCategoryId);
+        auto result = categoryPersistence.Delete(mCategoryId);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::DeleteCategoryMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when deleting a "
+                           "category, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteCategoryMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
