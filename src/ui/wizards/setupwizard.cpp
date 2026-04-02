@@ -544,6 +544,9 @@ void CreateEmployerAndClientPage::CreateControls()
         employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     employerDetailsGridSizer->Add(
         pEmployerNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    employerDetailsGridSizer->Add(0, 0);
+    employerDetailsGridSizer->Add(
+        pDefaultEmployerCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     employerBoxSizer->Add(employerDetailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
