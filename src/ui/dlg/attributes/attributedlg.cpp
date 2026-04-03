@@ -24,6 +24,7 @@
 #include <fmt/format.h>
 
 #include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/statline.h>
 #include <wx/richtooltip.h>
 
@@ -34,6 +35,8 @@
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
 #include "../../../common/usererrormessages.h"
+
+#include "../../../common/messages/persistencemessages.h"
 
 #include "../../../persistence/attributespersistence.h"
 #include "../../../persistence/attributegroupspersistence.h"
@@ -292,20 +295,16 @@ void AttributeDialog::FillControls()
     std::vector<Model::AttributeTypeModel> attributeTypes;
     Persistence::AttributeTypesPersistence attributeTypesPersistence(pLogger, mDatabaseFilePath);
 
-    rc = attributeTypesPersistence.Filter("", attributeTypes);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterAttributeTypesMessage,
+    auto sqliteResult = attributeTypesPersistence.Filter("", attributeTypes);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeTypesMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-
-        return;
+        dialog.ShowModal();
     } else {
         for (const auto& attributeType : attributeTypes) {
             pAttributeTypeChoiceCtrl->Append(

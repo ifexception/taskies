@@ -27,24 +27,24 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/attributetypemodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct AttributeTypesPersistence final {
+struct AttributeTypesPersistence final : public PersistenceBase {
     AttributeTypesPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~AttributeTypesPersistence();
+    virtual ~AttributeTypesPersistence() = default;
 
-    int Filter(const std::string& searchTerm,
+    Common::SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::AttributeTypeModel>& attributeTypeModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string filter;
-    static std::string getById;
 };
 } // namespace tks::Persistence

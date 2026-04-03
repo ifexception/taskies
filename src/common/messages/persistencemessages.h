@@ -79,4 +79,10 @@ const std::string GetByIdCategoryMessage = "Something went wrong while trying ge
 const std::string FilterCategoriesByProjectMessage =
     "Something went wrong while trying get categories filtered by project";
 #pragma endregion
+
+#pragma region Attributes
+const std::string FilterAttributeTypesMessage =
+    "Something went wrong while trying to filter attribute types";
+
+#pragma endregion
 } // namespace tks::Messages
