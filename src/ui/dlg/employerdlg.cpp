@@ -202,7 +202,7 @@ void EmployerDialog::DataToControls()
     auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::CreateEmployerMessage,
+            Messages::GetByIdEmployerMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);

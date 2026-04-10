@@ -506,10 +506,17 @@ void TaskDialog::FillControls()
     std::vector<Model::AttributeGroupModel> attributeGroupModels;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.Filter(defaultSearchTerm, attributeGroupModels);
-    if (rc != 0) {
-        std::string message = "Failed to get attribute groups";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = attributeGroupsPersistence.Filter(defaultSearchTerm, attributeGroupModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeGroupsMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return;
     } else {
         for (const auto& attributeGroupModel : attributeGroupModels) {
             pAttributeGroupChoiceCtrl->Append(attributeGroupModel.Name,
@@ -525,7 +532,7 @@ void TaskDialog::FillControls()
                         Persistence::StaticAttributeValuesPersistence
                             staticAttributeValuesPersistence(pLogger, mDatabaseFilePath);
 
-                        rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+                        int rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
                             attributeGroupModel.AttributeGroupId, staticAttributeValueModels);
                         if (rc == -1) {
                             std::string message = "Failed to get static attribute values";
@@ -564,7 +571,7 @@ void TaskDialog::FillControls()
     std::vector<Model::EmployerModel> employers;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = employerPersistence.Filter(defaultSearchTerm, employers);
+    sqliteResult = employerPersistence.Filter(defaultSearchTerm, employers);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterEmployersMessage,
@@ -1049,11 +1056,16 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
-    if (rc == -1) {
-        mAttributeGroupId = -1;
-        std::string message = "Failed to get attribute group";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdAttributeGroupMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return;
     }
 
@@ -1062,7 +1074,7 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
         Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);
 
-        rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+        int rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
             mAttributeGroupId, staticAttributeValueModels);
         if (rc == -1) {
             std::string message = "Failed to get static attribute values";

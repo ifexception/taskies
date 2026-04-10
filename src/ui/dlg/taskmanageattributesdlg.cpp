@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 #include <wx/spinctrl.h>
@@ -33,6 +34,8 @@
 #include "../common/taskattributevalueclientdata.h"
 
 #include "../../common/common.h"
+
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
@@ -169,10 +172,16 @@ void TaskManageAttributesDialog::FillControls()
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
-    if (rc != 0) {
-        std::string message = "Failed to fetch attribute group";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdAttributeGroupMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return;
     }
 
@@ -181,7 +190,7 @@ void TaskManageAttributesDialog::FillControls()
     std::vector<Model::AttributeModel> attributeModels;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    rc = attributesPersistence.FilterByAttributeGroupId(mAttributeGroupId, attributeModels);
+    int rc = attributesPersistence.FilterByAttributeGroupId(mAttributeGroupId, attributeModels);
     if (rc != 0) {
         std::string message = "Failed to fetch attributes";
         QueueErrorNotificationEvent(message);

@@ -21,6 +21,7 @@
 
 #include <optional>
 
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -30,8 +31,9 @@
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
-#include "../../../common/usererrormessages.h"
 #include "../../../common/validator.h"
+
+#include "../../../common/messages/persistencemessages.h"
 
 #include "../../../persistence/attributegroupspersistence.h"
 
@@ -212,19 +214,16 @@ void AttributeGroupDialog::DataToControls()
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::EditAttributeGroupMessage,
+    auto sqliteResult = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CreateAttributeGroupMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-        return;
+        dialog.ShowModal();
     }
 
     pNameTextCtrl->SetValue(attributeGroupModel.Name);
@@ -240,39 +239,34 @@ void AttributeGroupDialog::DataToControls()
 
     pIsActiveCheckBoxCtrl->Enable();
 
-    rc = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::AttributeGroupUsageMessage,
+    sqliteResult =
+        attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CheckUsageAttributeGroupMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-        return;
+        dialog.ShowModal();
     }
 
     if (bIsInUse) {
         pIsStaticCheckBoxCtrl->Disable();
     }
 
-    rc = attributeGroupsPersistence.CheckAttributeGroupStaticAttributesUsage(
+    sqliteResult = attributeGroupsPersistence.CheckAttributeGroupStaticAttributesUsage(
         mAttributeGroupId, bIsInUseStatic);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::AttributeGroupStaticUsageMessage,
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CheckUsageAttributeGroupMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-        return;
+        dialog.ShowModal();
     }
 
     if (bIsInUseStatic) {
@@ -307,79 +301,146 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
 
     TransferDataFromControls();
 
-    int ret = 0;
-
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
     if (pIsDefaultCheckBoxCtrl->GetValue()) {
-        ret = attributeGroupsPersistence.UnsetDefault();
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::UnsetDefaultAttributeMessage);
-            goto end_modal;
+        auto result = attributeGroupsPersistence.UnsetDefault();
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when unsetting a default "
+                           "attribute group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UnsetDefaultAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
     if (!bIsEdit) {
-        std::int64_t attributeGroupId = attributeGroupsPersistence.Create(mAttributeGroupModel);
-        if (attributeGroupId == -19) { // SQLITE_CONSTRAINT * -1
-            wxMessageBox("Attribute group with specified name already exists",
-                Common::GetProgramName(),
-                wxOK_DEFAULT | wxICON_WARNING);
-            return;
-        }
-        ret = attributeGroupId > 0 ? 1 : -1;
+        std::int64_t attributeGroupId = 1;
+        auto result = attributeGroupsPersistence.Create(attributeGroupId, mAttributeGroupModel);
+        // if (attributeGroupId == -19) { // SQLITE_CONSTRAINT * -1
+        //     wxMessageBox("Attribute group with specified name already exists",
+        //         Common::GetProgramName(),
+        //         wxOK_DEFAULT | wxICON_WARNING);
+        //     return;
+        // }
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when creating an attribute "
+                           "group, see earlier logs for details",
+                result.ReturnCode);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::CreateAttributeGroupMessage);
+            wxRichMessageDialog dialog(this,
+                Messages::CreateAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = attributeGroupsPersistence.Update(mAttributeGroupModel, bIsInUse);
-        if (ret == -19) { // SQLITE_CONSTRAINT * -1
-            wxMessageBox("Attribute group with specified name already exists",
-                Common::GetProgramName(),
-                wxOK_DEFAULT | wxICON_WARNING);
-            return;
-        }
+        auto result = attributeGroupsPersistence.Update(mAttributeGroupModel);
+        // if (ret == -19) { // SQLITE_CONSTRAINT * -1
+        //     wxMessageBox("Attribute group with specified name already exists",
+        //         Common::GetProgramName(),
+        //         wxOK_DEFAULT | wxICON_WARNING);
+        //     return;
+        // }
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::UpdateAttributeGroupMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when updating an attribute "
+                           "group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
         bool isAttributeGroupAttributeValueUsed = false;
-        ret = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
+        auto result = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
             mAttributeGroupId, isAttributeGroupAttributeValueUsed);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::AttributeGroupUsageMessage);
-            goto end_modal;
+        if (!result.Success) {
+            pLogger->error(
+                "A database error occurred with code \"{0}\" when checking usage of an attribute "
+                "group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::CheckUsageAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
 
         bool isAttributeGroupAttributeUsed = false;
-        ret = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(
+        result = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(
             mAttributeGroupId, isAttributeGroupAttributeUsed);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::AttributeGroupUsageMessage);
-            goto end_modal;
+        if (!result.Success) {
+            pLogger->error(
+                "A database error occurred with code \"{0}\" when checking usage of an attribute "
+                "group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::CheckUsageAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
 
         if (isAttributeGroupAttributeValueUsed || isAttributeGroupAttributeUsed) {
-            wxMessageBox("Unable to delete attribute group as it is in use",
+            wxMessageBox("Cannot delete this attribute group as it is in use",
                 Common::GetProgramName(),
                 wxOK_DEFAULT | wxICON_WARNING);
             return;
         }
 
-        ret = attributeGroupsPersistence.Delete(mAttributeGroupId);
+        result = attributeGroupsPersistence.Delete(mAttributeGroupId);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::DeleteAttributeGroupMessage);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when deleting an attribute "
+                           "group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
-end_modal:
     EndModal(wxID_OK);
 }
 

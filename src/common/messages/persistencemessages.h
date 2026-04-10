@@ -80,6 +80,20 @@ const std::string FilterCategoriesByProjectMessage =
     "Something went wrong while trying get categories filtered by project";
 #pragma endregion
 
+#pragma region AttributeGroups
+const std::string FilterAttributeGroupsMessage = "Something went wrong while trying to filter attribute groups";
+const std::string CreateAttributeGroupMessage = "Something went wrong while trying to save a attribute group";
+const std::string UpdateAttributeGroupMessage = "Something went wrong while trying to update the attribute group";
+const std::string DeleteAttributeGroupMessage = "Something went wrong while trying to delete the attribute group";
+const std::string GetByIdAttributeGroupMessage = "Something went wrong while trying get a attribute group";
+const std::string UnsetDefaultAttributeGroupMessage =
+    "Something went wrong while trying to unset default attribute group";
+const std::string FilterAttributeGroupsByStaticFlagMessage =
+    "Something went wrong while trying get static attribute groups";
+const std::string CheckUsageAttributeGroupMessage =
+    "Something went wrong while check the usages of the attribute group";
+#pragma endregion
+
 #pragma region Attributes
 const std::string FilterAttributeTypesMessage =
     "Something went wrong while trying to filter attribute types";

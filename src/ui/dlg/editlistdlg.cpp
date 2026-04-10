@@ -394,15 +394,16 @@ void EditListDialog::AttributeGroupDataToControls()
 
     Persistence::AttributeGroupsPersistence attributeGroupPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupPersistence.Filter(mSearchTerm, attributeGroups);
-    if (rc == -1) {
-        std::string message = "Failed to filter attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributeGroupPersistence.Filter(mSearchTerm, attributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeGroupsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& attributeGroup : attributeGroups) {
             ListCtrlData data(attributeGroup.AttributeGroupId, attributeGroup.Name);
@@ -725,15 +726,16 @@ void EditListDialog::SearchAttributeGroups()
     std::vector<ListCtrlData> entries;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.Filter(mSearchTerm, attributeGroups);
-    if (rc == -1) {
-        std::string message = "Failed to filter attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributeGroupsPersistence.Filter(mSearchTerm, attributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeGroupsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& attributeGroup : attributeGroups) {
             ListCtrlData data(attributeGroup.AttributeGroupId, attributeGroup.Name);

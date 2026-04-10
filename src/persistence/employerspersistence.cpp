@@ -169,7 +169,6 @@ Common::SqliteResult EmployersPersistence::GetById(const std::int64_t employerId
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::getById, rc, error);
 
@@ -333,9 +332,8 @@ Common::SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
 
     sqlite3_finalize(stmt);
 
-    auto rowId = sqlite3_last_insert_rowid(pDb);
-    employerId = rowId;
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "employer", rowId);
+    employerId = sqlite3_last_insert_rowid(pDb);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "employer", employerId);
 
     return Common::SqliteResult::OK();
 }
@@ -580,7 +578,6 @@ Common::SqliteResult EmployersPersistence::SelectDefault(Model::EmployerModel& e
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::selectDefault, rc, error);
 

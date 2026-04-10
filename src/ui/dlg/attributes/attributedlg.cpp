@@ -270,20 +270,16 @@ void AttributeDialog::FillControls()
     std::vector<Model::AttributeGroupModel> attributeGroups;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.Filter("", attributeGroups);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterAttributeGroupsMessage,
+    auto sqliteResult = attributeGroupsPersistence.Filter("", attributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeGroupsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-
-        return;
+        dialog.ShowModal();
     } else {
         for (const auto& attributeGroup : attributeGroups) {
             pAttributeGroupChoiceCtrl->Append(
@@ -295,7 +291,7 @@ void AttributeDialog::FillControls()
     std::vector<Model::AttributeTypeModel> attributeTypes;
     Persistence::AttributeTypesPersistence attributeTypesPersistence(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = attributeTypesPersistence.Filter("", attributeTypes);
+    sqliteResult = attributeTypesPersistence.Filter("", attributeTypes);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterAttributeTypesMessage,
@@ -352,21 +348,19 @@ void AttributeDialog::DataToControls()
         Model::AttributeGroupModel attributeGroupModel;
         Persistence::AttributeGroupsPersistence attributeGroupsPersistence(
             pLogger, mDatabaseFilePath);
-        rc = attributeGroupsPersistence.GetById(
+
+        auto sqliteResult = attributeGroupsPersistence.GetById(
             mAttributeModel.AttributeGroupId, attributeGroupModel);
 
-        if (rc == -1) {
-            wxMessageDialog dialog(this,
-                ErrorMessages::EditAttributeGroupMessage,
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdAttributeGroupMessage,
                 Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-            int ret = dialog.ShowModal();
-            if (ret == wxID_OK) {
-                wxLaunchDefaultBrowser(Common::GetIssuesLink());
-            }
-            return;
+            dialog.ShowModal();
         }
 
         if (attributeGroupModel.IsStatic) {
@@ -404,20 +398,16 @@ void AttributeDialog::OnAttributeGroupSelection(wxCommandEvent& event)
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.GetById(attributeGroupId, attributeGroupModel);
-    if (rc != 0) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::EditAttributeGroupMessage,
+    auto sqliteResult = attributeGroupsPersistence.GetById(attributeGroupId, attributeGroupModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdAttributeGroupMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-
-        return;
+        dialog.ShowModal();
     }
 
     if (attributeGroupModel.IsStatic) {
@@ -466,13 +456,19 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
         Persistence::AttributeGroupsPersistence attributeGroupsPersistence(
             pLogger, mDatabaseFilePath);
         bool isAttributeGroupAlreadyAssociated = false;
-        ret = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
+
+        auto sqliteResult = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
             mAttributeModel.AttributeGroupId, isAttributeGroupAlreadyAssociated);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::AttributeGroupUsageMessage);
-            EndModal(wxID_OK);
-            return;
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CheckUsageAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
 
         if (isAttributeGroupAlreadyAssociated) {
