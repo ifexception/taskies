@@ -71,21 +71,30 @@ const std::string UnsetDefaultProjectMessage =
 #pragma endregion
 
 #pragma region Category
-const std::string FilterCategoriesMessage = "Something went wrong while trying to filter categories";
-const std::string CreateCategoryMessage = "Something went wrong while trying to save a \"{0}\" category";
-const std::string UpdateCategoryMessage = "Something went wrong while trying to update the category";
-const std::string DeleteCategoryMessage = "Something went wrong while trying to delete the category";
+const std::string FilterCategoriesMessage =
+    "Something went wrong while trying to filter categories";
+const std::string CreateCategoryMessage =
+    "Something went wrong while trying to save a \"{0}\" category";
+const std::string UpdateCategoryMessage =
+    "Something went wrong while trying to update the category";
+const std::string DeleteCategoryMessage =
+    "Something went wrong while trying to delete the category";
 const std::string GetByIdCategoryMessage = "Something went wrong while trying get a category";
 const std::string FilterCategoriesByProjectMessage =
     "Something went wrong while trying get categories filtered by project";
 #pragma endregion
 
 #pragma region AttributeGroups
-const std::string FilterAttributeGroupsMessage = "Something went wrong while trying to filter attribute groups";
-const std::string CreateAttributeGroupMessage = "Something went wrong while trying to save a attribute group";
-const std::string UpdateAttributeGroupMessage = "Something went wrong while trying to update the attribute group";
-const std::string DeleteAttributeGroupMessage = "Something went wrong while trying to delete the attribute group";
-const std::string GetByIdAttributeGroupMessage = "Something went wrong while trying get a attribute group";
+const std::string FilterAttributeGroupsMessage =
+    "Something went wrong while trying to filter attribute groups";
+const std::string CreateAttributeGroupMessage =
+    "Something went wrong while trying to save a attribute group";
+const std::string UpdateAttributeGroupMessage =
+    "Something went wrong while trying to update the attribute group";
+const std::string DeleteAttributeGroupMessage =
+    "Something went wrong while trying to delete the attribute group";
+const std::string GetByIdAttributeGroupMessage =
+    "Something went wrong while trying get a attribute group";
 const std::string UnsetDefaultAttributeGroupMessage =
     "Something went wrong while trying to unset default attribute group";
 const std::string FilterAttributeGroupsByStaticFlagMessage =
@@ -94,9 +103,25 @@ const std::string CheckUsageAttributeGroupMessage =
     "Something went wrong while check the usages of the attribute group";
 #pragma endregion
 
-#pragma region Attributes
+#pragma region Attributes Types
 const std::string FilterAttributeTypesMessage =
     "Something went wrong while trying to filter attribute types";
+#pragma endregion
 
+#pragma region Attributes
+const std::string FilterAttributesMessage =
+    "Something went wrong while trying to filter attributes";
+const std::string FilterAttributesByAttributeGroupMessage =
+    "Something went wrong while trying to filter attributes linked to attribute group";
+const std::string CreateAttributeMessage = "Something went wrong while trying to save a attribute";
+const std::string UpdateAttributeMessage =
+    "Something went wrong while trying to update the attribute";
+const std::string DeleteAttributeMessage =
+    "Something went wrong while trying to delete the attribute";
+const std::string GetByIdAttributeMessage = "Something went wrong while trying get a attribute";
+const std::string FilterAttributesByStaticFlagMessage =
+    "Something went wrong while trying get static linked attributes";
+const std::string CheckUsageAttributeMessage =
+    "Something went wrong while check the usages of the attribute";
 #pragma endregion
 } // namespace tks::Messages

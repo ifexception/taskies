@@ -317,18 +317,16 @@ void AttributeDialog::DataToControls()
 
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.GetById(mAttributeId, mAttributeModel);
-    if (rc == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::EditAttributesMessage,
+    auto sqliteResult = attributesPersistence.GetById(mAttributeId, mAttributeModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdAttributeMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
+        dialog.ShowModal();
     } else {
         pNameTextCtrl->ChangeValue(mAttributeModel.Name);
         pIsRequiredCheckBoxCtrl->SetValue(mAttributeModel.IsRequired);
@@ -479,11 +477,18 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
             return;
         }
 
-        std::int64_t attributeId = attributesPersistence.Create(mAttributeModel);
-        ret = attributeId > 0 ? 1 : -1;
+        std::int64_t attributeId = -1;
+        sqliteResult = attributesPersistence.Create(attributeId, mAttributeModel);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::CreateAttributeMessage);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
     }
 
@@ -494,12 +499,32 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
                 Common::GetProgramName(),
                 wxYES_NO | wxICON_WARNING);
             if (rc == wxYES) {
-                ret = attributesPersistence.UpdateIfInUse(mAttributeModel);
+                auto sqliteResult = attributesPersistence.UpdateIfInUse(mAttributeModel);
+                if (!sqliteResult.Success) {
+                    wxRichMessageDialog dialog(this,
+                        Messages::UpdateAttributeMessage,
+                        Common::GetProgramName(),
+                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                    dialog.ShowModal();
+                }
             } else {
                 return;
             }
         } else {
-            ret = attributesPersistence.Update(mAttributeModel);
+            auto sqliteResult = attributesPersistence.Update(mAttributeModel);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::UpdateAttributeMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+            }
         }
 
         if (ret == -1) {
@@ -515,10 +540,17 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
                 wxOK_DEFAULT | wxICON_WARNING);
             return;
         }
-        ret = attributesPersistence.Delete(mAttributeId);
+        auto sqliteResult = attributesPersistence.Delete(mAttributeId);
 
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::DeleteAttributeMessage);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateAttributeMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
     }
 
@@ -627,20 +659,17 @@ bool AttributeDialog::CheckAttributeUsage(Persistence::AttributesPersistence& at
 {
     bool value = false;
 
-    int ret = attributesPersistence.CheckAttributeUsage(mAttributeId, value);
+    auto sqliteResult = attributesPersistence.CheckAttributeUsage(mAttributeId, value);
 
-    if (ret == -1) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::AttributeUsageMessage,
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CheckUsageAttributeMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-
+        dialog.ShowModal();
         return false;
     }
 

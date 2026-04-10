@@ -421,15 +421,16 @@ void EditListDialog::AttributeDataToControls()
 
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.Filter(mSearchTerm, attributes);
-    if (rc == -1) {
-        std::string message = "Failed to filter attributes";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributesPersistence.Filter(mSearchTerm, attributes);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& attribute : attributes) {
             ListCtrlData data(attribute.AttributeId, attribute.Name);
@@ -757,15 +758,16 @@ void EditListDialog::SearchAttributes()
     std::vector<ListCtrlData> entries;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.Filter(mSearchTerm, attributes);
-    if (rc == -1) {
-        std::string message = "Failed to filter attributes";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributesPersistence.Filter(mSearchTerm, attributes);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& attribute : attributes) {
             ListCtrlData data(attribute.AttributeId, attribute.Name);

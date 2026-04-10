@@ -22,79 +22,20 @@
 #include "../common/logmessages.h"
 #include "../common/queryhelper.h"
 
+#include "../common/messages/persistencemessages.h"
+
 #include "../utils/utils.h"
 
 namespace tks::Persistence
 {
 AttributesPersistence::AttributesPersistence(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : PersistenceBase(logger, databaseFilePath)
+    , pLogger(logger)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-AttributesPersistence::~AttributesPersistence()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
-
-int AttributesPersistence::Filter(const std::string& searchTerm,
+Common::SqliteResult AttributesPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::AttributeModel>& attributeModels) const
 {
     auto formatedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
@@ -107,11 +48,13 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
-            LogMessages::PrepareStatementTemplate, AttributesPersistence::filter, rc, err);
+            LogMessages::PrepareStatementTemplate, AttributesPersistence::filter, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -124,10 +67,12 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -140,10 +85,12 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -189,19 +136,22 @@ int AttributesPersistence::Filter(const std::string& searchTerm,
     }
 
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::filter, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::filter, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, attributeModels.size(), searchTerm);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int AttributesPersistence::FilterByAttributeGroupId(const std::int64_t attributeGroupId,
+Common::SqliteResult AttributesPersistence::FilterByAttributeGroupId(
+    const std::int64_t attributeGroupId,
     std::vector<Model::AttributeModel>& attributeModels) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -213,24 +163,28 @@ int AttributesPersistence::FilterByAttributeGroupId(const std::int64_t attribute
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::PrepareStatementTemplate,
             AttributesPersistence::filterByAttributeGroupId,
             rc,
-            err);
+            error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
 
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeGroupId);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
-            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, err);
+            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -280,23 +234,26 @@ int AttributesPersistence::FilterByAttributeGroupId(const std::int64_t attribute
     }
 
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::ExecStepTemplate,
             AttributesPersistence::filterByAttributeGroupId,
             rc,
-            err);
+            error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::EntityGetById, "attribute_group_id", attributeGroupId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int AttributesPersistence::FilterByAttributeGroupIdAndIsStatic(const std::int64_t attributeGroupId,
+Common::SqliteResult AttributesPersistence::FilterByAttributeGroupIdAndIsStatic(
+    const std::int64_t attributeGroupId,
     std::vector<Model::AttributeModel>& attributeModels) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -308,14 +265,15 @@ int AttributesPersistence::FilterByAttributeGroupIdAndIsStatic(const std::int64_
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::PrepareStatementTemplate,
             AttributesPersistence::filterByAttributeGroupIdAndIsStatic,
             rc,
-            err);
+            error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -323,12 +281,13 @@ int AttributesPersistence::FilterByAttributeGroupIdAndIsStatic(const std::int64_
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeGroupId);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
-            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, err);
+            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -378,14 +337,15 @@ int AttributesPersistence::FilterByAttributeGroupIdAndIsStatic(const std::int64_
     }
 
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::ExecStepTemplate,
             AttributesPersistence::filterByAttributeGroupIdAndIsStatic,
             rc,
-            err);
+            error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -394,10 +354,10 @@ int AttributesPersistence::FilterByAttributeGroupIdAndIsStatic(const std::int64_
         "attribute_group_id && is_static = 1",
         attributeGroupId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int AttributesPersistence::GetById(const std::int64_t attributeId,
+Common::SqliteResult AttributesPersistence::GetById(const std::int64_t attributeId,
     Model::AttributeModel& attributeModel) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -408,29 +368,35 @@ int AttributesPersistence::GetById(const std::int64_t attributeId,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
-            LogMessages::PrepareStatementTemplate, AttributesPersistence::getById, rc, err);
+            LogMessages::PrepareStatementTemplate, AttributesPersistence::getById, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
 
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeId);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_ROW) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::getById, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::getById, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -459,19 +425,22 @@ int AttributesPersistence::GetById(const std::int64_t attributeId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "attributes", attributeId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attributeModel) const
+Common::SqliteResult AttributesPersistence::Create(std::int64_t& attributeId,
+    const Model::AttributeModel& attributeModel) const
 {
     sqlite3_stmt* stmt = nullptr;
     int rc = sqlite3_prepare_v2(pDb,
@@ -486,7 +455,8 @@ std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attribut
             LogMessages::PrepareStatementTemplate, AttributesPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -501,8 +471,10 @@ std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attribut
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -512,8 +484,10 @@ std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attribut
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "is_required", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -532,8 +506,10 @@ std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attribut
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -544,8 +520,10 @@ std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attribut
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -556,26 +534,30 @@ std::int64_t AttributesPersistence::Create(const Model::AttributeModel& attribut
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
             LogMessages::BindParameterTemplate, "attribute_type_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::create, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::create, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
-    auto rowId = sqlite3_last_insert_rowid(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "attribute", rowId);
+    attributeId = sqlite3_last_insert_rowid(pDb);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "attribute", attributeId);
 
-    return rowId;
+    return Common::SqliteResult::OK();
 }
 
-int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
+Common::SqliteResult AttributesPersistence::Update(Model::AttributeModel attributeModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -591,7 +573,8 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
             LogMessages::PrepareStatementTemplate, AttributesPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -604,10 +587,12 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -619,7 +604,8 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "is_required", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -636,10 +622,12 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
     }
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -647,11 +635,13 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
     // attribute group id
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeModel.AttributeGroupId);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
-            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, err);
+            LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -659,10 +649,13 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
     // attribute type id
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeModel.AttributeTypeId);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "attribute_type_id", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::BindParameterTemplate, "attribute_type_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -670,10 +663,12 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
     // date modified
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -681,28 +676,33 @@ int AttributesPersistence::Update(Model::AttributeModel attributeModel) const
     // attribute id
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeModel.AttributeId);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::update, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+                return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::EntityUpdated, "attribute", attributeModel.AttributeId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int AttributesPersistence::UpdateIfInUse(Model::AttributeModel attributeModel) const
+Common::SqliteResult AttributesPersistence::UpdateIfInUse(
+    Model::AttributeModel attributeModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -718,7 +718,8 @@ int AttributesPersistence::UpdateIfInUse(Model::AttributeModel attributeModel) c
             LogMessages::PrepareStatementTemplate, AttributesPersistence::updateIfInUse, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -731,10 +732,11 @@ int AttributesPersistence::UpdateIfInUse(Model::AttributeModel attributeModel) c
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -746,7 +748,8 @@ int AttributesPersistence::UpdateIfInUse(Model::AttributeModel attributeModel) c
         pLogger->error(LogMessages::BindParameterTemplate, "is_required", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -763,10 +766,12 @@ int AttributesPersistence::UpdateIfInUse(Model::AttributeModel attributeModel) c
     }
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -774,10 +779,12 @@ int AttributesPersistence::UpdateIfInUse(Model::AttributeModel attributeModel) c
     // date modified
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -785,10 +792,12 @@ int AttributesPersistence::UpdateIfInUse(Model::AttributeModel attributeModel) c
     // attribute id
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeModel.AttributeId);
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -796,18 +805,20 @@ int AttributesPersistence::UpdateIfInUse(Model::AttributeModel attributeModel) c
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
             LogMessages::ExecStepTemplate, AttributesPersistence::updateIfInUse, rc, error);
+
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::EntityUpdated, "attribute", attributeModel.AttributeId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int AttributesPersistence::Delete(const std::int64_t attributeId) const
+Common::SqliteResult AttributesPersistence::Delete(const std::int64_t attributeId) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -823,7 +834,8 @@ int AttributesPersistence::Delete(const std::int64_t attributeId) const
             LogMessages::PrepareStatementTemplate, AttributesPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -831,11 +843,12 @@ int AttributesPersistence::Delete(const std::int64_t attributeId) const
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -847,27 +860,29 @@ int AttributesPersistence::Delete(const std::int64_t attributeId) const
         pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-
         pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityDeleted, "attribute", attributeId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int AttributesPersistence::CheckAttributeUsage(const std::int64_t attributeId, bool& value) const
+Common::SqliteResult AttributesPersistence::CheckAttributeUsage(const std::int64_t attributeId,
+    bool& value) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -883,7 +898,8 @@ int AttributesPersistence::CheckAttributeUsage(const std::int64_t attributeId, b
             LogMessages::PrepareStatementTemplate, AttributesPersistence::checkUsage, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -891,11 +907,12 @@ int AttributesPersistence::CheckAttributeUsage(const std::int64_t attributeId, b
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeId);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -905,7 +922,8 @@ int AttributesPersistence::CheckAttributeUsage(const std::int64_t attributeId, b
         pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::checkUsage, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -919,13 +937,14 @@ int AttributesPersistence::CheckAttributeUsage(const std::int64_t attributeId, b
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityUsage, "attribute", attributeId, value);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
 std::string AttributesPersistence::filter = "SELECT "

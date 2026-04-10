@@ -190,11 +190,17 @@ void TaskManageAttributesDialog::FillControls()
     std::vector<Model::AttributeModel> attributeModels;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.FilterByAttributeGroupId(mAttributeGroupId, attributeModels);
-    if (rc != 0) {
-        std::string message = "Failed to fetch attributes";
-        QueueErrorNotificationEvent(message);
-        return;
+    sqliteResult =
+        attributesPersistence.FilterByAttributeGroupId(mAttributeGroupId, attributeModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesByAttributeGroupMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -314,12 +320,17 @@ void TaskManageAttributesDialog::FillControls()
     Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
 
-    rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
-        mAttributeGroupId, staticAttributeValueModels);
-    if (rc != 0) {
-        std::string message = "Failed to fetch static attribute values";
-        QueueErrorNotificationEvent(message);
-        return;
+    sqliteResult =
+        attributesPersistence.FilterByAttributeGroupId(mAttributeGroupId, attributeModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesByAttributeGroupMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     if (attributeGroupModel.IsStatic) {

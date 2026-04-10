@@ -228,22 +228,18 @@ void StaticAttributeValuesDialog::DataToControls()
     std::vector<Model::AttributeModel> attributeModels;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
+    auto sqliteResult = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
         mAttributeGroupId, attributeModels);
 
-    if (rc != 0) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterAttributesMessage,
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesByStaticFlagMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-
-        return;
+        dialog.ShowModal();
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -356,7 +352,7 @@ void StaticAttributeValuesDialog::DataToControls()
     Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
 
-    rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+    int rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
         mAttributeGroupId, staticAttributeValueModels);
     if (rc != 0) {
         std::string message = "Failed to fetch static attribute values";
@@ -431,22 +427,18 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
     std::vector<Model::AttributeModel> attributeModels;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
+    auto sqliteResult = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
         mAttributeGroupId, attributeModels);
 
-    if (rc != 0) {
-        wxMessageDialog dialog(this,
-            ErrorMessages::FilterAttributesMessage,
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesByStaticFlagMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-
-        return;
+        dialog.ShowModal();
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
