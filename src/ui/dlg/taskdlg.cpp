@@ -532,11 +532,18 @@ void TaskDialog::FillControls()
                         Persistence::StaticAttributeValuesPersistence
                             staticAttributeValuesPersistence(pLogger, mDatabaseFilePath);
 
-                        int rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
-                            attributeGroupModel.AttributeGroupId, staticAttributeValueModels);
-                        if (rc == -1) {
-                            std::string message = "Failed to get static attribute values";
-                            QueueErrorNotificationEvent(message);
+                        auto sqliteResult =
+                            staticAttributeValuesPersistence.FilterByAttributeGroupId(
+                                attributeGroupModel.AttributeGroupId, staticAttributeValueModels);
+                        if (!sqliteResult.Success) {
+                            wxRichMessageDialog dialog(this,
+                                Messages::FilterStaticAttributesByAttributeGroupIdMessage,
+                                tks::Common::GetProgramName(),
+                                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                            dialog.ShowModal();
                             return;
                         }
 
@@ -1074,11 +1081,17 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
         Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);
 
-        int rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+        auto sqliteResult = staticAttributeValuesPersistence.FilterByAttributeGroupId(
             mAttributeGroupId, staticAttributeValueModels);
-        if (rc == -1) {
-            std::string message = "Failed to get static attribute values";
-            QueueErrorNotificationEvent(message);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterStaticAttributesByAttributeGroupIdMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
 

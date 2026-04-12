@@ -124,4 +124,19 @@ const std::string FilterAttributesByStaticFlagMessage =
 const std::string CheckUsageAttributeMessage =
     "Something went wrong while check the usages of the attribute";
 #pragma endregion
+
+#pragma region StaticAttributes
+const std::string FilterStaticAttributesMessage =
+    "Something went wrong while trying to filter static attributes";
+const std::string CreateStaticAttributeMessage =
+    "Something went wrong while trying to save static attributes";
+const std::string UpdateStaticAttributeMessage =
+    "Something went wrong while trying to update static attributes";
+const std::string DeleteStaticAttributeMessage =
+    "Something went wrong while trying to delete the static attributes";
+const std::string FilterStaticAttributesByAttributeGroupIdMessage =
+    "Something went wrong while trying get static attributes filtered by attribute group";
+const std::string CheckUsageStaticAttributeMessage =
+    "Something went wrong while check the usages of the static attributes";
+#pragma endregion
 } // namespace tks::Messages

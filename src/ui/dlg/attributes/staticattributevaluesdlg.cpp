@@ -352,22 +352,17 @@ void StaticAttributeValuesDialog::DataToControls()
     Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
 
-    int rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+    sqliteResult = staticAttributeValuesPersistence.FilterByAttributeGroupId(
         mAttributeGroupId, staticAttributeValueModels);
-    if (rc != 0) {
-        std::string message = "Failed to fetch static attribute values";
-        wxMessageDialog dialog(this,
-            ErrorMessages::EditStaticAttributesMessage,
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterStaticAttributesByAttributeGroupIdMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
-
-        return;
+        dialog.ShowModal();
     }
 
     assert(mAttributesMetadata.size() == staticAttributeValueModels.size());
@@ -608,38 +603,33 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
         Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);
 
-        int ret = -1;
-        std::string message = "";
-
         if (!bIsEdit) {
-            ret = staticAttributeValuesPersistence.CreateMultiple(staticAttributeValueModels);
+            auto sqliteResult =
+                staticAttributeValuesPersistence.CreateMultiple(staticAttributeValueModels);
 
-            if (ret == -1) {
-                wxMessageDialog dialog(this,
-                    ErrorMessages::CreateStaticAttributesMessage,
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::CreateStaticAttributeMessage,
                     Common::GetProgramName(),
                     wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-                int ret = dialog.ShowModal();
-                if (ret == wxID_OK) {
-                    wxLaunchDefaultBrowser(Common::GetIssuesLink());
-                }
+                dialog.ShowModal();
             }
         } else if (bIsEdit && pIsActiveCheckBoxCtrl->GetValue()) {
-            ret = staticAttributeValuesPersistence.UpdateMultiple(staticAttributeValueModels);
+            auto sqliteResult =
+                staticAttributeValuesPersistence.UpdateMultiple(staticAttributeValueModels);
 
-            if (ret == -1) {
-                wxMessageDialog dialog(this,
-                    ErrorMessages::UpdateStaticAttributesMessage,
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::UpdateStaticAttributeMessage,
                     Common::GetProgramName(),
                     wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-                int ret = dialog.ShowModal();
-                if (ret == wxID_OK) {
-                    wxLaunchDefaultBrowser(Common::GetIssuesLink());
-                }
+                dialog.ShowModal();
             }
         } else if (bIsEdit && !pIsActiveCheckBoxCtrl->GetValue()) {
             bool areStaticAttributeValuesUsed = false;
@@ -656,20 +646,18 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
             );
             // clang-format on
 
-            ret = staticAttributeValuesPersistence.CheckUsage(
+            auto sqliteResult = staticAttributeValuesPersistence.CheckUsage(
                 attributeIds, areStaticAttributeValuesUsed);
 
-            if (ret == -1) {
-                wxMessageDialog dialog(this,
-                    ErrorMessages::StaticAttributeUsageMessage,
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::CheckUsageStaticAttributeMessage,
                     Common::GetProgramName(),
                     wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-                int ret = dialog.ShowModal();
-                if (ret == wxID_OK) {
-                    wxLaunchDefaultBrowser(Common::GetIssuesLink());
-                }
+                dialog.ShowModal();
                 return;
             }
 
@@ -693,19 +681,17 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
             );
             // clang-format on
 
-            ret = staticAttributeValuesPersistence.Delete(staticAttributeValueIds);
+            sqliteResult = staticAttributeValuesPersistence.Delete(staticAttributeValueIds);
 
-            if (ret == -1) {
-                wxMessageDialog dialog(this,
-                    ErrorMessages::DeleteStaticAttributesMessage,
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::DeleteStaticAttributeMessage,
                     Common::GetProgramName(),
                     wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                dialog.SetExtendedMessage(ErrorMessages::MessageDialogExtendedMessage);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-                int ret = dialog.ShowModal();
-                if (ret == wxID_OK) {
-                    wxLaunchDefaultBrowser(Common::GetIssuesLink());
-                }
+                dialog.ShowModal();
                 return;
             }
         }
