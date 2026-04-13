@@ -396,10 +396,17 @@ void TaskManageAttributesDialog::DataToControls()
     Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
 
-    int rc = taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
-    if (rc != 0) {
-        std::string message = "Failed to fetch attribute values";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult =
+        taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterTaskAttributeValuesByTaskIdMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return;
     }
 

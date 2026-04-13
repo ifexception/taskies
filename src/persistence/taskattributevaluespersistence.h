@@ -27,28 +27,32 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/taskattributevaluemodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct TaskAttributeValuesPersistence final {
+struct TaskAttributeValuesPersistence final : public PersistenceBase {
     TaskAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~TaskAttributeValuesPersistence();
+    virtual ~TaskAttributeValuesPersistence() = default;
 
-    std::int64_t Create(Model::TaskAttributeValueModel& taskAttributeValueModel) const;
-    int CreateMany(std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
-    int GetByTaskId(const std::int64_t taskId,
+    Common::SqliteResult Create(std::int64_t& taskAttributeValueId,
+        Model::TaskAttributeValueModel& taskAttributeValueModel) const;
+    Common::SqliteResult CreateMany(
+        std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
+    Common::SqliteResult GetByTaskId(const std::int64_t taskId,
         /*out*/ std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
-    int DeleteByTaskId(const std::int64_t taskId) const;
-    int Update(const Model::TaskAttributeValueModel& taskAttributeValueModel) const;
-    int UpdateMultiple(
+    Common::SqliteResult DeleteByTaskId(const std::int64_t taskId) const;
+    Common::SqliteResult Update(
+        const Model::TaskAttributeValueModel& taskAttributeValueModel) const;
+    Common::SqliteResult UpdateMultiple(
         const std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string getByTaskId;
     static std::string create;

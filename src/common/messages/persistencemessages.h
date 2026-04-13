@@ -139,4 +139,15 @@ const std::string FilterStaticAttributesByAttributeGroupIdMessage =
 const std::string CheckUsageStaticAttributeMessage =
     "Something went wrong while check the usages of the static attributes";
 #pragma endregion
+
+#pragma region TaskAttributeValues
+const std::string CreateTaskAttributeValuesMessage =
+    "Something went wrong while trying to save the task attribute values";
+const std::string UpdateTaskAttributeValuesMessage =
+    "Something went wrong while trying to update the task attribute values";
+const std::string DeleteTaskAttributeValuesMessage =
+    "Something went wrong while trying to delete the task attribute value(s)";
+const std::string FilterTaskAttributeValuesByTaskIdMessage =
+    "Something went wrong while trying get task attribute values filtered by task";
+#pragma endregion
 } // namespace tks::Messages

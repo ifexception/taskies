@@ -953,11 +953,17 @@ void TaskDialog::DataToControls()
         Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);
 
-        int rc = taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
-        if (rc != 0) {
-            std::string message = "Failed to fetch attribute values";
-            QueueErrorNotificationEvent(message);
-            return;
+        auto sqliteResult =
+            taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterTaskAttributeValuesByTaskIdMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
 
         if (mTaskAttributeValueModels.size() > 0) {
@@ -1037,11 +1043,16 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
             Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
                 pLogger, mDatabaseFilePath);
 
-            int rc = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
-            if (rc == -1) {
-                std::string message = "Failed to delete task attribute values";
-                QueueErrorNotificationEvent(message);
-                return;
+            auto sqliteResult = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::DeleteTaskAttributeValuesMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
             }
         }
 
@@ -1235,7 +1246,6 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 
     Model::CategoryModel model;
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
-    int ret = 0;
 
     auto sqliteResult = categoryPersistence.GetById(categoryId, model);
     if (!sqliteResult.Success) {
@@ -1347,35 +1357,62 @@ void TaskDialog::OnOK(wxCommandEvent& event)
                 mTaskAttributeValueModels[i].TaskId = taskId;
             }
 
-            ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
+            auto sqliteResult =
+                taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
 
-            ret == -1 ? message = "Failed to create task attribute values"
-                      : message = "Successfully created task attribute values";
-            QueueNotificationEvent(ret, message);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::CreateTaskAttributeValuesMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+                return;
+            }
         }
     }
 
     if (bIsEdit && mTaskModel.IsActive) {
         if (mTaskAttributeValueModels.size() > 0) {
             if (bHasTaskAttributeValues) {
-                ret = taskAttributeValuesPersistence.UpdateMultiple(mTaskAttributeValueModels);
+                auto sqliteResult =
+                    taskAttributeValuesPersistence.UpdateMultiple(mTaskAttributeValueModels);
 
-                ret == -1 ? message = "Failed to update task attribute values"
-                          : message = "Successfully updated task attribute values";
+                if (!sqliteResult.Success) {
+                    wxRichMessageDialog dialog(this,
+                        Messages::UpdateTaskAttributeValuesMessage,
+                        tks::Common::GetProgramName(),
+                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                    dialog.ShowModal();
+                }
             } else {
                 for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
                     mTaskAttributeValueModels[i].TaskId = mTaskId;
                 }
 
-                ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
+                auto sqliteResult =
+                    taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
 
-                ret == -1 ? message = "Failed to create task attribute values"
-                          : message = "Successfully created task attribute values";
+                if (!sqliteResult.Success) {
+                    wxRichMessageDialog dialog(this,
+                        Messages::CreateTaskAttributeValuesMessage,
+                        tks::Common::GetProgramName(),
+                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                    dialog.ShowModal();
+                    return;
+                }
             }
-            QueueNotificationEvent(ret, message);
         }
 
-        ret = taskPersistence.Update(mTaskModel);
+        auto sqliteResult = taskPersistence.Update(mTaskModel);
 
         ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
         QueueNotificationEvent(ret, message);
@@ -1389,11 +1426,18 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             QueueNotificationEvent(ret, message);
         }
 
-        ret = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
+        auto sqliteResult = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
 
-        ret == -1 ? message = "Failed to delete task attribute values"
-                  : message = "Successfully deleted task attribute values";
-        QueueNotificationEvent(ret, message);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteTaskAttributeValuesMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
 
         ret = taskPersistence.Delete(mTaskId);
 
