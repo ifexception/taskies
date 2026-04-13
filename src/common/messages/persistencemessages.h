@@ -150,4 +150,9 @@ const std::string DeleteTaskAttributeValuesMessage =
 const std::string FilterTaskAttributeValuesByTaskIdMessage =
     "Something went wrong while trying get task attribute values filtered by task";
 #pragma endregion
+
+#pragma region Workday
+const std::string GetWorkdayIdByDateMessage =
+    "Something went wrong while trying get workday filtered by selected date";
+#pragma endregion
 } // namespace tks::Messages

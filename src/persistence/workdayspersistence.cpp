@@ -22,81 +22,30 @@
 #include "../common/logmessages.h"
 #include "../common/queryhelper.h"
 
+#include "../common/messages/persistencemessages.h"
+
 #include "../utils/utils.h"
 
 namespace tks::Persistence
 {
 WorkdaysPersistence::WorkdaysPersistence(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : PersistenceBase(logger, databaseFilePath)
+    , pLogger(logger)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-WorkdaysPersistence::~WorkdaysPersistence()
+Common::SqliteResult WorkdaysPersistence::FilterByDate(const std::string& date,
+    Model::WorkdayModel model) const
 {
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
-
-int WorkdaysPersistence::FilterByDate(const std::string& date, Model::WorkdayModel model) const
-{
-    GetWorkdayIdByDate(date);
+    std::int64_t workdayId = -1;
+    auto sqliteResult = GetWorkdayIdByDate(workdayId, date);
+    if (!sqliteResult.Success) {
+        pLogger->warn(
+            "An error occured getting workday ID by date \"{0}\". See earlier logs for detail",
+            date);
+        return sqliteResult;
+    }
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -112,7 +61,8 @@ int WorkdaysPersistence::FilterByDate(const std::string& date, Model::WorkdayMod
             LogMessages::PrepareStatementTemplate, WorkdaysPersistence::filterByDate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -125,7 +75,8 @@ int WorkdaysPersistence::FilterByDate(const std::string& date, Model::WorkdayMod
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -135,7 +86,8 @@ int WorkdaysPersistence::FilterByDate(const std::string& date, Model::WorkdayMod
         pLogger->error(LogMessages::ExecStepTemplate, WorkdaysPersistence::filterByDate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -149,25 +101,24 @@ int WorkdaysPersistence::FilterByDate(const std::string& date, Model::WorkdayMod
     model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
 
     rc = sqlite3_step(stmt);
-
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "workday", date);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-std::int64_t WorkdaysPersistence::GetWorkdayIdByDate(const std::string& date) const
+Common::SqliteResult WorkdaysPersistence::GetWorkdayIdByDate(std::int64_t& workdayId,
+    const std::string& date) const
 {
-    std::int64_t workdayId = 0;
-
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
@@ -184,7 +135,8 @@ std::int64_t WorkdaysPersistence::GetWorkdayIdByDate(const std::string& date) co
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -197,7 +149,8 @@ std::int64_t WorkdaysPersistence::GetWorkdayIdByDate(const std::string& date) co
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -208,21 +161,22 @@ std::int64_t WorkdaysPersistence::GetWorkdayIdByDate(const std::string& date) co
             LogMessages::ExecStepTemplate, WorkdaysPersistence::getWorkdayIdByDate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     if (sqlite3_column_type(stmt, 0) == SQLITE_NULL) {
-        std::int64_t res = Create(date);
+        std::int64_t workdayId = -1;
+        auto sqliteResult = Create(workdayId, date);
 
-        if (res <= 0) {
-            return -1;
+        if (!sqliteResult.Success) {
+            return sqliteResult;
         }
 
-        workdayId = res;
         sqlite3_finalize(stmt);
         SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "workday", date);
 
-        return workdayId;
+        return Common::SqliteResult::OK();
     } else {
         workdayId = sqlite3_column_int64(stmt, 0);
     }
@@ -234,16 +188,18 @@ std::int64_t WorkdaysPersistence::GetWorkdayIdByDate(const std::string& date) co
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "workdays", date);
 
-    return workdayId;
+    return Common::SqliteResult::OK();
 }
 
-std::int64_t WorkdaysPersistence::Create(const std::string& date) const
+Common::SqliteResult WorkdaysPersistence::Create(std::int64_t& workdayId,
+    const std::string& date) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -259,7 +215,8 @@ std::int64_t WorkdaysPersistence::Create(const std::string& date) const
             LogMessages::PrepareStatementTemplate, WorkdaysPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -272,7 +229,8 @@ std::int64_t WorkdaysPersistence::Create(const std::string& date) const
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -282,15 +240,16 @@ std::int64_t WorkdaysPersistence::Create(const std::string& date) const
         pLogger->error(LogMessages::ExecStepTemplate, WorkdaysPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
 
-    auto rowId = sqlite3_last_insert_rowid(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "workday", rowId);
+    workdayId = sqlite3_last_insert_rowid(pDb);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "workday", workdayId);
 
-    return rowId;
+    return Common::SqliteResult::OK();
 }
 
 std::string WorkdaysPersistence::create = "INSERT INTO "

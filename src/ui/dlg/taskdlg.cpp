@@ -1313,12 +1313,18 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     std::string message = "";
 
     Persistence::WorkdaysPersistence workdayPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t workdayId = workdayPersistence.GetWorkdayIdByDate(mDate);
-    ret = workdayId > 0 ? 0 : -1;
+    std::int64_t workdayId = -1;
+    auto sqliteResult = workdayPersistence.GetWorkdayIdByDate(workdayId, mDate);
 
-    if (ret == -1) {
-        std::string message = "Failed to create/get workday for task";
-        QueueErrorNotificationEvent(message);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetWorkdayIdByDateMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return;
     }
 
