@@ -55,7 +55,7 @@ const std::string UpdateClientMessage = "Something went wrong while trying to up
 const std::string DeleteClientMessage = "Something went wrong while trying to delete the client";
 const std::string GetByIdClientMessage = "Something went wrong while trying get a client";
 const std::string FilterClientsByEmployerMessage =
-    "Something went wrong while trying get clients filtered by employer";
+    "Something went wrong while trying get clients by employer";
 #pragma endregion
 
 #pragma region Project
@@ -65,7 +65,7 @@ const std::string UpdateProjectMessage = "Something went wrong while trying to u
 const std::string DeleteProjectMessage = "Something went wrong while trying to update the project";
 const std::string GetByIdProjectMessage = "Something went wrong while trying get a project";
 const std::string FilterProjectsByEmployerMessage =
-    "Something went wrong while trying get projects filtered by employer";
+    "Something went wrong while trying get projects by employer";
 const std::string UnsetDefaultProjectMessage =
     "Something went wrong while trying to unset default employer";
 #pragma endregion
@@ -81,7 +81,7 @@ const std::string DeleteCategoryMessage =
     "Something went wrong while trying to delete the category";
 const std::string GetByIdCategoryMessage = "Something went wrong while trying get a category";
 const std::string FilterCategoriesByProjectMessage =
-    "Something went wrong while trying get categories filtered by project";
+    "Something went wrong while trying get categories by project";
 #pragma endregion
 
 #pragma region AttributeGroups
@@ -135,7 +135,7 @@ const std::string UpdateStaticAttributeMessage =
 const std::string DeleteStaticAttributeMessage =
     "Something went wrong while trying to delete the static attributes";
 const std::string FilterStaticAttributesByAttributeGroupIdMessage =
-    "Something went wrong while trying get static attributes filtered by attribute group";
+    "Something went wrong while trying get static attributes by attribute group";
 const std::string CheckUsageStaticAttributeMessage =
     "Something went wrong while check the usages of the static attributes";
 #pragma endregion
@@ -148,11 +148,11 @@ const std::string UpdateTaskAttributeValuesMessage =
 const std::string DeleteTaskAttributeValuesMessage =
     "Something went wrong while trying to delete the task attribute value(s)";
 const std::string FilterTaskAttributeValuesByTaskIdMessage =
-    "Something went wrong while trying get task attribute values filtered by task";
+    "Something went wrong while trying get task attribute values by task";
 #pragma endregion
 
 #pragma region Workday
 const std::string GetWorkdayIdByDateMessage =
-    "Something went wrong while trying get workday filtered by selected date";
+    "Something went wrong while trying get workday by selected date";
 #pragma endregion
 } // namespace tks::Messages
