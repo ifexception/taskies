@@ -690,7 +690,7 @@ Common::SqliteResult AttributesPersistence::Update(Model::AttributeModel attribu
         pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
-                return Common::SqliteResult::FailDetailed(
+        return Common::SqliteResult::FailDetailed(
             Messages::StepStatementMessage, rc, std::string(error));
     }
 
