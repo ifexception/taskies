@@ -1338,15 +1338,22 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
     if (!bIsEdit) {
         if (bIsMeeting) {
-            std::int64_t attendedMeetingId =
-                attendedMeetingsPersistence.Create(mAttendedMeetingModel);
-            ret = attendedMeetingId > 0 ? 0 : -1;
-            ret == -1 ? message = "Failed to create attended meeting entry"
-                      : message = "Successfully created attended meeting entry";
+            std::int64_t attendedMeetingId = -1;
+            sqliteResult =
+                attendedMeetingsPersistence.Create(attendedMeetingId, mAttendedMeetingModel);
 
-            QueueNotificationEvent(ret, message);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::CreateAttendedMeetingMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-            if (ret == 0) {
+                dialog.ShowModal();
+            }
+
+            if (sqliteResult.Success) {
                 mTaskModel.AttendedMeetingId = std::make_optional(attendedMeetingId);
             }
         }
@@ -1418,7 +1425,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             }
         }
 
-        auto sqliteResult = taskPersistence.Update(mTaskModel);
+        ret = taskPersistence.Update(mTaskModel);
 
         ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
         QueueNotificationEvent(ret, message);
@@ -1426,13 +1433,20 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
     if (bIsEdit && !mTaskModel.IsActive) {
         if (mTaskModel.AttendedMeetingId.has_value()) {
-            ret = attendedMeetingsPersistence.Delete(mTaskModel.AttendedMeetingId.value());
-            ret == -1 ? message = "Failed to delete task attended meeting"
-                      : message = "Successfully deleted task attended meeting";
-            QueueNotificationEvent(ret, message);
+            sqliteResult = attendedMeetingsPersistence.Delete(mTaskModel.AttendedMeetingId.value());
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::DeleteAttendedMeetingMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+            }
         }
 
-        auto sqliteResult = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
+        sqliteResult = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
 
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,

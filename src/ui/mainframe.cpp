@@ -33,6 +33,7 @@
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
 #include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/taskbarbutton.h>
@@ -43,6 +44,8 @@
 #include "../common/queryhelper.h"
 #include "../common/enums.h"
 #include "../common/version.h"
+
+#include "../common/messages/persistencemessages.h"
 
 #include "../core/environment.h"
 #include "../core/configuration.h"
@@ -1151,7 +1154,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     if (taskModel.AttendedMeetingId.has_value()) {
         Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
             pLogger, mDatabaseFilePath);
-        rc = attendedMeetingsPersistence.Delete(taskModel.AttendedMeetingId.value());
+        auto sqliteResult = attendedMeetingsPersistence.Delete(taskModel.AttendedMeetingId.value());
         if (rc != 0) {
             std::string message = "Failed to delete attended meeting associated to task";
             wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
@@ -1160,6 +1163,20 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
             addNotificationEvent->SetClientObject(clientData);
 
             wxQueueEvent(this, addNotificationEvent);
+
+            ResetTaskContextMenuVariables();
+            return;
+        }
+
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteAttendedMeetingMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
 
             ResetTaskContextMenuVariables();
             return;

@@ -23,16 +23,26 @@
 
 #include <wx/artprov.h>
 #include <wx/statline.h>
+#include <wx/richmsgdlg.h>
 
 #include "../events.h"
+
 #include "../common/clientdata.h"
+
 #include "../common/notificationclientdata.h"
+
 #include "../dlg/taskdlg.h"
 
 #include "../../common/common.h"
+
+#include "../../common/messages/persistencemessages.h"
+
 #include "../../core/configuration.h"
+
 #include "../../persistence/attendedmeetingspersistence.h"
+
 #include "../../services/outlook/outlookclassicservice.h"
+
 #include "../../utils/utils.h"
 
 namespace tks::UI::frames
@@ -412,13 +422,19 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsViewFrame::FetchAttended
         pLogger, mDatabaseFilePath);
 
     std::vector<Model::AttendedMeetingModel> attendedMeetingModels;
-    int ret = attendedMeetingsPersistence.GetByTodaysDate(Utils::UnixTimestampTodayMidnight(),
+    auto sqliteResult = attendedMeetingsPersistence.GetByTodaysDate(Utils::UnixTimestampTodayMidnight(),
         Utils::UnixTimestampTomorrowMidnight(),
         attendedMeetingModels);
 
-    if (ret != 0) {
-        std::string message = "Failed to get attended meetings";
-        QueueErrorNotificationEvent(message);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttendedMeetingsByTodayDateMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     return attendedMeetingModels;

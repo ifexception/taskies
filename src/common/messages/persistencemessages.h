@@ -155,4 +155,14 @@ const std::string FilterTaskAttributeValuesByTaskIdMessage =
 const std::string GetWorkdayIdByDateMessage =
     "Something went wrong while trying get workday by selected date";
 #pragma endregion
+
+#pragma region AttendedMeetings
+const std::string FilterAttendedMeetingsByTodayDateMessage =
+    "Something went wrong while trying get todays attended meetings";
+const std::string CreateAttendedMeetingMessage =
+    "Something went wrong while trying get save an attended meeting";
+const std::string DeleteAttendedMeetingMessage =
+    "Something went wrong while trying get delete the attended meeting";
+#pragma endregion
+
 } // namespace tks::Messages
