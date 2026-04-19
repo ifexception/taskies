@@ -59,6 +59,5 @@ struct TasksPersistence final : public PersistenceBase {
     static std::string isActive;
     static std::string getDescriptionById;
     static std::string isDeleted;
-    static std::string getAllTimeForDate;
 };
 } // namespace tks::Persistence

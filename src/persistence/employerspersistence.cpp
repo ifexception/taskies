@@ -22,7 +22,7 @@
 #include "../common/logmessages.h"
 #include "../common/queryhelper.h"
 
-#include "../common/messages/persistencemessages.h"
+#include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
 
