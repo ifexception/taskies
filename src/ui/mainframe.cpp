@@ -1140,9 +1140,16 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
             Services::TaskViewModel taskModel;
             Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-            int rc = tasksService.GetById(mTaskIdToModify, taskModel);
-            if (rc != 0) {
-                QueueFetchTasksErrorNotificationEvent();
+            auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::GetByIdTaskMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
             } else {
                 pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
 
@@ -1271,9 +1278,16 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     Services::TaskViewModel taskModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.GetById(mTaskIdToModify, taskModel);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
 
@@ -1826,9 +1840,16 @@ void MainFrame::RefetchTasksForDate(const std::string& date, const std::int64_t 
     Services::TaskViewModel taskModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.GetById(taskId, taskModel);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.GetById(taskId, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->InsertChildNode(date, taskModel);
     }

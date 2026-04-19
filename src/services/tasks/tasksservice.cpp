@@ -156,7 +156,7 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
     return SqliteResult::OK();
 }
 
-int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) const
+SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -171,7 +171,8 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
         pLogger->error(LogMessages::PrepareStatementTemplate, TasksService::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_bind_int64(stmt, 1, taskId);
@@ -181,7 +182,7 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -191,7 +192,7 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
         pLogger->error(LogMessages::ExecStepTemplate, TasksService::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -238,13 +239,13 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "tasks", taskId);
 
-    return 0;
+    return SqliteResult::OK();
 }
 
 std::string TasksService::filterByDate = "SELECT "

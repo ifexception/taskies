@@ -48,7 +48,7 @@ struct TasksService final : public Persistence::PersistenceBase {
         /*out*/ std::map<std::string, std::vector<TaskViewModel>>& taskViewModels);
     SqliteResult FilterByDate(const std::string& date,
         /*out*/ std::vector<TaskViewModel>& taskViewModels) const;
-    int GetById(const std::int64_t taskId, /*out*/ TaskViewModel& taskViewModel) const;
+    SqliteResult GetById(const std::int64_t taskId, /*out*/ TaskViewModel& taskViewModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
 
