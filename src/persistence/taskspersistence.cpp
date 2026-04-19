@@ -22,79 +22,21 @@
 #include "../common/logmessages.h"
 #include "../common/queryhelper.h"
 
+#include "../common/messages/persistencemessages.h"
+
 #include "../utils/utils.h"
 
 namespace tks::Persistence
 {
 TasksPersistence::TasksPersistence(const std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : PersistenceBase(logger, databaseFilePath)
+    , pLogger(logger)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-TasksPersistence::~TasksPersistence()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
-
-int TasksPersistence::GetById(const std::int64_t taskId, Model::TaskModel& taskModel) const
+Common::SqliteResult TasksPersistence::GetById(const std::int64_t taskId,
+    Model::TaskModel& taskModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -109,7 +51,8 @@ int TasksPersistence::GetById(const std::int64_t taskId, Model::TaskModel& taskM
         pLogger->error(LogMessages::PrepareStatementTemplate, TasksPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -121,7 +64,8 @@ int TasksPersistence::GetById(const std::int64_t taskId, Model::TaskModel& taskM
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -131,7 +75,8 @@ int TasksPersistence::GetById(const std::int64_t taskId, Model::TaskModel& taskM
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -190,16 +135,18 @@ int TasksPersistence::GetById(const std::int64_t taskId, Model::TaskModel& taskM
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "tasks", taskId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
+Common::SqliteResult TasksPersistence::Create(std::int64_t& taskId,
+    Model::TaskModel& taskModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -214,7 +161,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::PrepareStatementTemplate, TasksPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -226,7 +174,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -248,7 +197,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
             LogMessages::BindParameterTemplate, "unique_identifier", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -261,7 +211,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "hours", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -274,7 +225,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "minutes", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -291,7 +243,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -304,7 +257,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -317,7 +271,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -330,7 +285,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "workday_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -348,7 +304,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -366,7 +323,8 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
             LogMessages::BindParameterTemplate, "attended_meeting_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -376,17 +334,18 @@ std::int64_t TasksPersistence::Create(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
-    auto rowId = sqlite3_last_insert_rowid(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "task", rowId);
+    taskId = sqlite3_last_insert_rowid(pDb);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "task", taskId);
 
-    return rowId;
+    return Common::SqliteResult::OK();
 }
 
-int TasksPersistence::Update(Model::TaskModel& taskModel) const
+Common::SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -401,7 +360,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::PrepareStatementTemplate, TasksPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -413,7 +373,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -435,7 +396,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
             LogMessages::BindParameterTemplate, "unique_identifier", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -448,7 +410,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "hours", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -461,7 +424,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "minutes", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -478,7 +442,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -491,7 +456,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -504,7 +470,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -517,7 +484,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "workday_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -535,7 +503,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -548,7 +517,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -561,7 +531,8 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     assert(bindIndex == 11);
@@ -573,16 +544,17 @@ int TasksPersistence::Update(Model::TaskModel& taskModel) const
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityUpdated, "task", taskModel.TaskId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int TasksPersistence::Delete(const std::int64_t taskId)
+Common::SqliteResult TasksPersistence::Delete(const std::int64_t taskId)
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -598,7 +570,8 @@ int TasksPersistence::Delete(const std::int64_t taskId)
             LogMessages::PrepareStatementTemplate, TasksPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -610,7 +583,8 @@ int TasksPersistence::Delete(const std::int64_t taskId)
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -622,7 +596,8 @@ int TasksPersistence::Delete(const std::int64_t taskId)
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -632,16 +607,18 @@ int TasksPersistence::Delete(const std::int64_t taskId)
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityDeleted, "task", taskId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int TasksPersistence::GetDescriptionById(const std::int64_t taskId, std::string& description) const
+Common::SqliteResult TasksPersistence::GetDescriptionById(const std::int64_t taskId,
+    std::string& description) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -660,7 +637,8 @@ int TasksPersistence::GetDescriptionById(const std::int64_t taskId, std::string&
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -672,7 +650,8 @@ int TasksPersistence::GetDescriptionById(const std::int64_t taskId, std::string&
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -683,7 +662,8 @@ int TasksPersistence::GetDescriptionById(const std::int64_t taskId, std::string&
             LogMessages::ExecStepTemplate, TasksPersistence::getDescriptionById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -699,16 +679,17 @@ int TasksPersistence::GetDescriptionById(const std::int64_t taskId, std::string&
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "task", taskId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
+Common::SqliteResult TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -724,7 +705,8 @@ int TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
             LogMessages::PrepareStatementTemplate, TasksPersistence::isDeleted, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -735,7 +717,8 @@ int TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -745,7 +728,8 @@ int TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::isDeleted, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -759,92 +743,14 @@ int TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, "Checked if task \"{0}\" is deleted", taskId);
 
-    return 0;
-}
-
-int TasksPersistence::GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
-    std::map<std::string, std::vector<Model::TaskDurationModel>>& durationsGroupedByDate) const
-{
-    for (const auto& date : dates) {
-        sqlite3_stmt* stmt = nullptr;
-        std::vector<Model::TaskDurationModel> models;
-
-        int rc = sqlite3_prepare_v2(pDb,
-            TasksPersistence::getAllTimeForDate.c_str(),
-            static_cast<int>(TasksPersistence::getAllTimeForDate.size()),
-            &stmt,
-            nullptr);
-
-        if (rc != SQLITE_OK) {
-            const char* error = sqlite3_errmsg(pDb);
-            pLogger->error(LogMessages::PrepareStatementTemplate,
-                TasksPersistence::getAllTimeForDate,
-                rc,
-                error);
-
-            sqlite3_finalize(stmt);
-            return -1;
-        }
-
-        int bindIndex = 1;
-
-        rc = sqlite3_bind_text(
-            stmt, bindIndex, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
-
-        if (rc != SQLITE_OK) {
-            const char* error = sqlite3_errmsg(pDb);
-            pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
-
-            sqlite3_finalize(stmt);
-            return -1;
-        }
-
-        bool done = false;
-        while (!done) {
-            switch (sqlite3_step(stmt)) {
-            case SQLITE_ROW: {
-                Model::TaskDurationModel model{};
-                rc = SQLITE_ROW;
-
-                int columnIndex = 0;
-
-                model.Hours = sqlite3_column_int(stmt, columnIndex++);
-                model.Minutes = sqlite3_column_int(stmt, columnIndex++);
-
-                models.push_back(model);
-                break;
-            }
-            case SQLITE_DONE:
-                rc = SQLITE_DONE;
-                done = true;
-                break;
-            default:
-                break;
-            }
-        }
-
-        if (rc != SQLITE_DONE) {
-            const char* error = sqlite3_errmsg(pDb);
-            pLogger->error(
-                LogMessages::ExecStepTemplate, TasksPersistence::getAllTimeForDate, rc, error);
-
-            sqlite3_finalize(stmt);
-            return -1;
-        }
-
-        durationsGroupedByDate[date] = models;
-
-        sqlite3_finalize(stmt);
-        SPDLOG_LOGGER_TRACE(pLogger, "Retreived \"tasks\" grouped by date \"{0}\"", date);
-    }
-
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
 std::string TasksPersistence::getById = "SELECT "
@@ -910,13 +816,4 @@ std::string TasksPersistence::isDeleted = "SELECT "
                                           "is_active "
                                           "FROM tasks "
                                           "WHERE task_id = ?;";
-
-std::string TasksPersistence::getAllTimeForDate = "SELECT "
-                                                   "hours, "
-                                                   "minutes "
-                                                   "FROM tasks "
-                                                   "INNER JOIN workdays "
-                                                   "ON tasks.workday_id = workdays.workday_id "
-                                                   "WHERE workdays.date = ? "
-                                                   "AND tasks.is_active = 1";
 } // namespace tks::Persistence

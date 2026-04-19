@@ -720,10 +720,16 @@ void TaskDialog::DataToControls()
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
-    int ret = taskPersistence.GetById(mTaskId, taskModel);
-    if (ret != 0) {
-        std::string message = "Failed to get task";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = taskPersistence.GetById(mTaskId, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pBillableCheckBoxCtrl->SetValue(taskModel.Billable);
         pUniqueIdentiferTextCtrl->ChangeValue(
@@ -746,7 +752,7 @@ void TaskDialog::DataToControls()
     Model::ProjectModel projectModel;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = projectPersistence.GetById(taskModel.ProjectId, projectModel);
+    sqliteResult = projectPersistence.GetById(taskModel.ProjectId, projectModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterProjectsMessage,
@@ -894,7 +900,7 @@ void TaskDialog::DataToControls()
 
     Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
     std::vector<Services::CategoryViewModel> categories;
-
+    int ret = 0;
     if (pCfg->ShowProjectAssociatedCategories()) {
         ret = categoryService.FilterByProjectId(taskModel.ProjectId, categories);
     } else {
@@ -1309,7 +1315,6 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
     TransferDataFromControls();
 
-    int ret = 0;
     std::string message = "";
 
     Persistence::WorkdaysPersistence workdayPersistence(pLogger, mDatabaseFilePath);
@@ -1358,14 +1363,22 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             }
         }
 
-        std::int64_t taskId = taskPersistence.Create(mTaskModel);
-        ret = taskId > 0 ? 0 : -1;
+        std::int64_t taskId = -1;
+        sqliteResult = taskPersistence.Create(taskId, mTaskModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateTaskMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
+
         mTaskId = taskId;
 
-        ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
-        QueueNotificationEvent(ret, message);
-
-        if (ret == 0 && mTaskAttributeValueModels.size() > 0) {
+        if (sqliteResult.Success && mTaskAttributeValueModels.size() > 0) {
             for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
                 mTaskAttributeValueModels[i].TaskId = taskId;
             }
@@ -1425,10 +1438,17 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             }
         }
 
-        ret = taskPersistence.Update(mTaskModel);
+        sqliteResult = taskPersistence.Update(mTaskModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateTaskMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
-        QueueNotificationEvent(ret, message);
+            dialog.ShowModal();
+        }
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
@@ -1447,7 +1467,6 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         }
 
         sqliteResult = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
-
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,
                 Messages::DeleteTaskAttributeValuesMessage,
@@ -1459,58 +1478,64 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             dialog.ShowModal();
         }
 
-        ret = taskPersistence.Delete(mTaskId);
+        sqliteResult = taskPersistence.Delete(mTaskId);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteTaskMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
-        QueueNotificationEvent(ret, message);
+            dialog.ShowModal();
+        }
     }
 
-    if (ret == -1) {
+    if (!sqliteResult.Success) {
         pOkButton->Enable();
-    } else {
-        if (!bIsEdit) {
-            wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
-            taskAddedEvent->SetString(mDate);
-            taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
-
-            wxQueueEvent(pParent, taskAddedEvent);
-        }
-
-        if (bIsEdit && mTaskModel.IsActive) {
-            // FIXME: this is bug prone as mOldDate and mDate are std::string
-            // CONT: probably should use date::date types and "escape" to std::string at the last
-            // possible moment
-            if (mOldDate != mDate) {
-                // notify frame control of task date changed TO
-                wxCommandEvent* taskDateChangedToEvent =
-                    new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
-
-                taskDateChangedToEvent->SetString(mDate);
-                taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
-
-                wxQueueEvent(pParent, taskDateChangedToEvent);
-
-                // notify frame control of task date changed FROM
-                wxCommandEvent* taskDateChangedFromEvent =
-                    new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
-
-                taskDateChangedFromEvent->SetString(mOldDate);
-                taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
-
-                wxQueueEvent(pParent, taskDateChangedFromEvent);
-            }
-        }
-
-        if (bIsEdit && !mTaskModel.IsActive) {
-            wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
-            taskDeletedEvent->SetString(mDate);
-            taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
-
-            wxQueueEvent(pParent, taskDeletedEvent);
-        }
-
-        EndModal(wxID_OK);
+        return;
     }
+    if (!bIsEdit) {
+        wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
+        taskAddedEvent->SetString(mDate);
+        taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+        wxQueueEvent(pParent, taskAddedEvent);
+    }
+
+    if (bIsEdit && mTaskModel.IsActive) {
+        // FIXME: this is bug prone as mOldDate and mDate are std::string
+        // CONT: probably should use date::date types and "escape" to std::string at the last
+        // possible moment
+        if (mOldDate != mDate) {
+            // notify frame control of task date changed TO
+            wxCommandEvent* taskDateChangedToEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
+
+            taskDateChangedToEvent->SetString(mDate);
+            taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+            wxQueueEvent(pParent, taskDateChangedToEvent);
+
+            // notify frame control of task date changed FROM
+            wxCommandEvent* taskDateChangedFromEvent =
+                new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
+
+            taskDateChangedFromEvent->SetString(mOldDate);
+            taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+            wxQueueEvent(pParent, taskDateChangedFromEvent);
+        }
+    }
+
+    if (bIsEdit && !mTaskModel.IsActive) {
+        wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
+        taskDeletedEvent->SetString(mDate);
+        taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+        wxQueueEvent(pParent, taskDeletedEvent);
+    }
+
+    EndModal(wxID_OK);
 }
 
 void TaskDialog::OnCancel(wxCommandEvent& event)

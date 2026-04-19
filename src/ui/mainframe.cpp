@@ -1067,9 +1067,16 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
     std::string description;
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = taskPersistence.GetDescriptionById(mTaskIdToModify, description);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = taskPersistence.GetDescriptionById(mTaskIdToModify, description);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetDescriptionByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         auto canOpen = wxTheClipboard->Open();
         if (canOpen) {
@@ -1096,10 +1103,17 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
     if (ret == wxID_OK) {
         bool isActive = false;
         Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
-        int rc = taskPersistence.IsDeleted(mTaskIdToModify, isActive);
-        if (rc != 0) {
-            QueueFetchTasksErrorNotificationEvent();
-            return;
+
+        auto sqliteResult = taskPersistence.IsDeleted(mTaskIdToModify, isActive);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdTaskMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
 
         if (isActive) {
@@ -1135,15 +1149,17 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     Model::TaskModel taskModel;
-    int rc = taskPersistence.GetById(mTaskIdToModify, taskModel);
-    if (rc != 0) {
-        std::string message = "Failed to fetch task";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
 
-        wxQueueEvent(this, addNotificationEvent);
+    auto sqliteResult = taskPersistence.GetById(mTaskIdToModify, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
 
         ResetTaskContextMenuVariables();
         return;
@@ -1155,18 +1171,6 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
             pLogger, mDatabaseFilePath);
         auto sqliteResult = attendedMeetingsPersistence.Delete(taskModel.AttendedMeetingId.value());
-        if (rc != 0) {
-            std::string message = "Failed to delete attended meeting associated to task";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-            NotificationClientData* clientData =
-                new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
-
-            wxQueueEvent(this, addNotificationEvent);
-
-            ResetTaskContextMenuVariables();
-            return;
-        }
 
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,
@@ -1183,15 +1187,16 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         }
     }
 
-    rc = taskPersistence.Delete(mTaskIdToModify);
-    if (rc != 0) {
-        std::string message = "Failed to delete selected task";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+    sqliteResult = taskPersistence.Delete(mTaskIdToModify);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DeleteTaskMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(this, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
 

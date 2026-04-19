@@ -27,31 +27,31 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../common/enums.h"
+
+#include "../common/results/sqliteresult.h"
 
 #include "../models/taskmodel.h"
 
 namespace tks::Persistence
 {
-struct TasksPersistence final {
+struct TasksPersistence final : public PersistenceBase {
     TasksPersistence(const std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~TasksPersistence();
+    virtual ~TasksPersistence() = default;
 
-    int GetById(const std::int64_t taskId, /*out*/ Model::TaskModel& taskModel) const;
-    std::int64_t Create(Model::TaskModel& taskModel) const;
-    int Update(Model::TaskModel& taskModel) const;
-    int Delete(const std::int64_t taskId);
-    int GetDescriptionById(const std::int64_t taskId, std::string& description) const;
-    int IsDeleted(const std::int64_t taskId, bool& value);
-    int GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
-        /*out*/ std::map<std::string, std::vector<Model::TaskDurationModel>>&
-            taskDurationsGroupedByDateModels) const;
+    Common::SqliteResult GetById(const std::int64_t taskId,
+        /*out*/ Model::TaskModel& taskModel) const;
+    Common::SqliteResult Create(std::int64_t& taskId, Model::TaskModel& taskModel) const;
+    Common::SqliteResult Update(Model::TaskModel& taskModel) const;
+    Common::SqliteResult Delete(const std::int64_t taskId);
+    Common::SqliteResult GetDescriptionById(const std::int64_t taskId,
+        std::string& description) const;
+    Common::SqliteResult IsDeleted(const std::int64_t taskId, bool& value);
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string getById;
     static std::string create;

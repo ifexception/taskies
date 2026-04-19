@@ -165,4 +165,14 @@ const std::string DeleteAttendedMeetingMessage =
     "Something went wrong while trying get delete the attended meeting";
 #pragma endregion
 
+#pragma region Tasks
+const std::string GetByIdTaskMessage = "Something went wrong while trying get a task";
+const std::string GetDescriptionByIdTaskMessage = "Something went wrong while trying get the task's description";
+const std::string CreateTaskMessage = "Something went wrong while trying get save a task";
+const std::string UpdateTaskMessage =
+    "Something went wrong while trying to update the task";
+const std::string DeleteTaskMessage =
+    "Something went wrong while trying to delete the task";
+#pragma endregion
+
 } // namespace tks::Messages
