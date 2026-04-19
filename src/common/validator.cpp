@@ -36,6 +36,9 @@ wxTextValidator NameValidator()
     allowedCharacters.Add("+");
     allowedCharacters.Add("/");
     allowedCharacters.Add("#");
+    allowedCharacters.Add("&");
+    allowedCharacters.Add("[");
+    allowedCharacters.Add("]");
     nameValidator.SetIncludes(allowedCharacters);
 
     return nameValidator;
