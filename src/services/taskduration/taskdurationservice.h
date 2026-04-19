@@ -25,41 +25,47 @@
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
-#include <sqlite3.h>
-
 #include "../../common/enums.h"
+
+#include "../../common/results/sqliteresult.h"
+
+#include "../../persistence/base/persistencebase.h"
 
 #include "taskdurationviewmodel.h"
 
 namespace tks::Services
 {
-struct TaskDurationService final {
+struct TaskDurationService final : public Persistence::PersistenceBase {
     TaskDurationService() = delete;
+    TaskDurationService(const TaskDurationService&) = delete;
     TaskDurationService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~TaskDurationService();
+    virtual ~TaskDurationService() = default;
 
-    int GetTaskDurationsForDateRange(const std::string& startDate,
+    TaskDurationService& operator=(const TaskDurationService&) = delete;
+
+    Common::SqliteResult GetTaskDurationsForDateRange(const std::string& startDate,
         const std::string& endDate,
         TaskDurationType type,
         /*out*/ std::vector<TaskDurationViewModel>& taskDurationViewModels) const;
 
-    int CalculateAndFormatDuration(const std::string& fromDate,
+    Common::SqliteResult CalculateAndFormatDuration(const std::string& fromDate,
         const std::string& toDate,
         TaskDurationType type,
         /*out*/ std::string& formatDuration);
 
     std::string CalculateTaskDurationTime(const std::vector<TaskDurationViewModel>& taskDurations);
 
-    int GetTaskTimeByIdAndIncrementByValue(const std::int64_t taskId,
+    Common::SqliteResult GetTaskTimeByIdAndIncrementByValue(const std::int64_t taskId,
         const int value);
-    int GetTaskTimeById(const std::int64_t taskId,
+    Common::SqliteResult GetTaskTimeById(const std::int64_t taskId,
         /*out*/ TaskDurationViewModel& taskDurationViewModel) const;
-    void IncrementTimeByValue(const int value, /*out*/ TaskDurationViewModel& taskDurationViewModel);
-    int UpdateTaskTime(const std::int64_t taskId, TaskDurationViewModel& taskDurationViewModel) const;
+    void IncrementTimeByValue(const int value,
+        /*out*/ TaskDurationViewModel& taskDurationViewModel);
+    Common::SqliteResult UpdateTaskTime(const std::int64_t taskId,
+        TaskDurationViewModel& taskDurationViewModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string getAllHoursForDateRange;
     static std::string getBillableHoursForDateRange;

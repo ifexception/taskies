@@ -54,8 +54,6 @@ public:
 
     void UpdateBillableHoursRange(const std::string& fromDate, const std::string& toDate);
 
-    void QueueErrorNotificationEventToParentWindow();
-
     enum Fields {
         Default = 0,
         HoursText = 1,

@@ -19,10 +19,15 @@
 
 #include "statusbar.h"
 
+#include <wx/richmsgdlg.h>
+
 #include <fmt/format.h>
 
 #include "events.h"
-#include "common/notificationclientdata.h"
+
+#include "../common/common.h"
+
+#include "../common/messages/persistencemessages.h"
 
 #include "../services/taskduration/taskdurationviewmodel.h"
 
@@ -73,13 +78,19 @@ StatusBar::StatusBar(wxWindow* parent,
 
 void StatusBar::UpdateDefaultHoursDay(const std::string& fromDate, const std::string& toDate)
 {
-    int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(
+    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
         fromDate, toDate, TaskDurationType::Default, duration);
-    if (rc != 0) {
-        QueueErrorNotificationEventToParentWindow();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationCalculationMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         auto durationStatusBarFormat = fmt::format(StatusBar::HoursDayFormat, duration);
         SetStatusText(durationStatusBarFormat, Fields::HoursDay);
@@ -88,13 +99,19 @@ void StatusBar::UpdateDefaultHoursDay(const std::string& fromDate, const std::st
 
 void StatusBar::UpdateDefaultHoursWeek(const std::string& fromDate, const std::string& toDate)
 {
-    int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(
+    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
         fromDate, toDate, TaskDurationType::Default, duration);
-    if (rc != 0) {
-        QueueErrorNotificationEventToParentWindow();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationCalculationMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         mDefaultHoursWeek = duration;
 
@@ -104,13 +121,19 @@ void StatusBar::UpdateDefaultHoursWeek(const std::string& fromDate, const std::s
 
 void StatusBar::UpdateDefaultHoursMonth(const std::string& fromDate, const std::string& toDate)
 {
-    int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(
+    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
         fromDate, toDate, TaskDurationType::Default, duration);
-    if (rc != 0) {
-        QueueErrorNotificationEventToParentWindow();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationCalculationMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         mDefaultHoursMonth = duration;
 
@@ -120,13 +143,19 @@ void StatusBar::UpdateDefaultHoursMonth(const std::string& fromDate, const std::
 
 void StatusBar::UpdateDefaultHoursRange(const std::string& fromDate, const std::string& toDate)
 {
-    int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(
+    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
         fromDate, toDate, TaskDurationType::Default, duration);
-    if (rc != 0) {
-        QueueErrorNotificationEventToParentWindow();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationCalculationMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         auto durationStatusBarFormat = fmt::format(StatusBar::HoursRangeFormat, duration);
         SetStatusText(durationStatusBarFormat, Fields::HoursWeekMonthOrRange);
@@ -135,13 +164,19 @@ void StatusBar::UpdateDefaultHoursRange(const std::string& fromDate, const std::
 
 void StatusBar::UpdateBillableHoursDay(const std::string& fromDate, const std::string& toDate)
 {
-    int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(
+    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
         fromDate, toDate, TaskDurationType::Billable, duration);
-    if (rc != 0) {
-        QueueErrorNotificationEventToParentWindow();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationCalculationMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         auto durationStatusBarFormat = fmt::format(StatusBar::BillableDayFormat, duration);
         SetStatusText(durationStatusBarFormat, Fields::BillableDay);
@@ -150,13 +185,19 @@ void StatusBar::UpdateBillableHoursDay(const std::string& fromDate, const std::s
 
 void StatusBar::UpdateBillableHoursWeek(const std::string& fromDate, const std::string& toDate)
 {
-    int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(
+    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
         fromDate, toDate, TaskDurationType::Billable, duration);
-    if (rc != 0) {
-        QueueErrorNotificationEventToParentWindow();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationCalculationMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         mBillableHoursWeek = duration;
 
@@ -166,13 +207,19 @@ void StatusBar::UpdateBillableHoursWeek(const std::string& fromDate, const std::
 
 void StatusBar::UpdateBillableHoursMonth(const std::string& fromDate, const std::string& toDate)
 {
-    int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(
+    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
         fromDate, toDate, TaskDurationType::Billable, duration);
-    if (rc != 0) {
-        QueueErrorNotificationEventToParentWindow();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationCalculationMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         mBillableHoursMonth = duration;
 
@@ -182,28 +229,23 @@ void StatusBar::UpdateBillableHoursMonth(const std::string& fromDate, const std:
 
 void StatusBar::UpdateBillableHoursRange(const std::string& fromDate, const std::string& toDate)
 {
-    int rc = 0;
     std::string duration = "";
 
-    rc = mTaskDurationService.CalculateAndFormatDuration(
+    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
         fromDate, toDate, TaskDurationType::Billable, duration);
-    if (rc != 0) {
-        QueueErrorNotificationEventToParentWindow();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationCalculationMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         auto durationStatusBarFormat = fmt::format(StatusBar::BillableRangeFormat, duration);
         SetStatusText(durationStatusBarFormat, Fields::BillableWeekMonthOrRange);
     }
-}
-
-void StatusBar::QueueErrorNotificationEventToParentWindow()
-{
-    std::string message = "Failed to get/calculate task durations";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 
 void StatusBar::UpdateDefaultHoursWeekMonth()

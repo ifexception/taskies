@@ -21,7 +21,8 @@
 
 #include "../../common/constants.h"
 #include "../../common/logmessages.h"
-#include "../../common/queryhelper.h"
+
+#include "../../common/messages/sqlitemessages.h"
 
 #include "../../utils/utils.h"
 
@@ -29,73 +30,12 @@ namespace tks::Services
 {
 TaskDurationService::TaskDurationService(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : PersistenceBase(logger, databaseFilePath)
+    , pLogger(logger)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-TaskDurationService::~TaskDurationService()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
-
-int TaskDurationService::GetTaskDurationsForDateRange(const std::string& startDate,
+Common::SqliteResult TaskDurationService::GetTaskDurationsForDateRange(const std::string& startDate,
     const std::string& endDate,
     TaskDurationType type,
     /*out*/ std::vector<TaskDurationViewModel>& taskDurationViewModels) const
@@ -119,7 +59,8 @@ int TaskDurationService::GetTaskDurationsForDateRange(const std::string& startDa
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -132,7 +73,8 @@ int TaskDurationService::GetTaskDurationsForDateRange(const std::string& startDa
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -145,7 +87,8 @@ int TaskDurationService::GetTaskDurationsForDateRange(const std::string& startDa
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -177,7 +120,8 @@ int TaskDurationService::GetTaskDurationsForDateRange(const std::string& startDa
         pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -187,23 +131,23 @@ int TaskDurationService::GetTaskDurationsForDateRange(const std::string& startDa
         startDate,
         endDate);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int TaskDurationService::CalculateAndFormatDuration(const std::string& fromDate,
+Common::SqliteResult TaskDurationService::CalculateAndFormatDuration(const std::string& fromDate,
     const std::string& toDate,
     TaskDurationType type,
     std::string& formatDuration)
 {
     std::vector<TaskDurationViewModel> taskDurations;
-    int rc = GetTaskDurationsForDateRange(fromDate, toDate, type, taskDurations);
-    if (rc != 0) {
-        return rc;
+    auto sqliteResult = GetTaskDurationsForDateRange(fromDate, toDate, type, taskDurations);
+    if (!sqliteResult.Success) {
+        return sqliteResult;
     }
 
     formatDuration = CalculateTaskDurationTime(taskDurations);
 
-    return rc;
+    return sqliteResult;
 }
 
 std::string TaskDurationService::CalculateTaskDurationTime(
@@ -223,32 +167,32 @@ std::string TaskDurationService::CalculateTaskDurationTime(
     return formattedTotal;
 }
 
-int TaskDurationService::GetTaskTimeByIdAndIncrementByValue(const std::int64_t taskId,
+Common::SqliteResult TaskDurationService::GetTaskTimeByIdAndIncrementByValue(
+    const std::int64_t taskId,
     const int value)
 {
     TaskDurationViewModel taskDurationViewModel;
-    int rc = GetTaskTimeById(taskId, taskDurationViewModel);
-    if (rc != 0) {
+    auto sqliteResult = GetTaskTimeById(taskId, taskDurationViewModel);
+    if (!sqliteResult.Success) {
         pLogger->error(
-            "Failed to get task hours and minutes by taskId: \"{0}\". See earlier logs for detail",
-            taskId);
-        return rc;
+            "Failed to get task duration by taskId: \"{0}\". See earlier logs for detail", taskId);
+        return sqliteResult;
     }
 
     IncrementTimeByValue(value, taskDurationViewModel);
 
-    rc = UpdateTaskTime(taskId, taskDurationViewModel);
-    if (rc != 0) {
-        pLogger->error("Failed to update task hours and minutes with taskId: \"{0}\". See earlier "
-                       "logs for detail",
+    sqliteResult = UpdateTaskTime(taskId, taskDurationViewModel);
+    if (!sqliteResult.Success) {
+        pLogger->error(
+            "Failed to update task duration with taskId: \"{0}\". See earlier logs for detail",
             taskId);
-        return rc;
+        return sqliteResult;
     }
 
-    return rc;
+    return sqliteResult;
 }
 
-int TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
+Common::SqliteResult TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
     TaskDurationViewModel& taskDurationViewModel) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -265,7 +209,8 @@ int TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
             LogMessages::PrepareStatementTemplate, TaskDurationService::getTaskTimeById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -277,7 +222,8 @@ int TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -288,7 +234,8 @@ int TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
             LogMessages::ExecStepTemplate, TaskDurationService::getTaskTimeById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -303,13 +250,14 @@ int TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "tasks", taskId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
 void TaskDurationService::IncrementTimeByValue(const int value,
@@ -329,7 +277,7 @@ void TaskDurationService::IncrementTimeByValue(const int value,
     }
 }
 
-int TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
+Common::SqliteResult TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
     TaskDurationViewModel& taskDurationViewModel) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -346,7 +294,8 @@ int TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
             LogMessages::PrepareStatementTemplate, TaskDurationService::updateTaskTime, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -359,7 +308,8 @@ int TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
         pLogger->error(LogMessages::BindParameterTemplate, "hours", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -372,7 +322,8 @@ int TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
         pLogger->error(LogMessages::BindParameterTemplate, "minutes", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -385,7 +336,8 @@ int TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -398,7 +350,8 @@ int TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -409,13 +362,14 @@ int TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
             LogMessages::ExecStepTemplate, TaskDurationService::updateTaskTime, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityUpdated, "task", taskId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
 std::string TaskDurationService::getAllHoursForDateRange =

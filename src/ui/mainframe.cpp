@@ -1233,10 +1233,17 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 
     Services::TaskDurationService taskDurationService(pLogger, mDatabaseFilePath);
 
-    int rc = taskDurationService.GetTaskTimeByIdAndIncrementByValue(
+    auto sqliteResult = taskDurationService.GetTaskTimeByIdAndIncrementByValue(
         mTaskIdToModify, pCfg->GetMinutesIncrement());
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationIncrementMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         ResetTaskContextMenuVariables();
         return;
     }
@@ -1244,7 +1251,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     Services::TaskViewModel taskModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    rc = tasksService.GetById(mTaskIdToModify, taskModel);
+    int rc = tasksService.GetById(mTaskIdToModify, taskModel);
     if (rc != 0) {
         QueueFetchTasksErrorNotificationEvent();
     } else {

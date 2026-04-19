@@ -164,4 +164,11 @@ const std::string DeleteTaskMessage =
     "Something went wrong while trying to delete the task";
 #pragma endregion
 
+#pragma region TaskDuration
+const std::string DurationCalculationMessage =
+    "Something went wrong when fetching time worked";
+const std::string DurationIncrementMessage =
+    "Something went wrong when incrementing time worked";
+#pragma endregion
+
 } // namespace tks::Messages
