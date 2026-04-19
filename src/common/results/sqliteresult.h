@@ -39,7 +39,6 @@ struct SqliteResult {
     std::string GetReturnCodeAndMessage() const;
 
     static SqliteResult OK();
-    static SqliteResult Fail(const std::string& friendlyErrorMessage);
     static SqliteResult FailDetailed(const std::string& friendlyErrorMessage,
         int returnCode,
         const std::string& errorMessage);

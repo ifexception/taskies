@@ -30,5 +30,5 @@ const std::string BindStatementMessage =
 const std::string StepStatementMessage =
     "A database error occurred while querying/saving your data";
 const std::string StepStatementReturnedMultipleRowsMessage =
-    "Operation returned more rows than expected when trying to find your data";
-}
+    "The database query returned more rows than expected when trying to find your data";
+} // namespace tks::Messages

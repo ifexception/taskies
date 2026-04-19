@@ -59,11 +59,6 @@ SqliteResult SqliteResult::OK()
     return SqliteResult();
 }
 
-SqliteResult SqliteResult::Fail(const std::string& friendlyErrorMessage)
-{
-    return SqliteResult(friendlyErrorMessage);
-}
-
 SqliteResult SqliteResult::FailDetailed(const std::string& friendlyErrorMessage,
     int returnCode,
     const std::string& errorMessage)
