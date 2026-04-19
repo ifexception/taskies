@@ -26,9 +26,9 @@
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
-#include <sqlite3.h>
-
 #include "../../common/results/sqliteresult.h"
+
+#include "../../persistence/base/persistencebase.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -37,10 +37,14 @@
 
 namespace tks::Services
 {
-struct SetupWizardService final {
+struct SetupWizardService final : public Persistence::PersistenceBase {
+    SetupWizardService() = delete;
+    SetupWizardService(const SetupWizardService&) = delete;
     SetupWizardService(const std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~SetupWizardService();
+    virtual ~SetupWizardService() = default;
+
+    SetupWizardService& operator=(const SetupWizardService&) = delete;
 
     int BeginTransaction();
     int CommitTransaction();
@@ -74,7 +78,6 @@ struct SetupWizardService final {
     bool IsInTransaction() const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
     std::string mDatabaseFilePath;
     int mTransactionCounter;
 
