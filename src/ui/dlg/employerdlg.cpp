@@ -25,9 +25,6 @@
 
 #include <fmt/format.h>
 
-#include "../events.h"
-#include "../common/notificationclientdata.h"
-
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/usererrormessages.h"
@@ -413,16 +410,5 @@ Model::EmployerModel EmployerDialog::TransferDataFromControls()
         description.empty() ? std::nullopt : std::make_optional(description);
 
     return employerModel;
-}
-
-void EmployerDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* errorNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(message);
-    errorNotificationEvent->SetClientObject(clientData);
-
-    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
-    // we have wxFrame
-    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, errorNotificationEvent);
 }
 } // namespace tks::UI::dlg

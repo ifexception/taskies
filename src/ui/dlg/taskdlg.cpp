@@ -32,7 +32,6 @@
 
 #include "../events.h"
 #include "../common/clientdata.h"
-#include "../common/notificationclientdata.h"
 #include "../common/taskattributevalueclientdata.h"
 
 #include "../../common/common.h"
@@ -1843,35 +1842,6 @@ void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> project
     } else {
         pCategoryChoiceCtrl->Disable();
     }
-}
-
-void TaskDialog::QueueNotificationEvent(int ret, const std::string& message)
-{
-    if (ret == -1) {
-        QueueErrorNotificationEvent(message);
-    } else {
-        QueueInformationNotificationEvent(message);
-    }
-}
-
-void TaskDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
-}
-
-void TaskDialog::QueueInformationNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 
 void TaskDialog::SetDataWhenTaskCloned()

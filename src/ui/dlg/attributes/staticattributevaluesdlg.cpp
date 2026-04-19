@@ -28,9 +28,7 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
@@ -61,8 +59,8 @@ StaticAttributeValuesDialog::StaticAttributeValuesDialog(wxWindow* parent,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
-    , pParent(parent)
     , pLogger(logger)
+    , pParent(parent)
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , mAttributeGroupId(attributeGroupId)

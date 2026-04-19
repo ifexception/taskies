@@ -25,13 +25,10 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../events.h"
 #include "../common/clientdata.h"
-#include "../common/notificationclientdata.h"
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
-#include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
 
 #include "../../common/messages/persistencemessages.h"
@@ -425,13 +422,5 @@ void CategoryDialog::TransferDataFromControls()
             mCategoryModel.ProjectId = std::nullopt;
         }
     }
-}
-void CategoryDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

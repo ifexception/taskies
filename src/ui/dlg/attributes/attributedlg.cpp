@@ -23,18 +23,14 @@
 
 #include <fmt/format.h>
 
-#include <wx/msgdlg.h>
 #include <wx/richmsgdlg.h>
 #include <wx/statline.h>
 #include <wx/richtooltip.h>
 
-#include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
-#include "../../../common/usererrormessages.h"
 
 #include "../../../common/messages/persistencemessages.h"
 
@@ -447,7 +443,6 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
 
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int ret = 0;
     std::string message = "";
 
     if (!bIsEdit) {
@@ -525,10 +520,6 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
 
                 dialog.ShowModal();
             }
-        }
-
-        if (ret == -1) {
-            QueueErrorNotificationEvent(ErrorMessages::UpdateAttributeMessage);
         }
     }
 
@@ -681,16 +672,5 @@ void AttributeDialog::DisableChoiceControlsIfUsed()
     pAttributeGroupChoiceCtrl->Disable();
     pAttributeTypeChoiceCtrl->Disable();
     pIsActiveCheckBoxCtrl->Disable();
-}
-
-void AttributeDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and
-    // then we have wxFrame
-    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

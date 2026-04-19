@@ -30,7 +30,6 @@
 
 #include "../events.h"
 
-#include "../common/notificationclientdata.h"
 #include "../common/taskattributevalueclientdata.h"
 
 #include "../../common/common.h"
@@ -587,17 +586,5 @@ void TaskManageAttributesDialog::TransferDataFromControls()
 
         mTaskAttributeValueModels.push_back(taskAttributeModel);
     }
-}
-
-void TaskManageAttributesDialog::AppendAttributeControl(const Model::AttributeModel& model) {}
-
-void TaskManageAttributesDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

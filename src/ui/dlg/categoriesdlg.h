@@ -75,8 +75,6 @@ private:
 
     void ResetControlValues();
 
-    void QueueErrorNotificationEvent(const std::string& message);
-
     std::string ExtractNameFromListIndex(long itemIndex);
 
     bool Validate();

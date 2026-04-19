@@ -25,9 +25,7 @@
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
@@ -498,16 +496,5 @@ void AttributeGroupDialog::TransferDataFromControls()
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mAttributeGroupModel.Description =
         description.empty() ? std::nullopt : std::make_optional(description);
-}
-
-void AttributeGroupDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-    // have wxFrame
-    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

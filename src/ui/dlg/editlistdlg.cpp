@@ -36,11 +36,7 @@
 #include "attributes/attributedlg.h"
 #include "attributes/staticattributevaluesdlg.h"
 
-#include "../events.h"
-#include "../common/notificationclientdata.h"
-
 #include "../../common/common.h"
-#include "../../common/usererrormessages.h"
 
 #include "../../common/results/sqliteresult.h"
 #include "../../common/messages/persistencemessages.h"

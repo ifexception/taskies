@@ -73,10 +73,6 @@ private:
 
     void TransferDataFromControls();
 
-    void AppendAttributeControl(const Model::AttributeModel& model);
-
-    void QueueErrorNotificationEvent(const std::string& message);
-
     wxWindow* pParent;
 
     wxSizer* pMainSizer;

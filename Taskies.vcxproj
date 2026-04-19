@@ -246,7 +246,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\common\messages\sqlitemessages.cpp" />
     <ClCompile Include="src\common\messages\persistencemessages.cpp" />
     <ClCompile Include="src\common\results\sqliteresult.cpp" />
-    <ClCompile Include="src\common\usererrormessages.cpp" />
     <ClCompile Include="src\persistence\attendedmeetingspersistence.cpp" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\common\common.cpp" />
@@ -361,7 +360,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\common\messages\sqlitemessages.h" />
     <ClInclude Include="src\common\messages\persistencemessages.h" />
     <ClInclude Include="src\common\results\sqliteresult.h" />
-    <ClInclude Include="src\common\usererrormessages.h" />
     <ClInclude Include="src\persistence\attendedmeetingspersistence.h" />
     <ClInclude Include="src\application.h" />
     <ClInclude Include="src\common\common.h" />

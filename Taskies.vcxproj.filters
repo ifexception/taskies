@@ -416,9 +416,6 @@
     <ClCompile Include="src\utils\mswutils.cpp">
       <Filter>Source\utils</Filter>
     </ClCompile>
-    <ClCompile Include="src\common\usererrormessages.cpp">
-      <Filter>Source\common</Filter>
-    </ClCompile>
     <ClCompile Include="src\persistence\base\persistencebase.cpp">
       <Filter>Source\persistence\base</Filter>
     </ClCompile>
@@ -756,9 +753,6 @@
     </ClInclude>
     <ClInclude Include="src\utils\mswutils.h">
       <Filter>Source\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="src\common\usererrormessages.h">
-      <Filter>Source\common</Filter>
     </ClInclude>
     <ClInclude Include="src\persistence\base\persistencebase.h">
       <Filter>Source\persistence\base</Filter>
