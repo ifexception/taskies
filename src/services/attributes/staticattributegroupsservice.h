@@ -27,23 +27,24 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
-#include <sqlite3.h>
+#include "../../common/results/sqliteresult.h"
+
+#include "../../persistence/base/persistencebase.h"
 
 #include "staticattributegroupviewmodel.h"
 
 namespace tks::Services
 {
-struct StaticAttributeGroupsService final {
+struct StaticAttributeGroupsService final : public Persistence::PersistenceBase {
     StaticAttributeGroupsService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~StaticAttributeGroupsService();
+    virtual ~StaticAttributeGroupsService() = default;
 
-    int FilterByStaticFlagAndWithValueCounts(
+    Common::SqliteResult FilterByStaticFlagAndWithValueCounts(
         /*out*/ std::vector<StaticAttributeGroupViewModel>& staticAttributeGroupViewModels) const;
 
-    sqlite3* pDb;
     std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filterStaticWithValueCounts;
 };
-}
+} // namespace tks::Services

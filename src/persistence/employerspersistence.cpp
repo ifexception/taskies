@@ -561,7 +561,7 @@ Common::SqliteResult EmployersPersistence::UnsetDefault() const
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(pLogger, "Unsetted default \"employer\"");
+    SPDLOG_LOGGER_TRACE(pLogger, "Unset default \"employer\"");
 
     return Common::SqliteResult::OK();
 }

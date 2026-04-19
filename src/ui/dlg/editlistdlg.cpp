@@ -448,16 +448,17 @@ void EditListDialog::StaticAttributeGroupsDataToControls()
 
     Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
 
-    int rc = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
-        /*searchTerm,*/ staticAttributeGroups);
-    if (rc == -1) {
-        std::string message = "Failed to filter static attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult =
+        staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(staticAttributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterStaticAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& staticAttributeGroup : staticAttributeGroups) {
             ListCtrlData data(
@@ -789,16 +790,17 @@ void EditListDialog::SearchStaticAttributeGroups()
 
     Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
 
-    int rc = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
-        /*searchTerm,*/ staticAttributeGroups);
-    if (rc == -1) {
-        std::string message = "Failed to filter static attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
+        staticAttributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterStaticAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& staticAttributeGroup : staticAttributeGroups) {
             ListCtrlData data(
