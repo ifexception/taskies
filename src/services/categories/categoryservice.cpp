@@ -22,79 +22,20 @@
 #include "../../common/logmessages.h"
 #include "../../common/queryhelper.h"
 
+#include "../../common/messages/sqlitemessages.h"
+
 #include "../../utils/utils.h"
 
 namespace tks::Services
 {
 CategoryService::CategoryService(const std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : Persistence::PersistenceBase(logger, databaseFilePath)
+    , pLogger(logger)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-CategoryService::~CategoryService()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
-
-int CategoryService::Filter(std::vector<CategoryViewModel>& categories) const
+Common::SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& categories) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -105,11 +46,12 @@ int CategoryService::Filter(std::vector<CategoryViewModel>& categories) const
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::PrepareStatementTemplate, CategoryService::filter, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate, CategoryService::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -173,20 +115,21 @@ int CategoryService::Filter(std::vector<CategoryViewModel>& categories) const
         }
     }
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, CategoryService::filter, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, CategoryService::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, categories.size(), "");
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int CategoryService::FilterByProjectId(const std::int64_t projectId,
+Common::SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
     std::vector<CategoryViewModel>& categories) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -198,25 +141,27 @@ int CategoryService::FilterByProjectId(const std::int64_t projectId,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
-            LogMessages::PrepareStatementTemplate, CategoryService::filterByProjectId, rc, err);
+            LogMessages::PrepareStatementTemplate, CategoryService::filterByProjectId, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
-    int bindIdx = 1;
+    int bindIndex = 1;
 
     // project id
-    rc = sqlite3_bind_int64(stmt, bindIdx, projectId);
+    rc = sqlite3_bind_int64(stmt, bindIndex, projectId);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "project_id", 1, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "project_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -275,20 +220,22 @@ int CategoryService::FilterByProjectId(const std::int64_t projectId,
         }
     }
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, CategoryService::filterByProjectId, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, CategoryService::filterByProjectId, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, categories.size(), projectId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
-int CategoryService::GetById(const std::int64_t categoryId, CategoryViewModel& category) const
+Common::SqliteResult CategoryService::GetById(const std::int64_t categoryId,
+    CategoryViewModel& category) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -299,31 +246,36 @@ int CategoryService::GetById(const std::int64_t categoryId, CategoryViewModel& c
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::PrepareStatementTemplate, CategoryService::getById, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate, CategoryService::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
-    rc = sqlite3_bind_int64(stmt, 1, categoryId);
+    int bindIndex = 1;
+
+    rc = sqlite3_bind_int64(stmt, bindIndex, categoryId);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "category_id", 1, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "category_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, CategoryService::getById, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, CategoryService::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -370,17 +322,18 @@ int CategoryService::GetById(const std::int64_t categoryId, CategoryViewModel& c
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return Common::SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "categories", categoryId);
 
-    return 0;
+    return Common::SqliteResult::OK();
 }
 
 std::string CategoryService::filter = "SELECT "

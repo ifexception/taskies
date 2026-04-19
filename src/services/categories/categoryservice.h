@@ -27,28 +27,29 @@
 #include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
-#include <sqlite3.h>
+#include "../../common/results/sqliteresult.h"
+
+#include "../../persistence/base/persistencebase.h"
 
 #include "categoryviewmodel.h"
 
 namespace tks::Services
 {
-struct CategoryService final {
+struct CategoryService final : public Persistence::PersistenceBase {
     CategoryService() = delete;
     CategoryService(const CategoryService&) = delete;
     CategoryService(const std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~CategoryService();
+    virtual ~CategoryService() = default;
 
     CategoryService& operator=(const CategoryService&) = delete;
 
-    int Filter(/*out*/ std::vector<CategoryViewModel>& categories) const;
-    int FilterByProjectId(const std::int64_t projectId,
+    Common::SqliteResult Filter(/*out*/ std::vector<CategoryViewModel>& categories) const;
+    Common::SqliteResult FilterByProjectId(const std::int64_t projectId,
         /*out*/ std::vector<CategoryViewModel>& categories) const;
-    int GetById(const std::int64_t categoryId, CategoryViewModel& category) const;
+    Common::SqliteResult GetById(const std::int64_t categoryId, CategoryViewModel& category) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string filter;
     static std::string filterByProjectId;

@@ -900,19 +900,30 @@ void TaskDialog::DataToControls()
 
     Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
     std::vector<Services::CategoryViewModel> categories;
-    int ret = 0;
+    std::string operationMessage;
+
     if (pCfg->ShowProjectAssociatedCategories()) {
-        ret = categoryService.FilterByProjectId(taskModel.ProjectId, categories);
+        sqliteResult = categoryService.FilterByProjectId(taskModel.ProjectId, categories);
+        operationMessage = Messages::FilterCategoriesByProjectMessage;
     } else {
-        ret = categoryService.Filter(categories);
+        sqliteResult = categoryService.Filter(categories);
+        operationMessage = Messages::FilterCategoriesMessage;
     }
 
-    if (ret == -1) {
-        std::string message = "Failed to get categories";
-        QueueErrorNotificationEvent(message);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            operationMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
 
         isSuccess = false;
     }
+
+    int ret = 0;
 
     if (!categories.empty()) {
         if (!pCategoryChoiceCtrl->IsEnabled()) {
@@ -925,12 +936,16 @@ void TaskDialog::DataToControls()
         }
 
         Services::CategoryViewModel category;
-        ret = categoryService.GetById(taskModel.CategoryId, category);
-        if (ret != 0) {
-            std::string message = "Failed to get category";
-            QueueErrorNotificationEvent(message);
+        sqliteResult = categoryService.GetById(taskModel.CategoryId, category);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdCategoryMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-            isSuccess = false;
+            dialog.ShowModal();
         } else {
             pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
             isSuccess = true;
@@ -1791,17 +1806,28 @@ void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> project
 {
     std::vector<Services::CategoryViewModel> categories;
     Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
-    int rc = 0;
+
+    tks::Common::SqliteResult sqliteResult;
+    std::string operationMessage;
 
     if (projectId.has_value()) {
-        rc = categoryService.FilterByProjectId(projectId.value(), categories);
+        sqliteResult = categoryService.FilterByProjectId(projectId.value(), categories);
+        operationMessage = Messages::FilterCategoriesByProjectMessage;
     } else {
-        rc = categoryService.Filter(categories);
+        sqliteResult = categoryService.Filter(categories);
+        operationMessage = Messages::FilterCategoriesMessage;
     }
 
-    if (rc != 0) {
-        std::string message = "Failed to get categories";
-        QueueErrorNotificationEvent(message);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            operationMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+
         return;
     }
 
