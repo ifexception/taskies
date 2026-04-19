@@ -26,7 +26,6 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
-#include <wx/activityindicator.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
@@ -80,8 +79,6 @@ private:
     void AddAttendedMeetingsPanel(
         const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels);
     void SetDialogSizeFromParent();
-
-    void QueueErrorNotificationEvent(const std::string& message);
 
     void RemoveActiveMeetingsPanel();
     void ResetFeedbackLabelOnNoData(const std::string& message = "");

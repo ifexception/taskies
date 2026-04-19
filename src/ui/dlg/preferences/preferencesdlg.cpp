@@ -19,12 +19,12 @@
 
 #include "preferencesdlg.h"
 
+#include <wx/msgdlg.h>
 #include <wx/persist/toplevel.h>
 
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
 #include "../../events.h"
-#include "../../common/notificationclientdata.h"
 
 #include "preferencesgeneralpage.h"
 #include "preferencesdatabasepage.h"
@@ -109,7 +109,8 @@ void PreferencesDialog::CreateControls()
 
     mainSizer->Add(pListBox, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Expand());
     mainSizer->Add(pSimpleBook, wxSizerFlags().Expand().Proportion(1));
-    sizer->Add(mainSizer, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(10)).Expand().Proportion(1));
+    sizer->Add(mainSizer,
+        wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(10)).Expand().Proportion(1));
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -168,7 +169,9 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
 {
     bool success = pCfg->RestoreDefaults();
     if (!success) {
-        wxMessageBox("Failed to restore default configuration", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+        wxMessageBox("Failed to restore default configuration",
+            Common::GetProgramName(),
+            wxICON_ERROR | wxOK_DEFAULT);
         return;
     }
 
@@ -178,12 +181,12 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
     pTasksViewPage->Reset();
     pExportPage->Reset();
 
-    std::string message = "Preferences restored to defaults";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
+    wxMessageDialog dialog(this,
+        "Successfuly restored configuration to defaults",
+        Common::GetProgramName(),
+        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_INFORMATION);
 
-    wxQueueEvent(pParent, addNotificationEvent);
+    dialog.ShowModal();
 }
 
 void PreferencesDialog::OnOK(wxCommandEvent& event)
@@ -229,12 +232,9 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
     pCfg->Save();
 
     // Post success notification event
-    std::string message = "Preferences updated";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
+    wxMessageBox("Successfully updated preferences",
+        Common::GetProgramName(),
+        wxOK_DEFAULT | wxICON_WARNING);
 
     event.Skip();
 }

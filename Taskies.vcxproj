@@ -318,7 +318,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\services\tasks\tasksservice.cpp" />
     <ClCompile Include="src\services\tasks\taskviewmodel.cpp" />
     <ClCompile Include="src\ui\common\clientdata.cpp" />
-    <ClCompile Include="src\ui\common\notificationclientdata.cpp" />
     <ClCompile Include="src\ui\common\taskattributevalueclientdata.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistitemmodel.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistmodel.cpp" />
@@ -433,7 +432,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\services\tasks\tasksservice.h" />
     <ClInclude Include="src\services\tasks\taskviewmodel.h" />
     <ClInclude Include="src\ui\common\clientdata.h" />
-    <ClInclude Include="src\ui\common\notificationclientdata.h" />
     <ClInclude Include="src\ui\common\taskattributevalueclientdata.h" />
     <ClInclude Include="src\ui\dataview\columnlistitemmodel.h" />
     <ClInclude Include="src\ui\dataview\columnlistmodel.h" />

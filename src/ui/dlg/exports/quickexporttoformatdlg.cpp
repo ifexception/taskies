@@ -42,7 +42,6 @@
 
 #include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 namespace
 {
@@ -633,27 +632,12 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
     }
 
     if (!result.Success) {
-        message = "Failed to export data";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
         wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
 
         return;
     }
 
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
-
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 
     EndModal(wxID_OK);
 }

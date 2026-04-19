@@ -75,7 +75,6 @@
 #include "../ui/dlg/attributes/staticattributevaluesdlg.h"
 
 #include "events.h"
-#include "common/notificationclientdata.h"
 
 // This date was selected arbitrarily
 // wxDatePickerCtrl needs a from and to date for the range
@@ -140,7 +139,6 @@ EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
 EVT_MENU(ID_POP_CLONE_TASK, MainFrame::OnCloneTask)
 EVT_MENU(wxID_ADD, MainFrame::OnAddMinutes)
 /* Custom Event Handlers */
-EVT_COMMAND(wxID_ANY, tksEVT_ERRORNOTIFICATION, MainFrame::OnErrorNotification)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDFROM, MainFrame::OnTaskDateChangedFrom)
@@ -768,6 +766,16 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
         if (rc != SQLITE_DONE) {
             const char* error = sqlite3_errmsg(backupDb);
             pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
+            SqliteResult sqliteResult("A database error occurred while backing up data", rc, error);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UnsetDefaultEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
 
         rc = sqlite3_backup_finish(backup);
@@ -778,14 +786,6 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
 
     sqlite3_close(db);
     sqlite3_close(backupDb);
-
-    std::string message = "Backup successful";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(this, addNotificationEvent);
 }
 
 void MainFrame::OnTasksExportToCsv(wxCommandEvent& WXUNUSED(event))
@@ -1228,14 +1228,6 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
 
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
-
-        std::string message = "Successfully deleted task";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(this, addNotificationEvent);
     }
 
     ResetTaskContextMenuVariables();
@@ -1295,32 +1287,6 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     }
 
     ResetTaskContextMenuVariables();
-}
-
-void MainFrame::OnErrorNotification(wxCommandEvent& event)
-{
-    SPDLOG_LOGGER_TRACE(pLogger, "Received error notification event");
-
-    NotificationClientData* notificationClientData =
-        reinterpret_cast<NotificationClientData*>(event.GetClientObject());
-
-    if (notificationClientData->Type == NotificationType::Error) {
-        wxMessageDialog dialog(this,
-            notificationClientData->Message,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(
-            "Please try again or click \"OK\" to open your browser to log an issue");
-
-        int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser("https://github.com/ifexception/taskies/issues/new?title=BUG");
-        }
-    }
-
-    if (notificationClientData) {
-        delete notificationClientData;
-    }
 }
 
 void MainFrame::OnTaskAddedOnDate(wxCommandEvent& event)
@@ -1927,17 +1893,6 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 {
     pStatusBar->UpdateDefaultHoursDay(date, date);
     pStatusBar->UpdateBillableHoursDay(date, date);
-}
-
-void MainFrame::QueueFetchTasksErrorNotificationEvent()
-{
-    std::string message = "Failed to fetch tasks";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(this, addNotificationEvent);
 }
 
 void MainFrame::SetFromAndToDatePickerRanges()

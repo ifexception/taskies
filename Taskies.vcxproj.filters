@@ -284,9 +284,6 @@
     <ClCompile Include="src\ui\common\clientdata.cpp">
       <Filter>Source\ui\common</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\common\notificationclientdata.cpp">
-      <Filter>Source\ui\common</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui\common\taskattributevalueclientdata.cpp">
       <Filter>Source\ui\common</Filter>
     </ClCompile>
@@ -629,9 +626,6 @@
       <Filter>Source\utils</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\common\clientdata.h">
-      <Filter>Source\ui\common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\common\notificationclientdata.h">
       <Filter>Source\ui\common</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\common\taskattributevalueclientdata.h">

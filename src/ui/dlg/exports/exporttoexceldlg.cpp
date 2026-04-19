@@ -45,7 +45,6 @@
 
 #include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 namespace
 {
@@ -1162,14 +1161,6 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
     }
 
     if (!result.Success) {
-        std::string message = "Failed to export data to Excel";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
         wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
 
         return;
@@ -1178,13 +1169,6 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
     std::string message = "Successfully exported data to Excel";
 
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
-
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 
     if (bOpenExplorerInExportDirectory) {
         {

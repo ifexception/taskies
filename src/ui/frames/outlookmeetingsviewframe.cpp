@@ -22,14 +22,12 @@
 #include <algorithm>
 
 #include <wx/artprov.h>
-#include <wx/statline.h>
 #include <wx/richmsgdlg.h>
+#include <wx/statline.h>
 
 #include "../events.h"
 
 #include "../common/clientdata.h"
-
-#include "../common/notificationclientdata.h"
 
 #include "../dlg/taskdlg.h"
 
@@ -210,15 +208,15 @@ void OutlookMeetingsViewFrame::DataToControls()
 
     if (!result.Success) {
         std::string message = "Failed to fetch Outlook accounts";
-
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
         pFeedbackLabel->SetLabel(message);
+
+        wxMessageDialog dialog(this,
+            message,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.Message);
+
+        dialog.ShowModal();
 
         return;
     }
@@ -392,7 +390,13 @@ void OutlookMeetingsViewFrame::FetchOutlookMeetingsAndUpdateFeedbackLabel()
         service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
 
     if (!result.Success) {
-        QueueErrorNotificationEvent(result.Message);
+        wxMessageDialog dialog(this,
+            "Failed to get Outlook accounts",
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.Message);
+
+        dialog.ShowModal();
 
         pFeedbackLabel->SetLabel(result.Message);
 
@@ -490,16 +494,6 @@ void OutlookMeetingsViewFrame::SetDialogSizeFromParent()
         dialogMaxSize.SetWidth(-1);
         SetSize(dialogMaxSize);
     }
-}
-
-void OutlookMeetingsViewFrame::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ERRORNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 
 void OutlookMeetingsViewFrame::RemoveActiveMeetingsPanel()

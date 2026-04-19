@@ -209,7 +209,6 @@ private:
     void OnCloneTask(wxCommandEvent& event);
     void OnAddMinutes(wxCommandEvent& event);
     /* Custom Event Handlers */
-    void OnErrorNotification(wxCommandEvent& event);
     void OnTaskAddedOnDate(wxCommandEvent& event);
     void OnTaskDeletedOnDate(wxCommandEvent& event);
     void OnTaskDateChangedFrom(wxCommandEvent& event);
@@ -242,8 +241,6 @@ private:
 
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
-
-    void QueueFetchTasksErrorNotificationEvent();
 
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();
@@ -286,7 +283,7 @@ private:
     bool bDateRangeChanged;
 
     /*
-     * this member ensures that only one dialog is opened at a time from the thumb bar actions
+     * this variable ensures that only one dialog is opened at a time from the thumb bar actions
      * the thumb bar allows a user to open an as many dialogs as they want so we cap at 1
      */
     int mThumbBarDialogOpenCounter;
