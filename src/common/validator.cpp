@@ -25,7 +25,7 @@ wxTextValidator NameValidator()
 {
     wxTextValidator nameValidator(wxFILTER_ALPHANUMERIC | wxFILTER_INCLUDE_CHAR_LIST);
     wxArrayString allowedCharacters;
-    allowedCharacters.Add(" ");
+    allowedCharacters.Add(" "); // space
     allowedCharacters.Add("-");
     allowedCharacters.Add(":");
     allowedCharacters.Add(";");
