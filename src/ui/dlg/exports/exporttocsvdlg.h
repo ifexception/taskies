@@ -106,13 +106,12 @@ private:
 
     void ApplyPreset(const Core::Configuration::PresetSettings& presetSettings);
 
+    wxWindow* pParent;
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
-    std::string mDatabaseFilePath;
 
     std::unique_ptr<DateStore> pDateStore;
-
-    wxWindow* pParent;
 
     wxCheckBox* pExportToClipboardCheckBoxCtrl;
     wxTextCtrl* pSaveToFileTextCtrl;
@@ -159,6 +158,7 @@ private:
     wxButton* pExportButton;
     wxButton* pCancelButton;
 
+    std::string mDatabaseFilePath;
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
 

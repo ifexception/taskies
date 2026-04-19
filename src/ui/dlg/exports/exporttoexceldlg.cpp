@@ -31,6 +31,8 @@
 #include "../../../common/enums.h"
 #include "../../../common/enumclientdata.h"
 
+#include "../../../common/results/exportresult.h"
+
 #include "../../../services/export/availablecolumns.h"
 #include "../../../services/export/exportoptions.h"
 #include "../../../services/export/columnexportmodel.h"
@@ -38,7 +40,6 @@
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
 #include "../../../services/export/excelexporterservice.h"
-#include "../../../services/export/exportresult.h"
 
 #include "../../../utils/utils.h"
 
@@ -1148,7 +1149,7 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::ExportResult result;
+    ExportResult result;
     {
         wxBusyCursor busy;
 

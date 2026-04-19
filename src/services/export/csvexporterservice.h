@@ -25,12 +25,13 @@
 
 #include <spdlog/logger.h>
 
+#include "../../common/results/exportresult.h"
+
 #include "columnjoinprojection.h"
 #include "projection.h"
 #include "exportoptions.h"
 #include "csvexportprocessor.h"
 #include "datagenerator.h"
-#include "exportresult.h"
 
 namespace tks::Services::Export
 {

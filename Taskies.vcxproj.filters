@@ -245,9 +245,6 @@
     <ClCompile Include="src\services\export\excelguard.cpp">
       <Filter>Source\services\export</Filter>
     </ClCompile>
-    <ClCompile Include="src\services\export\exportresult.cpp">
-      <Filter>Source\services\export</Filter>
-    </ClCompile>
     <ClCompile Include="src\services\export\exportsservice.cpp">
       <Filter>Source\services\export</Filter>
     </ClCompile>
@@ -428,6 +425,12 @@
     <ClCompile Include="src\common\messages\sqlitemessages.cpp">
       <Filter>Source\common\messages</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\results\exportresult.cpp">
+      <Filter>Source\common\results</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\messages\operationmessages.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -584,9 +587,6 @@
       <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\exportoptions.h">
-      <Filter>Source\services\export</Filter>
-    </ClInclude>
-    <ClInclude Include="src\services\export\exportresult.h">
       <Filter>Source\services\export</Filter>
     </ClInclude>
     <ClInclude Include="src\services\export\exportsservice.h">
@@ -766,6 +766,10 @@
     <ClInclude Include="src\common\messages\sqlitemessages.h">
       <Filter>Source\common\messages</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\results\exportresult.h">
+      <Filter>Source\common\results</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\messages\operationmessages.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc">

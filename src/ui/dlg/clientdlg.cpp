@@ -30,7 +30,6 @@
 
 #include "../../common/constants.h"
 #include "../../common/common.h"
-#include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
 
 #include "../../common/results/sqliteresult.h"

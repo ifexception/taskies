@@ -17,17 +17,31 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "exportresult.h"
+#pragma once
 
-namespace tks::Services::Export
-{
-ExportResult ExportResult::OK()
-{
-    return ExportResult{ true, "" };
-}
+#include <string>
 
-ExportResult ExportResult::Fail(const std::string& errorMessage)
+#include "sqliteresult.h"
+
+namespace tks
 {
-    return ExportResult{ false, errorMessage };
-}
-} // namespace tks::Services::Export
+struct DatabaseResult {
+    std::string FriendlyErrorMessage;
+    int ReturnCode;
+    std::string ErrorMessage;
+
+    static DatabaseResult MakeFromSqliteResult(const SqliteResult& sqliteResult);
+};
+
+struct ExportResult {
+    bool Success;
+    std::string ErrorMessage;
+
+    DatabaseResult DatabaseResult;
+
+    static ExportResult OK();
+    static ExportResult Fail(const std::string& errorMessage);
+    static ExportResult FailWithSqliteResult(const std::string& errorMessage,
+        const SqliteResult& sqliteResult);
+};
+} // namespace tks

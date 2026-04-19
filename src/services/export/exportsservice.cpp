@@ -20,81 +20,25 @@
 #include "exportsservice.h"
 
 #include "../../common/logmessages.h"
-#include "../../common/queryhelper.h"
+
+#include "../../common/messages/sqlitemessages.h"
 
 #include "../../utils/utils.h"
+
+constexpr int ATTRIBUTE_PROP_INDEX_TASKID = 0;
+constexpr int ATTRIBUTE_PROP_INDEX_NAME = 1;
+constexpr int ATTRIBUTE_PROP_INDEX_VALUE = 2;
 
 namespace tks::Services::Export
 {
 ExportsService::ExportsService(const std::string& databaseFilePath,
     const std::shared_ptr<spdlog::logger> logger)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : PersistenceBase(logger, databaseFilePath)
+    , pLogger(logger)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-ExportsService::~ExportsService()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
-
-int ExportsService::FilterExportDataFromGeneratedSql(const std::string& sql,
+SqliteResult ExportsService::FilterExportDataFromGeneratedSql(const std::string& sql,
     const std::size_t valueCount,
     std::unordered_map<std::int64_t, Row<std::string>>& rows) const
 {
@@ -107,7 +51,8 @@ int ExportsService::FilterExportDataFromGeneratedSql(const std::string& sql,
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -158,17 +103,17 @@ int ExportsService::FilterExportDataFromGeneratedSql(const std::string& sql,
         pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
 
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, rows.size(), "<csv_export>");
 
-    return 0;
+    return SqliteResult::OK();
 }
 
-int ExportsService::FilterExportCsvAttributesData(const std::string& sql,
+SqliteResult ExportsService::FilterExportCsvAttributesData(const std::string& sql,
     std::unordered_map<std::int64_t, Row<HeaderValuePair>>& headerValueRows) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -180,7 +125,8 @@ int ExportsService::FilterExportCsvAttributesData(const std::string& sql,
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -227,7 +173,7 @@ int ExportsService::FilterExportCsvAttributesData(const std::string& sql,
         pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -235,10 +181,10 @@ int ExportsService::FilterExportCsvAttributesData(const std::string& sql,
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::FilterEntities, headerValueRows.size(), "<csv_attributes_export>");
 
-    return 0;
+    return SqliteResult::OK();
 }
 
-int ExportsService::GetAttributeNames(const std::string& fromDate,
+SqliteResult ExportsService::GetAttributeNames(const std::string& fromDate,
     const std::string& toDate,
     std::optional<std::int64_t> taskId,
     bool isPreview,
@@ -258,7 +204,8 @@ int ExportsService::GetAttributeNames(const std::string& fromDate,
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -272,7 +219,7 @@ int ExportsService::GetAttributeNames(const std::string& fromDate,
         pLogger->error(LogMessages::BindParameterTemplate, "from_date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -286,7 +233,7 @@ int ExportsService::GetAttributeNames(const std::string& fromDate,
         pLogger->error(LogMessages::BindParameterTemplate, "to_date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     // task_id
@@ -300,7 +247,8 @@ int ExportsService::GetAttributeNames(const std::string& fromDate,
             pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
             sqlite3_finalize(stmt);
-            return -1;
+            return SqliteResult::FailDetailed(
+                Messages::BindStatementMessage, rc, std::string(error));
         }
     }
 
@@ -332,7 +280,7 @@ int ExportsService::GetAttributeNames(const std::string& fromDate,
         pLogger->error(LogMessages::ExecStepTemplate, "ExportsService", sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -342,7 +290,7 @@ int ExportsService::GetAttributeNames(const std::string& fromDate,
         fmt::format(
             "[{0}, {1}] - \"{2}\"", fromDate, toDate, taskId.has_value() ? taskId.value() : -1));
 
-    return 0;
+    return SqliteResult::OK();
 }
 
 std::string ExportsService::getAttributeNames =

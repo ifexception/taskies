@@ -36,7 +36,10 @@
 #include "../../../common/constants.h"
 #include "../../../common/enums.h"
 #include "../../../common/enumclientdata.h"
-#include "../../../common/usererrormessages.h"
+
+#include "../../../common/messages/operationmessages.h"
+
+#include "../../../common/results/exportresult.h"
 
 #include "../../../services/export/availablecolumns.h"
 #include "../../../services/export/csvexporterservice.h"
@@ -44,7 +47,6 @@
 #include "../../../services/export/columnjoinprojection.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
-#include "../../../services/export/exportresult.h"
 
 #include "../../../utils/utils.h"
 
@@ -85,7 +87,6 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pParent(parent)
     , pCfg(cfg)
     , pLogger(logger)
-    , mDatabaseFilePath(databasePath)
     , pDateStore(nullptr)
     , pDelimiterChoiceCtrl(nullptr)
     , pTextQualifierChoiceCtrl(nullptr)
@@ -114,6 +115,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pShowPreviewButton(nullptr)
     , pExportButton(nullptr)
     , pCancelButton(nullptr)
+    , mDatabaseFilePath(databasePath)
     , mFromDate()
     , mToDate()
     , mExportOptions()
@@ -1076,14 +1078,15 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 
     bool success = pCfg->TryUnsetDefaultPreset();
     if (!success) {
+        pLogger->warn("Failed to unset default preset when saving preset(s)");
+
         wxMessageDialog dialog(this,
-            ErrorMessages::UnsetPresetDefaultMessage,
+            Messages::UnsetPresetDefaultMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_WARNING);
-        dialog.SetExtendedMessage(ErrorMessages::UnsetPresetDefaultExtendedMessage);
+        dialog.SetExtendedMessage(Messages::UnsetPresetDefaultExtendedMessage);
 
         dialog.ShowModal();
-        pLogger->warn("Failed to unset default preset when saving preset(s)");
     }
 
     if (presetData->GetValue().empty()) {
@@ -1213,7 +1216,7 @@ void ExportToCsvDialog::OnRemoveExportColumnToAvailableColumnList(wxCommandEvent
         pExportColumnListModel->DeleteItems(items);
 
         for (const auto& column : columnsToRemove) {
-            int i = pAvailableColumnsListView->InsertItem(0, column.OriginalColumn);
+            pAvailableColumnsListView->InsertItem(0, column.OriginalColumn);
         }
         SPDLOG_LOGGER_TRACE(
             pLogger, " \"{0}\" columns removed from export list", columnsToRemove.size());
@@ -1331,17 +1334,12 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
 
     if (!result.Success) {
         wxMessageDialog dialog(this,
-            ErrorMessages::CsvExportErrorMessage,
+            Messages::CsvExportErrorMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        std::string extendedMessage =
-            result.ErrorMessage + "\n\n" + ErrorMessages::MessageDialogExtendedMessage;
-        dialog.SetExtendedMessage(extendedMessage);
+        dialog.SetExtendedMessage(result.ErrorMessage);
 
         int ret = dialog.ShowModal();
-        if (ret == wxID_OK) {
-            wxLaunchDefaultBrowser(Common::GetIssuesLink());
-        }
     }
 
     pDataExportPreviewTextCtrl->ChangeValue(exportedDataPreview);
@@ -1377,7 +1375,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::ExportResult result;
+    ExportResult result;
     std::string exportedData = "";
 
     {
@@ -1392,14 +1390,11 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
 
     if (!result.Success) {
         wxMessageDialog dialog(this,
-            ErrorMessages::CsvExportErrorMessage,
+            Messages::CsvExportErrorMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
 
-        std::string extendedMessage =
-            result.ErrorMessage + "\n\n" + ErrorMessages::MessageDialogExtendedMessage;
-
-        dialog.SetExtendedMessage(extendedMessage);
+        dialog.SetExtendedMessage(result.ErrorMessage);
 
         int ret = dialog.ShowModal();
         if (ret == wxID_OK) {
@@ -1423,18 +1418,16 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
                 pSaveToFileTextCtrl->GetValue().ToStdString());
 
             wxMessageDialog dialog(this,
-                ErrorMessages::CannotOpenFileMessage,
+                Messages::CannotOpenFileMessage,
                 Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
 
-            dialog.SetExtendedMessage(
+            auto extendedMessage =
                 fmt::format("Unable to open file for exporting at location \"{0}\"",
-                    pSaveToFileTextCtrl->GetValue().ToStdString()));
+                    pSaveToFileTextCtrl->GetValue().ToStdString());
+            dialog.SetExtendedMessage(extendedMessage);
 
-            int ret = dialog.ShowModal();
-            if (ret == wxID_OK) {
-                EndModal(wxID_EXIT);
-            }
+            dialog.ShowModal();
             return;
         }
 

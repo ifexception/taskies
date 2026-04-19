@@ -21,13 +21,17 @@
 
 #include <string>
 
-namespace tks::Services::Export
+namespace tks::Messages
 {
-struct ExportResult {
-    bool Success;
-    std::string ErrorMessage;
+#pragma region Exports
+const std::string UnsetPresetDefaultMessage =
+    "An error occured when trying to unset the default preset";
+const std::string UnsetPresetDefaultExtendedMessage =
+    "Configuration file could not be read or presets do not exist";
 
-    static ExportResult OK();
-    static ExportResult Fail(const std::string& errorMessage);
-};
-} // namespace tks::Services::Export
+const std::string CsvExportErrorMessage = "An error occured when trying your data to CSV";
+
+const std::string CannotOpenFileMessage = "Cannot open file for exporting";
+#pragma endregion
+
+} // namespace tks::Messages

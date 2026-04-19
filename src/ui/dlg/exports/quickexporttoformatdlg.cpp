@@ -28,6 +28,8 @@
 
 #include "../../../common/enums.h"
 
+#include "../../../common/results/exportresult.h"
+
 #include "../../../core/configuration.h"
 
 #include "../../../services/export/availablecolumns.h"
@@ -37,7 +39,6 @@
 #include "../../../services/export/excelexporterservice.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
-#include "../../../services/export/exportresult.h"
 
 #include "../../events.h"
 #include "../../common/clientdata.h"
@@ -574,7 +575,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::ExportResult result;
+    ExportResult result{};
     std::string message = "";
 
     wxBusyCursor busy;
@@ -627,7 +628,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
             message = "Successfully exported data to Excel";
         } else {
             pLogger->error("Unmatched or invalid enum value of ExportFormat");
-            result = Services::Export::ExportResult::Fail("Invalid export format selected");
+            result = ExportResult::Fail("Invalid export format selected");
         }
     }
 

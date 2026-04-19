@@ -13,7 +13,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/logmessages.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/queryhelper.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/enumclientdata.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/usererrormessages.cpp"
     ${SRC_COMMON_RESULTS}
     ${SRC_COMMON_MESSAGES}
     PARENT_SCOPE

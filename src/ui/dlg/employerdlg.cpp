@@ -27,7 +27,6 @@
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
-#include "../../common/usererrormessages.h"
 #include "../../common/validator.h"
 
 #include "../../common/results/sqliteresult.h"

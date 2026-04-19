@@ -28,38 +28,39 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
-#include <sqlite3.h>
+#include "../../common/results/sqliteresult.h"
+
+#include "../../persistence/base/persistencebase.h"
 
 #include "headervaluepair.h"
 #include "row.h"
 
-constexpr int ATTRIBUTE_PROP_INDEX_TASKID = 0;
-constexpr int ATTRIBUTE_PROP_INDEX_NAME = 1;
-constexpr int ATTRIBUTE_PROP_INDEX_VALUE = 2;
-
 namespace tks::Services::Export
 {
-struct ExportsService final {
+struct ExportsService final : public Persistence::PersistenceBase {
 public:
+    ExportsService() = delete;
+    ExportsService(const ExportsService&) = delete;
     explicit ExportsService(const std::string& databaseFilePath,
         const std::shared_ptr<spdlog::logger> logger);
-    ~ExportsService();
+    virtual ~ExportsService() = default;
 
-    int FilterExportDataFromGeneratedSql(const std::string& sql,
+    ExportsService& operator=(ExportsService&) = delete;
+
+    SqliteResult FilterExportDataFromGeneratedSql(const std::string& sql,
         const std::size_t valueCount,
         /*out*/ std::unordered_map<std::int64_t, Row<std::string>>& rows) const;
 
-    int FilterExportCsvAttributesData(const std::string& sql,
+    SqliteResult FilterExportCsvAttributesData(const std::string& sql,
         /*out*/ std::unordered_map<std::int64_t, Row<HeaderValuePair>>& headerValueRows) const;
 
-    int GetAttributeNames(const std::string& fromDate,
+    SqliteResult GetAttributeNames(const std::string& fromDate,
         const std::string& toDate,
         std::optional<std::int64_t> taskId,
         bool isPreview,
         /*out*/ std::vector<std::string>& attributeNames) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string getAttributeNames;
     static std::string getAttributeNamesPreview;
