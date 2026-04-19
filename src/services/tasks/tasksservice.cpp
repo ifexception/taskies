@@ -20,7 +20,8 @@
 #include "tasksservice.h"
 
 #include "../../common/logmessages.h"
-#include "../../common/queryhelper.h"
+
+#include "../../common/messages/sqlitemessages.h"
 
 #include "../../utils/utils.h"
 
@@ -28,92 +29,31 @@ namespace tks::Services
 {
 TasksService::TasksService(const std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : Persistence::PersistenceBase(logger, databaseFilePath)
+    , pLogger(logger)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-TasksService::~TasksService()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
-
-int TasksService::FilterByDateRange(std::vector<std::string> dates,
+SqliteResult TasksService::FilterByDateRange(std::vector<std::string> dates,
     std::map<std::string, std::vector<TaskViewModel>>& taskViewModels)
 {
     for (const auto& date : dates) {
         std::vector<TaskViewModel> tasks;
-        int rc = FilterByDate(date, tasks);
-        if (rc != 0) {
-            return rc;
+        auto sqliteResult = FilterByDate(date, tasks);
+        if (!sqliteResult.Success) {
+            return sqliteResult;
         }
 
         taskViewModels[date] = tasks;
     }
 
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::FilterEntities, taskViewModels.size(), "[date range]");
+    auto datesAsCsvFmt = Utils::ConvertListStringToCommaDelimitedString(dates);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, taskViewModels.size(), datesAsCsvFmt);
 
-    return 0;
+    return SqliteResult::OK();
 }
 
-int TasksService::FilterByDate(const std::string& date,
+SqliteResult TasksService::FilterByDate(const std::string& date,
     std::vector<TaskViewModel>& taskViewModels) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -125,21 +65,23 @@ int TasksService::FilterByDate(const std::string& date,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::PrepareStatementTemplate, TasksService::filterByDate, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::PrepareStatementTemplate, TasksService::filterByDate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_bind_text(stmt, 1, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "date", 1, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "date", 1, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -201,16 +143,17 @@ int TasksService::FilterByDate(const std::string& date,
     }
 
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, TasksService::filterByDate, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, TasksService::filterByDate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, taskViewModels.size(), "");
-    return 0;
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, taskViewModels.size(), date);
+
+    return SqliteResult::OK();
 }
 
 int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) const
@@ -224,8 +167,8 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::PrepareStatementTemplate, TasksService::getById, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate, TasksService::getById, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -234,8 +177,8 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
     rc = sqlite3_bind_int64(stmt, 1, taskId);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "task_id", 1, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "task_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -244,8 +187,8 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, TasksService::getById, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, TasksService::getById, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;
@@ -291,8 +234,8 @@ int TasksService::GetById(const std::int64_t taskId, TaskViewModel& taskModel) c
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* err = sqlite3_errmsg(pDb);
-        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, err);
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
         return -1;

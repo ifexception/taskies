@@ -524,20 +524,26 @@ void MainFrame::DataToControls()
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDateRange(
+    auto sqliteResult = tasksService.FilterByDateRange(
         pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
             pTaskTreeModel->InsertChildNodes(workdayDate, tasks);
         }
+        pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+
+        // Status Bar durations
+        CalculateStatusBarTaskDurations();
     }
-
-    pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
-
-    // Status Bar durations
-    CalculateStatusBarTaskDurations();
 }
 
 void MainFrame::OnClose(wxCloseEvent& event)
@@ -968,9 +974,16 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDate(mTaskDate, taskModels);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         std::stringstream formattedClipboardData;
         for (const auto& taskModel : taskModels) {
@@ -1011,9 +1024,16 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDate(mTaskDate, taskModels);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         std::stringstream formattedClipboardData;
         if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
@@ -1456,9 +1476,16 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         std::vector<Services::TaskViewModel> tasks;
         Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        int rc = tasksService.FilterByDate(fromDateString, tasks);
-        if (rc != 0) {
-            QueueFetchTasksErrorNotificationEvent();
+        auto sqliteResult = tasksService.FilterByDate(fromDateString, tasks);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterByDateTaskMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         } else {
             pTaskTreeModel->ClearAll();
             pTaskTreeModel->InsertRootAndChildNodes(fromDateString, tasks);
@@ -1478,9 +1505,16 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
@@ -1546,9 +1580,16 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         std::vector<Services::TaskViewModel> tasks;
         Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        int rc = tasksService.FilterByDate(date, tasks);
-        if (rc != 0) {
-            QueueFetchTasksErrorNotificationEvent();
+        auto sqliteResult = tasksService.FilterByDate(date, tasks);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterByDateTaskMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         } else {
             pTaskTreeModel->ClearAll();
             pTaskTreeModel->InsertRootAndChildNodes(date, tasks);
@@ -1563,9 +1604,16 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
@@ -1754,10 +1802,17 @@ void MainFrame::RefetchTasksForDateRange()
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDateRange(
+    auto sqliteResult = tasksService.FilterByDateRange(
         pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {

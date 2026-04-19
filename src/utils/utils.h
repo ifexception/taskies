@@ -66,6 +66,8 @@ std::string FormatSqlSearchTerm(const std::string& source);
 
 std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t> ids);
 
+std::string ConvertListStringToCommaDelimitedString(const std::vector<std::string> inputs);
+
 std::string RemoveEmoticons(const std::wstring& value);
 
 int RoundUpToMultiple(int number, int multiple);
