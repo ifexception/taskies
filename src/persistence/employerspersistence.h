@@ -42,16 +42,16 @@ struct EmployersPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     virtual ~EmployersPersistence() = default;
 
-    Common::SqliteResult Filter(const std::string& searchTerm,
+    SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::EmployerModel>& employerModels) const;
-    Common::SqliteResult GetById(const std::int64_t employerId,
+    SqliteResult GetById(const std::int64_t employerId,
         /*out*/ Model::EmployerModel& employerModel) const;
-    Common::SqliteResult Create(/*out*/ std::int64_t& employerId,
+    SqliteResult Create(/*out*/ std::int64_t& employerId,
         const Model::EmployerModel& employerModel) const;
-    Common::SqliteResult Update(const Model::EmployerModel& employerModel) const;
-    Common::SqliteResult Delete(const std::int64_t employerId) const;
-    Common::SqliteResult UnsetDefault() const;
-    Common::SqliteResult SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
+    SqliteResult Update(const Model::EmployerModel& employerModel) const;
+    SqliteResult Delete(const std::int64_t employerId) const;
+    SqliteResult UnsetDefault() const;
+    SqliteResult SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
 

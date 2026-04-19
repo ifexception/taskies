@@ -42,14 +42,14 @@ struct TasksPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     virtual ~TasksPersistence() = default;
 
-    Common::SqliteResult GetById(const std::int64_t taskId,
+    SqliteResult GetById(const std::int64_t taskId,
         /*out*/ Model::TaskModel& taskModel) const;
-    Common::SqliteResult Create(std::int64_t& taskId, Model::TaskModel& taskModel) const;
-    Common::SqliteResult Update(Model::TaskModel& taskModel) const;
-    Common::SqliteResult Delete(const std::int64_t taskId);
-    Common::SqliteResult GetDescriptionById(const std::int64_t taskId,
+    SqliteResult Create(std::int64_t& taskId, Model::TaskModel& taskModel) const;
+    SqliteResult Update(Model::TaskModel& taskModel) const;
+    SqliteResult Delete(const std::int64_t taskId);
+    SqliteResult GetDescriptionById(const std::int64_t taskId,
         std::string& description) const;
-    Common::SqliteResult IsDeleted(const std::int64_t taskId, bool& value);
+    SqliteResult IsDeleted(const std::int64_t taskId, bool& value);
 
     std::shared_ptr<spdlog::logger> pLogger;
 

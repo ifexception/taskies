@@ -38,16 +38,16 @@ struct ClientsPersistence final : public PersistenceBase {
     ClientsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     virtual ~ClientsPersistence() = default;
 
-    Common::SqliteResult Filter(const std::string& searchTerm,
+    SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::ClientModel>& clientModels) const;
-    Common::SqliteResult FilterByEmployerId(const std::int64_t employerId,
+    SqliteResult FilterByEmployerId(const std::int64_t employerId,
         /*out*/ std::vector<Model::ClientModel>& clientModels) const;
-    Common::SqliteResult GetById(const std::int64_t clientId,
+    SqliteResult GetById(const std::int64_t clientId,
         /*out*/ Model::ClientModel& clientModel) const;
-    Common::SqliteResult Create(std::int64_t& clientId,
+    SqliteResult Create(std::int64_t& clientId,
         const Model::ClientModel& clientModel) const;
-    Common::SqliteResult Update(const Model::ClientModel& clientModel) const;
-    Common::SqliteResult Delete(const std::int64_t clientId) const;
+    SqliteResult Update(const Model::ClientModel& clientModel) const;
+    SqliteResult Delete(const std::int64_t clientId) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
 

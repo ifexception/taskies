@@ -44,10 +44,10 @@ struct CategoryService final : public Persistence::PersistenceBase {
 
     CategoryService& operator=(const CategoryService&) = delete;
 
-    Common::SqliteResult Filter(/*out*/ std::vector<CategoryViewModel>& categories) const;
-    Common::SqliteResult FilterByProjectId(const std::int64_t projectId,
+    SqliteResult Filter(/*out*/ std::vector<CategoryViewModel>& categories) const;
+    SqliteResult FilterByProjectId(const std::int64_t projectId,
         /*out*/ std::vector<CategoryViewModel>& categories) const;
-    Common::SqliteResult GetById(const std::int64_t categoryId, CategoryViewModel& category) const;
+    SqliteResult GetById(const std::int64_t categoryId, CategoryViewModel& category) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
 

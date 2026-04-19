@@ -32,7 +32,7 @@ StaticAttributeGroupsService::StaticAttributeGroupsService(std::shared_ptr<spdlo
 {
 }
 
-Common::SqliteResult StaticAttributeGroupsService::FilterByStaticFlagAndWithValueCounts(
+SqliteResult StaticAttributeGroupsService::FilterByStaticFlagAndWithValueCounts(
     std::vector<StaticAttributeGroupViewModel>& staticAttributeGroupViewModels) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -51,7 +51,7 @@ Common::SqliteResult StaticAttributeGroupsService::FilterByStaticFlagAndWithValu
             error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
@@ -93,7 +93,7 @@ Common::SqliteResult StaticAttributeGroupsService::FilterByStaticFlagAndWithValu
             error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::StepStatementMessage, rc, std::string(error));
     }
 
@@ -101,7 +101,7 @@ Common::SqliteResult StaticAttributeGroupsService::FilterByStaticFlagAndWithValu
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::FilterEntities, staticAttributeGroupViewModels.size(), "");
 
-    return Common::SqliteResult::OK();
+    return SqliteResult::OK();
 }
 
 std::string StaticAttributeGroupsService::filterStaticWithValueCounts =

@@ -21,11 +21,10 @@
 
 #include <string>
 
-namespace tks::Common
+namespace tks
 {
 struct SqliteResult {
     SqliteResult();
-    SqliteResult(const std::string& friendlyErrorMessage);
     SqliteResult(const std::string& friendlyErrorMessage,
         int returnCode,
         const std::string& errorMessag);
@@ -43,4 +42,4 @@ struct SqliteResult {
         int returnCode,
         const std::string& errorMessage);
 };
-} // namespace tks::Common
+} // namespace tks

@@ -1806,7 +1806,7 @@ void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> project
     std::vector<Services::CategoryViewModel> categories;
     Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
-    tks::Common::SqliteResult sqliteResult;
+    tks::SqliteResult sqliteResult;
     std::string operationMessage;
 
     if (projectId.has_value()) {

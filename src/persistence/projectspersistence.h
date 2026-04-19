@@ -40,17 +40,17 @@ struct ProjectsPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     virtual ~ProjectsPersistence() = default;
 
-    Common::SqliteResult Filter(const std::string& searchTerm,
+    SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
-    Common::SqliteResult FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
+    SqliteResult FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
         std::optional<std::int64_t> clientId,
         /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
-    Common::SqliteResult GetById(const std::int64_t projectId,
+    SqliteResult GetById(const std::int64_t projectId,
         /*out*/ Model::ProjectModel& projectModel) const;
-    Common::SqliteResult Create(std::int64_t& projectId, const Model::ProjectModel& projectModel);
-    Common::SqliteResult Update(const Model::ProjectModel& projectModel) const;
-    Common::SqliteResult Delete(const std::int64_t projectId) const;
-    Common::SqliteResult UnsetDefault() const;
+    SqliteResult Create(std::int64_t& projectId, const Model::ProjectModel& projectModel);
+    SqliteResult Update(const Model::ProjectModel& projectModel) const;
+    SqliteResult Delete(const std::int64_t projectId) const;
+    SqliteResult UnsetDefault() const;
 
     std::shared_ptr<spdlog::logger> pLogger;
 

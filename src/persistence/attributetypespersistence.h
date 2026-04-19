@@ -40,7 +40,7 @@ struct AttributeTypesPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     virtual ~AttributeTypesPersistence() = default;
 
-    Common::SqliteResult Filter(const std::string& searchTerm,
+    SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::AttributeTypeModel>& attributeTypeModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;

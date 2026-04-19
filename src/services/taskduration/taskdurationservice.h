@@ -44,25 +44,25 @@ struct TaskDurationService final : public Persistence::PersistenceBase {
 
     TaskDurationService& operator=(const TaskDurationService&) = delete;
 
-    Common::SqliteResult GetTaskDurationsForDateRange(const std::string& startDate,
+    SqliteResult GetTaskDurationsForDateRange(const std::string& startDate,
         const std::string& endDate,
         TaskDurationType type,
         /*out*/ std::vector<TaskDurationViewModel>& taskDurationViewModels) const;
 
-    Common::SqliteResult CalculateAndFormatDuration(const std::string& fromDate,
+    SqliteResult CalculateAndFormatDuration(const std::string& fromDate,
         const std::string& toDate,
         TaskDurationType type,
         /*out*/ std::string& formatDuration);
 
     std::string CalculateTaskDurationTime(const std::vector<TaskDurationViewModel>& taskDurations);
 
-    Common::SqliteResult GetTaskTimeByIdAndIncrementByValue(const std::int64_t taskId,
+    SqliteResult GetTaskTimeByIdAndIncrementByValue(const std::int64_t taskId,
         const int value);
-    Common::SqliteResult GetTaskTimeById(const std::int64_t taskId,
+    SqliteResult GetTaskTimeById(const std::int64_t taskId,
         /*out*/ TaskDurationViewModel& taskDurationViewModel) const;
     void IncrementTimeByValue(const int value,
         /*out*/ TaskDurationViewModel& taskDurationViewModel);
-    Common::SqliteResult UpdateTaskTime(const std::int64_t taskId,
+    SqliteResult UpdateTaskTime(const std::int64_t taskId,
         TaskDurationViewModel& taskDurationViewModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;

@@ -42,14 +42,14 @@ struct CategoriesPersistence final : public PersistenceBase {
 
     CategoriesPersistence& operator=(const CategoriesPersistence&) = delete;
 
-    Common::SqliteResult Filter(const std::string& searchTerm,
+    SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::CategoryModel>& categoryModels) const;
-    Common::SqliteResult GetById(const std::int64_t categoryId,
+    SqliteResult GetById(const std::int64_t categoryId,
         /*out*/ Model::CategoryModel& categoryModel) const;
-    Common::SqliteResult Create(std::int64_t& categoryId,
+    SqliteResult Create(std::int64_t& categoryId,
         const Model::CategoryModel& categoryModel) const;
-    Common::SqliteResult Update(const Model::CategoryModel& categoryModel) const;
-    Common::SqliteResult Delete(const std::int64_t categoryId) const;
+    SqliteResult Update(const Model::CategoryModel& categoryModel) const;
+    SqliteResult Delete(const std::int64_t categoryId) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
 

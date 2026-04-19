@@ -38,9 +38,9 @@ struct WorkdaysPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     virtual ~WorkdaysPersistence() = default;
 
-    Common::SqliteResult FilterByDate(const std::string& date, Model::WorkdayModel model) const;
-    Common::SqliteResult GetWorkdayIdByDate(std::int64_t& workdayId, const std::string& date) const;
-    Common::SqliteResult Create(std::int64_t& workdayId, const std::string& date) const;
+    SqliteResult FilterByDate(const std::string& date, Model::WorkdayModel model) const;
+    SqliteResult GetWorkdayIdByDate(std::int64_t& workdayId, const std::string& date) const;
+    SqliteResult Create(std::int64_t& workdayId, const std::string& date) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;

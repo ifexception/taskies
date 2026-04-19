@@ -40,26 +40,26 @@ struct AttributeGroupsPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     virtual ~AttributeGroupsPersistence() = default;
 
-    Common::SqliteResult Filter(const std::string& searchTerm,
+    SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels) const;
-    Common::SqliteResult FilterByStaticFlag(
+    SqliteResult FilterByStaticFlag(
         /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels) const;
-    Common::SqliteResult GetById(const std::int64_t attributeGroupId,
+    SqliteResult GetById(const std::int64_t attributeGroupId,
         /*out*/ Model::AttributeGroupModel& attributeGroupModel) const;
-    Common::SqliteResult Create(std::int64_t& attributeGroupId,
+    SqliteResult Create(std::int64_t& attributeGroupId,
         const Model::AttributeGroupModel& attributeGroupModel) const;
-    Common::SqliteResult Update(Model::AttributeGroupModel& attributeGroupModel) const;
-    Common::SqliteResult Delete(const std::int64_t attributeGroupId) const;
-    Common::SqliteResult CheckAttributeGroupAttributeValuesUsage(
+    SqliteResult Update(Model::AttributeGroupModel& attributeGroupModel) const;
+    SqliteResult Delete(const std::int64_t attributeGroupId) const;
+    SqliteResult CheckAttributeGroupAttributeValuesUsage(
         const std::int64_t attributeGroupId,
         bool& value) const;
-    Common::SqliteResult CheckAttributeGroupAttributesUsage(const std::int64_t attributeGroupId,
+    SqliteResult CheckAttributeGroupAttributesUsage(const std::int64_t attributeGroupId,
         bool& value) const;
-    Common::SqliteResult CheckAttributeGroupStaticAttributesUsage(
+    SqliteResult CheckAttributeGroupStaticAttributesUsage(
         const std::int64_t attributeGroupId,
         bool& value) const;
-    Common::SqliteResult UnsetDefault() const;
-    Common::SqliteResult SelectDefault(Model::AttributeGroupModel& attributeGroupModel) const;
+    SqliteResult UnsetDefault() const;
+    SqliteResult SelectDefault(Model::AttributeGroupModel& attributeGroupModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;

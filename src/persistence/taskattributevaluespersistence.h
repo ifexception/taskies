@@ -40,16 +40,16 @@ struct TaskAttributeValuesPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     virtual ~TaskAttributeValuesPersistence() = default;
 
-    Common::SqliteResult Create(std::int64_t& taskAttributeValueId,
+    SqliteResult Create(std::int64_t& taskAttributeValueId,
         Model::TaskAttributeValueModel& taskAttributeValueModel) const;
-    Common::SqliteResult CreateMany(
+    SqliteResult CreateMany(
         std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
-    Common::SqliteResult GetByTaskId(const std::int64_t taskId,
+    SqliteResult GetByTaskId(const std::int64_t taskId,
         /*out*/ std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
-    Common::SqliteResult DeleteByTaskId(const std::int64_t taskId) const;
-    Common::SqliteResult Update(
+    SqliteResult DeleteByTaskId(const std::int64_t taskId) const;
+    SqliteResult Update(
         const Model::TaskAttributeValueModel& taskAttributeValueModel) const;
-    Common::SqliteResult UpdateMultiple(
+    SqliteResult UpdateMultiple(
         const std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;

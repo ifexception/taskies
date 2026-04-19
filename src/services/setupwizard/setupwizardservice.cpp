@@ -105,7 +105,7 @@ int SetupWizardService::RollbackTransaction()
     return rc;
 }
 
-Common::SqliteResult SetupWizardService::CreateEmployer(/*out*/ std::int64_t& employerId,
+SqliteResult SetupWizardService::CreateEmployer(/*out*/ std::int64_t& employerId,
     const Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
@@ -114,7 +114,7 @@ Common::SqliteResult SetupWizardService::CreateEmployer(/*out*/ std::int64_t& em
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::GetByEmployerId(const std::int64_t employerId,
+SqliteResult SetupWizardService::GetByEmployerId(const std::int64_t employerId,
     Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
@@ -123,7 +123,7 @@ Common::SqliteResult SetupWizardService::GetByEmployerId(const std::int64_t empl
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::UpdateEmployer(
+SqliteResult SetupWizardService::UpdateEmployer(
     const Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
@@ -132,7 +132,7 @@ Common::SqliteResult SetupWizardService::UpdateEmployer(
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::CreateClient(
+SqliteResult SetupWizardService::CreateClient(
     /*out*/ std::int64_t& clientId,
     const Model::ClientModel& clientModel) const
 {
@@ -142,7 +142,7 @@ Common::SqliteResult SetupWizardService::CreateClient(
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::GetByClientId(const std::int64_t clientId,
+SqliteResult SetupWizardService::GetByClientId(const std::int64_t clientId,
     Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
@@ -151,7 +151,7 @@ Common::SqliteResult SetupWizardService::GetByClientId(const std::int64_t client
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::UpdateClient(const Model::ClientModel& clientModel) const
+SqliteResult SetupWizardService::UpdateClient(const Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
@@ -159,7 +159,7 @@ Common::SqliteResult SetupWizardService::UpdateClient(const Model::ClientModel& 
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::CreateProject(std::int64_t& projectId,
+SqliteResult SetupWizardService::CreateProject(std::int64_t& projectId,
     const Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
@@ -168,7 +168,7 @@ Common::SqliteResult SetupWizardService::CreateProject(std::int64_t& projectId,
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::GetByProjectId(const std::int64_t projectId,
+SqliteResult SetupWizardService::GetByProjectId(const std::int64_t projectId,
     Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
@@ -177,7 +177,7 @@ Common::SqliteResult SetupWizardService::GetByProjectId(const std::int64_t proje
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::UpdateProject(
+SqliteResult SetupWizardService::UpdateProject(
     const Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
@@ -186,7 +186,7 @@ Common::SqliteResult SetupWizardService::UpdateProject(
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::CreateCategory(std::int64_t& categoryId,
+SqliteResult SetupWizardService::CreateCategory(std::int64_t& categoryId,
     const Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);
@@ -195,7 +195,7 @@ Common::SqliteResult SetupWizardService::CreateCategory(std::int64_t& categoryId
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::GetByCategoryId(const std::int64_t categoryId,
+SqliteResult SetupWizardService::GetByCategoryId(const std::int64_t categoryId,
     Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);
@@ -204,7 +204,7 @@ Common::SqliteResult SetupWizardService::GetByCategoryId(const std::int64_t cate
     return sqliteResult;
 }
 
-Common::SqliteResult SetupWizardService::UpdateCategory(
+SqliteResult SetupWizardService::UpdateCategory(
     const Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);

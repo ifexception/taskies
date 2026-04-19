@@ -50,30 +50,30 @@ struct SetupWizardService final : public Persistence::PersistenceBase {
     int CommitTransaction();
     int RollbackTransaction();
 
-    Common::SqliteResult CreateEmployer(/*out*/ std::int64_t& employerId,
+    SqliteResult CreateEmployer(/*out*/ std::int64_t& employerId,
         const Model::EmployerModel& employerModel) const;
-    Common::SqliteResult GetByEmployerId(const std::int64_t employerId,
+    SqliteResult GetByEmployerId(const std::int64_t employerId,
         /*out*/ Model::EmployerModel& employerModel) const;
-    Common::SqliteResult UpdateEmployer(const Model::EmployerModel& employerModel) const;
+    SqliteResult UpdateEmployer(const Model::EmployerModel& employerModel) const;
 
-    Common::SqliteResult CreateClient(
+    SqliteResult CreateClient(
         /*out*/ std::int64_t& clientId,
         const Model::ClientModel& clientModel) const;
-    Common::SqliteResult GetByClientId(const std::int64_t clientId,
+    SqliteResult GetByClientId(const std::int64_t clientId,
         /*out*/ Model::ClientModel& clientModel) const;
-    Common::SqliteResult UpdateClient(const Model::ClientModel& clientModel) const;
+    SqliteResult UpdateClient(const Model::ClientModel& clientModel) const;
 
-    Common::SqliteResult CreateProject(/*out*/ std::int64_t& projectId,
+    SqliteResult CreateProject(/*out*/ std::int64_t& projectId,
         const Model::ProjectModel& projectModel) const;
-    Common::SqliteResult GetByProjectId(const std::int64_t projectId,
+    SqliteResult GetByProjectId(const std::int64_t projectId,
         /*out*/ Model::ProjectModel& projectModel) const;
-    Common::SqliteResult UpdateProject(const Model::ProjectModel& projectModel) const;
+    SqliteResult UpdateProject(const Model::ProjectModel& projectModel) const;
 
-    Common::SqliteResult CreateCategory(std::int64_t& categoryId,
+    SqliteResult CreateCategory(std::int64_t& categoryId,
         const Model::CategoryModel& categoryModel) const;
-    Common::SqliteResult GetByCategoryId(const std::int64_t categoryId,
+    SqliteResult GetByCategoryId(const std::int64_t categoryId,
         /*out*/ Model::CategoryModel& categoryModel) const;
-    Common::SqliteResult UpdateCategory(const Model::CategoryModel& categoryModel) const;
+    SqliteResult UpdateCategory(const Model::CategoryModel& categoryModel) const;
 
     bool IsInTransaction() const;
 

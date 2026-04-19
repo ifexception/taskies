@@ -21,19 +21,11 @@
 
 #include <fmt/format.h>
 
-namespace tks::Common
+namespace tks
 {
 SqliteResult::SqliteResult()
     : Success(true)
     , FriendlyErrorMessage("")
-    , ReturnCode(0)
-    , ErrorMessage("")
-{
-}
-
-SqliteResult::SqliteResult(const std::string& friendlyErrorMessage)
-    : Success(true)
-    , FriendlyErrorMessage(friendlyErrorMessage)
     , ReturnCode(0)
     , ErrorMessage("")
 {
@@ -65,4 +57,4 @@ SqliteResult SqliteResult::FailDetailed(const std::string& friendlyErrorMessage,
 {
     return SqliteResult(friendlyErrorMessage, returnCode, errorMessage);
 }
-} // namespace tks::Common
+} // namespace tks

@@ -40,18 +40,18 @@ struct StaticAttributeValuesPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     virtual ~StaticAttributeValuesPersistence() = default;
 
-    Common::SqliteResult Create(std::int64_t& staticAttributeValueId,
+    SqliteResult Create(std::int64_t& staticAttributeValueId,
         const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
-    Common::SqliteResult CreateMultiple(
+    SqliteResult CreateMultiple(
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
-    Common::SqliteResult FilterByAttributeGroupId(const std::int64_t attributeGroupId,
+    SqliteResult FilterByAttributeGroupId(const std::int64_t attributeGroupId,
         /*out*/ std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
-    Common::SqliteResult Update(
+    SqliteResult Update(
         const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
-    Common::SqliteResult UpdateMultiple(
+    SqliteResult UpdateMultiple(
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
-    Common::SqliteResult Delete(const std::vector<std::int64_t>& staticAttributeValueIds) const;
-    Common::SqliteResult CheckUsage(const std::vector<std::int64_t>& attributeIds,
+    SqliteResult Delete(const std::vector<std::int64_t>& staticAttributeValueIds) const;
+    SqliteResult CheckUsage(const std::vector<std::int64_t>& attributeIds,
         bool& value) const;
 
     std::shared_ptr<spdlog::logger> pLogger;

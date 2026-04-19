@@ -34,7 +34,7 @@ CategoryService::CategoryService(const std::shared_ptr<spdlog::logger> logger,
 {
 }
 
-Common::SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& categories) const
+SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& categories) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -49,7 +49,7 @@ Common::SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& cat
         pLogger->error(LogMessages::PrepareStatementTemplate, CategoryService::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
@@ -118,17 +118,17 @@ Common::SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& cat
         pLogger->error(LogMessages::ExecStepTemplate, CategoryService::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, categories.size(), "");
 
-    return Common::SqliteResult::OK();
+    return SqliteResult::OK();
 }
 
-Common::SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
+SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
     std::vector<CategoryViewModel>& categories) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -145,7 +145,7 @@ Common::SqliteResult CategoryService::FilterByProjectId(const std::int64_t proje
             LogMessages::PrepareStatementTemplate, CategoryService::filterByProjectId, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
@@ -159,7 +159,7 @@ Common::SqliteResult CategoryService::FilterByProjectId(const std::int64_t proje
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::BindStatementMessage, rc, std::string(error));
     }
 
@@ -223,17 +223,17 @@ Common::SqliteResult CategoryService::FilterByProjectId(const std::int64_t proje
         pLogger->error(LogMessages::ExecStepTemplate, CategoryService::filterByProjectId, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, categories.size(), projectId);
 
-    return Common::SqliteResult::OK();
+    return SqliteResult::OK();
 }
 
-Common::SqliteResult CategoryService::GetById(const std::int64_t categoryId,
+SqliteResult CategoryService::GetById(const std::int64_t categoryId,
     CategoryViewModel& category) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -249,7 +249,7 @@ Common::SqliteResult CategoryService::GetById(const std::int64_t categoryId,
         pLogger->error(LogMessages::PrepareStatementTemplate, CategoryService::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
@@ -262,7 +262,7 @@ Common::SqliteResult CategoryService::GetById(const std::int64_t categoryId,
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::BindStatementMessage, rc, std::string(error));
     }
 
@@ -273,7 +273,7 @@ Common::SqliteResult CategoryService::GetById(const std::int64_t categoryId,
         pLogger->error(LogMessages::ExecStepTemplate, CategoryService::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::StepStatementMessage, rc, std::string(error));
     }
 
@@ -325,14 +325,14 @@ Common::SqliteResult CategoryService::GetById(const std::int64_t categoryId,
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "categories", categoryId);
 
-    return Common::SqliteResult::OK();
+    return SqliteResult::OK();
 }
 
 std::string CategoryService::filter = "SELECT "

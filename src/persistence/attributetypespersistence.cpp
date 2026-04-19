@@ -34,7 +34,7 @@ AttributeTypesPersistence::AttributeTypesPersistence(std::shared_ptr<spdlog::log
 {
 }
 
-Common::SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
+SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::AttributeTypeModel>& attributeTypeModels) const
 {
     auto formatedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
@@ -53,7 +53,7 @@ Common::SqliteResult AttributeTypesPersistence::Filter(const std::string& search
             LogMessages::PrepareStatementTemplate, AttributeTypesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
@@ -70,7 +70,7 @@ Common::SqliteResult AttributeTypesPersistence::Filter(const std::string& search
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::BindStatementMessage, rc, std::string(error));
     }
 
@@ -105,7 +105,7 @@ Common::SqliteResult AttributeTypesPersistence::Filter(const std::string& search
         pLogger->error(LogMessages::ExecStepTemplate, AttributeTypesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return Common::SqliteResult::FailDetailed(
+        return SqliteResult::FailDetailed(
             Messages::StepStatementMessage, rc, std::string(error));
     }
 
@@ -114,7 +114,7 @@ Common::SqliteResult AttributeTypesPersistence::Filter(const std::string& search
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::FilterEntities, attributeTypeModels.size(), searchTerm);
 
-    return Common::SqliteResult::OK();
+    return SqliteResult::OK();
 }
 
 std::string AttributeTypesPersistence::filter = "SELECT "

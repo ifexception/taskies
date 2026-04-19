@@ -45,7 +45,7 @@ struct StaticAttributeGroupsService final : public Persistence::PersistenceBase 
     StaticAttributeGroupsService& operator=(
         const StaticAttributeGroupsService&) = delete;
 
-    Common::SqliteResult FilterByStaticFlagAndWithValueCounts(
+    SqliteResult FilterByStaticFlagAndWithValueCounts(
         /*out*/ std::vector<StaticAttributeGroupViewModel>& staticAttributeGroupViewModels) const;
 
     std::shared_ptr<spdlog::logger> pLogger;

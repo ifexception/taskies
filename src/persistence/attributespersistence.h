@@ -40,20 +40,20 @@ struct AttributesPersistence final : public PersistenceBase {
         const std::string& databaseFilePath);
     virtual ~AttributesPersistence() = default;
 
-    Common::SqliteResult Filter(const std::string& searchTerm,
+    SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::AttributeModel>& attributeModels) const;
-    Common::SqliteResult FilterByAttributeGroupId(const std::int64_t attributeGroupId,
+    SqliteResult FilterByAttributeGroupId(const std::int64_t attributeGroupId,
         /*out*/ std::vector<Model::AttributeModel>& attributeModels) const;
-    Common::SqliteResult FilterByAttributeGroupIdAndIsStatic(const std::int64_t attributeGroupId,
+    SqliteResult FilterByAttributeGroupIdAndIsStatic(const std::int64_t attributeGroupId,
         /*out*/ std::vector<Model::AttributeModel>& attributeModels) const;
-    Common::SqliteResult GetById(const std::int64_t attributeId,
+    SqliteResult GetById(const std::int64_t attributeId,
         /*out*/ Model::AttributeModel& attributeModel) const;
-    Common::SqliteResult Create(std::int64_t& attributeId,
+    SqliteResult Create(std::int64_t& attributeId,
         const Model::AttributeModel& attributeModel) const;
-    Common::SqliteResult Update(Model::AttributeModel attributeModel) const;
-    Common::SqliteResult UpdateIfInUse(Model::AttributeModel attributeModel) const;
-    Common::SqliteResult Delete(const std::int64_t attributeId) const;
-    Common::SqliteResult CheckAttributeUsage(const std::int64_t attributeId, bool& value) const;
+    SqliteResult Update(Model::AttributeModel attributeModel) const;
+    SqliteResult UpdateIfInUse(Model::AttributeModel attributeModel) const;
+    SqliteResult Delete(const std::int64_t attributeId) const;
+    SqliteResult CheckAttributeUsage(const std::int64_t attributeId, bool& value) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
 
