@@ -20,7 +20,6 @@
 #include "taskspersistence.h"
 
 #include "../common/logmessages.h"
-#include "../common/queryhelper.h"
 
 #include "../common/messages/sqlitemessages.h"
 

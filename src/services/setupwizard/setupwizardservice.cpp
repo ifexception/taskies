@@ -23,7 +23,6 @@
 
 #include "../../common/common.h"
 #include "../../common/logmessages.h"
-#include "../../common/queryhelper.h"
 
 #include "../../common/results/sqliteresult.h"
 
