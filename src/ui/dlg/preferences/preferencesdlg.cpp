@@ -234,9 +234,9 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
     // Post success notification event
     wxMessageBox("Successfully updated preferences",
         Common::GetProgramName(),
-        wxOK_DEFAULT | wxICON_WARNING);
+        wxOK_DEFAULT | wxICON_INFORMATION);
 
-    event.Skip();
+    EndDialog(wxID_OK);
 }
 
 void PreferencesDialog::OnClose(wxCloseEvent& event)
