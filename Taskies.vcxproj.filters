@@ -426,7 +426,7 @@
       <Filter>Source\common\results</Filter>
     </ClCompile>
     <ClCompile Include="src\common\messages\operationmessages.cpp">
-      <Filter>Source</Filter>
+      <Filter>Source\common\messages</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -763,7 +763,9 @@
     <ClInclude Include="src\common\results\exportresult.h">
       <Filter>Source\common\results</Filter>
     </ClInclude>
-    <ClInclude Include="src\common\messages\operationmessages.h" />
+    <ClInclude Include="src\common\messages\operationmessages.h">
+      <Filter>Source\common\messages</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc">
