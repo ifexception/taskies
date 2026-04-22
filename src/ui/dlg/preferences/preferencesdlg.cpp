@@ -58,7 +58,7 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     , pTasksViewPage(nullptr)
     , pExportPage(nullptr)
     , pRestoreDefaultsButton(nullptr)
-    , pOkButton(nullptr)
+    , pOKButton(nullptr)
 {
     Initialize();
 
@@ -120,11 +120,11 @@ void PreferencesDialog::CreateControls()
 
     pRestoreDefaultsButton = new wxButton(this, tksIDC_RESTOREDEFAULTBUTTON, "Restore Defaults");
 
-    pOkButton = new wxButton(this, wxID_OK, "OK");
-    pOkButton->SetDefault();
+    pOKButton = new wxButton(this, wxID_OK, "OK");
+    pOKButton->SetDefault();
 
     buttonsSizer->Add(pRestoreDefaultsButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pOKButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -145,7 +145,7 @@ void PreferencesDialog::ConfigureEventBindings()
         tksIDC_RESTOREDEFAULTBUTTON
     );
 
-    pOkButton->Bind(
+    pOKButton->Bind(
         wxEVT_BUTTON,
         &PreferencesDialog::OnOK,
         this,
@@ -192,31 +192,31 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
 void PreferencesDialog::OnOK(wxCommandEvent& event)
 {
     if (!pGeneralPage->IsValid()) {
-        pListBox->SetSelection(0);
+        pListBox->SetSelection(PreferencesPage::General);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
 
     if (!pDatabasePage->IsValid()) {
-        pListBox->SetSelection(1);
+        pListBox->SetSelection(PreferencesPage::Database);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
 
     if (!pTasksPage->IsValid()) {
-        pListBox->SetSelection(2);
+        pListBox->SetSelection(PreferencesPage::Tasks);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
 
     if (!pTasksViewPage->IsValid()) {
-        pListBox->SetSelection(3);
+        pListBox->SetSelection(PreferencesPage::TasksView);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
 
     if (!pExportPage->IsValid()) {
-        pListBox->SetSelection(4);
+        pListBox->SetSelection(PreferencesPage::Export);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
