@@ -382,7 +382,7 @@ bool EmployerDialog::Validate()
             dialog.ShowModal();
         } else {
             if (!model.IsDefault) {
-                std::string validationMessage = "An employer is required to be default";
+                std::string validationMessage = "At least one employer is required to be default";
                 wxRichToolTip toolTip("Validation", validationMessage);
                 toolTip.SetIcon(wxICON_WARNING);
                 toolTip.ShowFor(pIsDefaultCheckBoxCtrl);

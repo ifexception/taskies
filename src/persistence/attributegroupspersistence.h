@@ -62,7 +62,6 @@ struct AttributeGroupsPersistence final : public PersistenceBase {
     SqliteResult SelectDefault(Model::AttributeGroupModel& attributeGroupModel) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string filter;
     static std::string filterStatic;

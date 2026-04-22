@@ -43,7 +43,6 @@ struct WorkdaysPersistence final : public PersistenceBase {
     SqliteResult Create(std::int64_t& workdayId, const std::string& date) const;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string getWorkdayIdByDate;
     static std::string filterByDate;
