@@ -319,11 +319,11 @@ void TaskManageAttributesDialog::FillControls()
     Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
 
-    sqliteResult =
-        attributesPersistence.FilterByAttributeGroupId(mAttributeGroupId, attributeModels);
+    sqliteResult = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+        mAttributeGroupId, staticAttributeValueModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterAttributesByAttributeGroupMessage,
+            Messages::FilterStaticAttributesByAttributeGroupIdMessage,
             tks::Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
