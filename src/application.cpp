@@ -108,7 +108,8 @@ bool Application::OnInit()
         return false;
     }*/
 
-    pLogger->info("Application - Initialize MainFrame with WindowState \"{0}\"",
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Initializing main frame with (WindowState) = \"({0})\"",
         WindowStateToString(pCfg->GetWindowState()));
     auto frame = new UI::MainFrame(pEnv, pCfg, pLogger);
     SetTopWindow(frame);
@@ -139,7 +140,7 @@ bool Application::OnInit()
     }
 
     if (!pEnv->IsSetup()) {
-        pLogger->info("Application - Program not yet set up");
+        SPDLOG_LOGGER_TRACE(pLogger, "Program not yet set up, start first start up procedure");
         if (!FirstStartupProcedure(frame)) {
             return false;
         }
@@ -154,6 +155,7 @@ int Application::OnExit()
     // Under VisualStudio, this must be called before main finishes to workaround a known VS issue
     spdlog::drop_all();
 #endif // TKS_DEBUG
+    SPDLOG_LOGGER_TRACE(pLogger, "Exiting program...\nGoodbye");
 
     return wxApp::OnExit();
 }
@@ -212,6 +214,8 @@ bool Application::RunMigrations()
 
     auto sqliteResult = migrations.Migrate();
     if (!sqliteResult.Success) {
+        pLogger->error("An error occurred while running database migrations. Check earlier logs "
+                       "for more details");
         wxRichMessageDialog dialog(nullptr,
             Messages::MigrationExecutionMessage,
             Common::GetProgramName(),
@@ -253,14 +257,14 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
 
 void Application::ActivateOtherInstance()
 {
-    pLogger->info("MainFrame::ActivateOtherInstance begin");
+    SPDLOG_LOGGER_TRACE(pLogger, "Begin activation of other instance");
 
     wxClient client;
     auto connection =
         client.MakeConnection("localhost", Common::GetProgramName(), "ApplicationOptions");
 
     if (connection) {
-        pLogger->info("MainFrame::ActivateOtherInstance connection established");
+        SPDLOG_LOGGER_TRACE(pLogger, "Instance connection established");
         connection->Execute("");
         connection->Disconnect();
     }
