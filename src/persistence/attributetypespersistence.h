@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/attributetypemodel.h"
@@ -42,8 +39,6 @@ struct AttributeTypesPersistence final : public PersistenceBase {
 
     SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::AttributeTypeModel>& attributeTypeModels) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filter;
 };

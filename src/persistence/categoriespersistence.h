@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/categorymodel.h"
@@ -50,8 +47,6 @@ struct CategoriesPersistence final : public PersistenceBase {
         const Model::CategoryModel& categoryModel) const;
     SqliteResult Update(const Model::CategoryModel& categoryModel) const;
     SqliteResult Delete(const std::int64_t categoryId) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filter;
     static std::string getById;

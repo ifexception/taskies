@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/attributegroupmodel.h"
@@ -60,8 +57,6 @@ struct AttributeGroupsPersistence final : public PersistenceBase {
         bool& value) const;
     SqliteResult UnsetDefault() const;
     SqliteResult SelectDefault(Model::AttributeGroupModel& attributeGroupModel) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filter;
     static std::string filterStatic;

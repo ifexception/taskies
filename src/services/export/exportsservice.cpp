@@ -34,7 +34,6 @@ namespace tks::Services::Export
 ExportsService::ExportsService(const std::string& databaseFilePath,
     const std::shared_ptr<spdlog::logger> logger)
     : PersistenceBase(logger, databaseFilePath)
-    , pLogger(logger)
 {
 }
 

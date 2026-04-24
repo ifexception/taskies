@@ -28,7 +28,6 @@ namespace tks::Services
 StaticAttributeGroupsService::StaticAttributeGroupsService(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
     : Persistence::PersistenceBase(logger, databaseFilePath)
-    , pLogger(logger)
 {
 }
 

@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "../../common/results/sqliteresult.h"
 
 #include "../../persistence/base/persistencebase.h"
@@ -47,8 +44,6 @@ struct StaticAttributeGroupsService final : public Persistence::PersistenceBase 
 
     SqliteResult FilterByStaticFlagAndWithValueCounts(
         /*out*/ std::vector<StaticAttributeGroupViewModel>& staticAttributeGroupViewModels) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filterStaticWithValueCounts;
 };

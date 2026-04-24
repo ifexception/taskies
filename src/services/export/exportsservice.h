@@ -25,9 +25,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "../../common/results/sqliteresult.h"
 
 #include "../../persistence/base/persistencebase.h"
@@ -59,8 +56,6 @@ public:
         std::optional<std::int64_t> taskId,
         bool isPreview,
         /*out*/ std::vector<std::string>& attributeNames) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string getAttributeNames;
     static std::string getAttributeNamesPreview;

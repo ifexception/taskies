@@ -22,9 +22,6 @@
 #include <memory>
 #include <string>
 
-#include <spdlog/logger.h>
-#include <spdlog/spdlog.h>
-
 #include "../../common/enums.h"
 
 #include "../../common/results/sqliteresult.h"
@@ -64,8 +61,6 @@ struct TaskDurationService final : public Persistence::PersistenceBase {
         /*out*/ TaskDurationViewModel& taskDurationViewModel);
     SqliteResult UpdateTaskTime(const std::int64_t taskId,
         TaskDurationViewModel& taskDurationViewModel) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string getAllHoursForDateRange;
     static std::string getBillableHoursForDateRange;

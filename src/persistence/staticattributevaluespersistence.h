@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/staticattributevaluemodel.h"
@@ -53,8 +50,6 @@ struct StaticAttributeValuesPersistence final : public PersistenceBase {
     SqliteResult Delete(const std::vector<std::int64_t>& staticAttributeValueIds) const;
     SqliteResult CheckUsage(const std::vector<std::int64_t>& attributeIds,
         bool& value) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string create;
     static std::string filterByAttributeGroupId;

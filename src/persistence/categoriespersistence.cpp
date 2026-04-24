@@ -30,7 +30,6 @@ namespace tks::Persistence
 CategoriesPersistence::CategoriesPersistence(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
     : PersistenceBase(logger, databaseFilePath)
-    , pLogger(logger)
 {
 }
 

@@ -23,9 +23,6 @@
 #include <memory>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/clientmodel.h"
@@ -48,8 +45,6 @@ struct ClientsPersistence final : public PersistenceBase {
         const Model::ClientModel& clientModel) const;
     SqliteResult Update(const Model::ClientModel& clientModel) const;
     SqliteResult Delete(const std::int64_t clientId) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filter;
     static std::string filterByEmployerId;

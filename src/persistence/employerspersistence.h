@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/employermodel.h"
@@ -52,8 +49,6 @@ struct EmployersPersistence final : public PersistenceBase {
     SqliteResult Delete(const std::int64_t employerId) const;
     SqliteResult UnsetDefault() const;
     SqliteResult SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filter;
     static std::string getById;

@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../common/enums.h"
@@ -50,8 +47,6 @@ struct TasksPersistence final : public PersistenceBase {
     SqliteResult GetDescriptionById(const std::int64_t taskId,
         std::string& description) const;
     SqliteResult IsDeleted(const std::int64_t taskId, bool& value);
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string getById;
     static std::string create;

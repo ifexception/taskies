@@ -28,13 +28,14 @@ struct SqliteResult {
     SqliteResult(const std::string& friendlyErrorMessage);
     SqliteResult(const std::string& friendlyErrorMessage,
         int returnCode,
-        const std::string& errorMessag);
+        const std::string& errorMessage);
 
     bool Success;
 
     std::string FriendlyErrorMessage;
     int ReturnCode;
     std::string ErrorMessage;
+    // used to indicate where a SQL condition is used to return a boolean result
     bool ConditionFailed;
 
     std::string GetReturnCodeAndMessage() const;

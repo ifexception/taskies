@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/logger.h>
-#include <spdlog/spdlog.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/attributemodel.h"
@@ -54,8 +51,6 @@ struct AttributesPersistence final : public PersistenceBase {
     SqliteResult UpdateIfInUse(Model::AttributeModel attributeModel) const;
     SqliteResult Delete(const std::int64_t attributeId) const;
     SqliteResult CheckAttributeUsage(const std::int64_t attributeId, bool& value) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filter;
     static std::string filterByAttributeGroupId;

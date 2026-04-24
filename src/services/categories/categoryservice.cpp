@@ -30,7 +30,6 @@ namespace tks::Services
 CategoryService::CategoryService(const std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
     : Persistence::PersistenceBase(logger, databaseFilePath)
-    , pLogger(logger)
 {
 }
 

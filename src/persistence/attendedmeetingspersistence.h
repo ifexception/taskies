@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/attendedmeetingmodel.h"
@@ -48,8 +45,6 @@ struct AttendedMeetingsPersistence final : public PersistenceBase {
     SqliteResult Create(std::int64_t& attendedMeetingId,
         const Model::AttendedMeetingModel& attendedMeetingModel) const;
     SqliteResult Delete(const std::int64_t attendedMeetingId) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string getByEntryId;
     static std::string getByTodaysDate;

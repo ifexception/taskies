@@ -30,7 +30,6 @@ namespace tks::Persistence
 AttributeGroupsPersistence::AttributeGroupsPersistence(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
     : PersistenceBase(logger, databaseFilePath)
-    , pLogger(logger)
 {
 }
 

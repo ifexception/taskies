@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/logger.h>
-#include <spdlog/spdlog.h>
-
 #include "../../common/results/sqliteresult.h"
 
 #include "../../persistence/base/persistencebase.h"
@@ -48,8 +45,6 @@ struct CategoryService final : public Persistence::PersistenceBase {
     SqliteResult FilterByProjectId(const std::int64_t projectId,
         /*out*/ std::vector<CategoryViewModel>& categories) const;
     SqliteResult GetById(const std::int64_t categoryId, CategoryViewModel& category) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filter;
     static std::string filterByProjectId;

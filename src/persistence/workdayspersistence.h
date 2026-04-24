@@ -22,9 +22,6 @@
 #include <cstdint>
 #include <memory>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/workdaymodel.h"
@@ -41,8 +38,6 @@ struct WorkdaysPersistence final : public PersistenceBase {
     SqliteResult FilterByDate(const std::string& date, Model::WorkdayModel model) const;
     SqliteResult GetWorkdayIdByDate(std::int64_t& workdayId, const std::string& date) const;
     SqliteResult Create(std::int64_t& workdayId, const std::string& date) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string getWorkdayIdByDate;
     static std::string filterByDate;

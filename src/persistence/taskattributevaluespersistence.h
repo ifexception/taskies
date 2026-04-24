@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/taskattributevaluemodel.h"
@@ -51,8 +48,6 @@ struct TaskAttributeValuesPersistence final : public PersistenceBase {
         const Model::TaskAttributeValueModel& taskAttributeValueModel) const;
     SqliteResult UpdateMultiple(
         const std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string getByTaskId;
     static std::string create;

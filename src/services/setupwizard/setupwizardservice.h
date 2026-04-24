@@ -23,9 +23,6 @@
 #include <memory>
 #include <string>
 
-#include <spdlog/logger.h>
-#include <spdlog/spdlog.h>
-
 #include "../../common/results/sqliteresult.h"
 
 #include "../../persistence/base/persistencebase.h"
@@ -77,7 +74,6 @@ struct SetupWizardService final : public Persistence::PersistenceBase {
 
     bool IsInTransaction() const;
 
-    std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
     int mTransactionCounter;
 

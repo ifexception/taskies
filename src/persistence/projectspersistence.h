@@ -24,9 +24,6 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include "base/persistencebase.h"
 
 #include "../models/projectmodel.h"
@@ -51,8 +48,6 @@ struct ProjectsPersistence final : public PersistenceBase {
     SqliteResult Update(const Model::ProjectModel& projectModel) const;
     SqliteResult Delete(const std::int64_t projectId) const;
     SqliteResult UnsetDefault() const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filter;
     static std::string getById;

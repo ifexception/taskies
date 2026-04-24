@@ -25,9 +25,6 @@
 #include <map>
 #include <vector>
 
-#include <spdlog/logger.h>
-#include <spdlog/spdlog.h>
-
 #include "../../common/results/sqliteresult.h"
 
 #include "../../persistence/base/persistencebase.h"
@@ -49,8 +46,6 @@ struct TasksService final : public Persistence::PersistenceBase {
     SqliteResult FilterByDate(const std::string& date,
         /*out*/ std::vector<TaskViewModel>& taskViewModels) const;
     SqliteResult GetById(const std::int64_t taskId, /*out*/ TaskViewModel& taskViewModel) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filterByDate;
     static std::string getById;
