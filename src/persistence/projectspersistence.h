@@ -33,9 +33,12 @@
 namespace tks::Persistence
 {
 struct ProjectsPersistence final : public PersistenceBase {
-    ProjectsPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    virtual ~ProjectsPersistence() = default;
+    ProjectsPersistence() = delete;
+    ProjectsPersistence(const ProjectsPersistence&) = delete;
+    ProjectsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~ProjectsPersistence();
+
+    ProjectsPersistence& operator=(const ProjectsPersistence&) = delete;
 
     SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::ProjectModel>& projectModels) const;

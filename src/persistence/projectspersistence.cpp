@@ -33,6 +33,8 @@ ProjectsPersistence::ProjectsPersistence(std::shared_ptr<spdlog::logger> logger,
 {
 }
 
+ProjectsPersistence::~ProjectsPersistence() {}
+
 SqliteResult ProjectsPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::ProjectModel>& projectModels) const
 {

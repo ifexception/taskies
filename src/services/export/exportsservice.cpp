@@ -37,6 +37,8 @@ ExportsService::ExportsService(const std::string& databaseFilePath,
 {
 }
 
+ExportsService::~ExportsService() {}
+
 SqliteResult ExportsService::FilterExportDataFromGeneratedSql(const std::string& sql,
     const std::size_t valueCount,
     std::unordered_map<std::int64_t, Row<std::string>>& rows) const

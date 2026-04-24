@@ -37,7 +37,7 @@ struct StaticAttributeGroupsService final : public Persistence::PersistenceBase 
     StaticAttributeGroupsService(const StaticAttributeGroupsService&) = delete;
     StaticAttributeGroupsService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    virtual ~StaticAttributeGroupsService() = default;
+    virtual ~StaticAttributeGroupsService();
 
     StaticAttributeGroupsService& operator=(
         const StaticAttributeGroupsService&) = delete;

@@ -33,6 +33,8 @@ AttributeTypesPersistence::AttributeTypesPersistence(std::shared_ptr<spdlog::log
 {
 }
 
+AttributeTypesPersistence::~AttributeTypesPersistence() {}
+
 SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::AttributeTypeModel>& attributeTypeModels) const
 {
@@ -69,8 +71,7 @@ SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -104,8 +105,7 @@ SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::ExecStepTemplate, AttributeTypesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);

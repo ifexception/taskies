@@ -37,7 +37,7 @@ struct TasksService final : public Persistence::PersistenceBase {
     TasksService() = delete;
     TasksService(const TasksService&) = delete;
     TasksService(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    virtual ~TasksService() = default;
+    virtual ~TasksService();
 
     TasksService& operator=(const TasksService&) = delete;
 

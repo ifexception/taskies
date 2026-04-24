@@ -33,9 +33,10 @@
 namespace tks::Persistence
 {
 struct CategoriesPersistence final : public PersistenceBase {
-    CategoriesPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    virtual ~CategoriesPersistence() = default;
+    CategoriesPersistence() = delete;
+    CategoriesPersistence(const CategoriesPersistence&) = delete;
+    CategoriesPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~CategoriesPersistence();
 
     CategoriesPersistence& operator=(const CategoriesPersistence&) = delete;
 

@@ -32,8 +32,12 @@
 namespace tks::Persistence
 {
 struct ClientsPersistence final : public PersistenceBase {
+    ClientsPersistence() = delete;
+    ClientsPersistence(const ClientsPersistence&) = delete;
     ClientsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    virtual ~ClientsPersistence() = default;
+    virtual ~ClientsPersistence();
+
+    ClientsPersistence& operator=(const ClientsPersistence&) = delete;
 
     SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::ClientModel>& clientModels) const;

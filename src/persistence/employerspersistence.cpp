@@ -33,6 +33,8 @@ EmployersPersistence::EmployersPersistence(std::shared_ptr<spdlog::logger> logge
 {
 }
 
+EmployersPersistence::~EmployersPersistence() {}
+
 SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::EmployerModel>& employerModels) const
 {

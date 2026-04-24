@@ -33,9 +33,13 @@
 namespace tks::Persistence
 {
 struct TaskAttributeValuesPersistence final : public PersistenceBase {
+    TaskAttributeValuesPersistence() = delete;
+    TaskAttributeValuesPersistence(const TaskAttributeValuesPersistence&) = delete;
     TaskAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    virtual ~TaskAttributeValuesPersistence() = default;
+    virtual ~TaskAttributeValuesPersistence();
+
+    TaskAttributeValuesPersistence& operator=(const TaskAttributeValuesPersistence&) = delete;
 
     SqliteResult Create(std::int64_t& taskAttributeValueId,
         Model::TaskAttributeValueModel& taskAttributeValueModel) const;
@@ -44,8 +48,7 @@ struct TaskAttributeValuesPersistence final : public PersistenceBase {
     SqliteResult GetByTaskId(const std::int64_t taskId,
         /*out*/ std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
     SqliteResult DeleteByTaskId(const std::int64_t taskId) const;
-    SqliteResult Update(
-        const Model::TaskAttributeValueModel& taskAttributeValueModel) const;
+    SqliteResult Update(const Model::TaskAttributeValueModel& taskAttributeValueModel) const;
     SqliteResult UpdateMultiple(
         const std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
 

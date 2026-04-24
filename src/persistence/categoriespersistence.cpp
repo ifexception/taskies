@@ -33,6 +33,8 @@ CategoriesPersistence::CategoriesPersistence(std::shared_ptr<spdlog::logger> log
 {
 }
 
+CategoriesPersistence::~CategoriesPersistence() {}
+
 SqliteResult CategoriesPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::CategoryModel>& categoryModels) const
 {
@@ -70,8 +72,7 @@ SqliteResult CategoriesPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -88,8 +89,7 @@ SqliteResult CategoriesPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -148,8 +148,7 @@ SqliteResult CategoriesPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -189,8 +188,7 @@ SqliteResult CategoriesPersistence::GetById(const std::int64_t categoryId,
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -200,8 +198,7 @@ SqliteResult CategoriesPersistence::GetById(const std::int64_t categoryId,
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -287,8 +284,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -300,8 +296,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
         pLogger->error(LogMessages::BindParameterTemplate, "color", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -313,8 +308,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
         pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -334,8 +328,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -351,8 +344,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -362,8 +354,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -408,8 +399,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -422,8 +412,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
         pLogger->error(LogMessages::BindParameterTemplate, "color", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -436,8 +425,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
         pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -458,8 +446,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -472,8 +459,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -490,8 +476,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -504,8 +489,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -515,8 +499,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -554,8 +537,7 @@ SqliteResult CategoriesPersistence::Delete(const std::int64_t categoryId) const
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -567,8 +549,7 @@ SqliteResult CategoriesPersistence::Delete(const std::int64_t categoryId) const
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -578,8 +559,7 @@ SqliteResult CategoriesPersistence::Delete(const std::int64_t categoryId) const
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);

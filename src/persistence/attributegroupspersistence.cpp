@@ -33,6 +33,8 @@ AttributeGroupsPersistence::AttributeGroupsPersistence(std::shared_ptr<spdlog::l
 {
 }
 
+AttributeGroupsPersistence::~AttributeGroupsPersistence() {}
+
 SqliteResult AttributeGroupsPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::AttributeGroupModel>& attributeGroupModels) const
 {

@@ -33,6 +33,8 @@ ClientsPersistence::ClientsPersistence(std::shared_ptr<spdlog::logger> logger,
 {
 }
 
+ClientsPersistence::~ClientsPersistence() {}
+
 SqliteResult ClientsPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::ClientModel>& clientModels) const
 {

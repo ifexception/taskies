@@ -37,7 +37,7 @@ struct TaskDurationService final : public Persistence::PersistenceBase {
     TaskDurationService(const TaskDurationService&) = delete;
     TaskDurationService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    virtual ~TaskDurationService() = default;
+    virtual ~TaskDurationService();
 
     TaskDurationService& operator=(const TaskDurationService&) = delete;
 

@@ -40,7 +40,7 @@ public:
     ExportsService(const ExportsService&) = delete;
     explicit ExportsService(const std::string& databaseFilePath,
         const std::shared_ptr<spdlog::logger> logger);
-    virtual ~ExportsService() = default;
+    virtual ~ExportsService();
 
     ExportsService& operator=(ExportsService&) = delete;
 

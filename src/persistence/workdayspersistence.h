@@ -31,9 +31,13 @@
 namespace tks::Persistence
 {
 struct WorkdaysPersistence final : public PersistenceBase {
+    WorkdaysPersistence() = delete;
+    WorkdaysPersistence(const WorkdaysPersistence&) = delete;
     WorkdaysPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    virtual ~WorkdaysPersistence() = default;
+    virtual ~WorkdaysPersistence();
+
+    WorkdaysPersistence& operator=(const WorkdaysPersistence&) = delete;
 
     SqliteResult FilterByDate(const std::string& date, Model::WorkdayModel model) const;
     SqliteResult GetWorkdayIdByDate(std::int64_t& workdayId, const std::string& date) const;

@@ -33,6 +33,8 @@ WorkdaysPersistence::WorkdaysPersistence(std::shared_ptr<spdlog::logger> logger,
 {
 }
 
+WorkdaysPersistence::~WorkdaysPersistence() {}
+
 SqliteResult WorkdaysPersistence::FilterByDate(const std::string& date,
     Model::WorkdayModel model) const
 {
@@ -73,8 +75,7 @@ SqliteResult WorkdaysPersistence::FilterByDate(const std::string& date,
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -84,8 +85,7 @@ SqliteResult WorkdaysPersistence::FilterByDate(const std::string& date,
         pLogger->error(LogMessages::ExecStepTemplate, WorkdaysPersistence::filterByDate, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -147,8 +147,7 @@ SqliteResult WorkdaysPersistence::GetWorkdayIdByDate(std::int64_t& workdayId,
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -159,8 +158,7 @@ SqliteResult WorkdaysPersistence::GetWorkdayIdByDate(std::int64_t& workdayId,
             LogMessages::ExecStepTemplate, WorkdaysPersistence::getWorkdayIdByDate, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     if (sqlite3_column_type(stmt, 0) == SQLITE_NULL) {
@@ -196,8 +194,7 @@ SqliteResult WorkdaysPersistence::GetWorkdayIdByDate(std::int64_t& workdayId,
     return SqliteResult::OK();
 }
 
-SqliteResult WorkdaysPersistence::Create(std::int64_t& workdayId,
-    const std::string& date) const
+SqliteResult WorkdaysPersistence::Create(std::int64_t& workdayId, const std::string& date) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -227,8 +224,7 @@ SqliteResult WorkdaysPersistence::Create(std::int64_t& workdayId,
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -238,8 +234,7 @@ SqliteResult WorkdaysPersistence::Create(std::int64_t& workdayId,
         pLogger->error(LogMessages::ExecStepTemplate, WorkdaysPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);

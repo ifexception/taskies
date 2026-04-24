@@ -37,7 +37,7 @@ struct CategoryService final : public Persistence::PersistenceBase {
     CategoryService(const CategoryService&) = delete;
     CategoryService(const std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    virtual ~CategoryService() = default;
+    virtual ~CategoryService();
 
     CategoryService& operator=(const CategoryService&) = delete;
 

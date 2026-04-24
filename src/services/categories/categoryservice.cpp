@@ -33,6 +33,8 @@ CategoryService::CategoryService(const std::shared_ptr<spdlog::logger> logger,
 {
 }
 
+CategoryService::~CategoryService() {}
+
 SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& categories) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -117,8 +119,7 @@ SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& categories)
         pLogger->error(LogMessages::ExecStepTemplate, CategoryService::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -158,8 +159,7 @@ SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -219,11 +219,11 @@ SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
     }
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, CategoryService::filterByProjectId, rc, error);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, CategoryService::filterByProjectId, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -261,8 +261,7 @@ SqliteResult CategoryService::GetById(const std::int64_t categoryId,
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -272,8 +271,7 @@ SqliteResult CategoryService::GetById(const std::int64_t categoryId,
         pLogger->error(LogMessages::ExecStepTemplate, CategoryService::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;

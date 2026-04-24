@@ -33,9 +33,12 @@
 namespace tks::Persistence
 {
 struct StaticAttributeValuesPersistence final : public PersistenceBase {
-    StaticAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    virtual ~StaticAttributeValuesPersistence() = default;
+    StaticAttributeValuesPersistence() = delete;
+    StaticAttributeValuesPersistence(const StaticAttributeValuesPersistence&) = delete;
+    StaticAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~StaticAttributeValuesPersistence();
+
+    StaticAttributeValuesPersistence& operator=(const StaticAttributeValuesPersistence&) = delete;
 
     SqliteResult Create(std::int64_t& staticAttributeValueId,
         const Model::StaticAttributeValueModel& staticAttributeValueModel) const;

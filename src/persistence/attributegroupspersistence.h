@@ -33,9 +33,12 @@
 namespace tks::Persistence
 {
 struct AttributeGroupsPersistence final : public PersistenceBase {
-    AttributeGroupsPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    virtual ~AttributeGroupsPersistence() = default;
+    AttributeGroupsPersistence() = delete;
+    AttributeGroupsPersistence(const AttributeGroupsPersistence&) = delete;
+    AttributeGroupsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~AttributeGroupsPersistence();
+
+    AttributeGroupsPersistence& operator=(const AttributeGroupsPersistence&) = delete;
 
     SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::AttributeGroupModel>& attributeGroupModels) const;

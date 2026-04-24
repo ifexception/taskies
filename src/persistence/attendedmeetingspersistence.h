@@ -33,9 +33,12 @@
 namespace tks::Persistence
 {
 struct AttendedMeetingsPersistence final : public PersistenceBase {
-    AttendedMeetingsPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    virtual ~AttendedMeetingsPersistence() = default;
+    AttendedMeetingsPersistence() = delete;
+    AttendedMeetingsPersistence(const AttendedMeetingsPersistence&) = delete;
+    AttendedMeetingsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~AttendedMeetingsPersistence();
+
+    AttendedMeetingsPersistence& operator=(const AttendedMeetingsPersistence&) = delete;
 
     SqliteResult GetByEntryId(const std::string& entryId,
         /*out*/ Model::AttendedMeetingModel& attendedMeetingModel) const;

@@ -33,9 +33,12 @@
 namespace tks::Persistence
 {
 struct AttributeTypesPersistence final : public PersistenceBase {
-    AttributeTypesPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    virtual ~AttributeTypesPersistence() = default;
+    AttributeTypesPersistence() = delete;
+    AttributeTypesPersistence(const AttributeTypesPersistence&) = delete;
+    AttributeTypesPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~AttributeTypesPersistence();
+
+    AttributeTypesPersistence& operator=(const AttributeTypesPersistence&) = delete;
 
     SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::AttributeTypeModel>& attributeTypeModels) const;

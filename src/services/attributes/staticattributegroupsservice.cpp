@@ -31,6 +31,8 @@ StaticAttributeGroupsService::StaticAttributeGroupsService(std::shared_ptr<spdlo
 {
 }
 
+StaticAttributeGroupsService::~StaticAttributeGroupsService() {}
+
 SqliteResult StaticAttributeGroupsService::FilterByStaticFlagAndWithValueCounts(
     std::vector<StaticAttributeGroupViewModel>& staticAttributeGroupViewModels) const
 {
@@ -92,8 +94,7 @@ SqliteResult StaticAttributeGroupsService::FilterByStaticFlagAndWithValueCounts(
             error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);

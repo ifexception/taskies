@@ -33,6 +33,8 @@ TasksService::TasksService(const std::shared_ptr<spdlog::logger> logger,
 {
 }
 
+TasksService::~TasksService() {}
+
 SqliteResult TasksService::FilterByDateRange(std::vector<std::string> dates,
     std::map<std::string, std::vector<TaskViewModel>>& taskViewModels)
 {
@@ -238,7 +240,8 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);

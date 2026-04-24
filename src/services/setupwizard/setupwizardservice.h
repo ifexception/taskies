@@ -39,7 +39,7 @@ struct SetupWizardService final : public Persistence::PersistenceBase {
     SetupWizardService(const SetupWizardService&) = delete;
     SetupWizardService(const std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    virtual ~SetupWizardService() = default;
+    virtual ~SetupWizardService();
 
     SetupWizardService& operator=(const SetupWizardService&) = delete;
 

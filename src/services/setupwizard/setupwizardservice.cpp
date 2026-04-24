@@ -43,6 +43,8 @@ SetupWizardService::SetupWizardService(const std::shared_ptr<spdlog::logger> log
 {
 }
 
+SetupWizardService::~SetupWizardService() {}
+
 int SetupWizardService::BeginTransaction()
 {
     mTransactionCounter++;
@@ -122,8 +124,7 @@ SqliteResult SetupWizardService::GetByEmployerId(const std::int64_t employerId,
     return sqliteResult;
 }
 
-SqliteResult SetupWizardService::UpdateEmployer(
-    const Model::EmployerModel& employerModel) const
+SqliteResult SetupWizardService::UpdateEmployer(const Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
     auto sqliteResult = employersPersistence.Update(employerModel);
@@ -176,8 +177,7 @@ SqliteResult SetupWizardService::GetByProjectId(const std::int64_t projectId,
     return sqliteResult;
 }
 
-SqliteResult SetupWizardService::UpdateProject(
-    const Model::ProjectModel& projectModel) const
+SqliteResult SetupWizardService::UpdateProject(const Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
 
@@ -203,8 +203,7 @@ SqliteResult SetupWizardService::GetByCategoryId(const std::int64_t categoryId,
     return sqliteResult;
 }
 
-SqliteResult SetupWizardService::UpdateCategory(
-    const Model::CategoryModel& categoryModel) const
+SqliteResult SetupWizardService::UpdateCategory(const Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);
 

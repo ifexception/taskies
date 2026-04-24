@@ -35,9 +35,12 @@ namespace tks
 namespace Persistence
 {
 struct EmployersPersistence final : public PersistenceBase {
-    EmployersPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    virtual ~EmployersPersistence() = default;
+    EmployersPersistence() = delete;
+    EmployersPersistence(const EmployersPersistence&) = delete;
+    EmployersPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~EmployersPersistence();
+
+    EmployersPersistence& operator=(const EmployersPersistence&) = delete;
 
     SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::EmployerModel>& employerModels) const;

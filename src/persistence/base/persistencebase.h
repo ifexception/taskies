@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <string>
 #include <memory>
 
 #include <spdlog/spdlog.h>
@@ -28,11 +29,24 @@
 
 namespace tks::Persistence
 {
+struct PersistenceResult {
+    bool Success;
+    int ReturnCode;
+    std::string Error;
+
+    PersistenceResult();
+    PersistenceResult(int returnCode, const std::string& error);
+    ~PersistenceResult() = default;
+};
+
 struct PersistenceBase {
     PersistenceBase(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     virtual ~PersistenceBase();
 
+    PersistenceResult IsInitialized() const;
+
     std::shared_ptr<spdlog::logger> pLogger;
     sqlite3* pDb;
+    PersistenceResult result;
 };
 } // namespace tks::Persistence
