@@ -394,7 +394,7 @@ SqliteResult AttributesPersistence::GetById(const std::int64_t attributeId,
 
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -825,7 +825,6 @@ SqliteResult AttributesPersistence::Delete(const std::int64_t attributeId) const
         static_cast<int>(AttributesPersistence::isActive.size()),
         &stmt,
         nullptr);
-
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
@@ -839,7 +838,6 @@ SqliteResult AttributesPersistence::Delete(const std::int64_t attributeId) const
     int bindIndex = 1;
 
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
-
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
@@ -852,7 +850,6 @@ SqliteResult AttributesPersistence::Delete(const std::int64_t attributeId) const
     bindIndex++;
 
     rc = sqlite3_bind_int64(stmt, bindIndex, attributeId);
-
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
@@ -863,7 +860,6 @@ SqliteResult AttributesPersistence::Delete(const std::int64_t attributeId) const
     }
 
     rc = sqlite3_step(stmt);
-
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::ExecStepTemplate, AttributesPersistence::isActive, rc, error);

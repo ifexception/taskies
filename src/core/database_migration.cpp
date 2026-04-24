@@ -181,7 +181,7 @@ SqliteResult DatabaseMigration::Migrate() const
         if (!result.Success) {
             return result;
         }
-        if (result.Success && result.ConditionFailed) {
+        if (result.Success && result.ConditionCheckFailed) {
             continue;
         }
 
@@ -373,7 +373,7 @@ SqliteResult DatabaseMigration::MigrationExists(const std::string& name) const
     if (count > 0) {
         return SqliteResult::OK();
     } else {
-        return SqliteResult::CheckFailed("Migration not found");
+        return SqliteResult::SoftFailed("Migration not found");
     }
 }
 } // namespace tks::Core

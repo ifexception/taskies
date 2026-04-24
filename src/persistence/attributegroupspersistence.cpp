@@ -853,7 +853,7 @@ SqliteResult AttributeGroupsPersistence::CheckAttributeGroupStaticAttributesUsag
 
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+            Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;

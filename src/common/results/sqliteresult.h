@@ -36,12 +36,12 @@ struct SqliteResult {
     int ReturnCode;
     std::string ErrorMessage;
     // used to indicate where a SQL condition is used to return a boolean result
-    bool ConditionFailed;
+    bool ConditionCheckFailed;
 
     std::string GetReturnCodeAndMessage() const;
 
     static SqliteResult OK();
-    static SqliteResult CheckFailed(const std::string& friendlyErrorMessage);
+    static SqliteResult SoftFailed(const std::string& friendlyErrorMessage);
     static SqliteResult FailDetailed(const std::string& friendlyErrorMessage,
         int returnCode,
         const std::string& errorMessage);
