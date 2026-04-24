@@ -25,6 +25,7 @@ namespace tks
 {
 struct SqliteResult {
     SqliteResult();
+    SqliteResult(const std::string& friendlyErrorMessage);
     SqliteResult(const std::string& friendlyErrorMessage,
         int returnCode,
         const std::string& errorMessag);
@@ -34,10 +35,12 @@ struct SqliteResult {
     std::string FriendlyErrorMessage;
     int ReturnCode;
     std::string ErrorMessage;
+    bool ConditionFailed;
 
     std::string GetReturnCodeAndMessage() const;
 
     static SqliteResult OK();
+    static SqliteResult CheckFailed(const std::string& friendlyErrorMessage);
     static SqliteResult FailDetailed(const std::string& friendlyErrorMessage,
         int returnCode,
         const std::string& errorMessage);

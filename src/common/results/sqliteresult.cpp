@@ -28,7 +28,15 @@ SqliteResult::SqliteResult()
     , FriendlyErrorMessage("")
     , ReturnCode(0)
     , ErrorMessage("")
+    , ConditionFailed(false)
 {
+}
+
+SqliteResult::SqliteResult(const std::string& friendlyErrorMessage)
+    : SqliteResult()
+{
+    FriendlyErrorMessage = friendlyErrorMessage;
+    ConditionFailed = true;
 }
 
 SqliteResult::SqliteResult(const std::string& friendlyErrorMessage,
@@ -38,6 +46,7 @@ SqliteResult::SqliteResult(const std::string& friendlyErrorMessage,
     , FriendlyErrorMessage(friendlyErrorMessage)
     , ReturnCode(returnCode)
     , ErrorMessage(errorMessage)
+    , ConditionFailed(false)
 {
 }
 
@@ -49,6 +58,11 @@ std::string SqliteResult::GetReturnCodeAndMessage() const
 SqliteResult SqliteResult::OK()
 {
     return SqliteResult();
+}
+
+SqliteResult SqliteResult::CheckFailed(const std::string& friendlyErrorMessage)
+{
+    return SqliteResult(friendlyErrorMessage);
 }
 
 SqliteResult SqliteResult::FailDetailed(const std::string& friendlyErrorMessage,

@@ -29,6 +29,7 @@ const std::string BindStatementMessage =
     "Unable to process the data provided. Please check your inputs and try again";
 const std::string StepStatementMessage =
     "A database error occurred while querying/saving your data";
+const std::string ExecMessage = "A database error occurred while querying your data";
 const std::string StepStatementReturnedMultipleRowsMessage =
     "The database query returned more rows than expected when trying to find your data";
 } // namespace tks::Messages

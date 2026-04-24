@@ -20,6 +20,7 @@
 #include "application.h"
 
 #include <wx/ipc.h>
+#include <wx/richmsgdlg.h>
 #include <wx/taskbarbutton.h>
 
 #include <spdlog/spdlog.h>
@@ -29,6 +30,8 @@
 
 #include "common/common.h"
 #include "common/enums.h"
+
+#include "common/messages/operationmessages.h"
 
 #include "core/environment.h"
 #include "core/configuration.h"
@@ -94,8 +97,6 @@ bool Application::OnInit()
     wxPersistenceManager::Set(*pPersistenceManager);
 
     if (!RunMigrations()) {
-        wxMessageBox(
-            "Failed to run migrations", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
         return false;
     }
 
@@ -209,7 +210,20 @@ bool Application::RunMigrations()
 {
     Core::DatabaseMigration migrations(pLogger, pCfg->GetDatabasePath());
 
-    return migrations.Migrate();
+    auto sqliteResult = migrations.Migrate();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(nullptr,
+            Messages::MigrationExecutionMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return false;
+    }
+
+    return true;
 }
 
 // bool Application::InitializeTranslations()
@@ -232,7 +246,7 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
         }
         pLogger->error("Error occured when setting 'IsSetup' registry key");
     }
-    pLogger->error("Wizard canceled or unexpected error occured when setting registry key");
+    pLogger->error("Wizard could not complete successfully. Review earlier logs for details");
 
     return false;
 }

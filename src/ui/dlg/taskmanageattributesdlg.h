@@ -74,6 +74,7 @@ private:
     void TransferDataFromControls();
 
     wxWindow* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
 
     wxSizer* pMainSizer;
 
@@ -85,8 +86,6 @@ private:
 
     wxButton* pOKButton;
     wxButton* pCancelButton;
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     std::string mDatabaseFilePath;
     std::int64_t mAttributeGroupId;

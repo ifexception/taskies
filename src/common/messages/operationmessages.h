@@ -23,6 +23,12 @@
 
 namespace tks::Messages
 {
+#pragma region Migrations
+const std::string MigrationExecutionMessage =
+    "A database error occurred when running migrations and the database could not be updated, "
+    "please try again or contact the developer";
+#pragma endregion
+
 #pragma region Exports
 const std::string UnsetPresetDefaultMessage =
     "An error occured when trying to unset the default preset";
