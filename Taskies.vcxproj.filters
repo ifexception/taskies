@@ -428,6 +428,12 @@
     <ClCompile Include="src\common\messages\operationmessages.cpp">
       <Filter>Source\common\messages</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\results\configresult.cpp">
+      <Filter>Source\common\results</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\messages\configmessages.cpp">
+      <Filter>Source\common\messages</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -764,6 +770,12 @@
       <Filter>Source\common\results</Filter>
     </ClInclude>
     <ClInclude Include="src\common\messages\operationmessages.h">
+      <Filter>Source\common\messages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\results\configresult.h">
+      <Filter>Source\common\results</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\messages\configmessages.h">
       <Filter>Source\common\messages</Filter>
     </ClInclude>
   </ItemGroup>

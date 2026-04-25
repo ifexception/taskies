@@ -30,6 +30,8 @@
 #include "../common/common.h"
 #include "../common/enums.h"
 
+#include "../common/results/configresult.h"
+
 namespace tks::Core
 {
 class Environment;
@@ -95,14 +97,14 @@ public:
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
     ~Configuration() = default;
 
-    bool LoadAndOrRecreate();
+    ConfigResult LoadAndOrRecreate();
 
-    bool Save();
-    bool RestoreDefaults();
+    ConfigResult Save();
+    ConfigResult RestoreDefaults();
 
-    bool SaveExportPreset(const Common::Preset& presetToSave);
-    bool UpdateExportPreset(const Common::Preset& presetToUpdate);
-    bool TryUnsetDefaultPreset();
+    ConfigResult SaveExportPreset(const Common::Preset& presetToSave);
+    ConfigResult UpdateExportPreset(const Common::Preset& presetToUpdate);
+    ConfigResult TryUnsetDefaultPreset();
 
     std::string GetUserInterfaceLanguage() const;
     void SetUserInterfaceLanguage(const std::string& value);
@@ -171,7 +173,7 @@ public:
     void ClearPresets();
 
 private:
-    bool WriteTomlContentsToFile(const std::string& fileContents);
+    ConfigResult WriteTomlContentsToFile(const std::string& fileContents);
 
     void GetGeneralConfig(const toml::value& root);
     void GetDatabaseConfig(const toml::value& root);

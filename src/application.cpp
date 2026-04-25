@@ -197,15 +197,41 @@ void Application::InitializeLogger()
 bool Application::InitializeConfiguration()
 {
     /* we attempt to load and/or recreate the configuration file or we cannot locate it */
-    bool loadSuccess = pCfg->LoadAndOrRecreate();
+    auto result = pCfg->LoadAndOrRecreate();
+    if (!result.Success) {
+        pLogger->error("An error occurred while loading or recreating configuration. Check earlier "
+                       "logs for more details");
+        wxRichMessageDialog dialog(nullptr,
+            result.HeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.UserMessage);
+        dialog.ShowDetailedText(result.ErrorMessage);
+
+        dialog.ShowModal();
+        return false;
+    }
     /*
      * we then save the file just in case the file didn't exist or a setting(s) was missing
      * if a setting was missing, saving the configuration ensures the configuration is
      * in a good state on the _next_ load
      */
-    bool saveSuccess = pCfg->Save();
+    result = pCfg->Save();
+    if (!result.Success) {
+        pLogger->error("An error occurred while saving configuration. Check earlier "
+                       "logs for more details");
+        wxRichMessageDialog dialog(nullptr,
+            result.HeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.UserMessage);
+        dialog.ShowDetailedText(result.ErrorMessage);
 
-    return loadSuccess && saveSuccess;
+        dialog.ShowModal();
+        return false;
+    }
+
+    return result.Success;
 }
 
 bool Application::RunMigrations()

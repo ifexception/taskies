@@ -20,6 +20,7 @@
 #include "preferencesdlg.h"
 
 #include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/persist/toplevel.h>
 
 #include "../../../common/common.h"
@@ -167,11 +168,18 @@ void PreferencesDialog::OnListBoxSelection(wxCommandEvent& event)
 
 void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
 {
-    bool success = pCfg->RestoreDefaults();
-    if (!success) {
-        wxMessageBox("Failed to restore default configuration",
+    auto result = pCfg->RestoreDefaults();
+    if (!result.Success) {
+        pLogger->error("An error occurred while restoring the default configuration. Check earlier "
+                       "logs for more details");
+        wxRichMessageDialog dialog(this,
+            result.HeaderMessage,
             Common::GetProgramName(),
-            wxICON_ERROR | wxOK_DEFAULT);
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.UserMessage);
+        dialog.ShowDetailedText(result.ErrorMessage);
+
+        dialog.ShowModal();
         return;
     }
 

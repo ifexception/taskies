@@ -23,6 +23,7 @@
 
 #include <wx/dirdlg.h>
 #include <wx/persist/toplevel.h>
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -911,9 +912,20 @@ void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
 
     preset.IncludeAttributes = bIncludeAttributes;
 
-    bool success = pCfg->TryUnsetDefaultPreset();
-    if (!success) {
-        pLogger->warn("Failed to unset default preset on preset save");
+    auto result = pCfg->TryUnsetDefaultPreset();
+    if (!result.Success) {
+        pLogger->error("Failed to unset default preset when saving preset(s)");
+        pLogger->error("An error occurred while unsetting a default preset configuration. "
+                       "Check earlier logs for more details");
+        wxRichMessageDialog dialog(this,
+            result.HeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.UserMessage);
+        dialog.ShowDetailedText(result.ErrorMessage);
+
+        dialog.ShowModal();
+        return;
     }
 
     if (presetData->GetValue().empty()) {

@@ -24,6 +24,8 @@
 
 #include "environment.h"
 
+#include "../common/messages/configmessages.h"
+
 #include "../utils/utils.h"
 
 namespace tks::Core
@@ -68,7 +70,7 @@ Configuration::Configuration(std::shared_ptr<Environment> env,
 {
 }
 
-bool Configuration::LoadAndOrRecreate()
+ConfigResult Configuration::LoadAndOrRecreate()
 {
     SPDLOG_LOGGER_TRACE(pLogger,
         "Looking for configuration file at path \"{0}\"",
@@ -79,10 +81,11 @@ bool Configuration::LoadAndOrRecreate()
             "Failed to find configuration file at \"{0}\". Creating new one from defaults",
             pEnv->GetConfigurationPath().string());
 
-        if (!RestoreDefaults()) {
+        auto result = RestoreDefaults();
+        if (!result.Success) {
             pLogger->error(
                 "Failed to recreate configuration file. See earlier logs for more detail");
-            return false;
+            return result;
         }
     }
 
@@ -92,7 +95,11 @@ bool Configuration::LoadAndOrRecreate()
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
-        return false;
+        return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
+            Messages::CongfigurationFileParseUserMessage,
+            fmt::format(Messages::CongfigurationFileParseErrorMessage,
+                pEnv->GetConfigurationPath().string(),
+                error.what()));
     }
 
     GetGeneralConfig(root);
@@ -102,10 +109,10 @@ bool Configuration::LoadAndOrRecreate()
     GetExportConfig(root);
     GetPresetsConfig(root);
 
-    return true;
+    return ConfigResult::OK();
 }
 
-bool Configuration::Save()
+ConfigResult Configuration::Save()
 {
     // clang-format off
     toml::value root(
@@ -224,11 +231,11 @@ bool Configuration::Save()
 
     const std::string tomlContentsString = toml::format(root);
 
-    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
-    return writeSuccess;
+    auto result = WriteTomlContentsToFile(tomlContentsString);
+    return result;
 }
 
-bool Configuration::RestoreDefaults()
+ConfigResult Configuration::RestoreDefaults()
 {
     SetUserInterfaceLanguage("en-US");
     StartOnBoot(false);
@@ -310,11 +317,11 @@ bool Configuration::RestoreDefaults()
 
     const std::string tomlContentsString = toml::format(root);
 
-    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
-    return writeSuccess;
+    auto result = WriteTomlContentsToFile(tomlContentsString);
+    return result;
 }
 
-bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
+ConfigResult Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 {
     toml::value root;
     try {
@@ -322,7 +329,11 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
-        return false;
+        return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
+            Messages::CongfigurationFileParseUserMessage,
+            fmt::format(Messages::CongfigurationFileParseErrorMessage,
+                pEnv->GetConfigurationPath().string(),
+                error.what()));
     }
 
     root.at(Sections::ExportSection)["presetCount"] = GetPresetCount() + 1;
@@ -375,11 +386,11 @@ bool Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 
     const std::string tomlContentsString = toml::format(root);
 
-    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
-    return writeSuccess;
+    auto result = WriteTomlContentsToFile(tomlContentsString);
+    return result;
 }
 
-bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
+ConfigResult Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
 {
     toml::value root;
     try {
@@ -387,7 +398,11 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
-        return false;
+        return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
+            Messages::CongfigurationFileParseUserMessage,
+            fmt::format(Messages::CongfigurationFileParseErrorMessage,
+                pEnv->GetConfigurationPath().string(),
+                error.what()));
     }
 
     auto& presets = root.at(Sections::PresetsSection).as_array();
@@ -429,11 +444,11 @@ bool Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
 
     const std::string tomlContentsString = toml::format(root);
 
-    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
-    return writeSuccess;
+    auto result = WriteTomlContentsToFile(tomlContentsString);
+    return result;
 }
 
-bool Configuration::TryUnsetDefaultPreset()
+ConfigResult Configuration::TryUnsetDefaultPreset()
 {
     toml::value root;
     try {
@@ -441,11 +456,15 @@ bool Configuration::TryUnsetDefaultPreset()
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
-        return false;
+        return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
+            Messages::CongfigurationFileParseUserMessage,
+            fmt::format(Messages::CongfigurationFileParseErrorMessage,
+                pEnv->GetConfigurationPath().string(),
+                error.what()));
     }
 
     if (!root.contains(Sections::PresetsSection)) {
-        return true;
+        return ConfigResult::OK();
     }
 
     auto& presets = root.at(Sections::PresetsSection).as_array();
@@ -455,8 +474,8 @@ bool Configuration::TryUnsetDefaultPreset()
 
     const std::string tomlContentsString = toml::format(root);
 
-    bool writeSuccess = WriteTomlContentsToFile(tomlContentsString);
-    return writeSuccess;
+    auto result = WriteTomlContentsToFile(tomlContentsString);
+    return result;
 }
 
 std::string Configuration::GetUserInterfaceLanguage() const
@@ -696,23 +715,39 @@ void Configuration::ClearPresets()
     mSettings.PresetSettings.clear();
 }
 
-bool Configuration::WriteTomlContentsToFile(const std::string& fileContents)
+ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileContents)
 {
     const std::string configFilePath = pEnv->GetConfigurationPath().string();
 
     SPDLOG_LOGGER_TRACE(pLogger, "Looking for configuration file at path \"{0}\"", configFilePath);
 
+    if (!std::filesystem::exists(pEnv->GetConfigurationPath())) {
+        return ConfigResult::Fail(Messages::ConfigurationFileNotFoundHeaderMessage,
+            fmt::format(Messages::ConfigurationFileNotExistUserMessage, configFilePath),
+            fmt::format(Messages::ConfigurationFileNotExistErrorMessage, configFilePath));
+    }
+
     std::ofstream configFileStream;
-    configFileStream.open(configFilePath, std::ios::out);
-    if (!configFileStream.is_open()) {
+    // Set exceptions to be thrown on failure
+    configFileStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+    try {
+        configFileStream.open(configFilePath, std::ios::out);
+    } catch (const std::system_error& e) {
         pLogger->error("Failed to open configuration file at path \"{0}\"", configFilePath);
-        return false;
+        return ConfigResult::Fail(Messages::ConfigurationFileOpenHeaderMessage,
+            Messages::ConfigurationFileOpenUserMessage,
+            fmt::format(Messages::ConfigurationFileOpenErrorMessage, e.code().message()));
+    }
+    if (!configFileStream.is_open()) {
+        pLogger->error("Should not get to this point when opening configuration file: \"{0}\"",
+            configFilePath);
     }
 
     configFileStream << fileContents;
 
     configFileStream.close();
-    return true;
+    return ConfigResult::OK();
 }
 
 void Configuration::GetGeneralConfig(const toml::value& root)

@@ -5,5 +5,6 @@ set(
     SRC_COMMON_RESULTS
     "${CMAKE_CURRENT_SOURCE_DIR}/sqliteresult.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/exportresult.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/configresult.cpp"
     PARENT_SCOPE
 )
