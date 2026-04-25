@@ -1353,7 +1353,7 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
 
     if (columnsToExport.size() == 0) {
-        wxMessageBox("Please select at least one column to export!",
+        wxMessageBox("Please select at least one column to export",
             Common::GetProgramName(),
             wxOK_DEFAULT | wxICON_INFORMATION);
         return;
