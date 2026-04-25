@@ -1325,11 +1325,8 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     if (!Validate()) {
         return;
     }
-    pOkButton->Disable();
 
     TransferDataFromControls();
-
-    std::string message = "";
 
     Persistence::WorkdaysPersistence workdayPersistence(pLogger, mDatabaseFilePath);
     std::int64_t workdayId = -1;
@@ -1506,7 +1503,6 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (!sqliteResult.Success) {
-        pOkButton->Enable();
         return;
     }
     if (!bIsEdit) {
@@ -1644,7 +1640,8 @@ bool TaskDialog::Validate()
         return false;
     }
 
-    if (mAttributeGroupId >= 1 && mTaskAttributeValueModels.size() == 0) {
+    if (mAttributeGroupId >= 1 && mTaskAttributeValueModels.size() == 0 &&
+        pIsActiveCheckBoxCtrl->GetValue()) {
         auto valMsg = "No attribute values have been captured for selected attribute group";
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
