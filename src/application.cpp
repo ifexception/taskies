@@ -76,9 +76,6 @@ bool Application::OnInit()
 
     pCfg = std::make_shared<Core::Configuration>(pEnv, pLogger);
     if (!InitializeConfiguration()) {
-        wxMessageBox("An error occured when initializing configuration",
-            Common::GetProgramName(),
-            wxICON_ERROR | wxOK_DEFAULT);
         return false;
     }
 
