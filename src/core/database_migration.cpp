@@ -181,7 +181,7 @@ SqliteResult DatabaseMigration::Migrate() const
         if (!result.Success) {
             return result;
         }
-        if (result.Success && result.ConditionCheckFailed) {
+        if (result.Success && !result.ConditionCheckFailed) {
             continue;
         }
 
@@ -367,7 +367,7 @@ SqliteResult DatabaseMigration::MigrationExists(const std::string& name) const
             Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
-    SPDLOG_LOGGER_TRACE(pLogger, "Migration \"{0}\" status: {1}", name, count);
+    SPDLOG_LOGGER_TRACE(pLogger, "Migration \"{0}\" status: {1}", name, count > 0 ? "yes" : "no");
 
     sqlite3_finalize(stmt);
     if (count > 0) {
