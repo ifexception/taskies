@@ -152,7 +152,7 @@ int Application::OnExit()
     // Under VisualStudio, this must be called before main finishes to workaround a known VS issue
     spdlog::drop_all();
 #endif // TKS_DEBUG
-    SPDLOG_LOGGER_TRACE(pLogger, "Exiting program...\nGoodbye");
+    SPDLOG_LOGGER_TRACE(pLogger, "Exiting program... Goodbye.");
 
     return wxApp::OnExit();
 }
