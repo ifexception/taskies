@@ -1,14 +1,21 @@
 # Taskies Changelog
 
-## v0.3.0-beta (to be released)
-* Add reminders using Windows notification messages or taskbar flashing
-* Add attributes to tasks and export to tasks to csv with attributes
-* Task capture enhancments:
-    * Confirmation before deleting task from task view
-    * Thumb bar actions for "New Task" and "Quick Export"
-    * Task popup menu option to increment time by 15 minutes
-* Validation check on task minute capture to ensure value is factor of 5
-* Improve configuration robustness; handle missing config options without failing and provide defaults where applicable
+## v0.3.* (in progress)
+* [v0.3.*] Feature: User notifications redesign
+
+## v0.3.0 (release 15/03/2026)
+* Feature: Introduce a non vcpkg build option 
+* [v0.3] Feature: Outlook (classic) integration 
+* [v0.3.*] Feature: Portable installation 
+
+## v0.2.8 (release 06/09/2025)
+* [v0.2.*] Feature: Export to excel 
+
+## v0.2.5 (release 21/07/2025)
+* [v0.2.*] Feature: Attributes 
+* [v0.2.*] Feature: Export tasks to CSV with associated attributes 
+* [v0.2.*] Feature: Task capture enhancements
+* [v0.2.*] Fix: Improve configuration robustness and other misc fixes
 
 ## v0.1.1-beta (release 10/03/2025)
 * Fix: No categories on task edit when "Only show associated categories" is not checked (#1)
