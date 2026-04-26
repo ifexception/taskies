@@ -20,6 +20,7 @@
 #include "application.h"
 
 #include <wx/ipc.h>
+#include <wx/richmsgdlg.h>
 #include <wx/taskbarbutton.h>
 
 #include <spdlog/spdlog.h>
@@ -29,6 +30,8 @@
 
 #include "common/common.h"
 #include "common/enums.h"
+
+#include "common/messages/operationmessages.h"
 
 #include "core/environment.h"
 #include "core/configuration.h"
@@ -73,9 +76,6 @@ bool Application::OnInit()
 
     pCfg = std::make_shared<Core::Configuration>(pEnv, pLogger);
     if (!InitializeConfiguration()) {
-        wxMessageBox("An error occured when initializing configuration",
-            Common::GetProgramName(),
-            wxICON_ERROR | wxOK_DEFAULT);
         return false;
     }
 
@@ -94,8 +94,6 @@ bool Application::OnInit()
     wxPersistenceManager::Set(*pPersistenceManager);
 
     if (!RunMigrations()) {
-        wxMessageBox(
-            "Failed to run migrations", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
         return false;
     }
 
@@ -107,7 +105,8 @@ bool Application::OnInit()
         return false;
     }*/
 
-    pLogger->info("Application - Initialize MainFrame with WindowState \"{0}\"",
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Initializing main frame with (WindowState) = \"({0})\"",
         WindowStateToString(pCfg->GetWindowState()));
     auto frame = new UI::MainFrame(pEnv, pCfg, pLogger);
     SetTopWindow(frame);
@@ -138,7 +137,7 @@ bool Application::OnInit()
     }
 
     if (!pEnv->IsSetup()) {
-        pLogger->info("Application - Program not yet set up");
+        SPDLOG_LOGGER_TRACE(pLogger, "Program not yet set up, start first start up procedure");
         if (!FirstStartupProcedure(frame)) {
             return false;
         }
@@ -153,6 +152,7 @@ int Application::OnExit()
     // Under VisualStudio, this must be called before main finishes to workaround a known VS issue
     spdlog::drop_all();
 #endif // TKS_DEBUG
+    SPDLOG_LOGGER_TRACE(pLogger, "Exiting program... Goodbye.");
 
     return wxApp::OnExit();
 }
@@ -194,22 +194,63 @@ void Application::InitializeLogger()
 bool Application::InitializeConfiguration()
 {
     /* we attempt to load and/or recreate the configuration file or we cannot locate it */
-    bool loadSuccess = pCfg->LoadAndOrRecreate();
+    auto result = pCfg->LoadAndOrRecreate();
+    if (!result.Success) {
+        pLogger->error("An error occurred while loading or recreating configuration. Check earlier "
+                       "logs for more details");
+        wxRichMessageDialog dialog(nullptr,
+            result.HeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.UserMessage);
+        dialog.ShowDetailedText(result.ErrorMessage);
+
+        dialog.ShowModal();
+        return false;
+    }
     /*
      * we then save the file just in case the file didn't exist or a setting(s) was missing
      * if a setting was missing, saving the configuration ensures the configuration is
      * in a good state on the _next_ load
      */
-    bool saveSuccess = pCfg->Save();
+    result = pCfg->Save();
+    if (!result.Success) {
+        pLogger->error("An error occurred while saving configuration. Check earlier "
+                       "logs for more details");
+        wxRichMessageDialog dialog(nullptr,
+            result.HeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.UserMessage);
+        dialog.ShowDetailedText(result.ErrorMessage);
 
-    return loadSuccess && saveSuccess;
+        dialog.ShowModal();
+        return false;
+    }
+
+    return result.Success;
 }
 
 bool Application::RunMigrations()
 {
     Core::DatabaseMigration migrations(pLogger, pCfg->GetDatabasePath());
 
-    return migrations.Migrate();
+    auto sqliteResult = migrations.Migrate();
+    if (!sqliteResult.Success) {
+        pLogger->error("An error occurred while running database migrations. Check earlier logs "
+                       "for more details");
+        wxRichMessageDialog dialog(nullptr,
+            Messages::MigrationExecutionMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return false;
+    }
+
+    return true;
 }
 
 // bool Application::InitializeTranslations()
@@ -232,21 +273,21 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
         }
         pLogger->error("Error occured when setting 'IsSetup' registry key");
     }
-    pLogger->error("Wizard canceled or unexpected error occured when setting registry key");
+    pLogger->error("Wizard could not complete successfully. Review earlier logs for details");
 
     return false;
 }
 
 void Application::ActivateOtherInstance()
 {
-    pLogger->info("MainFrame::ActivateOtherInstance begin");
+    SPDLOG_LOGGER_TRACE(pLogger, "Begin activation of other instance");
 
     wxClient client;
     auto connection =
         client.MakeConnection("localhost", Common::GetProgramName(), "ApplicationOptions");
 
     if (connection) {
-        pLogger->info("MainFrame::ActivateOtherInstance connection established");
+        SPDLOG_LOGGER_TRACE(pLogger, "Instance connection established");
         connection->Execute("");
         connection->Disconnect();
     }

@@ -17,13 +17,4 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "notificationclientdata.h"
-
-namespace tks::UI
-{
-NotificationClientData::NotificationClientData(NotificationType notificationType, std::string message)
-    : Type(notificationType)
-    , Message(message)
-{
-}
-} // namespace tks::UI
+#include "operationmessages.h"

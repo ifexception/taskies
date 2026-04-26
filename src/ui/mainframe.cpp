@@ -32,6 +32,8 @@
 
 #include <wx/artprov.h>
 #include <wx/clipbrd.h>
+#include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/persist/toplevel.h>
 #include <wx/richtooltip.h>
 #include <wx/taskbarbutton.h>
@@ -42,6 +44,8 @@
 #include "../common/queryhelper.h"
 #include "../common/enums.h"
 #include "../common/version.h"
+
+#include "../common/messages/persistencemessages.h"
 
 #include "../core/environment.h"
 #include "../core/configuration.h"
@@ -71,7 +75,6 @@
 #include "../ui/dlg/attributes/staticattributevaluesdlg.h"
 
 #include "events.h"
-#include "common/notificationclientdata.h"
 
 // This date was selected arbitrarily
 // wxDatePickerCtrl needs a from and to date for the range
@@ -136,14 +139,12 @@ EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
 EVT_MENU(ID_POP_CLONE_TASK, MainFrame::OnCloneTask)
 EVT_MENU(wxID_ADD, MainFrame::OnAddMinutes)
 /* Custom Event Handlers */
-EVT_COMMAND(wxID_ANY, tksEVT_ADDNOTIFICATION, MainFrame::OnAddNotification)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDFROM, MainFrame::OnTaskDateChangedFrom)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDTO, MainFrame::OnTaskDateChangedTo)
 EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeetingViewClose)
 /* Control Event Handlers */
-EVT_BUTTON(tksIDC_NOTIFICATIONBUTTON, MainFrame::OnNotificationClick)
 EVT_DATE_CHANGED(tksIDC_FROMDATE, MainFrame::OnFromDateSelection)
 EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
@@ -169,12 +170,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pInfoBar(nullptr)
     , pTaskBarIcon(nullptr)
     , pStatusBar(nullptr)
-    , pNotificationPopupWindow(nullptr)
     , pFromDatePickerCtrl(nullptr)
     , pToDatePickerCtrl(nullptr)
-    , pNotificationButton(nullptr)
-    , mBellBitmap(wxNullBitmap)
-    , mBellNotificationBitmap(wxNullBitmap)
     , pDateStore(nullptr)
     , mFromDate()
     , mToDate()
@@ -206,17 +203,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
             600);
         SetSize(FromDIP(wxSize(800, 600)));
     }
-
-    // Initialize image handlers and images
-    wxPNGHandler* pngHandler = new wxPNGHandler();
-    wxImage::AddHandler(pngHandler);
-
-    auto bellImagePath = pEnv->GetResourcesPath() / Common::Resources::Bell();
-    auto bellNotificationImagePath =
-        pEnv->GetResourcesPath() / Common::Resources::BellNotification();
-
-    mBellBitmap.LoadFile(bellImagePath.string(), wxBITMAP_TYPE_PNG);
-    mBellNotificationBitmap.LoadFile(bellNotificationImagePath.string(), wxBITMAP_TYPE_PNG);
 
     // Set main icon in titlebar
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
@@ -266,9 +252,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
     // Create controls
     Create();
-
-    // Create the notification popup window
-    pNotificationPopupWindow = new NotificationPopupWindow(this, pLogger);
 }
 
 MainFrame::~MainFrame()
@@ -290,11 +273,6 @@ MainFrame::~MainFrame()
         pLogger->info("{0} - Reminders enabled and timer is running", TAG);
         pTaskReminderTimer->Stop();
         pLogger->info("{0} - Timer stopped", TAG);
-    }
-
-    if (pNotificationPopupWindow) {
-        pLogger->info("{0} - Delete notification popup window pointer", TAG);
-        delete pNotificationPopupWindow;
     }
 
     pLogger->info("{0} - Destructor complete", TAG);
@@ -436,12 +414,6 @@ void MainFrame::CreateControls()
     topSizer->Add(toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     topSizer->Add(pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    topSizer->AddStretchSpacer();
-
-    pNotificationButton = new wxBitmapButton(framePanel, tksIDC_NOTIFICATIONBUTTON, mBellBitmap);
-    pNotificationButton->SetToolTip("View notifications");
-    topSizer->Add(pNotificationButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
     /* Data View Ctrl */
@@ -550,20 +522,26 @@ void MainFrame::DataToControls()
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDateRange(
+    auto sqliteResult = tasksService.FilterByDateRange(
         pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
             pTaskTreeModel->InsertChildNodes(workdayDate, tasks);
         }
+        pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
+
+        // Status Bar durations
+        CalculateStatusBarTaskDurations();
     }
-
-    pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
-
-    // Status Bar durations
-    CalculateStatusBarTaskDurations();
 }
 
 void MainFrame::OnClose(wxCloseEvent& event)
@@ -618,9 +596,6 @@ void MainFrame::OnIconize(wxIconizeEvent& event)
 
 void MainFrame::OnResize(wxSizeEvent& event)
 {
-    if (pNotificationPopupWindow) {
-        pNotificationPopupWindow->OnResize();
-    }
     if (pMeetingsViewFrame) {
         pMeetingsViewFrame->OnParentFrameResize();
     }
@@ -703,24 +678,6 @@ void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 
         mThumbBarDialogOpenCounter--;
     }
-}
-
-void MainFrame::OnNotificationClick(wxCommandEvent& event)
-{
-    pNotificationButton->SetBitmap(mBellBitmap);
-
-    wxWindow* btn = (wxWindow*) event.GetEventObject();
-
-    auto y = GetClientSize().GetWidth();
-    auto xPositionOffset = (GetClientSize().GetWidth() + 4) * 0.25;
-    if (GetClientSize().GetWidth() < 800) {
-        xPositionOffset = 200; // cap notification window width at 200
-    }
-
-    wxPoint pos = btn->ClientToScreen(wxPoint(xPositionOffset * -1, 0));
-    wxSize size = btn->GetSize();
-    pNotificationPopupWindow->Position(pos, size);
-    pNotificationPopupWindow->Popup();
 }
 
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
@@ -809,6 +766,16 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
         if (rc != SQLITE_DONE) {
             const char* error = sqlite3_errmsg(backupDb);
             pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
+            SqliteResult sqliteResult("A database error occurred while backing up data", rc, error);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UnsetDefaultEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
 
         rc = sqlite3_backup_finish(backup);
@@ -819,14 +786,6 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
 
     sqlite3_close(db);
     sqlite3_close(backupDb);
-
-    std::string message = "Backup successful";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(this, addNotificationEvent);
 }
 
 void MainFrame::OnTasksExportToCsv(wxCommandEvent& WXUNUSED(event))
@@ -1015,9 +974,16 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDate(mTaskDate, taskModels);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         std::stringstream formattedClipboardData;
         for (const auto& taskModel : taskModels) {
@@ -1058,9 +1024,16 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDate(mTaskDate, taskModels);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         std::stringstream formattedClipboardData;
         if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
@@ -1114,9 +1087,16 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
     std::string description;
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = taskPersistence.GetDescriptionById(mTaskIdToModify, description);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = taskPersistence.GetDescriptionById(mTaskIdToModify, description);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetDescriptionByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         auto canOpen = wxTheClipboard->Open();
         if (canOpen) {
@@ -1143,19 +1123,33 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
     if (ret == wxID_OK) {
         bool isActive = false;
         Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
-        int rc = taskPersistence.IsDeleted(mTaskIdToModify, isActive);
-        if (rc != 0) {
-            QueueFetchTasksErrorNotificationEvent();
-            return;
+
+        auto sqliteResult = taskPersistence.IsDeleted(mTaskIdToModify, isActive);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdTaskMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
 
         if (isActive) {
             Services::TaskViewModel taskModel;
             Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-            int rc = tasksService.GetById(mTaskIdToModify, taskModel);
-            if (rc != 0) {
-                QueueFetchTasksErrorNotificationEvent();
+            auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::GetByIdTaskMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
             } else {
                 pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
 
@@ -1182,15 +1176,17 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     Model::TaskModel taskModel;
-    int rc = taskPersistence.GetById(mTaskIdToModify, taskModel);
-    if (rc != 0) {
-        std::string message = "Failed to fetch task";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
 
-        wxQueueEvent(this, addNotificationEvent);
+    auto sqliteResult = taskPersistence.GetById(mTaskIdToModify, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
 
         ResetTaskContextMenuVariables();
         return;
@@ -1201,42 +1197,37 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     if (taskModel.AttendedMeetingId.has_value()) {
         Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
             pLogger, mDatabaseFilePath);
-        rc = attendedMeetingsPersistence.Delete(taskModel.AttendedMeetingId.value());
-        if (rc != 0) {
-            std::string message = "Failed to delete attended meeting associated to task";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-            NotificationClientData* clientData =
-                new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
+        auto sqliteResult = attendedMeetingsPersistence.Delete(taskModel.AttendedMeetingId.value());
 
-            wxQueueEvent(this, addNotificationEvent);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteAttendedMeetingMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
 
             ResetTaskContextMenuVariables();
             return;
         }
     }
 
-    rc = taskPersistence.Delete(mTaskIdToModify);
-    if (rc != 0) {
-        std::string message = "Failed to delete selected task";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+    sqliteResult = taskPersistence.Delete(mTaskIdToModify);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DeleteTaskMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(this, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->DeleteChild(mTaskDate, mTaskIdToModify);
 
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
-
-        std::string message = "Successfully deleted task";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(this, addNotificationEvent);
     }
 
     ResetTaskContextMenuVariables();
@@ -1261,10 +1252,17 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 
     Services::TaskDurationService taskDurationService(pLogger, mDatabaseFilePath);
 
-    int rc = taskDurationService.GetTaskTimeByIdAndIncrementByValue(
+    auto sqliteResult = taskDurationService.GetTaskTimeByIdAndIncrementByValue(
         mTaskIdToModify, pCfg->GetMinutesIncrement());
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DurationIncrementMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         ResetTaskContextMenuVariables();
         return;
     }
@@ -1272,9 +1270,16 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     Services::TaskViewModel taskModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    rc = tasksService.GetById(mTaskIdToModify, taskModel);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
 
@@ -1282,23 +1287,6 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     }
 
     ResetTaskContextMenuVariables();
-}
-
-void MainFrame::OnAddNotification(wxCommandEvent& event)
-{
-    pLogger->info("MainFrame::OnAddNotification - Received notification event");
-
-    pNotificationButton->SetBitmap(mBellNotificationBitmap);
-
-    NotificationClientData* notificationClientData =
-        reinterpret_cast<NotificationClientData*>(event.GetClientObject());
-
-    pNotificationPopupWindow->AddNotification(
-        notificationClientData->Message, notificationClientData->Type);
-
-    if (notificationClientData) {
-        delete notificationClientData;
-    }
 }
 
 void MainFrame::OnTaskAddedOnDate(wxCommandEvent& event)
@@ -1468,9 +1456,16 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
         std::vector<Services::TaskViewModel> tasks;
         Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        int rc = tasksService.FilterByDate(fromDateString, tasks);
-        if (rc != 0) {
-            QueueFetchTasksErrorNotificationEvent();
+        auto sqliteResult = tasksService.FilterByDate(fromDateString, tasks);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterByDateTaskMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         } else {
             pTaskTreeModel->ClearAll();
             pTaskTreeModel->InsertRootAndChildNodes(fromDateString, tasks);
@@ -1490,9 +1485,16 @@ void MainFrame::OnFromDateSelection(wxDateEvent& event)
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
@@ -1558,9 +1560,16 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
         std::vector<Services::TaskViewModel> tasks;
         Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        int rc = tasksService.FilterByDate(date, tasks);
-        if (rc != 0) {
-            QueueFetchTasksErrorNotificationEvent();
+        auto sqliteResult = tasksService.FilterByDate(date, tasks);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterByDateTaskMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         } else {
             pTaskTreeModel->ClearAll();
             pTaskTreeModel->InsertRootAndChildNodes(date, tasks);
@@ -1575,9 +1584,16 @@ void MainFrame::OnToDateSelection(wxDateEvent& event)
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.FilterByDateRange(dates, tasksGroupedByWorkday);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
@@ -1766,10 +1782,17 @@ void MainFrame::RefetchTasksForDateRange()
     std::map<std::string, std::vector<Services::TaskViewModel>> tasksGroupedByWorkday;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.FilterByDateRange(
+    auto sqliteResult = tasksService.FilterByDateRange(
         pDateStore->MondayToSundayDateRangeList, tasksGroupedByWorkday);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->ClearAll();
         for (auto& [workdayDate, tasks] : tasksGroupedByWorkday) {
@@ -1783,9 +1806,16 @@ void MainFrame::RefetchTasksForDate(const std::string& date, const std::int64_t 
     Services::TaskViewModel taskModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    int rc = tasksService.GetById(taskId, taskModel);
-    if (rc != 0) {
-        QueueFetchTasksErrorNotificationEvent();
+    auto sqliteResult = tasksService.GetById(taskId, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pTaskTreeModel->InsertChildNode(date, taskModel);
     }
@@ -1863,17 +1893,6 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 {
     pStatusBar->UpdateDefaultHoursDay(date, date);
     pStatusBar->UpdateBillableHoursDay(date, date);
-}
-
-void MainFrame::QueueFetchTasksErrorNotificationEvent()
-{
-    std::string message = "Failed to fetch tasks";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(this, addNotificationEvent);
 }
 
 void MainFrame::SetFromAndToDatePickerRanges()

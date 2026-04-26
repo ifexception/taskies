@@ -22,26 +22,26 @@
 #include <cstdint>
 #include <memory>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/workdaymodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct WorkdaysPersistence final {
+struct WorkdaysPersistence final : public PersistenceBase {
+    WorkdaysPersistence() = delete;
+    WorkdaysPersistence(const WorkdaysPersistence&) = delete;
     WorkdaysPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~WorkdaysPersistence();
+    virtual ~WorkdaysPersistence();
 
-    int FilterByDate(const std::string& date, Model::WorkdayModel model) const;
-    std::int64_t GetWorkdayIdByDate(const std::string& date) const;
-    std::int64_t Create(const std::string& date) const;
+    WorkdaysPersistence& operator=(const WorkdaysPersistence&) = delete;
 
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    SqliteResult FilterByDate(const std::string& date, Model::WorkdayModel model) const;
+    SqliteResult GetWorkdayIdByDate(std::int64_t& workdayId, const std::string& date) const;
+    SqliteResult Create(std::int64_t& workdayId, const std::string& date) const;
 
     static std::string getWorkdayIdByDate;
     static std::string filterByDate;

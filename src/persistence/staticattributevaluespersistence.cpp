@@ -20,7 +20,8 @@
 #include "staticattributevaluespersistence.h"
 
 #include "../common/logmessages.h"
-#include "../common/queryhelper.h"
+
+#include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
 
@@ -29,73 +30,13 @@ namespace tks::Persistence
 StaticAttributeValuesPersistence::StaticAttributeValuesPersistence(
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : PersistenceBase(logger, databaseFilePath)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-StaticAttributeValuesPersistence::~StaticAttributeValuesPersistence()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
+StaticAttributeValuesPersistence::~StaticAttributeValuesPersistence() {}
 
-std::int64_t StaticAttributeValuesPersistence::Create(
+SqliteResult StaticAttributeValuesPersistence::Create(std::int64_t& staticAttributeValueId,
     const Model::StaticAttributeValueModel& staticAttributeValueModel) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -114,7 +55,8 @@ std::int64_t StaticAttributeValuesPersistence::Create(
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -134,7 +76,7 @@ std::int64_t StaticAttributeValuesPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "text_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -150,7 +92,7 @@ std::int64_t StaticAttributeValuesPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "boolean_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -166,7 +108,7 @@ std::int64_t StaticAttributeValuesPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "numeric_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -179,7 +121,7 @@ std::int64_t StaticAttributeValuesPersistence::Create(
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -191,7 +133,7 @@ std::int64_t StaticAttributeValuesPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     assert(bindIndex == 5);
@@ -204,32 +146,35 @@ std::int64_t StaticAttributeValuesPersistence::Create(
             LogMessages::ExecStepTemplate, StaticAttributeValuesPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
 
-    std::int64_t rowId = sqlite3_last_insert_rowid(pDb);
+    staticAttributeValueId = sqlite3_last_insert_rowid(pDb);
 
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "static_attribute_value", rowId);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::EntityCreated, "static_attribute_value", staticAttributeValueId);
 
-    return rowId;
+    return SqliteResult::OK();
 }
 
-int StaticAttributeValuesPersistence::CreateMultiple(
+SqliteResult StaticAttributeValuesPersistence::CreateMultiple(
     const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const
 {
     for (const auto& staticAttributeValueModel : staticAttributeValueModels) {
-        std::int64_t rc = Create(staticAttributeValueModel);
-        if (rc < 1) {
-            return -1;
+        std::int64_t staticAttributeValueId = -1;
+        auto sqliteResult = Create(staticAttributeValueId, staticAttributeValueModel);
+        if (!sqliteResult.Success) {
+            return sqliteResult;
         }
     }
 
-    return 0;
+    return SqliteResult::OK();
 }
 
-int StaticAttributeValuesPersistence::FilterByAttributeGroupId(const std::int64_t attributeGroupId,
+SqliteResult StaticAttributeValuesPersistence::FilterByAttributeGroupId(
+    const std::int64_t attributeGroupId,
     std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -248,7 +193,8 @@ int StaticAttributeValuesPersistence::FilterByAttributeGroupId(const std::int64_
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -261,7 +207,7 @@ int StaticAttributeValuesPersistence::FilterByAttributeGroupId(const std::int64_
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -332,17 +278,17 @@ int StaticAttributeValuesPersistence::FilterByAttributeGroupId(const std::int64_
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::EntityGetById, "static_attribute_values", attributeGroupId);
 
-    return 0;
+    return SqliteResult::OK();
 }
 
-int StaticAttributeValuesPersistence::Update(
+SqliteResult StaticAttributeValuesPersistence::Update(
     const Model::StaticAttributeValueModel& staticAttributeValueModel) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -361,7 +307,8 @@ int StaticAttributeValuesPersistence::Update(
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -381,7 +328,7 @@ int StaticAttributeValuesPersistence::Update(
         pLogger->error(LogMessages::BindParameterTemplate, "text_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -397,7 +344,7 @@ int StaticAttributeValuesPersistence::Update(
         pLogger->error(LogMessages::BindParameterTemplate, "boolean_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -413,7 +360,7 @@ int StaticAttributeValuesPersistence::Update(
         pLogger->error(LogMessages::BindParameterTemplate, "numeric_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -426,7 +373,7 @@ int StaticAttributeValuesPersistence::Update(
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -438,7 +385,7 @@ int StaticAttributeValuesPersistence::Update(
         pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -450,7 +397,7 @@ int StaticAttributeValuesPersistence::Update(
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -463,7 +410,7 @@ int StaticAttributeValuesPersistence::Update(
             LogMessages::BindParameterTemplate, "static_attribute_value_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     assert(bindIndex == 7);
@@ -476,31 +423,32 @@ int StaticAttributeValuesPersistence::Update(
             LogMessages::ExecStepTemplate, StaticAttributeValuesPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
-    return 0;
+    return SqliteResult::OK();
 }
 
-int StaticAttributeValuesPersistence::UpdateMultiple(
+SqliteResult StaticAttributeValuesPersistence::UpdateMultiple(
     const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const
 {
     for (const auto& staticAttributeValueModel : staticAttributeValueModels) {
-        int rc = Update(staticAttributeValueModel);
-        if (rc != 0) {
-            return -1;
+        auto sqliteResult = Update(staticAttributeValueModel);
+        if (!sqliteResult.Success) {
+            return sqliteResult;
         }
     }
 
-    return 0;
+    return SqliteResult::OK();
 }
 
-int StaticAttributeValuesPersistence::Delete(
+SqliteResult StaticAttributeValuesPersistence::Delete(
     const std::vector<std::int64_t>& staticAttributeValueIds) const
 {
-    std::string csvIds = Utils::ConvertListIdsToCommaDelimitedString(staticAttributeValueIds);
-    std::string sql = StaticAttributeValuesPersistence::isActive + "(" + csvIds + ")";
+    std::string idsInCsvFormat =
+        Utils::ConvertListIdsToCommaDelimitedString(staticAttributeValueIds);
+    std::string sql = StaticAttributeValuesPersistence::isActive + "(" + idsInCsvFormat + ")";
 
     sqlite3_stmt* stmt = nullptr;
 
@@ -511,7 +459,8 @@ int StaticAttributeValuesPersistence::Delete(
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -523,7 +472,7 @@ int StaticAttributeValuesPersistence::Delete(
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -533,16 +482,18 @@ int StaticAttributeValuesPersistence::Delete(
         pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityDeleted, "static_attribute_values", csvIds);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::EntityDeleted, "static_attribute_values", idsInCsvFormat);
 
-    return 0;
+    return SqliteResult::OK();
 }
 
-int StaticAttributeValuesPersistence::CheckUsage(const std::vector<std::int64_t>& attributeIds,
+SqliteResult StaticAttributeValuesPersistence::CheckUsage(
+    const std::vector<std::int64_t>& attributeIds,
     bool& value) const
 {
     std::string csvIds = Utils::ConvertListIdsToCommaDelimitedString(attributeIds);
@@ -557,7 +508,8 @@ int StaticAttributeValuesPersistence::CheckUsage(const std::vector<std::int64_t>
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -567,7 +519,7 @@ int StaticAttributeValuesPersistence::CheckUsage(const std::vector<std::int64_t>
         pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
@@ -581,14 +533,15 @@ int StaticAttributeValuesPersistence::CheckUsage(const std::vector<std::int64_t>
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::EntityUsage, "static_attribute_values", csvIds, value);
 
-    return 0;
+    return SqliteResult::OK();
 }
 
 std::string StaticAttributeValuesPersistence::create = "INSERT INTO "

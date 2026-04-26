@@ -24,6 +24,7 @@
 #include <string>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -63,11 +64,9 @@ private:
     bool Validate();
     void TransferDataFromControls();
 
-    void QueueErrorNotificationEvent(const std::string& message);
-
+    wxWindow* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
 
-    wxWindow* pParent;
     wxBoxSizer* pMainSizer;
 
     wxTextCtrl* pNameTextCtrl;

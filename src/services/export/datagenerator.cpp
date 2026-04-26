@@ -75,11 +75,13 @@ ExportResult DataGenerator::FillData(const std::vector<Projection>& projections,
      * each std::string contains the corresponding value relating to the headers position
      * see the function `FilterExportCsvData` for more detail
      */
-    rc = exportsService.FilterExportDataFromGeneratedSql(sql, data.Headers.size(), rows);
-    if (rc != 0) {
+    auto sqliteResult =
+        exportsService.FilterExportDataFromGeneratedSql(sql, data.Headers.size(), rows);
+    if (!sqliteResult.Success) {
         pLogger->error("Failed to filter projected export data from generated SQL query. See "
                        "earlier logs for error detail");
-        return ExportResult::Fail("A database error occurred when filtering task data for export");
+        return ExportResult::FailWithSqliteResult(
+            "A database error occurred when filtering task data for export", sqliteResult);
     }
 
     /* set the task row values into the `Rows` field of `SData` */
@@ -127,16 +129,18 @@ ExportResult DataGenerator::FillAttributes(const std::string& fromDate,
      * `taskId` matches
      * SQLite by defaults return the attribute names sorted alphabetically ascending
      */
-    rc = exportsService.GetAttributeNames(fromDate, toDate, taskId, bIsPreview, attributeNames);
-    if (rc != 0) {
+    auto sqliteResult =
+        exportsService.GetAttributeNames(fromDate, toDate, taskId, bIsPreview, attributeNames);
+    if (!sqliteResult.Success) {
         pLogger->error(
             "Failed to get attribute names for date range. See earlier logs for error detail");
-        return ExportResult::Fail("Failed to get task attribute names for specified date range");
+        return ExportResult::FailWithSqliteResult(
+            "Failed to get task attribute names for specified date range", sqliteResult);
     }
 
     /* we have not found any attributes associated with the task or tasks so we can return */
     if (attributeNames.empty()) {
-        pLogger->warn("No attribute names were found for date range. Nothing to do");
+        pLogger->warn("No attribute names were found for date range. Nothing to do...");
         return ExportResult::OK();
     }
 
@@ -150,11 +154,13 @@ ExportResult DataGenerator::FillAttributes(const std::string& fromDate,
      * get the actual attribute names (headers) and their values and insert the pair into
      * the std::unordered_map with (again) the `taskId` serving as the unique key
      */
-    rc = exportsService.FilterExportCsvAttributesData(attributeSql, attributeHeaderValueRows);
-    if (rc != 0) {
+    sqliteResult =
+        exportsService.FilterExportCsvAttributesData(attributeSql, attributeHeaderValueRows);
+    if (!sqliteResult.Success) {
         pLogger->error("Failed to filter attribute data from generated attribute SQL query. See "
                        "earlier logs for more detail");
-        return ExportResult::Fail("A database error occurred when filtering task attribute data");
+        return ExportResult::FailWithSqliteResult(
+            "A database error occurred when filtering task attribute data", sqliteResult);
     }
 
     /* append the attribute names (headers) to the `SData` field `Headers` (order is important) */

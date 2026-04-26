@@ -24,6 +24,7 @@
 
 #include <wx/artprov.h>
 #include <wx/persist/toplevel.h>
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -31,12 +32,14 @@
 
 #include "../events.h"
 #include "../common/clientdata.h"
-#include "../common/notificationclientdata.h"
 #include "../common/taskattributevalueclientdata.h"
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
+
+#include "../../common/results/sqliteresult.h"
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../core/configuration.h"
 
@@ -480,7 +483,7 @@ void TaskDialog::FillControls()
             mDate);
     }
 
-    std::string defaultSearhTerm = "";
+    std::string defaultSearchTerm = "";
 
     pAttributeGroupChoiceCtrl->Append("Select attribute group", new ClientData<std::int64_t>(-1));
     pAttributeGroupChoiceCtrl->SetSelection(0);
@@ -502,10 +505,17 @@ void TaskDialog::FillControls()
     std::vector<Model::AttributeGroupModel> attributeGroupModels;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.Filter(defaultSearhTerm, attributeGroupModels);
-    if (rc != 0) {
-        std::string message = "Failed to get attribute groups";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = attributeGroupsPersistence.Filter(defaultSearchTerm, attributeGroupModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeGroupsMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return;
     } else {
         for (const auto& attributeGroupModel : attributeGroupModels) {
             pAttributeGroupChoiceCtrl->Append(attributeGroupModel.Name,
@@ -521,11 +531,18 @@ void TaskDialog::FillControls()
                         Persistence::StaticAttributeValuesPersistence
                             staticAttributeValuesPersistence(pLogger, mDatabaseFilePath);
 
-                        rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
-                            attributeGroupModel.AttributeGroupId, staticAttributeValueModels);
-                        if (rc == -1) {
-                            std::string message = "Failed to get static attribute values";
-                            QueueErrorNotificationEvent(message);
+                        auto sqliteResult =
+                            staticAttributeValuesPersistence.FilterByAttributeGroupId(
+                                attributeGroupModel.AttributeGroupId, staticAttributeValueModels);
+                        if (!sqliteResult.Success) {
+                            wxRichMessageDialog dialog(this,
+                                Messages::FilterStaticAttributesByAttributeGroupIdMessage,
+                                tks::Common::GetProgramName(),
+                                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                            dialog.ShowModal();
                             return;
                         }
 
@@ -560,10 +577,16 @@ void TaskDialog::FillControls()
     std::vector<Model::EmployerModel> employers;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    rc = employerPersistence.Filter(defaultSearhTerm, employers);
-    if (rc != 0) {
-        std::string message = "Failed to get employers";
-        QueueErrorNotificationEvent(message);
+    sqliteResult = employerPersistence.Filter(defaultSearchTerm, employers);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterEmployersMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         for (auto& employer : employers) {
             pEmployerChoiceCtrl->Append(
@@ -577,13 +600,18 @@ void TaskDialog::FillControls()
     }
 
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    rc = ClientsPersistence.FilterByEmployerId(mEmployerId, clients);
+    auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsByEmployerMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-    if (rc != 0) {
-        std::string message = "Failed to get clients";
-        QueueErrorNotificationEvent(message);
+        dialog.ShowModal();
     } else {
         if (!clients.empty()) {
             if (!pClientChoiceCtrl->IsEnabled()) {
@@ -691,10 +719,16 @@ void TaskDialog::DataToControls()
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     bool isSuccess = false;
 
-    int ret = taskPersistence.GetById(mTaskId, taskModel);
-    if (ret != 0) {
-        std::string message = "Failed to get task";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = taskPersistence.GetById(mTaskId, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pBillableCheckBoxCtrl->SetValue(taskModel.Billable);
         pUniqueIdentiferTextCtrl->ChangeValue(
@@ -717,25 +751,38 @@ void TaskDialog::DataToControls()
     Model::ProjectModel projectModel;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    ret = projectPersistence.GetById(taskModel.ProjectId, projectModel);
-    if (ret != 0) {
-        std::string message = "Failed to get project";
-        QueueErrorNotificationEvent(message);
+    sqliteResult = projectPersistence.GetById(taskModel.ProjectId, projectModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
+        dialog.ShowModal();
         return;
     }
 
     if (!employerSelected) {
         // load projects
         std::vector<Model::ProjectModel> projects;
-        ret = projectPersistence.FilterByEmployerIdOrClientId(
+
+        auto sqliteResult = projectPersistence.FilterByEmployerIdOrClientId(
             std::make_optional(projectModel.EmployerId),
             projectModel.ClientId.has_value() ? projectModel.ClientId : std::nullopt,
             projects);
-        if (ret != 0) {
-            std::string message = "Failed to get projects";
-            QueueErrorNotificationEvent(message);
-            isSuccess = false;
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterProjectsMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+
+            return;
         } else {
             if (!projects.empty()) {
                 if (!pProjectChoiceCtrl->IsEnabled()) {
@@ -755,33 +802,44 @@ void TaskDialog::DataToControls()
 
     if (!employerSelected) {
         // load employer
-        Model::EmployerModel employer;
+        Model::EmployerModel employerModel;
         Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-        ret = employerPersistence.GetById(projectModel.EmployerId, employer);
-        if (ret == -1) {
-            std::string message = "Failed to get employer";
-            QueueErrorNotificationEvent(message);
+        auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateEmployerMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
 
             isSuccess = false;
         } else {
-            pEmployerChoiceCtrl->SetStringSelection(employer.Name);
+            pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
             isSuccess = true;
         }
     }
 
     // load clients
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
     if (!employerSelected) {
         std::vector<Model::ClientModel> clients;
         std::string defaultSearchTerm = "";
-        ret = ClientsPersistence.FilterByEmployerId(projectModel.EmployerId, clients);
-        if (ret == -1) {
-            std::string message = "Failed to get clients";
-            QueueErrorNotificationEvent(message);
 
-            isSuccess = false;
+        auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
+        if (!result.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterClientsByEmployerMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         } else {
             // load client
             if (!clients.empty()) {
@@ -792,11 +850,18 @@ void TaskDialog::DataToControls()
 
                 if (projectModel.ClientId.has_value()) {
                     Model::ClientModel client;
-                    ret = ClientsPersistence.GetById(projectModel.ClientId.value(), client);
-                    if (ret == -1) {
-                        std::string message = "Failed to get client";
-                        QueueErrorNotificationEvent(message);
 
+                    auto sqliteResult =
+                        clientsPersistence.GetById(projectModel.ClientId.value(), client);
+                    if (!sqliteResult.Success) {
+                        wxRichMessageDialog dialog(this,
+                            Messages::GetByIdClientMessage,
+                            tks::Common::GetProgramName(),
+                            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                        dialog.ShowModal();
                         isSuccess = false;
                     } else {
                         pClientChoiceCtrl->SetStringSelection(client.Name);
@@ -810,11 +875,17 @@ void TaskDialog::DataToControls()
     } else {
         if (projectModel.ClientId.has_value()) {
             Model::ClientModel client;
-            ret = ClientsPersistence.GetById(projectModel.ClientId.value(), client);
-            if (ret == -1) {
-                std::string message = "Failed to get client";
-                QueueErrorNotificationEvent(message);
 
+            auto sqliteResult = clientsPersistence.GetById(projectModel.ClientId.value(), client);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::GetByIdClientMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
                 isSuccess = false;
             } else {
                 pClientChoiceCtrl->SetStringSelection(client.Name);
@@ -828,19 +899,30 @@ void TaskDialog::DataToControls()
 
     Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
     std::vector<Services::CategoryViewModel> categories;
+    std::string operationMessage;
 
     if (pCfg->ShowProjectAssociatedCategories()) {
-        ret = categoryService.FilterByProjectId(taskModel.ProjectId, categories);
+        sqliteResult = categoryService.FilterByProjectId(taskModel.ProjectId, categories);
+        operationMessage = Messages::FilterCategoriesByProjectMessage;
     } else {
-        ret = categoryService.Filter(categories);
+        sqliteResult = categoryService.Filter(categories);
+        operationMessage = Messages::FilterCategoriesMessage;
     }
 
-    if (ret == -1) {
-        std::string message = "Failed to get categories";
-        QueueErrorNotificationEvent(message);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            operationMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
 
         isSuccess = false;
     }
+
+    int ret = 0;
 
     if (!categories.empty()) {
         if (!pCategoryChoiceCtrl->IsEnabled()) {
@@ -853,12 +935,16 @@ void TaskDialog::DataToControls()
         }
 
         Services::CategoryViewModel category;
-        ret = categoryService.GetById(taskModel.CategoryId, category);
-        if (ret != 0) {
-            std::string message = "Failed to get category";
-            QueueErrorNotificationEvent(message);
+        sqliteResult = categoryService.GetById(taskModel.CategoryId, category);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdCategoryMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-            isSuccess = false;
+            dialog.ShowModal();
         } else {
             pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
             isSuccess = true;
@@ -887,11 +973,17 @@ void TaskDialog::DataToControls()
         Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);
 
-        int rc = taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
-        if (rc != 0) {
-            std::string message = "Failed to fetch attribute values";
-            QueueErrorNotificationEvent(message);
-            return;
+        auto sqliteResult =
+            taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterTaskAttributeValuesByTaskIdMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
 
         if (mTaskAttributeValueModels.size() > 0) {
@@ -971,11 +1063,16 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
             Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
                 pLogger, mDatabaseFilePath);
 
-            int rc = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
-            if (rc == -1) {
-                std::string message = "Failed to delete task attribute values";
-                QueueErrorNotificationEvent(message);
-                return;
+            auto sqliteResult = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::DeleteTaskAttributeValuesMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
             }
         }
 
@@ -997,11 +1094,16 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
-    if (rc == -1) {
-        mAttributeGroupId = -1;
-        std::string message = "Failed to get attribute group";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdAttributeGroupMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return;
     }
 
@@ -1010,11 +1112,17 @@ void TaskDialog::OnAttributeGroupChoiceSelection(wxCommandEvent& event)
         Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);
 
-        rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+        auto sqliteResult = staticAttributeValuesPersistence.FilterByAttributeGroupId(
             mAttributeGroupId, staticAttributeValueModels);
-        if (rc == -1) {
-            std::string message = "Failed to get static attribute values";
-            QueueErrorNotificationEvent(message);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterStaticAttributesByAttributeGroupIdMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
 
@@ -1158,12 +1266,17 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
 
     Model::CategoryModel model;
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
-    int ret = 0;
 
-    ret = categoryPersistence.GetById(categoryId, model);
-    if (ret == -1) {
-        std::string message = "Failed to get category";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = categoryPersistence.GetById(categoryId, model);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterCategoriesMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         if (model.Billable) {
             pBillableCheckBoxCtrl->SetValue(true);
@@ -1212,20 +1325,22 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     if (!Validate()) {
         return;
     }
-    pOkButton->Disable();
 
     TransferDataFromControls();
 
-    int ret = 0;
-    std::string message = "";
-
     Persistence::WorkdaysPersistence workdayPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t workdayId = workdayPersistence.GetWorkdayIdByDate(mDate);
-    ret = workdayId > 0 ? 0 : -1;
+    std::int64_t workdayId = -1;
+    auto sqliteResult = workdayPersistence.GetWorkdayIdByDate(workdayId, mDate);
 
-    if (ret == -1) {
-        std::string message = "Failed to create/get workday for task";
-        QueueErrorNotificationEvent(message);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetWorkdayIdByDateMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return;
     }
 
@@ -1239,131 +1354,198 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
     if (!bIsEdit) {
         if (bIsMeeting) {
-            std::int64_t attendedMeetingId =
-                attendedMeetingsPersistence.Create(mAttendedMeetingModel);
-            ret = attendedMeetingId > 0 ? 0 : -1;
-            ret == -1 ? message = "Failed to create attended meeting entry"
-                      : message = "Successfully created attended meeting entry";
+            std::int64_t attendedMeetingId = -1;
+            sqliteResult =
+                attendedMeetingsPersistence.Create(attendedMeetingId, mAttendedMeetingModel);
 
-            QueueNotificationEvent(ret, message);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::CreateAttendedMeetingMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-            if (ret == 0) {
+                dialog.ShowModal();
+            }
+
+            if (sqliteResult.Success) {
                 mTaskModel.AttendedMeetingId = std::make_optional(attendedMeetingId);
             }
         }
 
-        std::int64_t taskId = taskPersistence.Create(mTaskModel);
-        ret = taskId > 0 ? 0 : -1;
+        std::int64_t taskId = -1;
+        sqliteResult = taskPersistence.Create(taskId, mTaskModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateTaskMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
+
         mTaskId = taskId;
 
-        ret == -1 ? message = "Failed to create task" : message = "Successfully created task";
-        QueueNotificationEvent(ret, message);
-
-        if (ret == 0 && mTaskAttributeValueModels.size() > 0) {
+        if (sqliteResult.Success && mTaskAttributeValueModels.size() > 0) {
             for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
                 mTaskAttributeValueModels[i].TaskId = taskId;
             }
 
-            ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
+            auto sqliteResult =
+                taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
 
-            ret == -1 ? message = "Failed to create task attribute values"
-                      : message = "Successfully created task attribute values";
-            QueueNotificationEvent(ret, message);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::CreateTaskAttributeValuesMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+                return;
+            }
         }
     }
 
     if (bIsEdit && mTaskModel.IsActive) {
         if (mTaskAttributeValueModels.size() > 0) {
             if (bHasTaskAttributeValues) {
-                ret = taskAttributeValuesPersistence.UpdateMultiple(mTaskAttributeValueModels);
+                auto sqliteResult =
+                    taskAttributeValuesPersistence.UpdateMultiple(mTaskAttributeValueModels);
 
-                ret == -1 ? message = "Failed to update task attribute values"
-                          : message = "Successfully updated task attribute values";
+                if (!sqliteResult.Success) {
+                    wxRichMessageDialog dialog(this,
+                        Messages::UpdateTaskAttributeValuesMessage,
+                        tks::Common::GetProgramName(),
+                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                    dialog.ShowModal();
+                }
             } else {
                 for (size_t i = 0; i < mTaskAttributeValueModels.size(); i++) {
                     mTaskAttributeValueModels[i].TaskId = mTaskId;
                 }
 
-                ret = taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
+                auto sqliteResult =
+                    taskAttributeValuesPersistence.CreateMany(mTaskAttributeValueModels);
 
-                ret == -1 ? message = "Failed to create task attribute values"
-                          : message = "Successfully created task attribute values";
+                if (!sqliteResult.Success) {
+                    wxRichMessageDialog dialog(this,
+                        Messages::CreateTaskAttributeValuesMessage,
+                        tks::Common::GetProgramName(),
+                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                    dialog.ShowModal();
+                    return;
+                }
             }
-            QueueNotificationEvent(ret, message);
         }
 
-        ret = taskPersistence.Update(mTaskModel);
+        sqliteResult = taskPersistence.Update(mTaskModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateTaskMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        ret == -1 ? message = "Failed to update task" : message = "Successfully updated task";
-        QueueNotificationEvent(ret, message);
+            dialog.ShowModal();
+        }
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
         if (mTaskModel.AttendedMeetingId.has_value()) {
-            ret = attendedMeetingsPersistence.Delete(mTaskModel.AttendedMeetingId.value());
-            ret == -1 ? message = "Failed to delete task attended meeting"
-                      : message = "Successfully deleted task attended meeting";
-            QueueNotificationEvent(ret, message);
-        }
+            sqliteResult = attendedMeetingsPersistence.Delete(mTaskModel.AttendedMeetingId.value());
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::DeleteAttendedMeetingMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        ret = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
-
-        ret == -1 ? message = "Failed to delete task attribute values"
-                  : message = "Successfully deleted task attribute values";
-        QueueNotificationEvent(ret, message);
-
-        ret = taskPersistence.Delete(mTaskId);
-
-        ret == -1 ? message = "Failed to delete task" : message = "Successfully deleted task";
-        QueueNotificationEvent(ret, message);
-    }
-
-    if (ret == -1) {
-        pOkButton->Enable();
-    } else {
-        if (!bIsEdit) {
-            wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
-            taskAddedEvent->SetString(mDate);
-            taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
-
-            wxQueueEvent(pParent, taskAddedEvent);
-        }
-
-        if (bIsEdit && mTaskModel.IsActive) {
-            // FIXME: this is bug prone as mOldDate and mDate are std::string
-            // CONT: probably should use date::date types and "escape" to std::string at the last
-            // possible moment
-            if (mOldDate != mDate) {
-                // notify frame control of task date changed TO
-                wxCommandEvent* taskDateChangedToEvent =
-                    new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
-
-                taskDateChangedToEvent->SetString(mDate);
-                taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
-
-                wxQueueEvent(pParent, taskDateChangedToEvent);
-
-                // notify frame control of task date changed FROM
-                wxCommandEvent* taskDateChangedFromEvent =
-                    new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
-
-                taskDateChangedFromEvent->SetString(mOldDate);
-                taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
-
-                wxQueueEvent(pParent, taskDateChangedFromEvent);
+                dialog.ShowModal();
             }
         }
 
-        if (bIsEdit && !mTaskModel.IsActive) {
-            wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
-            taskDeletedEvent->SetString(mDate);
-            taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
+        sqliteResult = taskAttributeValuesPersistence.DeleteByTaskId(mTaskId);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteTaskAttributeValuesMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-            wxQueueEvent(pParent, taskDeletedEvent);
+            dialog.ShowModal();
         }
 
-        EndModal(wxID_OK);
+        sqliteResult = taskPersistence.Delete(mTaskId);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteTaskMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
     }
+
+    if (!sqliteResult.Success) {
+        return;
+    }
+    if (!bIsEdit) {
+        wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
+        taskAddedEvent->SetString(mDate);
+        taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+        wxQueueEvent(pParent, taskAddedEvent);
+    }
+
+    if (bIsEdit && mTaskModel.IsActive) {
+        // FIXME: this is bug prone as mOldDate and mDate are std::string
+        // CONT: probably should use date::date types and "escape" to std::string at the last
+        // possible moment
+        if (mOldDate != mDate) {
+            // notify frame control of task date changed TO
+            wxCommandEvent* taskDateChangedToEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
+
+            taskDateChangedToEvent->SetString(mDate);
+            taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+            wxQueueEvent(pParent, taskDateChangedToEvent);
+
+            // notify frame control of task date changed FROM
+            wxCommandEvent* taskDateChangedFromEvent =
+                new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
+
+            taskDateChangedFromEvent->SetString(mOldDate);
+            taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+            wxQueueEvent(pParent, taskDateChangedFromEvent);
+        }
+    }
+
+    if (bIsEdit && !mTaskModel.IsActive) {
+        wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
+        taskDeletedEvent->SetString(mDate);
+        taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+        wxQueueEvent(pParent, taskDeletedEvent);
+    }
+
+    EndModal(wxID_OK);
 }
 
 void TaskDialog::OnCancel(wxCommandEvent& event)
@@ -1458,7 +1640,8 @@ bool TaskDialog::Validate()
         return false;
     }
 
-    if (mAttributeGroupId >= 1 && mTaskAttributeValueModels.size() == 0) {
+    if (mAttributeGroupId >= 1 && mTaskAttributeValueModels.size() == 0 &&
+        pIsActiveCheckBoxCtrl->GetValue()) {
         auto valMsg = "No attribute values have been captured for selected attribute group";
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
@@ -1536,13 +1719,18 @@ void TaskDialog::ResetCategoryChoiceControl(bool disable)
 void TaskDialog::FetchClientEntitiesByEmployer(const std::int64_t employerId)
 {
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
+    auto result = clientsPersistence.FilterByEmployerId(employerId, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsByEmployerMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-    if (rc != 0) {
-        std::string message = "Failed to get clients";
-        QueueErrorNotificationEvent(message);
+        dialog.ShowModal();
     } else {
         if (!clients.empty()) {
             if (!pClientChoiceCtrl->IsEnabled()) {
@@ -1566,11 +1754,17 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
     std::vector<Model::ProjectModel> projects;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.FilterByEmployerIdOrClientId(employerId, clientId, projects);
-    if (rc != 0) {
-        std::string message = "Failed to get projects";
-        QueueErrorNotificationEvent(message);
-        return;
+    auto sqliteResult =
+        projectPersistence.FilterByEmployerIdOrClientId(employerId, clientId, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     if (!projects.empty()) {
@@ -1608,17 +1802,28 @@ void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> project
 {
     std::vector<Services::CategoryViewModel> categories;
     Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
-    int rc = 0;
+
+    tks::SqliteResult sqliteResult;
+    std::string operationMessage;
 
     if (projectId.has_value()) {
-        rc = categoryService.FilterByProjectId(projectId.value(), categories);
+        sqliteResult = categoryService.FilterByProjectId(projectId.value(), categories);
+        operationMessage = Messages::FilterCategoriesByProjectMessage;
     } else {
-        rc = categoryService.Filter(categories);
+        sqliteResult = categoryService.Filter(categories);
+        operationMessage = Messages::FilterCategoriesMessage;
     }
 
-    if (rc != 0) {
-        std::string message = "Failed to get categories";
-        QueueErrorNotificationEvent(message);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            operationMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+
         return;
     }
 
@@ -1634,35 +1839,6 @@ void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> project
     } else {
         pCategoryChoiceCtrl->Disable();
     }
-}
-
-void TaskDialog::QueueNotificationEvent(int ret, const std::string& message)
-{
-    if (ret == -1) {
-        QueueErrorNotificationEvent(message);
-    } else {
-        QueueInformationNotificationEvent(message);
-    }
-}
-
-void TaskDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
-}
-
-void TaskDialog::QueueInformationNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 
 void TaskDialog::SetDataWhenTaskCloned()

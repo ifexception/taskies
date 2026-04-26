@@ -23,15 +23,16 @@
 
 #include <fmt/format.h>
 
+#include <wx/richmsgdlg.h>
 #include <wx/statline.h>
 #include <wx/richtooltip.h>
 
-#include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
+
+#include "../../../common/messages/persistencemessages.h"
 
 #include "../../../persistence/attributespersistence.h"
 #include "../../../persistence/attributegroupspersistence.h"
@@ -59,9 +60,6 @@ AttributeDialog::AttributeDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
-    , mDatabaseFilePath(databaseFilePath)
-    , bIsEdit(isEdit)
-    , mAttributeId(attributeId)
     , pNameTextCtrl(nullptr)
     , pIsRequiredCheckBoxCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
@@ -71,6 +69,9 @@ AttributeDialog::AttributeDialog(wxWindow* parent,
     , pAddAnotherCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mDatabaseFilePath(databaseFilePath)
+    , bIsEdit(isEdit)
+    , mAttributeId(attributeId)
     , mAttributeModel()
     , bAddAnotherAttribute(false)
 {
@@ -265,17 +266,16 @@ void AttributeDialog::FillControls()
     std::vector<Model::AttributeGroupModel> attributeGroups;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.Filter("", attributeGroups);
-    if (rc == -1) {
-        std::string message = "Failed to get attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributeGroupsPersistence.Filter("", attributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeGroupsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (const auto& attributeGroup : attributeGroups) {
             pAttributeGroupChoiceCtrl->Append(
@@ -287,17 +287,16 @@ void AttributeDialog::FillControls()
     std::vector<Model::AttributeTypeModel> attributeTypes;
     Persistence::AttributeTypesPersistence attributeTypesPersistence(pLogger, mDatabaseFilePath);
 
-    rc = attributeTypesPersistence.Filter("", attributeTypes);
-    if (rc == -1) {
-        std::string message = "Failed to get attribute types";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+    sqliteResult = attributeTypesPersistence.Filter("", attributeTypes);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeTypesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (const auto& attributeType : attributeTypes) {
             pAttributeTypeChoiceCtrl->Append(
@@ -314,17 +313,16 @@ void AttributeDialog::DataToControls()
 
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.GetById(mAttributeId, mAttributeModel);
-    if (rc == -1) {
-        std::string message = "Failed to get attribute group";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributesPersistence.GetById(mAttributeId, mAttributeModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdAttributeMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         pNameTextCtrl->ChangeValue(mAttributeModel.Name);
         pIsRequiredCheckBoxCtrl->SetValue(mAttributeModel.IsRequired);
@@ -344,18 +342,19 @@ void AttributeDialog::DataToControls()
         Model::AttributeGroupModel attributeGroupModel;
         Persistence::AttributeGroupsPersistence attributeGroupsPersistence(
             pLogger, mDatabaseFilePath);
-        rc = attributeGroupsPersistence.GetById(
-            mAttributeModel.AttributeGroupId, attributeGroupModel);
-        if (rc == -1) {
-            std::string message = "Failed to get attribute group";
-            wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-            NotificationClientData* clientData =
-                new NotificationClientData(NotificationType::Error, message);
-            addNotificationEvent->SetClientObject(clientData);
 
-            // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
-            // we have wxFrame
-            wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
+        auto sqliteResult = attributeGroupsPersistence.GetById(
+            mAttributeModel.AttributeGroupId, attributeGroupModel);
+
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
 
         if (attributeGroupModel.IsStatic) {
@@ -393,11 +392,16 @@ void AttributeDialog::OnAttributeGroupSelection(wxCommandEvent& event)
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.GetById(attributeGroupId, attributeGroupModel);
-    if (rc != 0) {
-        std::string message = "Failed to get attribute group";
-        QueueErrorNotificationEvent(message);
-        return;
+    auto sqliteResult = attributeGroupsPersistence.GetById(attributeGroupId, attributeGroupModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdAttributeGroupMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     if (attributeGroupModel.IsStatic) {
@@ -439,34 +443,48 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
 
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int ret = 0;
     std::string message = "";
 
     if (!bIsEdit) {
         Persistence::AttributeGroupsPersistence attributeGroupsPersistence(
             pLogger, mDatabaseFilePath);
         bool isAttributeGroupAlreadyAssociated = false;
-        ret = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
+
+        auto sqliteResult = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
             mAttributeModel.AttributeGroupId, isAttributeGroupAlreadyAssociated);
 
-        if (ret == -1) {
-            message = "Failed to check attribute group associations";
-            QueueErrorNotificationEvent(message);
-            return;
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CheckUsageAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         }
 
         if (isAttributeGroupAlreadyAssociated) {
-            wxMessageBox("Selected attribute group is already associated with attribute values",
+            wxMessageBox("The selected attribute group is already associated with attribute "
+                         "values. Please choose another attribute group",
                 Common::GetProgramName(),
                 wxOK_DEFAULT | wxICON_WARNING);
             return;
         }
 
-        std::int64_t attributeId = attributesPersistence.Create(mAttributeModel);
-        ret = attributeId > 0 ? 1 : -1;
+        std::int64_t attributeId = -1;
+        sqliteResult = attributesPersistence.Create(attributeId, mAttributeModel);
 
-        message =
-            attributeId == -1 ? "Failed to create attribute" : "Successfully created attribute";
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
     }
 
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
@@ -476,15 +494,33 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
                 Common::GetProgramName(),
                 wxYES_NO | wxICON_WARNING);
             if (rc == wxYES) {
-                ret = attributesPersistence.UpdateIfInUse(mAttributeModel);
+                auto sqliteResult = attributesPersistence.UpdateIfInUse(mAttributeModel);
+                if (!sqliteResult.Success) {
+                    wxRichMessageDialog dialog(this,
+                        Messages::UpdateAttributeMessage,
+                        Common::GetProgramName(),
+                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                    dialog.ShowModal();
+                }
             } else {
                 return;
             }
         } else {
-            ret = attributesPersistence.Update(mAttributeModel);
-        }
+            auto sqliteResult = attributesPersistence.Update(mAttributeModel);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::UpdateAttributeMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        message = ret == -1 ? "Failed to update attribute" : "Successfully updated attribute";
+                dialog.ShowModal();
+            }
+        }
     }
 
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
@@ -495,42 +531,31 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
                 wxOK_DEFAULT | wxICON_WARNING);
             return;
         }
-        ret = attributesPersistence.Delete(mAttributeId);
+        auto sqliteResult = attributesPersistence.Delete(mAttributeId);
 
-        message = ret == -1 ? "Failed to delete attribute" : "Successfully deleted attribute";
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateAttributeMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
+    if (!bAddAnotherAttribute) {
+        EndModal(wxID_OK);
     } else {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+        pNameTextCtrl->ChangeValue("");
+        pIsRequiredCheckBoxCtrl->SetValue(false);
+        pDescriptionTextCtrl->ChangeValue("");
+        pDescriptionTextCtrl->SetHint("Attribute description");
+        pAttributeGroupChoiceCtrl->SetSelection(0);
+        pAttributeTypeChoiceCtrl->SetSelection(0);
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
-        if (!bAddAnotherAttribute) {
-            EndModal(wxID_OK);
-        } else {
-            pNameTextCtrl->ChangeValue("");
-            pIsRequiredCheckBoxCtrl->SetValue(false);
-            pDescriptionTextCtrl->ChangeValue("");
-            pDescriptionTextCtrl->SetHint("Attribute description");
-            pAttributeGroupChoiceCtrl->SetSelection(0);
-            pAttributeTypeChoiceCtrl->SetSelection(0);
-
-            pIsStaticCheckBoxCtrl->SetValue(false);
-        }
+        pIsStaticCheckBoxCtrl->SetValue(false);
     }
 }
 
@@ -625,11 +650,18 @@ bool AttributeDialog::CheckAttributeUsage(Persistence::AttributesPersistence& at
 {
     bool value = false;
 
-    int ret = attributesPersistence.CheckAttributeUsage(mAttributeId, value);
+    auto sqliteResult = attributesPersistence.CheckAttributeUsage(mAttributeId, value);
 
-    if (ret == -1) {
-        std::string message = "Failed to check attribute usage";
-        QueueErrorNotificationEvent(message);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CheckUsageAttributeMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return false;
     }
 
     return value;
@@ -640,17 +672,5 @@ void AttributeDialog::DisableChoiceControlsIfUsed()
     pAttributeGroupChoiceCtrl->Disable();
     pAttributeTypeChoiceCtrl->Disable();
     pIsActiveCheckBoxCtrl->Disable();
-}
-
-void AttributeDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and
-    // then we have wxFrame
-    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

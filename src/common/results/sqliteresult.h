@@ -21,21 +21,29 @@
 
 #include <string>
 
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
-
-#include "../../common/enums.h"
-
-namespace tks::UI
+namespace tks
 {
-struct NotificationClientData final : public wxClientData {
-    NotificationClientData() = delete;
-    NotificationClientData(NotificationType notificationType, std::string message);
-    ~NotificationClientData() = default;
+struct SqliteResult {
+    SqliteResult();
+    SqliteResult(const std::string& friendlyErrorMessage);
+    SqliteResult(const std::string& friendlyErrorMessage,
+        int returnCode,
+        const std::string& errorMessage);
 
-    NotificationType Type;
-    std::string Message;
+    bool Success;
+
+    std::string FriendlyErrorMessage;
+    int ReturnCode;
+    std::string ErrorMessage;
+    // used to indicate where a SQL condition is used to return a boolean result
+    bool ConditionCheckFailed;
+
+    std::string GetReturnCodeAndMessage() const;
+
+    static SqliteResult OK();
+    static SqliteResult SoftFailed(const std::string& friendlyErrorMessage);
+    static SqliteResult FailDetailed(const std::string& friendlyErrorMessage,
+        int returnCode,
+        const std::string& errorMessage);
 };
-}
+} // namespace tks

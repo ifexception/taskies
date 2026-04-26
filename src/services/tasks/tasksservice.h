@@ -25,30 +25,27 @@
 #include <map>
 #include <vector>
 
-#include <spdlog/logger.h>
-#include <spdlog/spdlog.h>
+#include "../../common/results/sqliteresult.h"
 
-#include <sqlite3.h>
+#include "../../persistence/base/persistencebase.h"
 
 #include "taskviewmodel.h"
 
 namespace tks::Services
 {
-struct TasksService final {
+struct TasksService final : public Persistence::PersistenceBase {
     TasksService() = delete;
     TasksService(const TasksService&) = delete;
     TasksService(const std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~TasksService();
+    virtual ~TasksService();
 
     TasksService& operator=(const TasksService&) = delete;
 
-    int FilterByDateRange(std::vector<std::string> dates,
+    SqliteResult FilterByDateRange(std::vector<std::string> dates,
         /*out*/ std::map<std::string, std::vector<TaskViewModel>>& taskViewModels);
-    int FilterByDate(const std::string& date, /*out*/ std::vector<TaskViewModel>& taskViewModels) const;
-    int GetById(const std::int64_t taskId, /*out*/ TaskViewModel& taskViewModel) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    SqliteResult FilterByDate(const std::string& date,
+        /*out*/ std::vector<TaskViewModel>& taskViewModels) const;
+    SqliteResult GetById(const std::int64_t taskId, /*out*/ TaskViewModel& taskViewModel) const;
 
     static std::string filterByDate;
     static std::string getById;

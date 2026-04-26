@@ -28,6 +28,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
 #include "../../models/projectmodel.h"
@@ -70,11 +71,8 @@ private:
 
     void FillClientChoiceControl(const std::int64_t employerId);
 
-    void QueueErrorNotificationEvent(const std::string& message);
-
-    std::shared_ptr<spdlog::logger> pLogger;
-
     wxWindow* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
 
     wxTextCtrl* pNameTextCtrl;
     wxTextCtrl* pDisplayNameCtrl;

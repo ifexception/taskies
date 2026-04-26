@@ -28,6 +28,8 @@
 
 #include "../../../common/enums.h"
 
+#include "../../../common/results/exportresult.h"
+
 #include "../../../core/configuration.h"
 
 #include "../../../services/export/availablecolumns.h"
@@ -37,11 +39,9 @@
 #include "../../../services/export/excelexporterservice.h"
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
-#include "../../../services/export/exportresult.h"
 
 #include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 namespace
 {
@@ -201,30 +201,21 @@ void QuickExportToFormatDialog::CreateControls()
         dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks");
     pExportTodaysTasksCheckBoxCtrl->SetToolTip("Export tasks logged during today's date");
 
-    /* Set date range to work week (i.e. Mon - Fri) */
-    pWorkWeekRangeCheckBoxCtrl = new wxCheckBox(
-        dateRangeStaticBox, tksIDC_WORKWEEKRANGECHECKBOXCTRL, "Export work week tasks");
-    pWorkWeekRangeCheckBoxCtrl->SetToolTip("Export only tasks logged during the current work week");
-
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     dateRangeStaticBoxSizer->Add(dateControlsHorizontalSizer, wxSizerFlags().Expand());
 
     dateControlsHorizontalSizer->Add(
         fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateControlsHorizontalSizer->Add(pFromDatePickerCtrl,
-        wxSizerFlags() /*.Border(wxLEFT, FromDIP(1))*/.Border(
-            wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+    dateControlsHorizontalSizer->Add(
+        pFromDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
     dateControlsHorizontalSizer->Add(
         toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateControlsHorizontalSizer->Add(pToDatePickerCtrl,
-        wxSizerFlags() /*.Border(wxLEFT, FromDIP(1))*/.Border(
-            wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+    dateControlsHorizontalSizer->Add(
+        pToDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
 
     dateRangeStaticBoxSizer->Add(
         pExportTodaysTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    dateRangeStaticBoxSizer->Add(
-        pWorkWeekRangeCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Presets static box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
@@ -345,14 +336,6 @@ void QuickExportToFormatDialog::ConfigureEventBindings()
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL
     );
 
-    pWorkWeekRangeCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX,
-        &QuickExportToFormatDialog::OnWorkWeekRangeCheck,
-        this,
-        tksIDC_WORKWEEKRANGECHECKBOXCTRL
-    );
-
-
     pPresetsChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &QuickExportToFormatDialog::OnPresetChoiceSelection,
@@ -375,7 +358,7 @@ void QuickExportToFormatDialog::OnExportFormatRadioButtonClick(wxCommandEvent& e
 
     mExportFormat = static_cast<ExportFormat>(selection + 1);
     SPDLOG_LOGGER_TRACE(pLogger,
-        "Export format selected: {0}",
+        "Export format selected: \"{0}\"",
         mExportFormat == ExportFormat::Csv ? "CSV" : "XLSX");
 
     std::string fileExtension = mExportFormat == ExportFormat::Csv ? "csv" : "xlsx";
@@ -512,33 +495,6 @@ void QuickExportToFormatDialog::OnExportTodaysTasksCheck(wxCommandEvent& event)
     }
 }
 
-void QuickExportToFormatDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
-{
-    if (event.IsChecked()) {
-        auto fridayDate = pDateStore->MondayDate + (pDateStore->MondayDate - date::Thursday);
-        auto fridayTimestamp = fridayDate.time_since_epoch();
-        auto fridaySeconds =
-            std::chrono::duration_cast<std::chrono::seconds>(fridayTimestamp).count();
-
-        pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
-        mFromCtrlDate = pDateStore->MondayDateSeconds;
-
-        pToDatePickerCtrl->SetValue(fridaySeconds);
-        mToCtrlDate = fridaySeconds;
-
-        pFromDatePickerCtrl->Disable();
-        pToDatePickerCtrl->Disable();
-    } else {
-        SetFromAndToDatePickerRanges();
-
-        SetFromDateAndDatePicker();
-        SetToDateAndDatePicker();
-
-        pFromDatePickerCtrl->Enable();
-        pToDatePickerCtrl->Enable();
-    }
-}
-
 void QuickExportToFormatDialog::OnPresetChoiceSelection(wxCommandEvent& event)
 {
     int presetIndex = pPresetsChoiceCtrl->GetSelection();
@@ -618,7 +574,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::ExportResult result;
+    ExportResult result{};
     std::string message = "";
 
     wxBusyCursor busy;
@@ -671,32 +627,17 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
             message = "Successfully exported data to Excel";
         } else {
             pLogger->error("Unmatched or invalid enum value of ExportFormat");
-            result = Services::Export::ExportResult::Fail("Invalid export format selected");
+            result = ExportResult::Fail("Invalid export format selected");
         }
     }
 
     if (!result.Success) {
-        message = "Failed to export data";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
         wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
 
         return;
     }
 
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
-
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 
     EndModal(wxID_OK);
 }

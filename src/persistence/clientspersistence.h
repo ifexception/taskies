@@ -23,30 +23,32 @@
 #include <memory>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/clientmodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct ClientsPersistence final {
+struct ClientsPersistence final : public PersistenceBase {
+    ClientsPersistence() = delete;
+    ClientsPersistence(const ClientsPersistence&) = delete;
     ClientsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~ClientsPersistence();
+    virtual ~ClientsPersistence();
 
-    int Filter(const std::string& searchTerm,
-        /*out*/ std::vector<Model::ClientModel>& clientModels) const;
-    int FilterByEmployerId(const std::int64_t employerId,
-        /*out*/ std::vector<Model::ClientModel>& clientModels) const;
-    int GetById(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel) const;
-    std::int64_t Create(const Model::ClientModel& clientModel) const;
-    int Update(const Model::ClientModel& clientModel) const;
-    int Delete(const std::int64_t clientId) const;
+    ClientsPersistence& operator=(const ClientsPersistence&) = delete;
 
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    SqliteResult Filter(const std::string& searchTerm,
+        /*out*/ std::vector<Model::ClientModel>& clientModels) const;
+    SqliteResult FilterByEmployerId(const std::int64_t employerId,
+        /*out*/ std::vector<Model::ClientModel>& clientModels) const;
+    SqliteResult GetById(const std::int64_t clientId,
+        /*out*/ Model::ClientModel& clientModel) const;
+    SqliteResult Create(std::int64_t& clientId,
+        const Model::ClientModel& clientModel) const;
+    SqliteResult Update(const Model::ClientModel& clientModel) const;
+    SqliteResult Delete(const std::int64_t clientId) const;
 
     static std::string filter;
     static std::string filterByEmployerId;

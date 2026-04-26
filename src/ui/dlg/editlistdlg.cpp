@@ -22,6 +22,8 @@
 #include <vector>
 
 #include <wx/artprov.h>
+#include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -34,10 +36,10 @@
 #include "attributes/attributedlg.h"
 #include "attributes/staticattributevaluesdlg.h"
 
-#include "../events.h"
-#include "../common/notificationclientdata.h"
-
 #include "../../common/common.h"
+
+#include "../../common/results/sqliteresult.h"
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
@@ -153,7 +155,7 @@ void EditListDialog::CreateControls()
     auto providedFindBitmap = wxArtProvider::GetBitmapBundle(
         wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pSearchButton = new wxBitmapButton(searchBox, tksIDC_SEARCHBUTTON, providedFindBitmap);
-    pSearchButton->SetToolTip("Search for an entity by entered criteria");
+    pSearchButton->SetToolTip("Search for an entity");
     searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Reset Button */
@@ -283,15 +285,16 @@ void EditListDialog::EmployerDataToControls()
     std::vector<ListCtrlData> entries;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.Filter(mSearchTerm, employers);
-    if (rc == -1) {
-        std::string message = "Failed to filter employers";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = employerPersistence.Filter(mSearchTerm, employers);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterEmployersMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& employer : employers) {
             ListCtrlData data(employer.EmployerId, employer.Name);
@@ -306,17 +309,18 @@ void EditListDialog::ClientDataToControls()
 {
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = ClientsPersistence.Filter(mSearchTerm, clients);
-    if (rc == -1) {
-        std::string message = "Failed to filter clients";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto result = clientsPersistence.Filter(mSearchTerm, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);
@@ -333,15 +337,16 @@ void EditListDialog::ProjectDataToControls()
     std::vector<ListCtrlData> entries;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.Filter(mSearchTerm, projects);
-    if (rc == -1) {
-        std::string message = "Failed to filter projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = projectPersistence.Filter(mSearchTerm, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);
@@ -358,15 +363,16 @@ void EditListDialog::CategoryDataToControls()
     std::vector<ListCtrlData> entries;
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = categoryPersistence.Filter(mSearchTerm, categories);
-    if (rc == -1) {
-        std::string message = "Failed to filter categories";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = categoryPersistence.Filter(mSearchTerm, categories);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterCategoriesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);
@@ -384,15 +390,16 @@ void EditListDialog::AttributeGroupDataToControls()
 
     Persistence::AttributeGroupsPersistence attributeGroupPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupPersistence.Filter(mSearchTerm, attributeGroups);
-    if (rc == -1) {
-        std::string message = "Failed to filter attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributeGroupPersistence.Filter(mSearchTerm, attributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeGroupsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& attributeGroup : attributeGroups) {
             ListCtrlData data(attributeGroup.AttributeGroupId, attributeGroup.Name);
@@ -410,15 +417,16 @@ void EditListDialog::AttributeDataToControls()
 
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.Filter(mSearchTerm, attributes);
-    if (rc == -1) {
-        std::string message = "Failed to filter attributes";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributesPersistence.Filter(mSearchTerm, attributes);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& attribute : attributes) {
             ListCtrlData data(attribute.AttributeId, attribute.Name);
@@ -436,16 +444,17 @@ void EditListDialog::StaticAttributeGroupsDataToControls()
 
     Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
 
-    int rc = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
-        /*searchTerm,*/ staticAttributeGroups);
-    if (rc == -1) {
-        std::string message = "Failed to filter static attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult =
+        staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(staticAttributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterStaticAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& staticAttributeGroup : staticAttributeGroups) {
             ListCtrlData data(
@@ -591,15 +600,16 @@ void EditListDialog::SearchEmployers()
     std::vector<ListCtrlData> entries;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.Filter(mSearchTerm, employers);
-    if (rc == -1) {
-        std::string message = "Failed to filter employers";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = employerPersistence.Filter(mSearchTerm, employers);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterEmployersMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& employer : employers) {
             ListCtrlData data(employer.EmployerId, employer.Name);
@@ -619,17 +629,18 @@ void EditListDialog::SearchClients()
 
     std::vector<Model::ClientModel> clients;
     std::vector<ListCtrlData> entries;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = ClientsPersistence.Filter(mSearchTerm, clients);
-    if (rc == -1) {
-        std::string message = "Failed to filter clients";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto result = clientsPersistence.Filter(mSearchTerm, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& client : clients) {
             ListCtrlData data(client.ClientId, client.Name);
@@ -651,15 +662,16 @@ void EditListDialog::SearchProjects()
     std::vector<ListCtrlData> entries;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.Filter(mSearchTerm, projects);
-    if (rc == -1) {
-        std::string message = "Failed to filter projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = projectPersistence.Filter(mSearchTerm, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (const auto& project : projects) {
             ListCtrlData data(project.ProjectId, project.Name);
@@ -681,15 +693,16 @@ void EditListDialog::SearchCategories()
     std::vector<ListCtrlData> entries;
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = categoryPersistence.Filter(mSearchTerm, categories);
-    if (rc == -1) {
-        std::string message = "Failed to filter categories";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = categoryPersistence.Filter(mSearchTerm, categories);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterCategoriesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (const auto& category : categories) {
             ListCtrlData data(category.CategoryId, category.Name);
@@ -711,15 +724,16 @@ void EditListDialog::SearchAttributeGroups()
     std::vector<ListCtrlData> entries;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.Filter(mSearchTerm, attributeGroups);
-    if (rc == -1) {
-        std::string message = "Failed to filter attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributeGroupsPersistence.Filter(mSearchTerm, attributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeGroupsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& attributeGroup : attributeGroups) {
             ListCtrlData data(attributeGroup.AttributeGroupId, attributeGroup.Name);
@@ -741,15 +755,16 @@ void EditListDialog::SearchAttributes()
     std::vector<ListCtrlData> entries;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.Filter(mSearchTerm, attributes);
-    if (rc == -1) {
-        std::string message = "Failed to filter attributes";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributesPersistence.Filter(mSearchTerm, attributes);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& attribute : attributes) {
             ListCtrlData data(attribute.AttributeId, attribute.Name);
@@ -771,16 +786,17 @@ void EditListDialog::SearchStaticAttributeGroups()
 
     Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
 
-    int rc = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
-        /*searchTerm,*/ staticAttributeGroups);
-    if (rc == -1) {
-        std::string message = "Failed to filter static attribute groups";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(
+        staticAttributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterStaticAttributesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         for (auto& staticAttributeGroup : staticAttributeGroups) {
             ListCtrlData data(

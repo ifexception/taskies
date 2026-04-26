@@ -24,33 +24,33 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/projectmodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct ProjectsPersistence final {
-    ProjectsPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    ~ProjectsPersistence();
+struct ProjectsPersistence final : public PersistenceBase {
+    ProjectsPersistence() = delete;
+    ProjectsPersistence(const ProjectsPersistence&) = delete;
+    ProjectsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~ProjectsPersistence();
 
-    int Filter(const std::string& searchTerm,
+    ProjectsPersistence& operator=(const ProjectsPersistence&) = delete;
+
+    SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
-    int FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
+    SqliteResult FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
         std::optional<std::int64_t> clientId,
         /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
-    int GetById(const std::int64_t projectId, /*out*/ Model::ProjectModel& projectModel) const;
-    std::int64_t Create(const Model::ProjectModel& projectModel);
-    int Update(const Model::ProjectModel& projectModel) const;
-    int Delete(const std::int64_t projectId) const;
-    int UnsetDefault() const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    SqliteResult GetById(const std::int64_t projectId,
+        /*out*/ Model::ProjectModel& projectModel) const;
+    SqliteResult Create(std::int64_t& projectId, const Model::ProjectModel& projectModel);
+    SqliteResult Update(const Model::ProjectModel& projectModel) const;
+    SqliteResult Delete(const std::int64_t projectId) const;
+    SqliteResult UnsetDefault() const;
 
     static std::string filter;
     static std::string getById;

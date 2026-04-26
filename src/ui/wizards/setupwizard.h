@@ -212,6 +212,7 @@ private:
     std::string mDatabasePath;
 
     wxTextCtrl* pEmployerNameTextCtrl;
+    wxCheckBox* pDefaultEmployerCheckBoxCtrl;
     wxTextCtrl* pClientNameTextCtrl;
 
     enum { tksIDC_EMPLOYERNAME = wxID_HIGHEST + 100, tksIDC_CLIENTNAME };

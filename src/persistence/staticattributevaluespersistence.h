@@ -24,33 +24,35 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/staticattributevaluemodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct StaticAttributeValuesPersistence final {
-    StaticAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    ~StaticAttributeValuesPersistence();
+struct StaticAttributeValuesPersistence final : public PersistenceBase {
+    StaticAttributeValuesPersistence() = delete;
+    StaticAttributeValuesPersistence(const StaticAttributeValuesPersistence&) = delete;
+    StaticAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~StaticAttributeValuesPersistence();
 
-    std::int64_t Create(const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
-    int CreateMultiple(
+    StaticAttributeValuesPersistence& operator=(const StaticAttributeValuesPersistence&) = delete;
+
+    SqliteResult Create(std::int64_t& staticAttributeValueId,
+        const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
+    SqliteResult CreateMultiple(
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
-    int FilterByAttributeGroupId(const std::int64_t attributeGroupId,
+    SqliteResult FilterByAttributeGroupId(const std::int64_t attributeGroupId,
         /*out*/ std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
-    int Update(const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
-    int UpdateMultiple(
+    SqliteResult Update(
+        const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
+    SqliteResult UpdateMultiple(
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
-    int Delete(const std::vector<std::int64_t>& staticAttributeValueIds) const;
-    int CheckUsage(const std::vector<std::int64_t>& attributeIds, bool& value) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    SqliteResult Delete(const std::vector<std::int64_t>& staticAttributeValueIds) const;
+    SqliteResult CheckUsage(const std::vector<std::int64_t>& attributeIds,
+        bool& value) const;
 
     static std::string create;
     static std::string filterByAttributeGroupId;

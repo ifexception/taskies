@@ -21,16 +21,17 @@
 
 #include <optional>
 
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
 #include "../../../common/validator.h"
+
+#include "../../../common/messages/persistencemessages.h"
 
 #include "../../../persistence/attributegroupspersistence.h"
 
@@ -53,12 +54,6 @@ AttributeGroupDialog::AttributeGroupDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
-    , mDatabaseFilePath(databaseFilePath)
-    , bIsEdit(isEdit)
-    , bIsInUse(false)
-    , bIsInUseStatic(false)
-    , mAttributeGroupId(attributeGroupId)
-    , mAttributeGroupModel()
     , pNameTextCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pIsStaticCheckBoxCtrl(nullptr)
@@ -66,6 +61,12 @@ AttributeGroupDialog::AttributeGroupDialog(wxWindow* parent,
     , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mDatabaseFilePath(databaseFilePath)
+    , mAttributeGroupId(attributeGroupId)
+    , bIsEdit(isEdit)
+    , bIsInUse(false)
+    , bIsInUseStatic(false)
+    , mAttributeGroupModel()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -106,11 +107,12 @@ void AttributeGroupDialog::CreateControls()
     /* Attribute group is static check box control */
     pIsStaticCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISSTATICCHECKBOXCTRL, "Is Static");
     pIsStaticCheckBoxCtrl->SetToolTip(
-        "Attributes captured if this is enabled will use the provided static values");
+        "Enabling this option will use linked static values for attributes");
 
     /* Attribute group is default check box control */
     pIsDefaultCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULTCHECKBOXCTRL, "Is Default");
-    pIsStaticCheckBoxCtrl->SetToolTip("Enabling this option will auto-select it where applicable");
+    pIsDefaultCheckBoxCtrl->SetToolTip(
+        "Enabling this option will auto-select it when creating a task");
 
     /* Grid sizer for attribute group name controls */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -207,23 +209,19 @@ void AttributeGroupDialog::ConfigureEventBindings()
 
 void AttributeGroupDialog::DataToControls()
 {
-    pOkButton->Disable();
-
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
-    if (rc == -1) {
-        std::string message = "Failed to get attribute group";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CreateAttributeGroupMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-        return;
+        dialog.ShowModal();
     }
 
     pNameTextCtrl->SetValue(attributeGroupModel.Name);
@@ -239,58 +237,52 @@ void AttributeGroupDialog::DataToControls()
 
     pIsActiveCheckBoxCtrl->Enable();
 
-    rc = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
-    if (rc == -1) {
-        std::string message = "Failed to check attribute group usage";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+    sqliteResult =
+        attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(mAttributeGroupId, bIsInUse);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CheckUsageAttributeGroupMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-        return;
+        dialog.ShowModal();
     }
 
     if (bIsInUse) {
-        pNameTextCtrl->Disable();
+        pIsStaticCheckBoxCtrl->Disable();
     }
 
-    rc = attributeGroupsPersistence.CheckAttributeGroupStaticAttributesUsage(
+    sqliteResult = attributeGroupsPersistence.CheckAttributeGroupStaticAttributesUsage(
         mAttributeGroupId, bIsInUseStatic);
-    if (rc == -1) {
-        std::string message = "Failed to check attribute group static usage";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CheckUsageAttributeGroupMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-        return;
+        dialog.ShowModal();
     }
 
     if (bIsInUseStatic) {
         pIsStaticCheckBoxCtrl->Disable();
     }
 
-    pOkButton->Enable();
     pOkButton->SetFocus();
 }
 
 void AttributeGroupDialog::OnIsActiveCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
-        if (!bIsInUse) {
-            pNameTextCtrl->Enable();
-        }
-        if (!bIsInUseStatic) {
+        pNameTextCtrl->Enable();
+        pDescriptionTextCtrl->Enable();
+        if (!bIsInUseStatic || !bIsInUse) {
             pIsStaticCheckBoxCtrl->Enable();
         }
         pIsDefaultCheckBoxCtrl->Enable();
-        pDescriptionTextCtrl->Enable();
     } else {
         pNameTextCtrl->Disable();
         pIsStaticCheckBoxCtrl->Disable();
@@ -305,102 +297,149 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
-    pOkButton->Disable();
-
     TransferDataFromControls();
-
-    int ret = 0;
-    std::string message = "";
 
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
     if (pIsDefaultCheckBoxCtrl->GetValue()) {
-        ret = attributeGroupsPersistence.UnsetDefault();
-        if (ret == -1) {
-            message = "Failed to unset default attribute group";
-            QueueErrorNotificationEvent(message);
+        auto result = attributeGroupsPersistence.UnsetDefault();
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when unsetting a default "
+                           "attribute group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UnsetDefaultAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
     if (!bIsEdit) {
-        std::int64_t attributeGroupId = attributeGroupsPersistence.Create(mAttributeGroupModel);
-        if (attributeGroupId == -19) { // SQLITE_CONSTRAINT * -1
-            wxMessageBox("Attribute group with specified name already exists",
+        std::int64_t attributeGroupId = 1;
+        auto result = attributeGroupsPersistence.Create(attributeGroupId, mAttributeGroupModel);
+        // if (attributeGroupId == -19) { // SQLITE_CONSTRAINT * -1
+        //     wxMessageBox("Attribute group with specified name already exists",
+        //         Common::GetProgramName(),
+        //         wxOK_DEFAULT | wxICON_WARNING);
+        //     return;
+        // }
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when creating an attribute "
+                           "group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::CreateAttributeGroupMessage,
                 Common::GetProgramName(),
-                wxOK_DEFAULT | wxICON_WARNING);
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
-        ret = attributeGroupId > 0 ? 1 : -1;
-
-        message = attributeGroupId == -1 ? "Failed to create attribute group"
-                                         : "Successfully created attribute group";
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = attributeGroupsPersistence.Update(mAttributeGroupModel, bIsInUse);
-        if (ret == -19) { // SQLITE_CONSTRAINT * -1
-            wxMessageBox("Attribute group with specified name already exists",
+        auto result = attributeGroupsPersistence.Update(mAttributeGroupModel);
+        // if (ret == -19) { // SQLITE_CONSTRAINT * -1
+        //     wxMessageBox("Attribute group with specified name already exists",
+        //         Common::GetProgramName(),
+        //         wxOK_DEFAULT | wxICON_WARNING);
+        //     return;
+        // }
+
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when updating an attribute "
+                           "group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateAttributeGroupMessage,
                 Common::GetProgramName(),
-                wxOK_DEFAULT | wxICON_WARNING);
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
-
-        ret == -1 ? message = "Failed to update attribute group"
-                  : message = "Successfully updated attribute group";
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
         bool isAttributeGroupAttributeValueUsed = false;
-        ret = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
+        auto result = attributeGroupsPersistence.CheckAttributeGroupAttributeValuesUsage(
             mAttributeGroupId, isAttributeGroupAttributeValueUsed);
 
-        if (ret == -1) {
-            std::string message = "Failed to check attribute group usage";
-            QueueErrorNotificationEvent(message);
+        if (!result.Success) {
+            pLogger->error(
+                "A database error occurred with code \"{0}\" when checking usage of an attribute "
+                "group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::CheckUsageAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
 
         bool isAttributeGroupAttributeUsed = false;
-        ret = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(
+        result = attributeGroupsPersistence.CheckAttributeGroupAttributesUsage(
             mAttributeGroupId, isAttributeGroupAttributeUsed);
 
-        if (ret == -1) {
-            std::string message = "Failed to check attribute group usage";
-            QueueErrorNotificationEvent(message);
+        if (!result.Success) {
+            pLogger->error(
+                "A database error occurred with code \"{0}\" when checking usage of an attribute "
+                "group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::CheckUsageAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
 
         if (isAttributeGroupAttributeValueUsed || isAttributeGroupAttributeUsed) {
-            wxMessageBox("Unable to delete attribute group as it is in use",
+            wxMessageBox("Cannot delete this attribute group as it is in use",
                 Common::GetProgramName(),
                 wxOK_DEFAULT | wxICON_WARNING);
             return;
         }
 
-        ret = attributeGroupsPersistence.Delete(mAttributeGroupId);
+        result = attributeGroupsPersistence.Delete(mAttributeGroupId);
 
-        ret == -1 ? message = "Failed to delete attribute group"
-                  : message = "Successfully deleted attribute group";
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when deleting an attribute "
+                           "group, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteAttributeGroupMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
+        }
     }
 
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
-        pOkButton->Enable();
-    } else {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
-        EndModal(wxID_OK);
-    }
+    EndModal(wxID_OK);
 }
 
 void AttributeGroupDialog::OnCancel(wxCommandEvent& event)
@@ -457,17 +496,5 @@ void AttributeGroupDialog::TransferDataFromControls()
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mAttributeGroupModel.Description =
         description.empty() ? std::nullopt : std::make_optional(description);
-}
-
-void AttributeGroupDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-    // have wxFrame
-    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

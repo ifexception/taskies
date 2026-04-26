@@ -23,16 +23,18 @@
 
 #include <fmt/format.h>
 
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../events.h"
 #include "../common/clientdata.h"
-#include "../common/notificationclientdata.h"
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
+
+#include "../../common/results/sqliteresult.h"
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
@@ -60,9 +62,6 @@ ProjectDialog::ProjectDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
-    , mDatabaseFilePath(databaseFilePath)
-    , bIsEdit(isEdit)
-    , mProjectId(projectId)
     , pNameTextCtrl(nullptr)
     , pDisplayNameCtrl(nullptr)
     , pIsDefaultCheckBoxCtrl(nullptr)
@@ -72,6 +71,9 @@ ProjectDialog::ProjectDialog(wxWindow* parent,
     , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mDatabaseFilePath(databaseFilePath)
+    , mProjectId(projectId)
+    , bIsEdit(isEdit)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -216,13 +218,18 @@ void ProjectDialog::FillControls()
 
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.Filter(defaultSearchTerm, employers);
-    if (rc != 0) {
-        std::string message = "Failed to get employers";
+    auto sqliteResult = employerPersistence.Filter(defaultSearchTerm, employers);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterEmployersMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        QueueErrorNotificationEvent(message);
+        dialog.ShowModal();
     } else {
-        for (auto& employer : employers) {
+        for (const auto& employer : employers) {
             pEmployerChoiceCtrl->Append(
                 employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
 
@@ -232,14 +239,14 @@ void ProjectDialog::FillControls()
                 defaultEmployerId = employer.EmployerId;
             }
         }
-    }
 
-    pClientChoiceCtrl->Append("Select client", new ClientData<std::int64_t>(-1));
-    pClientChoiceCtrl->SetSelection(0);
-    pClientChoiceCtrl->Disable();
+        pClientChoiceCtrl->Append("Select client", new ClientData<std::int64_t>(-1));
+        pClientChoiceCtrl->SetSelection(0);
+        pClientChoiceCtrl->Disable();
 
-    if (!bIsEdit && hasDefaultEmployer) {
-        FillClientChoiceControl(defaultEmployerId);
+        if (!bIsEdit && hasDefaultEmployer) {
+            FillClientChoiceControl(defaultEmployerId);
+        }
     }
 }
 
@@ -284,11 +291,16 @@ void ProjectDialog::DataToControls()
 {
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.GetById(mProjectId, mProjectModel);
-    if (rc != 0) {
-        std::string message = "Failed to get project";
+    auto sqliteResult = projectPersistence.GetById(mProjectId, mProjectModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdProjectMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        QueueErrorNotificationEvent(message);
+        dialog.ShowModal();
     } else {
         pNameTextCtrl->ChangeValue(mProjectModel.Name);
         pDisplayNameCtrl->ChangeValue(mProjectModel.DisplayName);
@@ -360,52 +372,74 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
-    pOkButton->Disable();
-
     TransferDataFromControls();
 
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
     int ret = 0;
-    std::string message = "";
+    bool canContinue = true;
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
-        ret = projectPersistence.UnsetDefault();
+        auto sqliteResult = projectPersistence.UnsetDefault();
+
+        if (!sqliteResult.Success) {
+            canContinue = false;
+            wxRichMessageDialog dialog(this,
+                Messages::UnsetDefaultProjectMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
     }
 
-    if (!bIsEdit) {
-        std::int64_t projectId = projectPersistence.Create(mProjectModel);
-        ret = projectId > 0 ? 0 : -1;
+    if (!bIsEdit && canContinue) {
+        std::int64_t projectId = -1;
+        auto sqliteResult = projectPersistence.Create(projectId, mProjectModel);
 
-        ret == -1 ? message = "Failed to create project" : message = "Successfully created project";
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateProjectMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
     }
-    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = projectPersistence.Update(mProjectModel);
+    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
+        auto sqliteResult = projectPersistence.Update(mProjectModel);
 
-        ret == -1 ? message = "Failed to update project" : message = "Successfully updated project";
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateProjectMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
     }
-    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = projectPersistence.Delete(mProjectId);
+    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
+        auto sqliteResult = projectPersistence.Delete(mProjectId);
 
-        ret == -1 ? message = "Failed to delete project" : message = "Successfully deleted project";
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteProjectMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
     }
 
-    if (ret == -1) {
-        QueueErrorNotificationEvent(message);
-
-        pOkButton->Enable();
-    } else {
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
-        // we have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
-        EndModal(wxID_OK);
-    }
+    EndModal(wxID_OK);
 }
 
 void ProjectDialog::OnCancel(wxCommandEvent& event)
@@ -539,16 +573,23 @@ void ProjectDialog::TransferDataFromControls()
         }
     }
 }
+
 void ProjectDialog::FillClientChoiceControl(const std::int64_t employerId)
 {
     std::vector<Model::ClientModel> clients;
-    Persistence::ClientsPersistence ClientsPersistence(pLogger, mDatabaseFilePath);
+    Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
     std::string defaultSearchTerm = "";
 
-    int rc = ClientsPersistence.FilterByEmployerId(employerId, clients);
-    if (rc == -1) {
-        std::string message = "Failed to get clients";
-        QueueErrorNotificationEvent(message);
+    auto result = clientsPersistence.FilterByEmployerId(employerId, clients);
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterClientsByEmployerMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         if (!clients.empty()) {
             pClientChoiceCtrl->Enable();
@@ -559,17 +600,5 @@ void ProjectDialog::FillClientChoiceControl(const std::int64_t employerId)
             }
         }
     }
-}
-
-void ProjectDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-    // have wxFrame
-    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

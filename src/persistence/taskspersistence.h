@@ -24,34 +24,33 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../common/enums.h"
+
+#include "../common/results/sqliteresult.h"
 
 #include "../models/taskmodel.h"
 
 namespace tks::Persistence
 {
-struct TasksPersistence final {
-    TasksPersistence(const std::shared_ptr<spdlog::logger> logger,
+struct TasksPersistence final : public PersistenceBase {
+    TasksPersistence() = delete;
+    TasksPersistence(const TasksPersistence&) = delete;
+    TasksPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~TasksPersistence();
+    virtual ~TasksPersistence();
 
-    int GetById(const std::int64_t taskId, /*out*/ Model::TaskModel& taskModel) const;
-    std::int64_t Create(Model::TaskModel& taskModel) const;
-    int Update(Model::TaskModel& taskModel) const;
-    int Delete(const std::int64_t taskId);
-    int GetDescriptionById(const std::int64_t taskId, std::string& description) const;
-    int IsDeleted(const std::int64_t taskId, bool& value);
-    int GetHoursForDateRangeGroupedByDate(const std::vector<std::string>& dates,
-        /*out*/ std::map<std::string, std::vector<Model::TaskDurationModel>>&
-            taskDurationsGroupedByDateModels) const;
+    TasksPersistence& operator=(const TasksPersistence&) = delete;
 
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    SqliteResult GetById(const std::int64_t taskId,
+        /*out*/ Model::TaskModel& taskModel) const;
+    SqliteResult Create(std::int64_t& taskId, Model::TaskModel& taskModel) const;
+    SqliteResult Update(Model::TaskModel& taskModel) const;
+    SqliteResult Delete(const std::int64_t taskId);
+    SqliteResult GetDescriptionById(const std::int64_t taskId,
+        std::string& description) const;
+    SqliteResult IsDeleted(const std::int64_t taskId, bool& value);
 
     static std::string getById;
     static std::string create;
@@ -59,6 +58,5 @@ struct TasksPersistence final {
     static std::string isActive;
     static std::string getDescriptionById;
     static std::string isDeleted;
-    static std::string getAllTimeForDate;
 };
 } // namespace tks::Persistence

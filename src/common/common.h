@@ -46,6 +46,8 @@ std::string GetQuickExportIconBundleName();
 
 std::string GetLicense();
 
+std::string GetIssuesLink();
+
 struct PresetColumn {
     std::string Column;
     std::string OriginalColumn;
@@ -91,8 +93,6 @@ struct Preset {
 
 namespace Resources
 {
-std::string Bell();
-std::string BellNotification();
 std::string Wizard();
 } // namespace Resources
 

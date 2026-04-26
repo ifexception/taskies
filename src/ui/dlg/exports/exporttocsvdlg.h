@@ -80,7 +80,6 @@ private:
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
     void OnExportTodaysTasksOnlyCheck(wxCommandEvent& event);
-    void OnWorkWeekRangeCheck(wxCommandEvent& event);
 
     void OnSavePreset(wxCommandEvent& event);
     void OnResetPreset(wxCommandEvent& event);
@@ -107,13 +106,12 @@ private:
 
     void ApplyPreset(const Core::Configuration::PresetSettings& presetSettings);
 
+    wxWindow* pParent;
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
-    std::string mDatabaseFilePath;
 
     std::unique_ptr<DateStore> pDateStore;
-
-    wxWindow* pParent;
 
     wxCheckBox* pExportToClipboardCheckBoxCtrl;
     wxTextCtrl* pSaveToFileTextCtrl;
@@ -130,7 +128,6 @@ private:
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
     wxCheckBox* pExportTodaysTasksCheckBoxCtrl;
-    wxCheckBox* pWorkWeekRangeCheckBoxCtrl;
 
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
@@ -161,6 +158,7 @@ private:
     wxButton* pExportButton;
     wxButton* pCancelButton;
 
+    std::string mDatabaseFilePath;
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
 
@@ -188,7 +186,6 @@ private:
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
-        tksIDC_WORKWEEKRANGECHECKBOXCTRL,
         tksIDC_PRESET_RESET_BUTTON,
         tksIDC_PRESET_NAME_TEXT_CTRL,
         tksIDC_PRESET_SAVE_BUTTON,

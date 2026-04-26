@@ -26,11 +26,12 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
+#include "../../common/results/exportresult.h"
+
 #include "columnjoinprojection.h"
 #include "projection.h"
 #include "sqliteexportquerybuilder.h"
 #include "data.h"
-#include "exportresult.h"
 
 namespace tks::Services::Export
 {

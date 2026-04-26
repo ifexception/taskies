@@ -19,12 +19,13 @@
 
 #include "preferencesdlg.h"
 
+#include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/persist/toplevel.h>
 
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
 #include "../../events.h"
-#include "../../common/notificationclientdata.h"
 
 #include "preferencesgeneralpage.h"
 #include "preferencesdatabasepage.h"
@@ -58,7 +59,7 @@ PreferencesDialog::PreferencesDialog(wxWindow* parent,
     , pTasksViewPage(nullptr)
     , pExportPage(nullptr)
     , pRestoreDefaultsButton(nullptr)
-    , pOkButton(nullptr)
+    , pOKButton(nullptr)
 {
     Initialize();
 
@@ -109,7 +110,8 @@ void PreferencesDialog::CreateControls()
 
     mainSizer->Add(pListBox, wxSizerFlags().Border(wxRIGHT, FromDIP(5)).Expand());
     mainSizer->Add(pSimpleBook, wxSizerFlags().Expand().Proportion(1));
-    sizer->Add(mainSizer, wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(10)).Expand().Proportion(1));
+    sizer->Add(mainSizer,
+        wxSizerFlags().Border(wxTOP | wxLEFT | wxRIGHT, FromDIP(10)).Expand().Proportion(1));
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -119,11 +121,11 @@ void PreferencesDialog::CreateControls()
 
     pRestoreDefaultsButton = new wxButton(this, tksIDC_RESTOREDEFAULTBUTTON, "Restore Defaults");
 
-    pOkButton = new wxButton(this, wxID_OK, "OK");
-    pOkButton->SetDefault();
+    pOKButton = new wxButton(this, wxID_OK, "OK");
+    pOKButton->SetDefault();
 
     buttonsSizer->Add(pRestoreDefaultsButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pOKButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -144,7 +146,7 @@ void PreferencesDialog::ConfigureEventBindings()
         tksIDC_RESTOREDEFAULTBUTTON
     );
 
-    pOkButton->Bind(
+    pOKButton->Bind(
         wxEVT_BUTTON,
         &PreferencesDialog::OnOK,
         this,
@@ -166,9 +168,18 @@ void PreferencesDialog::OnListBoxSelection(wxCommandEvent& event)
 
 void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
 {
-    bool success = pCfg->RestoreDefaults();
-    if (!success) {
-        wxMessageBox("Failed to restore default configuration", Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+    auto result = pCfg->RestoreDefaults();
+    if (!result.Success) {
+        pLogger->error("An error occurred while restoring the default configuration. Check earlier "
+                       "logs for more details");
+        wxRichMessageDialog dialog(this,
+            result.HeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.UserMessage);
+        dialog.ShowDetailedText(result.ErrorMessage);
+
+        dialog.ShowModal();
         return;
     }
 
@@ -178,42 +189,42 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
     pTasksViewPage->Reset();
     pExportPage->Reset();
 
-    std::string message = "Preferences restored to defaults";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
+    wxMessageDialog dialog(this,
+        "Successfuly restored configuration to defaults",
+        Common::GetProgramName(),
+        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_INFORMATION);
 
-    wxQueueEvent(pParent, addNotificationEvent);
+    dialog.ShowModal();
 }
 
 void PreferencesDialog::OnOK(wxCommandEvent& event)
 {
     if (!pGeneralPage->IsValid()) {
-        pListBox->SetSelection(0);
+        pListBox->SetSelection(PreferencesPage::General);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
 
     if (!pDatabasePage->IsValid()) {
-        pListBox->SetSelection(1);
+        pListBox->SetSelection(PreferencesPage::Database);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
 
     if (!pTasksPage->IsValid()) {
-        pListBox->SetSelection(2);
+        pListBox->SetSelection(PreferencesPage::Tasks);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
 
     if (!pTasksViewPage->IsValid()) {
-        pListBox->SetSelection(3);
+        pListBox->SetSelection(PreferencesPage::TasksView);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
 
     if (!pExportPage->IsValid()) {
-        pListBox->SetSelection(4);
+        pListBox->SetSelection(PreferencesPage::Export);
         pSimpleBook->ChangeSelection(pListBox->GetSelection());
         return;
     }
@@ -229,14 +240,11 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
     pCfg->Save();
 
     // Post success notification event
-    std::string message = "Preferences updated";
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData = new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
+    wxMessageBox("Successfully updated preferences",
+        Common::GetProgramName(),
+        wxOK_DEFAULT | wxICON_INFORMATION);
 
-    wxQueueEvent(pParent, addNotificationEvent);
-
-    event.Skip();
+    EndDialog(wxID_OK);
 }
 
 void PreferencesDialog::OnClose(wxCloseEvent& event)

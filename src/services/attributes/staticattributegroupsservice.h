@@ -24,26 +24,27 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
+#include "../../common/results/sqliteresult.h"
 
-#include <sqlite3.h>
+#include "../../persistence/base/persistencebase.h"
 
 #include "staticattributegroupviewmodel.h"
 
 namespace tks::Services
 {
-struct StaticAttributeGroupsService final {
+struct StaticAttributeGroupsService final : public Persistence::PersistenceBase {
+    StaticAttributeGroupsService() = delete;
+    StaticAttributeGroupsService(const StaticAttributeGroupsService&) = delete;
     StaticAttributeGroupsService(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~StaticAttributeGroupsService();
+    virtual ~StaticAttributeGroupsService();
 
-    int FilterByStaticFlagAndWithValueCounts(
+    StaticAttributeGroupsService& operator=(
+        const StaticAttributeGroupsService&) = delete;
+
+    SqliteResult FilterByStaticFlagAndWithValueCounts(
         /*out*/ std::vector<StaticAttributeGroupViewModel>& staticAttributeGroupViewModels) const;
-
-    sqlite3* pDb;
-    std::shared_ptr<spdlog::logger> pLogger;
 
     static std::string filterStaticWithValueCounts;
 };
-}
+} // namespace tks::Services

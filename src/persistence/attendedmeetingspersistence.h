@@ -24,30 +24,30 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/attendedmeetingmodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct AttendedMeetingsPersistence final {
-    AttendedMeetingsPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    ~AttendedMeetingsPersistence();
+struct AttendedMeetingsPersistence final : public PersistenceBase {
+    AttendedMeetingsPersistence() = delete;
+    AttendedMeetingsPersistence(const AttendedMeetingsPersistence&) = delete;
+    AttendedMeetingsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~AttendedMeetingsPersistence();
 
-    int GetByEntryId(const std::string& entryId,
+    AttendedMeetingsPersistence& operator=(const AttendedMeetingsPersistence&) = delete;
+
+    SqliteResult GetByEntryId(const std::string& entryId,
         /*out*/ Model::AttendedMeetingModel& attendedMeetingModel) const;
-    int GetByTodaysDate(const std::int32_t unixFromDateTime,
+    SqliteResult GetByTodaysDate(const std::int32_t unixFromDateTime,
         const std::int32_t unixToDateTime,
         /*out*/ std::vector<Model::AttendedMeetingModel>& attendedMeetingModels) const;
-    std::int64_t Create(const Model::AttendedMeetingModel& attendedMeetingModel) const;
-    int Delete(const std::int64_t attendedMeetingId) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    SqliteResult Create(std::int64_t& attendedMeetingId,
+        const Model::AttendedMeetingModel& attendedMeetingModel) const;
+    SqliteResult Delete(const std::int64_t attendedMeetingId) const;
 
     static std::string getByEntryId;
     static std::string getByTodaysDate;

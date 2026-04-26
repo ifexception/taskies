@@ -1,0 +1,120 @@
+// Productivity tool to help you track the time you spend on tasks
+// Copyright (C) 2026 Szymon Welgus
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+// Contact:
+//     szymonwelgus at gmail dot com
+
+#include "persistencebase.h"
+
+#include "../../common/logmessages.h"
+#include "../../common/queryhelper.h"
+
+namespace tks::Persistence
+{
+PersistenceResult::PersistenceResult()
+    : Success(true)
+    , ReturnCode(0)
+    , Error("")
+{
+}
+
+PersistenceResult::PersistenceResult(int returnCode, const std::string& error)
+    : Success(false)
+    , ReturnCode(returnCode)
+    , Error(error)
+{
+}
+
+PersistenceBase::PersistenceBase(std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath)
+    : pLogger(logger)
+    , pDb(nullptr)
+    , result()
+{
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
+
+    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
+
+        result = PersistenceResult(rc, std::string(error));
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
+
+        result = PersistenceResult(rc, std::string(error));
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
+
+        result = PersistenceResult(rc, std::string(error));
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
+
+        result = PersistenceResult(rc, std::string(error));
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
+
+        result = PersistenceResult(rc, std::string(error));
+        return;
+    }
+
+    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
+
+        result = PersistenceResult(rc, std::string(error));
+        return;
+    }
+}
+
+PersistenceBase::~PersistenceBase()
+{
+    sqlite3_close(pDb);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
+}
+
+PersistenceResult PersistenceBase::IsInitialized() const
+{
+    return result;
+}
+} // namespace tks::Persistence

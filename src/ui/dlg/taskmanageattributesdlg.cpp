@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 #include <wx/spinctrl.h>
@@ -29,10 +30,11 @@
 
 #include "../events.h"
 
-#include "../common/notificationclientdata.h"
 #include "../common/taskattributevalueclientdata.h"
 
 #include "../../common/common.h"
+
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
@@ -62,17 +64,17 @@ TaskManageAttributesDialog::TaskManageAttributesDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
+    , pMainSizer(nullptr)
+    , pAttributesBoxSizer(nullptr)
+    , pAttributesControlFlexGridSizer(nullptr)
+    , pAttributeGroupNameTextCtrl(nullptr)
+    , pAttributesBox(nullptr)
+    , pOKButton(nullptr)
+    , pCancelButton(nullptr)
     , mDatabaseFilePath(databaseFilePath)
     , mAttributeGroupId(attributeGroupId)
     , bIsEdit(isEdit)
     , mTaskId(taskId)
-    , pMainSizer(nullptr)
-    , pAttributeGroupNameTextCtrl(nullptr)
-    , pAttributesBox(nullptr)
-    , pAttributesBoxSizer(nullptr)
-    , pAttributesControlFlexGridSizer(nullptr)
-    , pOKButton(nullptr)
-    , pCancelButton(nullptr)
     , mAttributeControlCounter(1)
     , mAttributeControls()
     , mTaskAttributeValueModels()
@@ -169,10 +171,16 @@ void TaskManageAttributesDialog::FillControls()
     Model::AttributeGroupModel attributeGroupModel;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
-    if (rc != 0) {
-        std::string message = "Failed to fetch attribute group";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = attributeGroupsPersistence.GetById(mAttributeGroupId, attributeGroupModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdAttributeGroupMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return;
     }
 
@@ -181,11 +189,17 @@ void TaskManageAttributesDialog::FillControls()
     std::vector<Model::AttributeModel> attributeModels;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    rc = attributesPersistence.FilterByAttributeGroupId(mAttributeGroupId, attributeModels);
-    if (rc != 0) {
-        std::string message = "Failed to fetch attributes";
-        QueueErrorNotificationEvent(message);
-        return;
+    sqliteResult =
+        attributesPersistence.FilterByAttributeGroupId(mAttributeGroupId, attributeModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesByAttributeGroupMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -305,12 +319,17 @@ void TaskManageAttributesDialog::FillControls()
     Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
 
-    rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+    sqliteResult = staticAttributeValuesPersistence.FilterByAttributeGroupId(
         mAttributeGroupId, staticAttributeValueModels);
-    if (rc != 0) {
-        std::string message = "Failed to fetch static attribute values";
-        QueueErrorNotificationEvent(message);
-        return;
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterStaticAttributesByAttributeGroupIdMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     if (attributeGroupModel.IsStatic) {
@@ -376,10 +395,17 @@ void TaskManageAttributesDialog::DataToControls()
     Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
 
-    int rc = taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
-    if (rc != 0) {
-        std::string message = "Failed to fetch attribute values";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult =
+        taskAttributeValuesPersistence.GetByTaskId(mTaskId, mTaskAttributeValueModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterTaskAttributeValuesByTaskIdMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return;
     }
 
@@ -560,17 +586,5 @@ void TaskManageAttributesDialog::TransferDataFromControls()
 
         mTaskAttributeValueModels.push_back(taskAttributeModel);
     }
-}
-
-void TaskManageAttributesDialog::AppendAttributeControl(const Model::AttributeModel& model) {}
-
-void TaskManageAttributesDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

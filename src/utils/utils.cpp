@@ -219,13 +219,31 @@ std::string FormatSqlSearchTerm(const std::string& source)
     return "%" + source + "%";
 }
 
+// clang-format off
 std::string ConvertListIdsToCommaDelimitedString(const std::vector<std::int64_t> ids)
 {
     return std::accumulate(
-        std::begin(ids), std::end(ids), std::string(), [](std::string s, std::int64_t i) {
+        std::begin(ids),
+        std::end(ids),
+        std::string(),
+        [](std::string s, std::int64_t i) {
             return s.empty() ? std::to_string(i) : s + "," + std::to_string(i);
-        });
+        }
+    );
 }
+
+std::string ConvertListStringToCommaDelimitedString(const std::vector<std::string> inputs)
+{
+    return std::accumulate(
+        std::begin(inputs),
+        std::end(inputs),
+        std::string(),
+        [](std::string s, std::string i) {
+            return s.empty() ? i : s + "," + i;
+        }
+    );
+}
+// clang-format on
 
 // This method and the subsequent one below was generated using CoPilot
 // https://github.com/copilot/c/f8e039ed-8725-4130-a8c2-830c2c5e020a

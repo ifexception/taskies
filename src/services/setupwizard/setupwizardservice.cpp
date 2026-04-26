@@ -19,8 +19,12 @@
 
 #include "setupwizardservice.h"
 
+#include <wx/richmsgdlg.h>
+
+#include "../../common/common.h"
 #include "../../common/logmessages.h"
-#include "../../common/queryhelper.h"
+
+#include "../../common/results/sqliteresult.h"
 
 #include "../../persistence/employerspersistence.h"
 #include "../../persistence/clientspersistence.h"
@@ -33,73 +37,13 @@ namespace tks::Services
 {
 SetupWizardService::SetupWizardService(const std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : Persistence::PersistenceBase(logger, databaseFilePath)
     , mDatabaseFilePath(databaseFilePath)
     , mTransactionCounter(0)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-SetupWizardService::~SetupWizardService()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
+SetupWizardService::~SetupWizardService() {}
 
 int SetupWizardService::BeginTransaction()
 {
@@ -162,92 +106,109 @@ int SetupWizardService::RollbackTransaction()
     return rc;
 }
 
-std::int64_t SetupWizardService::CreateEmployer(const Model::EmployerModel& employerModel) const
+SqliteResult SetupWizardService::CreateEmployer(/*out*/ std::int64_t& employerId,
+    const Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t rowId = employersPersistence.Create(employerModel);
-    return rowId;
+
+    auto sqliteResult = employersPersistence.Create(employerId, employerModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::GetByEmployerId(const std::int64_t employerId,
+SqliteResult SetupWizardService::GetByEmployerId(const std::int64_t employerId,
     Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
-    int rc = employersPersistence.GetById(employerId, employerModel);
-    return rc;
+    auto sqliteResult = employersPersistence.GetById(employerId, employerModel);
+
+    return sqliteResult;
 }
 
-int SetupWizardService::UpdateEmployer(const Model::EmployerModel& employerModel) const
+SqliteResult SetupWizardService::UpdateEmployer(const Model::EmployerModel& employerModel) const
 {
     Persistence::EmployersPersistence employersPersistence(pLogger, mDatabaseFilePath);
-    int rc = employersPersistence.Update(employerModel);
-    return rc;
+    auto sqliteResult = employersPersistence.Update(employerModel);
+
+    return sqliteResult;
 }
 
-std::int64_t SetupWizardService::CreateClient(const Model::ClientModel& clientModel) const
+SqliteResult SetupWizardService::CreateClient(
+    /*out*/ std::int64_t& clientId,
+    const Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t rowId = clientsPersistence.Create(clientModel);
-    return rowId;
+
+    auto sqliteResult = clientsPersistence.Create(clientId, clientModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::GetByClientId(const std::int64_t clientId,
+SqliteResult SetupWizardService::GetByClientId(const std::int64_t clientId,
     Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
-    int rc = clientsPersistence.GetById(clientId, clientModel);
-    return rc;
+
+    auto sqliteResult = clientsPersistence.GetById(clientId, clientModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::UpdateClient(const Model::ClientModel& clientModel) const
+SqliteResult SetupWizardService::UpdateClient(const Model::ClientModel& clientModel) const
 {
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
-    int rc = clientsPersistence.Update(clientModel);
-    return rc;
+
+    auto sqliteResult = clientsPersistence.Update(clientModel);
+    return sqliteResult;
 }
 
-std::int64_t SetupWizardService::CreateProject(const Model::ProjectModel& projectModel) const
+SqliteResult SetupWizardService::CreateProject(std::int64_t& projectId,
+    const Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t rowId = projectsPersistence.Create(projectModel);
-    return rowId;
+
+    auto sqliteResult = projectsPersistence.Create(projectId, projectModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::GetByProjectId(const std::int64_t projectId,
+SqliteResult SetupWizardService::GetByProjectId(const std::int64_t projectId,
     Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
-    int rc = projectsPersistence.GetById(projectId, projectModel);
-    return rc;
+
+    auto sqliteResult = projectsPersistence.GetById(projectId, projectModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::UpdateProject(const Model::ProjectModel& projectModel) const
+SqliteResult SetupWizardService::UpdateProject(const Model::ProjectModel& projectModel) const
 {
     Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
-    int rc = projectsPersistence.Update(projectModel);
-    return rc;
+
+    auto sqliteResult = projectsPersistence.Update(projectModel);
+    return sqliteResult;
 }
 
-std::int64_t SetupWizardService::CreateCategory(const Model::CategoryModel& categoryModel) const
+SqliteResult SetupWizardService::CreateCategory(std::int64_t& categoryId,
+    const Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);
-    std::int64_t rowId = categoriesPersistence.Create(categoryModel);
-    return rowId;
+
+    auto sqliteResult = categoriesPersistence.Create(categoryId, categoryModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::GetByCategoryId(const std::int64_t categoryId,
+SqliteResult SetupWizardService::GetByCategoryId(const std::int64_t categoryId,
     Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);
-    int rc = categoriesPersistence.GetById(categoryId, categoryModel);
-    return rc;
+
+    auto sqliteResult = categoriesPersistence.GetById(categoryId, categoryModel);
+    return sqliteResult;
 }
 
-int SetupWizardService::UpdateCategory(const Model::CategoryModel& categoryModel) const
+SqliteResult SetupWizardService::UpdateCategory(const Model::CategoryModel& categoryModel) const
 {
     Persistence::CategoriesPersistence categoriesPersistence(pLogger, mDatabaseFilePath);
-    int rc = categoriesPersistence.Update(categoryModel);
-    return rc;
+
+    auto sqliteResult = categoriesPersistence.Update(categoryModel);
+    return sqliteResult;
 }
 
 bool SetupWizardService::IsInTransaction() const

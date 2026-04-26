@@ -28,6 +28,7 @@
 #include <wx/wx.h>
 #endif
 
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
 #include "../../models/employermodel.h"
@@ -61,12 +62,9 @@ private:
 
     Model::EmployerModel TransferDataFromControls();
 
-    void QueueErrorNotificationEvent(const std::string& message);
+    wxWindow* pParent;
 
     std::shared_ptr<spdlog::logger> pLogger;
-    std::string mDatabaseFilePath;
-
-    wxWindow* pParent;
 
     wxTextCtrl* pNameTextCtrl;
     wxCheckBox* pIsDefaultCheckBoxCtrl;
@@ -78,6 +76,7 @@ private:
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
+    std::string mDatabaseFilePath;
     bool bIsEdit;
     std::int64_t mEmployerId;
 

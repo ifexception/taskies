@@ -24,16 +24,17 @@
 
 #include <fmt/format.h>
 
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../events.h"
 #include "../common/clientdata.h"
-#include "../common/notificationclientdata.h"
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
+
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/projectspersistence.h"
 #include "../../persistence/categoriespersistence.h"
@@ -123,7 +124,8 @@ void CategoriesDialog::CreateControls()
     pColorPickerCtrl->SetToolTip("Pick a color to associate with the category");
 
     pBillableCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_BILLABLECHECKBOXCTRL, "Billable");
-    pBillableCheckBoxCtrl->SetToolTip("Indicates if a task captured with this category is billable");
+    pBillableCheckBoxCtrl->SetToolTip(
+        "Indicates if a task captured with this category is billable");
 
     /* Details Grid Sizer */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -240,15 +242,16 @@ void CategoriesDialog::FillControls()
     std::vector<Model::ProjectModel> projects;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.Filter(defaultSearchTerm, projects);
-    if (rc != 0) {
-        std::string message = "Failed to get projects";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
+    auto sqliteResult = projectPersistence.Filter(defaultSearchTerm, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        wxQueueEvent(pParent, addNotificationEvent);
+        dialog.ShowModal();
     } else {
         if (!projects.empty()) {
             if (!pProjectChoiceCtrl->IsEnabled()) {
@@ -338,6 +341,7 @@ void CategoriesDialog::FillControls(const Model::CategoryModel& category)
     pBillableCheckBoxCtrl->SetValue(category.Billable);
     pDescriptionTextCtrl->SetValue(
         category.Description.has_value() ? category.Description.value() : "");
+
     if (!category.Description.has_value()) {
         pDescriptionTextCtrl->SetHint("Description (optional)");
     }
@@ -354,7 +358,7 @@ void CategoriesDialog::FillControls(const Model::CategoryModel& category)
     }
 }
 
-void CategoriesDialog::Append(Model::CategoryModel category)
+void CategoriesDialog::AppendCategory(Model::CategoryModel category)
 {
     int listIndex = 0;
     int columnIndex = 0;
@@ -363,7 +367,7 @@ void CategoriesDialog::Append(Model::CategoryModel category)
     pListCtrl->SetItemBackgroundColour(listIndex, category.Color);
 }
 
-void CategoriesDialog::Update(Model::CategoryModel category)
+void CategoriesDialog::UpdateCategory(Model::CategoryModel category)
 {
     int columnIndex = 0;
 
@@ -382,12 +386,12 @@ void CategoriesDialog::OnAdd(wxCommandEvent& event)
     TransferDataFromControls();
 
     if (!bEditFromListCtrl) {
-        Append(mCategoryToAdd);
+        AppendCategory(mCategoryToAdd);
         mCategoriesToAdd.push_back(mCategoryToAdd);
         pRemoveAllButton->Enable();
     } else {
         mCategoriesToAdd[mCategoryIndexEdit] = mCategoryToAdd;
-        Update(mCategoryToAdd);
+        UpdateCategory(mCategoryToAdd);
     }
 
     mCategoryToAdd = Model::CategoryModel();
@@ -441,41 +445,32 @@ void CategoriesDialog::OnRemoveAll(wxCommandEvent& event)
 
 void CategoriesDialog::OnOK(wxCommandEvent& event)
 {
-    pOkButton->Disable();
-
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int ret = 0;
-    std::string message = "";
-    for (auto& category : mCategoriesToAdd) {
-        std::int64_t categoryId = categoryPersistence.Create(category);
-        ret = categoryId > 0 ? 1 : -1;
-        if (ret == -1) {
-            break;
+    for (const auto& category : mCategoriesToAdd) {
+        std::int64_t categoryId = -1;
+        auto result = categoryPersistence.Create(categoryId, category);
+
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when creating \"{1}\" "
+                           "category, see earlier logs for details",
+                result.ReturnCode,
+                category.Name);
+            std::string message = fmt::format(Messages::CreateCategoryMessage, category.Name);
+
+            wxRichMessageDialog dialog(this,
+                message,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
-    ret == -1 ? message = "Failed to create categories"
-              : message = "Successfully created categories";
-
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    if (ret == -1) {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
-        pOkButton->Enable();
-    } else {
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
-        EndModal(wxID_OK);
-    }
+    EndModal(wxID_OK);
 }
 
 void CategoriesDialog::OnCancel(wxCommandEvent& event)

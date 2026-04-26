@@ -243,6 +243,12 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\common\messages\configmessages.cpp" />
+    <ClCompile Include="src\common\results\configresult.cpp" />
+    <ClCompile Include="src\common\messages\operationmessages.cpp" />
+    <ClCompile Include="src\common\messages\sqlitemessages.cpp" />
+    <ClCompile Include="src\common\messages\persistencemessages.cpp" />
+    <ClCompile Include="src\common\results\sqliteresult.cpp" />
     <ClCompile Include="src\persistence\attendedmeetingspersistence.cpp" />
     <ClCompile Include="src\application.cpp" />
     <ClCompile Include="src\common\common.cpp" />
@@ -276,6 +282,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\persistence\categoriespersistence.cpp" />
     <ClCompile Include="src\persistence\clientspersistence.cpp" />
     <ClCompile Include="src\persistence\employerspersistence.cpp" />
+    <ClCompile Include="src\persistence\base\persistencebase.cpp" />
     <ClCompile Include="src\persistence\projectspersistence.cpp" />
     <ClCompile Include="src\persistence\staticattributevaluespersistence.cpp" />
     <ClCompile Include="src\persistence\taskattributevaluespersistence.cpp" />
@@ -298,7 +305,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\services\export\excelexportprocessor.cpp" />
     <ClCompile Include="src\services\export\excelguard.cpp" />
     <ClCompile Include="src\services\export\exportoptions.cpp" />
-    <ClCompile Include="src\services\export\exportresult.cpp" />
+    <ClCompile Include="src\common\results\exportresult.cpp" />
     <ClCompile Include="src\services\export\exportsservice.cpp" />
     <ClCompile Include="src\services\export\headervaluepair.cpp" />
     <ClCompile Include="src\services\export\projection.cpp" />
@@ -313,7 +320,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\services\tasks\tasksservice.cpp" />
     <ClCompile Include="src\services\tasks\taskviewmodel.cpp" />
     <ClCompile Include="src\ui\common\clientdata.cpp" />
-    <ClCompile Include="src\ui\common\notificationclientdata.cpp" />
     <ClCompile Include="src\ui\common\taskattributevalueclientdata.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistitemmodel.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistmodel.cpp" />
@@ -344,7 +350,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\ui\events.cpp" />
     <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp" />
     <ClCompile Include="src\ui\mainframe.cpp" />
-    <ClCompile Include="src\ui\notificationpopupwindow.cpp" />
     <ClCompile Include="src\ui\persistencemanager.cpp" />
     <ClCompile Include="src\ui\statusbar.cpp" />
     <ClCompile Include="src\ui\taskbaricon.cpp" />
@@ -354,6 +359,12 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\utils\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\common\messages\configmessages.h" />
+    <ClInclude Include="src\common\results\configresult.h" />
+    <ClInclude Include="src\common\messages\operationmessages.h" />
+    <ClInclude Include="src\common\messages\sqlitemessages.h" />
+    <ClInclude Include="src\common\messages\persistencemessages.h" />
+    <ClInclude Include="src\common\results\sqliteresult.h" />
     <ClInclude Include="src\persistence\attendedmeetingspersistence.h" />
     <ClInclude Include="src\application.h" />
     <ClInclude Include="src\common\common.h" />
@@ -387,6 +398,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\persistence\categoriespersistence.h" />
     <ClInclude Include="src\persistence\clientspersistence.h" />
     <ClInclude Include="src\persistence\employerspersistence.h" />
+    <ClInclude Include="src\persistence\base\persistencebase.h" />
     <ClInclude Include="src\persistence\projectspersistence.h" />
     <ClInclude Include="src\persistence\staticattributevaluespersistence.h" />
     <ClInclude Include="src\persistence\taskattributevaluespersistence.h" />
@@ -409,7 +421,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\services\export\excelexportprocessor.h" />
     <ClInclude Include="src\services\export\excelguard.h" />
     <ClInclude Include="src\services\export\exportoptions.h" />
-    <ClInclude Include="src\services\export\exportresult.h" />
+    <ClInclude Include="src\common\results\exportresult.h" />
     <ClInclude Include="src\services\export\exportsservice.h" />
     <ClInclude Include="src\services\export\headervaluepair.h" />
     <ClInclude Include="src\services\export\projection.h" />
@@ -424,7 +436,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\services\tasks\tasksservice.h" />
     <ClInclude Include="src\services\tasks\taskviewmodel.h" />
     <ClInclude Include="src\ui\common\clientdata.h" />
-    <ClInclude Include="src\ui\common\notificationclientdata.h" />
     <ClInclude Include="src\ui\common\taskattributevalueclientdata.h" />
     <ClInclude Include="src\ui\dataview\columnlistitemmodel.h" />
     <ClInclude Include="src\ui\dataview\columnlistmodel.h" />
@@ -455,7 +466,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\ui\events.h" />
     <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h" />
     <ClInclude Include="src\ui\mainframe.h" />
-    <ClInclude Include="src\ui\notificationpopupwindow.h" />
     <ClInclude Include="src\ui\persistencemanager.h" />
     <ClInclude Include="src\ui\statusbar.h" />
     <ClInclude Include="src\ui\taskbaricon.h" />

@@ -24,33 +24,34 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/employermodel.h"
+
+#include "../common/results/sqliteresult.h"
 
 namespace tks
 {
 namespace Persistence
 {
-struct EmployersPersistence final {
-    EmployersPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
-    ~EmployersPersistence();
+struct EmployersPersistence final : public PersistenceBase {
+    EmployersPersistence() = delete;
+    EmployersPersistence(const EmployersPersistence&) = delete;
+    EmployersPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    virtual ~EmployersPersistence();
 
-    int Filter(const std::string& searchTerm,
+    EmployersPersistence& operator=(const EmployersPersistence&) = delete;
+
+    SqliteResult Filter(const std::string& searchTerm,
         /*out*/ std::vector<Model::EmployerModel>& employerModels) const;
-    int GetById(const std::int64_t employerId, /*out*/ Model::EmployerModel& employerModel) const;
-    std::int64_t Create(const Model::EmployerModel& employerModel) const;
-    int Update(const Model::EmployerModel& employerModel) const;
-    int Delete(const std::int64_t employerId) const;
-    int UnsetDefault() const;
-    int SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    SqliteResult GetById(const std::int64_t employerId,
+        /*out*/ Model::EmployerModel& employerModel) const;
+    SqliteResult Create(/*out*/ std::int64_t& employerId,
+        const Model::EmployerModel& employerModel) const;
+    SqliteResult Update(const Model::EmployerModel& employerModel) const;
+    SqliteResult Delete(const std::int64_t employerId) const;
+    SqliteResult UnsetDefault() const;
+    SqliteResult SelectDefault(/*out*/ Model::EmployerModel& employerModel) const;
 
     static std::string filter;
     static std::string getById;

@@ -33,10 +33,11 @@
 
 #include "../../common/enums.h"
 
+#include "../../common/results/exportresult.h"
+
 #include "data.h"
 #include "datagenerator.h"
 #include "excelexportprocessor.h"
-#include "exportresult.h"
 
 #include "../../utils/utils.h"
 

@@ -81,6 +81,15 @@
     <Filter Include="Source\services\outlook">
       <UniqueIdentifier>{f31f582e-e81c-43bc-b3f7-39a6ee77d126}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\persistence\base">
+      <UniqueIdentifier>{06813853-a9fa-420d-a5ac-0100ae006938}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\common\results">
+      <UniqueIdentifier>{c9e2af56-c816-4fef-8c44-396b71a4987c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\common\messages">
+      <UniqueIdentifier>{71416d9f-b9e2-4593-b433-50d7dfe14f09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -236,9 +245,6 @@
     <ClCompile Include="src\services\export\excelguard.cpp">
       <Filter>Source\services\export</Filter>
     </ClCompile>
-    <ClCompile Include="src\services\export\exportresult.cpp">
-      <Filter>Source\services\export</Filter>
-    </ClCompile>
     <ClCompile Include="src\services\export\exportsservice.cpp">
       <Filter>Source\services\export</Filter>
     </ClCompile>
@@ -276,9 +282,6 @@
       <Filter>Source\utils</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\common\clientdata.cpp">
-      <Filter>Source\ui\common</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ui\common\notificationclientdata.cpp">
       <Filter>Source\ui\common</Filter>
     </ClCompile>
     <ClCompile Include="src\ui\common\taskattributevalueclientdata.cpp">
@@ -380,9 +383,6 @@
     <ClCompile Include="src\ui\mainframe.cpp">
       <Filter>Source\ui</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\notificationpopupwindow.cpp">
-      <Filter>Source\ui</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui\statusbar.cpp">
       <Filter>Source\ui</Filter>
     </ClCompile>
@@ -409,6 +409,30 @@
     </ClCompile>
     <ClCompile Include="src\utils\mswutils.cpp">
       <Filter>Source\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\persistence\base\persistencebase.cpp">
+      <Filter>Source\persistence\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\results\sqliteresult.cpp">
+      <Filter>Source\common\results</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\messages\persistencemessages.cpp">
+      <Filter>Source\common\messages</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\messages\sqlitemessages.cpp">
+      <Filter>Source\common\messages</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\results\exportresult.cpp">
+      <Filter>Source\common\results</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\messages\operationmessages.cpp">
+      <Filter>Source\common\messages</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\results\configresult.cpp">
+      <Filter>Source\common\results</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\messages\configmessages.cpp">
+      <Filter>Source\common\messages</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -568,9 +592,6 @@
     <ClInclude Include="src\services\export\exportoptions.h">
       <Filter>Source\services\export</Filter>
     </ClInclude>
-    <ClInclude Include="src\services\export\exportresult.h">
-      <Filter>Source\services\export</Filter>
-    </ClInclude>
     <ClInclude Include="src\services\export\exportsservice.h">
       <Filter>Source\services\export</Filter>
     </ClInclude>
@@ -611,9 +632,6 @@
       <Filter>Source\utils</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\common\clientdata.h">
-      <Filter>Source\ui\common</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\common\notificationclientdata.h">
       <Filter>Source\ui\common</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\common\taskattributevalueclientdata.h">
@@ -706,9 +724,6 @@
     <ClInclude Include="src\ui\mainframe.h">
       <Filter>Source\ui</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\notificationpopupwindow.h">
-      <Filter>Source\ui</Filter>
-    </ClInclude>
     <ClInclude Include="src\ui\taskbaricon.h">
       <Filter>Source\ui</Filter>
     </ClInclude>
@@ -738,6 +753,30 @@
     </ClInclude>
     <ClInclude Include="src\utils\mswutils.h">
       <Filter>Source\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\persistence\base\persistencebase.h">
+      <Filter>Source\persistence\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\results\sqliteresult.h">
+      <Filter>Source\common\results</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\messages\persistencemessages.h">
+      <Filter>Source\common\messages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\messages\sqlitemessages.h">
+      <Filter>Source\common\messages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\results\exportresult.h">
+      <Filter>Source\common\results</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\messages\operationmessages.h">
+      <Filter>Source\common\messages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\results\configresult.h">
+      <Filter>Source\common\results</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\messages\configmessages.h">
+      <Filter>Source\common\messages</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -812,7 +851,9 @@
     </None>
     <None Include="conandata.yml" />
     <None Include="conanfile.py" />
-    <None Include="res\install-wizard.svg" />
+    <None Include="res\install-wizard.svg">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\about.ico">

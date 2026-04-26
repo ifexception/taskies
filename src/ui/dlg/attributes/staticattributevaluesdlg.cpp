@@ -24,16 +24,17 @@
 
 #include <fmt/format.h>
 
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
 #include "../../../common/validator.h"
+
+#include "../../../common/messages/persistencemessages.h"
 
 #include "../../../persistence/attributegroupspersistence.h"
 #include "../../../persistence/attributespersistence.h"
@@ -57,8 +58,8 @@ StaticAttributeValuesDialog::StaticAttributeValuesDialog(wxWindow* parent,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
-    , pParent(parent)
     , pLogger(logger)
+    , pParent(parent)
     , mDatabaseFilePath(databaseFilePath)
     , bIsEdit(isEdit)
     , mAttributeGroupId(attributeGroupId)
@@ -131,8 +132,6 @@ void StaticAttributeValuesDialog::CreateControls()
     auto line2 = new wxStaticLine(this, wxID_ANY);
     pMainSizer->Add(line2, wxSizerFlags().Expand());
 
-    /* Begin Button Controls */
-
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
 
@@ -162,11 +161,16 @@ void StaticAttributeValuesDialog::FillControls()
     std::vector<Model::AttributeGroupModel> attributeGroups;
     Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributeGroupsPersistence.FilterByStaticFlag(attributeGroups);
-    if (rc != 0) {
-        std::string message = "Failed to get static attribute groups";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = attributeGroupsPersistence.FilterByStaticFlag(attributeGroups);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributeGroupsByStaticFlagMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
+        dialog.ShowModal();
         return;
     }
 
@@ -221,13 +225,18 @@ void StaticAttributeValuesDialog::DataToControls()
     std::vector<Model::AttributeModel> attributeModels;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
+    auto sqliteResult = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
         mAttributeGroupId, attributeModels);
 
-    if (rc != 0) {
-        std::string message = "Failed to fetch attributes";
-        QueueErrorNotificationEvent(message);
-        return;
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesByStaticFlagMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -340,12 +349,17 @@ void StaticAttributeValuesDialog::DataToControls()
     Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
         pLogger, mDatabaseFilePath);
 
-    rc = staticAttributeValuesPersistence.FilterByAttributeGroupId(
+    sqliteResult = staticAttributeValuesPersistence.FilterByAttributeGroupId(
         mAttributeGroupId, staticAttributeValueModels);
-    if (rc != 0) {
-        std::string message = "Failed to fetch static attribute values";
-        QueueErrorNotificationEvent(message);
-        return;
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterStaticAttributesByAttributeGroupIdMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     assert(mAttributesMetadata.size() == staticAttributeValueModels.size());
@@ -405,13 +419,18 @@ void StaticAttributeValuesDialog::OnAttributeGroupChoiceSelection(wxCommandEvent
     std::vector<Model::AttributeModel> attributeModels;
     Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
+    auto sqliteResult = attributesPersistence.FilterByAttributeGroupIdAndIsStatic(
         mAttributeGroupId, attributeModels);
 
-    if (rc != 0) {
-        std::string message = "Failed to fetch attributes";
-        QueueErrorNotificationEvent(message);
-        return;
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttributesByStaticFlagMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -541,7 +560,7 @@ void StaticAttributeValuesDialog::OnIsActiveCheck(wxCommandEvent& event)
                 break;
             }
             default:
-                pLogger->error("Unmatched attribute type, cannot set control values");
+                pLogger->warn("Unmatched attribute type, cannot set control values");
                 break;
             }
         }
@@ -563,7 +582,7 @@ void StaticAttributeValuesDialog::OnIsActiveCheck(wxCommandEvent& event)
                 break;
             }
             default:
-                pLogger->error("Unmatched attribute type, cannot set control values");
+                pLogger->warn("Unmatched attribute type, cannot set control values");
                 break;
             }
         }
@@ -581,20 +600,34 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
         Persistence::StaticAttributeValuesPersistence staticAttributeValuesPersistence(
             pLogger, mDatabaseFilePath);
 
-        int ret = -1;
-        std::string message = "";
-        NotificationClientData* clientData = nullptr;
-
         if (!bIsEdit) {
-            ret = staticAttributeValuesPersistence.CreateMultiple(staticAttributeValueModels);
+            auto sqliteResult =
+                staticAttributeValuesPersistence.CreateMultiple(staticAttributeValueModels);
 
-            message = ret == -1 ? "Failed to create static attribute values"
-                                : "Successfully created static attribute values";
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::CreateStaticAttributeMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+            }
         } else if (bIsEdit && pIsActiveCheckBoxCtrl->GetValue()) {
-            ret = staticAttributeValuesPersistence.UpdateMultiple(staticAttributeValueModels);
+            auto sqliteResult =
+                staticAttributeValuesPersistence.UpdateMultiple(staticAttributeValueModels);
 
-            message = ret == -1 ? "Failed to update static attribute values"
-                                : "Successfully updated static attribute values";
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::UpdateStaticAttributeMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+            }
         } else if (bIsEdit && !pIsActiveCheckBoxCtrl->GetValue()) {
             bool areStaticAttributeValuesUsed = false;
             std::vector<std::int64_t> attributeIds;
@@ -610,11 +643,18 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
             );
             // clang-format on
 
-            ret = staticAttributeValuesPersistence.CheckUsage(
+            auto sqliteResult = staticAttributeValuesPersistence.CheckUsage(
                 attributeIds, areStaticAttributeValuesUsed);
-            if (ret == -1) {
-                message = "Failed to check static attribute value usage";
-                QueueErrorNotificationEvent(message);
+
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::CheckUsageStaticAttributeMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
                 return;
             }
 
@@ -638,18 +678,20 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
             );
             // clang-format on
 
-            ret = staticAttributeValuesPersistence.Delete(staticAttributeValueIds);
-            message = ret == -1 ? "Failed to delete static attribute values"
-                                : "Successfully deleted static attribute values";
+            sqliteResult = staticAttributeValuesPersistence.Delete(staticAttributeValueIds);
+
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::DeleteStaticAttributeMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+                return;
+            }
         }
-
-        clientData = ret == -1 ? new NotificationClientData(NotificationType::Error, message)
-                               : new NotificationClientData(NotificationType::Information, message);
-
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
     }
 
     EndModal(wxID_OK);
@@ -769,20 +811,5 @@ std::vector<Model::StaticAttributeValueModel>
     }
 
     return staticAttributeValueModels;
-}
-
-void StaticAttributeValuesDialog::CreateControlsWithData(
-    std::vector<Model::StaticAttributeValueModel> staticAttributeValueModels)
-{
-}
-
-void StaticAttributeValuesDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

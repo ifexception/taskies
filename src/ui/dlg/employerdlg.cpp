@@ -19,17 +19,18 @@
 
 #include "employerdlg.h"
 
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
 #include <fmt/format.h>
 
-#include "../events.h"
-#include "../common/notificationclientdata.h"
-
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
+
+#include "../../common/results/sqliteresult.h"
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/employerspersistence.h"
 
@@ -52,15 +53,15 @@ EmployerDialog::EmployerDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
-    , mDatabaseFilePath(databaseFilePath)
-    , bIsEdit(isEdit)
-    , mEmployerId(employerId)
     , pNameTextCtrl(nullptr)
     , pIsDefaultCheckBoxCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
+    , mDatabaseFilePath(databaseFilePath)
+    , bIsEdit(isEdit)
+    , mEmployerId(employerId)
 {
     Create();
 
@@ -193,10 +194,16 @@ void EmployerDialog::DataToControls()
     Model::EmployerModel employerModel;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = employerPersistence.GetById(mEmployerId, employerModel);
-    if (rc == -1) {
-        std::string message = "Failed to get employer";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdEmployerMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pNameTextCtrl->SetValue(employerModel.Name);
         pIsDefaultCheckBoxCtrl->SetValue(employerModel.IsDefault);
@@ -217,61 +224,90 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
-    pOkButton->Disable();
-
     Model::EmployerModel employerModel = TransferDataFromControls();
-
-    int ret = 0;
-    std::string message = "";
 
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
-        ret = employerPersistence.UnsetDefault();
+        auto result = employerPersistence.UnsetDefault();
 
-        if (ret == -1) {
-            message = "Failed to unset default employer";
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when unsetting a default "
+                           "employer, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UnsetDefaultEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
-    if (ret != -1) {
-        if (!bIsEdit) {
-            std::int64_t employerId = employerPersistence.Create(employerModel);
-            ret = employerId > 0 ? 1 : -1;
+    if (!bIsEdit) {
+        std::int64_t employerId = -1;
+        auto result = employerPersistence.Create(employerId, employerModel);
 
-            ret == -1 ? message = "Failed to create employer"
-                      : message = "Successfully created employer";
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when creating an "
+                           "employer, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::CreateEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
-        if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
-            ret = employerPersistence.Update(employerModel);
+    }
+    if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        auto result = employerPersistence.Update(employerModel);
 
-            ret == -1 ? message = "Failed to update employer"
-                      : message = "Successfully updated employer";
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when updating an "
+                           "employer, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
-        if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
-            ret = employerPersistence.Delete(mEmployerId);
+    }
+    if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        auto result = employerPersistence.Delete(mEmployerId);
 
-            ret == -1 ? message = "Failed to delete employer"
-                      : message = "Successfully deleted employer";
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when deleting an "
+                           "employer, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
         }
     }
 
-    if (ret == -1) {
-        QueueErrorNotificationEvent(message);
-
-        pOkButton->Enable();
-    } else {
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then we
-        // have wxFrame
-        wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
-
-        EndModal(wxID_OK);
-    }
+    EndModal(wxID_OK);
 }
 
 void EmployerDialog::OnCancel(wxCommandEvent& event)
@@ -329,14 +365,24 @@ bool EmployerDialog::Validate()
     if (!pIsDefaultCheckBoxCtrl->IsChecked()) {
         Model::EmployerModel model;
         Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-        int rc = employerPersistence.SelectDefault(model);
+        auto result = employerPersistence.SelectDefault(model);
 
-        if (rc == -1) {
-            std::string message = "Failed to get default employer";
-            QueueErrorNotificationEvent(message);
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when querying for default "
+                           "employers, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::SelectDefaultEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
         } else {
             if (!model.IsDefault) {
-                std::string validationMessage = "Required default employer not found";
+                std::string validationMessage = "At least one employer is required to be default";
                 wxRichToolTip toolTip("Validation", validationMessage);
                 toolTip.SetIcon(wxICON_WARNING);
                 toolTip.ShowFor(pIsDefaultCheckBoxCtrl);
@@ -363,17 +409,5 @@ Model::EmployerModel EmployerDialog::TransferDataFromControls()
         description.empty() ? std::nullopt : std::make_optional(description);
 
     return employerModel;
-}
-
-void EmployerDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    // if we are editing, pParent is EditListDlg. We need to get parent of pParent and then
-    // we have wxFrame
-    wxQueueEvent(bIsEdit ? pParent->GetParent() : pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

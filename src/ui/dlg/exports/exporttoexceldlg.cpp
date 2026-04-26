@@ -23,6 +23,7 @@
 
 #include <wx/dirdlg.h>
 #include <wx/persist/toplevel.h>
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
@@ -31,6 +32,8 @@
 #include "../../../common/enums.h"
 #include "../../../common/enumclientdata.h"
 
+#include "../../../common/results/exportresult.h"
+
 #include "../../../services/export/availablecolumns.h"
 #include "../../../services/export/exportoptions.h"
 #include "../../../services/export/columnexportmodel.h"
@@ -38,13 +41,11 @@
 #include "../../../services/export/projection.h"
 #include "../../../services/export/projectionbuilder.h"
 #include "../../../services/export/excelexporterservice.h"
-#include "../../../services/export/exportresult.h"
 
 #include "../../../utils/utils.h"
 
 #include "../../events.h"
 #include "../../common/clientdata.h"
-#include "../../common/notificationclientdata.h"
 
 namespace
 {
@@ -91,7 +92,6 @@ ExportToExcelDialog::ExportToExcelDialog(wxWindow* parent,
     , pFromDatePickerCtrl(nullptr)
     , pToDatePickerCtrl(nullptr)
     , pExportTodaysTasksCheckBoxCtrl(nullptr)
-    , pWorkWeekRangeCheckBoxCtrl(nullptr)
     , pPresetNameTextCtrl(nullptr)
     , pPresetIsDefaultCheckBoxCtrl(nullptr)
     , pPresetSaveButton(nullptr)
@@ -311,11 +311,6 @@ void ExportToExcelDialog::CreateControls()
         dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks");
     pExportTodaysTasksCheckBoxCtrl->SetToolTip("Export tasks logged during today's date");
 
-    /* Set date range to work week (i.e. Mon - Fri) */
-    pWorkWeekRangeCheckBoxCtrl = new wxCheckBox(
-        dateRangeStaticBox, tksIDC_WORKWEEKRANGECHECKBOXCTRL, "Export work week tasks");
-    pWorkWeekRangeCheckBoxCtrl->SetToolTip("Export only tasks logged during the current work week");
-
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     dateRangeStaticBoxSizer->Add(dateControlsHorizontalSizer, wxSizerFlags().Expand());
@@ -331,8 +326,6 @@ void ExportToExcelDialog::CreateControls()
 
     dateRangeStaticBoxSizer->Add(
         pExportTodaysTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    dateRangeStaticBoxSizer->Add(
-        pWorkWeekRangeCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line1 = new wxStaticLine(this, wxID_ANY);
@@ -581,13 +574,6 @@ void ExportToExcelDialog::ConfigureEventBindings()
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL
     );
 
-    pWorkWeekRangeCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX,
-        &ExportToExcelDialog::OnWorkWeekRangeCheck,
-        this,
-        tksIDC_WORKWEEKRANGECHECKBOXCTRL
-    );
-
     pPresetSaveButton->Bind(
         wxEVT_BUTTON,
         &ExportToExcelDialog::OnSavePreset,
@@ -823,33 +809,6 @@ void ExportToExcelDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
     }
 }
 
-void ExportToExcelDialog::OnWorkWeekRangeCheck(wxCommandEvent& event)
-{
-    if (event.IsChecked()) {
-        auto fridayDate = pDateStore->MondayDate + (pDateStore->MondayDate - date::Thursday);
-        auto fridayTimestamp = fridayDate.time_since_epoch();
-        auto fridaySeconds =
-            std::chrono::duration_cast<std::chrono::seconds>(fridayTimestamp).count();
-
-        pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
-        mFromCtrlDate = pDateStore->MondayDateSeconds;
-
-        pToDatePickerCtrl->SetValue(fridaySeconds);
-        mToCtrlDate = fridaySeconds;
-
-        pFromDatePickerCtrl->Disable();
-        pToDatePickerCtrl->Disable();
-    } else {
-        SetFromAndToDatePickerRanges();
-
-        SetFromDateAndDatePicker();
-        SetToDateAndDatePicker();
-
-        pFromDatePickerCtrl->Enable();
-        pToDatePickerCtrl->Enable();
-    }
-}
-
 void ExportToExcelDialog::OnResetPreset(wxCommandEvent& event)
 {
     pPresetIsDefaultCheckBoxCtrl->SetValue(false);
@@ -953,21 +912,29 @@ void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
 
     preset.IncludeAttributes = bIncludeAttributes;
 
-    bool success = pCfg->TryUnsetDefaultPreset();
-    if (!success) {
-        pLogger->warn("Failed to unset default preset on preset save");
+    auto result = pCfg->TryUnsetDefaultPreset();
+    if (!result.Success) {
+        pLogger->error("Failed to unset default preset when saving preset(s)");
+        pLogger->error("An error occurred while unsetting a default preset configuration. "
+                       "Check earlier logs for more details");
+        wxRichMessageDialog dialog(this,
+            result.HeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.UserMessage);
+        dialog.ShowDetailedText(result.ErrorMessage);
+
+        dialog.ShowModal();
+        return;
     }
 
     if (presetData->GetValue().empty()) {
-        // save preset
         pCfg->SaveExportPreset(preset);
 
-        // set as the active preset
         int selection =
             pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
         pPresetsChoiceCtrl->SetSelection(selection);
     } else {
-        // update preset
         pCfg->UpdateExportPreset(preset);
     }
 }
@@ -1089,7 +1056,7 @@ void ExportToExcelDialog::OnRemoveExportColumnToAvailableColumnList(wxCommandEve
         pExportColumnListModel->DeleteItems(items);
 
         for (const auto& column : columnsToRemove) {
-            int i = pAvailableColumnsListView->InsertItem(0, column.OriginalColumn);
+            pAvailableColumnsListView->InsertItem(0, column.OriginalColumn);
         }
         SPDLOG_LOGGER_TRACE(
             pLogger, " \"{0}\" columns removed from export list", columnsToRemove.size());
@@ -1171,7 +1138,7 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
 
     if (columnsToExport.size() == 0) {
-        wxMessageBox("Please select at least one column to export.",
+        wxMessageBox("Please select at least one column to export",
             Common::GetProgramName(),
             wxOK_DEFAULT | wxICON_INFORMATION);
         return;
@@ -1193,7 +1160,7 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
-    Services::Export::ExportResult result;
+    ExportResult result;
     {
         wxBusyCursor busy;
 
@@ -1206,14 +1173,6 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
     }
 
     if (!result.Success) {
-        std::string message = "Failed to export data to Excel";
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
         wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
 
         return;
@@ -1222,13 +1181,6 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
     std::string message = "Successfully exported data to Excel";
 
     wxMessageBox(message, Common::GetProgramName(), wxICON_INFORMATION | wxOK_DEFAULT);
-
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Information, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 
     if (bOpenExplorerInExportDirectory) {
         {

@@ -17,17 +17,37 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "exportresult.h"
+#include "configresult.h"
 
-namespace tks::Services::Export
+namespace tks
 {
-ExportResult ExportResult::OK()
+ConfigResult::ConfigResult()
+    : Success(true)
+    , HeaderMessage("")
+    , UserMessage("")
+    , ErrorMessage("")
 {
-    return ExportResult{ true, "" };
 }
 
-ExportResult ExportResult::Fail(const std::string& errorMessage)
+ConfigResult::ConfigResult(const std::string& headerMessage,
+    const std::string& userMessage,
+    const std::string& errorMessage)
+    : Success(false)
+    , HeaderMessage(headerMessage)
+    , UserMessage(userMessage)
+    , ErrorMessage(errorMessage)
 {
-    return ExportResult{ false, errorMessage };
 }
-} // namespace tks::Services::Export
+
+ConfigResult ConfigResult::OK()
+{
+    return ConfigResult();
+}
+
+ConfigResult ConfigResult::Fail(const std::string& headerMessage,
+    const std::string& userMessage,
+    const std::string& errorMessage)
+{
+    return ConfigResult(headerMessage, userMessage, errorMessage);
+}
+} // namespace tks

@@ -24,6 +24,7 @@
 #include <string>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -37,7 +38,7 @@ namespace tks
 namespace Persistence
 {
 struct AttributesPersistence;
-}
+} // namespace Persistence
 namespace UI::dlg
 {
 class AttributeDialog final : public wxDialog
@@ -76,11 +77,9 @@ private:
 
     bool CheckAttributeUsage(Persistence::AttributesPersistence& attributesPersistence);
     void DisableChoiceControlsIfUsed();
-    void QueueErrorNotificationEvent(const std::string& message);
-
-    std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
+    std::shared_ptr<spdlog::logger> pLogger;
 
     wxTextCtrl* pNameTextCtrl;
     wxCheckBox* pIsRequiredCheckBoxCtrl;

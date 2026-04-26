@@ -20,7 +20,8 @@
 #include "attributetypespersistence.h"
 
 #include "../common/logmessages.h"
-#include "../common/queryhelper.h"
+
+#include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
 
@@ -28,73 +29,13 @@ namespace tks::Persistence
 {
 AttributeTypesPersistence::AttributeTypesPersistence(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : PersistenceBase(logger, databaseFilePath)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-AttributeTypesPersistence::~AttributeTypesPersistence()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
+AttributeTypesPersistence::~AttributeTypesPersistence() {}
 
-int AttributeTypesPersistence::Filter(const std::string& searchTerm,
+SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
     std::vector<Model::AttributeTypeModel>& attributeTypeModels) const
 {
     auto formatedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
@@ -113,7 +54,8 @@ int AttributeTypesPersistence::Filter(const std::string& searchTerm,
             LogMessages::PrepareStatementTemplate, AttributeTypesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -129,7 +71,7 @@ int AttributeTypesPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -163,7 +105,7 @@ int AttributeTypesPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::ExecStepTemplate, AttributeTypesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -171,7 +113,7 @@ int AttributeTypesPersistence::Filter(const std::string& searchTerm,
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::FilterEntities, attributeTypeModels.size(), searchTerm);
 
-    return 0;
+    return SqliteResult::OK();
 }
 
 std::string AttributeTypesPersistence::filter = "SELECT "

@@ -21,16 +21,17 @@
 
 #include <fmt/format.h>
 
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 #include <wx/statline.h>
 
-#include "../events.h"
 #include "../common/clientdata.h"
-#include "../common/notificationclientdata.h"
 
 #include "../../common/common.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
+
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/projectspersistence.h"
 #include "../../persistence/categoriespersistence.h"
@@ -173,7 +174,6 @@ void CategoryDialog::CreateControls()
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
     pOkButton->SetDefault();
-    pOkButton->Disable();
 
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
 
@@ -193,10 +193,16 @@ void CategoryDialog::FillControls()
     std::vector<Model::ProjectModel> projects;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int rc = projectPersistence.Filter(defaultSearchTerm, projects);
-    if (rc != 0) {
-        std::string message = "Failed to get projects";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = projectPersistence.Filter(defaultSearchTerm, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         if (!projects.empty()) {
             if (!pProjectChoiceCtrl->IsEnabled()) {
@@ -239,12 +245,17 @@ void CategoryDialog::ConfigureEventBindings()
 void CategoryDialog::DataToControls()
 {
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
-    int rc = 0;
 
-    rc = categoryPersistence.GetById(mCategoryId, mCategoryModel);
-    if (rc != 0) {
-        std::string message = "Failed to get category";
-        QueueErrorNotificationEvent(message);
+    auto sqliteResult = categoryPersistence.GetById(mCategoryId, mCategoryModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CreateEmployerMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     } else {
         pNameTextCtrl->ChangeValue(mCategoryModel.Name);
 
@@ -269,8 +280,6 @@ void CategoryDialog::DataToControls()
             }
         }
     }
-
-    pOkButton->Enable();
 }
 
 void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)
@@ -298,43 +307,50 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
-    pOkButton->Disable();
-
     TransferDataFromControls();
 
     Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
 
-    int ret = 0;
-    std::string message = "";
     if (pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = categoryPersistence.Update(mCategoryModel);
+        auto result = categoryPersistence.Update(mCategoryModel);
 
-        ret == -1 ? message = "Failed to update category"
-                  : message = "Successfully updated category";
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when updating a category, "
+                           "see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateCategoryMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
+        }
     }
     if (!pIsActiveCheckBoxCtrl->IsChecked()) {
-        ret = categoryPersistence.Delete(mCategoryId);
+        auto result = categoryPersistence.Delete(mCategoryId);
 
-        ret == -1 ? message = "Failed to delete category"
-                  : message = "Successfully deleted category";
+        if (!result.Success) {
+            pLogger->error("A database error occurred with code \"{0}\" when deleting a "
+                           "category, see earlier logs for details",
+                result.ReturnCode);
+
+            wxRichMessageDialog dialog(this,
+                Messages::DeleteCategoryMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
+        }
     }
 
-    if (ret == -1) {
-        QueueErrorNotificationEvent(message);
-
-        pOkButton->Enable();
-    } else {
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Information, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        // We are editing, so pParent is EditListDlg. We need to get parent of pParent and then
-        // we have wxFrame
-        wxQueueEvent(pParent->GetParent(), addNotificationEvent);
-
-        EndModal(wxID_OK);
-    }
+    EndModal(wxID_OK);
 }
 
 void CategoryDialog::OnCancel(wxCommandEvent& event)
@@ -405,14 +421,5 @@ void CategoryDialog::TransferDataFromControls()
             mCategoryModel.ProjectId = std::nullopt;
         }
     }
-}
-void CategoryDialog::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 } // namespace tks::UI::dlg

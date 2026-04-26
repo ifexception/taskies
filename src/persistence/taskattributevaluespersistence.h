@@ -24,31 +24,33 @@
 #include <string>
 #include <vector>
 
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
-#include <sqlite3.h>
+#include "base/persistencebase.h"
 
 #include "../models/taskattributevaluemodel.h"
 
+#include "../common/results/sqliteresult.h"
+
 namespace tks::Persistence
 {
-struct TaskAttributeValuesPersistence final {
+struct TaskAttributeValuesPersistence final : public PersistenceBase {
+    TaskAttributeValuesPersistence() = delete;
+    TaskAttributeValuesPersistence(const TaskAttributeValuesPersistence&) = delete;
     TaskAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~TaskAttributeValuesPersistence();
+    virtual ~TaskAttributeValuesPersistence();
 
-    std::int64_t Create(Model::TaskAttributeValueModel& taskAttributeValueModel) const;
-    int CreateMany(std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
-    int GetByTaskId(const std::int64_t taskId,
+    TaskAttributeValuesPersistence& operator=(const TaskAttributeValuesPersistence&) = delete;
+
+    SqliteResult Create(std::int64_t& taskAttributeValueId,
+        Model::TaskAttributeValueModel& taskAttributeValueModel) const;
+    SqliteResult CreateMany(
+        std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
+    SqliteResult GetByTaskId(const std::int64_t taskId,
         /*out*/ std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
-    int DeleteByTaskId(const std::int64_t taskId) const;
-    int Update(const Model::TaskAttributeValueModel& taskAttributeValueModel) const;
-    int UpdateMultiple(
+    SqliteResult DeleteByTaskId(const std::int64_t taskId) const;
+    SqliteResult Update(const Model::TaskAttributeValueModel& taskAttributeValueModel) const;
+    SqliteResult UpdateMultiple(
         const std::vector<Model::TaskAttributeValueModel>& taskAttributeValueModels) const;
-
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
     static std::string getByTaskId;
     static std::string create;

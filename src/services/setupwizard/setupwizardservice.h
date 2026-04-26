@@ -23,10 +23,9 @@
 #include <memory>
 #include <string>
 
-#include <spdlog/logger.h>
-#include <spdlog/spdlog.h>
+#include "../../common/results/sqliteresult.h"
 
-#include <sqlite3.h>
+#include "../../persistence/base/persistencebase.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -35,36 +34,46 @@
 
 namespace tks::Services
 {
-struct SetupWizardService final {
+struct SetupWizardService final : public Persistence::PersistenceBase {
+    SetupWizardService() = delete;
+    SetupWizardService(const SetupWizardService&) = delete;
     SetupWizardService(const std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    ~SetupWizardService();
+    virtual ~SetupWizardService();
+
+    SetupWizardService& operator=(const SetupWizardService&) = delete;
 
     int BeginTransaction();
     int CommitTransaction();
     int RollbackTransaction();
 
-    std::int64_t CreateEmployer(const Model::EmployerModel& employerModel) const;
-    int GetByEmployerId(const std::int64_t employerId,
+    SqliteResult CreateEmployer(/*out*/ std::int64_t& employerId,
+        const Model::EmployerModel& employerModel) const;
+    SqliteResult GetByEmployerId(const std::int64_t employerId,
         /*out*/ Model::EmployerModel& employerModel) const;
-    int UpdateEmployer(const Model::EmployerModel& employerModel) const;
+    SqliteResult UpdateEmployer(const Model::EmployerModel& employerModel) const;
 
-    std::int64_t CreateClient(const Model::ClientModel& clientModel) const;
-    int GetByClientId(const std::int64_t clientId, /*out*/ Model::ClientModel& clientModel) const;
-    int UpdateClient(const Model::ClientModel& clientModel) const;
+    SqliteResult CreateClient(
+        /*out*/ std::int64_t& clientId,
+        const Model::ClientModel& clientModel) const;
+    SqliteResult GetByClientId(const std::int64_t clientId,
+        /*out*/ Model::ClientModel& clientModel) const;
+    SqliteResult UpdateClient(const Model::ClientModel& clientModel) const;
 
-    std::int64_t CreateProject(const Model::ProjectModel& projectModel) const;
-    int GetByProjectId(const std::int64_t projectId, /*out*/ Model::ProjectModel& projectModel) const;
-    int UpdateProject(const Model::ProjectModel& projectModel) const;
+    SqliteResult CreateProject(/*out*/ std::int64_t& projectId,
+        const Model::ProjectModel& projectModel) const;
+    SqliteResult GetByProjectId(const std::int64_t projectId,
+        /*out*/ Model::ProjectModel& projectModel) const;
+    SqliteResult UpdateProject(const Model::ProjectModel& projectModel) const;
 
-    std::int64_t CreateCategory(const Model::CategoryModel& categoryModel) const;
-    int GetByCategoryId(const std::int64_t categoryId, /*out*/ Model::CategoryModel& categoryModel) const;
-    int UpdateCategory(const Model::CategoryModel& categoryModel) const;
+    SqliteResult CreateCategory(std::int64_t& categoryId,
+        const Model::CategoryModel& categoryModel) const;
+    SqliteResult GetByCategoryId(const std::int64_t categoryId,
+        /*out*/ Model::CategoryModel& categoryModel) const;
+    SqliteResult UpdateCategory(const Model::CategoryModel& categoryModel) const;
 
     bool IsInTransaction() const;
 
-    std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
     std::string mDatabaseFilePath;
     int mTransactionCounter;
 

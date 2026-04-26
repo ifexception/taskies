@@ -22,8 +22,11 @@
 #include <memory>
 #include <string>
 
-#include <sqlite3.h>
 #include <spdlog/spdlog.h>
+
+#include <sqlite3.h>
+
+#include "../common/results/sqliteresult.h"
 
 namespace tks::Core
 {
@@ -39,13 +42,13 @@ struct DatabaseMigration final {
     DatabaseMigration(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     ~DatabaseMigration();
 
-    bool Migrate() const;
+    SqliteResult Migrate() const;
 
-    void CreateMigrationHistoryTable() const;
-    bool MigrationExists(const std::string& name) const;
+    SqliteResult CreateMigrationHistoryTable() const;
+    SqliteResult MigrationExists(const std::string& name) const;
 
-    sqlite3* pDb;
     std::shared_ptr<spdlog::logger> pLogger;
+    sqlite3* pDb;
 
     static std::string BeginTransactionQuery;
     static std::string CommitTransactionQuery;

@@ -37,6 +37,8 @@
 
 namespace tks
 {
+enum PreferencesPage { General = 0, Database, Tasks, TasksView, Export };
+
 namespace Core
 {
 class Environment;
@@ -82,14 +84,17 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxWindow* pParent;
+
     wxListBox* pListBox;
     wxSimplebook* pSimpleBook;
+
     PreferencesGeneralPage* pGeneralPage;
     PreferencesDatabasePage* pDatabasePage;
     PreferencesTasksPage* pTasksPage;
     PreferencesTasksViewPage* pTasksViewPage;
     PreferencesExportPage* pExportPage;
-    wxButton* pOkButton;
+
+    wxButton* pOKButton;
     wxButton* pRestoreDefaultsButton;
 
     enum { tksIDC_RESTOREDEFAULTBUTTON = wxID_HIGHEST + 1000 };

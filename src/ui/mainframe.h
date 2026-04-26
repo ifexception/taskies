@@ -38,6 +38,7 @@
 #include <wx/taskbarbutton.h>
 
 #include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
 
 #include "../common/enums.h"
 
@@ -48,7 +49,6 @@
 
 #include "../utils/datestore.h"
 
-#include "notificationpopupwindow.h"
 #include "taskbaricon.h"
 #include "statusbar.h"
 
@@ -209,14 +209,12 @@ private:
     void OnCloneTask(wxCommandEvent& event);
     void OnAddMinutes(wxCommandEvent& event);
     /* Custom Event Handlers */
-    void OnAddNotification(wxCommandEvent& event);
     void OnTaskAddedOnDate(wxCommandEvent& event);
     void OnTaskDeletedOnDate(wxCommandEvent& event);
     void OnTaskDateChangedFrom(wxCommandEvent& event);
     void OnTaskDateChangedTo(wxCommandEvent& event);
     void OnOutlookMeetingViewClose(wxCommandEvent& event);
     /* Control Event Handlers */
-    void OnNotificationClick(wxCommandEvent& event);
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
     /* DataViewCtrl Event Handlers */
@@ -244,8 +242,6 @@ private:
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
-    void QueueFetchTasksErrorNotificationEvent();
-
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
@@ -266,14 +262,8 @@ private:
     TaskBarIcon* pTaskBarIcon;
     StatusBar* pStatusBar;
 
-    NotificationPopupWindow* pNotificationPopupWindow;
-
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
-
-    wxBitmapButton* pNotificationButton;
-    wxBitmap mBellBitmap;
-    wxBitmap mBellNotificationBitmap;
 
     std::unique_ptr<DateStore> pDateStore;
 
@@ -293,7 +283,7 @@ private:
     bool bDateRangeChanged;
 
     /*
-     * this member ensures that only one dialog is opened at a time from the thumb bar actions
+     * this variable ensures that only one dialog is opened at a time from the thumb bar actions
      * the thumb bar allows a user to open an as many dialogs as they want so we cap at 1
      */
     int mThumbBarDialogOpenCounter;
@@ -305,13 +295,11 @@ private:
     enum {
         tksIDC_THUMBBAR_NEWTASK = wxID_HIGHEST + 1000,
         tksIDC_THUMBBAR_QUICKEXPORT,
-        tksIDC_NOTIFICATIONBUTTON,
         tksIDC_FROMDATE,
         tksIDC_TODATE,
         tksIDC_TASKDATAVIEWCTRL,
         tksIDC_DAY_TASKDATAVIEW,
         tksIDC_TASKREMINDERTIMER
-        ,tksIDC_OUTLOOKTEST
     };
 };
 } // namespace UI

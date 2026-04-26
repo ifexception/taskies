@@ -20,6 +20,7 @@
 #include "setupwizard.h"
 
 #include <wx/filedlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/richtooltip.h>
 
 #include <fmt/format.h>
@@ -29,6 +30,8 @@
 #include "../../common/logmessages.h"
 #include "../../common/queryhelper.h"
 #include "../../common/validator.h"
+
+#include "../../common/messages/persistencemessages.h"
 
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
@@ -258,10 +261,10 @@ OptionPage::OptionPage(SetupWizard* parent,
     , pParent(parent)
     , pSetupWizardService(setupWizardService)
     , pLogger(logger)
-    , pPrev(prev)
     , pNextOption1(nextOption1)
     , pNextOption2(nextOption2)
     , pNextOption3(nextOption3)
+    , pPrev(prev)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -430,23 +433,33 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
 
     Model::EmployerModel employerModel;
     employerModel.Name = Utils::TrimWhitespace(employerName);
+    employerModel.IsDefault = true;
 
     if (pParent->GetEmployerId() > 0) {
-        int rc = pSetupWizardService->UpdateEmployer(employerModel);
-        if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK | wxICON_ERROR,
-                this);
+        auto sqliteResult = pSetupWizardService->UpdateEmployer(employerModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return false;
         }
     } else {
-        std::int64_t employerId = pSetupWizardService->CreateEmployer(employerModel);
-        if (employerId == -1) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK | wxICON_ERROR,
-                this);
+        std::int64_t employerId = -1;
+        auto sqliteResult = pSetupWizardService->CreateEmployer(employerId, employerModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return false;
         } else {
             pParent->SetEmployerId(employerId);
@@ -460,21 +473,30 @@ bool CreateEmployerAndClientPage::TransferDataFromWindow()
     // TODO: Handle client delete scenario
 
     if (pParent->GetClientId() > 0) {
-        int rc = pSetupWizardService->UpdateClient(clientModel);
-        if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        auto sqliteResult = pSetupWizardService->UpdateClient(clientModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::UpdateClientMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return false;
         }
     } else if (!clientName.empty()) {
-        std::int64_t clientId = pSetupWizardService->CreateClient(clientModel);
-        if (clientId == -1) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        std::int64_t clientId = -1;
+        auto sqliteResult = pSetupWizardService->CreateClient(clientId, clientModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateClientMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return false;
         } else {
             pParent->SetClientId(clientId);
@@ -509,6 +531,12 @@ void CreateEmployerAndClientPage::CreateControls()
 
     pEmployerNameTextCtrl->SetValidator(NameValidator());
 
+    /* Employer default checkbox control */
+    pDefaultEmployerCheckBoxCtrl = new wxCheckBox(employerBox, wxID_ANY, "Is Default");
+    pDefaultEmployerCheckBoxCtrl->SetToolTip("One employer is required to be default");
+    pDefaultEmployerCheckBoxCtrl->SetValue(true);
+    pDefaultEmployerCheckBoxCtrl->Disable();
+
     auto employerDetailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     employerDetailsGridSizer->AddGrowableCol(1, 1);
 
@@ -516,6 +544,9 @@ void CreateEmployerAndClientPage::CreateControls()
         employerNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     employerDetailsGridSizer->Add(
         pEmployerNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    employerDetailsGridSizer->Add(0, 0);
+    employerDetailsGridSizer->Add(
+        pDefaultEmployerCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     employerBoxSizer->Add(employerDetailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -573,14 +604,18 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
 {
     if (pParent->GetEmployerId() > 0) {
         Model::EmployerModel employer;
-        int rc = 0;
 
-        rc = pSetupWizardService->GetByEmployerId(pParent->GetEmployerId(), employer);
-        if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        auto sqliteResult =
+            pSetupWizardService->GetByEmployerId(pParent->GetEmployerId(), employer);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdEmployerMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
 
@@ -589,14 +624,17 @@ void CreateEmployerAndClientPage::OnWizardPageShown(wxWizardEvent& event)
 
     if (pParent->GetClientId() > 0) {
         Model::ClientModel client;
-        int rc = 0;
 
-        rc = pSetupWizardService->GetByClientId(pParent->GetClientId(), client);
-        if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        auto sqliteResult = pSetupWizardService->GetByClientId(pParent->GetClientId(), client);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdClientMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
 
@@ -694,12 +732,17 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
                            ? std::nullopt
                            : std::make_optional<std::int64_t>(pParent->GetClientId());
 
-    std::int64_t projectId = pSetupWizardService->CreateProject(project);
-    if (projectId == -1) {
-        wxMessageBox("The setup wizard encountered an unexpected error",
-            "Setup Error",
-            wxOK | wxICON_ERROR,
-            this);
+    std::int64_t projectId = -1;
+    auto sqliteResult = pSetupWizardService->CreateProject(projectId, project);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CreateProjectMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return false;
     } else {
         pParent->SetProjectId(projectId);
@@ -712,12 +755,17 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     category.Billable = pCategoryBillableCtrl->GetValue();
     category.ProjectId = std::make_optional<std::int64_t>(projectId);
 
-    std::int64_t categoryId = pSetupWizardService->CreateCategory(category);
-    if (categoryId == -1) {
-        wxMessageBox("The setup wizard encountered an unexpected error",
-            "Setup Error",
-            wxOK_DEFAULT | wxICON_ERROR,
-            this);
+    std::int64_t categoryId = -1;
+    sqliteResult = pSetupWizardService->CreateCategory(categoryId, category);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::CreateCategoryMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
         return false;
     } else {
         pParent->SetCategoryId(categoryId);
@@ -865,14 +913,17 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
 {
     if (pParent->GetProjectId() > 0) {
         Model::ProjectModel project;
-        int rc = 0;
 
-        rc = pSetupWizardService->GetByProjectId(pParent->GetProjectId(), project);
-        if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        auto sqliteResult = pSetupWizardService->GetByProjectId(pParent->GetProjectId(), project);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdProjectMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
 
@@ -883,14 +934,18 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
 
     if (pParent->GetCategoryId() > 0) {
         Model::CategoryModel category;
-        int rc = 0;
 
-        rc = pSetupWizardService->GetByCategoryId(pParent->GetCategoryId(), category);
-        if (rc != 0) {
-            wxMessageBox("The setup wizard encountered an unexpected error",
-                "Setup Error",
-                wxOK_DEFAULT | wxICON_ERROR,
-                this);
+        auto sqliteResult =
+            pSetupWizardService->GetByCategoryId(pParent->GetCategoryId(), category);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdCategoryMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
             return;
         }
 

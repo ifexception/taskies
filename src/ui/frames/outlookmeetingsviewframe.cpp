@@ -22,17 +22,25 @@
 #include <algorithm>
 
 #include <wx/artprov.h>
+#include <wx/richmsgdlg.h>
 #include <wx/statline.h>
 
 #include "../events.h"
+
 #include "../common/clientdata.h"
-#include "../common/notificationclientdata.h"
+
 #include "../dlg/taskdlg.h"
 
 #include "../../common/common.h"
+
+#include "../../common/messages/persistencemessages.h"
+
 #include "../../core/configuration.h"
+
 #include "../../persistence/attendedmeetingspersistence.h"
+
 #include "../../services/outlook/outlookclassicservice.h"
+
 #include "../../utils/utils.h"
 
 namespace tks::UI::frames
@@ -200,15 +208,15 @@ void OutlookMeetingsViewFrame::DataToControls()
 
     if (!result.Success) {
         std::string message = "Failed to fetch Outlook accounts";
-
-        wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-        NotificationClientData* clientData =
-            new NotificationClientData(NotificationType::Error, message);
-        addNotificationEvent->SetClientObject(clientData);
-
-        wxQueueEvent(pParent, addNotificationEvent);
-
         pFeedbackLabel->SetLabel(message);
+
+        wxMessageDialog dialog(this,
+            message,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.Message);
+
+        dialog.ShowModal();
 
         return;
     }
@@ -382,7 +390,13 @@ void OutlookMeetingsViewFrame::FetchOutlookMeetingsAndUpdateFeedbackLabel()
         service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
 
     if (!result.Success) {
-        QueueErrorNotificationEvent(result.Message);
+        wxMessageDialog dialog(this,
+            "Failed to get Outlook accounts",
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.Message);
+
+        dialog.ShowModal();
 
         pFeedbackLabel->SetLabel(result.Message);
 
@@ -412,13 +426,19 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsViewFrame::FetchAttended
         pLogger, mDatabaseFilePath);
 
     std::vector<Model::AttendedMeetingModel> attendedMeetingModels;
-    int ret = attendedMeetingsPersistence.GetByTodaysDate(Utils::UnixTimestampTodayMidnight(),
+    auto sqliteResult = attendedMeetingsPersistence.GetByTodaysDate(Utils::UnixTimestampTodayMidnight(),
         Utils::UnixTimestampTomorrowMidnight(),
         attendedMeetingModels);
 
-    if (ret != 0) {
-        std::string message = "Failed to get attended meetings";
-        QueueErrorNotificationEvent(message);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttendedMeetingsByTodayDateMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
     }
 
     return attendedMeetingModels;
@@ -474,16 +494,6 @@ void OutlookMeetingsViewFrame::SetDialogSizeFromParent()
         dialogMaxSize.SetWidth(-1);
         SetSize(dialogMaxSize);
     }
-}
-
-void OutlookMeetingsViewFrame::QueueErrorNotificationEvent(const std::string& message)
-{
-    wxCommandEvent* addNotificationEvent = new wxCommandEvent(tksEVT_ADDNOTIFICATION);
-    NotificationClientData* clientData =
-        new NotificationClientData(NotificationType::Error, message);
-    addNotificationEvent->SetClientObject(clientData);
-
-    wxQueueEvent(pParent, addNotificationEvent);
 }
 
 void OutlookMeetingsViewFrame::RemoveActiveMeetingsPanel()

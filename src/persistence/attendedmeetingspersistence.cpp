@@ -20,7 +20,8 @@
 #include "attendedmeetingspersistence.h"
 
 #include "../common/logmessages.h"
-#include "../common/queryhelper.h"
+
+#include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
 
@@ -28,73 +29,13 @@ namespace tks::Persistence
 {
 AttendedMeetingsPersistence::AttendedMeetingsPersistence(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
-    : pLogger(logger)
-    , pDb(nullptr)
+    : PersistenceBase(logger, databaseFilePath)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
-
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
-
-        return;
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
-
-        return;
-    }
 }
 
-AttendedMeetingsPersistence::~AttendedMeetingsPersistence()
-{
-    sqlite3_close(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
+AttendedMeetingsPersistence::~AttendedMeetingsPersistence() {}
 
-int AttendedMeetingsPersistence::GetByEntryId(const std::string& entryId,
+SqliteResult AttendedMeetingsPersistence::GetByEntryId(const std::string& entryId,
     Model::AttendedMeetingModel& attendedMeetingModel) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -114,7 +55,8 @@ int AttendedMeetingsPersistence::GetByEntryId(const std::string& entryId,
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -133,7 +75,7 @@ int AttendedMeetingsPersistence::GetByEntryId(const std::string& entryId,
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -191,17 +133,17 @@ int AttendedMeetingsPersistence::GetByEntryId(const std::string& entryId,
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
 
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "attended_meetings", entryId);
 
-    return 0;
+    return SqliteResult::OK();
 }
 
-int AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t unixFromDateTime,
+SqliteResult AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t unixFromDateTime,
     const std::int32_t unixToDateTime,
     std::vector<Model::AttendedMeetingModel>& attendedMeetingModels) const
 {
@@ -222,7 +164,8 @@ int AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t unixFromDate
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -240,7 +183,7 @@ int AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t unixFromDate
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -258,7 +201,7 @@ int AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t unixFromDate
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -318,7 +261,7 @@ int AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t unixFromDate
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -327,10 +270,10 @@ int AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t unixFromDate
                             "date_created <= " + std::to_string(unixToDateTime);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, "attended_meetings", searchFmt);
 
-    return 0;
+    return SqliteResult::OK();
 }
 
-std::int64_t AttendedMeetingsPersistence::Create(
+SqliteResult AttendedMeetingsPersistence::Create(std::int64_t& attendedMeetingId,
     const Model::AttendedMeetingModel& attendedMeetingModel) const
 {
     sqlite3_stmt* stmt = nullptr;
@@ -347,7 +290,8 @@ std::int64_t AttendedMeetingsPersistence::Create(
             LogMessages::PrepareStatementTemplate, AttendedMeetingsPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -364,7 +308,7 @@ std::int64_t AttendedMeetingsPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "entry_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -381,7 +325,7 @@ std::int64_t AttendedMeetingsPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "subject", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -398,7 +342,7 @@ std::int64_t AttendedMeetingsPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "start", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -415,7 +359,7 @@ std::int64_t AttendedMeetingsPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "end", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -428,7 +372,7 @@ std::int64_t AttendedMeetingsPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -445,21 +389,21 @@ std::int64_t AttendedMeetingsPersistence::Create(
         pLogger->error(LogMessages::BindParameterTemplate, "location", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
 
     rc = sqlite3_step(stmt);
 
-    if (rc == SQLITE_CONSTRAINT) {
+    /*if (rc == SQLITE_CONSTRAINT) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(
             LogMessages::ExecStepTemplate, AttendedMeetingsPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
         return SQLITE_CONSTRAINT * -1;
-    }
+    }*/
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
@@ -467,17 +411,17 @@ std::int64_t AttendedMeetingsPersistence::Create(
             LogMessages::ExecStepTemplate, AttendedMeetingsPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
-    auto rowId = sqlite3_last_insert_rowid(pDb);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "attended_meeting", rowId);
+    attendedMeetingId = sqlite3_last_insert_rowid(pDb);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "attended_meeting", attendedMeetingId);
 
-    return rowId;
+    return SqliteResult::OK();
 }
 
-int AttendedMeetingsPersistence::Delete(const std::int64_t attendedMeetingId) const
+SqliteResult AttendedMeetingsPersistence::Delete(const std::int64_t attendedMeetingId) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -495,7 +439,8 @@ int AttendedMeetingsPersistence::Delete(const std::int64_t attendedMeetingId) co
             error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
     int bindIndex = 1;
@@ -507,7 +452,7 @@ int AttendedMeetingsPersistence::Delete(const std::int64_t attendedMeetingId) co
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -520,7 +465,7 @@ int AttendedMeetingsPersistence::Delete(const std::int64_t attendedMeetingId) co
             LogMessages::BindParameterTemplate, "attended_meeting_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -531,14 +476,14 @@ int AttendedMeetingsPersistence::Delete(const std::int64_t attendedMeetingId) co
             LogMessages::ExecStepTemplate, AttendedMeetingsPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
-        return -1;
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::EntityDeleted, "attended_meetings", attendedMeetingId);
 
-    return 0;
+    return SqliteResult::OK();
 }
 
 std::string AttendedMeetingsPersistence::getByEntryId = "SELECT "
