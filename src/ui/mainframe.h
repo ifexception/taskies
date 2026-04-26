@@ -36,6 +36,7 @@
 #include <wx/infobar.h>
 #include <wx/notifmsg.h>
 #include <wx/taskbarbutton.h>
+#include <wx/power.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
@@ -223,6 +224,8 @@ private:
     void OnDataViewSelectionActivate(wxDataViewEvent& event);
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
+    /* Power Event Handlers */
+    void OnPowerResume(wxPowerEvent& event);
 
     void DoResetToCurrentWeekAndOrToday();
     void ResetDateRange();

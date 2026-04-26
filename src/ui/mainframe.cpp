@@ -151,6 +151,8 @@ EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnContextMenu)
 EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionChanged)
 EVT_DATAVIEW_ITEM_ACTIVATED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionActivate)
+/* Power Event Handlers */
+EVT_POWER_RESUME(MainFrame::OnPowerResume)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -1739,6 +1741,20 @@ void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
+}
+
+void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
+{
+    SPDLOG_LOGGER_TRACE(pLogger, "System has resumed from being suspended");
+
+    pDateStore->Reset();
+
+    ResetDateRange();
+    ResetDatePickerValues();
+    RefetchTasksForDateRange();
+
+    CalculateStatusBarTaskDurations();
+    pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
 }
 
 void MainFrame::OnOutlookMeetingViewClose(wxCommandEvent& event)
