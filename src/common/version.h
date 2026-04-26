@@ -19,7 +19,7 @@
 
 #define TASKIES_MAJOR 0
 #define TASKIES_MINOR 3
-#define TASKIES_PATCH 1
+#define TASKIES_PATCH 2
 
 #define TASKIES_VERSION (TASKIES_MAJOR * 1000 + TASKIES_MINOR * 100 + TASKIES_PATCH)
 
@@ -27,7 +27,7 @@
 #define STRINGIFY(s) _STRINGIFY(s)
 
 #define COMPANY_NAME "Taskies"
-#define COPYRIGHT_STR "Copyright (C) 2025 Szymon Welgus"
+#define COPYRIGHT_STR "Copyright (C) 2026 Szymon Welgus"
 
 #define FILE_DESCRIPTION "Taskies"
 #define TASKIES_FILE_VERSION TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH
