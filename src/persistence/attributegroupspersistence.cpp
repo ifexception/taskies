@@ -415,16 +415,19 @@ SqliteResult AttributeGroupsPersistence::Create(std::int64_t& attributeGroupId,
             Messages::BindStatementMessage, rc, std::string(error));
     }
 
+    bindIndex++;
+
+    // is_default
+    rc = sqlite3_bind_int(stmt, bindIndex, attributeGroupModel.IsDefault);
+
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+        pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(
             Messages::BindStatementMessage, rc, std::string(error));
     }
-
-    bindIndex++;
 
     rc = sqlite3_step(stmt);
 
@@ -1064,9 +1067,10 @@ std::string AttributeGroupsPersistence::create = "INSERT INTO "
                                                  "("
                                                  "name, "
                                                  "description, "
-                                                 "is_static "
+                                                 "is_static, "
+                                                 "is_default, "
                                                  ") "
-                                                 "VALUES (?,?,?);";
+                                                 "VALUES (?,?,?,?);";
 
 std::string AttributeGroupsPersistence::update = "UPDATE attribute_groups "
                                                  "SET "
