@@ -220,6 +220,7 @@ private:
     /* DataViewCtrl Event Handlers */
     void OnContextMenu(wxDataViewEvent& event);
     void OnDataViewSelectionChanged(wxDataViewEvent& event);
+    void OnDataViewSelectionActivate(wxDataViewEvent& event);
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
 

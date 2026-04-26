@@ -150,6 +150,7 @@ EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnContextMenu)
 EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionChanged)
+EVT_DATAVIEW_ITEM_ACTIVATED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionActivate)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -1701,6 +1702,37 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
                 pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
         }
     }
+}
+
+void MainFrame::OnDataViewSelectionActivate(wxDataViewEvent& event)
+{
+    auto item = event.GetItem();
+    if (!item.IsOk()) {
+        return;
+    }
+
+    auto isContainer = pTaskTreeModel->IsContainer(item);
+    if (isContainer) {
+        SPDLOG_LOGGER_TRACE(pLogger, "Clicked on container node, nothing to do further");
+        return;
+    }
+
+    auto model = (TaskTreeModelNode*) item.GetID();
+
+    mTaskIdToModify = model->GetTaskId();
+
+    // This is confusing, but by calling `GetParent()` we are getting the container node
+    // pointer here `GetProjectName()` then returns the date of the container node value
+    mTaskDate = model->GetParent()->GetProjectName();
+
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Clicked on valid task with ID \"{0}\" on date ({1})", mTaskIdToModify, mTaskDate);
+
+    dlg::TaskDialog editTaskDialog(
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
+    editTaskDialog.ShowModal();
+
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
