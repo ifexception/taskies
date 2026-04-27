@@ -63,7 +63,7 @@ private:
     std::filesystem::path GetApplicationExportPath();
 
     std::string GetLogFileName();
-    std::string GetConfigFileName();
+    std::string GetConfigurationFileName();
 
     std::string GetRegistryKey();
 
