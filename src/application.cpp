@@ -80,7 +80,7 @@ bool Application::OnInit()
     }
 
     if (pCfg->GetDatabasePath().empty()) {
-        pCfg->SetDatabasePath(pEnv->GetDatabasePath().string());
+        pCfg->SetDatabasePath(pEnv->GetDatabaseFilePath().string());
         pCfg->Save();
     }
 

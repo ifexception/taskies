@@ -72,9 +72,9 @@ std::filesystem::path Environment::GetConfigurationFilePath()
     return GetApplicationConfigurationPath() / GetConfigFileName();
 }
 
-std::filesystem::path Environment::GetDatabasePath()
+std::filesystem::path Environment::GetDatabaseFilePath()
 {
-    return GetApplicationDatabasePath() / GetDatabaseName();
+    return GetApplicationDatabasePath() / GetDatabaseFileName();
 }
 
 std::filesystem::path Environment::GetResourcesPath()
@@ -87,7 +87,7 @@ std::filesystem::path Environment::GetExportPath()
     return GetApplicationExportPath();
 }
 
-std::string Environment::GetDatabaseName()
+std::string Environment::GetDatabaseFileName()
 {
     return "taskies.db";
 }

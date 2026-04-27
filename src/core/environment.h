@@ -43,11 +43,11 @@ public:
     std::filesystem::path GetLogFilePath();
     std::filesystem::path GetLanguagesPath();
     std::filesystem::path GetConfigurationFilePath();
-    std::filesystem::path GetDatabasePath();
+    std::filesystem::path GetDatabaseFilePath();
     std::filesystem::path GetResourcesPath();
     std::filesystem::path GetExportPath();
 
-    std::string GetDatabaseName();
+    std::string GetDatabaseFileName();
     std::string GetCurrentLocale();
 
     std::filesystem::path ApplicationDatabasePath();

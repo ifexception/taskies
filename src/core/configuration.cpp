@@ -244,7 +244,7 @@ ConfigResult Configuration::RestoreDefaults()
     MinimizeToTray(false);
     CloseToTray(false);
 
-    SetDatabasePath(pEnv->GetDatabasePath().string());
+    SetDatabasePath(pEnv->GetDatabaseFilePath().string());
     BackupDatabase(false);
     SetBackupPath("");
 
@@ -782,7 +782,7 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
     const auto& databaseSection = toml::find(root, Sections::DatabaseSection);
 
     mSettings.DatabasePath = toml::find_or<std::string>(
-        databaseSection, "databasePath", pEnv->GetDatabasePath().string());
+        databaseSection, "databasePath", pEnv->GetDatabaseFilePath().string());
 
     mSettings.BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
 

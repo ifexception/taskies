@@ -66,7 +66,7 @@ SqliteResult DatabaseBackup::Backup()
 
         // to refactor, should _not_ need both Cfg and Env to get backup path
         auto backupFilePath =
-            fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseName());
+            fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseFileName());
 
         return SqliteResult::FailDetailed(
             fmt::format(Messages::BackupMessage, backupFilePath), rc, std::string(error));
@@ -111,7 +111,7 @@ SqliteResult DatabaseBackup::Backup()
         } else {
             // to refactor, should _not_ need both Cfg and Env to get backup path
             auto backupFilePath =
-                fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseName());
+                fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseFileName());
 
             /* Fatal error occurred */
             const char* error = sqlite3_errmsg(pBackupDb);
@@ -169,7 +169,7 @@ SqliteResult DatabaseBackup::Initialize()
     }
 
     // to refactor, should _not_ need both Cfg and Env to get backup path
-    auto backupFilePath = fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseName());
+    auto backupFilePath = fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseFileName());
 
     // open or create the destination database
     rc = sqlite3_open_v2(

@@ -157,7 +157,7 @@ void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(db);
         pLogger->error(
-            LogMessages::OpenDatabaseTemplate, pEnv->GetDatabasePath().string(), rc, error);
+            LogMessages::OpenDatabaseTemplate, pEnv->GetDatabaseFilePath().string(), rc, error);
 
         goto close;
     }

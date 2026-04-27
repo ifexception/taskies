@@ -1148,7 +1148,7 @@ void RestoreDatabasePage::OnOpenFileForRestoreLocation(wxCommandEvent& event)
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetDatabasePath().empty()) {
-        pathDirectoryToOpenOn = pEnv->GetDatabasePath().string();
+        pathDirectoryToOpenOn = pEnv->GetDatabaseFilePath().string();
     } else {
         pathDirectoryToOpenOn = pCfg->GetDatabasePath();
     }
