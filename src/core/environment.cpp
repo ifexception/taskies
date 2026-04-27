@@ -67,9 +67,9 @@ std::filesystem::path Environment::GetLanguagesPath()
     return GetApplicationLanguagesPath();
 }
 
-std::filesystem::path Environment::GetConfigurationPath()
+std::filesystem::path Environment::GetConfigurationFilePath()
 {
-    return GetApplicationConfigurationPath() / GetConfigName();
+    return GetApplicationConfigurationPath() / GetConfigFileName();
 }
 
 std::filesystem::path Environment::GetDatabasePath()
@@ -352,7 +352,7 @@ std::string Environment::GetLogFileName()
     return "taskies.log";
 }
 
-std::string Environment::GetConfigName()
+std::string Environment::GetConfigFileName()
 {
     return "taskies.toml";
 }

@@ -74,12 +74,12 @@ ConfigResult Configuration::LoadAndOrRecreate()
 {
     SPDLOG_LOGGER_TRACE(pLogger,
         "Looking for configuration file at path \"{0}\"",
-        pEnv->GetConfigurationPath().string());
+        pEnv->GetConfigurationFilePath().string());
 
-    if (!std::filesystem::exists(pEnv->GetConfigurationPath())) {
+    if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
         pLogger->warn(
             "Failed to find configuration file at \"{0}\". Creating new one from defaults",
-            pEnv->GetConfigurationPath().string());
+            pEnv->GetConfigurationFilePath().string());
 
         auto result = RestoreDefaults();
         if (!result.Success) {
@@ -91,14 +91,14 @@ ConfigResult Configuration::LoadAndOrRecreate()
 
     toml::value root;
     try {
-        root = toml::parse(pEnv->GetConfigurationPath().string());
+        root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnv->GetConfigurationPath().string(),
+                pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     }
 
@@ -325,14 +325,14 @@ ConfigResult Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 {
     toml::value root;
     try {
-        root = toml::parse(pEnv->GetConfigurationPath().string());
+        root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnv->GetConfigurationPath().string(),
+                pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     }
 
@@ -394,14 +394,14 @@ ConfigResult Configuration::UpdateExportPreset(const Common::Preset& presetToUpd
 {
     toml::value root;
     try {
-        root = toml::parse(pEnv->GetConfigurationPath().string());
+        root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnv->GetConfigurationPath().string(),
+                pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     }
 
@@ -452,14 +452,14 @@ ConfigResult Configuration::TryUnsetDefaultPreset()
 {
     toml::value root;
     try {
-        root = toml::parse(pEnv->GetConfigurationPath().string());
+        root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnv->GetConfigurationPath().string(),
+                pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     }
 
@@ -717,11 +717,11 @@ void Configuration::ClearPresets()
 
 ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileContents)
 {
-    const std::string configFilePath = pEnv->GetConfigurationPath().string();
+    const std::string configFilePath = pEnv->GetConfigurationFilePath().string();
 
     SPDLOG_LOGGER_TRACE(pLogger, "Looking for configuration file at path \"{0}\"", configFilePath);
 
-    if (!std::filesystem::exists(pEnv->GetConfigurationPath())) {
+    if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
         return ConfigResult::Fail(Messages::ConfigurationFileNotFoundHeaderMessage,
             fmt::format(Messages::ConfigurationFileNotExistUserMessage, configFilePath),
             fmt::format(Messages::ConfigurationFileNotExistErrorMessage, configFilePath));

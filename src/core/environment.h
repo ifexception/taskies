@@ -42,7 +42,7 @@ public:
 
     std::filesystem::path GetLogFilePath();
     std::filesystem::path GetLanguagesPath();
-    std::filesystem::path GetConfigurationPath();
+    std::filesystem::path GetConfigurationFilePath();
     std::filesystem::path GetDatabasePath();
     std::filesystem::path GetResourcesPath();
     std::filesystem::path GetExportPath();
@@ -66,7 +66,7 @@ private:
     std::filesystem::path GetApplicationExportPath();
 
     std::string GetLogFileName();
-    std::string GetConfigName();
+    std::string GetConfigFileName();
 
     std::string GetRegistryKey();
 
