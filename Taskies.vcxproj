@@ -243,6 +243,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\database_backup.cpp" />
     <ClCompile Include="src\common\messages\configmessages.cpp" />
     <ClCompile Include="src\common\results\configresult.cpp" />
     <ClCompile Include="src\common\messages\operationmessages.cpp" />
@@ -359,6 +360,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\utils\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\database_backup.h" />
     <ClInclude Include="src\common\messages\configmessages.h" />
     <ClInclude Include="src\common\results\configresult.h" />
     <ClInclude Include="src\common\messages\operationmessages.h" />

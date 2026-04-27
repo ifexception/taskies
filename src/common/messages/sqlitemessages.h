@@ -23,6 +23,13 @@
 
 namespace tks::Messages
 {
+const std::string BackupHeaderMessage = "An error occured while performing a database backup";
+const std::string OpenDatabaseMessage =
+    "An error occured when trying to open a connection to the database";
+const std::string BackupMessage =
+    "An error occured when trying to backup the database to \"{0}\"";
+const std::string BackupFinishMessage =
+    "The database backup failed. The backup file may be incomplete and in an inconsistent state";
 const std::string PrepareStatementMessage = "A database error occurred, and your data could not be "
                                             "saved. Please try again or check your inputs";
 const std::string BindStatementMessage =

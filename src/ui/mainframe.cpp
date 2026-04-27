@@ -46,9 +46,11 @@
 #include "../common/version.h"
 
 #include "../common/messages/persistencemessages.h"
+#include "../common/messages/sqlitemessages.h"
 
 #include "../core/environment.h"
 #include "../core/configuration.h"
+#include "../core/database_backup.h"
 
 #include "../persistence/taskspersistence.h"
 #include "../persistence/attendedmeetingspersistence.h"
@@ -739,56 +741,23 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
         return;
     }
 
-    int rc = 0;
-    sqlite3* db = nullptr;
-    sqlite3* backupDb = nullptr;
-    sqlite3_backup* backup = nullptr;
+    Core::DatabaseBackup databaseBackup(pLogger, pCfg, pEnv);
+    auto result = databaseBackup.Backup();
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::BackupHeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-    rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, mDatabaseFilePath, rc, err);
-        return;
-    }
-
-    auto backupFilePath = fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseName());
-    rc = sqlite3_open(backupFilePath.c_str(), &backupDb);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, backupFilePath, rc, err);
-        return;
-    }
-
-    backup = sqlite3_backup_init(/*destination*/ backupDb, "main", /*source*/ db, "main");
-    if (backup == nullptr) {
-        const char* error = sqlite3_errmsg(backupDb);
-        pLogger->error(
-            "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
+        dialog.ShowModal();
     } else {
-        rc = sqlite3_backup_step(backup, -1);
-        if (rc != SQLITE_DONE) {
-            const char* error = sqlite3_errmsg(backupDb);
-            pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
-            SqliteResult sqliteResult("A database error occurred while backing up data", rc, error);
-
-            wxRichMessageDialog dialog(this,
-                Messages::UnsetDefaultEmployerMessage,
-                Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-            dialog.ShowModal();
-        }
-
-        rc = sqlite3_backup_finish(backup);
-        if (rc != SQLITE_OK) {
-            pLogger->error("Backup operation failed to complete successfully");
-        }
+        wxMessageBox("Database backup completed successfully",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_INFORMATION,
+            this);
     }
-
-    sqlite3_close(db);
-    sqlite3_close(backupDb);
 }
 
 void MainFrame::OnTasksExportToCsv(wxCommandEvent& WXUNUSED(event))
