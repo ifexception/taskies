@@ -50,7 +50,6 @@ public:
     std::string GetDatabaseFileName();
     std::string GetCurrentLocale();
 
-    std::filesystem::path ApplicationDatabasePath();
     std::filesystem::path ApplicationLogPath();
 
     bool IsSetup();

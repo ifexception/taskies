@@ -279,7 +279,7 @@ ConfigResult Configuration::RestoreDefaults()
             {
                 Sections::DatabaseSection,
                 toml::table {
-                    { "databasePath", pEnv->ApplicationDatabasePath().string() },
+                    { "databasePath", pEnv->GetDatabaseFilePath().string() },
                     { "backupDatabase", false },
                     { "backupPath", "" },
                 }

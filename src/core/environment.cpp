@@ -111,11 +111,6 @@ std::string Environment::GetCurrentLocale()
     // #endif // __linux__
 }
 
-std::filesystem::path Environment::ApplicationDatabasePath()
-{
-    return GetApplicationDatabasePath();
-}
-
 std::filesystem::path Environment::ApplicationLogPath()
 {
     return GetApplicationLogPath();
