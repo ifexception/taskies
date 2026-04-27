@@ -102,7 +102,7 @@ std::string Environment::GetCurrentLocale()
         return "en-US";
     }
 
-    return std::string(Utils::ToStdString(std::wstring(name)));
+    return Utils::ToStdString(std::wstring(name));
 #endif // _WIN32
 
     // #ifdef __linux__
