@@ -75,11 +75,6 @@ std::string GetLicense()
            "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
 }
 
-std::string GetIssuesLink()
-{
-    return "https://github.com/ifexception/taskies/issues/new?title=BUG";
-}
-
 namespace Resources
 {
 std::string Wizard()
