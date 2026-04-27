@@ -59,7 +59,7 @@ InstallLocation Environment::GetInstallLocation() const
 
 std::filesystem::path Environment::GetLogFilePath()
 {
-    return GetApplicationLogPath() / GetLogName();
+    return GetApplicationLogPath() / GetLogFileName();
 }
 
 std::filesystem::path Environment::GetLanguagesPath()
@@ -347,7 +347,7 @@ std::filesystem::path Environment::GetApplicationExportPath()
     return exportPath;
 }
 
-std::string Environment::GetLogName()
+std::string Environment::GetLogFileName()
 {
     return "taskies.log";
 }

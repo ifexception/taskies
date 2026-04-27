@@ -65,7 +65,7 @@ private:
     std::filesystem::path GetApplicationResourcesPath();
     std::filesystem::path GetApplicationExportPath();
 
-    std::string GetLogName();
+    std::string GetLogFileName();
     std::string GetConfigName();
 
     std::string GetRegistryKey();
