@@ -111,11 +111,6 @@ std::string Environment::GetCurrentLocale()
     // #endif // __linux__
 }
 
-std::filesystem::path Environment::ApplicationLogPath()
-{
-    return GetApplicationLogPath();
-}
-
 bool Environment::IsSetup()
 {
     wxRegKey key(wxRegKey::HKCU, GetRegistryKey());

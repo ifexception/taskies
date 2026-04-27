@@ -335,7 +335,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\ui\dlg\clientdlg.cpp" />
     <ClCompile Include="src\ui\dlg\editlistdlg.cpp" />
     <ClCompile Include="src\ui\dlg\employerdlg.cpp" />
-    <ClCompile Include="src\ui\dlg\errordlg.cpp" />
     <ClCompile Include="src\ui\dlg\exports\exporttocsvdlg.cpp" />
     <ClCompile Include="src\ui\dlg\exports\exporttoexceldlg.cpp" />
     <ClCompile Include="src\ui\dlg\exports\quickexporttoformatdlg.cpp" />
@@ -452,7 +451,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\ui\dlg\clientdlg.h" />
     <ClInclude Include="src\ui\dlg\editlistdlg.h" />
     <ClInclude Include="src\ui\dlg\employerdlg.h" />
-    <ClInclude Include="src\ui\dlg\errordlg.h" />
     <ClInclude Include="src\ui\dlg\exports\exporttocsvdlg.h" />
     <ClInclude Include="src\ui\dlg\exports\exporttoexceldlg.h" />
     <ClInclude Include="src\ui\dlg\exports\quickexporttoformatdlg.h" />
