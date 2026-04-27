@@ -30,9 +30,6 @@
 
 namespace tks::Core
 {
-class Environment;
-class Configuration;
-
 struct Migration {
     std::string name;
     std::string sql;

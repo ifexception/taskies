@@ -26,9 +26,6 @@
 
 #include "../utils/utils.h"
 
-#include "environment.h"
-#include "configuration.h"
-
 namespace
 {
 #define WIN32_LEAN_AND_MEAN
