@@ -19,6 +19,8 @@
 
 #include "database_backup.h"
 
+#include <cassert>
+
 #include <fmt/format.h>
 
 #include "../common/logmessages.h"
@@ -32,10 +34,8 @@ namespace tks::Core
 {
 int DatabaseBackup::BackupPageSize = 128;
 
-DatabaseBackup::DatabaseBackup(std::shared_ptr<spdlog::logger> logger,
-    std::shared_ptr<Configuration> cfg)
+DatabaseBackup::DatabaseBackup(std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
-    , pCfg(cfg)
     , pDb(nullptr)
     , pBackupDb(nullptr)
     , pBackup(nullptr)
@@ -48,6 +48,89 @@ DatabaseBackup::~DatabaseBackup()
 }
 
 SqliteResult DatabaseBackup::Backup()
+{
+    assert(!mSourceDatabaseFilePath.empty());
+    assert(!mDestinationDatabaseFilePath.empty());
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Performing backup from \"{0}\" to \"{1}\"",
+        mSourceDatabaseFilePath,
+        mDestinationDatabaseFilePath);
+
+    return PerformBackup();
+}
+
+SqliteResult DatabaseBackup::Restore()
+{
+    assert(!mSourceDatabaseFilePath.empty());
+    assert(!mDestinationDatabaseFilePath.empty());
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Performing restore from \"{0}\" to \"{1}\"",
+        mSourceDatabaseFilePath,
+        mDestinationDatabaseFilePath);
+
+    return PerformBackup();
+}
+
+void DatabaseBackup::SetSourceDatabaseFilePath(const std::string& sourceDatabaseFilePath)
+{
+    mSourceDatabaseFilePath = sourceDatabaseFilePath;
+}
+
+void DatabaseBackup::SetDestinationDatabaseFilePath(const std::string& destinationDatabaseFilePath)
+{
+    mDestinationDatabaseFilePath = destinationDatabaseFilePath;
+}
+
+SqliteResult DatabaseBackup::Initialize()
+{
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, mSourceDatabaseFilePath);
+
+    int rc = sqlite3_open_v2(mSourceDatabaseFilePath.c_str(),
+        &pDb,
+        SQLITE_OPEN_READONLY, /* Read-only to avoid locking the source */
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, mSourceDatabaseFilePath, rc, error);
+
+        sqlite3_close(pDb);
+
+        return SqliteResult::FailDetailed(Messages::OpenDatabaseMessage, rc, std::string(error));
+    }
+
+    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
+
+        sqlite3_close(pDb);
+
+        return SqliteResult::FailDetailed(Messages::ExecMessage, rc, std::string(error));
+    }
+
+    rc = sqlite3_open_v2(mDestinationDatabaseFilePath.c_str(),
+        &pBackupDb,
+        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, // open or create the destination database
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pBackupDb);
+        pLogger->error(LogMessages::OpenDatabaseTemplate, mDestinationDatabaseFilePath, rc, error);
+
+        sqlite3_close(pDb);
+        sqlite3_close(pBackupDb);
+
+        return SqliteResult::FailDetailed(Messages::OpenDatabaseMessage, rc, std::string(error));
+    }
+
+    return SqliteResult::OK();
+}
+
+SqliteResult DatabaseBackup::PerformBackup()
 {
     auto result = Initialize();
     if (!result.Success) {
@@ -62,7 +145,7 @@ SqliteResult DatabaseBackup::Backup()
             "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
 
         return SqliteResult::FailDetailed(
-            fmt::format(Messages::BackupMessage, pCfg->BuildFullBackupFilePath()),
+            fmt::format(Messages::BackupMessage, mDestinationDatabaseFilePath),
             rc,
             std::string(error));
     }
@@ -109,7 +192,7 @@ SqliteResult DatabaseBackup::Backup()
 
             result.Success = false;
             result.FriendlyErrorMessage =
-                fmt::format(Messages::BackupMessage, pCfg->BuildFullBackupFilePath());
+                fmt::format(Messages::BackupMessage, mDestinationDatabaseFilePath);
             result.ReturnCode = rc;
             result.ErrorMessage = std::string(error);
 
@@ -129,56 +212,6 @@ SqliteResult DatabaseBackup::Backup()
     }
 
     return result;
-}
-
-SqliteResult DatabaseBackup::Initialize()
-{
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::OpenDatabaseConnection, pCfg->BuildFullDatabaseFilePath());
-
-    int rc = sqlite3_open_v2(pCfg->BuildFullDatabaseFilePath().c_str(),
-        &pDb,
-        SQLITE_OPEN_READONLY, /* Read-only to avoid locking the source */
-        nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(
-            LogMessages::OpenDatabaseTemplate, pCfg->BuildFullDatabaseFilePath(), rc, error);
-
-        sqlite3_close(pDb);
-
-        return SqliteResult::FailDetailed(Messages::OpenDatabaseMessage, rc, std::string(error));
-    }
-
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
-
-        sqlite3_close(pDb);
-
-        return SqliteResult::FailDetailed(Messages::ExecMessage, rc, std::string(error));
-    }
-
-    rc = sqlite3_open_v2(pCfg->BuildFullBackupFilePath().c_str(),
-        &pBackupDb,
-        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, // open or create the destination database
-        nullptr);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pBackupDb);
-        pLogger->error(
-            LogMessages::OpenDatabaseTemplate, pCfg->BuildFullBackupFilePath(), rc, error);
-
-        sqlite3_close(pDb);
-        sqlite3_close(pBackupDb);
-
-        return SqliteResult::FailDetailed(Messages::OpenDatabaseMessage, rc, std::string(error));
-    }
-
-    return SqliteResult::OK();
 }
 
 void DatabaseBackup::CleanUp()

@@ -31,33 +31,38 @@
 
 namespace tks::Core
 {
-class Configuration;
-
 class DatabaseBackup final
 {
 public:
     DatabaseBackup() = delete;
     DatabaseBackup(const DatabaseBackup&) = delete;
-    DatabaseBackup(std::shared_ptr<spdlog::logger> logger,
-        std::shared_ptr<Configuration> cfg);
+    DatabaseBackup(std::shared_ptr<spdlog::logger> logger);
     ~DatabaseBackup();
 
     const DatabaseBackup& operator=(const DatabaseBackup&) = delete;
 
     SqliteResult Backup();
+    SqliteResult Restore();
 
-    static int BackupPageSize;
+    void SetSourceDatabaseFilePath(const std::string& sourceDatabaseFilePath);
+    void SetDestinationDatabaseFilePath(const std::string& destinationDatabaseFilePath);
 
 private:
     SqliteResult Initialize();
 
+    SqliteResult PerformBackup();
+
     void CleanUp();
 
     std::shared_ptr<spdlog::logger> pLogger;
-    std::shared_ptr<Configuration> pCfg;
 
     sqlite3* pDb;
     sqlite3* pBackupDb;
     sqlite3_backup* pBackup;
+
+    std::string mSourceDatabaseFilePath;
+    std::string mDestinationDatabaseFilePath;
+
+    static int BackupPageSize;
 };
 } // namespace tks::Core
