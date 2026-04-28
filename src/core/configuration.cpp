@@ -245,7 +245,6 @@ ConfigResult Configuration::RestoreDefaults()
     MinimizeToTray(false);
     CloseToTray(false);
 
-    SetDatabaseFileName(pEnv->GetDatabaseFileName());
     SetDatabasePath(pEnv->GetDatabasePath().string());
     BackupDatabase(false);
     SetBackupPath("");
@@ -544,11 +543,6 @@ void Configuration::CloseToTray(const bool value)
 std::string Configuration::GetDatabaseFileName() const
 {
     return mSettings.DatabaseFileName;
-}
-
-void Configuration::SetDatabaseFileName(const std::string& value)
-{
-    mSettings.DatabaseFileName = value;
 }
 
 std::string Configuration::GetDatabasePath() const
