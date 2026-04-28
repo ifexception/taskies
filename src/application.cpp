@@ -197,8 +197,8 @@ bool Application::InitializeConfiguration()
     /* we attempt to load and/or recreate the configuration file or we cannot locate it */
     auto result = pCfg->LoadAndOrRecreate();
     if (!result.Success) {
-        pLogger->error("An error occurred while loading or recreating configuration. Check earlier "
-                       "logs for more details");
+        pLogger->error("Error occurred when loading or recreating configuration. See earlier logs "
+                       "for details");
         wxRichMessageDialog dialog(nullptr,
             result.HeaderMessage,
             Common::GetProgramName(),
@@ -216,8 +216,7 @@ bool Application::InitializeConfiguration()
      */
     result = pCfg->Save();
     if (!result.Success) {
-        pLogger->error("An error occurred while saving configuration. Check earlier "
-                       "logs for more details");
+        pLogger->error("Error occurred while saving configuration. See earlier logs for details");
         wxRichMessageDialog dialog(nullptr,
             result.HeaderMessage,
             Common::GetProgramName(),

@@ -32,9 +32,11 @@
 #include "../../common/validator.h"
 
 #include "../../common/messages/persistencemessages.h"
+#include "../../common/messages/sqlitemessages.h"
 
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
+#include "../../core/database_backup.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -1230,57 +1232,38 @@ void RestoreDatabaseResultPage::DisableBackButton() const
 void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event))
 {
     pRestoreProgressGaugeCtrl->Pulse();
+    std::string statusComplete = "";
 
-    int rc = 0;
+    std::string continueNextMessage = "\n\n\nTo exit the wizard, click 'Finish'";
+
+    Core::DatabaseBackup databaseBackup(pLogger);
+
     std::string backupDatabasePath =
         pParent->GetBackupDatabasePath() + "\\" + pParent->GetDatabaseFileName();
     std::string restoreDatabasePath =
         pParent->GetRestoreDatabasePath() + "\\" + pParent->GetDatabaseFileName();
 
-    // TODO: Use database_backup class
-    sqlite3* backupDb = nullptr;
-    sqlite3* restoreDb = nullptr;
-    sqlite3_backup* backup = nullptr;
+    databaseBackup.SetSourceDatabaseFilePath(backupDatabasePath);
+    databaseBackup.SetDestinationDatabaseFilePath(restoreDatabasePath);
 
-    rc = sqlite3_open(backupDatabasePath.c_str(), &backupDb);
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(backupDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, backupDatabasePath, rc, error);
-        return;
-    }
+    auto result = databaseBackup.Restore();
 
-    rc = sqlite3_open(restoreDatabasePath.c_str(), &restoreDb);
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(restoreDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, restoreDatabasePath, rc, error);
-        return;
-    }
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::BackupHeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-    backup = sqlite3_backup_init(/*destination*/ restoreDb, "main", /*source*/ backupDb, "main");
-    if (backup == nullptr) {
-        const char* error = sqlite3_errmsg(restoreDb);
-        pLogger->error(
-            "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
+        dialog.ShowModal();
+
+        statusComplete =
+            "The wizard encountered an error during the restore operation" + continueNextMessage;
     } else {
-        rc = sqlite3_backup_step(backup, -1);
-        if (rc != SQLITE_DONE) {
-            const char* error = sqlite3_errmsg(restoreDb);
-            pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
-        }
-
-        rc = sqlite3_backup_finish(backup);
-        if (rc != SQLITE_OK) {
-            pLogger->error("Backup operation failed to complete successfully");
-        }
+        statusComplete = "The wizard has restored the database successfully!" + continueNextMessage;
     }
 
-    sqlite3_close(restoreDb);
-    sqlite3_close(backupDb);
-
-    /* Complete operation */
-    std::string continueNextMessage = "\n\n\nTo exit the wizard, click 'Finish'";
-    std::string statusComplete =
-        "The wizard has restored the database successfully!" + continueNextMessage;
     pStatusFeedbackLabel->SetLabel(statusComplete);
     pRestoreProgressGaugeCtrl->SetValue(100);
 }

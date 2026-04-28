@@ -741,7 +741,10 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
         return;
     }
 
-    Core::DatabaseBackup databaseBackup(pLogger, pCfg);
+    Core::DatabaseBackup databaseBackup(pLogger);
+    databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
+    databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
+
     auto result = databaseBackup.Backup();
     if (!result.Success) {
         wxRichMessageDialog dialog(this,
