@@ -32,7 +32,6 @@
 namespace tks::Core
 {
 class Configuration;
-class Environment;
 
 class DatabaseBackup final
 {
@@ -40,8 +39,7 @@ public:
     DatabaseBackup() = delete;
     DatabaseBackup(const DatabaseBackup&) = delete;
     DatabaseBackup(std::shared_ptr<spdlog::logger> logger,
-        std::shared_ptr<Configuration> cfg,
-        std::shared_ptr<Environment> env);
+        std::shared_ptr<Configuration> cfg);
     ~DatabaseBackup();
 
     const DatabaseBackup& operator=(const DatabaseBackup&) = delete;
@@ -52,11 +50,11 @@ public:
 
 private:
     SqliteResult Initialize();
+
     void CleanUp();
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Configuration> pCfg;
-    std::shared_ptr<Environment> pEnv;
 
     sqlite3* pDb;
     sqlite3* pBackupDb;

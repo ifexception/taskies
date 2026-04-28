@@ -77,6 +77,11 @@ std::filesystem::path Environment::GetDatabaseFilePath()
     return GetApplicationDatabasePath() / GetDatabaseFileName();
 }
 
+std::filesystem::path Environment::GetDatabasePath()
+{
+    return GetApplicationDatabasePath();
+}
+
 std::filesystem::path Environment::GetResourcesPath()
 {
     return GetApplicationResourcesPath();
@@ -89,7 +94,7 @@ std::filesystem::path Environment::GetExportPath()
 
 std::string Environment::GetDatabaseFileName()
 {
-    return "taskies.db";
+    return DATABASE_NAME;
 }
 
 std::string Environment::GetCurrentLocale()

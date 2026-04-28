@@ -152,6 +152,7 @@ ConfigResult Configuration::Save()
 
     // Database section
     root.at(Sections::DatabaseSection).as_table_fmt().fmt = toml::table_format::multiline;
+    root.at(Sections::DatabaseSection)["databaseFileName"] = mSettings.DatabaseFileName;
     root.at(Sections::DatabaseSection)["databasePath"] = mSettings.DatabasePath;
     root.at(Sections::DatabaseSection)["backupDatabase"] = mSettings.BackupDatabase;
     root.at(Sections::DatabaseSection)["backupPath"] = mSettings.BackupPath;
@@ -244,7 +245,8 @@ ConfigResult Configuration::RestoreDefaults()
     MinimizeToTray(false);
     CloseToTray(false);
 
-    SetDatabasePath(pEnv->GetDatabaseFilePath().string());
+    SetDatabaseFileName(pEnv->GetDatabaseFileName());
+    SetDatabasePath(pEnv->GetDatabasePath().string());
     BackupDatabase(false);
     SetBackupPath("");
 
@@ -279,7 +281,8 @@ ConfigResult Configuration::RestoreDefaults()
             {
                 Sections::DatabaseSection,
                 toml::table {
-                    { "databasePath", pEnv->GetDatabaseFilePath().string() },
+                    { "databaseFileName", pEnv->GetDatabaseFileName() },
+                    { "databasePath", pEnv->GetDatabasePath().string() },
                     { "backupDatabase", false },
                     { "backupPath", "" },
                 }
@@ -538,6 +541,16 @@ void Configuration::CloseToTray(const bool value)
     mSettings.CloseToTray = value;
 }
 
+std::string Configuration::GetDatabaseFileName() const
+{
+    return mSettings.DatabaseFileName;
+}
+
+void Configuration::SetDatabaseFileName(const std::string& value)
+{
+    mSettings.DatabaseFileName = value;
+}
+
 std::string Configuration::GetDatabasePath() const
 {
     return mSettings.DatabasePath;
@@ -715,6 +728,18 @@ void Configuration::ClearPresets()
     mSettings.PresetSettings.clear();
 }
 
+std::string Configuration::BuildFullDatabaseFilePath() const
+{
+    auto result = std::filesystem::path(GetDatabasePath()) / GetDatabaseFileName();
+    return result.string();
+}
+
+std::string Configuration::BuildFullBackupFilePath() const
+{
+    auto result = std::filesystem::path(GetBackupPath()) / GetDatabaseFileName();
+    return result.string();
+}
+
 ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileContents)
 {
     const std::string configFilePath = pEnv->GetConfigurationFilePath().string();
@@ -781,8 +806,11 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
 
     const auto& databaseSection = toml::find(root, Sections::DatabaseSection);
 
+    mSettings.DatabaseFileName = toml::find_or<std::string>(
+        databaseSection, "databaseFileName", pEnv->GetDatabaseFileName());
+
     mSettings.DatabasePath = toml::find_or<std::string>(
-        databaseSection, "databasePath", pEnv->GetDatabaseFilePath().string());
+        databaseSection, "databasePath", pEnv->GetDatabasePath().string());
 
     mSettings.BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
 

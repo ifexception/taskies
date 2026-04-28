@@ -58,7 +58,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     , pLogger(logger)
     , pEnv(env)
     , pCfg(cfg)
-    , mDatabasePath(pCfg->GetDatabasePath())
+    , mDatabasePath(pCfg->BuildFullDatabaseFilePath())
     , pSetupWizardService(nullptr)
     , pWelcomePage(nullptr)
     , pOptionPage(nullptr)
@@ -121,6 +121,11 @@ SetupWizard::~SetupWizard()
 wxWizardPage* SetupWizard::GetFirstPage() const
 {
     return pWelcomePage;
+}
+
+std::string SetupWizard::GetDatabaseFileName() const
+{
+    return pCfg->GetDatabaseFileName();
 }
 
 const std::int64_t SetupWizard::GetEmployerId() const
@@ -1120,7 +1125,7 @@ void RestoreDatabasePage::OnOpenFileForBackupLocation(wxCommandEvent& event)
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetBackupPath().empty()) {
-        pathDirectoryToOpenOn = pCfg->GetDatabasePath();
+        pathDirectoryToOpenOn = pCfg->GetDatabasePath(); // TODO: Should open at ~/Documents
     } else {
         pathDirectoryToOpenOn = pCfg->GetBackupPath();
     }
@@ -1133,6 +1138,7 @@ void RestoreDatabasePage::OnOpenFileForBackupLocation(wxCommandEvent& event)
         wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     int ret = openFileDialog->ShowModal();
 
+    // TODO: Consider doing an integrity check if file _is_ a sqlite db file
     if (ret == wxID_OK) {
         auto selectedBackupPath = openFileDialog->GetPath().ToStdString();
         pBackupPathTextCtrl->ChangeValue(selectedBackupPath);
@@ -1148,32 +1154,27 @@ void RestoreDatabasePage::OnOpenFileForRestoreLocation(wxCommandEvent& event)
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetDatabasePath().empty()) {
-        pathDirectoryToOpenOn = pEnv->GetDatabaseFilePath().string();
+        pathDirectoryToOpenOn = pEnv->GetDatabasePath().string();
     } else {
         pathDirectoryToOpenOn = pCfg->GetDatabasePath();
     }
 
-    auto fullPath = std::filesystem::path(pathDirectoryToOpenOn);
-    auto& pathWithoutFileName = fullPath.remove_filename();
-    pathDirectoryToOpenOn = pathWithoutFileName.string();
-
-    auto openFileDialog = new wxFileDialog(this,
-        "Select a restore database file",
+    auto openDirDialog = new wxDirDialog(this,
+        "Select a directory for the database",
         pathDirectoryToOpenOn,
-        wxEmptyString,
-        "DB files (*.db)|*.db",
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-    int res = openFileDialog->ShowModal();
+        wxDD_DEFAULT_STYLE,
+        wxDefaultPosition);
+    int ret = openDirDialog->ShowModal();
 
-    if (res == wxID_OK) {
-        auto selectedPath = openFileDialog->GetPath().ToStdString();
+    if (ret == wxID_OK) {
+        auto selectedPath = openDirDialog->GetPath().ToStdString();
         pRestorePathTextCtrl->SetValue(selectedPath);
         pRestorePathTextCtrl->SetToolTip(selectedPath);
 
         pParent->SetRestoreDatabasePath(selectedPath);
     }
 
-    openFileDialog->Destroy();
+    openDirDialog->Destroy();
 }
 
 RestoreDatabaseResultPage::RestoreDatabaseResultPage(SetupWizard* parent,
@@ -1231,9 +1232,12 @@ void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event)
     pRestoreProgressGaugeCtrl->Pulse();
 
     int rc = 0;
-    std::string backupDatabasePath = pParent->GetBackupDatabasePath();
-    std::string restoreDatabasePath = pParent->GetRestoreDatabasePath();
+    std::string backupDatabasePath =
+        pParent->GetBackupDatabasePath() + "\\" + pParent->GetDatabaseFileName();
+    std::string restoreDatabasePath =
+        pParent->GetRestoreDatabasePath() + "\\" + pParent->GetDatabaseFileName();
 
+    // TODO: Use database_backup class
     sqlite3* backupDb = nullptr;
     sqlite3* restoreDb = nullptr;
     sqlite3_backup* backup = nullptr;

@@ -104,17 +104,40 @@ void PreferencesDatabasePage::CreateControls()
     auto databaseBoxSizer = new wxStaticBoxSizer(databaseBox, wxVERTICAL);
     sizer->Add(databaseBoxSizer, wxSizerFlags().Expand());
 
+    /* Database file name sizer */
+    auto dbNameSizer = new wxBoxSizer(wxHORIZONTAL);
+    auto databaseNameLabel = new wxStaticText(databaseBox, wxID_ANY, "Name");
+    pDatabaseFileNameTextCtrl = new wxTextCtrl(databaseBox,
+        tksIDC_DATABASEFILENAMETEXTCTRL,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_LEFT | wxTE_READONLY);
+    dbNameSizer->Add(
+        databaseNameLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
+    dbNameSizer->Add(pDatabaseFileNameTextCtrl,
+        wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
+    databaseBoxSizer->Add(
+        dbNameSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+
     /* Database path sizer */
     auto dbPathSizer = new wxBoxSizer(wxHORIZONTAL);
     auto databasePathLabel = new wxStaticText(databaseBox, wxID_ANY, "Path");
-    pDatabasePathTextCtrl = new wxTextCtrl(
-        databaseBox, tksIDC_DATABASE_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
+    pDatabasePathTextCtrl = new wxTextCtrl(databaseBox,
+        tksIDC_DATABASE_PATH,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_LEFT | wxTE_READONLY);
     pBrowseDatabasePathButton = new wxButton(databaseBox, tksIDC_DATABASE_PATH_BUTTON, "Browse...");
     pBrowseDatabasePathButton->SetToolTip("Browse and select a directory to store the database");
-    dbPathSizer->Add(databasePathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
-    dbPathSizer->Add(pDatabasePathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
+    dbPathSizer->Add(
+        databasePathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
+    dbPathSizer->Add(pDatabasePathTextCtrl,
+        wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
     dbPathSizer->Add(pBrowseDatabasePathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
-    databaseBoxSizer->Add(dbPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    databaseBoxSizer->Add(
+        dbPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* Backup box */
     auto backupBox = new wxStaticBox(this, wxID_ANY, "Backup");
@@ -122,22 +145,30 @@ void PreferencesDatabasePage::CreateControls()
     sizer->Add(backupBoxSizer, wxSizerFlags().Expand());
 
     /* Enable backups check */
-    pBackupDatabaseCheckBoxCtrl = new wxCheckBox(backupBox, tksIDC_BACKUP_DATABASE_CHECK, "Enable database backups");
+    pBackupDatabaseCheckBoxCtrl =
+        new wxCheckBox(backupBox, tksIDC_BACKUP_DATABASE_CHECK, "Enable database backups");
     pBackupDatabaseCheckBoxCtrl->SetToolTip("Toggles whether database backups occur");
     backupBoxSizer->Add(pBackupDatabaseCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     /* Backup path sizer*/
     auto backupPathSizer = new wxBoxSizer(wxHORIZONTAL);
     auto backupPathLabel = new wxStaticText(backupBox, wxID_ANY, "Path");
-    pBackupPathTextCtrl = new wxTextCtrl(
-        backupBox, tksIDC_BACKUP_PATH, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_LEFT | wxTE_READONLY);
+    pBackupPathTextCtrl = new wxTextCtrl(backupBox,
+        tksIDC_BACKUP_PATH,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_LEFT | wxTE_READONLY);
     pBrowseBackupPathButton = new wxButton(backupBox, tksIDC_BACKUP_PATH_BUTTON, "Browse...");
-    pBrowseBackupPathButton->SetToolTip("Browse and select a directory to store the database backups");
-    backupPathSizer->Add(backupPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
+    pBrowseBackupPathButton->SetToolTip(
+        "Browse and select a directory to store the database backups");
     backupPathSizer->Add(
-        pBackupPathTextCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
+        backupPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
+    backupPathSizer->Add(pBackupPathTextCtrl,
+        wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
     backupPathSizer->Add(pBrowseBackupPathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
-    backupBoxSizer->Add(backupPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+    backupBoxSizer->Add(
+        backupPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     SetSizerAndFit(sizer);
 }
@@ -174,6 +205,9 @@ void PreferencesDatabasePage::FillControls()
 
 void PreferencesDatabasePage::DataToControls()
 {
+    pDatabaseFileNameTextCtrl->ChangeValue(pCfg->GetDatabaseFileName());
+    pDatabaseFileNameTextCtrl->SetToolTip(pCfg->GetDatabaseFileName());
+
     pDatabasePathTextCtrl->ChangeValue(pCfg->GetDatabasePath());
     pDatabasePathTextCtrl->SetToolTip(pCfg->GetDatabasePath());
     pBackupDatabaseCheckBoxCtrl->SetValue(pCfg->BackupDatabase());
@@ -199,37 +233,32 @@ void PreferencesDatabasePage::OnOpenDirectoryForDatabaseLocation(wxCommandEvent&
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetDatabasePath().empty()) {
-        pathDirectoryToOpenOn = pEnv->GetDatabaseFilePath().string();
+        pathDirectoryToOpenOn = pEnv->GetDatabasePath().string();
     } else {
         pathDirectoryToOpenOn = pCfg->GetDatabasePath();
     }
 
-    auto fullPath = std::filesystem::path(pathDirectoryToOpenOn);
-    auto& pathWithoutFileName = fullPath.remove_filename();
-    pathDirectoryToOpenOn = pathWithoutFileName.string();
-
-    auto openFileDialog = new wxFileDialog(this,
-        "Select a default database location",
+    auto openDirDialog = new wxDirDialog(this,
+        "Select a directory for the database",
         pathDirectoryToOpenOn,
-        wxEmptyString,
-        "DB files (*.db)|*.db",
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-    int ret = openFileDialog->ShowModal();
+        wxDD_DEFAULT_STYLE,
+        wxDefaultPosition);
+    int ret = openDirDialog->ShowModal();
 
     if (ret == wxID_OK) {
-        auto selectedPath = openFileDialog->GetPath().ToStdString();
+        auto selectedPath = openDirDialog->GetPath().ToStdString();
         pDatabasePathTextCtrl->ChangeValue(selectedPath);
         pDatabasePathTextCtrl->SetToolTip(selectedPath);
     }
 
-    openFileDialog->Destroy();
+    openDirDialog->Destroy();
 }
 
 void PreferencesDatabasePage::OnOpenDirectoryForBackupLocation(wxCommandEvent& event)
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetDatabasePath().empty()) {
-        pathDirectoryToOpenOn = pEnv->GetDatabaseFilePath().string();
+        pathDirectoryToOpenOn = pEnv->GetDatabasePath().string();
     } else {
         pathDirectoryToOpenOn = pCfg->GetBackupPath();
     }

@@ -7,6 +7,7 @@ minimizeToTray=false
 closeToTray=false
 
 [database]
+databaseFileName=""
 databasePath=""
 backupDatabase=false
 backupPath=""

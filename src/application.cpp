@@ -79,8 +79,9 @@ bool Application::OnInit()
         return false;
     }
 
-    if (pCfg->GetDatabasePath().empty()) {
-        pCfg->SetDatabasePath(pEnv->GetDatabaseFilePath().string());
+    if (pCfg->GetDatabasePath().empty() || pCfg->GetDatabaseFileName().empty()) {
+        pCfg->SetDatabaseFileName(pEnv->GetDatabaseFileName());
+        pCfg->SetDatabasePath(pEnv->GetDatabasePath().string());
         pCfg->Save();
     }
 
@@ -90,7 +91,7 @@ bool Application::OnInit()
     }
 
     pPersistenceManager =
-        std::make_unique<UI::PersistenceManager>(pLogger, pCfg->GetDatabasePath());
+        std::make_unique<UI::PersistenceManager>(pLogger, pCfg->BuildFullDatabaseFilePath());
     wxPersistenceManager::Set(*pPersistenceManager);
 
     if (!RunMigrations()) {
@@ -233,12 +234,13 @@ bool Application::InitializeConfiguration()
 
 bool Application::RunMigrations()
 {
-    Core::DatabaseMigration migrations(pLogger, pCfg->GetDatabasePath());
+    Core::DatabaseMigration migrations(pLogger, pCfg->BuildFullDatabaseFilePath());
 
     auto sqliteResult = migrations.Migrate();
     if (!sqliteResult.Success) {
-        pLogger->error("An error occurred while running database migrations. Check earlier logs "
-                       "for more details");
+        pLogger->error(
+            "Error occurred while running database migrations. See earlier logs for details");
+
         wxRichMessageDialog dialog(nullptr,
             Messages::MigrationExecutionMessage,
             Common::GetProgramName(),

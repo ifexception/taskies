@@ -27,18 +27,15 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "configuration.h"
-#include "environment.h"
 
 namespace tks::Core
 {
-int DatabaseBackup::BackupPageSize = 64;
+int DatabaseBackup::BackupPageSize = 128;
 
 DatabaseBackup::DatabaseBackup(std::shared_ptr<spdlog::logger> logger,
-    std::shared_ptr<Configuration> cfg,
-    std::shared_ptr<Environment> env)
+    std::shared_ptr<Configuration> cfg)
     : pLogger(logger)
     , pCfg(cfg)
-    , pEnv(env)
     , pDb(nullptr)
     , pBackupDb(nullptr)
     , pBackup(nullptr)
@@ -64,12 +61,10 @@ SqliteResult DatabaseBackup::Backup()
         pLogger->error(
             "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
 
-        // to refactor, should _not_ need both Cfg and Env to get backup path
-        auto backupFilePath =
-            fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseFileName());
-
         return SqliteResult::FailDetailed(
-            fmt::format(Messages::BackupMessage, backupFilePath), rc, std::string(error));
+            fmt::format(Messages::BackupMessage, pCfg->BuildFullBackupFilePath()),
+            rc,
+            std::string(error));
     }
 
     auto pageCount = sqlite3_backup_pagecount(pBackup);
@@ -82,7 +77,7 @@ SqliteResult DatabaseBackup::Backup()
             pLogger, "Perform backup step with page size of \"{0}\"", BackupPageSize);
         rc = sqlite3_backup_step(pBackup, BackupPageSize);
 
-        /* Get progress information */
+        /* Get progress information of backup */
         int remaining = sqlite3_backup_remaining(pBackup);
         int total = sqlite3_backup_pagecount(pBackup);
         SPDLOG_LOGGER_TRACE(pLogger, "Total page size \"{0}\"", total);
@@ -109,15 +104,12 @@ SqliteResult DatabaseBackup::Backup()
             sqlite3_sleep(128); /* Wait 128ms before retrying */
             continue;
         } else {
-            // to refactor, should _not_ need both Cfg and Env to get backup path
-            auto backupFilePath =
-                fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseFileName());
-
             /* Fatal error occurred */
             const char* error = sqlite3_errmsg(pBackupDb);
 
             result.Success = false;
-            result.FriendlyErrorMessage = fmt::format(Messages::BackupMessage, backupFilePath);
+            result.FriendlyErrorMessage =
+                fmt::format(Messages::BackupMessage, pCfg->BuildFullBackupFilePath());
             result.ReturnCode = rc;
             result.ErrorMessage = std::string(error);
 
@@ -141,16 +133,18 @@ SqliteResult DatabaseBackup::Backup()
 
 SqliteResult DatabaseBackup::Initialize()
 {
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, pCfg->GetDatabasePath());
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::OpenDatabaseConnection, pCfg->BuildFullDatabaseFilePath());
 
-    int rc = sqlite3_open_v2(pCfg->GetDatabasePath().c_str(),
+    int rc = sqlite3_open_v2(pCfg->BuildFullDatabaseFilePath().c_str(),
         &pDb,
         SQLITE_OPEN_READONLY, /* Read-only to avoid locking the source */
         nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, pCfg->GetDatabasePath(), rc, error);
+        pLogger->error(
+            LogMessages::OpenDatabaseTemplate, pCfg->BuildFullDatabaseFilePath(), rc, error);
 
         sqlite3_close(pDb);
 
@@ -168,15 +162,15 @@ SqliteResult DatabaseBackup::Initialize()
         return SqliteResult::FailDetailed(Messages::ExecMessage, rc, std::string(error));
     }
 
-    // to refactor, should _not_ need both Cfg and Env to get backup path
-    auto backupFilePath = fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseFileName());
+    rc = sqlite3_open_v2(pCfg->BuildFullBackupFilePath().c_str(),
+        &pBackupDb,
+        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, // open or create the destination database
+        nullptr);
 
-    // open or create the destination database
-    rc = sqlite3_open_v2(
-        backupFilePath.c_str(), &pBackupDb, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr);
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pBackupDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, backupFilePath, rc, error);
+        pLogger->error(
+            LogMessages::OpenDatabaseTemplate, pCfg->BuildFullBackupFilePath(), rc, error);
 
         sqlite3_close(pDb);
         sqlite3_close(pBackupDb);

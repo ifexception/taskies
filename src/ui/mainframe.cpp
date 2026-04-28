@@ -214,8 +214,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     SetIcons(iconBundle);
 
     // Load database path
-    mDatabaseFilePath = pCfg->GetDatabasePath();
-    pLogger->info("MainFrame::MainFrame - Database location \"{0}\"", mDatabaseFilePath);
+    mDatabaseFilePath = pCfg->BuildFullDatabaseFilePath();
+    SPDLOG_LOGGER_TRACE(pLogger, "Database location \"{0}\"", mDatabaseFilePath);
 
     // Setup TaskBarIcon
     pTaskBarIcon = new TaskBarIcon(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
@@ -741,7 +741,7 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
         return;
     }
 
-    Core::DatabaseBackup databaseBackup(pLogger, pCfg, pEnv);
+    Core::DatabaseBackup databaseBackup(pLogger, pCfg);
     auto result = databaseBackup.Backup();
     if (!result.Success) {
         wxRichMessageDialog dialog(this,

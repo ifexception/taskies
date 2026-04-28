@@ -27,6 +27,7 @@
 
 namespace tks::Core
 {
+static std::string DATABASE_NAME = "taskies.db";
 
 class Environment final
 {
@@ -44,6 +45,7 @@ public:
     std::filesystem::path GetLanguagesPath();
     std::filesystem::path GetConfigurationFilePath();
     std::filesystem::path GetDatabaseFilePath();
+    std::filesystem::path GetDatabasePath();
     std::filesystem::path GetResourcesPath();
     std::filesystem::path GetExportPath();
 

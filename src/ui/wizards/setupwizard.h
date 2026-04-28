@@ -68,6 +68,8 @@ public:
 
     wxWizardPage* GetFirstPage() const;
 
+    std::string GetDatabaseFileName() const;
+
     const std::int64_t GetEmployerId() const;
     void SetEmployerId(const std::int64_t employerId);
 
@@ -95,6 +97,7 @@ private:
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
     std::string mDatabasePath;
+    std::string mDatabaseFileName;
 
     Services::SetupWizardService* pSetupWizardService;
 
