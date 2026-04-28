@@ -359,9 +359,6 @@
     <ClCompile Include="src\ui\dlg\employerdlg.cpp">
       <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\dlg\errordlg.cpp">
-      <Filter>Source\ui\dialogs</Filter>
-    </ClCompile>
     <ClCompile Include="src\ui\dlg\projectdlg.cpp">
       <Filter>Source\ui\dialogs</Filter>
     </ClCompile>
@@ -433,6 +430,9 @@
     </ClCompile>
     <ClCompile Include="src\common\messages\configmessages.cpp">
       <Filter>Source\common\messages</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\database_backup.cpp">
+      <Filter>Source\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -706,9 +706,6 @@
     <ClInclude Include="src\ui\dlg\employerdlg.h">
       <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\dlg\errordlg.h">
-      <Filter>Source\ui\dialogs</Filter>
-    </ClInclude>
     <ClInclude Include="src\ui\dlg\projectdlg.h">
       <Filter>Source\ui\dialogs</Filter>
     </ClInclude>
@@ -777,6 +774,9 @@
     </ClInclude>
     <ClInclude Include="src\common\messages\configmessages.h">
       <Filter>Source\common\messages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\database_backup.h">
+      <Filter>Source\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
