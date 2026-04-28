@@ -434,6 +434,9 @@
     <ClCompile Include="src\core\database_backup.cpp">
       <Filter>Source\core</Filter>
     </ClCompile>
+    <ClCompile Include="src\common\wxcommon.cpp">
+      <Filter>Source\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -777,6 +780,9 @@
     </ClInclude>
     <ClInclude Include="src\core\database_backup.h">
       <Filter>Source\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\wxcommon.h">
+      <Filter>Source\common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

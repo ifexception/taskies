@@ -7,6 +7,7 @@ add_subdirectory("messages")
 set(
     SRC_COMMON
     "${CMAKE_CURRENT_SOURCE_DIR}/common.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/wxcommon.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/enums.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/constants.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/validator.cpp"

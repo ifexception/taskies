@@ -357,6 +357,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\utils\datestore.cpp" />
     <ClCompile Include="src\utils\mswutils.cpp" />
     <ClCompile Include="src\utils\utils.cpp" />
+    <ClCompile Include="src\common\wxcommon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\database_backup.h" />
@@ -473,6 +474,7 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClInclude Include="src\utils\datestore.h" />
     <ClInclude Include="src\utils\mswutils.h" />
     <ClInclude Include="src\utils\utils.h" />
+    <ClInclude Include="src\common\wxcommon.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc" />

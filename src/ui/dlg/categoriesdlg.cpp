@@ -31,6 +31,7 @@
 #include "../common/clientdata.h"
 
 #include "../../common/common.h"
+#include "../../common/wxcommon.h"
 #include "../../common/constants.h"
 #include "../../common/validator.h"
 
@@ -199,7 +200,7 @@ void CategoriesDialog::CreateControls()
         tksIDC_LISTCTRL,
         wxDefaultPosition,
         wxDefaultSize,
-        wxLC_REPORT | wxLC_HRULES);
+        wxLC_REPORT | wxLC_HRULES | wxLC_SINGLE_SEL);
     pListCtrl->EnableCheckBoxes();
 
     wxListItem nameColumn;
@@ -365,6 +366,10 @@ void CategoriesDialog::AppendCategory(Model::CategoryModel category)
 
     listIndex = pListCtrl->InsertItem(columnIndex++, category.Name);
     pListCtrl->SetItemBackgroundColour(listIndex, category.Color);
+
+    if (Common::IsDarkColour(category.Color)) {
+        pListCtrl->SetItemTextColour(listIndex, *wxWHITE);
+    }
 }
 
 void CategoriesDialog::UpdateCategory(Model::CategoryModel category)
@@ -373,6 +378,10 @@ void CategoriesDialog::UpdateCategory(Model::CategoryModel category)
 
     pListCtrl->SetItem(mListItemIndex, columnIndex++, category.Name);
     pListCtrl->SetItemBackgroundColour(mListItemIndex, category.Color);
+
+    if (Common::IsDarkColour(category.Color)) {
+        pListCtrl->SetItemTextColour(mListItemIndex, *wxWHITE);
+    }
 
     mListItemIndex = -1;
 }
