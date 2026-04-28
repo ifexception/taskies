@@ -190,7 +190,7 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
     pExportPage->Reset();
 
     wxMessageDialog dialog(this,
-        "Successfuly restored configuration to defaults",
+        "Successfully restored configuration to defaults",
         Common::GetProgramName(),
         wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_INFORMATION);
 
