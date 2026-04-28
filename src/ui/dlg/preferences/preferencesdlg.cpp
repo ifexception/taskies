@@ -170,8 +170,8 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
 {
     auto result = pCfg->RestoreDefaults();
     if (!result.Success) {
-        pLogger->error("An error occurred while restoring the default configuration. Check earlier "
-                       "logs for more details");
+        pLogger->error("An error occurred while restoring the default configuration. See earlier "
+                       "logs for details");
         wxRichMessageDialog dialog(this,
             result.HeaderMessage,
             Common::GetProgramName(),
