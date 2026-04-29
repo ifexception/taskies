@@ -21,6 +21,8 @@
 
 #include <algorithm>
 
+#include <date/date.h>
+
 #include <wx/artprov.h>
 #include <wx/richmsgdlg.h>
 #include <wx/statline.h>
@@ -72,6 +74,7 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     , pScrolledWindowSizer(nullptr)
     , pActiveMeetingsPanel(nullptr)
     , mSelectedAccount()
+    , mSelectedDate()
     , mMeetingModels()
     , bIsMainFrameMaximized(isMainFrameMaximized)
 {
@@ -81,6 +84,9 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
+
+    auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    mSelectedDate = date::format("%F", todaysDate);
 }
 
 OutlookMeetingsViewFrame::~OutlookMeetingsViewFrame() {}
@@ -260,7 +266,7 @@ void OutlookMeetingsViewFrame::OnParentFrameMove()
     int screenY = screenPos.y;
 
     SPDLOG_LOGGER_TRACE(
-        pLogger, "PARENT POSITION CHANGED!\nNew position => ({0},{1})", screenX, screenY);
+        pLogger, "Parent position changed to new position ({0},{1})", screenX, screenY);
 
     wxPoint topRightScreen(screenX, screenY);
     SetPosition(topRightScreen);
@@ -287,7 +293,33 @@ void OutlookMeetingsViewFrame::OnParentFrameResize()
 
 void OutlookMeetingsViewFrame::OnDateSelection(wxDateEvent& event)
 {
+    if (mSelectedAccount.empty()) {
+        // if no account is selected, we return as there is nothing to do
+        return;
+    }
 
+    const wxDateTime& selectedDate = event.GetDate();
+    mSelectedDate = selectedDate.Format("%Y/%m/%d").ToStdString();
+
+    wxBusyCursor cursor;
+
+    mMeetingModels.clear();
+
+    if (pActiveMeetingsPanel != nullptr) {
+        RemoveActiveMeetingsPanel();
+    }
+
+    if (!pRefreshButton->IsEnabled()) {
+        pRefreshButton->Enable();
+    }
+
+    FetchOutlookMeetingsAndUpdateFeedbackLabel();
+
+    std::vector<Model::AttendedMeetingModel> attendedMeetingModels = FetchAttendedMeetings();
+
+    AddMeetingsToPanel(attendedMeetingModels);
+
+    SetDialogSizeFromParent();
 }
 
 void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
@@ -310,7 +342,7 @@ void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
 
     std::vector<Model::AttendedMeetingModel> attendedMeetingModels = FetchAttendedMeetings();
 
-    AddAttendedMeetingsPanel(attendedMeetingModels);
+    AddMeetingsToPanel(attendedMeetingModels);
 
     SetDialogSizeFromParent();
 }
@@ -341,7 +373,7 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 
     std::vector<Model::AttendedMeetingModel> attendedMeetingModels = FetchAttendedMeetings();
 
-    AddAttendedMeetingsPanel(attendedMeetingModels);
+    AddMeetingsToPanel(attendedMeetingModels);
 
     SetDialogSizeFromParent();
 }
@@ -412,7 +444,7 @@ void OutlookMeetingsViewFrame::FetchOutlookMeetingsAndUpdateFeedbackLabel()
 
     Services::Outlook::OutlookClassicService service(pLogger);
     Services::Outlook::OutlookResult result =
-        service.FetchCalendarMeetings(mSelectedAccount, mMeetingModels);
+        service.FetchCalendarMeetings(mSelectedAccount, mSelectedDate, mMeetingModels);
 
     if (!result.Success) {
         wxMessageDialog dialog(this,
@@ -470,7 +502,7 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsViewFrame::FetchAttended
     return attendedMeetingModels;
 }
 
-void OutlookMeetingsViewFrame::AddAttendedMeetingsPanel(
+void OutlookMeetingsViewFrame::AddMeetingsToPanel(
     const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels)
 {
     /* Panel Sizer */

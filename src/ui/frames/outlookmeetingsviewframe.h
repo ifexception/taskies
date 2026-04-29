@@ -78,7 +78,7 @@ private:
 
     void FetchOutlookMeetingsAndUpdateFeedbackLabel();
     std::vector<Model::AttendedMeetingModel> FetchAttendedMeetings();
-    void AddAttendedMeetingsPanel(
+    void AddMeetingsToPanel(
         const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels);
     void SetDialogSizeFromParent();
 
@@ -111,7 +111,7 @@ private:
     wxPanel* pActiveMeetingsPanel;
 
     std::string mSelectedAccount;
-
+    std::string mSelectedDate;
     std::vector<Services::Outlook::OutlookMeetingModel> mMeetingModels;
     bool bIsMainFrameMaximized;
 
