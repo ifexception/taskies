@@ -58,12 +58,13 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
           wxDefaultSize,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
-    , pParent(parent)
-    , pThisPanel(nullptr)
     , pCfg(cfg)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
+    , pParent(parent)
+    , pThisPanel(nullptr)
     , pMainSizer(nullptr)
+    , pDatePickerCtrl(nullptr)
     , pRefreshButton(nullptr)
     , pAccountsChoiceCtrl(nullptr)
     , pFeedbackLabel(nullptr)
@@ -81,6 +82,8 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
 }
+
+OutlookMeetingsViewFrame::~OutlookMeetingsViewFrame() {}
 
 void OutlookMeetingsViewFrame::Create()
 {
@@ -110,6 +113,8 @@ void OutlookMeetingsViewFrame::Create()
         SetPosition(topRightScreen);
 
         SetMinSize(wxSize(240, 180));
+    } else {
+        CenterOnScreen();
     }
 }
 
@@ -122,9 +127,13 @@ void OutlookMeetingsViewFrame::CreateControls()
     pThisPanel = new wxPanel(this, wxID_ANY);
     pThisPanel->SetSizer(pMainSizer);
 
-    /* Refresh button sizer */
-    auto refreshButtonHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
-    pMainSizer->Add(refreshButtonHorizontalSizer, wxSizerFlags().Expand());
+    /* Date picker and refresh button sizer */
+    auto datePickerAndButtonHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
+    pMainSizer->Add(datePickerAndButtonHorizontalSizer, wxSizerFlags().Expand());
+
+    /* Date picker ctrl */
+    pDatePickerCtrl = new wxDatePickerCtrl(pThisPanel, tksIDC_DATEPICKERCTRL);
+    pDatePickerCtrl->SetToolTip("Filter Outlook meetings by date");
 
     /* Refresh button */
     auto providedRefreshBitmap = wxArtProvider::GetBitmapBundle(
@@ -132,8 +141,12 @@ void OutlookMeetingsViewFrame::CreateControls()
     pRefreshButton = new wxBitmapButton(pThisPanel, tksIDC_REFRESH_BUTTON, providedRefreshBitmap);
     pRefreshButton->SetToolTip("Refresh meetings of selected account");
     pRefreshButton->Disable();
-    refreshButtonHorizontalSizer->AddStretchSpacer();
-    refreshButtonHorizontalSizer->Add(pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    datePickerAndButtonHorizontalSizer->Add(
+        pDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    datePickerAndButtonHorizontalSizer->AddStretchSpacer();
+    datePickerAndButtonHorizontalSizer->Add(
+        pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line0 = new wxStaticLine(pThisPanel, wxID_ANY);
@@ -166,6 +179,13 @@ void OutlookMeetingsViewFrame::CreateControls()
 // clang-format off
 void OutlookMeetingsViewFrame::ConfigureEventBindings()
 {
+    pDatePickerCtrl->Bind(
+        wxEVT_DATE_CHANGED,
+        &OutlookMeetingsViewFrame::OnDateSelection,
+        this,
+        tksIDC_DATEPICKERCTRL
+    );
+
     pRefreshButton->Bind(
         wxEVT_BUTTON,
         &OutlookMeetingsViewFrame::OnRefresh,
@@ -259,11 +279,7 @@ void OutlookMeetingsViewFrame::OnParentFrameResize()
     }
 }
 
-void OutlookMeetingsViewFrame::OnParentFrameActivate()
-{
-    Show();
-    Raise();
-}
+void OutlookMeetingsViewFrame::OnDateSelection(wxDateEvent& event) {}
 
 void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
 {
@@ -426,9 +442,10 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsViewFrame::FetchAttended
         pLogger, mDatabaseFilePath);
 
     std::vector<Model::AttendedMeetingModel> attendedMeetingModels;
-    auto sqliteResult = attendedMeetingsPersistence.GetByTodaysDate(Utils::UnixTimestampTodayMidnight(),
-        Utils::UnixTimestampTomorrowMidnight(),
-        attendedMeetingModels);
+    auto sqliteResult =
+        attendedMeetingsPersistence.GetByTodaysDate(Utils::UnixTimestampTodayMidnight(),
+            Utils::UnixTimestampTomorrowMidnight(),
+            attendedMeetingModels);
 
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,

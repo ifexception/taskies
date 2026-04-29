@@ -26,6 +26,8 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/datectrl.h>
+#include <wx/dateevt.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
@@ -55,11 +57,10 @@ public:
         const std::string& databaseFilePath,
         bool isMainFrameMaximized,
         const wxString& name = "outlookmeetingsviewdlg");
-    virtual ~OutlookMeetingsViewFrame() = default;
+    virtual ~OutlookMeetingsViewFrame();
 
     void OnParentFrameMove();
     void OnParentFrameResize();
-    void OnParentFrameActivate();
 
 private:
     void Create();
@@ -69,6 +70,7 @@ private:
     void FillControls();
     void DataToControls();
 
+    void OnDateSelection(wxDateEvent& event);
     void OnRefresh(wxCommandEvent& event);
     void OnAccountChoice(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
@@ -97,6 +99,8 @@ private:
 
     wxBoxSizer* pMainSizer;
 
+    wxDatePickerCtrl* pDatePickerCtrl;
+
     wxBitmapButton* pRefreshButton;
     wxChoice* pAccountsChoiceCtrl;
 
@@ -112,7 +116,8 @@ private:
     bool bIsMainFrameMaximized;
 
     enum {
-        tksIDC_REFRESH_BUTTON = wxID_HIGHEST + 1001,
+        tksIDC_DATEPICKERCTRL = wxID_HIGHEST + 1001,
+        tksIDC_REFRESH_BUTTON,
         tksIDC_ACCOUNT_CHOICE_CTRL,
         tksIDC_FEEDBACKLABEL,
         tksIDC_ATTENDEDCHECKBOX_BASE
