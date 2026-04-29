@@ -257,6 +257,20 @@ void OutlookMeetingsViewFrame::DataToControls()
     for (const std::string& accountName : accountNames) {
         pAccountsChoiceCtrl->Append(accountName);
     }
+
+    if (accountNames.size() == 1) {
+        wxBusyCursor cursor;
+
+        const int AccountChoiceIndexOne = 1;
+
+        pAccountsChoiceCtrl->SetSelection(AccountChoiceIndexOne);
+        wxCommandEvent event(wxEVT_CHOICE, pAccountsChoiceCtrl->GetId());
+        event.SetEventObject(pAccountsChoiceCtrl);
+        event.SetInt(AccountChoiceIndexOne);
+        event.SetString(pAccountsChoiceCtrl->GetString(AccountChoiceIndexOne));
+
+        wxPostEvent(pAccountsChoiceCtrl->GetEventHandler(), event);
+    }
 }
 
 void OutlookMeetingsViewFrame::OnParentFrameMove()
@@ -325,13 +339,13 @@ void OutlookMeetingsViewFrame::OnDateSelection(wxDateEvent& event)
 
 void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
 {
+    wxBusyCursor cursor;
+
     if (mSelectedAccount.empty()) {
         ResetFeedbackLabelOnNoData();
 
         return;
     }
-
-    wxBusyCursor cursor;
 
     mMeetingModels.clear();
 
