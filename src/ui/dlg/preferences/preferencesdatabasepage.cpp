@@ -105,7 +105,6 @@ void PreferencesDatabasePage::CreateControls()
     sizer->Add(databaseBoxSizer, wxSizerFlags().Expand());
 
     /* Database file name sizer */
-    auto dbNameSizer = new wxBoxSizer(wxHORIZONTAL);
     auto databaseNameLabel = new wxStaticText(databaseBox, wxID_ANY, "Name");
     pDatabaseFileNameTextCtrl = new wxTextCtrl(databaseBox,
         tksIDC_DATABASEFILENAMETEXTCTRL,
@@ -113,15 +112,8 @@ void PreferencesDatabasePage::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxTE_LEFT | wxTE_READONLY);
-    dbNameSizer->Add(
-        databaseNameLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
-    dbNameSizer->Add(pDatabaseFileNameTextCtrl,
-        wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
-    databaseBoxSizer->Add(
-        dbNameSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
 
     /* Database path sizer */
-    auto dbPathSizer = new wxBoxSizer(wxHORIZONTAL);
     auto databasePathLabel = new wxStaticText(databaseBox, wxID_ANY, "Path");
     pDatabasePathTextCtrl = new wxTextCtrl(databaseBox,
         tksIDC_DATABASE_PATH,
@@ -129,15 +121,28 @@ void PreferencesDatabasePage::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxTE_LEFT | wxTE_READONLY);
+
     pBrowseDatabasePathButton = new wxButton(databaseBox, tksIDC_DATABASE_PATH_BUTTON, "Browse...");
     pBrowseDatabasePathButton->SetToolTip("Browse and select a directory to store the database");
-    dbPathSizer->Add(
-        databasePathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
-    dbPathSizer->Add(pDatabasePathTextCtrl,
-        wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
-    dbPathSizer->Add(pBrowseDatabasePathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
-    databaseBoxSizer->Add(
-        dbPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+
+    /* Flex Grid Sizer for database controls */
+    auto flexGridDatabaseSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    flexGridDatabaseSizer->AddGrowableCol(1, 1);
+
+    flexGridDatabaseSizer->Add(
+        databaseNameLabel, wxSizerFlags().Left().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridDatabaseSizer->Add(
+        pDatabaseFileNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    flexGridDatabaseSizer->Add(
+        databasePathLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridDatabaseSizer->Add(
+        pDatabasePathTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    flexGridDatabaseSizer->Add(0, 0);
+    flexGridDatabaseSizer->Add(
+        pBrowseDatabasePathButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
+
+    databaseBoxSizer->Add(flexGridDatabaseSizer, wxSizerFlags().Expand().Proportion(1));
 
     /* Backup box */
     auto backupBox = new wxStaticBox(this, wxID_ANY, "Backup");
