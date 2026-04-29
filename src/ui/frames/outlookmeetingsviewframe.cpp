@@ -210,6 +210,12 @@ void OutlookMeetingsViewFrame::ConfigureEventBindings()
 
 void OutlookMeetingsViewFrame::FillControls()
 {
+    wxDateTime dt = wxDateTime::Now();
+    dt.SetDay(1);
+    dt.SetMonth(wxDateTime::Jan);
+
+    pDatePickerCtrl->SetRange(dt, wxDateTime::Now());
+
     pAccountsChoiceCtrl->Append("Select account");
     pAccountsChoiceCtrl->SetSelection(0);
 }
@@ -279,7 +285,10 @@ void OutlookMeetingsViewFrame::OnParentFrameResize()
     }
 }
 
-void OutlookMeetingsViewFrame::OnDateSelection(wxDateEvent& event) {}
+void OutlookMeetingsViewFrame::OnDateSelection(wxDateEvent& event)
+{
+
+}
 
 void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
 {
