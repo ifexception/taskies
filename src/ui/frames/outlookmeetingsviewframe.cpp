@@ -361,6 +361,7 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
     int selection = event.GetSelection();
     if (selection == 0) {
         ResetFeedbackLabelOnNoData();
+        mSelectedAccount.clear();
 
         return;
     } else {
