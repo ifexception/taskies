@@ -123,7 +123,7 @@ void PreferencesDatabasePage::CreateControls()
         wxTE_LEFT | wxTE_READONLY);
 
     pBrowseDatabasePathButton = new wxButton(databaseBox, tksIDC_DATABASE_PATH_BUTTON, "Browse...");
-    pBrowseDatabasePathButton->SetToolTip("Browse and select a directory to store the database");
+    pBrowseDatabasePathButton->SetToolTip("Browse and select a directory to save the database");
 
     /* Flex Grid Sizer for database controls */
     auto flexGridDatabaseSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -138,6 +138,7 @@ void PreferencesDatabasePage::CreateControls()
         databasePathLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     flexGridDatabaseSizer->Add(
         pDatabasePathTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
     flexGridDatabaseSizer->Add(0, 0);
     flexGridDatabaseSizer->Add(
         pBrowseDatabasePathButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
@@ -153,10 +154,8 @@ void PreferencesDatabasePage::CreateControls()
     pBackupDatabaseCheckBoxCtrl =
         new wxCheckBox(backupBox, tksIDC_BACKUP_DATABASE_CHECK, "Enable database backups");
     pBackupDatabaseCheckBoxCtrl->SetToolTip("Toggles whether database backups occur");
-    backupBoxSizer->Add(pBackupDatabaseCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(5)));
 
     /* Backup path sizer*/
-    auto backupPathSizer = new wxBoxSizer(wxHORIZONTAL);
     auto backupPathLabel = new wxStaticText(backupBox, wxID_ANY, "Path");
     pBackupPathTextCtrl = new wxTextCtrl(backupBox,
         tksIDC_BACKUP_PATH,
@@ -166,14 +165,25 @@ void PreferencesDatabasePage::CreateControls()
         wxTE_LEFT | wxTE_READONLY);
     pBrowseBackupPathButton = new wxButton(backupBox, tksIDC_BACKUP_PATH_BUTTON, "Browse...");
     pBrowseBackupPathButton->SetToolTip(
-        "Browse and select a directory to store the database backups");
-    backupPathSizer->Add(
-        backupPathLabel, wxSizerFlags().Left().Border(wxRIGHT, FromDIP(5)).CenterVertical());
-    backupPathSizer->Add(pBackupPathTextCtrl,
-        wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(5)).Expand().Proportion(1));
-    backupPathSizer->Add(pBrowseBackupPathButton, wxSizerFlags().Border(wxLEFT, FromDIP(5)));
-    backupBoxSizer->Add(
-        backupPathSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+        "Browse and select a directory to backup the database");
+
+    /* Flex Grid Sizer for backup controls */
+    auto flexGridBackupSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    flexGridBackupSizer->AddGrowableCol(1, 1);
+
+    flexGridBackupSizer->Add(0, 0);
+    flexGridBackupSizer->Add(pBackupDatabaseCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    flexGridBackupSizer->Add(
+        backupPathLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridBackupSizer->Add(
+        pBackupPathTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    flexGridBackupSizer->Add(0, 0);
+    flexGridBackupSizer->Add(
+        pBrowseBackupPathButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
+
+    backupBoxSizer->Add(flexGridBackupSizer, wxSizerFlags().Expand().Proportion(1));
 
     SetSizerAndFit(sizer);
 }
