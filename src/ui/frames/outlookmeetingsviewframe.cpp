@@ -86,7 +86,7 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     SetIcons(iconBundle);
 
     auto todaysDate = date::floor<date::days>(std::chrono::system_clock::now());
-    mSelectedDate = date::format("%F", todaysDate);
+    mSelectedDate = date::format("%Y/%m/%d", todaysDate);
 }
 
 OutlookMeetingsViewFrame::~OutlookMeetingsViewFrame() {}
@@ -140,6 +140,7 @@ void OutlookMeetingsViewFrame::CreateControls()
     /* Date picker ctrl */
     pDatePickerCtrl = new wxDatePickerCtrl(pThisPanel, tksIDC_DATEPICKERCTRL);
     pDatePickerCtrl->SetToolTip("Filter Outlook meetings by date");
+    pDatePickerCtrl->Disable();
 
     /* Refresh button */
     auto providedRefreshBitmap = wxArtProvider::GetBitmapBundle(
@@ -367,6 +368,9 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         if (!pRefreshButton->IsEnabled()) {
             pRefreshButton->Enable();
         }
+        if (!pDatePickerCtrl->IsEnabled()) {
+            pDatePickerCtrl->Enable();
+        }
     }
 
     FetchOutlookMeetingsAndUpdateFeedbackLabel();
@@ -571,8 +575,6 @@ void OutlookMeetingsViewFrame::RemoveActiveMeetingsPanel()
 
 void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& message)
 {
-    mSelectedAccount = "";
-
     if (pFeedbackLabel == nullptr) {
         pFeedbackLabel = new wxStaticText(
             pThisPanel, tksIDC_FEEDBACKLABEL, message.empty() ? "No account selected" : message);
@@ -589,6 +591,10 @@ void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& mes
 
     if (pRefreshButton->IsEnabled()) {
         pRefreshButton->Disable();
+    }
+
+    if (pDatePickerCtrl->IsEnabled()) {
+        pDatePickerCtrl->Disable();
     }
 }
 
