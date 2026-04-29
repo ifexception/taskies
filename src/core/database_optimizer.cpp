@@ -59,6 +59,8 @@ SqliteResult DatabaseOptimizer::Optimize()
         return SqliteResult::Fail(rc, std::string(error));
     }
 
+    SPDLOG_LOGGER_TRACE(pLogger, "Successfully optimized database");
+
     return SqliteResult::OK();
 }
 
@@ -76,5 +78,7 @@ SqliteResult DatabaseOptimizer::Initialize()
 
         return SqliteResult::FailDetailed(Messages::OpenDatabaseMessage, rc, std::string(error));
     }
+
+    return SqliteResult::OK();
 }
 } // namespace tks::Core
