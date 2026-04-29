@@ -437,6 +437,9 @@
     <ClCompile Include="src\common\wxcommon.cpp">
       <Filter>Source\common</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\database_optimizer.cpp">
+      <Filter>Source\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -783,6 +786,9 @@
     </ClInclude>
     <ClInclude Include="src\common\wxcommon.h">
       <Filter>Source\common</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\database_optimizer.h">
+      <Filter>Source\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
