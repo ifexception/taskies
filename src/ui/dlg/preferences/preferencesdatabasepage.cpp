@@ -38,6 +38,7 @@ PreferencesDatabasePage::PreferencesDatabasePage(wxWindow* parent,
     , pBackupDatabaseCheckBoxCtrl(nullptr)
     , pBackupPathTextCtrl(nullptr)
     , pBrowseBackupPathButton(nullptr)
+    , pBackupOnProgramCloseCheckBoxCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -76,8 +77,10 @@ void PreferencesDatabasePage::Save()
     pCfg->BackupDatabase(pBackupDatabaseCheckBoxCtrl->IsChecked());
     if (pCfg->BackupDatabase()) {
         pCfg->SetBackupPath(pBackupPathTextCtrl->GetValue().ToStdString());
+        pCfg->BackupOnProgramClose(pBackupOnProgramCloseCheckBoxCtrl->GetValue());
     } else {
         pCfg->SetBackupPath("");
+        pCfg->BackupOnProgramClose(false);
     }
 }
 
@@ -88,10 +91,13 @@ void PreferencesDatabasePage::Reset()
     pBackupDatabaseCheckBoxCtrl->SetValue(pCfg->BackupDatabase());
     if (!pCfg->BackupDatabase()) {
         pBrowseBackupPathButton->Disable();
+        pBackupOnProgramCloseCheckBoxCtrl->Disable();
     }
 
-    pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
-    pBackupPathTextCtrl->SetToolTip(pCfg->GetBackupPath());
+    pBackupPathTextCtrl->ChangeValue("");
+    pBackupPathTextCtrl->SetToolTip("");
+
+    pBackupOnProgramCloseCheckBoxCtrl->SetValue(false);
 }
 
 void PreferencesDatabasePage::CreateControls()
@@ -155,7 +161,7 @@ void PreferencesDatabasePage::CreateControls()
         new wxCheckBox(backupBox, tksIDC_BACKUP_DATABASE_CHECK, "Enable database backups");
     pBackupDatabaseCheckBoxCtrl->SetToolTip("Toggles whether database backups occur");
 
-    /* Backup path sizer*/
+    /* Backup path sizer */
     auto backupPathLabel = new wxStaticText(backupBox, wxID_ANY, "Path");
     pBackupPathTextCtrl = new wxTextCtrl(backupBox,
         tksIDC_BACKUP_PATH,
@@ -164,8 +170,13 @@ void PreferencesDatabasePage::CreateControls()
         wxDefaultSize,
         wxTE_LEFT | wxTE_READONLY);
     pBrowseBackupPathButton = new wxButton(backupBox, tksIDC_BACKUP_PATH_BUTTON, "Browse...");
-    pBrowseBackupPathButton->SetToolTip(
-        "Browse and select a directory to backup the database");
+    pBrowseBackupPathButton->SetToolTip("Browse and select a directory to backup the database");
+
+    /* Backup on program close ctrl */
+    pBackupOnProgramCloseCheckBoxCtrl = new wxCheckBox(
+        backupBox, tksIDC_BACKUPONPROGRAMCLOSECHECKBOXCTRL, "Perform backup on program close");
+    pBackupOnProgramCloseCheckBoxCtrl->SetToolTip(
+        "Toggles whether database backups occur when the program is closing");
 
     /* Flex Grid Sizer for backup controls */
     auto flexGridBackupSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -182,6 +193,10 @@ void PreferencesDatabasePage::CreateControls()
     flexGridBackupSizer->Add(0, 0);
     flexGridBackupSizer->Add(
         pBrowseBackupPathButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
+
+    flexGridBackupSizer->Add(0, 0);
+    flexGridBackupSizer->Add(
+        pBackupOnProgramCloseCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     backupBoxSizer->Add(flexGridBackupSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -216,6 +231,7 @@ void PreferencesDatabasePage::ConfigureEventBindings()
 void PreferencesDatabasePage::FillControls()
 {
     pBrowseBackupPathButton->Disable();
+    pBackupOnProgramCloseCheckBoxCtrl->Disable();
 }
 
 void PreferencesDatabasePage::DataToControls()
@@ -228,19 +244,25 @@ void PreferencesDatabasePage::DataToControls()
     pBackupDatabaseCheckBoxCtrl->SetValue(pCfg->BackupDatabase());
     if (pCfg->BackupDatabase()) {
         pBrowseBackupPathButton->Enable();
-    }
+        pBackupOnProgramCloseCheckBoxCtrl->Enable();
 
-    pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
-    pBackupPathTextCtrl->SetToolTip(pCfg->GetBackupPath());
+        pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
+        pBackupPathTextCtrl->SetToolTip(pCfg->GetBackupPath());
+
+        pBackupOnProgramCloseCheckBoxCtrl->SetValue(pCfg->BackupOnProgramClose());
+    }
 }
 
 void PreferencesDatabasePage::OnBackupDatabaseCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         pBrowseBackupPathButton->Enable();
+        pBackupOnProgramCloseCheckBoxCtrl->Enable();
     } else {
         pBrowseBackupPathButton->Disable();
         pBackupPathTextCtrl->ChangeValue(wxEmptyString);
+        pBackupOnProgramCloseCheckBoxCtrl->Disable();
+        pBackupOnProgramCloseCheckBoxCtrl->SetValue(false);
     }
 }
 

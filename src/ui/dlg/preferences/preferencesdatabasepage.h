@@ -72,6 +72,7 @@ private:
     wxCheckBox* pBackupDatabaseCheckBoxCtrl;
     wxTextCtrl* pBackupPathTextCtrl;
     wxButton* pBrowseBackupPathButton;
+    wxCheckBox* pBackupOnProgramCloseCheckBoxCtrl;
 
     enum {
         tksIDC_DATABASEFILENAMETEXTCTRL = wxID_HIGHEST + 100,
@@ -80,7 +81,8 @@ private:
         tksIDC_BACKUP_DATABASE_CHECK,
         tksIDC_BACKUP_DATABASE,
         tksIDC_BACKUP_PATH,
-        tksIDC_BACKUP_PATH_BUTTON
+        tksIDC_BACKUP_PATH_BUTTON,
+        tksIDC_BACKUPONPROGRAMCLOSECHECKBOXCTRL
     };
 };
 } // namespace UI::dlg

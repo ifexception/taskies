@@ -135,6 +135,9 @@ public:
     std::string GetBackupPath() const;
     void SetBackupPath(const std::string& value);
 
+    bool BackupOnProgramClose() const;
+    void BackupOnProgramClose(const bool value);
+
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
 
@@ -199,6 +202,7 @@ private:
         std::string DatabasePath;
         bool BackupDatabase;
         std::string BackupPath;
+        bool BackupOnProgramClose;
 
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;

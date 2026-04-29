@@ -156,6 +156,7 @@ ConfigResult Configuration::Save()
     root.at(Sections::DatabaseSection)["databasePath"] = mSettings.DatabasePath;
     root.at(Sections::DatabaseSection)["backupDatabase"] = mSettings.BackupDatabase;
     root.at(Sections::DatabaseSection)["backupPath"] = mSettings.BackupPath;
+    root.at(Sections::DatabaseSection)["backupOnProgramClose"] = mSettings.BackupOnProgramClose;
 
     // Task section
     root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -248,6 +249,7 @@ ConfigResult Configuration::RestoreDefaults()
     SetDatabasePath(pEnv->GetDatabasePath().string());
     BackupDatabase(false);
     SetBackupPath("");
+    BackupOnProgramClose(false);
 
     SetMinutesIncrement(15);
     ShowProjectAssociatedCategories(false);
@@ -575,6 +577,16 @@ void Configuration::SetBackupPath(const std::string& value)
     mSettings.BackupPath = value;
 }
 
+bool Configuration::BackupOnProgramClose() const
+{
+    return mSettings.BackupOnProgramClose;
+}
+
+void Configuration::BackupOnProgramClose(const bool value)
+{
+    mSettings.BackupOnProgramClose = value;
+}
+
 int Configuration::GetMinutesIncrement() const
 {
     return mSettings.TaskMinutesIncrement;
@@ -802,6 +814,9 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
 
     mSettings.DatabaseFileName = toml::find_or<std::string>(
         databaseSection, "databaseFileName", pEnv->GetDatabaseFileName());
+    if (mSettings.DatabaseFileName.empty()) {
+        mSettings.DatabaseFileName = pEnv->GetDatabaseFileName();
+    }
 
     mSettings.DatabasePath = toml::find_or<std::string>(
         databaseSection, "databasePath", pEnv->GetDatabasePath().string());
@@ -809,6 +824,9 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
     mSettings.BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
 
     mSettings.BackupPath = toml::find_or<std::string>(databaseSection, "backupPath", "");
+
+    mSettings.BackupOnProgramClose =
+        toml::find_or<bool>(databaseSection, "backupOnProgramClose", false);
 }
 
 void Configuration::GetTasksConfig(const toml::value& root)
