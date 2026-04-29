@@ -564,6 +564,20 @@ void MainFrame::OnClose(wxCloseEvent& event)
         // a bad experience for the user
         Hide();
 
+        if (pCfg->BackupDatabase() && pCfg->BackupOnProgramClose()) {
+            Core::DatabaseBackup databaseBackup(pLogger);
+            databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
+            databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
+
+            auto result = databaseBackup.Backup();
+            if (!result.Success) {
+                pLogger->error("An error occured when performing backup on program close. Return "
+                               "code ({0}) Message \"{1}\"",
+                    result.ReturnCode,
+                    result.ErrorMessage);
+            }
+        }
+
         SPDLOG_LOGGER_TRACE(pLogger, "Optimize database on program exit");
 
         sqlite3* db = nullptr;

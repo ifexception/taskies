@@ -28,12 +28,14 @@
 
 #include "../core/environment.h"
 #include "../core/configuration.h"
+#include "../core/database_backup.h"
 
 #include "../utils/utils.h"
 
+#include "dlg/taskdlg.h"
+
 #include "dlg/preferences/preferencesdlg.h"
 #include "dlg/exports/quickexporttoformatdlg.h"
-#include "dlg/taskdlg.h"
 
 namespace tks::UI
 {
@@ -151,6 +153,20 @@ void TaskBarIcon::OnPreferences(wxCommandEvent& WXUNUSED(event))
 
 void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
 {
+    if (pCfg->BackupDatabase() && pCfg->BackupOnProgramClose()) {
+        Core::DatabaseBackup databaseBackup(pLogger);
+        databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
+        databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
+
+        auto result = databaseBackup.Backup();
+        if (!result.Success) {
+            pLogger->error("An error occured when performing backup on program close. Return "
+                           "code ({0}) Message \"{1}\"",
+                result.ReturnCode,
+                result.ErrorMessage);
+        }
+    }
+
     sqlite3* db = nullptr;
 
     int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
