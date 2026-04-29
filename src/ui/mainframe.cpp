@@ -51,6 +51,7 @@
 #include "../core/environment.h"
 #include "../core/configuration.h"
 #include "../core/database_backup.h"
+#include "../core/database_optimizer.h"
 
 #include "../persistence/taskspersistence.h"
 #include "../persistence/attendedmeetingspersistence.h"
@@ -559,46 +560,41 @@ void MainFrame::OnClose(wxCloseEvent& event)
         if (pMeetingsViewFrame) {
             pMeetingsViewFrame->Hide();
         }
-    } else {
-        // Call Hide() in case closing of program takes longer than expected and causes
-        // a bad experience for the user
-        Hide();
 
-        if (pCfg->BackupDatabase() && pCfg->BackupOnProgramClose()) {
-            Core::DatabaseBackup databaseBackup(pLogger);
-            databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
-            databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
-
-            auto result = databaseBackup.Backup();
-            if (!result.Success) {
-                pLogger->error("An error occured when performing backup on program close. Return "
-                               "code ({0}) Message \"{1}\"",
-                    result.ReturnCode,
-                    result.ErrorMessage);
-            }
-        }
-
-        SPDLOG_LOGGER_TRACE(pLogger, "Optimize database on program exit");
-
-        sqlite3* db = nullptr;
-        int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
-        if (rc != SQLITE_OK) {
-            const char* err = sqlite3_errmsg(db);
-            pLogger->error(LogMessages::OpenDatabaseTemplate, mDatabaseFilePath, rc, err);
-            goto cleanup;
-        }
-
-        rc = sqlite3_exec(db, QueryHelper::Optimize, nullptr, nullptr, nullptr);
-        if (rc != SQLITE_OK) {
-            const char* err = sqlite3_errmsg(db);
-            pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Optimize, rc, err);
-            goto cleanup;
-        }
-
-    cleanup:
-        sqlite3_close(db);
-        event.Skip();
+        return;
     }
+    // Call Hide() in case closing of program takes longer than expected and causes
+    // a bad experience for the user
+    Hide();
+
+    if (pCfg->BackupDatabase() && pCfg->BackupOnProgramClose()) {
+        SPDLOG_LOGGER_TRACE(pLogger, "Backup database on program exit");
+
+        Core::DatabaseBackup databaseBackup(pLogger);
+        databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
+        databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
+
+        auto result = databaseBackup.Backup();
+        if (!result.Success) {
+            pLogger->error("An error occured when performing backup on program close. Return "
+                           "code ({0}) Message \"{1}\"",
+                result.ReturnCode,
+                result.ErrorMessage);
+        }
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Optimize database on program exit");
+
+    Core::DatabaseOptimizer databaseOptimizer(pLogger, mDatabaseFilePath);
+    auto result = databaseOptimizer.Optimize();
+    if (!result.Success) {
+        pLogger->error("An error occured when performing optimizations on program close. Return "
+                       "code ({0}) Message \"{1}\"",
+            result.ReturnCode,
+            result.ErrorMessage);
+    }
+
+    event.Skip();
 }
 
 void MainFrame::OnIconize(wxIconizeEvent& event)
