@@ -100,6 +100,7 @@ OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>&
 }
 
 OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& accountName,
+    const std::string& date,
     std::vector<OutlookMeetingModel>& meetingModels)
 {
     OutlookResult result = GetOutlookInstance();
@@ -196,10 +197,8 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
         wxVariant sortByStartParam = "[Start]";
         calendarFolderItemsObject.CallMethod("Sort", sortByStartParam);
 
-        wxDateTime today = wxDateTime::Now();
-        wxString todaysDateString = today.Format("%Y/%m/%d");
-        wxString restrictionFormatted = wxString::Format(
-            "[Start] <= '%s 23:59' AND [End] >= '%s 00:00'", todaysDateString, todaysDateString);
+        wxString restrictionFormatted =
+            wxString::Format("[Start] <= '%s 23:59' AND [End] >= '%s 00:00'", date, date);
 
         wxVariant restrictionParam = restrictionFormatted;
         const wxVariant filteredItemsDispatchPtr =
