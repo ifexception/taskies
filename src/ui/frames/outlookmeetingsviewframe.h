@@ -37,6 +37,7 @@
 namespace tks::Core
 {
 class Configuration;
+class Environment;
 }
 
 namespace tks::Services::Outlook
@@ -53,6 +54,7 @@ public:
     OutlookMeetingsViewFrame(const OutlookMeetingsViewFrame&) = delete;
     OutlookMeetingsViewFrame(wxWindow* parent,
         std::shared_ptr<Core::Configuration> cfg,
+        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isMainFrameMaximized,
@@ -91,6 +93,7 @@ private:
         bool meetingAttended);
 
     std::shared_ptr<Core::Configuration> pCfg;
+    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 

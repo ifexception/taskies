@@ -885,7 +885,7 @@ void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event))
     if (mOutlookMeetingViewFrameOpenCounter == 0) {
         mOutlookMeetingViewFrameOpenCounter++;
         pMeetingsViewFrame = new frames::OutlookMeetingsViewFrame(
-            this, pCfg, pLogger, mDatabaseFilePath, IsMaximized());
+            this, pCfg, pEnv, pLogger, mDatabaseFilePath, IsMaximized());
         pMeetingsViewFrame->Show();
     } else {
         SPDLOG_LOGGER_TRACE(pLogger, "Outlook meetings frame already open -> call Raise()");

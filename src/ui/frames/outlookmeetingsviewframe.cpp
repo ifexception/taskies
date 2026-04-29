@@ -34,10 +34,12 @@
 #include "../dlg/taskdlg.h"
 
 #include "../../common/common.h"
+#include "../../common/enums.h"
 
 #include "../../common/messages/persistencemessages.h"
 
 #include "../../core/configuration.h"
+#include "../../core/environment.h"
 
 #include "../../persistence/attendedmeetingspersistence.h"
 
@@ -49,6 +51,7 @@ namespace tks::UI::frames
 {
 OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     std::shared_ptr<Core::Configuration> cfg,
+    std::shared_ptr<Core::Environment> env,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool isMainFrameMaximized,
@@ -61,6 +64,7 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxRESIZE_BORDER,
           name)
     , pCfg(cfg)
+    , pEnv(env)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , pParent(parent)
@@ -164,6 +168,8 @@ void OutlookMeetingsViewFrame::CreateControls()
 
     pAccountsChoiceCtrl = new wxChoice(pThisPanel, tksIDC_ACCOUNT_CHOICE_CTRL);
     pAccountsChoiceCtrl->SetToolTip("Select an account to display meetings for");
+
+    pAccountsChoiceCtrl->SetFocus();
 
     pMainSizer->Add(accountLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     pMainSizer->Add(pAccountsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
@@ -627,11 +633,17 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
     flexGridSizer->AddGrowableCol(1, 1);
     staticBoxSizer->Add(flexGridSizer, wxSizerFlags().Expand().Proportion(1));
 
-    auto meetingIdLabel = new wxStaticText(staticBox, wxID_ANY, "Entry ID");
-    auto providedInfoBitmap = wxArtProvider::GetBitmapBundle(
-        wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    auto meetingIdLabelValue = new wxStaticBitmap(staticBox, wxID_ANY, providedInfoBitmap);
-    meetingIdLabelValue->SetToolTip(meetingModel.EntryId);
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+        auto meetingIdLabel = new wxStaticText(staticBox, wxID_ANY, "Entry ID");
+        auto providedInfoBitmap = wxArtProvider::GetBitmapBundle(
+            wxART_INFORMATION, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
+        auto meetingIdLabelValue = new wxStaticBitmap(staticBox, wxID_ANY, providedInfoBitmap);
+        meetingIdLabelValue->SetToolTip(meetingModel.EntryId);
+
+        flexGridSizer->Add(
+            meetingIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        flexGridSizer->Add(meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Left());
+    }
 
     auto subjectLabel = new wxStaticText(staticBox, wxID_ANY, "Subject");
     auto subjectText = new wxTextCtrl(
@@ -650,9 +662,6 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
         wxDefaultPosition,
         wxDefaultSize,
         wxTE_READONLY);
-
-    flexGridSizer->Add(meetingIdLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    flexGridSizer->Add(meetingIdLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Left());
 
     flexGridSizer->Add(subjectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     flexGridSizer->Add(subjectText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
