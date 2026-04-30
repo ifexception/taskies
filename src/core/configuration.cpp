@@ -548,6 +548,11 @@ std::string Configuration::GetDatabaseFileName() const
     return mSettings.DatabaseFileName;
 }
 
+void Configuration::SetDatabaseFileName(const std::string& value)
+{
+    mSettings.DatabaseFileName = value;
+}
+
 std::string Configuration::GetDatabasePath() const
 {
     return mSettings.DatabasePath;

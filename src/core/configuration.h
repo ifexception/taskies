@@ -125,6 +125,7 @@ public:
     void CloseToTray(const bool value);
 
     std::string GetDatabaseFileName() const;
+    void SetDatabaseFileName(const std::string& value);
 
     std::string GetDatabasePath() const;
     void SetDatabasePath(const std::string& value);
