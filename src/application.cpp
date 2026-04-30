@@ -79,8 +79,9 @@ bool Application::OnInit()
         return false;
     }
 
-    if (pCfg->GetDatabasePath().empty()) {
+    if (pCfg->GetDatabasePath().empty() || pCfg->GetDatabaseFileName().empty()) {
         pCfg->SetDatabasePath(pEnv->GetDatabasePath().string());
+        pCfg->SetDatabaseFileName(pEnv->GetDatabaseFileName());
         pCfg->Save();
     }
 
@@ -90,7 +91,7 @@ bool Application::OnInit()
     }
 
     pPersistenceManager =
-        std::make_unique<UI::PersistenceManager>(pLogger, pCfg->GetDatabasePath());
+        std::make_unique<UI::PersistenceManager>(pLogger, pCfg->BuildFullDatabaseFilePath());
     wxPersistenceManager::Set(*pPersistenceManager);
 
     if (!RunMigrations()) {
@@ -196,8 +197,8 @@ bool Application::InitializeConfiguration()
     /* we attempt to load and/or recreate the configuration file or we cannot locate it */
     auto result = pCfg->LoadAndOrRecreate();
     if (!result.Success) {
-        pLogger->error("An error occurred while loading or recreating configuration. Check earlier "
-                       "logs for more details");
+        pLogger->error("Error occurred when loading or recreating configuration. See earlier logs "
+                       "for details");
         wxRichMessageDialog dialog(nullptr,
             result.HeaderMessage,
             Common::GetProgramName(),
@@ -215,8 +216,7 @@ bool Application::InitializeConfiguration()
      */
     result = pCfg->Save();
     if (!result.Success) {
-        pLogger->error("An error occurred while saving configuration. Check earlier "
-                       "logs for more details");
+        pLogger->error("Error occurred while saving configuration. See earlier logs for details");
         wxRichMessageDialog dialog(nullptr,
             result.HeaderMessage,
             Common::GetProgramName(),
@@ -233,12 +233,13 @@ bool Application::InitializeConfiguration()
 
 bool Application::RunMigrations()
 {
-    Core::DatabaseMigration migrations(pLogger, pCfg->GetDatabasePath());
+    Core::DatabaseMigration migrations(pLogger, pCfg->BuildFullDatabaseFilePath());
 
     auto sqliteResult = migrations.Migrate();
     if (!sqliteResult.Success) {
-        pLogger->error("An error occurred while running database migrations. Check earlier logs "
-                       "for more details");
+        pLogger->error(
+            "Error occurred while running database migrations. See earlier logs for details");
+
         wxRichMessageDialog dialog(nullptr,
             Messages::MigrationExecutionMessage,
             Common::GetProgramName(),

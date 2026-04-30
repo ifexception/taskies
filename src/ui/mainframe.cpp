@@ -46,9 +46,12 @@
 #include "../common/version.h"
 
 #include "../common/messages/persistencemessages.h"
+#include "../common/messages/sqlitemessages.h"
 
 #include "../core/environment.h"
 #include "../core/configuration.h"
+#include "../core/database_backup.h"
+#include "../core/database_optimizer.h"
 
 #include "../persistence/taskspersistence.h"
 #include "../persistence/attendedmeetingspersistence.h"
@@ -150,6 +153,9 @@ EVT_DATE_CHANGED(tksIDC_TODATE, MainFrame::OnToDateSelection)
 /* DataViewCtrl Event Handlers */
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnContextMenu)
 EVT_DATAVIEW_SELECTION_CHANGED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionChanged)
+EVT_DATAVIEW_ITEM_ACTIVATED(tksIDC_TASKDATAVIEWCTRL, MainFrame::OnDataViewSelectionActivate)
+/* Power Event Handlers */
+EVT_POWER_RESUME(MainFrame::OnPowerResume)
 wxEND_EVENT_TABLE()
 
 MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
@@ -209,8 +215,8 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     SetIcons(iconBundle);
 
     // Load database path
-    mDatabaseFilePath = pCfg->GetDatabasePath();
-    pLogger->info("MainFrame::MainFrame - Database location \"{0}\"", mDatabaseFilePath);
+    mDatabaseFilePath = pCfg->BuildFullDatabaseFilePath();
+    SPDLOG_LOGGER_TRACE(pLogger, "Database location \"{0}\"", mDatabaseFilePath);
 
     // Setup TaskBarIcon
     pTaskBarIcon = new TaskBarIcon(this, pEnv, pCfg, pLogger, mDatabaseFilePath);
@@ -554,32 +560,41 @@ void MainFrame::OnClose(wxCloseEvent& event)
         if (pMeetingsViewFrame) {
             pMeetingsViewFrame->Hide();
         }
-    } else {
-        // Call Hide() in case closing of program takes longer than expected and causes
-        // a bad experience for the user
-        Hide();
 
-        SPDLOG_LOGGER_TRACE(pLogger, "Optimize database on program exit");
-
-        sqlite3* db = nullptr;
-        int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
-        if (rc != SQLITE_OK) {
-            const char* err = sqlite3_errmsg(db);
-            pLogger->error(LogMessages::OpenDatabaseTemplate, mDatabaseFilePath, rc, err);
-            goto cleanup;
-        }
-
-        rc = sqlite3_exec(db, QueryHelper::Optimize, nullptr, nullptr, nullptr);
-        if (rc != SQLITE_OK) {
-            const char* err = sqlite3_errmsg(db);
-            pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Optimize, rc, err);
-            goto cleanup;
-        }
-
-    cleanup:
-        sqlite3_close(db);
-        event.Skip();
+        return;
     }
+    // Call Hide() in case closing of program takes longer than expected and causes
+    // a bad experience for the user
+    Hide();
+
+    if (pCfg->BackupDatabase() && pCfg->BackupOnProgramClose()) {
+        SPDLOG_LOGGER_TRACE(pLogger, "Backup database on program exit");
+
+        Core::DatabaseBackup databaseBackup(pLogger);
+        databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
+        databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
+
+        auto result = databaseBackup.Backup();
+        if (!result.Success) {
+            pLogger->error("An error occured when performing backup on program close. Return "
+                           "code ({0}) Message \"{1}\"",
+                result.ReturnCode,
+                result.ErrorMessage);
+        }
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Optimize database on program exit");
+
+    Core::DatabaseOptimizer databaseOptimizer(pLogger, mDatabaseFilePath);
+    auto result = databaseOptimizer.Optimize();
+    if (!result.Success) {
+        pLogger->error("An error occured when performing optimizations on program close. Return "
+                       "code ({0}) Message \"{1}\"",
+            result.ReturnCode,
+            result.ErrorMessage);
+    }
+
+    event.Skip();
 }
 
 void MainFrame::OnIconize(wxIconizeEvent& event)
@@ -736,56 +751,26 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
         return;
     }
 
-    int rc = 0;
-    sqlite3* db = nullptr;
-    sqlite3* backupDb = nullptr;
-    sqlite3_backup* backup = nullptr;
+    Core::DatabaseBackup databaseBackup(pLogger);
+    databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
+    databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
 
-    rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, mDatabaseFilePath, rc, err);
-        return;
-    }
+    auto result = databaseBackup.Backup();
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::BackupHeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-    auto backupFilePath = fmt::format("{0}/{1}", pCfg->GetBackupPath(), pEnv->GetDatabaseName());
-    rc = sqlite3_open(backupFilePath.c_str(), &backupDb);
-    if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(db);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, backupFilePath, rc, err);
-        return;
-    }
-
-    backup = sqlite3_backup_init(/*destination*/ backupDb, "main", /*source*/ db, "main");
-    if (backup == nullptr) {
-        const char* error = sqlite3_errmsg(backupDb);
-        pLogger->error(
-            "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
+        dialog.ShowModal();
     } else {
-        rc = sqlite3_backup_step(backup, -1);
-        if (rc != SQLITE_DONE) {
-            const char* error = sqlite3_errmsg(backupDb);
-            pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
-            SqliteResult sqliteResult("A database error occurred while backing up data", rc, error);
-
-            wxRichMessageDialog dialog(this,
-                Messages::UnsetDefaultEmployerMessage,
-                Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-            dialog.ShowModal();
-        }
-
-        rc = sqlite3_backup_finish(backup);
-        if (rc != SQLITE_OK) {
-            pLogger->error("Backup operation failed to complete successfully");
-        }
+        wxMessageBox("Database backup completed successfully",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_INFORMATION,
+            this);
     }
-
-    sqlite3_close(db);
-    sqlite3_close(backupDb);
 }
 
 void MainFrame::OnTasksExportToCsv(wxCommandEvent& WXUNUSED(event))
@@ -910,7 +895,7 @@ void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event))
     if (mOutlookMeetingViewFrameOpenCounter == 0) {
         mOutlookMeetingViewFrameOpenCounter++;
         pMeetingsViewFrame = new frames::OutlookMeetingsViewFrame(
-            this, pCfg, pLogger, mDatabaseFilePath, IsMaximized());
+            this, pCfg, pEnv, pLogger, mDatabaseFilePath, IsMaximized());
         pMeetingsViewFrame->Show();
     } else {
         SPDLOG_LOGGER_TRACE(pLogger, "Outlook meetings frame already open -> call Raise()");
@@ -1703,10 +1688,55 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
     }
 }
 
+void MainFrame::OnDataViewSelectionActivate(wxDataViewEvent& event)
+{
+    auto item = event.GetItem();
+    if (!item.IsOk()) {
+        return;
+    }
+
+    auto isContainer = pTaskTreeModel->IsContainer(item);
+    if (isContainer) {
+        SPDLOG_LOGGER_TRACE(pLogger, "Clicked on container node, nothing to do further");
+        return;
+    }
+
+    auto model = (TaskTreeModelNode*) item.GetID();
+
+    mTaskIdToModify = model->GetTaskId();
+
+    // This is confusing, but by calling `GetParent()` we are getting the container node
+    // pointer here `GetProjectName()` then returns the date of the container node value
+    mTaskDate = model->GetParent()->GetProjectName();
+
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Clicked on valid task with ID \"{0}\" on date ({1})", mTaskIdToModify, mTaskDate);
+
+    dlg::TaskDialog editTaskDialog(
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
+    editTaskDialog.ShowModal();
+
+    ResetTaskContextMenuVariables();
+}
+
 void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.ShowModal();
+}
+
+void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
+{
+    SPDLOG_LOGGER_TRACE(pLogger, "System has resumed from being suspended");
+
+    pDateStore->Reset();
+
+    ResetDateRange();
+    ResetDatePickerValues();
+    RefetchTasksForDateRange();
+
+    CalculateStatusBarTaskDurations();
+    pDataViewCtrl->Expand(pTaskTreeModel->TryExpandTodayDateNode(pDateStore->PrintTodayDate));
 }
 
 void MainFrame::OnOutlookMeetingViewClose(wxCommandEvent& event)

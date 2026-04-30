@@ -7,9 +7,11 @@ minimizeToTray=false
 closeToTray=false
 
 [database]
+databaseFileName=""
 databasePath=""
 backupDatabase=false
 backupPath=""
+backupOnProgramClose=false
 
 [tasks]
 minutesIncrement=15

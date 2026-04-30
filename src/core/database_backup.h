@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
 #include <sqlite3.h>
@@ -30,27 +31,38 @@
 
 namespace tks::Core
 {
-struct Migration {
-    std::string name;
-    std::string sql;
-};
+class DatabaseBackup final
+{
+public:
+    DatabaseBackup() = delete;
+    DatabaseBackup(const DatabaseBackup&) = delete;
+    DatabaseBackup(std::shared_ptr<spdlog::logger> logger);
+    ~DatabaseBackup();
 
-struct DatabaseMigration final {
-    DatabaseMigration(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~DatabaseMigration();
+    const DatabaseBackup& operator=(const DatabaseBackup&) = delete;
 
-    SqliteResult Migrate() const;
+    SqliteResult Backup();
+    SqliteResult Restore();
 
-    SqliteResult CreateMigrationHistoryTable() const;
-    SqliteResult MigrationExists(const std::string& name) const;
+    void SetSourceDatabaseFilePath(const std::string& sourceDatabaseFilePath);
+    void SetDestinationDatabaseFilePath(const std::string& destinationDatabaseFilePath);
+
+private:
+    SqliteResult Initialize();
+
+    SqliteResult PerformBackup();
+
+    void CleanUp();
 
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
 
-    static std::string BeginTransactionQuery;
-    static std::string CommitTransactionQuery;
-    static std::string CreateMigrationHistoryQuery;
-    static std::string SelectMigrationExistsQuery;
-    static std::string InsertMigrationHistoryQuery;
+    sqlite3* pDb;
+    sqlite3* pBackupDb;
+    sqlite3_backup* pBackup;
+
+    std::string mSourceDatabaseFilePath;
+    std::string mDestinationDatabaseFilePath;
+
+    static int BackupPageSize;
 };
 } // namespace tks::Core

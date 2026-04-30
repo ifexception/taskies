@@ -28,12 +28,15 @@
 
 #include "../core/environment.h"
 #include "../core/configuration.h"
+#include "../core/database_backup.h"
+#include "../core/database_optimizer.h"
 
 #include "../utils/utils.h"
 
+#include "dlg/taskdlg.h"
+
 #include "dlg/preferences/preferencesdlg.h"
 #include "dlg/exports/quickexporttoformatdlg.h"
-#include "dlg/taskdlg.h"
 
 namespace tks::UI
 {
@@ -108,8 +111,8 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 
     menu->AppendSeparator();
 
-    auto quickExportMenuItem = menu->Append(
-        tksIDC_MENU_QUICKEXPORT, "&Quick Export", "Export tasks data to CSV or Excel");
+    auto quickExportMenuItem =
+        menu->Append(tksIDC_MENU_QUICKEXPORT, "&Quick Export", "Export tasks data to CSV or Excel");
 
     wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
     quickExportMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(quickExportBundle));
@@ -151,27 +154,36 @@ void TaskBarIcon::OnPreferences(wxCommandEvent& WXUNUSED(event))
 
 void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
 {
-    sqlite3* db = nullptr;
+    // Call Hide() in case closing of program takes longer than expected and causes
+    // a bad experience for the user
+    pParent->Hide();
 
-    int rc = sqlite3_open(mDatabaseFilePath.c_str(), &db);
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(db);
-        pLogger->error(
-            LogMessages::OpenDatabaseTemplate, pEnv->GetDatabasePath().string(), rc, error);
+    if (pCfg->BackupDatabase() && pCfg->BackupOnProgramClose()) {
+        SPDLOG_LOGGER_TRACE(pLogger, "Backup database on program exit");
 
-        goto close;
+        Core::DatabaseBackup databaseBackup(pLogger);
+        databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
+        databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
+
+        auto result = databaseBackup.Backup();
+        if (!result.Success) {
+            pLogger->error("An error occured when performing backup on program close. Return "
+                           "code ({0}) Message \"{1}\"",
+                result.ReturnCode,
+                result.ErrorMessage);
+        }
     }
 
-    rc = sqlite3_exec(db, QueryHelper::Optimize, nullptr, nullptr, nullptr);
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(db);
-        pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
+    SPDLOG_LOGGER_TRACE(pLogger, "Optimize database on program exit");
 
-        goto close;
+    Core::DatabaseOptimizer databaseOptimizer(pLogger, mDatabaseFilePath);
+    auto result = databaseOptimizer.Optimize();
+    if (!result.Success) {
+        pLogger->error("An error occured when performing optimizations on program close. Return "
+                       "code ({0}) Message \"{1}\"",
+            result.ReturnCode,
+            result.ErrorMessage);
     }
-
-close:
-    sqlite3_close(db);
 
     pParent->Close(true);
 }

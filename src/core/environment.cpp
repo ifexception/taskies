@@ -59,7 +59,7 @@ InstallLocation Environment::GetInstallLocation() const
 
 std::filesystem::path Environment::GetLogFilePath()
 {
-    return GetApplicationLogPath() / GetLogName();
+    return GetApplicationLogPath() / GetLogFileName();
 }
 
 std::filesystem::path Environment::GetLanguagesPath()
@@ -67,14 +67,19 @@ std::filesystem::path Environment::GetLanguagesPath()
     return GetApplicationLanguagesPath();
 }
 
-std::filesystem::path Environment::GetConfigurationPath()
+std::filesystem::path Environment::GetConfigurationFilePath()
 {
-    return GetApplicationConfigurationPath() / GetConfigName();
+    return GetApplicationConfigurationPath() / GetConfigurationFileName();
+}
+
+std::filesystem::path Environment::GetDatabaseFilePath()
+{
+    return GetApplicationDatabasePath() / GetDatabaseFileName();
 }
 
 std::filesystem::path Environment::GetDatabasePath()
 {
-    return GetApplicationDatabasePath() / GetDatabaseName();
+    return GetApplicationDatabasePath();
 }
 
 std::filesystem::path Environment::GetResourcesPath()
@@ -87,9 +92,9 @@ std::filesystem::path Environment::GetExportPath()
     return GetApplicationExportPath();
 }
 
-std::string Environment::GetDatabaseName()
+std::string Environment::GetDatabaseFileName()
 {
-    return "taskies.db";
+    return DATABASE_NAME;
 }
 
 std::string Environment::GetCurrentLocale()
@@ -102,23 +107,13 @@ std::string Environment::GetCurrentLocale()
         return "en-US";
     }
 
-    return std::string(Utils::ToStdString(std::wstring(name)));
+    return Utils::ToStdString(std::wstring(name));
 #endif // _WIN32
 
     // #ifdef __linux__
     //     setlocale(LC_ALL, NULL);
     //     return std::string(std::locale().name());
     // #endif // __linux__
-}
-
-std::filesystem::path Environment::ApplicationDatabasePath()
-{
-    return GetApplicationDatabasePath();
-}
-
-std::filesystem::path Environment::ApplicationLogPath()
-{
-    return GetApplicationLogPath();
 }
 
 bool Environment::IsSetup()
@@ -347,12 +342,12 @@ std::filesystem::path Environment::GetApplicationExportPath()
     return exportPath;
 }
 
-std::string Environment::GetLogName()
+std::string Environment::GetLogFileName()
 {
     return "taskies.log";
 }
 
-std::string Environment::GetConfigName()
+std::string Environment::GetConfigurationFileName()
 {
     return "taskies.toml";
 }

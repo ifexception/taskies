@@ -19,13 +19,15 @@
 
 #include "preferencesgeneralpage.h"
 
+#include <strsafe.h>
+
 #include <wx/richtooltip.h>
 #include <wx/stdpaths.h>
-#include <wx/msw/registry.h>
+
+#include "../../common/clientdata.h"
 
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
-#include "../../common/clientdata.h"
 
 #ifdef _WIN32
 namespace
@@ -33,36 +35,65 @@ namespace
 struct StartWithWindowsRegKey {
     StartWithWindowsRegKey(std::shared_ptr<spdlog::logger> logger)
         : pLogger(logger)
-        , mKey(wxRegKey::HKCU, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run")
+        , mKey()
     {
+        RegCreateKeyEx(HKEY_CURRENT_USER,
+            TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"),
+            0,
+            NULL,
+            0,
+            KEY_READ | KEY_WRITE,
+            NULL,
+            &mKey,
+            NULL);
+    }
+
+    ~StartWithWindowsRegKey()
+    {
+        if (mKey != NULL) {
+            RegCloseKey(mKey);
+        }
     }
 
     void Create()
     {
-        auto executablePath = wxStandardPaths::Get().GetExecutablePath().ToStdString();
-        if (!mKey.SetValue(tks::Common::GetProgramName(), executablePath)) {
-            pLogger->error(
-                "StartWithWindowsRegKey - Failed to set registry key of \"{0}\" with value \"{1}\"",
-                tks::Common::GetProgramName(),
-                executablePath);
+        TCHAR path[MAX_PATH];
+        TCHAR quoted[MAX_PATH];
+        GetModuleFileName(NULL, path, ARRAYSIZE(path));
+        StringCchPrintf(quoted, ARRAYSIZE(quoted), L"\"%s\"", path);
+
+        std::wstring p(quoted);
+
+        UINT res = RegSetValueEx(mKey,
+            L"Taskies",
+            0,
+            REG_SZ,
+            (const BYTE*) p.c_str(),
+            (DWORD) ((p.size() + 1) * sizeof(wchar_t)));
+
+        if (res != ERROR_SUCCESS) {
+            pLogger->error("Taskies could not be registered to run at start-up. Error: \"{0}\"",
+                GetLastError());
         }
     }
 
     void Delete()
     {
-        if (!mKey.DeleteValue(tks::Common::GetProgramName())) {
-            pLogger->error("StartWithWindowsRegKey - Failed to delete registry key of \"{0}\"",
-                tks::Common::GetProgramName());
+        UINT res = RegDeleteValue(mKey, TEXT("Taskies"));
+        if (res != ERROR_SUCCESS) {
+            pLogger->error("Failed to delete Registry entry for Taskies. Error: \"{0}\"",
+                GetLastError());
         }
     }
 
     bool Exists() const
     {
-        return mKey.Exists();
+        return RegQueryValueEx(mKey, TEXT("Taskies"), NULL, NULL, NULL, NULL) == ERROR_SUCCESS;
     }
 
+private:
     std::shared_ptr<spdlog::logger> pLogger;
-    wxRegKey mKey;
+    HKEY mKey;
 };
 } // namespace
 #endif
@@ -193,7 +224,7 @@ void PreferencesGeneralPage::CreateControls()
 
     /* Start with Windows */
     pStartWithWindowsCtrl = new wxCheckBox(miscBox, wxID_ANY, "Start with Windows");
-    pStartWithWindowsCtrl->SetToolTip("Program gets launched by Windows on start");
+    pStartWithWindowsCtrl->SetToolTip("Program starts with Windows");
     miscGridSizer->Add(pStartWithWindowsCtrl, wxSizerFlags().CenterVertical());
     miscGridSizer->Add(0, 0);
 

@@ -74,12 +74,12 @@ ConfigResult Configuration::LoadAndOrRecreate()
 {
     SPDLOG_LOGGER_TRACE(pLogger,
         "Looking for configuration file at path \"{0}\"",
-        pEnv->GetConfigurationPath().string());
+        pEnv->GetConfigurationFilePath().string());
 
-    if (!std::filesystem::exists(pEnv->GetConfigurationPath())) {
+    if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
         pLogger->warn(
             "Failed to find configuration file at \"{0}\". Creating new one from defaults",
-            pEnv->GetConfigurationPath().string());
+            pEnv->GetConfigurationFilePath().string());
 
         auto result = RestoreDefaults();
         if (!result.Success) {
@@ -91,14 +91,14 @@ ConfigResult Configuration::LoadAndOrRecreate()
 
     toml::value root;
     try {
-        root = toml::parse(pEnv->GetConfigurationPath().string());
+        root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnv->GetConfigurationPath().string(),
+                pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     }
 
@@ -152,9 +152,11 @@ ConfigResult Configuration::Save()
 
     // Database section
     root.at(Sections::DatabaseSection).as_table_fmt().fmt = toml::table_format::multiline;
+    root.at(Sections::DatabaseSection)["databaseFileName"] = mSettings.DatabaseFileName;
     root.at(Sections::DatabaseSection)["databasePath"] = mSettings.DatabasePath;
     root.at(Sections::DatabaseSection)["backupDatabase"] = mSettings.BackupDatabase;
     root.at(Sections::DatabaseSection)["backupPath"] = mSettings.BackupPath;
+    root.at(Sections::DatabaseSection)["backupOnProgramClose"] = mSettings.BackupOnProgramClose;
 
     // Task section
     root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -247,6 +249,7 @@ ConfigResult Configuration::RestoreDefaults()
     SetDatabasePath(pEnv->GetDatabasePath().string());
     BackupDatabase(false);
     SetBackupPath("");
+    BackupOnProgramClose(false);
 
     SetMinutesIncrement(15);
     ShowProjectAssociatedCategories(false);
@@ -279,9 +282,11 @@ ConfigResult Configuration::RestoreDefaults()
             {
                 Sections::DatabaseSection,
                 toml::table {
-                    { "databasePath", pEnv->ApplicationDatabasePath().string() },
+                    { "databaseFileName", pEnv->GetDatabaseFileName() },
+                    { "databasePath", pEnv->GetDatabasePath().string() },
                     { "backupDatabase", false },
                     { "backupPath", "" },
+                    { "backupOnProgramClose", false }
                 }
             },
             {
@@ -325,14 +330,14 @@ ConfigResult Configuration::SaveExportPreset(const Common::Preset& presetToSave)
 {
     toml::value root;
     try {
-        root = toml::parse(pEnv->GetConfigurationPath().string());
+        root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnv->GetConfigurationPath().string(),
+                pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     }
 
@@ -394,14 +399,14 @@ ConfigResult Configuration::UpdateExportPreset(const Common::Preset& presetToUpd
 {
     toml::value root;
     try {
-        root = toml::parse(pEnv->GetConfigurationPath().string());
+        root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnv->GetConfigurationPath().string(),
+                pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     }
 
@@ -452,14 +457,14 @@ ConfigResult Configuration::TryUnsetDefaultPreset()
 {
     toml::value root;
     try {
-        root = toml::parse(pEnv->GetConfigurationPath().string());
+        root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnv->GetConfigurationPath().string(),
+                pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     }
 
@@ -538,6 +543,16 @@ void Configuration::CloseToTray(const bool value)
     mSettings.CloseToTray = value;
 }
 
+std::string Configuration::GetDatabaseFileName() const
+{
+    return mSettings.DatabaseFileName;
+}
+
+void Configuration::SetDatabaseFileName(const std::string& value)
+{
+    mSettings.DatabaseFileName = value;
+}
+
 std::string Configuration::GetDatabasePath() const
 {
     return mSettings.DatabasePath;
@@ -566,6 +581,16 @@ std::string Configuration::GetBackupPath() const
 void Configuration::SetBackupPath(const std::string& value)
 {
     mSettings.BackupPath = value;
+}
+
+bool Configuration::BackupOnProgramClose() const
+{
+    return mSettings.BackupOnProgramClose;
+}
+
+void Configuration::BackupOnProgramClose(const bool value)
+{
+    mSettings.BackupOnProgramClose = value;
 }
 
 int Configuration::GetMinutesIncrement() const
@@ -715,13 +740,25 @@ void Configuration::ClearPresets()
     mSettings.PresetSettings.clear();
 }
 
+std::string Configuration::BuildFullDatabaseFilePath() const
+{
+    auto result = std::filesystem::path(GetDatabasePath()) / GetDatabaseFileName();
+    return result.string();
+}
+
+std::string Configuration::BuildFullBackupFilePath() const
+{
+    auto result = std::filesystem::path(GetBackupPath()) / GetDatabaseFileName();
+    return result.string();
+}
+
 ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileContents)
 {
-    const std::string configFilePath = pEnv->GetConfigurationPath().string();
+    const std::string configFilePath = pEnv->GetConfigurationFilePath().string();
 
     SPDLOG_LOGGER_TRACE(pLogger, "Looking for configuration file at path \"{0}\"", configFilePath);
 
-    if (!std::filesystem::exists(pEnv->GetConfigurationPath())) {
+    if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
         return ConfigResult::Fail(Messages::ConfigurationFileNotFoundHeaderMessage,
             fmt::format(Messages::ConfigurationFileNotExistUserMessage, configFilePath),
             fmt::format(Messages::ConfigurationFileNotExistErrorMessage, configFilePath));
@@ -781,12 +818,21 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
 
     const auto& databaseSection = toml::find(root, Sections::DatabaseSection);
 
+    mSettings.DatabaseFileName = toml::find_or<std::string>(
+        databaseSection, "databaseFileName", pEnv->GetDatabaseFileName());
+    if (mSettings.DatabaseFileName.empty()) {
+        mSettings.DatabaseFileName = pEnv->GetDatabaseFileName();
+    }
+
     mSettings.DatabasePath = toml::find_or<std::string>(
         databaseSection, "databasePath", pEnv->GetDatabasePath().string());
 
     mSettings.BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
 
     mSettings.BackupPath = toml::find_or<std::string>(databaseSection, "backupPath", "");
+
+    mSettings.BackupOnProgramClose =
+        toml::find_or<bool>(databaseSection, "backupOnProgramClose", false);
 }
 
 void Configuration::GetTasksConfig(const toml::value& root)

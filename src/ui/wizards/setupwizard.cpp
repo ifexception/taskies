@@ -32,9 +32,11 @@
 #include "../../common/validator.h"
 
 #include "../../common/messages/persistencemessages.h"
+#include "../../common/messages/sqlitemessages.h"
 
 #include "../../core/environment.h"
 #include "../../core/configuration.h"
+#include "../../core/database_backup.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
@@ -58,7 +60,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
     , pLogger(logger)
     , pEnv(env)
     , pCfg(cfg)
-    , mDatabasePath(pCfg->GetDatabasePath())
+    , mDatabasePath(pCfg->BuildFullDatabaseFilePath())
     , pSetupWizardService(nullptr)
     , pWelcomePage(nullptr)
     , pOptionPage(nullptr)
@@ -121,6 +123,11 @@ SetupWizard::~SetupWizard()
 wxWizardPage* SetupWizard::GetFirstPage() const
 {
     return pWelcomePage;
+}
+
+std::string SetupWizard::GetDatabaseFileName() const
+{
+    return pCfg->GetDatabaseFileName();
 }
 
 const std::int64_t SetupWizard::GetEmployerId() const
@@ -1120,7 +1127,7 @@ void RestoreDatabasePage::OnOpenFileForBackupLocation(wxCommandEvent& event)
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetBackupPath().empty()) {
-        pathDirectoryToOpenOn = pCfg->GetDatabasePath();
+        pathDirectoryToOpenOn = pCfg->GetDatabasePath(); // TODO: Should open at ~/Documents
     } else {
         pathDirectoryToOpenOn = pCfg->GetBackupPath();
     }
@@ -1133,6 +1140,7 @@ void RestoreDatabasePage::OnOpenFileForBackupLocation(wxCommandEvent& event)
         wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     int ret = openFileDialog->ShowModal();
 
+    // TODO: Consider doing an integrity check if file _is_ a sqlite db file
     if (ret == wxID_OK) {
         auto selectedBackupPath = openFileDialog->GetPath().ToStdString();
         pBackupPathTextCtrl->ChangeValue(selectedBackupPath);
@@ -1153,27 +1161,22 @@ void RestoreDatabasePage::OnOpenFileForRestoreLocation(wxCommandEvent& event)
         pathDirectoryToOpenOn = pCfg->GetDatabasePath();
     }
 
-    auto fullPath = std::filesystem::path(pathDirectoryToOpenOn);
-    auto& pathWithoutFileName = fullPath.remove_filename();
-    pathDirectoryToOpenOn = pathWithoutFileName.string();
-
-    auto openFileDialog = new wxFileDialog(this,
-        "Select a restore database file",
+    auto openDirDialog = new wxDirDialog(this,
+        "Select a directory for the database",
         pathDirectoryToOpenOn,
-        wxEmptyString,
-        "DB files (*.db)|*.db",
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-    int res = openFileDialog->ShowModal();
+        wxDD_DEFAULT_STYLE,
+        wxDefaultPosition);
+    int ret = openDirDialog->ShowModal();
 
-    if (res == wxID_OK) {
-        auto selectedPath = openFileDialog->GetPath().ToStdString();
+    if (ret == wxID_OK) {
+        auto selectedPath = openDirDialog->GetPath().ToStdString();
         pRestorePathTextCtrl->SetValue(selectedPath);
         pRestorePathTextCtrl->SetToolTip(selectedPath);
 
         pParent->SetRestoreDatabasePath(selectedPath);
     }
 
-    openFileDialog->Destroy();
+    openDirDialog->Destroy();
 }
 
 RestoreDatabaseResultPage::RestoreDatabaseResultPage(SetupWizard* parent,
@@ -1229,54 +1232,38 @@ void RestoreDatabaseResultPage::DisableBackButton() const
 void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event))
 {
     pRestoreProgressGaugeCtrl->Pulse();
+    std::string statusComplete = "";
 
-    int rc = 0;
-    std::string backupDatabasePath = pParent->GetBackupDatabasePath();
-    std::string restoreDatabasePath = pParent->GetRestoreDatabasePath();
-
-    sqlite3* backupDb = nullptr;
-    sqlite3* restoreDb = nullptr;
-    sqlite3_backup* backup = nullptr;
-
-    rc = sqlite3_open(backupDatabasePath.c_str(), &backupDb);
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(backupDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, backupDatabasePath, rc, error);
-        return;
-    }
-
-    rc = sqlite3_open(restoreDatabasePath.c_str(), &restoreDb);
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(restoreDb);
-        pLogger->error(LogMessages::OpenDatabaseTemplate, restoreDatabasePath, rc, error);
-        return;
-    }
-
-    backup = sqlite3_backup_init(/*destination*/ restoreDb, "main", /*source*/ backupDb, "main");
-    if (backup == nullptr) {
-        const char* error = sqlite3_errmsg(restoreDb);
-        pLogger->error(
-            "Failed to initialize database backup operation. Error {0}: \"{1}\"", rc, error);
-    } else {
-        rc = sqlite3_backup_step(backup, -1);
-        if (rc != SQLITE_DONE) {
-            const char* error = sqlite3_errmsg(restoreDb);
-            pLogger->error("Failed to perform database backup step. Error {0}: \"{1}\"", rc, error);
-        }
-
-        rc = sqlite3_backup_finish(backup);
-        if (rc != SQLITE_OK) {
-            pLogger->error("Backup operation failed to complete successfully");
-        }
-    }
-
-    sqlite3_close(restoreDb);
-    sqlite3_close(backupDb);
-
-    /* Complete operation */
     std::string continueNextMessage = "\n\n\nTo exit the wizard, click 'Finish'";
-    std::string statusComplete =
-        "The wizard has restored the database successfully!" + continueNextMessage;
+
+    Core::DatabaseBackup databaseBackup(pLogger);
+
+    std::string backupDatabasePath =
+        pParent->GetBackupDatabasePath() + "\\" + pParent->GetDatabaseFileName();
+    std::string restoreDatabasePath =
+        pParent->GetRestoreDatabasePath() + "\\" + pParent->GetDatabaseFileName();
+
+    databaseBackup.SetSourceDatabaseFilePath(backupDatabasePath);
+    databaseBackup.SetDestinationDatabaseFilePath(restoreDatabasePath);
+
+    auto result = databaseBackup.Restore();
+
+    if (!result.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::BackupHeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+
+        statusComplete =
+            "The wizard encountered an error during the restore operation" + continueNextMessage;
+    } else {
+        statusComplete = "The wizard has restored the database successfully!" + continueNextMessage;
+    }
+
     pStatusFeedbackLabel->SetLabel(statusComplete);
     pRestoreProgressGaugeCtrl->SetValue(100);
 }

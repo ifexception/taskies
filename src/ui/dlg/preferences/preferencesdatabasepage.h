@@ -66,19 +66,23 @@ private:
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
 
+    wxTextCtrl* pDatabaseFileNameTextCtrl;
     wxTextCtrl* pDatabasePathTextCtrl;
     wxButton* pBrowseDatabasePathButton;
     wxCheckBox* pBackupDatabaseCheckBoxCtrl;
     wxTextCtrl* pBackupPathTextCtrl;
     wxButton* pBrowseBackupPathButton;
+    wxCheckBox* pBackupOnProgramCloseCheckBoxCtrl;
 
     enum {
-        tksIDC_DATABASE_PATH = wxID_HIGHEST + 1,
+        tksIDC_DATABASEFILENAMETEXTCTRL = wxID_HIGHEST + 100,
+        tksIDC_DATABASE_PATH ,
         tksIDC_DATABASE_PATH_BUTTON,
         tksIDC_BACKUP_DATABASE_CHECK,
         tksIDC_BACKUP_DATABASE,
         tksIDC_BACKUP_PATH,
-        tksIDC_BACKUP_PATH_BUTTON
+        tksIDC_BACKUP_PATH_BUTTON,
+        tksIDC_BACKUPONPROGRAMCLOSECHECKBOXCTRL
     };
 };
 } // namespace UI::dlg

@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 
 #include <sqlite3.h>
@@ -30,27 +31,23 @@
 
 namespace tks::Core
 {
-struct Migration {
-    std::string name;
-    std::string sql;
-};
+class DatabaseOptimizer final
+{
+public:
+    DatabaseOptimizer() = delete;
+    DatabaseOptimizer(const DatabaseOptimizer&) = delete;
+    DatabaseOptimizer(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ~DatabaseOptimizer();
 
-struct DatabaseMigration final {
-    DatabaseMigration(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
-    ~DatabaseMigration();
+    const DatabaseOptimizer& operator=(const DatabaseOptimizer&) = delete;
 
-    SqliteResult Migrate() const;
+    SqliteResult Optimize();
 
-    SqliteResult CreateMigrationHistoryTable() const;
-    SqliteResult MigrationExists(const std::string& name) const;
+private:
+    SqliteResult Initialize();
 
     std::shared_ptr<spdlog::logger> pLogger;
+    std::string mDatabaseFilePath;
     sqlite3* pDb;
-
-    static std::string BeginTransactionQuery;
-    static std::string CommitTransactionQuery;
-    static std::string CreateMigrationHistoryQuery;
-    static std::string SelectMigrationExistsQuery;
-    static std::string InsertMigrationHistoryQuery;
 };
 } // namespace tks::Core

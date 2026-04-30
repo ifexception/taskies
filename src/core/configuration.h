@@ -124,6 +124,9 @@ public:
     bool CloseToTray() const;
     void CloseToTray(const bool value);
 
+    std::string GetDatabaseFileName() const;
+    void SetDatabaseFileName(const std::string& value);
+
     std::string GetDatabasePath() const;
     void SetDatabasePath(const std::string& value);
 
@@ -132,6 +135,9 @@ public:
 
     std::string GetBackupPath() const;
     void SetBackupPath(const std::string& value);
+
+    bool BackupOnProgramClose() const;
+    void BackupOnProgramClose(const bool value);
 
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
@@ -172,6 +178,9 @@ public:
     void EmplacePreset(const PresetSettings& value);
     void ClearPresets();
 
+    std::string BuildFullDatabaseFilePath() const;
+    std::string BuildFullBackupFilePath() const;
+
 private:
     ConfigResult WriteTomlContentsToFile(const std::string& fileContents);
 
@@ -190,9 +199,11 @@ private:
         bool MinimizeToTray;
         bool CloseToTray;
 
+        std::string DatabaseFileName;
         std::string DatabasePath;
         bool BackupDatabase;
         std::string BackupPath;
+        bool BackupOnProgramClose;
 
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;

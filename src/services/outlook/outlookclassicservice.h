@@ -52,6 +52,7 @@ public:
 
     OutlookResult FetchAccountNames(std::vector<std::string>& accountNames);
     OutlookResult FetchCalendarMeetings(const std::string& accountName,
+        const std::string& date,
         std::vector<OutlookMeetingModel>& meetingModels);
 
 private:

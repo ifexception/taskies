@@ -162,7 +162,6 @@ SqliteResult WorkdaysPersistence::GetWorkdayIdByDate(std::int64_t& workdayId,
     }
 
     if (sqlite3_column_type(stmt, 0) == SQLITE_NULL) {
-        std::int64_t workdayId = -1;
         auto sqliteResult = Create(workdayId, date);
 
         if (!sqliteResult.Success) {
