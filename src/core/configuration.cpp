@@ -286,6 +286,7 @@ ConfigResult Configuration::RestoreDefaults()
                     { "databasePath", pEnv->GetDatabasePath().string() },
                     { "backupDatabase", false },
                     { "backupPath", "" },
+                    { "backupOnProgramClose", false }
                 }
             },
             {

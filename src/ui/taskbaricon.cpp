@@ -154,6 +154,10 @@ void TaskBarIcon::OnPreferences(wxCommandEvent& WXUNUSED(event))
 
 void TaskBarIcon::OnExit(wxCommandEvent& WXUNUSED(event))
 {
+    // Call Hide() in case closing of program takes longer than expected and causes
+    // a bad experience for the user
+    pParent->Hide();
+
     if (pCfg->BackupDatabase() && pCfg->BackupOnProgramClose()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Backup database on program exit");
 
