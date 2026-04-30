@@ -7,7 +7,7 @@ minimizeToTray=false
 closeToTray=false
 
 [database]
-databaseFileName=""
+databaseFileName="taskies.db"
 databasePath=""
 backupDatabase=false
 backupPath=""
