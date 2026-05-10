@@ -38,8 +38,14 @@ namespace tks::UI::dlg
 struct ListCtrlData {
     std::int64_t EntityId;
     std::string EntityName;
+    std::string Metadata;
+    std::uint32_t DateModified;
 
-    ListCtrlData(std::int64_t entityId, std::string entityName);
+    ListCtrlData(std::int64_t entityId, const std::string& entityName);
+    ListCtrlData(std::int64_t entityId,
+        const std::string& entityName,
+        const std::string& metadata,
+        const std::uint32_t dateModified);
 };
 
 class EditListDialog final : public wxDialog
@@ -92,6 +98,8 @@ private:
     void SearchStaticAttributeGroups();
 
     std::string GetSearchHintText();
+
+    void AppendColumnsToListControl();
 
     wxWindow* pParent;
     std::shared_ptr<spdlog::logger> pLogger;

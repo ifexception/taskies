@@ -90,6 +90,9 @@
     <Filter Include="Source\common\messages">
       <UniqueIdentifier>{71416d9f-b9e2-4593-b433-50d7dfe14f09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\services\filterentity">
+      <UniqueIdentifier>{dab9d520-b1fb-46e0-bd41-bff72092e1cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -440,6 +443,9 @@
     <ClCompile Include="src\core\database_optimizer.cpp">
       <Filter>Source\core</Filter>
     </ClCompile>
+    <ClCompile Include="src\services\filterentity\filterentityservice.cpp">
+      <Filter>Source\services\filterentity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -789,6 +795,9 @@
     </ClInclude>
     <ClInclude Include="src\core\database_optimizer.h">
       <Filter>Source\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\services\filterentity\filterentityservice.h">
+      <Filter>Source\services\filterentity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
