@@ -213,9 +213,10 @@ bool Application::InitializeConfiguration()
     }
 
     // remove database file from database path config
+    std::string ext(".db");
     std::string databasePath = pCfg->GetDatabasePath();
     auto fullPath = std::filesystem::path(databasePath);
-    if (fullPath.has_filename()) {
+    if (fullPath.has_filename() && fullPath.extension() == ext) {
         auto& pathWithoutFileName = fullPath.remove_filename();
         pCfg->SetDatabasePath(pathWithoutFileName.string());
     }
