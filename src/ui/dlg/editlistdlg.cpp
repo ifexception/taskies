@@ -633,7 +633,11 @@ void EditListDialog::SearchEmployers()
         dialog.ShowModal();
     } else {
         for (auto& employer : employers) {
-            ListCtrlData data(employer.EmployerId, employer.Name);
+            std::string isDefaultString = employer.IsDefault ? "Yes" : "No";
+            ListCtrlData data(employer.EmployerId,
+                employer.Name,
+                std::vector<std::string>{ isDefaultString },
+                employer.DateModified);
             entries.push_back(data);
         }
 
@@ -703,14 +707,13 @@ void EditListDialog::SearchProjects()
 
 void EditListDialog::SearchCategories()
 {
-    pOkButton->Disable();
     pListCtrl->DeleteAllItems();
 
-    std::vector<Model::CategoryModel> categories;
+    std::vector<Services::FilterEntityModel> cateogryModels;
     std::vector<ListCtrlData> entries;
-    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Services::FilterEntityService editCategoriesService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = categoryPersistence.Filter(mSearchTerm, categories);
+    auto sqliteResult = editCategoriesService.FilterCategories(mSearchTerm, cateogryModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterCategoriesMessage,
@@ -721,15 +724,16 @@ void EditListDialog::SearchCategories()
 
         dialog.ShowModal();
     } else {
-        for (const auto& category : categories) {
-            ListCtrlData data(category.CategoryId, category.Name);
+        for (const auto& category : cateogryModels) {
+            ListCtrlData data(category.EntityId,
+                category.EntityName,
+                category.Metadata,
+                category.EntityDateModified);
             entries.push_back(data);
         }
 
         SetDataToControls(entries);
     }
-
-    pOkButton->Enable();
 }
 
 void EditListDialog::SearchAttributeGroups()
