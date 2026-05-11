@@ -42,13 +42,11 @@
 #include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/employerspersistence.h"
-#include "../../persistence/projectspersistence.h"
 #include "../../persistence/categoriespersistence.h"
 #include "../../persistence/attributegroupspersistence.h"
 #include "../../persistence/attributespersistence.h"
 
 #include "../../models/employermodel.h"
-#include "../../models/projectmodel.h"
 #include "../../models/categorymodel.h"
 #include "../../models/attributegroupmodel.h"
 #include "../../models/attributemodel.h"
@@ -69,7 +67,7 @@ ListCtrlData::ListCtrlData(std::int64_t entityId, const std::string& entityName)
 
 ListCtrlData::ListCtrlData(std::int64_t entityId,
     const std::string& entityName,
-    const std::string& metadata,
+    std::vector<std::string> metadata,
     const std::uint32_t dateModified)
     : EntityId(entityId)
     , EntityName(entityName)
@@ -304,8 +302,10 @@ void EditListDialog::EmployerDataToControls()
     } else {
         for (auto& employer : employers) {
             std::string isDefaultString = employer.IsDefault ? "Yes" : "No";
-            ListCtrlData data(
-                employer.EmployerId, employer.Name, isDefaultString, employer.DateModified);
+            ListCtrlData data(employer.EmployerId,
+                employer.Name,
+                std::vector<std::string>{ isDefaultString },
+                employer.DateModified);
             entries.push_back(data);
         }
 
@@ -333,7 +333,7 @@ void EditListDialog::ClientDataToControls()
         for (auto& clientModel : clientModels) {
             ListCtrlData data(clientModel.EntityId,
                 clientModel.EntityName,
-                clientModel.ParentEntityName,
+                clientModel.Metadata,
                 clientModel.EntityDateModified);
             entries.push_back(data);
         }
@@ -344,11 +344,11 @@ void EditListDialog::ClientDataToControls()
 
 void EditListDialog::ProjectDataToControls()
 {
-    std::vector<Model::ProjectModel> projects;
+    std::vector<Services::FilterEntityModel> projectModels;
     std::vector<ListCtrlData> entries;
-    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Services::FilterEntityService editProjectsService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = projectPersistence.Filter(mSearchTerm, projects);
+    auto sqliteResult = editProjectsService.FilterProjects(mSearchTerm, projectModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterProjectsMessage,
@@ -359,8 +359,9 @@ void EditListDialog::ProjectDataToControls()
 
         dialog.ShowModal();
     } else {
-        for (const auto& project : projects) {
-            ListCtrlData data(project.ProjectId, project.Name);
+        for (const auto& project : projectModels) {
+            ListCtrlData data(
+                project.EntityId, project.EntityName, project.Metadata, project.EntityDateModified);
             entries.push_back(data);
         }
 
@@ -483,7 +484,9 @@ void EditListDialog::SetDataToControls(const std::vector<ListCtrlData>& entries)
     int columnIndex = 0;
     for (auto& entry : entries) {
         listIndex = pListCtrl->InsertItem(columnIndex++, entry.EntityName);
-        pListCtrl->SetItem(listIndex, columnIndex++, entry.Metadata);
+        for (const auto& metadata : entry.Metadata) {
+            pListCtrl->SetItem(listIndex, columnIndex++, metadata);
+        }
         pListCtrl->SetItem(listIndex, columnIndex++, Utils::ToISODateTime(entry.DateModified));
         pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(entry.EntityId));
         columnIndex = 0;
@@ -654,7 +657,7 @@ void EditListDialog::SearchClients()
         for (auto& clientModel : clientModels) {
             ListCtrlData data(clientModel.EntityId,
                 clientModel.EntityName,
-                clientModel.ParentEntityName,
+                clientModel.Metadata,
                 clientModel.EntityDateModified);
             entries.push_back(data);
         }
@@ -665,14 +668,13 @@ void EditListDialog::SearchClients()
 
 void EditListDialog::SearchProjects()
 {
-    pOkButton->Disable();
     pListCtrl->DeleteAllItems();
 
-    std::vector<Model::ProjectModel> projects;
+    std::vector<Services::FilterEntityModel> projectModels;
     std::vector<ListCtrlData> entries;
-    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+    Services::FilterEntityService editProjectsService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = projectPersistence.Filter(mSearchTerm, projects);
+    auto sqliteResult = editProjectsService.FilterProjects(mSearchTerm, projectModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterProjectsMessage,
@@ -683,15 +685,14 @@ void EditListDialog::SearchProjects()
 
         dialog.ShowModal();
     } else {
-        for (const auto& project : projects) {
-            ListCtrlData data(project.ProjectId, project.Name);
+        for (const auto& project : projectModels) {
+            ListCtrlData data(
+                project.EntityId, project.EntityName, project.Metadata, project.EntityDateModified);
             entries.push_back(data);
         }
 
         SetDataToControls(entries);
     }
-
-    pOkButton->Enable();
 }
 
 void EditListDialog::SearchCategories()
@@ -875,8 +876,33 @@ void EditListDialog::AppendColumnsToListControl()
 
         break;
     }
-    case EditListEntityType::Projects:
+    case EditListEntityType::Projects: {
+        wxListItem nameColumn;
+        nameColumn.SetId(columnIndex);
+        nameColumn.SetText("Name");
+        nameColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameColumn);
+
+        wxListItem defaultColumn;
+        defaultColumn.SetId(columnIndex);
+        defaultColumn.SetText("Default");
+        defaultColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, defaultColumn);
+
+        wxListItem nameEmployerColumn;
+        nameEmployerColumn.SetId(columnIndex);
+        nameEmployerColumn.SetText("Employer");
+        nameEmployerColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameEmployerColumn);
+
+        wxListItem nameClientColumn;
+        nameClientColumn.SetId(columnIndex);
+        nameClientColumn.SetText("Client");
+        nameClientColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameClientColumn);
+
         break;
+    }
     case EditListEntityType::Categories:
         break;
     case EditListEntityType::AttributeGroups:

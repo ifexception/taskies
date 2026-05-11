@@ -38,13 +38,13 @@ namespace tks::UI::dlg
 struct ListCtrlData {
     std::int64_t EntityId;
     std::string EntityName;
-    std::string Metadata;
+    std::vector<std::string> Metadata;
     std::uint32_t DateModified;
 
     ListCtrlData(std::int64_t entityId, const std::string& entityName);
     ListCtrlData(std::int64_t entityId,
         const std::string& entityName,
-        const std::string& metadata,
+        std::vector<std::string> metadata,
         const std::uint32_t dateModified);
 };
 
