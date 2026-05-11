@@ -104,6 +104,8 @@ private:
     wxWindow* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
 
+    wxSizer* pMainSizer;
+
     wxTextCtrl* pSearchTextCtrl;
     wxBitmapButton* pSearchButton;
     wxBitmapButton* pResetButton;

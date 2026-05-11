@@ -90,6 +90,7 @@ EditListDialog::EditListDialog(wxWindow* parent,
           name)
     , pParent(parent)
     , pLogger(logger)
+    , pMainSizer(nullptr)
     , pSearchTextCtrl(nullptr)
     , pSearchButton(nullptr)
     , pResetButton(nullptr)
@@ -140,12 +141,12 @@ void EditListDialog::Create()
 void EditListDialog::CreateControls()
 {
     /* Base Sizer */
-    auto sizer = new wxBoxSizer(wxVERTICAL);
+    pMainSizer = new wxBoxSizer(wxVERTICAL);
 
     /* Search */
     auto searchBox = new wxStaticBox(this, wxID_ANY, "Search");
     auto searchBoxSizer = new wxStaticBoxSizer(searchBox, wxHORIZONTAL);
-    sizer->Add(searchBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    pMainSizer->Add(searchBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Search Text Control */
     pSearchTextCtrl = new wxTextCtrl(searchBox,
@@ -179,15 +180,15 @@ void EditListDialog::CreateControls()
         wxDefaultPosition,
         wxDefaultSize,
         wxLC_HRULES | wxLC_REPORT | wxLC_SINGLE_SEL);
-    sizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    pMainSizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
-    sizer->Add(line2, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    pMainSizer->Add(line2, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    pMainSizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     buttonsSizer->AddStretchSpacer();
 
@@ -200,7 +201,7 @@ void EditListDialog::CreateControls()
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    SetSizerAndFit(sizer);
+    SetSizerAndFit(pMainSizer);
 }
 
 // clang-format off
@@ -279,6 +280,8 @@ void EditListDialog::DataToControls()
     default:
         break;
     }
+
+    SetSizerAndFit(pMainSizer);
 
     pOkButton->Enable();
 }
@@ -371,11 +374,11 @@ void EditListDialog::ProjectDataToControls()
 
 void EditListDialog::CategoryDataToControls()
 {
-    std::vector<Model::CategoryModel> categories;
+    std::vector<Services::FilterEntityModel> cateogryModels;
     std::vector<ListCtrlData> entries;
-    Persistence::CategoriesPersistence categoryPersistence(pLogger, mDatabaseFilePath);
+    Services::FilterEntityService editCategoriesService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = categoryPersistence.Filter(mSearchTerm, categories);
+    auto sqliteResult = editCategoriesService.FilterCategories(mSearchTerm, cateogryModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterCategoriesMessage,
@@ -386,8 +389,11 @@ void EditListDialog::CategoryDataToControls()
 
         dialog.ShowModal();
     } else {
-        for (const auto& category : categories) {
-            ListCtrlData data(category.CategoryId, category.Name);
+        for (const auto& category : cateogryModels) {
+            ListCtrlData data(category.EntityId,
+                category.EntityName,
+                category.Metadata,
+                category.EntityDateModified);
             entries.push_back(data);
         }
 
@@ -903,8 +909,21 @@ void EditListDialog::AppendColumnsToListControl()
 
         break;
     }
-    case EditListEntityType::Categories:
+    case EditListEntityType::Categories: {
+        wxListItem nameColumn;
+        nameColumn.SetId(columnIndex);
+        nameColumn.SetText("Name");
+        nameColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameColumn);
+
+        wxListItem nameEmployerColumn;
+        nameEmployerColumn.SetId(columnIndex);
+        nameEmployerColumn.SetText("Project");
+        nameEmployerColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameEmployerColumn);
+
         break;
+    }
     case EditListEntityType::AttributeGroups:
         break;
     case EditListEntityType::Attributes:

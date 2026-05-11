@@ -307,6 +307,117 @@ SqliteResult FilterEntityService::FilterProjects(const std::string& searchTerm,
     return SqliteResult::OK();
 }
 
+SqliteResult FilterEntityService::FilterCategories(const std::string& searchTerm,
+    std::vector<FilterEntityModel>& models)
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    auto formattedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
+
+    int rc = sqlite3_prepare_v2(pDb,
+        FilterEntityService::filterCategories.c_str(),
+        static_cast<int>(FilterEntityService::filterCategories.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            FilterEntityService::filterCategories,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
+    }
+
+    int bindIndex = 1;
+
+    // category name
+    rc = sqlite3_bind_text(stmt,
+        bindIndex,
+        formattedSearchTerm.c_str(),
+        static_cast<int>(formattedSearchTerm.size()),
+        SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+    }
+
+    bindIndex++;
+
+    // project_name
+    rc = sqlite3_bind_text(stmt,
+        bindIndex,
+        formattedSearchTerm.c_str(),
+        static_cast<int>(formattedSearchTerm.size()),
+        SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "project_name", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            FilterEntityModel categoryModel(EditListEntityType::Categories);
+            std::vector<std::string> metadata;
+            int columnIndex = 0;
+
+            categoryModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            categoryModel.EntityName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            categoryModel.EntityDateModified = sqlite3_column_int(stmt, columnIndex++);
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            std::string value = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            metadata.push_back(value);
+            categoryModel.Metadata = metadata;
+
+            models.push_back(categoryModel);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, FilterEntityService::filterCategories, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
+    }
+
+    sqlite3_finalize(stmt);
+
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, models.size(), searchTerm);
+
+    return SqliteResult::OK();
+}
+
 std::string FilterEntityService::filterClients = "SELECT "
                                                  "clients.client_id, "
                                                  "clients.name AS client_name, "
@@ -334,4 +445,18 @@ std::string FilterEntityService::filterProjects =
     "AND (project_name LIKE ? "
     "OR employer_name LIKE ? "
     "OR client_name LIKE ?);";
+
+std::string FilterEntityService::filterCategories =
+    "SELECT "
+    "categories.category_id, "
+    "categories.name AS category_name, "
+    "categories.date_modified, "
+    "projects.name AS project_name "
+    "FROM categories "
+    "INNER JOIN projects "
+    "ON categories.project_id = projects.project_id "
+    "WHERE categories.is_active = 1 "
+    "AND (category_name LIKE ? "
+    "OR project_name LIKE ?)"
+    "ORDER BY categories.date_modified ASC;";
 } // namespace tks::Services
