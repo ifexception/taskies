@@ -37,14 +37,14 @@ struct FilterEntityModel final {
     std::int64_t EntityId;
     std::string EntityName;
     std::int32_t EntityDateModified;
-    std::string ParentEntityName;
+    std::vector<std::string> Metadata;
 
     FilterEntityModel(EditListEntityType type);
     FilterEntityModel(EditListEntityType type,
         std::int64_t entityId,
         const std::string& entityName,
         std::int32_t entityDateModified,
-        std::string parentEntityName);
+        std::vector<std::string> metadata);
     ~FilterEntityModel() = default;
 };
 
@@ -58,8 +58,12 @@ struct FilterEntityService final : public Persistence::PersistenceBase {
     FilterEntityService& operator=(const FilterEntityService&) = delete;
 
     SqliteResult FilterClients(const std::string& searchTerm,
-        std::vector<FilterEntityModel> models);
+        std::vector<FilterEntityModel>& models);
+
+    SqliteResult FilterProjects(const std::string& searchTerm,
+        std::vector<FilterEntityModel>& models);
 
     static std::string filterClients;
+    static std::string filterProjects;
 };
 } // namespace tks::Services
