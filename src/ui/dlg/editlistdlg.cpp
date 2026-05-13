@@ -462,16 +462,15 @@ void EditListDialog::AttributeDataToControls()
 
 void EditListDialog::StaticAttributeGroupsDataToControls()
 {
-    std::vector<Services::StaticAttributeGroupViewModel> staticAttributeGroups;
+    std::vector<Services::FilterEntityModel> staticAttributeModels;
     std::vector<ListCtrlData> entries;
-
-    Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
+    Services::FilterEntityService staticAttributesService(pLogger, mDatabaseFilePath);
 
     auto sqliteResult =
-        staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(staticAttributeGroups);
+        staticAttributesService.FilterStaticAttributes(mSearchTerm, staticAttributeModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterStaticAttributesMessage,
+            Messages::FilterAttributeGroupsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -479,9 +478,11 @@ void EditListDialog::StaticAttributeGroupsDataToControls()
 
         dialog.ShowModal();
     } else {
-        for (auto& staticAttributeGroup : staticAttributeGroups) {
-            ListCtrlData data(
-                staticAttributeGroup.AttributeGroupId, staticAttributeGroup.GetDisplayValue());
+        for (auto& attributeGroup : staticAttributeModels) {
+            ListCtrlData data(attributeGroup.EntityId,
+                attributeGroup.EntityName,
+                attributeGroup.Metadata,
+                attributeGroup.EntityDateModified);
             entries.push_back(data);
         }
 
@@ -808,16 +809,15 @@ void EditListDialog::SearchStaticAttributeGroups()
 {
     pListCtrl->DeleteAllItems();
 
-    std::vector<Services::StaticAttributeGroupViewModel> staticAttributeGroups;
+    std::vector<Services::FilterEntityModel> staticAttributeModels;
     std::vector<ListCtrlData> entries;
-
-    Services::StaticAttributeGroupsService staticAttributeGroupsService(pLogger, mDatabaseFilePath);
+    Services::FilterEntityService staticAttributesService(pLogger, mDatabaseFilePath);
 
     auto sqliteResult =
-        staticAttributeGroupsService.FilterByStaticFlagAndWithValueCounts(staticAttributeGroups);
+        staticAttributesService.FilterStaticAttributes(mSearchTerm, staticAttributeModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterStaticAttributesMessage,
+            Messages::FilterAttributeGroupsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -825,9 +825,11 @@ void EditListDialog::SearchStaticAttributeGroups()
 
         dialog.ShowModal();
     } else {
-        for (auto& staticAttributeGroup : staticAttributeGroups) {
-            ListCtrlData data(
-                staticAttributeGroup.AttributeGroupId, staticAttributeGroup.GetDisplayValue());
+        for (auto& attributeGroup : staticAttributeModels) {
+            ListCtrlData data(attributeGroup.EntityId,
+                attributeGroup.EntityName,
+                attributeGroup.Metadata,
+                attributeGroup.EntityDateModified);
             entries.push_back(data);
         }
 
@@ -982,8 +984,21 @@ void EditListDialog::AppendColumnsToListControl()
 
         break;
     }
-    case EditListEntityType::StaticAttributeGroups:
+    case EditListEntityType::StaticAttributeGroups: {
+        wxListItem nameColumn;
+        nameColumn.SetId(columnIndex);
+        nameColumn.SetText("Name");
+        nameColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameColumn);
+
+        wxListItem staticColumn;
+        staticColumn.SetId(columnIndex);
+        staticColumn.SetText("Static Attributes Count");
+        staticColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, staticColumn);
+
         break;
+    }
     default:
         break;
     }

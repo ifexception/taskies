@@ -646,6 +646,81 @@ SqliteResult FilterEntityService::FilterAttributes(const std::string& searchTerm
     return SqliteResult::OK();
 }
 
+SqliteResult FilterEntityService::FilterStaticAttributes(const std::string& searchTerm,
+    std::vector<FilterEntityModel>& models)
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        FilterEntityService::filterStaticAttributes.c_str(),
+        static_cast<int>(FilterEntityService::filterStaticAttributes.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            FilterEntityService::filterStaticAttributes,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            FilterEntityModel staticAttributeModel(EditListEntityType::StaticAttributeGroups);
+            std::vector<std::string> metadata;
+            int columnIndex = 0;
+
+            staticAttributeModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            staticAttributeModel.EntityName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            int staticAttributeValueCount =
+                sqlite3_column_int(stmt, columnIndex++);
+            metadata.push_back(std::to_string(staticAttributeValueCount));
+
+            staticAttributeModel.EntityDateModified = sqlite3_column_int(stmt, columnIndex++);
+            staticAttributeModel.Metadata = metadata;
+
+            models.push_back(staticAttributeModel);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::ExecStepTemplate, FilterEntityService::filterStaticAttributes,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::FilterEntities, models.size(), "");
+
+    return SqliteResult::OK();
+}
+
 std::string FilterEntityService::filterClients = "SELECT "
                                                  "clients.client_id, "
                                                  "clients.name AS client_name, "
@@ -719,4 +794,17 @@ std::string FilterEntityService::filterAttributes =
     "WHERE attributes.is_active = 1 "
     "AND (attributes.name LIKE ? "
     "OR attributes.description LIKE ?)";
+
+std::string FilterEntityService::filterStaticAttributes = "SELECT "
+    "attribute_groups.attribute_group_id, "
+    "attribute_groups.name, "
+    "COUNT(static_attribute_values.static_attribute_value_id) AS static_attribute_value_count, "
+    "attribute_groups.date_modified "
+    "FROM attribute_groups "
+    "INNER JOIN static_attribute_values "
+    "ON attribute_groups.attribute_group_id = static_attribute_values.attribute_group_id "
+    "WHERE attribute_groups.is_active = 1 "
+    "AND attribute_groups.is_static = 1 "
+    "AND static_attribute_values.is_active = 1 "
+    "GROUP BY attribute_groups.attribute_group_id, attribute_groups.name";
 } // namespace tks::Services
