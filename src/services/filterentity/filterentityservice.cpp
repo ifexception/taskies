@@ -418,6 +418,118 @@ SqliteResult FilterEntityService::FilterCategories(const std::string& searchTerm
     return SqliteResult::OK();
 }
 
+SqliteResult FilterEntityService::FilterAttributeGroups(const std::string& searchTerm,
+    std::vector<FilterEntityModel>& models)
+{
+    auto formatedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
+
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(pDb,
+        FilterEntityService::filterAttributeGroups.c_str(),
+        static_cast<int>(FilterEntityService::filterAttributeGroups.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            FilterEntityService::filterAttributeGroups,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
+    }
+
+    int bindIndex = 1;
+
+    // name
+    rc = sqlite3_bind_text(stmt,
+        bindIndex,
+        formatedSearchTerm.c_str(),
+        static_cast<int>(formatedSearchTerm.size()),
+        SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+    }
+
+    bindIndex++;
+
+    // description
+    rc = sqlite3_bind_text(stmt,
+        bindIndex,
+        formatedSearchTerm.c_str(),
+        static_cast<int>(formatedSearchTerm.size()),
+        SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            FilterEntityModel attributeGroupModel(EditListEntityType::AttributeGroups);
+            std::vector<std::string> metadata;
+
+            int columnIndex = 0;
+            attributeGroupModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            attributeGroupModel.EntityName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            bool value = !!sqlite3_column_int(stmt, columnIndex++);
+            metadata.push_back(value ? "Yes" : "No");
+            value = !!sqlite3_column_int(stmt, columnIndex++);
+            metadata.push_back(value ? "Yes" : "No");
+
+            attributeGroupModel.EntityDateModified = sqlite3_column_int(stmt, columnIndex++);
+            attributeGroupModel.Metadata = metadata;
+
+            models.push_back(attributeGroupModel);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, FilterEntityService::filterAttributeGroups, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
+    }
+
+    sqlite3_finalize(stmt);
+
+    SPDLOG_LOGGER_TRACE(
+        pLogger, LogMessages::FilterEntities, models.size(), searchTerm);
+
+    return SqliteResult::OK();
+}
+
 std::string FilterEntityService::filterClients = "SELECT "
                                                  "clients.client_id, "
                                                  "clients.name AS client_name, "
@@ -428,7 +540,9 @@ std::string FilterEntityService::filterClients = "SELECT "
                                                  "ON clients.employer_id = employers.employer_id "
                                                  "WHERE clients.is_active = 1 "
                                                  "AND (client_name LIKE ? "
-                                                 "OR employer_name LIKE ?); ";
+                                                 "OR employer_name LIKE ? "
+                                                 "OR clients.description LIKE ?);"
+                                                 "ORDER BY clients.date_modified ASC;";
 
 std::string FilterEntityService::filterProjects =
     "SELECT "
@@ -443,8 +557,8 @@ std::string FilterEntityService::filterProjects =
     "LEFT JOIN clients ON projects.client_id = clients.client_id "
     "WHERE projects.is_active = 1 "
     "AND (project_name LIKE ? "
-    "OR employer_name LIKE ? "
-    "OR client_name LIKE ?);";
+    "OR projects.description LIKE ?);"
+    "ORDER BY projects.date_modified ASC;";
 
 std::string FilterEntityService::filterCategories =
     "SELECT "
@@ -457,6 +571,19 @@ std::string FilterEntityService::filterCategories =
     "ON categories.project_id = projects.project_id "
     "WHERE categories.is_active = 1 "
     "AND (category_name LIKE ? "
-    "OR project_name LIKE ?)"
+    "OR project_name LIKE ? "
+    "OR categories.description LIKE ?) "
     "ORDER BY categories.date_modified ASC;";
+
+std::string FilterEntityService::filterAttributeGroups = "SELECT "
+                                                         "attribute_group_id, "
+                                                         "name, "
+                                                         "is_static, "
+                                                         "is_default, "
+                                                         "date_modified "
+                                                         "FROM attribute_groups "
+                                                         "WHERE is_active = 1 "
+                                                         "AND (name LIKE ? "
+                                                         "OR description LIKE ?)"
+                                                         "ORDER BY date_modified ASC;";
 } // namespace tks::Services

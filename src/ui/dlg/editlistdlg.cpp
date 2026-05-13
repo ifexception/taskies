@@ -403,12 +403,12 @@ void EditListDialog::CategoryDataToControls()
 
 void EditListDialog::AttributeGroupDataToControls()
 {
-    std::vector<Model::AttributeGroupModel> attributeGroups;
+    std::vector<Services::FilterEntityModel> attributeGroupModels;
     std::vector<ListCtrlData> entries;
+    Services::FilterEntityService editAttributeGroupsService(pLogger, mDatabaseFilePath);
 
-    Persistence::AttributeGroupsPersistence attributeGroupPersistence(pLogger, mDatabaseFilePath);
-
-    auto sqliteResult = attributeGroupPersistence.Filter(mSearchTerm, attributeGroups);
+    auto sqliteResult =
+        editAttributeGroupsService.FilterAttributeGroups(mSearchTerm, attributeGroupModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterAttributeGroupsMessage,
@@ -419,8 +419,11 @@ void EditListDialog::AttributeGroupDataToControls()
 
         dialog.ShowModal();
     } else {
-        for (auto& attributeGroup : attributeGroups) {
-            ListCtrlData data(attributeGroup.AttributeGroupId, attributeGroup.Name);
+        for (auto& attributeGroup : attributeGroupModels) {
+            ListCtrlData data(attributeGroup.EntityId,
+                attributeGroup.EntityName,
+                attributeGroup.Metadata,
+                attributeGroup.EntityDateModified);
             entries.push_back(data);
         }
 
@@ -738,14 +741,14 @@ void EditListDialog::SearchCategories()
 
 void EditListDialog::SearchAttributeGroups()
 {
-    pOkButton->Disable();
     pListCtrl->DeleteAllItems();
 
-    std::vector<Model::AttributeGroupModel> attributeGroups;
+    std::vector<Services::FilterEntityModel> attributeGroupModels;
     std::vector<ListCtrlData> entries;
-    Persistence::AttributeGroupsPersistence attributeGroupsPersistence(pLogger, mDatabaseFilePath);
+    Services::FilterEntityService editAttributeGroupsService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = attributeGroupsPersistence.Filter(mSearchTerm, attributeGroups);
+    auto sqliteResult =
+        editAttributeGroupsService.FilterAttributeGroups(mSearchTerm, attributeGroupModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterAttributeGroupsMessage,
@@ -756,15 +759,16 @@ void EditListDialog::SearchAttributeGroups()
 
         dialog.ShowModal();
     } else {
-        for (auto& attributeGroup : attributeGroups) {
-            ListCtrlData data(attributeGroup.AttributeGroupId, attributeGroup.Name);
+        for (auto& attributeGroup : attributeGroupModels) {
+            ListCtrlData data(attributeGroup.EntityId,
+                attributeGroup.EntityName,
+                attributeGroup.Metadata,
+                attributeGroup.EntityDateModified);
             entries.push_back(data);
         }
 
         SetDataToControls(entries);
     }
-
-    pOkButton->Enable();
 }
 
 void EditListDialog::SearchAttributes()
@@ -928,8 +932,27 @@ void EditListDialog::AppendColumnsToListControl()
 
         break;
     }
-    case EditListEntityType::AttributeGroups:
+    case EditListEntityType::AttributeGroups: {
+        wxListItem nameColumn;
+        nameColumn.SetId(columnIndex);
+        nameColumn.SetText("Name");
+        nameColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameColumn);
+
+        wxListItem staticColumn;
+        staticColumn.SetId(columnIndex);
+        staticColumn.SetText("Is Static");
+        staticColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, staticColumn);
+
+        wxListItem defaultColumn;
+        defaultColumn.SetId(columnIndex);
+        defaultColumn.SetText("Default");
+        defaultColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, defaultColumn);
+
         break;
+    }
     case EditListEntityType::Attributes:
         break;
     case EditListEntityType::StaticAttributeGroups:
