@@ -524,8 +524,124 @@ SqliteResult FilterEntityService::FilterAttributeGroups(const std::string& searc
 
     sqlite3_finalize(stmt);
 
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::FilterEntities, models.size(), searchTerm);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, models.size(), searchTerm);
+
+    return SqliteResult::OK();
+}
+
+SqliteResult FilterEntityService::FilterAttributes(const std::string& searchTerm,
+    std::vector<FilterEntityModel>& models)
+{
+    auto formatedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
+
+    sqlite3_stmt* stmt = nullptr;
+    int rc = sqlite3_prepare_v2(pDb,
+        FilterEntityService::filterAttributes.c_str(),
+        static_cast<int>(FilterEntityService::filterAttributes.size()),
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::PrepareStatementTemplate,
+            FilterEntityService::filterAttributes,
+            rc,
+            error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(
+            Messages::PrepareStatementMessage, rc, std::string(error));
+    }
+
+    int bindIndex = 1;
+
+    // name
+    rc = sqlite3_bind_text(stmt,
+        bindIndex,
+        formatedSearchTerm.c_str(),
+        static_cast<int>(formatedSearchTerm.size()),
+        SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+    }
+
+    bindIndex++;
+
+    // description
+    rc = sqlite3_bind_text(stmt,
+        bindIndex,
+        formatedSearchTerm.c_str(),
+        static_cast<int>(formatedSearchTerm.size()),
+        SQLITE_TRANSIENT);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+    }
+
+    bool done = false;
+    while (!done) {
+        switch (sqlite3_step(stmt)) {
+        case SQLITE_ROW: {
+            rc = SQLITE_ROW;
+
+            FilterEntityModel attributeModel(EditListEntityType::Attributes);
+            std::vector<std::string> metadata;
+            int columnIndex = 0;
+
+            attributeModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
+
+            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
+            attributeModel.EntityName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            bool value = sqlite3_column_int(stmt, columnIndex++);
+            metadata.push_back(value ? "Yes" : "No");
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            std::string svalue = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            metadata.push_back(svalue);
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            svalue = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            metadata.push_back(svalue);
+
+            attributeModel.EntityDateModified = sqlite3_column_int(stmt, columnIndex++);
+            attributeModel.Metadata = metadata;
+
+            models.push_back(attributeModel);
+            break;
+        }
+        case SQLITE_DONE:
+            rc = SQLITE_DONE;
+            done = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (rc != SQLITE_DONE) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, FilterEntityService::filterAttributes, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
+    }
+
+    sqlite3_finalize(stmt);
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, models.size(), searchTerm);
 
     return SqliteResult::OK();
 }
@@ -586,4 +702,21 @@ std::string FilterEntityService::filterAttributeGroups = "SELECT "
                                                          "AND (name LIKE ? "
                                                          "OR description LIKE ?)"
                                                          "ORDER BY date_modified ASC;";
+
+std::string FilterEntityService::filterAttributes =
+    "SELECT "
+    "attributes.attribute_id, "
+    "attributes.name, "
+    "attributes.is_required, "
+    "attribute_groups.name AS attribute_group_name, "
+    "attribute_types.name AS attribute_type_name, "
+    "attributes.date_modified "
+    "FROM attributes "
+    "INNER JOIN attribute_groups "
+    "ON attributes.attribute_group_id = attribute_groups.attribute_group_id "
+    "INNER JOIN attribute_types "
+    "ON attributes.attribute_type_id = attribute_types.attribute_type_id "
+    "WHERE attributes.is_active = 1 "
+    "AND (attributes.name LIKE ? "
+    "OR attributes.description LIKE ?)";
 } // namespace tks::Services

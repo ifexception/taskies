@@ -433,15 +433,14 @@ void EditListDialog::AttributeGroupDataToControls()
 
 void EditListDialog::AttributeDataToControls()
 {
-    std::vector<Model::AttributeModel> attributes;
+    std::vector<Services::FilterEntityModel> attributeModels;
     std::vector<ListCtrlData> entries;
+    Services::FilterEntityService editAttributesService(pLogger, mDatabaseFilePath);
 
-    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
-
-    auto sqliteResult = attributesPersistence.Filter(mSearchTerm, attributes);
+    auto sqliteResult = editAttributesService.FilterAttributes(mSearchTerm, attributeModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterAttributesMessage,
+            Messages::FilterAttributeGroupsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -449,8 +448,11 @@ void EditListDialog::AttributeDataToControls()
 
         dialog.ShowModal();
     } else {
-        for (auto& attribute : attributes) {
-            ListCtrlData data(attribute.AttributeId, attribute.Name);
+        for (auto& attributeGroup : attributeModels) {
+            ListCtrlData data(attributeGroup.EntityId,
+                attributeGroup.EntityName,
+                attributeGroup.Metadata,
+                attributeGroup.EntityDateModified);
             entries.push_back(data);
         }
 
@@ -773,17 +775,16 @@ void EditListDialog::SearchAttributeGroups()
 
 void EditListDialog::SearchAttributes()
 {
-    pOkButton->Disable();
     pListCtrl->DeleteAllItems();
 
-    std::vector<Model::AttributeModel> attributes;
+    std::vector<Services::FilterEntityModel> attributeModels;
     std::vector<ListCtrlData> entries;
-    Persistence::AttributesPersistence attributesPersistence(pLogger, mDatabaseFilePath);
+    Services::FilterEntityService editAttributesService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = attributesPersistence.Filter(mSearchTerm, attributes);
+    auto sqliteResult = editAttributesService.FilterAttributeGroups(mSearchTerm, attributeModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterAttributesMessage,
+            Messages::FilterAttributeGroupsMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -791,15 +792,16 @@ void EditListDialog::SearchAttributes()
 
         dialog.ShowModal();
     } else {
-        for (auto& attribute : attributes) {
-            ListCtrlData data(attribute.AttributeId, attribute.Name);
+        for (auto& attributeGroup : attributeModels) {
+            ListCtrlData data(attributeGroup.EntityId,
+                attributeGroup.EntityName,
+                attributeGroup.Metadata,
+                attributeGroup.EntityDateModified);
             entries.push_back(data);
         }
 
         SetDataToControls(entries);
     }
-
-    pOkButton->Enable();
 }
 
 void EditListDialog::SearchStaticAttributeGroups()
@@ -953,8 +955,33 @@ void EditListDialog::AppendColumnsToListControl()
 
         break;
     }
-    case EditListEntityType::Attributes:
+    case EditListEntityType::Attributes: {
+        wxListItem nameColumn;
+        nameColumn.SetId(columnIndex);
+        nameColumn.SetText("Name");
+        nameColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameColumn);
+
+        wxListItem isRequiredColumn;
+        isRequiredColumn.SetId(columnIndex);
+        isRequiredColumn.SetText("Is Required");
+        isRequiredColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, isRequiredColumn);
+
+        wxListItem nameAttributeGroupColumn;
+        nameAttributeGroupColumn.SetId(columnIndex);
+        nameAttributeGroupColumn.SetText("Attribute Group");
+        nameAttributeGroupColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameAttributeGroupColumn);
+
+        wxListItem nameAttributeTypeColumn;
+        nameAttributeTypeColumn.SetId(columnIndex);
+        nameAttributeTypeColumn.SetText("Type");
+        nameAttributeTypeColumn.SetWidth(wxLIST_AUTOSIZE);
+        pListCtrl->InsertColumn(columnIndex++, nameAttributeTypeColumn);
+
         break;
+    }
     case EditListEntityType::StaticAttributeGroups:
         break;
     default:

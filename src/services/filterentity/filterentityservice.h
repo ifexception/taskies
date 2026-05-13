@@ -69,9 +69,13 @@ struct FilterEntityService final : public Persistence::PersistenceBase {
     SqliteResult FilterAttributeGroups(const std::string& searchTerm,
         std::vector<FilterEntityModel>& models);
 
+    SqliteResult FilterAttributes(const std::string& searchTerm,
+        std::vector<FilterEntityModel>& models);
+
     static std::string filterClients;
     static std::string filterProjects;
     static std::string filterCategories;
     static std::string filterAttributeGroups;
+    static std::string filterAttributes;
 };
 } // namespace tks::Services
