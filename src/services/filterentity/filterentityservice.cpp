@@ -209,7 +209,7 @@ SqliteResult FilterEntityService::FilterProjects(const std::string& searchTerm,
 
     bindIndex++;
 
-    // linked employer name
+    // project description
     rc = sqlite3_bind_text(stmt,
         bindIndex,
         formattedSearchTerm.c_str(),
@@ -218,24 +218,7 @@ SqliteResult FilterEntityService::FilterProjects(const std::string& searchTerm,
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "employer_name", bindIndex, rc, error);
-
-        sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
-    }
-
-    bindIndex++;
-
-    // (optional) linked client name
-    rc = sqlite3_bind_text(stmt,
-        bindIndex,
-        formattedSearchTerm.c_str(),
-        static_cast<int>(formattedSearchTerm.size()),
-        SQLITE_TRANSIENT);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "client_name", bindIndex, rc, error);
+        pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
