@@ -49,7 +49,9 @@ void ColumnListModel::GetValueByRow(wxVariant& variant, unsigned int row, unsign
     }
 }
 
-bool ColumnListModel::GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const
+bool ColumnListModel::GetAttrByRow(unsigned int row,
+    unsigned int col,
+    wxDataViewItemAttr& attr) const
 {
     return true;
 }
@@ -129,7 +131,8 @@ void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
     pLogger->info("ColumnListModel::MoveItem - Begin move item");
     unsigned int row = GetRow(item);
     if (row != 0 && asc) {
-        pLogger->info("ColumnListModel::MoveItem - Moving column \"{0}\" up", mListItemModels[row].Column);
+        pLogger->info(
+            "ColumnListModel::MoveItem - Moving column \"{0}\" up", mListItemModels[row].Column);
 
         auto modelAtRow = mListItemModels[row];
         modelAtRow.Order -= 1;
@@ -146,7 +149,8 @@ void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
     }
 
     if (row != (mListItemModels.size() - 1) && !asc) {
-        pLogger->info("ColumnListModel::MoveItem - Moving column \"{0}\" down", mListItemModels[row].Column);
+        pLogger->info(
+            "ColumnListModel::MoveItem - Moving column \"{0}\" down", mListItemModels[row].Column);
 
         auto modelAtRow = mListItemModels[row];
         modelAtRow.Order += 1;
@@ -164,10 +168,14 @@ void ColumnListModel::MoveItem(const wxDataViewItem& item, bool asc)
 
     std::sort(mListItemModels.begin(),
         mListItemModels.end(),
-        [&](const ColumnListItemModel& lhs, const ColumnListItemModel& rhs) { return lhs.Order < rhs.Order; });
+        [&](const ColumnListItemModel& lhs, const ColumnListItemModel& rhs) {
+            return lhs.Order < rhs.Order;
+        });
 }
 
-void ColumnListModel::AppendStagingItem(const std::string& column, const std::string& originalColumn, int order)
+void ColumnListModel::AppendStagingItem(const std::string& column,
+    const std::string& originalColumn,
+    int order)
 {
     ColumnListItemModel model(column, originalColumn, order);
     mListItemModelsStaging.push_back(model);
@@ -202,7 +210,8 @@ std::vector<ColumnListItemModel> ColumnListModel::GetSelectedColumns()
     for (const auto& listItem : mListItemModels) {
         if (listItem.Toggled) {
             pLogger->info(
-                "ColumnListModel::GetSelectedColumns - Found toggled column with name \"{0}\"", listItem.Column);
+                "ColumnListModel::GetSelectedColumns - Found toggled column with name \"{0}\"",
+                listItem.Column);
             selectedColumns.push_back(listItem);
         }
     }

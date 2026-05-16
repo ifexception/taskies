@@ -49,9 +49,12 @@ public:
 
     const ColumnListModel& operator=(const ColumnListModel&) = delete;
 
-    virtual void GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const override;
-    virtual bool GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override;
-    virtual bool SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override;
+    virtual void
+        GetValueByRow(wxVariant& variant, unsigned int row, unsigned int col) const override;
+    virtual bool
+        GetAttrByRow(unsigned int row, unsigned int col, wxDataViewItemAttr& attr) const override;
+    virtual bool
+        SetValueByRow(const wxVariant& variant, unsigned int row, unsigned int col) override;
     virtual unsigned int GetCount() const override;
 
     void Append(const std::string& columnName);
