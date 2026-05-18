@@ -21,6 +21,20 @@
 
 namespace tks::Common
 {
+// This date was selected arbitrarily
+// wxDatePickerCtrl needs a from and to date for the range
+// So we pick 2015-01-01 as the (earliest) from date
+// Conceivably, a user shouldn't go that far back
+wxDateTime MakeMaximumFromDate()
+{
+    wxDateTime maxFromDate = wxDateTime::Now();
+    maxFromDate.SetYear(2015);
+    maxFromDate.SetMonth(wxDateTime::Jan);
+    maxFromDate.SetDay(1);
+
+    return maxFromDate;
+}
+
 bool IsDarkColour(const wxColor& color)
 {
     if (!color.IsOk()) {
