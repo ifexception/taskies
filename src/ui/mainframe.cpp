@@ -44,6 +44,7 @@
 #include "../common/queryhelper.h"
 #include "../common/enums.h"
 #include "../common/version.h"
+#include "../common/wxcommon.h"
 
 #include "../common/messages/persistencemessages.h"
 #include "../common/messages/sqlitemessages.h"
@@ -79,20 +80,6 @@
 
 #include "events.h"
 
-// This date was selected arbitrarily
-// wxDatePickerCtrl needs a from and to date for the range
-// So we pick 2015-01-01 as that date
-// Conceivably, a user shouldn't go that far back
-wxDateTime MakeMaximumFromDate()
-{
-    wxDateTime maxFromDate = wxDateTime::Now();
-    maxFromDate.SetYear(2015);
-    maxFromDate.SetMonth(wxDateTime::Jan);
-    maxFromDate.SetDay(1);
-
-    return maxFromDate;
-}
-
 namespace tks::UI
 {
 // clang-format off
@@ -103,7 +90,7 @@ EVT_ICONIZE(MainFrame::OnIconize)
 EVT_SIZE(MainFrame::OnResize)
 EVT_TIMER(tksIDC_TASKREMINDERTIMER, MainFrame::OnTaskReminder)
 EVT_MOVE(MainFrame::OnMove)
-/* Taskbar Button Event Handlers */
+/* Taskbar Button (thumbbar) Event Handlers */
 EVT_BUTTON(tksIDC_THUMBBAR_NEWTASK, MainFrame::OnThumbBarNewTask)
 EVT_BUTTON(tksIDC_THUMBBAR_QUICKEXPORT, MainFrame::OnThumbBarQuickExport)
 /* Menu Event Handlers */
@@ -199,12 +186,11 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pMeetingsViewFrame(nullptr)
 // clang-format on
 {
-    SPDLOG_LOGGER_TRACE(pLogger, "Initialization of MainFrame");
     // Initialization setup
     SetMinSize(wxSize(FromDIP(320), FromDIP(320)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
         pLogger->info(
-            "MainFrame::MainFrame - No persistent objects found. Set default size \"{0}\"x\"{1}\"",
+            "No persistence information found for MainFrame. Use default size \"{0}\"x\"{1}\"",
             800,
             600);
         SetSize(FromDIP(wxSize(800, 600)));
@@ -242,7 +228,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
         wxNotificationMessage::UseTaskBarIcon(pTaskBarIcon);
     }
 
-    // Thumbbar button actions
+    // ThumbBar button actions
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     wxIcon newTaskIcon = addTaskIconBundle.GetIcon(wxSize(16, 16));
     pThumbBarNewTaskButton =
@@ -256,32 +242,24 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     MSWGetTaskBarButton()->AppendThumbBarButton(pThumbBarNewTaskButton);
     MSWGetTaskBarButton()->AppendThumbBarButton(pThumbBarQuickExportButton);
 
-    // Create controls
+    // Create, fill, and set data to controls
     Create();
 }
 
 MainFrame::~MainFrame()
 {
-    const std::string TAG = "MainFrame::~MainFrame";
     if (pTaskBarIcon) {
-        pLogger->info("{0} - Removing task bar icon", TAG);
         pTaskBarIcon->RemoveIcon();
-        pLogger->info("{0} - Delete task bar icon pointer", TAG);
         delete pTaskBarIcon;
     }
 
     if (pStatusBar) {
-        pLogger->info("{0} - Delete status bar pointer", TAG);
         delete pStatusBar;
     }
 
     if (pCfg->UseReminders() && pTaskReminderTimer->IsRunning()) {
-        pLogger->info("{0} - Reminders enabled and timer is running", TAG);
         pTaskReminderTimer->Stop();
-        pLogger->info("{0} - Timer stopped", TAG);
     }
-
-    pLogger->info("{0} - Destructor complete", TAG);
 }
 
 void MainFrame::Create()
@@ -375,8 +353,8 @@ void MainFrame::CreateControls()
     }
 
     viewMenu->AppendSeparator();
-    auto preferencesMenuItem =
-        viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
+    auto preferencesMenuItem = viewMenu->Append(
+        ID_VIEW_PREFERENCES, "&Preferences\tCtrl-,", "View, set, and adjust program options");
 
     wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
@@ -488,12 +466,13 @@ void MainFrame::CreateControls()
     pDataViewCtrl->SetFocus();
 
     /* Accelerator Table */
-    wxAcceleratorEntry entries[4];
+    wxAcceleratorEntry entries[5];
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
     entries[2].Set(wxACCEL_CTRL, (int) 'E', ID_VIEW_EXPAND);
+    entries[3].Set(wxACCEL_CTRL, (int) ',', ID_VIEW_PREFERENCES);
     if (isOutlookInstalled() && !MswUtils::IsOutlookRunning()) {
-        entries[3].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
+        entries[4].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
     }
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
@@ -1927,7 +1906,8 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 
 void MainFrame::SetFromAndToDatePickerRanges()
 {
-    pFromDatePickerCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
+    pFromDatePickerCtrl->SetRange(
+        Common::MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
 
     wxDateTime fromFromDate = wxDateTime::Now(), toFromDate = wxDateTime::Now();
 

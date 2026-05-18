@@ -53,8 +53,6 @@
 #include "taskbaricon.h"
 #include "statusbar.h"
 
-wxDateTime MakeMaximumFromDate();
-
 namespace tks
 {
 enum class MenuIds : int {
