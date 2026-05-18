@@ -353,8 +353,8 @@ void MainFrame::CreateControls()
     }
 
     viewMenu->AppendSeparator();
-    auto preferencesMenuItem =
-        viewMenu->Append(ID_VIEW_PREFERENCES, "&Preferences", "View and adjust program options");
+    auto preferencesMenuItem = viewMenu->Append(
+        ID_VIEW_PREFERENCES, "&Preferences\tCtrl-,", "View, set, and adjust program options");
 
     wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
@@ -466,12 +466,13 @@ void MainFrame::CreateControls()
     pDataViewCtrl->SetFocus();
 
     /* Accelerator Table */
-    wxAcceleratorEntry entries[4];
+    wxAcceleratorEntry entries[5];
     entries[0].Set(wxACCEL_CTRL, (int) 'R', ID_VIEW_RESET);
     entries[1].Set(wxACCEL_CTRL, (int) 'N', ID_NEW_TASK);
     entries[2].Set(wxACCEL_CTRL, (int) 'E', ID_VIEW_EXPAND);
+    entries[3].Set(wxACCEL_CTRL, (int) ',', ID_VIEW_PREFERENCES);
     if (isOutlookInstalled() && !MswUtils::IsOutlookRunning()) {
-        entries[3].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
+        entries[4].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
     }
 
     wxAcceleratorTable table(ARRAYSIZE(entries), entries);
