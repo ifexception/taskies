@@ -1,5 +1,7 @@
 ; -- Install Taskies --
 
+#define OldTaskiesVersion "0.3.3"
+#define OldTaskiesFolder "Taskies-x64.{#TaskiesVersion}.Portable"
 #define TaskiesVersion "0.3.4"
 
 [Setup]
@@ -17,7 +19,7 @@ WizardStyle=modern
 Compression=lzma2
 SolidCompression=yes
 OutputDir=Installer
-OutputBaseFilename=Taskies-x64.{#TaskiesVersion}-Installer
+OutputBaseFilename=Taskies-x64.{#TaskiesVersion}.Portable
 LicenseFile=License
 DisableWelcomePage=no
 ArchitecturesAllowed=x64compatible
@@ -70,7 +72,7 @@ Source: "sqlite3.dll"; DestDir: "{src}"; Flags: ignoreversion
 Source: "sqlite3.exe"; DestDir: "{src}"; Flags: ignoreversion
 Source: "tiff.dll"; DestDir: "{src}"; Flags: ignoreversion
 Source: "wcurl"; DestDir: "{src}"; Flags: ignoreversion
-Source: "wxbase32u_net_vc_x64_custom.dll"; DestDir: "{src}"; Flags: ignoreversion
+Source: "wxbase32u_vc_x64_custom.dll"; DestDir: "{src}"; Flags: ignoreversion
 Source: "wxmsw32u_core_vc_x64_custom.dll"; DestDir: "{src}"; Flags: ignoreversion
 Source: "wxmsw32u_aui_vc_x64_custom.dll"; DestDir: "{src}"; Flags: ignoreversion
 Source: "wxrc.exe"; DestDir: "{src}"; Flags: ignoreversion
@@ -85,4 +87,13 @@ Name: "{group}\Taskies"; Filename: "{src}\Taskies.exe"
 
 [Messages]
 WelcomeLabel1=Welcome to the Taskies Portable Install Wizard
+
+[Code]
+procedure InitializeWizard;
+var
+  OldOutputFileName: String;
+begin
+  OldOutputFileName := OldTaskiesFolder;
+  Log('The OldOutputFileName is: ' + OldOutputFileName);
+end;
 
