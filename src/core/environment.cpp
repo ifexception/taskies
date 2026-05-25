@@ -129,7 +129,12 @@ bool Environment::IsSetup()
             return false;
         }
     } else {
-        wxRegKey key(wxRegKey::HKCU, GetRegistryKey());
+        std::string registryKey = GetRegistryKey();
+        if (registryKey.empty()) {
+            return false;
+        }
+
+        wxRegKey key(wxRegKey::HKCU, registryKey);
         if (key.HasValue("IsSetup")) {
             long value = 0;
             key.QueryValue("IsSetup", &value);
@@ -155,7 +160,12 @@ bool Environment::SetIsSetup()
             return false;
         }
     } else {
-        wxRegKey key(wxRegKey::HKCU, GetRegistryKey());
+        std::string registryKey = GetRegistryKey();
+        if (registryKey.empty()) {
+            return false;
+        }
+
+        wxRegKey key(wxRegKey::HKCU, registryKey);
         bool result = key.Exists();
         if (!result) {
             return result;
