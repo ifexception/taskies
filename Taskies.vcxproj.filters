@@ -446,9 +446,6 @@
     <ClCompile Include="src\services\filterentity\filterentityservice.cpp">
       <Filter>Source\services\filterentity</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\wizards\portablesetupwizard.cpp">
-      <Filter>Source\ui\wizard</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -801,9 +798,6 @@
     </ClInclude>
     <ClInclude Include="src\services\filterentity\filterentityservice.h">
       <Filter>Source\services\filterentity</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\wizards\portablesetupwizard.h">
-      <Filter>Source\ui\wizard</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

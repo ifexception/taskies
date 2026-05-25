@@ -243,7 +243,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ui\wizards\portablesetupwizard.cpp" />
     <ClCompile Include="src\services\filterentity\filterentityservice.cpp" />
     <ClCompile Include="src\core\database_optimizer.cpp" />
     <ClCompile Include="src\core\database_backup.cpp" />
@@ -363,7 +362,6 @@ wxNO_UNSAFE_WXSTRING_CONV=1;TKS_PORTABLEREL;%(PreprocessorDefinitions)</Preproc
     <ClCompile Include="src\common\wxcommon.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ui\wizards\portablesetupwizard.h" />
     <ClInclude Include="src\services\filterentity\filterentityservice.h" />
     <ClInclude Include="src\core\database_optimizer.h" />
     <ClInclude Include="src\core\database_backup.h" />
