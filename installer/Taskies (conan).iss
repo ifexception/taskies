@@ -17,7 +17,7 @@ WizardStyle=modern
 Compression=lzma2
 SolidCompression=yes
 OutputDir=Installer
-OutputBaseFilename=Taskies-x64.{#TaskiesVersion}.Installer
+OutputBaseFilename=Taskies.{#TaskiesVersion}
 LicenseFile=License
 DisableWelcomePage=no
 ArchitecturesAllowed=x64compatible
@@ -88,19 +88,14 @@ WelcomeLabel1=Welcome to the Taskies Installation Wizard
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{userappdata}\Taskies\logs"
+Type: filesandordirs; Name: "{userappdata}\Taskies\data"
 Type: files; Name: "{userappdata}\Taskies\taskies.toml"
-Type: files; Name: "{app}\fmt.dll";
-Type: files; Name: "{app}\jpeg62.dll";
-Type: files; Name: "{app}\liblzma.dll";
-Type: files; Name: "{app}\libpng16.dll";
-Type: files; Name: "{app}\pcre2-16.dll";
-Type: files; Name: "{app}\spdlog.dll";
-Type: files; Name: "{app}\sqlite3.dll";
-Type: files; Name: "{app}\tiff.dll";
-Type: files; Name: "{app}\wxbase32u_vc_x64_custom.dll";
-Type: files; Name: "{app}\wxmsw32u_core_vc_x64_custom.dll";
-Type: files; Name: "{app}\zlib1.dll";
-Type: filesandordirs; Name: "{app}\lang";
+Type: filesandordirs; Name: "{app}\mswu\*";
+Type: files; Name: "{app}\*.dll";
+Type: files; Name: "{app}\*.exe";
+Type: files; Name: "{app}\c_rehash.pl";
+Type: files; Name: "{app}\curl-config";
+Type: files; Name: "{app}\wcurl";
 Type: filesandordirs; Name: "{app}\res";
 
 
