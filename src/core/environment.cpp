@@ -19,6 +19,9 @@
 
 #include "environment.h"
 
+#include <filesystem>
+#include <fstream>
+
 #include <wx/stdpaths.h>
 #include <wx/msw/registry.h>
 
@@ -94,7 +97,7 @@ std::filesystem::path Environment::GetExportPath()
 
 std::string Environment::GetDatabaseFileName()
 {
-    return DATABASE_NAME;
+    return DATABASE_FILENAME;
 }
 
 std::string Environment::GetCurrentLocale()
@@ -118,25 +121,48 @@ std::string Environment::GetCurrentLocale()
 
 bool Environment::IsSetup()
 {
-    wxRegKey key(wxRegKey::HKCU, GetRegistryKey());
-    if (key.HasValue("IsSetup")) {
-        long value = 0;
-        key.QueryValue("IsSetup", &value);
+    if (mBuildConfig == BuildConfiguration::Release &&
+        mInstallLocation == InstallLocation::Portable) {
+        if (std::filesystem::exists(SETUP_FILENAME)) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        wxRegKey key(wxRegKey::HKCU, GetRegistryKey());
+        if (key.HasValue("IsSetup")) {
+            long value = 0;
+            key.QueryValue("IsSetup", &value);
 
-        return !!value;
+            return !!value;
+        }
+        return false;
     }
-    return false;
 }
 
 bool Environment::SetIsSetup()
 {
-    wxRegKey key(wxRegKey::HKCU, GetRegistryKey());
-    bool result = key.Exists();
-    if (!result) {
-        return result;
-    }
+    if (mBuildConfig == BuildConfiguration::Release &&
+        mInstallLocation == InstallLocation::Portable) {
+        std::ofstream setupFile;
+        setupFile.open(SETUP_FILENAME, std::ios::out);
+        if (setupFile.is_open()) {
+            setupFile << true;
+            setupFile.close();
 
-    return key.SetValue("IsSetup", true);
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        wxRegKey key(wxRegKey::HKCU, GetRegistryKey());
+        bool result = key.Exists();
+        if (!result) {
+            return result;
+        }
+
+        return key.SetValue("IsSetup", true);
+    }
 }
 
 // -private
