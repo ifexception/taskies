@@ -446,6 +446,9 @@
     <ClCompile Include="src\services\filterentity\filterentityservice.cpp">
       <Filter>Source\services\filterentity</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\database_backup_zip.cpp">
+      <Filter>Source\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -798,6 +801,9 @@
     </ClInclude>
     <ClInclude Include="src\services\filterentity\filterentityservice.h">
       <Filter>Source\services\filterentity</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\database_backup_zip.h">
+      <Filter>Source\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
