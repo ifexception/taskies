@@ -1,2 +1,2 @@
 @echo off
-call "%~dp0/conanrunenv-release-x86_64.bat"
+call "%~dp0/conanrunenv-debug-x86_64.bat"

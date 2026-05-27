@@ -7,3 +7,4 @@ requirements:
 - spdlog/1.17.0
 - wxwidgets/3.2.8
 - toml11/4.4.0
+- zlib/1.3.1
