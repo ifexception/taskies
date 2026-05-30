@@ -21,8 +21,6 @@
 
 #include <string>
 
-#include <zlib.h>
-
 namespace tks::Core
 {
 struct ZipResult {
@@ -34,15 +32,15 @@ struct ZipResult {
     static ZipResult Fail(int returnCode, const std::string& errorMessage);
 };
 
-struct DatabaseBackupZip {
-    DatabaseBackupZip() = delete;
-    DatabaseBackupZip(const std::string& backupDirectory);
-    DatabaseBackupZip(const DatabaseBackupZip&) = delete;
-    ~DatabaseBackupZip() = default;
+struct ZipDatabaseBackup {
+    ZipDatabaseBackup() = delete;
+    ZipDatabaseBackup(const std::string& backupDirectory);
+    ZipDatabaseBackup(const ZipDatabaseBackup&) = delete;
+    ~ZipDatabaseBackup() = default;
 
-    DatabaseBackupZip& operator=(const DatabaseBackupZip&) = delete;
+    ZipDatabaseBackup& operator=(const ZipDatabaseBackup&) = delete;
 
-    ZipResult operator()(const std::string& inFileName);
+    ZipResult operator()(const std::string& dbFileName);
 
     std::string mBackupDirectory;
 };

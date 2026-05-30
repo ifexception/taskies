@@ -6,7 +6,7 @@
     <ConanzlibCompilerFlags></ConanzlibCompilerFlags>
     <ConanzlibLinkerFlags></ConanzlibLinkerFlags>
     <ConanzlibPreprocessorDefinitions></ConanzlibPreprocessorDefinitions>
-    <ConanzlibIncludeDirectories>$(ConanzlibRootFolder)/include;</ConanzlibIncludeDirectories>
+    <ConanzlibIncludeDirectories></ConanzlibIncludeDirectories>
     <ConanzlibResourceDirectories></ConanzlibResourceDirectories>
     <ConanzlibLibraryDirectories>$(ConanzlibRootFolder)/lib;</ConanzlibLibraryDirectories>
     <ConanzlibLibraries>zlib.lib;</ConanzlibLibraries>

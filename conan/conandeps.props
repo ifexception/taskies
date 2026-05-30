@@ -7,6 +7,6 @@
 		<Import Condition="'$(conan_fmt_props_imported)' != 'True'" Project="conan_fmt.props"/>
 		<Import Condition="'$(conan_wxwidgets_props_imported)' != 'True'" Project="conan_wxwidgets.props"/>
 		<Import Condition="'$(conan_toml11_props_imported)' != 'True'" Project="conan_toml11.props"/>
-		<Import Condition="'$(conan_zlib_props_imported)' != 'True'" Project="conan_zlib.props"/>
+		<Import Condition="'$(conan_libzippp_props_imported)' != 'True'" Project="conan_libzippp.props"/>
 	</ImportGroup>
 </Project>

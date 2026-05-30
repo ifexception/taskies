@@ -40,4 +40,8 @@ const std::string CsvExportErrorMessage = "An error occured when trying your dat
 const std::string CannotOpenFileMessage = "Cannot open file for exporting";
 #pragma endregion
 
+#pragma region Zip
+const std::string ZipHeaderMessage = "An error occurred during database backup file zip operation";
+#pragma endregion
+
 } // namespace tks::Messages

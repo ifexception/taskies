@@ -46,6 +46,7 @@
 #include "../common/version.h"
 #include "../common/wxcommon.h"
 
+#include "../common/messages/operationmessages.h"
 #include "../common/messages/persistencemessages.h"
 #include "../common/messages/sqlitemessages.h"
 
@@ -53,6 +54,7 @@
 #include "../core/configuration.h"
 #include "../core/database_backup.h"
 #include "../core/database_optimizer.h"
+#include "../core/zip_database_backup.h"
 
 #include "../persistence/taskspersistence.h"
 #include "../persistence/attendedmeetingspersistence.h"
@@ -749,6 +751,19 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
             Common::GetProgramName(),
             wxOK_DEFAULT | wxICON_INFORMATION,
             this);
+    }
+
+    Core::ZipDatabaseBackup zipBackup(pCfg->GetBackupPath());
+    auto zipResult = zipBackup(pCfg->BuildFullBackupFilePath());
+    if (!zipResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::ZipHeaderMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(zipResult.ErrorMessage);
+        //dialog.ShowDetailedText(std::to_string(zipResult.ReturnCode));
+
+        dialog.ShowModal();
     }
 }
 
