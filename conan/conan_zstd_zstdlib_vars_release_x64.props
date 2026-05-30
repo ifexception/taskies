@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="ConanVariables">
+    <Conanzstd_zstdlibRootFolder>C:\Users\szymon.welgus\.conan2\p\zstd183daa88df446\p</Conanzstd_zstdlibRootFolder>
+    <Conanzstd_zstdlibBinaryDirectories></Conanzstd_zstdlibBinaryDirectories>
+    <Conanzstd_zstdlibCompilerFlags></Conanzstd_zstdlibCompilerFlags>
+    <Conanzstd_zstdlibLinkerFlags></Conanzstd_zstdlibLinkerFlags>
+    <Conanzstd_zstdlibPreprocessorDefinitions></Conanzstd_zstdlibPreprocessorDefinitions>
+    <Conanzstd_zstdlibIncludeDirectories></Conanzstd_zstdlibIncludeDirectories>
+    <Conanzstd_zstdlibResourceDirectories></Conanzstd_zstdlibResourceDirectories>
+    <Conanzstd_zstdlibLibraryDirectories>$(Conanzstd_zstdlibRootFolder)/lib;</Conanzstd_zstdlibLibraryDirectories>
+    <Conanzstd_zstdlibLibraries>zstd_static.lib;</Conanzstd_zstdlibLibraries>
+    <Conanzstd_zstdlibSystemLibs></Conanzstd_zstdlibSystemLibs>
+  </PropertyGroup>
+</Project>
