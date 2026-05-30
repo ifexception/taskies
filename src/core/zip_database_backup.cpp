@@ -26,6 +26,10 @@
 #include <fmt/format.h>
 #include <libzippp/libzippp.h>
 
+#include "../common/common.h"
+
+#include "../utils/utils.h"
+
 namespace tks::Core
 {
 ZipResult ZipResult::OK()
@@ -47,23 +51,29 @@ ZipDatabaseBackup::ZipDatabaseBackup(std::shared_ptr<spdlog::logger> logger,
 
 ZipResult ZipDatabaseBackup::operator()(const std::string& inFileName)
 {
+    if (!std::filesystem::is_directory(mBackupDirectory)) {
+        return ZipResult::Fail(
+            -1, fmt::format("Backup directory does not exist: \"{0}\"", mBackupDirectory));
+    }
+
     std::ifstream inFile(inFileName, std::ios::binary | std::ios::ate);
     if (!inFile.is_open()) {
         return ZipResult::Fail(-1, fmt::format("Failed to read file: \"{0}\"", inFileName));
     }
 
-    size_t fileSize = inFile.tellg();
-    if (fileSize < 0) {
+    std::streampos pos = inFile.tellg();
+    if (pos < 0) {
         return ZipResult::Fail(-1, "File is empty or could not get file size");
     }
+    size_t fileSize = static_cast<size_t>(pos);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Read \"{0}\" bytes of file: \"{1}\"", fileSize, inFileName);
 
     inFile.seekg(0, std::ios::beg);
 
-    std::vector<char*> buffer(fileSize);
+    std::vector<char> buffer(fileSize);
 
-    inFile.read(reinterpret_cast<char*>(buffer.data()), fileSize);
+    inFile.read(buffer.data(), fileSize);
     inFile.close();
 
     std::filesystem::path backupFilePath(inFileName);
@@ -86,7 +96,8 @@ ZipResult ZipDatabaseBackup::operator()(const std::string& inFileName)
 
     result = zf.addData(dbFileName, buffer.data(), fileSize);
     if (!result) {
-        return ZipResult::Fail(result, "Failed to add database file to zip file archive");
+        return ZipResult::Fail(
+            static_cast<int>(result), "Failed to add database file to zip file archive");
     }
 
     int ret = zf.close();
@@ -99,7 +110,7 @@ ZipResult ZipDatabaseBackup::operator()(const std::string& inFileName)
     try {
         if (!std::filesystem::remove(inFileName)) {
             return ZipResult::Fail(
-                -1, fmt::format("Failed to delete original backup file \"{0}\"", "filename"));
+                -1, fmt::format("Failed to delete original backup file \"{0}\"", dbFileName));
         }
     } catch (const std::filesystem::filesystem_error& err) {
         return ZipResult::Fail(err.code().value(),
@@ -107,5 +118,12 @@ ZipResult ZipDatabaseBackup::operator()(const std::string& inFileName)
     }
 
     return ZipResult::OK();
+}
+
+std::string ZipDatabaseBackup::MakeVersionedZipFileName()
+{
+    std::string filename =
+        fmt::format("{0}.{1}.zip", Common::GetProgramNameLowerCase(), Utils::Timestamp());
+    return std::string();
 }
 } // namespace tks::Core

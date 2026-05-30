@@ -45,6 +45,8 @@ struct ZipDatabaseBackup {
 
     ZipResult operator()(const std::string& dbFileName);
 
+    std::string MakeVersionedZipFileName();
+
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mBackupDirectory;
 };
