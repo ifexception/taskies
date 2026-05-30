@@ -37,14 +37,14 @@ const std::string Sections::TasksViewSection = "tasksView";
 const std::string Sections::ExportSection = "export";
 const std::string Sections::PresetsSection = "presets";
 
-Configuration::PresetColumnSettings::PresetColumnSettings(Common::PresetColumn presetColumn)
+Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
 {
     Column = presetColumn.Column;
     OriginalColumn = presetColumn.OriginalColumn;
     Order = presetColumn.Order;
 }
 
-Configuration::PresetSettings::PresetSettings(Common::Preset preset)
+Configuration::PresetSetting::PresetSetting(Common::Preset preset)
 {
     Uuid = preset.Uuid;
     Name = preset.Name;
@@ -58,7 +58,7 @@ Configuration::PresetSettings::PresetSettings(Common::Preset preset)
     IncludeAttributes = preset.IncludeAttributes;
 
     for (auto& presetColumn : preset.Columns) {
-        PresetColumnSettings presetColumnSettings(presetColumn);
+        PresetColumnSetting presetColumnSettings(presetColumn);
         Columns.push_back(presetColumnSettings);
     }
 }
@@ -389,7 +389,7 @@ ConfigResult Configuration::SaveExportPreset(const Common::Preset& presetToSave)
         presets.push_back(std::move(presetValue));
     }
 
-    PresetSettings newPreset(presetToSave);
+    PresetSetting newPreset(presetToSave);
     AddPreset(newPreset);
 
     const std::string tomlContentsString = toml::format(root);
@@ -447,7 +447,7 @@ ConfigResult Configuration::UpdateExportPreset(const Common::Preset& presetToUpd
         }
     }
 
-    PresetSettings updatedPresetSettings(presetToUpdate);
+    PresetSetting updatedPresetSettings(presetToUpdate);
     EmplacePreset(updatedPresetSettings);
 
     const std::string tomlContentsString = toml::format(root);
@@ -716,29 +716,29 @@ void Configuration::SetPresetCount(const int value)
     mSettings.PresetCount = value;
 }
 
-std::vector<Configuration::PresetSettings> Configuration::GetPresets() const
+std::vector<Configuration::PresetSetting> Configuration::GetPresets() const
 {
     return mSettings.PresetSettings;
 }
 
-void Configuration::SetPresets(const std::vector<PresetSettings>& values)
+void Configuration::SetPresets(const std::vector<PresetSetting>& values)
 {
     mSettings.PresetSettings = values;
 }
 
-void Configuration::AddPreset(const PresetSettings& value)
+void Configuration::AddPreset(const PresetSetting& value)
 {
     mSettings.PresetSettings.push_back(value);
 }
 
-void Configuration::EmplacePreset(const PresetSettings& value)
+void Configuration::EmplacePreset(const PresetSetting& value)
 {
     // clang-format off
     mSettings.PresetSettings.erase(
         std::remove_if(
             mSettings.PresetSettings.begin(),
             mSettings.PresetSettings.end(),
-            [&](const PresetSettings& preset) {
+            [&](const PresetSetting& preset) {
                 return preset.Uuid == value.Uuid;
             }),
         mSettings.PresetSettings.end()
@@ -917,7 +917,7 @@ void Configuration::GetPresetsConfig(const toml::value& root)
     }
 
     for (size_t i = 0; i < presetSection.size(); i++) {
-        PresetSettings preset;
+        PresetSetting preset;
 
         preset.Uuid = toml::find_or<std::string>(presetSection[i], "uuid", Utils::Uuid());
         preset.Name = toml::find_or<std::string>(presetSection[i], "name", "<MissingName>");
@@ -942,7 +942,7 @@ void Configuration::GetPresetsConfig(const toml::value& root)
         try {
             if (columnsArrayTable.is_array()) {
                 for (size_t j = 0; j < columnsArrayTable.size(); j++) {
-                    PresetColumnSettings presetColumn;
+                    PresetColumnSetting presetColumn;
                     presetColumn.Column = toml::find<std::string>(columnsArrayTable[j], "column");
                     presetColumn.OriginalColumn =
                         toml::find<std::string>(columnsArrayTable[j], "originalColumn");
@@ -967,7 +967,7 @@ void Configuration::GetPresetsConfig(const toml::value& root)
             std::sort(
                 preset.Columns.begin(),
                 preset.Columns.end(),
-                [](const PresetColumnSettings& lhs, const PresetColumnSettings& rhs) {
+                [](const PresetColumnSetting& lhs, const PresetColumnSetting& rhs) {
                     return lhs.Order < rhs.Order;
                 }
             );

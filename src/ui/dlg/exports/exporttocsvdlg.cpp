@@ -1118,7 +1118,7 @@ void ExportToCsvDialog::OnPresetChoice(wxCommandEvent& event)
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetToApplyIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings& preset) {
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting& preset) {
             return preset.Uuid == presetUuid;
         });
 
@@ -1489,7 +1489,7 @@ void ExportToCsvDialog::SetToDateAndDatePicker()
     mToCtrlDate = pDateStore->SundayDateSeconds;
 }
 
-void ExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSettings& presetSettings)
+void ExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSetting& presetSettings)
 {
     pDelimiterChoiceCtrl->SetSelection(static_cast<int>(presetSettings.Delimiter));
     pTextQualifierChoiceCtrl->SetSelection(static_cast<int>(presetSettings.TextQualifier));
@@ -1513,7 +1513,7 @@ void ExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSettings& p
 
         auto presetOriginalColumnIterator = std::find_if(presetSettings.Columns.begin(),
             presetSettings.Columns.end(),
-            [=](const Core::Configuration::PresetColumnSettings& presetColumn) {
+            [=](const Core::Configuration::PresetColumnSetting& presetColumn) {
                 return name == presetColumn.OriginalColumn;
             });
 

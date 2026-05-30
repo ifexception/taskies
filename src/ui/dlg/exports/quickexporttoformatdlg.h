@@ -82,7 +82,7 @@ private:
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
 
-    void ApplyPreset(const Core::Configuration::PresetSettings& presetSettings);
+    void ApplyPreset(const Core::Configuration::PresetSetting& presetSettings);
 
     wxWindow* pParent;
 

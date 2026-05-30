@@ -332,7 +332,7 @@ void PreferencesExportPage::OnRemovePreset(wxCommandEvent& event)
             std::remove_if(
                 mPresetSettings.begin(),
                 mPresetSettings.end(),
-                [&](const Core::Configuration::PresetSettings& preset) {
+                [&](const Core::Configuration::PresetSetting& preset) {
                     return preset.Uuid == uuid;
                 }
             ),

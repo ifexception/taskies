@@ -48,22 +48,22 @@ struct Sections {
 class Configuration
 {
 public:
-    struct PresetColumnSettings {
+    struct PresetColumnSetting {
         std::string Column;
         std::string OriginalColumn;
         int Order;
 
-        PresetColumnSettings()
+        PresetColumnSetting()
             : Column()
             , OriginalColumn()
             , Order(-1)
         {
         }
-        PresetColumnSettings(Common::PresetColumn presetColumn);
-        ~PresetColumnSettings() = default;
+        PresetColumnSetting(Common::PresetColumn presetColumn);
+        ~PresetColumnSetting() = default;
     };
 
-    struct PresetSettings {
+    struct PresetSetting {
         std::string Uuid;
         std::string Name;
         bool IsDefault;
@@ -74,9 +74,9 @@ public:
         BooleanHandler BooleanHandler;
         bool ExcludeHeaders;
         bool IncludeAttributes;
-        std::vector<PresetColumnSettings> Columns;
+        std::vector<PresetColumnSetting> Columns;
 
-        PresetSettings()
+        PresetSetting()
             : Uuid()
             , Name()
             , IsDefault(false)
@@ -90,8 +90,8 @@ public:
             , Columns()
         {
         }
-        PresetSettings(Common::Preset preset);
-        ~PresetSettings() = default;
+        PresetSetting(Common::Preset preset);
+        ~PresetSetting() = default;
     };
 
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
@@ -175,10 +175,10 @@ public:
     int GetPresetCount() const;
     void SetPresetCount(const int value);
 
-    std::vector<PresetSettings> GetPresets() const;
-    void SetPresets(const std::vector<PresetSettings>& values);
-    void AddPreset(const PresetSettings& value);
-    void EmplacePreset(const PresetSettings& value);
+    std::vector<PresetSetting> GetPresets() const;
+    void SetPresets(const std::vector<PresetSetting>& values);
+    void AddPreset(const PresetSetting& value);
+    void EmplacePreset(const PresetSetting& value);
     void ClearPresets();
 
     std::string BuildFullDatabaseFilePath() const;
@@ -223,7 +223,7 @@ private:
         bool CloseExportDialogAfterExporting;
         int PresetCount;
 
-        std::vector<PresetSettings> PresetSettings;
+        std::vector<PresetSetting> PresetSettings;
     };
 
     Settings mSettings;
