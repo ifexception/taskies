@@ -564,6 +564,20 @@ void MainFrame::OnClose(wxCloseEvent& event)
         }
     }
 
+    if (pCfg->BackupDatabase() && pCfg->BackupOnProgramClose() && pCfg->ZipBackupFile()) {
+        Core::ZipDatabaseBackup zipBackup(pLogger, pCfg->GetBackupPath());
+        auto zipResult = zipBackup(pCfg->BuildFullBackupFilePath());
+        if (!zipResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::ZipHeaderMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(zipResult.ErrorMessage);
+
+            dialog.ShowModal();
+        }
+    }
+
     SPDLOG_LOGGER_TRACE(pLogger, "Optimize database on program exit");
 
     Core::DatabaseOptimizer databaseOptimizer(pLogger, mDatabaseFilePath);
@@ -732,38 +746,44 @@ void MainFrame::OnTasksBackupDatabase(wxCommandEvent& event)
         return;
     }
 
-    Core::DatabaseBackup databaseBackup(pLogger);
-    databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
-    databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
+    // put into a context to ensure the destructor of DatabaseBackup runs and
+    // releases the locks on the backup file
+    {
+        Core::DatabaseBackup databaseBackup(pLogger);
+        databaseBackup.SetSourceDatabaseFilePath(pCfg->BuildFullDatabaseFilePath());
+        databaseBackup.SetDestinationDatabaseFilePath(pCfg->BuildFullBackupFilePath());
 
-    auto result = databaseBackup.Backup();
-    if (!result.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::BackupHeaderMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(result.FriendlyErrorMessage);
-        dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+        auto result = databaseBackup.Backup();
+        if (!result.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::BackupHeaderMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
 
-        dialog.ShowModal();
-    } else {
-        wxMessageBox("Database backup completed successfully",
-            Common::GetProgramName(),
-            wxOK_DEFAULT | wxICON_INFORMATION,
-            this);
+            dialog.ShowModal();
+        } else {
+            wxMessageBox("Database backup completed successfully",
+                Common::GetProgramName(),
+                wxOK_DEFAULT | wxICON_INFORMATION,
+                this);
+        }
     }
 
-    Core::ZipDatabaseBackup zipBackup(pCfg->GetBackupPath());
-    auto zipResult = zipBackup(pCfg->BuildFullBackupFilePath());
-    if (!zipResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::ZipHeaderMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(zipResult.ErrorMessage);
-        //dialog.ShowDetailedText(std::to_string(zipResult.ReturnCode));
+    if (pCfg->ZipBackupFile()) {
+        Core::ZipDatabaseBackup zipBackup(pLogger, pCfg->GetBackupPath());
+        auto zipResult = zipBackup(pCfg->BuildFullBackupFilePath());
+        if (!zipResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::ZipHeaderMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(zipResult.ErrorMessage);
+            // dialog.ShowDetailedText(std::to_string(zipResult.ReturnCode));
 
-        dialog.ShowModal();
+            dialog.ShowModal();
+        }
     }
 }
 
