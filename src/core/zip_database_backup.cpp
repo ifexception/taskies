@@ -63,6 +63,7 @@ ZipResult ZipDatabaseBackup::operator()(const std::string& inFileName)
 
     std::streampos pos = inFile.tellg();
     if (pos < 0) {
+        inFile.close();
         return ZipResult::Fail(-1, "File is empty or could not get file size");
     }
     size_t fileSize = static_cast<size_t>(pos);
