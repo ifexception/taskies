@@ -37,6 +37,8 @@ std::int64_t UnixTimestampTomorrowMidnight();
 
 std::string ToISODateTime(std::int64_t unixTimestamp);
 
+std::string Timestamp();
+
 int VoidPointerToInt(void* value);
 
 void* IntToVoidPointer(int value);

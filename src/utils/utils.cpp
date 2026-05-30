@@ -79,6 +79,14 @@ std::string ToISODateTime(std::int64_t unixTimestamp)
     return date;
 }
 
+std::string Timestamp()
+{
+    auto now = std::chrono::system_clock::now();
+    std::string date = date::format("%F-%T", now);
+    date = ReplaceAll(date, ":", "-");
+    return date;
+}
+
 int VoidPointerToInt(void* value)
 {
     intptr_t p = reinterpret_cast<intptr_t>(value);
