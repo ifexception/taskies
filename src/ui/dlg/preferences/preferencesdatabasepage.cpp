@@ -78,9 +78,11 @@ void PreferencesDatabasePage::Save()
     if (pCfg->BackupDatabase()) {
         pCfg->SetBackupPath(pBackupPathTextCtrl->GetValue().ToStdString());
         pCfg->BackupOnProgramClose(pBackupOnProgramCloseCheckBoxCtrl->GetValue());
+        pCfg->ZipBackupFile(pZipBackupFileCheckBoxCtrl->GetValue());
     } else {
         pCfg->SetBackupPath("");
         pCfg->BackupOnProgramClose(false);
+        pCfg->ZipBackupFile(false);
     }
 }
 
@@ -92,12 +94,14 @@ void PreferencesDatabasePage::Reset()
     if (!pCfg->BackupDatabase()) {
         pBrowseBackupPathButton->Disable();
         pBackupOnProgramCloseCheckBoxCtrl->Disable();
+        pZipBackupFileCheckBoxCtrl->Disable();
     }
 
     pBackupPathTextCtrl->ChangeValue("");
     pBackupPathTextCtrl->SetToolTip("");
 
     pBackupOnProgramCloseCheckBoxCtrl->SetValue(false);
+    pZipBackupFileCheckBoxCtrl->SetValue(false);
 }
 
 void PreferencesDatabasePage::CreateControls()
@@ -174,9 +178,15 @@ void PreferencesDatabasePage::CreateControls()
 
     /* Backup on program close ctrl */
     pBackupOnProgramCloseCheckBoxCtrl = new wxCheckBox(
-        backupBox, tksIDC_BACKUPONPROGRAMCLOSECHECKBOXCTRL, "Perform backup on program close");
+        backupBox, tksIDC_BACKUPONPROGRAMCLOSECHECKBOXCTRL, "Backup database on program close");
     pBackupOnProgramCloseCheckBoxCtrl->SetToolTip(
         "Toggles whether database backups occur when the program is closing");
+
+    /* Zip backup file ctrl */
+    pZipBackupFileCheckBoxCtrl = new wxCheckBox(
+        backupBox, tksIDC_ZIPBACKUPFILECHECKBOXCTRL, "Compress database backup file (ZIP)");
+    pZipBackupFileCheckBoxCtrl->SetToolTip(
+        "Create a compressed (ZIP) file of the database backup file");
 
     /* Flex Grid Sizer for backup controls */
     auto flexGridBackupSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
@@ -197,6 +207,9 @@ void PreferencesDatabasePage::CreateControls()
     flexGridBackupSizer->Add(0, 0);
     flexGridBackupSizer->Add(
         pBackupOnProgramCloseCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    flexGridBackupSizer->Add(0, 0);
+    flexGridBackupSizer->Add(pZipBackupFileCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     backupBoxSizer->Add(flexGridBackupSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -232,6 +245,7 @@ void PreferencesDatabasePage::FillControls()
 {
     pBrowseBackupPathButton->Disable();
     pBackupOnProgramCloseCheckBoxCtrl->Disable();
+    pZipBackupFileCheckBoxCtrl->Disable();
 }
 
 void PreferencesDatabasePage::DataToControls()
@@ -245,11 +259,13 @@ void PreferencesDatabasePage::DataToControls()
     if (pCfg->BackupDatabase()) {
         pBrowseBackupPathButton->Enable();
         pBackupOnProgramCloseCheckBoxCtrl->Enable();
+        pZipBackupFileCheckBoxCtrl->Enable();
 
         pBackupPathTextCtrl->ChangeValue(pCfg->GetBackupPath());
         pBackupPathTextCtrl->SetToolTip(pCfg->GetBackupPath());
 
         pBackupOnProgramCloseCheckBoxCtrl->SetValue(pCfg->BackupOnProgramClose());
+        pZipBackupFileCheckBoxCtrl->SetValue(pCfg->ZipBackupFile());
     }
 }
 
@@ -258,11 +274,13 @@ void PreferencesDatabasePage::OnBackupDatabaseCheck(wxCommandEvent& event)
     if (event.IsChecked()) {
         pBrowseBackupPathButton->Enable();
         pBackupOnProgramCloseCheckBoxCtrl->Enable();
+        pZipBackupFileCheckBoxCtrl->Enable();
     } else {
         pBrowseBackupPathButton->Disable();
         pBackupPathTextCtrl->ChangeValue(wxEmptyString);
         pBackupOnProgramCloseCheckBoxCtrl->Disable();
         pBackupOnProgramCloseCheckBoxCtrl->SetValue(false);
+        pZipBackupFileCheckBoxCtrl->SetValue(false);
     }
 }
 

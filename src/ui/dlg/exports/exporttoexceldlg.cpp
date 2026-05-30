@@ -868,7 +868,7 @@ void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
 
     const auto& presets = pCfg->GetPresets();
     auto presetIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings cfgPreset) {
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting cfgPreset) {
             return cfgPreset.Uuid == preset.Uuid;
         });
 
@@ -953,7 +953,7 @@ void ExportToExcelDialog::OnPresetChoice(wxCommandEvent& event)
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetToApplyIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings& preset) {
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting& preset) {
             return preset.Uuid == presetUuid;
         });
 
@@ -1226,7 +1226,7 @@ void ExportToExcelDialog::SetToDateAndDatePicker()
     mToCtrlDate = pDateStore->SundayDateSeconds;
 }
 
-void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSettings& presetSettings)
+void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSetting& presetSettings)
 {
     pPresetNameTextCtrl->ChangeValue(presetSettings.Name);
     pPresetIsDefaultCheckBoxCtrl->SetValue(presetSettings.IsDefault);
@@ -1250,7 +1250,7 @@ void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSettings&
 
         auto presetOriginalColumnIterator = std::find_if(presetSettings.Columns.begin(),
             presetSettings.Columns.end(),
-            [=](const Core::Configuration::PresetColumnSettings& presetColumn) {
+            [=](const Core::Configuration::PresetColumnSetting& presetColumn) {
                 return name == presetColumn.OriginalColumn;
             });
 

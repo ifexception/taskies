@@ -42,7 +42,7 @@ std::vector<ColumnExportModel> BuildFromList(const std::vector<UI::ColumnListIte
 }
 
 std::vector<ColumnExportModel> BuildFromPreset(
-    const std::vector<Core::Configuration::PresetColumnSettings>& columns)
+    const std::vector<Core::Configuration::PresetColumnSetting>& columns)
 {
     std::vector<ColumnExportModel> columnExportModels;
     for (const auto& column : columns) {
