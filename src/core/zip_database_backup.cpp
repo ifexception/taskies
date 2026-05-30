@@ -38,8 +38,10 @@ ZipResult ZipResult::Fail(int returnCode, const std::string& errorMessage)
     return ZipResult{ false, returnCode, errorMessage };
 }
 
-ZipDatabaseBackup::ZipDatabaseBackup(const std::string& backupDirectory)
-    : mBackupDirectory(backupDirectory)
+ZipDatabaseBackup::ZipDatabaseBackup(std::shared_ptr<spdlog::logger> logger,
+    const std::string& backupDirectory)
+    : pLogger(logger)
+    , mBackupDirectory(backupDirectory)
 {
 }
 
@@ -54,6 +56,8 @@ ZipResult ZipDatabaseBackup::operator()(const std::string& inFileName)
     if (fileSize < 0) {
         return ZipResult::Fail(-1, "File is empty or could not get file size");
     }
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Read \"{0}\" bytes of file: \"{1}\"", fileSize, inFileName);
 
     inFile.seekg(0, std::ios::beg);
 
@@ -72,6 +76,7 @@ ZipResult ZipDatabaseBackup::operator()(const std::string& inFileName)
 
     std::filesystem::path outputFileFullPath =
         std::filesystem::path(mBackupDirectory) / "taskies.zip";
+    SPDLOG_LOGGER_TRACE(pLogger, "Zip file path: \"{0}\"", outputFileFullPath.string());
 
     libzippp::ZipArchive zf(outputFileFullPath.string());
     bool result = zf.open(libzippp::ZipArchive::Write);
@@ -88,6 +93,8 @@ ZipResult ZipDatabaseBackup::operator()(const std::string& inFileName)
     if (ret != LIBZIPPP_OK) {
         return ZipResult::Fail(ret, "Failed to close zip file archive");
     }
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Completed creating zip file");
 
     try {
         if (!std::filesystem::remove(inFileName)) {

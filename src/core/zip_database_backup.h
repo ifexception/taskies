@@ -21,6 +21,9 @@
 
 #include <string>
 
+#include <spdlog/spdlog.h>
+#include <spdlog/logger.h>
+
 namespace tks::Core
 {
 struct ZipResult {
@@ -34,7 +37,7 @@ struct ZipResult {
 
 struct ZipDatabaseBackup {
     ZipDatabaseBackup() = delete;
-    ZipDatabaseBackup(const std::string& backupDirectory);
+    ZipDatabaseBackup(std::shared_ptr<spdlog::logger> logger, const std::string& backupDirectory);
     ZipDatabaseBackup(const ZipDatabaseBackup&) = delete;
     ~ZipDatabaseBackup() = default;
 
@@ -42,6 +45,7 @@ struct ZipDatabaseBackup {
 
     ZipResult operator()(const std::string& dbFileName);
 
+    std::shared_ptr<spdlog::logger> pLogger;
     std::string mBackupDirectory;
 };
 } // namespace tks::Core
