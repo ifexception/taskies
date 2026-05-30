@@ -183,9 +183,10 @@ void PreferencesDatabasePage::CreateControls()
         "Toggles whether database backups occur when the program is closing");
 
     /* Zip backup file ctrl */
-    pZipBackupFileCheckBoxCtrl =
-        new wxCheckBox(backupBox, tksIDC_ZIPBACKUPFILECHECKBOXCTRL, "Zip database backup file");
-    pZipBackupFileCheckBoxCtrl->SetToolTip("Create a zip file of the database backup file");
+    pZipBackupFileCheckBoxCtrl = new wxCheckBox(
+        backupBox, tksIDC_ZIPBACKUPFILECHECKBOXCTRL, "Compress database backup file (ZIP)");
+    pZipBackupFileCheckBoxCtrl->SetToolTip(
+        "Create a compressed (ZIP) file of the database backup file");
 
     /* Flex Grid Sizer for backup controls */
     auto flexGridBackupSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
