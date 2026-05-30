@@ -19,11 +19,30 @@
 
 #include "common.h"
 
+#include <algorithm>
+
 namespace tks::Common
 {
 std::string GetProgramName()
 {
     return "Taskies";
+}
+
+std::string GetProgramNameLowerCase()
+{
+    std::string data = GetProgramName();
+    // clang-format off
+    std::transform(
+        data.begin(),
+        data.end(),
+        data.begin(),
+        [](unsigned char c) {
+            return std::tolower(c);
+        }
+    );
+    // clang-format on
+
+    return data;
 }
 
 std::string GetProgramIconBundleName()

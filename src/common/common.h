@@ -32,6 +32,8 @@ namespace Common
 {
 std::string GetProgramName();
 
+std::string GetProgramNameLowerCase();
+
 std::string GetProgramIconBundleName();
 
 std::string GetExitIconBundleName();
