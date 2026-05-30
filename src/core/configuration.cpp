@@ -157,6 +157,7 @@ ConfigResult Configuration::Save()
     root.at(Sections::DatabaseSection)["backupDatabase"] = mSettings.BackupDatabase;
     root.at(Sections::DatabaseSection)["backupPath"] = mSettings.BackupPath;
     root.at(Sections::DatabaseSection)["backupOnProgramClose"] = mSettings.BackupOnProgramClose;
+    root.at(Sections::DatabaseSection)["zipBackupFile"] = mSettings.ZipBackupFile;
 
     // Task section
     root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -250,6 +251,7 @@ ConfigResult Configuration::RestoreDefaults()
     BackupDatabase(false);
     SetBackupPath("");
     BackupOnProgramClose(false);
+    ZipBackupFile(false);
 
     SetMinutesIncrement(15);
     ShowProjectAssociatedCategories(false);
@@ -286,7 +288,8 @@ ConfigResult Configuration::RestoreDefaults()
                     { "databasePath", pEnv->GetDatabasePath().string() },
                     { "backupDatabase", false },
                     { "backupPath", "" },
-                    { "backupOnProgramClose", false }
+                    { "backupOnProgramClose", false },
+                    { "zipBackupFile", false }
                 }
             },
             {
@@ -593,6 +596,16 @@ void Configuration::BackupOnProgramClose(const bool value)
     mSettings.BackupOnProgramClose = value;
 }
 
+bool Configuration::ZipBackupFile() const
+{
+    return mSettings.ZipBackupFile;
+}
+
+void Configuration::ZipBackupFile(const bool value)
+{
+    mSettings.ZipBackupFile = value;
+}
+
 int Configuration::GetMinutesIncrement() const
 {
     return mSettings.TaskMinutesIncrement;
@@ -833,6 +846,8 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
 
     mSettings.BackupOnProgramClose =
         toml::find_or<bool>(databaseSection, "backupOnProgramClose", false);
+
+    mSettings.ZipBackupFile = toml::find_or<bool>(databaseSection, "zipBackupFile", false);
 }
 
 void Configuration::GetTasksConfig(const toml::value& root)

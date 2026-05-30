@@ -12,6 +12,7 @@ databasePath=""
 backupDatabase=false
 backupPath=""
 backupOnProgramClose=false
+zipBackupFile=false
 
 [tasks]
 minutesIncrement=15

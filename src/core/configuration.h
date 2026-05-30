@@ -139,6 +139,9 @@ public:
     bool BackupOnProgramClose() const;
     void BackupOnProgramClose(const bool value);
 
+    bool ZipBackupFile() const;
+    void ZipBackupFile(const bool value);
+
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
 
@@ -204,6 +207,7 @@ private:
         bool BackupDatabase;
         std::string BackupPath;
         bool BackupOnProgramClose;
+        bool ZipBackupFile;
 
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;
