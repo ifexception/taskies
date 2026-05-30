@@ -85,7 +85,7 @@ ZipResult ZipDatabaseBackup::operator()(const std::string& inFileName)
     std::string dbFileName = fileName.string();
 
     std::filesystem::path outputFileFullPath =
-        std::filesystem::path(mBackupDirectory) / "taskies.zip";
+        std::filesystem::path(mBackupDirectory) / MakeVersionedZipFileName();
     SPDLOG_LOGGER_TRACE(pLogger, "Zip file path: \"{0}\"", outputFileFullPath.string());
 
     libzippp::ZipArchive zf(outputFileFullPath.string());
@@ -124,6 +124,6 @@ std::string ZipDatabaseBackup::MakeVersionedZipFileName()
 {
     std::string filename =
         fmt::format("{0}.{1}.zip", Common::GetProgramNameLowerCase(), Utils::Timestamp());
-    return std::string();
+    return filename;
 }
 } // namespace tks::Core
