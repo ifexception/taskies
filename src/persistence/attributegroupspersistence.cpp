@@ -1068,7 +1068,7 @@ std::string AttributeGroupsPersistence::create = "INSERT INTO "
                                                  "name, "
                                                  "description, "
                                                  "is_static, "
-                                                 "is_default, "
+                                                 "is_default "
                                                  ") "
                                                  "VALUES (?,?,?,?);";
 

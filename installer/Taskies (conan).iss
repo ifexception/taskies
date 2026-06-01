@@ -76,8 +76,6 @@ Source: "xz.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "xzdec.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "taskies.toml"; DestDir: "{userappdata}\Taskies"; Flags: onlyifdoesntexist
-Source: "res\bell16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
-Source: "res\bellnotification16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
 Source: "res\install-wizard.svg"; DestDir: "{app}\res"; Flags: ignoreversion
 
 [Icons]
