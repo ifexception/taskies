@@ -428,7 +428,7 @@ void MainFrame::CreateControls()
     auto projectColumn = new wxDataViewColumn("Project",
         projectNameTextRenderer,
         TaskTreeModel::Col_Project,
-        80,
+        FromDIP(80),
         wxALIGN_LEFT,
         wxDATAVIEW_COL_RESIZABLE);
     projectColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
@@ -438,7 +438,7 @@ void MainFrame::CreateControls()
     auto categoryColumn = new wxDataViewColumn("Category",
         categoryNameTextRenderer,
         TaskTreeModel::Col_Category,
-        80,
+        FromDIP(80),
         wxALIGN_LEFT,
         wxDATAVIEW_COL_RESIZABLE);
     categoryColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
@@ -446,7 +446,7 @@ void MainFrame::CreateControls()
 
     /* Duration Column */
     auto durationColumn = new wxDataViewColumn(
-        "Duration", durationTextRenderer, TaskTreeModel::Col_Duration, 80, wxALIGN_CENTER);
+        "Duration", durationTextRenderer, TaskTreeModel::Col_Duration, FromDIP(80), wxALIGN_CENTER);
     durationColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     durationColumn->SetResizeable(false);
     pDataViewCtrl->AppendColumn(durationColumn);
@@ -460,7 +460,7 @@ void MainFrame::CreateControls()
 
     /* UID Column */
     auto uidColumn = new wxDataViewColumn(
-        "UID", uidTextRenderer, TaskTreeModel::Col_UniqueId, FromDIP(80), wxALIGN_CENTER);
+        "Unique ID", uidTextRenderer, TaskTreeModel::Col_UniqueId, FromDIP(80), wxALIGN_CENTER);
     uidColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     uidColumn->SetResizeable(true);
     pDataViewCtrl->AppendColumn(uidColumn);
@@ -476,7 +476,7 @@ void MainFrame::CreateControls()
 
     /* ID Column */
     auto idColumn = new wxDataViewColumn(
-        "ID", idRenderer, TaskTreeModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+        "ID", idRenderer, TaskTreeModel::Col_Id, 16, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
     pDataViewCtrl->AppendColumn(idColumn);
 
     sizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
