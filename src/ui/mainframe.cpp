@@ -407,6 +407,7 @@ void MainFrame::CreateControls()
     auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto durationTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+    auto uidTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto descriptionTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
 
@@ -450,11 +451,25 @@ void MainFrame::CreateControls()
     durationColumn->SetResizeable(false);
     pDataViewCtrl->AppendColumn(durationColumn);
 
+    /* Billable Column */
+    pDataViewCtrl->AppendToggleColumn("Billable",
+        TaskTreeModel::Col_Billable,
+        wxDATAVIEW_CELL_INERT,
+        wxCOL_WIDTH_AUTOSIZE,
+        wxALIGN_CENTER);
+
+    /* UID Column */
+    auto uidColumn = new wxDataViewColumn(
+        "UID", uidTextRenderer, TaskTreeModel::Col_UniqueId, FromDIP(80), wxALIGN_CENTER);
+    uidColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    uidColumn->SetResizeable(true);
+    pDataViewCtrl->AppendColumn(uidColumn);
+
     /* Description Column */
     auto descriptionColumn = new wxDataViewColumn("Description",
         descriptionTextRenderer,
         TaskTreeModel::Col_Description,
-        80,
+        FromDIP(120),
         wxALIGN_LEFT,
         wxDATAVIEW_COL_RESIZABLE);
     pDataViewCtrl->AppendColumn(descriptionColumn);

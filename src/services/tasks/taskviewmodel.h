@@ -44,6 +44,7 @@ struct TaskViewModel {
     std::string CategoryName;
 
     const std::string GetDuration() const;
+    const std::string TryGetUniqueIdentifier() const;
     const std::string GetTrimmedDescription();
 
     const std::string GetDateCreatedString() const;
