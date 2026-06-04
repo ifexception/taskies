@@ -1,6 +1,6 @@
 ; -- Install Taskies --
 
-#define TaskiesVersion "0.3.5"
+#define TaskiesVersion "0.3.6"
 
 [Setup]
 AppName=Taskies
