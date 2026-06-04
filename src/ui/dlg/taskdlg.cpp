@@ -627,8 +627,51 @@ void TaskDialog::FillControls()
         }
     }
 
-    FetchProjectEntitiesByEmployerOrClient(
-        std::make_optional<std::int64_t>(mEmployerId), std::nullopt);
+    std::vector<Model::ProjectModel> projects;
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+
+    sqliteResult =
+        projectPersistence.FilterByEmployerId(mEmployerId, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+    }
+
+    if (!projects.empty()) {
+        if (!pProjectChoiceCtrl->IsEnabled()) {
+            pProjectChoiceCtrl->Enable();
+        }
+
+        bool hasDefaultProject = false;
+        std::int64_t defaultProjectId = -1;
+
+        for (auto& project : projects) {
+            pProjectChoiceCtrl->Append(
+                project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+
+            if (project.IsDefault) {
+                hasDefaultProject = true;
+                defaultProjectId = project.ProjectId;
+                pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+            }
+        }
+
+        if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+            FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
+        } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+            pCategoryChoiceCtrl->Disable();
+        } else {
+            FetchCategoryEntities(std::nullopt);
+        }
+    } else {
+        pProjectChoiceCtrl->Disable();
+    }
 }
 
 // clang-format off
@@ -747,6 +790,30 @@ void TaskDialog::DataToControls()
 
     bool employerSelected = mEmployerId != -1;
 
+    if (!employerSelected) {
+        // load employer
+        Model::EmployerModel employerModel;
+        Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
+
+        auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::CreateEmployerMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+
+            isSuccess = false;
+        } else {
+            pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
+            isSuccess = true;
+            employerSelected = true;
+        }
+    }
+
     // load project
     Model::ProjectModel projectModel;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
@@ -764,7 +831,7 @@ void TaskDialog::DataToControls()
         return;
     }
 
-    if (!employerSelected) {
+    if (employerSelected) {
         // load projects
         std::vector<Model::ProjectModel> projects;
 
@@ -800,29 +867,6 @@ void TaskDialog::DataToControls()
     pProjectChoiceCtrl->SetStringSelection(projectModel.DisplayName);
     isSuccess = true;
 
-    if (!employerSelected) {
-        // load employer
-        Model::EmployerModel employerModel;
-        Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-
-        auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
-        if (!sqliteResult.Success) {
-            wxRichMessageDialog dialog(this,
-                Messages::CreateEmployerMessage,
-                tks::Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-            dialog.ShowModal();
-
-            isSuccess = false;
-        } else {
-            pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
-            isSuccess = true;
-        }
-    }
-
     // load clients
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
 
@@ -830,7 +874,7 @@ void TaskDialog::DataToControls()
         std::vector<Model::ClientModel> clients;
         std::string defaultSearchTerm = "";
 
-        auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
+        auto result = clientsPersistence.Filter(defaultSearchTerm, clients);
         if (!result.Success) {
             wxRichMessageDialog dialog(this,
                 Messages::FilterClientsByEmployerMessage,
@@ -993,6 +1037,9 @@ void TaskDialog::DataToControls()
         std::string attributeStatusLabel =
             fmt::format(TaskDialog::AttributeValuesCapturedLabel, mTaskAttributeValueModels.size());
         pAttributeCountStatusLabelCtrl->SetLabelText(attributeStatusLabel);
+    } else {
+        mAttributeGroupId = -1;
+        pAttributeGroupChoiceCtrl->SetSelection(0);
     }
 
     if (isSuccess) {
