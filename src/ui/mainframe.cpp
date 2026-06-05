@@ -1741,9 +1741,52 @@ void MainFrame::OnDataViewSelectionActivate(wxDataViewEvent& event)
     SPDLOG_LOGGER_TRACE(
         pLogger, "Clicked on valid task with ID \"{0}\" on date ({1})", mTaskIdToModify, mTaskDate);
 
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
+    int ret = -1;
+
     dlg::TaskDialog editTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
-    editTaskDialog.ShowModal();
+    ret = editTaskDialog.ShowModal();
+
+    if (ret == wxID_OK) {
+        bool isActive = false;
+        Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
+
+        auto sqliteResult = taskPersistence.IsDeleted(mTaskIdToModify, isActive);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::GetByIdTaskMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
+
+        if (isActive) {
+            Services::TaskViewModel taskModel;
+            Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+            auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    Messages::GetByIdTaskMessage,
+                    Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+            } else {
+                pTaskTreeModel->ChangeChild(mTaskDate, taskModel);
+
+                TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
+            }
+        }
+    }
 
     ResetTaskContextMenuVariables();
 }

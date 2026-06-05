@@ -45,6 +45,8 @@ struct ProjectsPersistence final : public PersistenceBase {
     SqliteResult FilterByEmployerIdOrClientId(std::optional<std::int64_t> employerId,
         std::optional<std::int64_t> clientId,
         /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
+    SqliteResult FilterByEmployerId(std::optional<std::int64_t> employerId,
+        /*out*/ std::vector<Model::ProjectModel>& projectModels) const;
     SqliteResult GetById(const std::int64_t projectId,
         /*out*/ Model::ProjectModel& projectModel) const;
     SqliteResult Create(std::int64_t& projectId, const Model::ProjectModel& projectModel);
@@ -58,6 +60,7 @@ struct ProjectsPersistence final : public PersistenceBase {
     static std::string update;
     static std::string isActive;
     static std::string unsetDefault;
-    static std::string filterByEmployerOrClientId;
+    static std::string filterByEmployerId;
+    static std::string filterByEmployerIdAndOrClientId;
 };
 } // namespace tks::Persistence
