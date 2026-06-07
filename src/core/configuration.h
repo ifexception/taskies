@@ -166,6 +166,9 @@ public:
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
+    bool UseProjectDisplayName() const;
+    void UseProjectDisplayName(const bool value);
+
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
 
@@ -218,6 +221,7 @@ private:
         bool OpenTaskDialogOnReminderClick;
 
         bool TodayAlwaysExpanded;
+        bool UseProjectDisplayName;
 
         std::string ExportPath;
         bool CloseExportDialogAfterExporting;

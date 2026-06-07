@@ -174,6 +174,7 @@ ConfigResult Configuration::Save()
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
     root.at(Sections::TasksViewSection)["todayAlwaysExpanded"] = mSettings.TodayAlwaysExpanded;
+    root.at(Sections::TasksViewSection)["useProjectDisplayName"] = mSettings.UseProjectDisplayName;
 
     // Export section
     root.at(Sections::ExportSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -262,6 +263,7 @@ ConfigResult Configuration::RestoreDefaults()
     OpenTaskDialogOnReminderClick(false);
 
     TodayAlwaysExpanded(false);
+    UseProjectDisplayName(false);
 
     SetExportPath(pEnv->GetExportPath().string());
     CloseExportDialogAfterExporting(false);
@@ -308,7 +310,8 @@ ConfigResult Configuration::RestoreDefaults()
             {
                 Sections::TasksViewSection,
                 toml::table {
-                    { "todayAlwaysExpanded", false }
+                    { "todayAlwaysExpanded", false },
+                    { "useProjectDisplayName", false }
                 }
             },
             {
@@ -686,6 +689,16 @@ void Configuration::TodayAlwaysExpanded(const bool value)
     mSettings.TodayAlwaysExpanded = value;
 }
 
+bool Configuration::UseProjectDisplayName() const
+{
+    return mSettings.UseProjectDisplayName;
+}
+
+void Configuration::UseProjectDisplayName(const bool value)
+{
+    mSettings.UseProjectDisplayName = value;
+}
+
 std::string Configuration::GetExportPath() const
 {
     return mSettings.ExportPath;
@@ -886,6 +899,9 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
 
     mSettings.TodayAlwaysExpanded =
         toml::find_or<bool>(tasksViewSection, "todayAlwaysExpanded", false);
+
+    mSettings.UseProjectDisplayName =
+        toml::find_or<bool>(tasksViewSection, "useProjectDisplayName", false);
 }
 
 void Configuration::GetExportConfig(const toml::value& root)

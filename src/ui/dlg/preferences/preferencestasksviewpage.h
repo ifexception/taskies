@@ -62,8 +62,9 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxCheckBox* pTodayAlwaysExpanded;
+    wxCheckBox* pUseProjectDisplayName;
 
-    enum { tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100 };
+    enum { tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100, tksIDC_USEPROJECTDISPLAYNAME };
 };
 } // namespace UI::dlg
 } // namespace tks

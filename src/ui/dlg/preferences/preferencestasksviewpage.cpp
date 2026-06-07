@@ -35,6 +35,7 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pCfg(cfg)
     , pLogger(logger)
     , pTodayAlwaysExpanded(nullptr)
+    , pUseProjectDisplayName(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -50,11 +51,13 @@ bool PreferencesTasksViewPage::IsValid()
 void PreferencesTasksViewPage::Save()
 {
     pCfg->TodayAlwaysExpanded(pTodayAlwaysExpanded->GetValue());
+    pCfg->UseProjectDisplayName(pUseProjectDisplayName->GetValue());
 }
 
 void PreferencesTasksViewPage::Reset()
 {
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
+    pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 }
 
 void PreferencesTasksViewPage::CreateControls()
@@ -71,7 +74,15 @@ void PreferencesTasksViewPage::CreateControls()
     pTodayAlwaysExpanded =
         new wxCheckBox(tasksViewBox, tksIDC_TODAYALWAYSEXPANDED, "Today's date always expanded");
     pTodayAlwaysExpanded->SetToolTip("When selecting other dates, keep today's date expanded too");
-    tasksViewBoxSizer->Add(pTodayAlwaysExpanded, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand());
+    tasksViewBoxSizer->Add(pTodayAlwaysExpanded, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Use project display name control */
+    pUseProjectDisplayName =
+        new wxCheckBox(tasksViewBox, tksIDC_USEPROJECTDISPLAYNAME, "Use project display name");
+    pUseProjectDisplayName->SetToolTip(
+        "Use the project's display name instead of full name on the tasks view");
+    tasksViewBoxSizer->Add(
+        pUseProjectDisplayName, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     SetSizerAndFit(sizer);
 }
@@ -83,5 +94,6 @@ void PreferencesTasksViewPage::FillControls() {}
 void PreferencesTasksViewPage::DataToControls()
 {
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
+    pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 }
 } // namespace tks::UI::dlg
