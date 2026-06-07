@@ -44,7 +44,8 @@ class TaskTreeModel : public wxDataViewModel
 {
 public:
     enum {
-        Col_Project = 0,
+        Col_Date = 0,
+        Col_Project,
         Col_Category,
         Col_Duration,
         Col_Billable,
