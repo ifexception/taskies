@@ -37,6 +37,7 @@ public:
     TaskTreeModelNode() = delete;
     TaskTreeModelNode(const TaskTreeModelNode&) = delete;
     TaskTreeModelNode(TaskTreeModelNode* parent,
+        const std::string& dateName,
         const std::string& projectName,
         const std::string& categoryName,
         const std::string& duration,
@@ -56,6 +57,7 @@ public:
     void Append(TaskTreeModelNode* child);
     const unsigned int GetChildCount() const;
 
+    std::string GetDate() const;
     std::string GetProjectName() const;
     std::string GetCategoryName() const;
     std::string GetDuration() const;
@@ -64,6 +66,7 @@ public:
     std::string GetDescription() const;
     std::int64_t GetTaskId() const;
 
+    void SetDate(const std::string& value);
     void SetProjectName(const std::string& value);
     void SetCategoryName(const std::string& value);
     void SetDuration(const std::string& value);
@@ -76,6 +79,7 @@ private:
     TaskTreeModelNode* pParent;
     std::vector<std::unique_ptr<TaskTreeModelNode>> mChildren;
 
+    std::string mDate;
     std::string mProjectName;
     std::string mCategoryName;
     std::string mDuration;
