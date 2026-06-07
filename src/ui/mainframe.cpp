@@ -404,6 +404,7 @@ void MainFrame::CreateControls()
 
     /* Data View Ctrl */
     /* Data View Columns Renderers */
+    auto dateTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto durationTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
@@ -423,6 +424,16 @@ void MainFrame::CreateControls()
     /* Week Data View Model */
     pTaskTreeModel = new TaskTreeModel(pDateStore->MondayToSundayDateRangeList, pLogger);
     pDataViewCtrl->AssociateModel(pTaskTreeModel.get());
+
+    /* Date Column */
+    auto dateColumn = new wxDataViewColumn("Date",
+        dateTextRenderer,
+        TaskTreeModel::Col_Date,
+        FromDIP(80),
+        wxALIGN_LEFT,
+        wxDATAVIEW_COL_RESIZABLE);
+    dateColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    pDataViewCtrl->AppendColumn(dateColumn);
 
     /* Project Column */
     auto projectColumn = new wxDataViewColumn("Project",
