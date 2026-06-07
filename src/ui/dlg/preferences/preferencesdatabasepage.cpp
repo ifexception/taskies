@@ -280,6 +280,7 @@ void PreferencesDatabasePage::OnBackupDatabaseCheck(wxCommandEvent& event)
         pBackupPathTextCtrl->ChangeValue(wxEmptyString);
         pBackupOnProgramCloseCheckBoxCtrl->Disable();
         pBackupOnProgramCloseCheckBoxCtrl->SetValue(false);
+        pZipBackupFileCheckBoxCtrl->Disable();
         pZipBackupFileCheckBoxCtrl->SetValue(false);
     }
 }
