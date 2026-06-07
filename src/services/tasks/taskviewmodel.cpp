@@ -39,6 +39,7 @@ TaskViewModel::TaskViewModel()
     , ProjectId(-1)
     , CategoryId(-1)
     , WorkdayId(-1)
+    , WorkdayDate()
     , ProjectName()
     , CategoryName()
 {

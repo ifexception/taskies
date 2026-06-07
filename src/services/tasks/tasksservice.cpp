@@ -124,6 +124,10 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
             model.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
             res = sqlite3_column_text(stmt, columnIndex);
+            model.WorkdayDate = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
             model.ProjectName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
@@ -226,6 +230,10 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     taskModel.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
     res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.WorkdayDate =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    res = sqlite3_column_text(stmt, columnIndex);
     taskModel.ProjectName =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
@@ -263,6 +271,7 @@ std::string TasksService::filterByDate = "SELECT "
                                          "tasks.project_id, "
                                          "tasks.category_id, "
                                          "tasks.workday_id, "
+                                         "workdays.date, "
                                          "projects.display_name,"
                                          "categories.name "
                                          "FROM tasks "
@@ -288,9 +297,12 @@ std::string TasksService::getById = "SELECT "
                                     "tasks.project_id, "
                                     "tasks.category_id, "
                                     "tasks.workday_id, "
+                                    "workdays.date, "
                                     "projects.display_name,"
                                     "categories.name "
                                     "FROM tasks "
+                                    "INNER JOIN workdays "
+                                    "ON tasks.workday_id = workdays.workday_id "
                                     "INNER JOIN projects "
                                     "ON tasks.project_id = projects.project_id "
                                     "INNER JOIN categories "
