@@ -132,6 +132,10 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
             res = sqlite3_column_text(stmt, columnIndex);
+            model.ProjectDisplayName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
             model.CategoryName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
@@ -238,6 +242,10 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
     res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.ProjectDisplayName =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    res = sqlite3_column_text(stmt, columnIndex);
     taskModel.CategoryName =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
@@ -272,6 +280,7 @@ std::string TasksService::filterByDate = "SELECT "
                                          "tasks.category_id, "
                                          "tasks.workday_id, "
                                          "workdays.date, "
+                                         "projects.name,"
                                          "projects.display_name,"
                                          "categories.name "
                                          "FROM tasks "
@@ -298,6 +307,7 @@ std::string TasksService::getById = "SELECT "
                                     "tasks.category_id, "
                                     "tasks.workday_id, "
                                     "workdays.date, "
+                                    "projects.name,"
                                     "projects.display_name,"
                                     "categories.name "
                                     "FROM tasks "

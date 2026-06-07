@@ -42,6 +42,7 @@ struct TaskViewModel {
     std::int64_t WorkdayId;
     std::string WorkdayDate;
     std::string ProjectName;
+    std::string ProjectDisplayName;
     std::string CategoryName;
 
     const std::string GetDuration() const;
