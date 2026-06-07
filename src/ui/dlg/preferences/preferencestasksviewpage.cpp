@@ -67,7 +67,7 @@ void PreferencesTasksViewPage::CreateControls()
 
     /* Tasks view box */
     auto tasksViewBox = new wxStaticBox(this, wxID_ANY, "Tasks View");
-    auto tasksViewBoxSizer = new wxStaticBoxSizer(tasksViewBox, wxHORIZONTAL);
+    auto tasksViewBoxSizer = new wxStaticBoxSizer(tasksViewBox, wxVERTICAL);
     sizer->Add(tasksViewBoxSizer, wxSizerFlags().Expand());
 
     /* Today always expanded control */
