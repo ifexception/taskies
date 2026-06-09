@@ -403,7 +403,7 @@ void MainFrame::CreateControls()
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
     /* Data View Ctrl */
-    /* Data View Columns Renderers */
+    /* Data View Column Renderers */
     auto dateTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
@@ -411,7 +411,6 @@ void MainFrame::CreateControls()
     auto uidTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     auto descriptionTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
     descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
-
     auto idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
 
     /* Week Data View Ctrl */
@@ -422,7 +421,7 @@ void MainFrame::CreateControls()
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
 
     /* Week Data View Model */
-    pTaskTreeModel = new TaskTreeModel(pDateStore->MondayToSundayDateRangeList, pLogger);
+    pTaskTreeModel = new TaskTreeModel(pDateStore->MondayToSundayDateRangeList, pCfg, pLogger);
     pDataViewCtrl->AssociateModel(pTaskTreeModel.get());
 
     /* Date Column */
@@ -486,8 +485,12 @@ void MainFrame::CreateControls()
     pDataViewCtrl->AppendColumn(descriptionColumn);
 
     /* ID Column */
-    auto idColumn = new wxDataViewColumn(
-        "ID", idRenderer, TaskTreeModel::Col_Id, 16, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+    auto idColumn = new wxDataViewColumn("ID",
+        idRenderer,
+        TaskTreeModel::Col_Id,
+        16,
+        wxALIGN_CENTER,
+        wxDATAVIEW_COL_HIDDEN);
     pDataViewCtrl->AppendColumn(idColumn);
 
     sizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
@@ -1654,8 +1657,8 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
 
         if (model->IsContainer()) {
             pLogger->info("MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"",
-                model->GetProjectName());
-            mTaskDate = model->GetProjectName();
+                model->GetDate());
+            mTaskDate = model->GetDate();
 
             std::istringstream ssTaskDate{ mTaskDate };
             std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskDate;
@@ -1674,10 +1677,7 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"",
                 model->GetTaskId());
             mTaskIdToModify = model->GetTaskId();
-
-            // This is confusing, but by calling `GetParent()` we are getting the container node
-            // pointer here `GetProjectName()` then returns the date of the container node value
-            mTaskDate = model->GetParent()->GetProjectName();
+            mTaskDate = model->GetParent()->GetDate();
 
             wxMenu menu;
             menu.Append(wxID_COPY, "&Copy", "Copy task description to the clipboard");
@@ -1744,10 +1744,7 @@ void MainFrame::OnDataViewSelectionActivate(wxDataViewEvent& event)
     auto model = (TaskTreeModelNode*) item.GetID();
 
     mTaskIdToModify = model->GetTaskId();
-
-    // This is confusing, but by calling `GetParent()` we are getting the container node
-    // pointer here `GetProjectName()` then returns the date of the container node value
-    mTaskDate = model->GetParent()->GetProjectName();
+    mTaskDate = model->GetParent()->GetDate();
 
     SPDLOG_LOGGER_TRACE(
         pLogger, "Clicked on valid task with ID \"{0}\" on date ({1})", mTaskIdToModify, mTaskDate);

@@ -22,13 +22,17 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "../../core/configuration.h"
+
 #include "../../utils/utils.h"
 
 namespace tks::UI
 {
 TaskTreeModel::TaskTreeModel(const std::vector<std::string>& weekDates,
+    std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger)
-    : pLogger(logger)
+    : pCfg(cfg)
+    , pLogger(logger)
     , pRoots()
 {
     for (const auto& date : weekDates) {
@@ -255,9 +259,13 @@ void TaskTreeModel::ChangeChild(const std::string& date, Services::TaskViewModel
         auto& children = parentNode->GetChildren();
         for (auto it = children.begin(); it != children.end(); ++it) {
             if (it->get()->GetTaskId() == taskModel.TaskId) {
+                std::string projectName = pCfg->UseProjectDisplayName()
+                                              ? taskModel.ProjectDisplayName
+                                              : taskModel.ProjectName;
+
                 auto child = it->get();
                 child->SetDate(taskModel.WorkdayDate);
-                child->SetProjectName(taskModel.ProjectName);
+                child->SetProjectName(projectName);
                 child->SetCategoryName(taskModel.CategoryName);
                 child->SetDuration(taskModel.GetDuration());
                 child->Billable(taskModel.Billable);
@@ -347,9 +355,12 @@ void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewM
 
     if (iterator != pRoots.end()) {
         auto parentNode = iterator->get();
+        std::string projectName =
+            pCfg->UseProjectDisplayName() ? taskModel.ProjectDisplayName : taskModel.ProjectName;
+
         auto childNode = new TaskTreeModelNode(parentNode,
             taskModel.WorkdayDate,
-            taskModel.ProjectName,
+            projectName,
             taskModel.CategoryName,
             taskModel.GetDuration(),
             taskModel.Billable,
@@ -379,9 +390,12 @@ void TaskTreeModel::InsertChildNodes(const std::string& date,
 
         wxDataViewItemArray itemsAdded;
         for (auto& model : models) {
+            std::string projectName = pCfg->UseProjectDisplayName() ? model.ProjectDisplayName
+                                                                    : model.ProjectName;
+
             auto childNode = new TaskTreeModelNode(parentNode,
                 model.WorkdayDate,
-                model.ProjectName,
+                projectName,
                 model.CategoryName,
                 model.GetDuration(),
                 model.Billable,
@@ -409,9 +423,12 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date,
     auto rootDateNode = std::make_unique<TaskTreeModelNode>(nullptr, date);
 
     for (auto& model : models) {
+        std::string projectName =
+            pCfg->UseProjectDisplayName() ? model.ProjectDisplayName : model.ProjectName;
+
         auto node = new TaskTreeModelNode(rootDateNode.get(),
             model.WorkdayDate,
-            model.ProjectName,
+            projectName,
             model.CategoryName,
             model.GetDuration(),
             model.Billable,

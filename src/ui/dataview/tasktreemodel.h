@@ -38,7 +38,13 @@
 
 #include "../../services/tasks/taskviewmodel.h"
 
-namespace tks::UI
+namespace tks
+{
+namespace Core
+{
+class Configuration;
+}
+namespace UI
 {
 class TaskTreeModel : public wxDataViewModel
 {
@@ -56,6 +62,7 @@ public:
     };
 
     TaskTreeModel(const std::vector<std::string>& weekDates,
+        std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger);
     ~TaskTreeModel();
 
@@ -89,7 +96,9 @@ public:
     wxDataViewItemArray TryExpandAllDateNodes(const std::vector<std::string>& dates);
 
 private:
+    std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
     std::vector<std::unique_ptr<TaskTreeModelNode>> pRoots;
 };
+} // namespace UI
 } // namespace tks::UI
