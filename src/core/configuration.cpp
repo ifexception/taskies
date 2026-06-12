@@ -37,6 +37,16 @@ const std::string Sections::TasksViewSection = "tasksView";
 const std::string Sections::ExportSection = "export";
 const std::string Sections::PresetsSection = "presets";
 
+std::vector<TasksViewColumn> DefaultTasksViewColumnList()
+{
+    int orderIndex = 1;
+    return std::vector<TasksViewColumn>{ { "Date", orderIndex++, TasksViewColumnType::String },
+        { "Project", orderIndex++, TasksViewColumnType::String },
+        { "Category", orderIndex++, TasksViewColumnType::String },
+        { "Duration", orderIndex++, TasksViewColumnType::String },
+        { "Description", orderIndex++, TasksViewColumnType::String } };
+}
+
 Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
 {
     Column = presetColumn.Column;

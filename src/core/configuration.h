@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <toml.hpp>
 
@@ -43,6 +44,8 @@ struct TasksViewColumn {
     int Order;
     TasksViewColumnType Type;
 };
+
+static std::vector<TasksViewColumn> DefaultTasksViewColumnList();
 
 struct Sections {
     static const std::string GeneralSection;
