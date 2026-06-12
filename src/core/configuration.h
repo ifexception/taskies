@@ -36,6 +36,14 @@ namespace tks::Core
 {
 class Environment;
 
+enum TasksViewColumnType { String = 1, Integer, Boolean };
+
+struct TasksViewColumn {
+    std::string Name;
+    int Order;
+    TasksViewColumnType Type;
+};
+
 struct Sections {
     static const std::string GeneralSection;
     static const std::string DatabaseSection;
