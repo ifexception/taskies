@@ -709,6 +709,16 @@ void Configuration::UseProjectDisplayName(const bool value)
     mSettings.UseProjectDisplayName = value;
 }
 
+std::vector<TasksViewColumn> Configuration::GetTasksViewColumns() const
+{
+    return mSettings.TasksViewColumns;
+}
+
+void Configuration::SetTasksViewColumns(const std::vector<TasksViewColumn> values)
+{
+    mSettings.TasksViewColumns = values;
+}
+
 std::string Configuration::GetExportPath() const
 {
     return mSettings.ExportPath;

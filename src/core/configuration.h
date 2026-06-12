@@ -180,6 +180,9 @@ public:
     bool UseProjectDisplayName() const;
     void UseProjectDisplayName(const bool value);
 
+    std::vector<TasksViewColumn> GetTasksViewColumns() const;
+    void SetTasksViewColumns(const std::vector<TasksViewColumn> values);
+
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
 
@@ -233,6 +236,7 @@ private:
 
         bool TodayAlwaysExpanded;
         bool UseProjectDisplayName;
+        std::vector<TasksViewColumn> TasksViewColumns;
 
         std::string ExportPath;
         bool CloseExportDialogAfterExporting;
