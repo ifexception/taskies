@@ -37,14 +37,19 @@ const std::string Sections::TasksViewSection = "tasksView";
 const std::string Sections::ExportSection = "export";
 const std::string Sections::PresetsSection = "presets";
 
-std::vector<TasksViewColumn> DefaultTasksViewColumnList()
+Configuration::TasksViewColumnSetting::TasksViewColumnSetting()
+    : Name("")
+    , Order(-1)
+    , Type(TasksViewColumnType::String)
 {
-    int orderIndex = 1;
-    return std::vector<TasksViewColumn>{ { "Date", orderIndex++, TasksViewColumnType::String },
-        { "Project", orderIndex++, TasksViewColumnType::String },
-        { "Category", orderIndex++, TasksViewColumnType::String },
-        { "Duration", orderIndex++, TasksViewColumnType::String },
-        { "Description", orderIndex++, TasksViewColumnType::String } };
+}
+
+Configuration::TasksViewColumnSetting::TasksViewColumnSetting(
+    Common::TasksViewColumn tasksViewColumn)
+{
+    Name = tasksViewColumn.Name;
+    Order = tasksViewColumn.Order;
+    Type = tasksViewColumn.Type;
 }
 
 Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
@@ -192,11 +197,16 @@ ConfigResult Configuration::Save()
     tasksViewColumnArray.as_array_fmt().body_indent = 4;
     tasksViewColumnArray.as_array_fmt().closing_indent = 2;
 
-    if (mSettings.TasksViewColumns.size() == 0) {
-        mSettings.TasksViewColumns = DefaultTasksViewColumnList();
+    if (mSettings.TasksViewColumnSettings.size() == 0) {
+        auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
+        std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
+        for (const auto& tasksViewColumn : defaultTasksViewColumns) {
+            TasksViewColumnSetting setting(tasksViewColumn);
+            tasksViewColumnSettings.push_back(setting);
+        }
     }
 
-    for (const auto& tasksViewColumn : mSettings.TasksViewColumns) {
+    for (const auto& tasksViewColumn : mSettings.TasksViewColumnSettings) {
         // clang-format off
         toml::value value(
             toml::table {
@@ -300,7 +310,13 @@ ConfigResult Configuration::RestoreDefaults()
 
     TodayAlwaysExpanded(false);
     UseProjectDisplayName(false);
-    SetTasksViewColumns(DefaultTasksViewColumnList());
+    auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
+    std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
+    for (const auto& tasksViewColumn : defaultTasksViewColumns) {
+        TasksViewColumnSetting setting(tasksViewColumn);
+        tasksViewColumnSettings.push_back(setting);
+    }
+    SetTasksViewColumns(tasksViewColumnSettings);
 
     SetExportPath(pEnv->GetExportPath().string());
     CloseExportDialogAfterExporting(false);
@@ -367,8 +383,8 @@ ConfigResult Configuration::RestoreDefaults()
     // Tasks View Columns section
     toml::value tasksViewColumnValues(toml::table{ { "tasksViewColumns", toml::array{} } });
     tasksViewColumnValues.as_array_fmt().fmt = toml::array_format::multiline;
-    if (mSettings.TasksViewColumns.size() > 0) {
-        for (const auto& tasksViewColumn : mSettings.TasksViewColumns) {
+    if (mSettings.TasksViewColumnSettings.size() > 0) {
+        for (const auto& tasksViewColumn : mSettings.TasksViewColumnSettings) {
             // clang-format off
                 toml::value tasksViewColumnValue(
                     toml::table {
@@ -758,14 +774,15 @@ void Configuration::UseProjectDisplayName(const bool value)
     mSettings.UseProjectDisplayName = value;
 }
 
-std::vector<TasksViewColumn> Configuration::GetTasksViewColumns() const
+std::vector<Configuration::TasksViewColumnSetting> Configuration::GetTasksViewColumns() const
 {
-    return mSettings.TasksViewColumns;
+    return mSettings.TasksViewColumnSettings;
 }
 
-void Configuration::SetTasksViewColumns(const std::vector<TasksViewColumn> values)
+void Configuration::SetTasksViewColumns(
+    const std::vector<Configuration::TasksViewColumnSetting> values)
 {
-    mSettings.TasksViewColumns = values;
+    mSettings.TasksViewColumnSettings = values;
 }
 
 std::string Configuration::GetExportPath() const
@@ -978,11 +995,16 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
     try {
         if (tasksViewArrayTable.is_array()) {
             if (tasksViewArrayTable.size() == 0) {
-                mSettings.TasksViewColumns = DefaultTasksViewColumnList();
+                auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
+                std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
+                for (const auto& tasksViewColumn : defaultTasksViewColumns) {
+                    TasksViewColumnSetting setting(tasksViewColumn);
+                    tasksViewColumnSettings.push_back(setting);
+                }
             } else {
-                std::vector<TasksViewColumn> columns;
+                std::vector<Configuration::TasksViewColumnSetting> columns;
                 for (size_t i = 0; i < tasksViewArrayTable.size(); i++) {
-                    TasksViewColumn column;
+                    Configuration::TasksViewColumnSetting column;
                     column.Name = toml::find<std::string>(tasksViewArrayTable[i], "name");
                     column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
                     column.Type = static_cast<TasksViewColumnType>(
@@ -995,13 +1017,13 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                 std::sort(
                     columns.begin(),
                     columns.end(),
-                    [](const TasksViewColumn& lhs, const TasksViewColumn& rhs) {
+                    [](const Configuration::TasksViewColumnSetting& lhs, const Configuration::TasksViewColumnSetting& rhs) {
                         return lhs.Order < rhs.Order;
                     }
                 );
                 // clang-format on
 
-                mSettings.TasksViewColumns = columns;
+                mSettings.TasksViewColumnSettings = columns;
             }
         }
     } catch (const std::out_of_range& error) {
@@ -1014,7 +1036,12 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
 
     if (tasksViewColumnParsingFailed) {
         pLogger->warn("Tasks view column parsing failed, reset to default columns");
-        mSettings.TasksViewColumns = DefaultTasksViewColumnList();
+        auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
+        std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
+        for (const auto& tasksViewColumn : defaultTasksViewColumns) {
+            TasksViewColumnSetting setting(tasksViewColumn);
+            tasksViewColumnSettings.push_back(setting);
+        }
     }
 }
 

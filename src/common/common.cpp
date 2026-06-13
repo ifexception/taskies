@@ -94,6 +94,34 @@ std::string GetLicense()
            "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
 }
 
+std::vector<TasksViewColumn> Common::DefaultTasksViewColumnList()
+{
+    int orderIndex = 1;
+    return std::vector<TasksViewColumn>{ { "Date", orderIndex++, TasksViewColumnType::String },
+        { "Project", orderIndex++, TasksViewColumnType::String },
+        { "Category", orderIndex++, TasksViewColumnType::String },
+        { "Duration", orderIndex++, TasksViewColumnType::String },
+        { "Description", orderIndex++, TasksViewColumnType::String } };
+}
+
+std::vector<TasksViewColumn> Common::AvailableTasksViewColumnList()
+{
+    int orderIndex = -1;
+    return std::vector<TasksViewColumn>{
+        { "Date", orderIndex, TasksViewColumnType::String },
+        { "Employer", orderIndex, TasksViewColumnType::String },
+        { "Client", orderIndex, TasksViewColumnType::String },
+        { "Project", orderIndex, TasksViewColumnType::String },
+        { "Category", orderIndex, TasksViewColumnType::String },
+        { "Unique ID", orderIndex, TasksViewColumnType::String },
+        { "Billable", orderIndex, TasksViewColumnType::Boolean },
+        { "Description", orderIndex, TasksViewColumnType::String },
+        { "Duration", orderIndex++, TasksViewColumnType::String },
+        { "Hours", orderIndex, TasksViewColumnType::Integer },
+        { "Minutes", orderIndex, TasksViewColumnType::Integer },
+    };
+}
+
 namespace Resources
 {
 std::string Wizard()

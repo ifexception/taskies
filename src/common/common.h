@@ -48,6 +48,7 @@ std::string GetQuickExportIconBundleName();
 
 std::string GetLicense();
 
+// Presets
 struct PresetColumn {
     std::string Column;
     std::string OriginalColumn;
@@ -90,6 +91,17 @@ struct Preset {
     }
     ~Preset() {}
 };
+
+// Tasks View Columns
+struct TasksViewColumn {
+    std::string Name;
+    int Order;
+    TasksViewColumnType Type;
+};
+
+std::vector<TasksViewColumn> DefaultTasksViewColumnList();
+
+std::vector<TasksViewColumn> AvailableTasksViewColumnList();
 
 namespace Resources
 {

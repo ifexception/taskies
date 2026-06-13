@@ -70,6 +70,8 @@ enum class AttributeTypes { Text = 1, Numeric, Boolean };
 
 enum class ExportFormat { Csv = 1, Excel };
 
+enum class TasksViewColumnType { String = 1, Integer, Boolean };
+
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string InstallLocationToString(InstallLocation installLocation);
 std::string WindowStateToString(WindowState windowState);

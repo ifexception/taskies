@@ -37,16 +37,6 @@ namespace tks::Core
 {
 class Environment;
 
-enum TasksViewColumnType { String = 1, Integer, Boolean };
-
-struct TasksViewColumn {
-    std::string Name;
-    int Order;
-    TasksViewColumnType Type;
-};
-
-static std::vector<TasksViewColumn> DefaultTasksViewColumnList();
-
 struct Sections {
     static const std::string GeneralSection;
     static const std::string DatabaseSection;
@@ -59,6 +49,16 @@ struct Sections {
 class Configuration
 {
 public:
+    struct TasksViewColumnSetting {
+        std::string Name;
+        int Order;
+        TasksViewColumnType Type;
+
+        TasksViewColumnSetting();
+        TasksViewColumnSetting(Common::TasksViewColumn tasksViewColumn);
+        ~TasksViewColumnSetting() = default;
+    };
+
     struct PresetColumnSetting {
         std::string Column;
         std::string OriginalColumn;
@@ -180,8 +180,8 @@ public:
     bool UseProjectDisplayName() const;
     void UseProjectDisplayName(const bool value);
 
-    std::vector<TasksViewColumn> GetTasksViewColumns() const;
-    void SetTasksViewColumns(const std::vector<TasksViewColumn> values);
+    std::vector<Configuration::TasksViewColumnSetting> GetTasksViewColumns() const;
+    void SetTasksViewColumns(const std::vector<Configuration::TasksViewColumnSetting> values);
 
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
@@ -236,7 +236,7 @@ private:
 
         bool TodayAlwaysExpanded;
         bool UseProjectDisplayName;
-        std::vector<TasksViewColumn> TasksViewColumns;
+        std::vector<Configuration::TasksViewColumnSetting> TasksViewColumnSettings;
 
         std::string ExportPath;
         bool CloseExportDialogAfterExporting;
