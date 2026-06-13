@@ -210,8 +210,7 @@ ConfigResult Configuration::Save()
         tasksViewColumnArray.push_back(std::move(value));
     }
 
-    auto& tasksViewColumnValue = root.at(Sections::TasksViewSection)["tasksViewColumns"];
-    tasksViewColumnValue = tasksViewColumnArray;
+    root.at(Sections::TasksViewSection)["tasksViewColumns"] = tasksViewColumnArray;
 
     // Export section
     root.at(Sections::ExportSection).as_table_fmt().fmt = toml::table_format::multiline;
