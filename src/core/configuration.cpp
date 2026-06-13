@@ -1017,7 +1017,10 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                 std::sort(
                     columns.begin(),
                     columns.end(),
-                    [](const Configuration::TasksViewColumnSetting& lhs, const Configuration::TasksViewColumnSetting& rhs) {
+                    [](
+                        const Configuration::TasksViewColumnSetting& lhs,
+                        const Configuration::TasksViewColumnSetting& rhs
+                    ) {
                         return lhs.Order < rhs.Order;
                     }
                 );
