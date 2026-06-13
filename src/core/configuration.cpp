@@ -186,24 +186,32 @@ ConfigResult Configuration::Save()
     root.at(Sections::TasksViewSection)["todayAlwaysExpanded"] = mSettings.TodayAlwaysExpanded;
     root.at(Sections::TasksViewSection)["useProjectDisplayName"] = mSettings.UseProjectDisplayName;
 
-    // Tasks View Columns section
-    toml::value tasksViewColumnValues(toml::table{ { "tasksViewColumns", toml::array{} } });
-    //tasksViewColumnValues.as_array_fmt().fmt = toml::array_format::multiline;
-    if (mSettings.TasksViewColumns.size() > 0) {
-        for (const auto& tasksViewColumn : mSettings.TasksViewColumns) {
-            // clang-format off
-                toml::value tasksViewColumnValue(
-                    toml::table {
-                        { "name", tasksViewColumn.Name },
-                        { "order", tasksViewColumn.Order },
-                        { "type", static_cast<int>(tasksViewColumn.Type) }
-                    }
-                );
-            // clang-format on
+    // Tasks View Columns (sub)section
+    toml::value tasksViewColumnArray(toml::array{});
+    tasksViewColumnArray.as_array_fmt().fmt = toml::array_format::multiline;
+    tasksViewColumnArray.as_array_fmt().body_indent = 4;
+    tasksViewColumnArray.as_array_fmt().closing_indent = 2;
 
-            tasksViewColumnValues.push_back(std::move(tasksViewColumnValue));
-        }
+    if (mSettings.TasksViewColumns.size() == 0) {
+        mSettings.TasksViewColumns = DefaultTasksViewColumnList();
     }
+
+    for (const auto& tasksViewColumn : mSettings.TasksViewColumns) {
+        // clang-format off
+        toml::value value(
+            toml::table {
+                { "name", tasksViewColumn.Name },
+                { "order", tasksViewColumn.Order },
+                { "type", static_cast<int>(tasksViewColumn.Type) }
+            }
+        );
+        // clang-format on
+
+        tasksViewColumnArray.push_back(std::move(value));
+    }
+
+    auto& tasksViewColumnValue = root.at(Sections::TasksViewSection)["tasksViewColumns"];
+    tasksViewColumnValue = tasksViewColumnArray;
 
     // Export section
     root.at(Sections::ExportSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -965,35 +973,49 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
     mSettings.UseProjectDisplayName =
         toml::find_or<bool>(tasksViewSection, "useProjectDisplayName", false);
 
-    const auto& tasksViewColumnSection = toml::find(tasksViewSection, "tasksViewColumns");
+    const auto& tasksViewArrayTable = toml::find(tasksViewSection, "tasksViewColumns");
 
-    if (tasksViewColumnSection.is_array()) {
-        if (tasksViewColumnSection.size() == 0) {
-            mSettings.TasksViewColumns = DefaultTasksViewColumnList();
-        } else {
-            std::vector<TasksViewColumn> columns;
-            for (size_t i = 0; i < tasksViewColumnSection.size(); i++) {
-                TasksViewColumn column;
-                column.Name = toml::find<std::string>(tasksViewColumnSection[i], "name");
-                column.Order = toml::find<int>(tasksViewColumnSection[i], "order");
-                column.Type = static_cast<TasksViewColumnType>(
-                    toml::find<int>(tasksViewColumnSection[i], "type"));
+    bool tasksViewColumnParsingFailed = false;
+    try {
+        if (tasksViewArrayTable.is_array()) {
+            if (tasksViewArrayTable.size() == 0) {
+                mSettings.TasksViewColumns = DefaultTasksViewColumnList();
+            } else {
+                std::vector<TasksViewColumn> columns;
+                for (size_t i = 0; i < tasksViewArrayTable.size(); i++) {
+                    TasksViewColumn column;
+                    column.Name = toml::find<std::string>(tasksViewArrayTable[i], "name");
+                    column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
+                    column.Type = static_cast<TasksViewColumnType>(
+                        toml::find<int>(tasksViewArrayTable[i], "type"));
 
-                columns.push_back(column);
-            }
-
-            // clang-format off
-            std::sort(
-                columns.begin(),
-                columns.end(),
-                [](const TasksViewColumn& lhs, const TasksViewColumn& rhs) {
-                    return lhs.Order < rhs.Order;
+                    columns.push_back(column);
                 }
-            );
-            // clang-format on
 
-            mSettings.TasksViewColumns = columns;
+                // clang-format off
+                std::sort(
+                    columns.begin(),
+                    columns.end(),
+                    [](const TasksViewColumn& lhs, const TasksViewColumn& rhs) {
+                        return lhs.Order < rhs.Order;
+                    }
+                );
+                // clang-format on
+
+                mSettings.TasksViewColumns = columns;
+            }
         }
+    } catch (const std::out_of_range& error) {
+        pLogger->error("Error - {0}", error.what());
+        tasksViewColumnParsingFailed = true;
+    } catch (const toml::type_error& error) {
+        pLogger->error("Error - {0}", error.what());
+        tasksViewColumnParsingFailed = true;
+    }
+
+    if (tasksViewColumnParsingFailed) {
+        pLogger->warn("Tasks view column parsing failed, reset to default columns");
+        mSettings.TasksViewColumns = DefaultTasksViewColumnList();
     }
 }
 
