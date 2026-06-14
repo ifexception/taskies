@@ -70,6 +70,12 @@ void TaskTreeModel::GetValue(wxVariant& variant, const wxDataViewItem& item, uns
     case Col_Date:
         variant = node->GetDate();
         break;
+    case Col_Employer:
+        variant = node->GetEmployerName();
+        break;
+    case Col_Client:
+        variant = node->GetClientName();
+        break;
     case Col_Project:
         variant = node->GetProjectName();
         break;
@@ -106,6 +112,12 @@ bool TaskTreeModel::SetValue(const wxVariant& variant, const wxDataViewItem& ite
     switch (col) {
     case Col_Date:
         node->SetDate(variant.GetString().ToStdString());
+        break;
+    case Col_Employer:
+        node->SetEmployerName(variant.GetString().ToStdString());
+        break;
+    case Col_Client:
+        node->SetClientName(variant.GetString().ToStdString());
         break;
     case Col_Project:
         node->SetProjectName(variant.GetString().ToStdString());
@@ -265,6 +277,8 @@ void TaskTreeModel::ChangeChild(const std::string& date, Services::TaskViewModel
 
                 auto child = it->get();
                 child->SetDate(taskModel.WorkdayDate);
+                child->SetEmployerName(taskModel.EmployerName);
+                child->SetClientName(taskModel.ClientName);
                 child->SetProjectName(projectName);
                 child->SetCategoryName(taskModel.CategoryName);
                 child->SetDuration(taskModel.GetDuration());
@@ -360,6 +374,8 @@ void TaskTreeModel::InsertChildNode(const std::string& date, Services::TaskViewM
 
         auto childNode = new TaskTreeModelNode(parentNode,
             taskModel.WorkdayDate,
+            taskModel.EmployerName,
+            taskModel.ClientName,
             projectName,
             taskModel.CategoryName,
             taskModel.GetDuration(),
@@ -395,6 +411,8 @@ void TaskTreeModel::InsertChildNodes(const std::string& date,
 
             auto childNode = new TaskTreeModelNode(parentNode,
                 model.WorkdayDate,
+                model.EmployerName,
+                model.ClientName,
                 projectName,
                 model.CategoryName,
                 model.GetDuration(),
@@ -428,6 +446,8 @@ void TaskTreeModel::InsertRootAndChildNodes(const std::string& date,
 
         auto node = new TaskTreeModelNode(rootDateNode.get(),
             model.WorkdayDate,
+            model.EmployerName,
+            model.ClientName,
             projectName,
             model.CategoryName,
             model.GetDuration(),

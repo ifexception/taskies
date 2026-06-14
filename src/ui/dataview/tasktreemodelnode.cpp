@@ -23,6 +23,8 @@ namespace tks::UI
 {
 TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
     const std::string& dateName,
+    const std::string& employerName,
+    const std::string& clientName,
     const std::string& projectName,
     const std::string& categoryName,
     const std::string& duration,
@@ -32,6 +34,8 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
     std::int64_t taskId)
     : pParent(parent)
     , mDate(dateName)
+    , mEmployerName(employerName)
+    , mClientName(clientName)
     , mProjectName(projectName)
     , mCategoryName(categoryName)
     , mDuration(duration)
@@ -97,6 +101,16 @@ std::string TaskTreeModelNode::GetDate() const
     return mDate;
 }
 
+std::string TaskTreeModelNode::GetEmployerName() const
+{
+    return mEmployerName;
+}
+
+std::string TaskTreeModelNode::GetClientName() const
+{
+    return mClientName;
+}
+
 std::string TaskTreeModelNode::GetProjectName() const
 {
     return mProjectName;
@@ -135,6 +149,16 @@ std::int64_t TaskTreeModelNode::GetTaskId() const
 void TaskTreeModelNode::SetDate(const std::string& value)
 {
     mDate = value;
+}
+
+void TaskTreeModelNode::SetEmployerName(const std::string& value)
+{
+    mEmployerName = value;
+}
+
+void TaskTreeModelNode::SetClientName(const std::string& value)
+{
+    mClientName = value;
 }
 
 void TaskTreeModelNode::SetProjectName(const std::string& value)

@@ -38,6 +38,8 @@ public:
     TaskTreeModelNode(const TaskTreeModelNode&) = delete;
     TaskTreeModelNode(TaskTreeModelNode* parent,
         const std::string& dateName,
+        const std::string& employerName,
+        const std::string& clientName,
         const std::string& projectName,
         const std::string& categoryName,
         const std::string& duration,
@@ -58,6 +60,8 @@ public:
     const unsigned int GetChildCount() const;
 
     std::string GetDate() const;
+    std::string GetEmployerName() const;
+    std::string GetClientName() const;
     std::string GetProjectName() const;
     std::string GetCategoryName() const;
     std::string GetDuration() const;
@@ -67,6 +71,8 @@ public:
     std::int64_t GetTaskId() const;
 
     void SetDate(const std::string& value);
+    void SetEmployerName(const std::string& value);
+    void SetClientName(const std::string& value);
     void SetProjectName(const std::string& value);
     void SetCategoryName(const std::string& value);
     void SetDuration(const std::string& value);
@@ -80,6 +86,8 @@ private:
     std::vector<std::unique_ptr<TaskTreeModelNode>> mChildren;
 
     std::string mDate;
+    std::string mEmployerName;
+    std::string mClientName;
     std::string mProjectName;
     std::string mCategoryName;
     std::string mDuration;
@@ -87,6 +95,7 @@ private:
     std::string mUniqueId;
     std::string mDescription;
     std::int64_t mTaskId;
+
     bool bContainer;
 };
 }
