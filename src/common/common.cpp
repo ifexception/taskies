@@ -94,31 +94,29 @@ std::string GetLicense()
            "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
 }
 
-std::vector<TasksViewColumn> Common::DefaultTasksViewColumnList()
+std::vector<TasksViewColumn> DefaultTasksViewColumnList()
 {
     int orderIndex = 1;
-    return std::vector<TasksViewColumn>{ { "Date", orderIndex++, TasksViewColumnType::String },
-        { "Project", orderIndex++, TasksViewColumnType::String },
-        { "Category", orderIndex++, TasksViewColumnType::String },
-        { "Duration", orderIndex++, TasksViewColumnType::String },
-        { "Description", orderIndex++, TasksViewColumnType::String } };
+    return std::vector<TasksViewColumn>{ { "Date", orderIndex++, 0, TasksViewColumnType::String },
+        { "Project", orderIndex++, 3, TasksViewColumnType::String },
+        { "Category", orderIndex++, 4, TasksViewColumnType::String },
+        { "Duration", orderIndex++, 5, TasksViewColumnType::String },
+        { "Description", orderIndex++, 8, TasksViewColumnType::String } };
 }
 
-std::vector<TasksViewColumn> Common::AvailableTasksViewColumnList()
+std::vector<TasksViewColumn> AvailableTasksViewColumnList()
 {
     int orderIndex = -1;
     return std::vector<TasksViewColumn>{
-        { "Date", orderIndex, TasksViewColumnType::String },
-        { "Employer", orderIndex, TasksViewColumnType::String },
-        { "Client", orderIndex, TasksViewColumnType::String },
-        { "Project", orderIndex, TasksViewColumnType::String },
-        { "Category", orderIndex, TasksViewColumnType::String },
-        { "Unique ID", orderIndex, TasksViewColumnType::String },
-        { "Billable", orderIndex, TasksViewColumnType::Boolean },
-        { "Description", orderIndex, TasksViewColumnType::String },
-        { "Duration", orderIndex++, TasksViewColumnType::String },
-        { "Hours", orderIndex, TasksViewColumnType::Integer },
-        { "Minutes", orderIndex, TasksViewColumnType::Integer },
+        { "Date", orderIndex, 0, TasksViewColumnType::String },
+        { "Employer", orderIndex, 1, TasksViewColumnType::String },
+        { "Client", orderIndex, 2, TasksViewColumnType::String },
+        { "Project", orderIndex, 3, TasksViewColumnType::String },
+        { "Category", orderIndex, 4, TasksViewColumnType::String },
+        { "Duration", orderIndex, 5, TasksViewColumnType::String },
+        { "Billable", orderIndex, 6, TasksViewColumnType::Boolean },
+        { "Unique ID", orderIndex, 7, TasksViewColumnType::String },
+        { "Description", orderIndex, 8, TasksViewColumnType::String },
     };
 }
 

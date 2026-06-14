@@ -52,6 +52,7 @@ public:
     struct TasksViewColumnSetting {
         std::string Name;
         int Order;
+        int DataViewColIndex;
         TasksViewColumnType Type;
 
         TasksViewColumnSetting();

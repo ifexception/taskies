@@ -40,6 +40,7 @@ const std::string Sections::PresetsSection = "presets";
 Configuration::TasksViewColumnSetting::TasksViewColumnSetting()
     : Name("")
     , Order(-1)
+    , DataViewColIndex(-1)
     , Type(TasksViewColumnType::String)
 {
 }
@@ -49,6 +50,7 @@ Configuration::TasksViewColumnSetting::TasksViewColumnSetting(
 {
     Name = tasksViewColumn.Name;
     Order = tasksViewColumn.Order;
+    DataViewColIndex = tasksViewColumn.DataViewColIndex;
     Type = tasksViewColumn.Type;
 }
 
@@ -212,6 +214,7 @@ ConfigResult Configuration::Save()
             toml::table {
                 { "name", tasksViewColumn.Name },
                 { "order", tasksViewColumn.Order },
+                { "dataViewColIndex", tasksViewColumn.DataViewColIndex },
                 { "type", static_cast<int>(tasksViewColumn.Type) }
             }
         );
@@ -390,6 +393,7 @@ ConfigResult Configuration::RestoreDefaults()
                     toml::table {
                         { "name", tasksViewColumn.Name },
                         { "order", tasksViewColumn.Order },
+                        { "dataViewColIndex", tasksViewColumn.DataViewColIndex },
                         { "type", static_cast<int>(tasksViewColumn.Type) }
                     }
                 );
@@ -1007,6 +1011,8 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                     Configuration::TasksViewColumnSetting column;
                     column.Name = toml::find<std::string>(tasksViewArrayTable[i], "name");
                     column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
+                    column.DataViewColIndex =
+                        toml::find<int>(tasksViewArrayTable[i], "dataViewColIndex");
                     column.Type = static_cast<TasksViewColumnType>(
                         toml::find<int>(tasksViewArrayTable[i], "type"));
 
@@ -1039,6 +1045,7 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
 
     if (tasksViewColumnParsingFailed) {
         pLogger->warn("Tasks view column parsing failed, reset to default columns");
+
         auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
         std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
         for (const auto& tasksViewColumn : defaultTasksViewColumns) {
