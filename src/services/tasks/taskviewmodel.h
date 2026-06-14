@@ -41,6 +41,8 @@ struct TaskViewModel {
     std::int64_t CategoryId;
     std::int64_t WorkdayId;
     std::string WorkdayDate;
+    std::string EmployerName;
+    std::string ClientName;
     std::string ProjectName;
     std::string ProjectDisplayName;
     std::string CategoryName;
