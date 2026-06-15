@@ -473,7 +473,7 @@ void MainFrame::CreateControls()
     }
 
     std::vector<Core::Configuration::TasksViewColumnSetting> columnDiff;
-
+    // Get columns that the user hadn't selected into a separate vector
     for (const auto& availableTasksViewColumnSetting : availableTasksViewColumnSettings) {
         if (std::find(cfgTasksViewColumns.begin(),
                 cfgTasksViewColumns.end(),
@@ -482,7 +482,7 @@ void MainFrame::CreateControls()
         }
     }
 
-    /* Add columns as hidden columns not selected so data view model still works correctly */
+    /* Add these columns as hidden columns so data view model still works correctly */
     for (const auto& taskViewColumn : columnDiff) {
         switch (taskViewColumn.Type) {
         case TasksViewColumnType::String: {
