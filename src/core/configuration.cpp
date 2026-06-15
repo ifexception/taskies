@@ -54,6 +54,11 @@ Configuration::TasksViewColumnSetting::TasksViewColumnSetting(
     Type = tasksViewColumn.Type;
 }
 
+bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other)
+{
+    return Name == other.Name && DataViewColIndex == other.DataViewColIndex && Type == other.Type;
+}
+
 Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
 {
     Column = presetColumn.Column;
@@ -206,6 +211,8 @@ ConfigResult Configuration::Save()
             TasksViewColumnSetting setting(tasksViewColumn);
             tasksViewColumnSettings.push_back(setting);
         }
+
+        mSettings.TasksViewColumnSettings = tasksViewColumnSettings;
     }
 
     for (const auto& tasksViewColumn : mSettings.TasksViewColumnSettings) {
@@ -1012,7 +1019,7 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                     column.Name = toml::find<std::string>(tasksViewArrayTable[i], "name");
                     column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
                     column.DataViewColIndex =
-                        toml::find<int>(tasksViewArrayTable[i], "dataViewColIndex");
+                        toml::find<unsigned int>(tasksViewArrayTable[i], "dataViewColIndex");
                     column.Type = static_cast<TasksViewColumnType>(
                         toml::find<int>(tasksViewArrayTable[i], "type"));
 
@@ -1052,6 +1059,8 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
             TasksViewColumnSetting setting(tasksViewColumn);
             tasksViewColumnSettings.push_back(setting);
         }
+
+        mSettings.TasksViewColumnSettings = tasksViewColumnSettings;
     }
 }
 

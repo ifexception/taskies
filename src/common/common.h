@@ -96,7 +96,7 @@ struct Preset {
 struct TasksViewColumn {
     std::string Name;
     int Order;
-    int DataViewColIndex;
+    unsigned int DataViewColIndex;
     TasksViewColumnType Type;
 };
 

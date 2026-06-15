@@ -52,12 +52,14 @@ public:
     struct TasksViewColumnSetting {
         std::string Name;
         int Order;
-        int DataViewColIndex;
+        unsigned int DataViewColIndex;
         TasksViewColumnType Type;
 
         TasksViewColumnSetting();
         TasksViewColumnSetting(Common::TasksViewColumn tasksViewColumn);
         ~TasksViewColumnSetting() = default;
+
+        bool operator==(const TasksViewColumnSetting& other);
     };
 
     struct PresetColumnSetting {
