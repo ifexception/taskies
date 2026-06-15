@@ -36,6 +36,10 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pLogger(logger)
     , pTodayAlwaysExpanded(nullptr)
     , pUseProjectDisplayName(nullptr)
+    , pAvailableTasksViewColumns(nullptr)
+    , pRightChevronButton(nullptr)
+    , pLeftChevronButton(nullptr)
+    , pSelectedTasksViewColumns(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -83,6 +87,37 @@ void PreferencesTasksViewPage::CreateControls()
         "Use the project's display name instead of full name on the tasks view");
     tasksViewBoxSizer->Add(
         pUseProjectDisplayName, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Tasks View Columns group box */
+    auto tasksViewColumnsStaticBox =
+        new wxStaticBox(this, wxID_ANY, "Tasks View Columns Selection");
+    auto tasksViewColumnBoxSizer = new wxStaticBoxSizer(tasksViewColumnsStaticBox, wxHORIZONTAL);
+    sizer->Add(tasksViewColumnBoxSizer, wxSizerFlags().Expand().Proportion(1));
+
+    pAvailableTasksViewColumns = new wxCheckListBox(this, tksIDC_AVAILABLETASKSVIEWCOLUMNS);
+    pAvailableTasksViewColumns->SetToolTip("Available columns to display in the tasks view");
+    tasksViewColumnBoxSizer->Add(
+        pAvailableTasksViewColumns, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Chevrons (right/left) buttons */
+    auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
+    tasksViewColumnBoxSizer->Add(chevronButtonSizer, wxSizerFlags());
+
+    pRightChevronButton =
+        new wxButton(this, tksIDC_RIGHTCHEVRONBUTTON, ">", wxDefaultPosition, wxSize(32, -1));
+    pRightChevronButton->SetToolTip("Select a column to include in the tasks view display");
+    pLeftChevronButton =
+        new wxButton(this, tksIDC_LEFTCHEVRONBUTTON, "<", wxDefaultPosition, wxSize(32, -1));
+    pLeftChevronButton->SetToolTip("Select a header to exclude in the tasks view display");
+
+    chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+    chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+
+    /* Tasks view selected columns */
+    pSelectedTasksViewColumns = new wxCheckListBox(this, tksIDC_SELECTEDTASKSVIEWCOLUMNS);
+    pSelectedTasksViewColumns->SetToolTip("Columns selected for display in the tasks view");
+    tasksViewColumnBoxSizer->Add(
+        pSelectedTasksViewColumns, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     SetSizerAndFit(sizer);
 }

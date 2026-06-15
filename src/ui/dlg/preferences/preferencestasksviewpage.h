@@ -64,7 +64,19 @@ private:
     wxCheckBox* pTodayAlwaysExpanded;
     wxCheckBox* pUseProjectDisplayName;
 
-    enum { tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100, tksIDC_USEPROJECTDISPLAYNAME };
+    wxCheckListBox* pAvailableTasksViewColumns;
+    wxButton* pRightChevronButton;
+    wxButton* pLeftChevronButton;
+    wxCheckListBox* pSelectedTasksViewColumns;
+
+    enum {
+        tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100,
+        tksIDC_USEPROJECTDISPLAYNAME,
+        tksIDC_AVAILABLETASKSVIEWCOLUMNS,
+        tksIDC_RIGHTCHEVRONBUTTON,
+        tksIDC_LEFTCHEVRONBUTTON,
+        tksIDC_SELECTEDTASKSVIEWCOLUMNS
+    };
 };
 } // namespace UI::dlg
 } // namespace tks
