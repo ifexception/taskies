@@ -443,7 +443,7 @@ void MainFrame::CreateControls()
                 columnTextRenderer,
                 taskViewColumn.ColumnModelIndex,
                 FromDIP(80),
-                wxALIGN_LEFT,
+                static_cast<wxAlignment>(taskViewColumn.TextAlignment),
                 wxDATAVIEW_COL_RESIZABLE);
             column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
             pDataViewCtrl->AppendColumn(column);
@@ -454,7 +454,7 @@ void MainFrame::CreateControls()
                 taskViewColumn.ColumnModelIndex,
                 wxDATAVIEW_CELL_INERT,
                 wxCOL_WIDTH_AUTOSIZE,
-                wxALIGN_CENTER);
+                static_cast<wxAlignment>(taskViewColumn.TextAlignment));
             break;
         }
         default:
