@@ -403,15 +403,6 @@ void MainFrame::CreateControls()
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
     /* Data View Ctrl */
-    /* Data View Column Renderers */
-    auto dateTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    auto durationTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    auto uidTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    auto descriptionTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
-    auto idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
 
     /* Week Data View Ctrl */
     pDataViewCtrl = new wxDataViewCtrl(framePanel,
@@ -424,6 +415,9 @@ void MainFrame::CreateControls()
     pTaskTreeModel = new TaskTreeModel(pDateStore->MondayToSundayDateRangeList, pCfg, pLogger);
     pDataViewCtrl->AssociateModel(pTaskTreeModel.get());
 
+    /* Date Data View Column Renderers */
+    auto dateTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+
     /* Date Column */
     auto dateColumn = new wxDataViewColumn("Date",
         dateTextRenderer,
@@ -434,63 +428,113 @@ void MainFrame::CreateControls()
     dateColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
     pDataViewCtrl->AppendColumn(dateColumn);
 
-    /* Project Column */
-    auto projectColumn = new wxDataViewColumn("Project",
-        projectNameTextRenderer,
-        TaskTreeModel::Col_Project,
-        FromDIP(80),
-        wxALIGN_LEFT,
-        wxDATAVIEW_COL_RESIZABLE);
-    projectColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    pDataViewCtrl->AppendColumn(projectColumn);
+    /* Get Cfg Tasks View Column headers */
+    auto cfgTasksViewColumns = pCfg->GetTasksViewColumns();
+    cfgTasksViewColumns.erase(cfgTasksViewColumns.begin());
 
-    /* Category Column */
-    auto categoryColumn = new wxDataViewColumn("Category",
-        categoryNameTextRenderer,
-        TaskTreeModel::Col_Category,
-        FromDIP(80),
-        wxALIGN_LEFT,
-        wxDATAVIEW_COL_RESIZABLE);
-    categoryColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    pDataViewCtrl->AppendColumn(categoryColumn);
+    for (const auto& taskViewColumn : cfgTasksViewColumns) {
+        switch (taskViewColumn.Type) {
+        case TasksViewColumnType::String: {
+            if (taskViewColumn.Name == "Description") {
+                auto descriptionTextRenderer =
+                    new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+                descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
+                auto descriptionColumn = new wxDataViewColumn("Description",
+                    descriptionTextRenderer,
+                    taskViewColumn.DataViewColIndex,
+                    FromDIP(120),
+                    wxALIGN_LEFT,
+                    wxDATAVIEW_COL_RESIZABLE);
+                pDataViewCtrl->AppendColumn(descriptionColumn);
+            } else {
+                auto columnTextRenderer =
+                    new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+                auto column = new wxDataViewColumn(taskViewColumn.Name,
+                    columnTextRenderer,
+                    taskViewColumn.DataViewColIndex,
+                    FromDIP(80),
+                    wxALIGN_LEFT,
+                    wxDATAVIEW_COL_RESIZABLE);
+                column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+                pDataViewCtrl->AppendColumn(column);
+            }
+            break;
+        }
+        case TasksViewColumnType::Boolean: {
+            pDataViewCtrl->AppendToggleColumn(taskViewColumn.Name,
+                taskViewColumn.DataViewColIndex,
+                wxDATAVIEW_CELL_INERT,
+                wxCOL_WIDTH_AUTOSIZE,
+                wxALIGN_CENTER);
+            break;
+        }
+        default:
+            break;
+        }
+    }
 
-    /* Duration Column */
-    auto durationColumn = new wxDataViewColumn(
-        "Duration", durationTextRenderer, TaskTreeModel::Col_Duration, FromDIP(80), wxALIGN_CENTER);
-    durationColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    durationColumn->SetResizeable(false);
-    pDataViewCtrl->AppendColumn(durationColumn);
+    /* Load all available tasks view columns */
+    auto availableTasksViewColumns = Common::AvailableTasksViewColumnList();
+    availableTasksViewColumns.erase(availableTasksViewColumns.begin());
 
-    /* Billable Column */
-    pDataViewCtrl->AppendToggleColumn("Billable",
-        TaskTreeModel::Col_Billable,
-        wxDATAVIEW_CELL_INERT,
-        wxCOL_WIDTH_AUTOSIZE,
-        wxALIGN_CENTER);
+    std::vector<Core::Configuration::TasksViewColumnSetting> availableTasksViewColumnSettings;
+    for (const auto& column : availableTasksViewColumns) {
+        Core::Configuration::TasksViewColumnSetting setting(column);
+        availableTasksViewColumnSettings.push_back(setting);
+    }
 
-    /* UID Column */
-    auto uidColumn = new wxDataViewColumn(
-        "Unique ID", uidTextRenderer, TaskTreeModel::Col_UniqueId, FromDIP(80), wxALIGN_CENTER);
-    uidColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    uidColumn->SetResizeable(true);
-    pDataViewCtrl->AppendColumn(uidColumn);
+    std::vector<Core::Configuration::TasksViewColumnSetting> columnDiff;
+    /*for (const auto& cfgTasksViewColumn : cfgTasksViewColumns) {
+        if (std::find(availableTasksViewColumnSettings.begin(),
+                availableTasksViewColumnSettings.end(),
+                cfgTasksViewColumn) == availableTasksViewColumnSettings.end()) {
+            columnDiff.push_back(cfgTasksViewColumn);
+        }
+    }*/
 
-    /* Description Column */
-    auto descriptionColumn = new wxDataViewColumn("Description",
-        descriptionTextRenderer,
-        TaskTreeModel::Col_Description,
-        FromDIP(120),
-        wxALIGN_LEFT,
-        wxDATAVIEW_COL_RESIZABLE);
-    pDataViewCtrl->AppendColumn(descriptionColumn);
+    for (const auto& availableTasksViewColumnSetting : availableTasksViewColumnSettings) {
+        if (std::find(cfgTasksViewColumns.begin(),
+                cfgTasksViewColumns.end(),
+                availableTasksViewColumnSetting) == cfgTasksViewColumns.end()) {
+            columnDiff.push_back(availableTasksViewColumnSetting);
+        }
+    }
+
+    /* Add columns as hidden columns not selected so data view model still works correctly */
+    for (const auto& taskViewColumn : columnDiff) {
+        switch (taskViewColumn.Type) {
+        case TasksViewColumnType::String: {
+            auto columnTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+            auto column = new wxDataViewColumn(taskViewColumn.Name,
+                columnTextRenderer,
+                taskViewColumn.DataViewColIndex,
+                FromDIP(80),
+                wxALIGN_CENTER,
+                wxDATAVIEW_COL_HIDDEN);
+            column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+            pDataViewCtrl->AppendColumn(column);
+            break;
+        }
+        case TasksViewColumnType::Boolean: {
+            pDataViewCtrl->AppendToggleColumn(taskViewColumn.Name,
+                taskViewColumn.DataViewColIndex,
+                wxDATAVIEW_CELL_INERT,
+                wxCOL_WIDTH_AUTOSIZE,
+                wxALIGN_CENTER,
+                wxDATAVIEW_COL_HIDDEN);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    /* Data View ID Column Renderer */
+    auto idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
 
     /* ID Column */
-    auto idColumn = new wxDataViewColumn("ID",
-        idRenderer,
-        TaskTreeModel::Col_Id,
-        16,
-        wxALIGN_CENTER,
-        wxDATAVIEW_COL_HIDDEN);
+    auto idColumn = new wxDataViewColumn(
+        "ID", idRenderer, TaskTreeModel::Col_Id, 16, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
     pDataViewCtrl->AppendColumn(idColumn);
 
     sizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
