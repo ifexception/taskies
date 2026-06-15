@@ -40,7 +40,8 @@ const std::string Sections::PresetsSection = "presets";
 Configuration::TasksViewColumnSetting::TasksViewColumnSetting()
     : Name("")
     , Order(-1)
-    , DataViewColIndex(-1)
+    , ColumnModelIndex(TasksViewColumnModelIndex::Unknown)
+    , TextAlignment(TasksViewColumnTextAlignment::AlignLeft)
     , Type(TasksViewColumnType::String)
 {
 }
@@ -50,13 +51,20 @@ Configuration::TasksViewColumnSetting::TasksViewColumnSetting(
 {
     Name = tasksViewColumn.Name;
     Order = tasksViewColumn.Order;
-    DataViewColIndex = tasksViewColumn.DataViewColIndex;
+    ColumnModelIndex = tasksViewColumn.ColumnModelIndex;
+    TextAlignment = tasksViewColumn.TextAlignment;
     Type = tasksViewColumn.Type;
 }
 
 bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other)
 {
-    return Name == other.Name && DataViewColIndex == other.DataViewColIndex && Type == other.Type;
+    return Name == other.Name && ColumnModelIndex == other.ColumnModelIndex && Type == other.Type;
+}
+
+bool Configuration::TasksViewColumnSetting::IsDecriptionColumn() const
+{
+    return Name == "Description" &&
+           ColumnModelIndex == TasksViewColumnModelIndex::ColumnModelIndexDescription;
 }
 
 Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
@@ -202,7 +210,7 @@ ConfigResult Configuration::Save()
     toml::value tasksViewColumnArray(toml::array{});
     tasksViewColumnArray.as_array_fmt().fmt = toml::array_format::multiline;
     tasksViewColumnArray.as_array_fmt().body_indent = 4;
-    tasksViewColumnArray.as_array_fmt().closing_indent = 2;
+    tasksViewColumnArray.as_array_fmt().closing_indent = 0;
 
     if (mSettings.TasksViewColumnSettings.size() == 0) {
         auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
@@ -221,7 +229,8 @@ ConfigResult Configuration::Save()
             toml::table {
                 { "name", tasksViewColumn.Name },
                 { "order", tasksViewColumn.Order },
-                { "dataViewColIndex", tasksViewColumn.DataViewColIndex },
+                { "columnModelIndex", static_cast<unsigned int>(tasksViewColumn.ColumnModelIndex) },
+                { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
                 { "type", static_cast<int>(tasksViewColumn.Type) }
             }
         );
@@ -400,7 +409,11 @@ ConfigResult Configuration::RestoreDefaults()
                     toml::table {
                         { "name", tasksViewColumn.Name },
                         { "order", tasksViewColumn.Order },
-                        { "dataViewColIndex", tasksViewColumn.DataViewColIndex },
+                        {
+                            "columnModelIndex",
+                            static_cast<unsigned int>(tasksViewColumn.ColumnModelIndex)
+                        },
+                        { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
                         { "type", static_cast<int>(tasksViewColumn.Type) }
                     }
                 );
@@ -1003,6 +1016,8 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
     const auto& tasksViewArrayTable = toml::find(tasksViewSection, "tasksViewColumns");
 
     bool tasksViewColumnParsingFailed = false;
+    // Any TOML error must immediately fail while reading this section and just fallback to using
+    // the default tasks view columns to err on the safe side
     try {
         if (tasksViewArrayTable.is_array()) {
             if (tasksViewArrayTable.size() == 0) {
@@ -1018,8 +1033,10 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                     Configuration::TasksViewColumnSetting column;
                     column.Name = toml::find<std::string>(tasksViewArrayTable[i], "name");
                     column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
-                    column.DataViewColIndex =
-                        toml::find<unsigned int>(tasksViewArrayTable[i], "dataViewColIndex");
+                    column.ColumnModelIndex = static_cast<TasksViewColumnModelIndex>(
+                        toml::find<unsigned int>(tasksViewArrayTable[i], "columnModelIndex"));
+                    column.TextAlignment = static_cast<TasksViewColumnTextAlignment>(
+                        toml::find<int>(tasksViewArrayTable[i], "textAlignment"));
                     column.Type = static_cast<TasksViewColumnType>(
                         toml::find<int>(tasksViewArrayTable[i], "type"));
 
@@ -1041,6 +1058,8 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
 
                 mSettings.TasksViewColumnSettings = columns;
             }
+        } else {
+            tasksViewColumnParsingFailed = true;
         }
     } catch (const std::out_of_range& error) {
         pLogger->error("Error - {0}", error.what());

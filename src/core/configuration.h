@@ -52,7 +52,8 @@ public:
     struct TasksViewColumnSetting {
         std::string Name;
         int Order;
-        unsigned int DataViewColIndex;
+        TasksViewColumnModelIndex ColumnModelIndex;
+        TasksViewColumnTextAlignment TextAlignment;
         TasksViewColumnType Type;
 
         TasksViewColumnSetting();
@@ -60,6 +61,9 @@ public:
         ~TasksViewColumnSetting() = default;
 
         bool operator==(const TasksViewColumnSetting& other);
+
+        // Special method that returns true on "Description" column due to its unique attributes
+        bool IsDecriptionColumn() const;
     };
 
     struct PresetColumnSetting {

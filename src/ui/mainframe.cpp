@@ -435,34 +435,23 @@ void MainFrame::CreateControls()
     for (const auto& taskViewColumn : cfgTasksViewColumns) {
         switch (taskViewColumn.Type) {
         case TasksViewColumnType::String: {
-            if (taskViewColumn.Name == "Description") {
-                auto descriptionTextRenderer =
-                    new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-                descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
-                auto descriptionColumn = new wxDataViewColumn("Description",
-                    descriptionTextRenderer,
-                    taskViewColumn.DataViewColIndex,
-                    FromDIP(120),
-                    wxALIGN_LEFT,
-                    wxDATAVIEW_COL_RESIZABLE);
-                pDataViewCtrl->AppendColumn(descriptionColumn);
-            } else {
-                auto columnTextRenderer =
-                    new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-                auto column = new wxDataViewColumn(taskViewColumn.Name,
-                    columnTextRenderer,
-                    taskViewColumn.DataViewColIndex,
-                    FromDIP(80),
-                    wxALIGN_LEFT,
-                    wxDATAVIEW_COL_RESIZABLE);
-                column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-                pDataViewCtrl->AppendColumn(column);
+            auto columnTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+            if (taskViewColumn.IsDecriptionColumn()) {
+                columnTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
             }
+            auto column = new wxDataViewColumn(taskViewColumn.Name,
+                columnTextRenderer,
+                taskViewColumn.ColumnModelIndex,
+                FromDIP(80),
+                wxALIGN_LEFT,
+                wxDATAVIEW_COL_RESIZABLE);
+            column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+            pDataViewCtrl->AppendColumn(column);
             break;
         }
         case TasksViewColumnType::Boolean: {
             pDataViewCtrl->AppendToggleColumn(taskViewColumn.Name,
-                taskViewColumn.DataViewColIndex,
+                taskViewColumn.ColumnModelIndex,
                 wxDATAVIEW_CELL_INERT,
                 wxCOL_WIDTH_AUTOSIZE,
                 wxALIGN_CENTER);
@@ -484,13 +473,6 @@ void MainFrame::CreateControls()
     }
 
     std::vector<Core::Configuration::TasksViewColumnSetting> columnDiff;
-    /*for (const auto& cfgTasksViewColumn : cfgTasksViewColumns) {
-        if (std::find(availableTasksViewColumnSettings.begin(),
-                availableTasksViewColumnSettings.end(),
-                cfgTasksViewColumn) == availableTasksViewColumnSettings.end()) {
-            columnDiff.push_back(cfgTasksViewColumn);
-        }
-    }*/
 
     for (const auto& availableTasksViewColumnSetting : availableTasksViewColumnSettings) {
         if (std::find(cfgTasksViewColumns.begin(),
@@ -505,19 +487,16 @@ void MainFrame::CreateControls()
         switch (taskViewColumn.Type) {
         case TasksViewColumnType::String: {
             auto columnTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-            auto column = new wxDataViewColumn(taskViewColumn.Name,
-                columnTextRenderer,
-                taskViewColumn.DataViewColIndex,
-                FromDIP(80),
-                wxALIGN_CENTER,
-                wxDATAVIEW_COL_HIDDEN);
+            auto column = new wxDataViewColumn(
+                taskViewColumn.Name, columnTextRenderer, taskViewColumn.ColumnModelIndex);
+            column->SetHidden(true);
             column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
             pDataViewCtrl->AppendColumn(column);
             break;
         }
         case TasksViewColumnType::Boolean: {
             pDataViewCtrl->AppendToggleColumn(taskViewColumn.Name,
-                taskViewColumn.DataViewColIndex,
+                taskViewColumn.ColumnModelIndex,
                 wxDATAVIEW_CELL_INERT,
                 wxCOL_WIDTH_AUTOSIZE,
                 wxALIGN_CENTER,
