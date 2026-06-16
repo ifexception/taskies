@@ -24,6 +24,9 @@
 #include "../../common/clientdata.h"
 
 #include "../../../common/common.h"
+
+#include "../../../utils/utils.h"
+
 #include "../../../core/configuration.h"
 
 namespace tks::UI::dlg
@@ -40,6 +43,8 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
     , pSelectedTasksViewColumns(nullptr)
+    , mCheckedAvailableColumns()
+    , mCheckedSelectedColumns()
 {
     CreateControls();
     ConfigureEventBindings();
@@ -122,13 +127,72 @@ void PreferencesTasksViewPage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
-void PreferencesTasksViewPage::ConfigureEventBindings() {}
+void PreferencesTasksViewPage::ConfigureEventBindings()
+{
+    pAvailableTasksViewColumns->Bind(wxEVT_CHECKLISTBOX,
+        &PreferencesTasksViewPage::OnAvailableColumnCheck,
+        this,
+        tksIDC_AVAILABLETASKSVIEWCOLUMNS);
 
-void PreferencesTasksViewPage::FillControls() {}
+    pSelectedTasksViewColumns->Bind(wxEVT_CHECKLISTBOX,
+        &PreferencesTasksViewPage::OnSelectedColumnCheck,
+        this,
+        tksIDC_SELECTEDTASKSVIEWCOLUMNS);
+}
+
+void PreferencesTasksViewPage::FillControls()
+{
+    for (const auto& tasksViewColumn : Common::AvailableTasksViewColumnList()) {
+        pAvailableTasksViewColumns->Append(
+            tasksViewColumn.Name, Utils::IntToVoidPointer(tasksViewColumn.ColumnModelIndex));
+    }
+}
 
 void PreferencesTasksViewPage::DataToControls()
 {
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
+
+    auto cfgTasksViewColumns = pCfg->GetTasksViewColumns();
+
+    for (const auto& tasksViewColumn : cfgTasksViewColumns) {
+        pSelectedTasksViewColumns->Append(
+            tasksViewColumn.Name, Utils::IntToVoidPointer(tasksViewColumn.ColumnModelIndex));
+    }
+
+    std::vector<Core::Configuration::TasksViewColumnSetting> availableTasksViewColumnSettings;
+    for (const auto& column : Common::AvailableTasksViewColumnList()) {
+        Core::Configuration::TasksViewColumnSetting setting(column);
+        availableTasksViewColumnSettings.push_back(setting);
+    }
+
+    for (const auto& column : cfgTasksViewColumns) {
+        int itemId = pAvailableTasksViewColumns->FindString(column.Name);
+        if (itemId >= 0) {
+            pAvailableTasksViewColumns->Delete(itemId);
+        }
+    }
+}
+
+void PreferencesTasksViewPage::OnAvailableColumnCheck(wxCommandEvent& event)
+{
+    SPDLOG_LOGGER_TRACE(pLogger, "Item un/checked on list box with ID \"{0}\"", event.GetInt());
+    int item = event.GetInt();
+    if (pAvailableTasksViewColumns->IsChecked(item)) {
+        mCheckedAvailableColumns.push_back(item);
+    } else {
+        // erase from selection
+    }
+}
+
+void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
+{
+    SPDLOG_LOGGER_TRACE(pLogger, "Item un/checked on list box with ID \"{0}\"", event.GetInt());
+    int item = event.GetInt();
+    if (pSelectedTasksViewColumns->IsChecked(item)) {
+        mCheckedSelectedColumns.push_back(item);
+    } else {
+        // erase from selection
+    }
 }
 } // namespace tks::UI::dlg

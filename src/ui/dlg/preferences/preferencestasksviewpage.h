@@ -58,6 +58,9 @@ private:
     void FillControls();
     void DataToControls();
 
+    void OnAvailableColumnCheck(wxCommandEvent& event);
+    void OnSelectedColumnCheck(wxCommandEvent& event);
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
@@ -68,6 +71,9 @@ private:
     wxButton* pRightChevronButton;
     wxButton* pLeftChevronButton;
     wxCheckListBox* pSelectedTasksViewColumns;
+
+    std::vector<int> mCheckedAvailableColumns;
+    std::vector<int> mCheckedSelectedColumns;
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100,
