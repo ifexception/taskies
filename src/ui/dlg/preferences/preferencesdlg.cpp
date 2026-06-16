@@ -117,15 +117,17 @@ void PreferencesDialog::CreateControls()
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
-    buttonsSizer->AddStretchSpacer();
-
     pRestoreDefaultsButton = new wxButton(this, tksIDC_RESTOREDEFAULTBUTTON, "Restore Defaults");
 
     pOKButton = new wxButton(this, wxID_OK, "OK");
     pOKButton->SetDefault();
 
+    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
+
     buttonsSizer->Add(pRestoreDefaultsButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->AddStretchSpacer();
     buttonsSizer->Add(pOKButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -151,6 +153,13 @@ void PreferencesDialog::ConfigureEventBindings()
         &PreferencesDialog::OnOK,
         this,
         wxID_OK
+    );
+
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesDialog::OnCancel,
+        this,
+        wxID_CANCEL
     );
 
     Bind(
@@ -247,8 +256,13 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
     EndDialog(wxID_OK);
 }
 
-void PreferencesDialog::OnClose(wxCloseEvent& event)
+void PreferencesDialog::OnCancel(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
+}
+
+void PreferencesDialog::OnClose(wxCloseEvent& event)
+{
+    EndDialog(wxID_EXIT);
 }
 } // namespace tks::UI::dlg
