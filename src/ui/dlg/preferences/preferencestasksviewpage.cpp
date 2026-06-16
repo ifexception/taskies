@@ -108,7 +108,7 @@ void PreferencesTasksViewPage::CreateControls()
 
     /* Chevrons (right/left) buttons */
     auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
-    tasksViewColumnBoxSizer->Add(chevronButtonSizer, wxSizerFlags());
+    tasksViewColumnBoxSizer->Add(chevronButtonSizer, wxSizerFlags().CenterVertical());
 
     pRightChevronButton =
         new wxButton(this, tksIDC_RIGHTCHEVRONBUTTON, ">", wxDefaultPosition, wxSize(32, -1));
