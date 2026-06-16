@@ -20,6 +20,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -27,6 +29,8 @@
 #endif
 
 #include <spdlog/logger.h>
+
+#include "../../../common/enums.h"
 
 namespace tks
 {
@@ -60,6 +64,8 @@ private:
 
     void OnAvailableColumnCheck(wxCommandEvent& event);
     void OnSelectedColumnCheck(wxCommandEvent& event);
+    void OnRightChevronButtonClick(wxCommandEvent& event);
+    void OnLeftChevronButtonClick(wxCommandEvent& event);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
@@ -72,7 +78,7 @@ private:
     wxButton* pLeftChevronButton;
     wxCheckListBox* pSelectedTasksViewColumns;
 
-    std::vector<int> mCheckedAvailableColumns;
+    std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedAvailableColumns;
     std::vector<int> mCheckedSelectedColumns;
 
     enum {
