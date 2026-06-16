@@ -187,7 +187,7 @@ void PreferencesTasksViewPage::DataToControls()
         availableTasksViewColumnSettings.push_back(setting);
     }
 
-    for (const auto& column : cfgTasksViewColumns) {
+    for (const auto& column : pCfg->GetTasksViewColumns()) {
         int itemId = pAvailableTasksViewColumns->FindString(column.Name);
         if (itemId >= 0) {
             pAvailableTasksViewColumns->Delete(itemId);
@@ -250,7 +250,14 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
     }
 }
 
-void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event) {}
+void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
+{
+    if (mCheckedAvailableColumns.size() == 0) {
+        return;
+    }
+
+
+}
 
 void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event) {}
 } // namespace tks::UI::dlg
