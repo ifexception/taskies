@@ -21,6 +21,8 @@
 
 #include <algorithm>
 
+#include <fmt/format.h>
+
 #include <wx/richtooltip.h>
 
 #include "../../../common/common.h"
@@ -120,7 +122,8 @@ void PreferencesTasksViewPage::CreateControls()
 
     /* Tasks view selected columns */
     pSelectedTasksViewColumns = new wxCheckListBox(this, tksIDC_SELECTEDTASKSVIEWCOLUMNS);
-    pSelectedTasksViewColumns->SetToolTip("Columns selected for display in the tasks view");
+    pSelectedTasksViewColumns->SetToolTip(
+        "Columns selected for display in the tasks view (\"Date\" column cannot be modified)");
     tasksViewColumnBoxSizer->Add(
         pSelectedTasksViewColumns, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
@@ -164,6 +167,14 @@ void PreferencesTasksViewPage::DataToControls()
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 
     auto cfgTasksViewColumns = pCfg->GetTasksViewColumns();
+
+    // Demarcate the date column is readonly and cannot be removed / modified
+    auto& dateTasksViewColumn = cfgTasksViewColumns[0];
+    auto dateTasksViewColumnName = fmt::format("{0} (readonly)", dateTasksViewColumn.Name);
+    pSelectedTasksViewColumns->Append(
+        dateTasksViewColumnName, Utils::IntToVoidPointer(dateTasksViewColumn.ColumnModelIndex));
+
+    cfgTasksViewColumns.erase(cfgTasksViewColumns.begin());
 
     for (const auto& tasksViewColumn : cfgTasksViewColumns) {
         pSelectedTasksViewColumns->Append(
