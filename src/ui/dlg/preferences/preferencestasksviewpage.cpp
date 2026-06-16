@@ -19,6 +19,8 @@
 
 #include "preferencestasksviewpage.h"
 
+#include <algorithm>
+
 #include <wx/richtooltip.h>
 
 #include "../../common/clientdata.h"
@@ -176,23 +178,39 @@ void PreferencesTasksViewPage::DataToControls()
 
 void PreferencesTasksViewPage::OnAvailableColumnCheck(wxCommandEvent& event)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, "Item un/checked on list box with ID \"{0}\"", event.GetInt());
     int item = event.GetInt();
     if (pAvailableTasksViewColumns->IsChecked(item)) {
+        SPDLOG_LOGGER_TRACE(
+            pLogger, "Item checked on available list box with ID \"{0}\"", event.GetInt());
         mCheckedAvailableColumns.push_back(item);
     } else {
-        // erase from selection
+        SPDLOG_LOGGER_TRACE(
+            pLogger, "Item unchecked from available list box with ID \"{0}\"", event.GetInt());
+        mCheckedAvailableColumns.erase(
+            std::remove(mCheckedAvailableColumns.begin(), mCheckedAvailableColumns.end(), item),
+            mCheckedAvailableColumns.end());
     }
 }
 
 void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, "Item un/checked on list box with ID \"{0}\"", event.GetInt());
     int item = event.GetInt();
     if (pSelectedTasksViewColumns->IsChecked(item)) {
+        SPDLOG_LOGGER_TRACE(
+            pLogger, "Item checked on selected list box with ID \"{0}\"", event.GetInt());
+
+        if (item == 0) {
+            SPDLOG_LOGGER_TRACE(pLogger, "Selected special \"Date\" column, deselect it");
+            pSelectedTasksViewColumns->Check(item, false);
+            return;
+        }
         mCheckedSelectedColumns.push_back(item);
     } else {
-        // erase from selection
+        SPDLOG_LOGGER_TRACE(
+            pLogger, "Item unchecked from selected list box with ID \"{0}\"", event.GetInt());
+        mCheckedSelectedColumns.erase(
+            std::remove(mCheckedSelectedColumns.begin(), mCheckedSelectedColumns.end(), item),
+            mCheckedSelectedColumns.end());
     }
 }
 } // namespace tks::UI::dlg
