@@ -25,8 +25,6 @@
 
 #include <wx/richtooltip.h>
 
-#include "../../../common/common.h"
-
 #include "../../../utils/utils.h"
 
 #include "../../../core/configuration.h"
@@ -47,6 +45,7 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pSelectedTasksViewColumns(nullptr)
     , mCheckedAvailableColumns()
     , mCheckedSelectedColumns()
+    , mAllTasksViewColumns(Common::AvailableTasksViewColumnList())
 {
     CreateControls();
     ConfigureEventBindings();
@@ -155,7 +154,7 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
 
 void PreferencesTasksViewPage::FillControls()
 {
-    for (const auto& tasksViewColumn : Common::AvailableTasksViewColumnList()) {
+    for (const auto& tasksViewColumn : mAllTasksViewColumns) {
         pAvailableTasksViewColumns->Append(
             tasksViewColumn.Name, Utils::IntToVoidPointer(tasksViewColumn.ColumnModelIndex));
     }
@@ -182,7 +181,7 @@ void PreferencesTasksViewPage::DataToControls()
     }
 
     std::vector<Core::Configuration::TasksViewColumnSetting> availableTasksViewColumnSettings;
-    for (const auto& column : Common::AvailableTasksViewColumnList()) {
+    for (const auto& column : mAllTasksViewColumns) {
         Core::Configuration::TasksViewColumnSetting setting(column);
         availableTasksViewColumnSettings.push_back(setting);
     }
@@ -256,7 +255,29 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
         return;
     }
 
+    std::sort(mCheckedAvailableColumns.begin(),
+        mCheckedAvailableColumns.end(),
+        [&](std::pair<int, TasksViewColumnModelIndex>& lhs,
+            std::pair<int, TasksViewColumnModelIndex>& rhs) { return lhs.first > rhs.first; });
 
+    for (const auto& checkedPair : mCheckedAvailableColumns) {
+        pAvailableTasksViewColumns->Check(checkedPair.first, false);
+        pAvailableTasksViewColumns->Delete(checkedPair.first);
+    }
+
+    for (const auto& tasksViewColumn : mCheckedAvailableColumns) {
+        auto iter = std::find_if(mAllTasksViewColumns.begin(),
+            mAllTasksViewColumns.end(),
+            [tasksViewColumn](const Common::TasksViewColumn& column) {
+                return tasksViewColumn.second == column.ColumnModelIndex;
+            });
+
+        if (iter != mAllTasksViewColumns.end()) {
+            auto& foundColumn = *iter;
+            pSelectedTasksViewColumns->Append(
+                foundColumn.Name, Utils::IntToVoidPointer(foundColumn.ColumnModelIndex));
+        }
+    }
 }
 
 void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event) {}

@@ -30,12 +30,14 @@
 
 #include <spdlog/logger.h>
 
+#include "../../../common/common.h"
 #include "../../../common/enums.h"
 
 namespace tks
 {
 namespace Core
 {
+class TasksViewColumnSetting;
 class Configuration;
 } // namespace Core
 namespace UI::dlg
@@ -80,6 +82,8 @@ private:
 
     std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedAvailableColumns;
     std::vector<int> mCheckedSelectedColumns;
+
+    std::vector<Common::TasksViewColumn> mAllTasksViewColumns;
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100,
