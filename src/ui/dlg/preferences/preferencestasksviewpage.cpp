@@ -62,6 +62,26 @@ void PreferencesTasksViewPage::Save()
 {
     pCfg->TodayAlwaysExpanded(pTodayAlwaysExpanded->GetValue());
     pCfg->UseProjectDisplayName(pUseProjectDisplayName->GetValue());
+
+    std::vector<Core::Configuration::TasksViewColumnSetting> selectedColumnsFromListBox;
+
+    for (unsigned int i = 0; i < pSelectedTasksViewColumns->GetCount(); i++) {
+        int clientData = Utils::VoidPointerToInt(pSelectedTasksViewColumns->GetClientData(i));
+        int index = static_cast<TasksViewColumnModelIndex>(clientData);
+
+        auto iter = std::find_if(mAllTasksViewColumns.begin(),
+            mAllTasksViewColumns.end(),
+            [index](const Core::Configuration::TasksViewColumnSetting& setting) {
+                return setting.ColumnModelIndex == index;
+            });
+
+        if (iter != mAllTasksViewColumns.end()) {
+            Core::Configuration::TasksViewColumnSetting foundSetting = *iter;
+            selectedColumnsFromListBox.push_back(foundSetting);
+        }
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger, "{0} columns selected", selectedColumnsFromListBox.size());
 }
 
 void PreferencesTasksViewPage::Reset()
@@ -255,10 +275,17 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
         return;
     }
 
-    std::sort(mCheckedAvailableColumns.begin(),
+    // clang-format off
+    std::sort(
+        mCheckedAvailableColumns.begin(),
         mCheckedAvailableColumns.end(),
         [&](std::pair<int, TasksViewColumnModelIndex>& lhs,
-            std::pair<int, TasksViewColumnModelIndex>& rhs) { return lhs.first > rhs.first; });
+            std::pair<int, TasksViewColumnModelIndex>& rhs
+            ) {
+                return lhs.first > rhs.first;
+        }
+    );
+    // clang-format on
 
     for (const auto& checkedPair : mCheckedAvailableColumns) {
         pAvailableTasksViewColumns->Check(checkedPair.first, false);
