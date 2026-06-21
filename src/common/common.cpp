@@ -131,7 +131,7 @@ std::vector<TasksViewColumn> AvailableTasksViewColumnList()
     int orderIndex = -1;
     return std::vector<TasksViewColumn>{
         { "Date",
-            orderIndex,
+            1,
             TasksViewColumnModelIndex::ColumnModelIndexDate,
             TasksViewColumnTextAlignment::AlignLeft,
             TasksViewColumnType::String },
