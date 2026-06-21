@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -81,7 +82,7 @@ private:
     wxCheckListBox* pSelectedTasksViewColumns;
 
     std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedAvailableColumns;
-    std::vector<int> mCheckedSelectedColumns;
+    std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedSelectedColumns;
 
     std::vector<Common::TasksViewColumn> mAllTasksViewColumns;
 

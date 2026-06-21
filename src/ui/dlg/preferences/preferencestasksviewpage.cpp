@@ -149,28 +149,38 @@ void PreferencesTasksViewPage::CreateControls()
     SetSizerAndFit(sizer);
 }
 
+// clang-format off
 void PreferencesTasksViewPage::ConfigureEventBindings()
 {
-    pAvailableTasksViewColumns->Bind(wxEVT_CHECKLISTBOX,
+    pAvailableTasksViewColumns->Bind(
+        wxEVT_CHECKLISTBOX,
         &PreferencesTasksViewPage::OnAvailableColumnCheck,
         this,
-        tksIDC_AVAILABLETASKSVIEWCOLUMNS);
+        tksIDC_AVAILABLETASKSVIEWCOLUMNS
+    );
 
-    pSelectedTasksViewColumns->Bind(wxEVT_CHECKLISTBOX,
+    pSelectedTasksViewColumns->Bind(
+        wxEVT_CHECKLISTBOX,
         &PreferencesTasksViewPage::OnSelectedColumnCheck,
         this,
-        tksIDC_SELECTEDTASKSVIEWCOLUMNS);
+        tksIDC_SELECTEDTASKSVIEWCOLUMNS
+    );
 
-    pRightChevronButton->Bind(wxEVT_BUTTON,
+    pRightChevronButton->Bind(
+        wxEVT_BUTTON,
         &PreferencesTasksViewPage::OnRightChevronButtonClick,
         this,
-        tksIDC_RIGHTCHEVRONBUTTON);
+        tksIDC_RIGHTCHEVRONBUTTON
+    );
 
-    pLeftChevronButton->Bind(wxEVT_BUTTON,
+    pLeftChevronButton->Bind(
+        wxEVT_BUTTON,
         &PreferencesTasksViewPage::OnLeftChevronButtonClick,
         this,
-        tksIDC_LEFTCHEVRONBUTTON);
+        tksIDC_LEFTCHEVRONBUTTON
+    );
 }
+// clang-format on
 
 void PreferencesTasksViewPage::FillControls()
 {
@@ -249,7 +259,9 @@ void PreferencesTasksViewPage::OnAvailableColumnCheck(wxCommandEvent& event)
 
 void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
 {
+    TasksViewColumnModelIndex index = TasksViewColumnModelIndex::Unknown;
     int item = event.GetInt();
+
     if (pSelectedTasksViewColumns->IsChecked(item)) {
         SPDLOG_LOGGER_TRACE(
             pLogger, "Item checked on selected list box with ID \"{0}\"", event.GetInt());
@@ -259,13 +271,28 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
             pSelectedTasksViewColumns->Check(item, false);
             return;
         }
-        mCheckedSelectedColumns.push_back(item);
+
+        wxCheckListBox* cListBox = wxDynamicCast(event.GetEventObject(), wxCheckListBox);
+        if (cListBox != nullptr) {
+            int clientData = Utils::VoidPointerToInt(cListBox->GetClientData(item));
+            index = static_cast<TasksViewColumnModelIndex>(clientData);
+        }
+
+        mCheckedSelectedColumns.push_back(std::make_pair(item, index));
     } else {
         SPDLOG_LOGGER_TRACE(
             pLogger, "Item unchecked from selected list box with ID \"{0}\"", event.GetInt());
+
+        // clang-format off
         mCheckedSelectedColumns.erase(
-            std::remove(mCheckedSelectedColumns.begin(), mCheckedSelectedColumns.end(), item),
+            std::remove_if(
+                mCheckedSelectedColumns.begin(),
+                mCheckedSelectedColumns.end(),
+                [item](const std::pair<int, TasksViewColumnModelIndex>& p) {
+                    return p.first == item;
+                }),
             mCheckedSelectedColumns.end());
+        // clang-format on
     }
 }
 
@@ -305,7 +332,52 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
                 foundColumn.Name, Utils::IntToVoidPointer(foundColumn.ColumnModelIndex));
         }
     }
+
+    mCheckedAvailableColumns.clear();
 }
 
-void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event) {}
+void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
+{
+    if (mCheckedSelectedColumns.size() == 0) {
+        return;
+    }
+
+    // clang-format off
+    std::sort(
+        mCheckedSelectedColumns.begin(),
+        mCheckedSelectedColumns.end(),
+        [&](std::pair<int, TasksViewColumnModelIndex>& lhs,
+            std::pair<int, TasksViewColumnModelIndex>& rhs
+            ) {
+                return lhs.first > rhs.first;
+        }
+    );
+    // clang-format on
+
+    for (const auto& checkedPair : mCheckedSelectedColumns) {
+        pSelectedTasksViewColumns->Check(checkedPair.first, false);
+        pSelectedTasksViewColumns->Delete(checkedPair.first);
+    }
+
+    for (const auto& tasksViewColumn : mCheckedSelectedColumns) {
+        auto iter = std::find_if(mAllTasksViewColumns.begin(),
+            mAllTasksViewColumns.end(),
+            [tasksViewColumn](const Common::TasksViewColumn& column) {
+                return tasksViewColumn.second == column.ColumnModelIndex;
+            });
+
+        if (iter != mAllTasksViewColumns.end()) {
+            auto& foundColumn = *iter;
+
+            if (foundColumn.ColumnModelIndex == TasksViewColumnModelIndex::ColumnModelIndexDate) {
+                continue;
+            }
+
+            pAvailableTasksViewColumns->Append(
+                foundColumn.Name, Utils::IntToVoidPointer(foundColumn.ColumnModelIndex));
+        }
+    }
+
+    mCheckedSelectedColumns.clear();
+}
 } // namespace tks::UI::dlg
