@@ -82,6 +82,13 @@ void PreferencesTasksViewPage::Save()
     }
 
     SPDLOG_LOGGER_TRACE(pLogger, "{0} columns selected", selectedColumnsFromListBox.size());
+
+    for (size_t i = 0; i < selectedColumnsFromListBox.size(); i++) {
+        selectedColumnsFromListBox[i].Order = i;
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger, "{0} columns sorted", selectedColumnsFromListBox.size());
+    // pCfg->SetTasksViewColumns(selectedColumnsFromListBox);
 }
 
 void PreferencesTasksViewPage::Reset()
