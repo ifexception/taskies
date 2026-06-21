@@ -69,6 +69,8 @@ private:
     void OnSelectedColumnCheck(wxCommandEvent& event);
     void OnRightChevronButtonClick(wxCommandEvent& event);
     void OnLeftChevronButtonClick(wxCommandEvent& event);
+    void OnAscButtonClick(wxCommandEvent& event);
+    void OnDescButtonClick(wxCommandEvent& event);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
@@ -80,6 +82,8 @@ private:
     wxButton* pRightChevronButton;
     wxButton* pLeftChevronButton;
     wxCheckListBox* pSelectedTasksViewColumns;
+    wxButton* pAscSortButton;
+    wxButton* pDescSortButton;
 
     std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedAvailableColumns;
     std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedSelectedColumns;
@@ -92,7 +96,9 @@ private:
         tksIDC_AVAILABLETASKSVIEWCOLUMNS,
         tksIDC_RIGHTCHEVRONBUTTON,
         tksIDC_LEFTCHEVRONBUTTON,
-        tksIDC_SELECTEDTASKSVIEWCOLUMNS
+        tksIDC_SELECTEDTASKSVIEWCOLUMNS,
+        tksIDC_ASCSORTBUTTON,
+        tksIDC_DESCSORTBUTTON
     };
 };
 } // namespace UI::dlg

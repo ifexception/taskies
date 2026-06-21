@@ -20,6 +20,7 @@
 #include "preferencestasksviewpage.h"
 
 #include <algorithm>
+#include <cassert>
 
 #include <fmt/format.h>
 
@@ -43,6 +44,8 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
     , pSelectedTasksViewColumns(nullptr)
+    , pAscSortButton(nullptr)
+    , pDescSortButton(nullptr)
     , mCheckedAvailableColumns()
     , mCheckedSelectedColumns()
     , mAllTasksViewColumns(Common::AvailableTasksViewColumnList())
@@ -87,7 +90,11 @@ void PreferencesTasksViewPage::Save()
         selectedColumnsFromListBox[i].Order = i;
     }
 
-    SPDLOG_LOGGER_TRACE(pLogger, "{0} columns sorted", selectedColumnsFromListBox.size());
+    assert(selectedColumnsFromListBox[0].Name == "Date" &&
+           selectedColumnsFromListBox[0].Order == TasksViewColumnModelIndex::ColumnModelIndexDate);
+
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Applied order index to {0} columns", selectedColumnsFromListBox.size());
     // pCfg->SetTasksViewColumns(selectedColumnsFromListBox);
 }
 
@@ -141,17 +148,29 @@ void PreferencesTasksViewPage::CreateControls()
     pRightChevronButton->SetToolTip("Select a column to include in the tasks view display");
     pLeftChevronButton =
         new wxButton(this, tksIDC_LEFTCHEVRONBUTTON, "<", wxDefaultPosition, wxSize(32, -1));
-    pLeftChevronButton->SetToolTip("Select a header to exclude in the tasks view display");
+    pLeftChevronButton->SetToolTip("Select a column to exclude in the tasks view display");
 
     chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
 
     /* Tasks view selected columns */
     pSelectedTasksViewColumns = new wxCheckListBox(this, tksIDC_SELECTEDTASKSVIEWCOLUMNS);
-    pSelectedTasksViewColumns->SetToolTip(
-        "Columns selected for display in the tasks view (\"Date\" column cannot be modified)");
+    pSelectedTasksViewColumns->SetToolTip("Columns selected for display in the tasks view "
+                                          "(\"Date\" column cannot be modified/selected)");
     tasksViewColumnBoxSizer->Add(
         pSelectedTasksViewColumns, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Sort (up/down) buttons */
+    auto sortButtonSizer = new wxBoxSizer(wxVERTICAL);
+    tasksViewColumnBoxSizer->Add(sortButtonSizer, wxSizerFlags().CenterVertical());
+
+    pAscSortButton = new wxButton(this, tksIDC_ASCSORTBUTTON, "Asc");
+    pAscSortButton->SetToolTip("Sort a column ascending in the tasks view display");
+    pDescSortButton = new wxButton(this, tksIDC_DESCSORTBUTTON, "Desc");
+    pDescSortButton->SetToolTip("Sort a column descending in the tasks view display");
+
+    sortButtonSizer->Add(pAscSortButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+    sortButtonSizer->Add(pDescSortButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
 
     SetSizerAndFit(sizer);
 }
@@ -185,6 +204,20 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
         &PreferencesTasksViewPage::OnLeftChevronButtonClick,
         this,
         tksIDC_LEFTCHEVRONBUTTON
+    );
+
+    pAscSortButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesTasksViewPage::OnAscButtonClick,
+        this,
+        tksIDC_ASCSORTBUTTON
+    );
+
+    pDescSortButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesTasksViewPage::OnDescButtonClick,
+        this,
+        tksIDC_DESCSORTBUTTON
     );
 }
 // clang-format on
@@ -387,4 +420,8 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
 
     mCheckedSelectedColumns.clear();
 }
+
+void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event) {}
+
+void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event) {}
 } // namespace tks::UI::dlg
