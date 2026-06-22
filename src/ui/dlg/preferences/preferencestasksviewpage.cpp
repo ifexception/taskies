@@ -421,7 +421,39 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
     mCheckedSelectedColumns.clear();
 }
 
-void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event) {}
+void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
+{
+    // sort asc on selected column
+    if (mCheckedSelectedColumns.size() == 0 || mCheckedSelectedColumns.size() >= 2) {
+        wxMessageBox("Can only sort one column at a time!",
+            Common::GetProgramName(),
+            wxICON_INFORMATION | wxOK_DEFAULT);
+    }
+
+    if (mCheckedSelectedColumns.size() == 1) {
+        auto& checkedSelectedColumn = mCheckedSelectedColumns[0];
+        auto iter = std::find_if(mAllTasksViewColumns.begin(),
+            mAllTasksViewColumns.end(),
+            [checkedSelectedColumn](const Common::TasksViewColumn& column) {
+                return checkedSelectedColumn.second == column.ColumnModelIndex;
+            });
+        if (iter != mAllTasksViewColumns.end()) {
+            Common::TasksViewColumn match = *iter;
+            int pos = pSelectedTasksViewColumns->FindString(match.Name);
+            int opos = pos;
+            --pos;
+            if (pos == 0) {
+                pSelectedTasksViewColumns->Check(opos, false);
+                return;
+            }
+            pSelectedTasksViewColumns->Delete(opos);
+            pSelectedTasksViewColumns->Insert(
+                match.Name, pos, Utils::IntToVoidPointer(match.ColumnModelIndex));
+        }
+
+        mCheckedSelectedColumns.clear();
+    }
+}
 
 void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event) {}
 } // namespace tks::UI::dlg
