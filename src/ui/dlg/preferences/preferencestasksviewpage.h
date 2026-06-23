@@ -84,6 +84,7 @@ private:
     wxCheckListBox* pSelectedTasksViewColumns;
     wxButton* pAscSortButton;
     wxButton* pDescSortButton;
+    //wxButton* pClearButton;
 
     std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedAvailableColumns;
     std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedSelectedColumns;

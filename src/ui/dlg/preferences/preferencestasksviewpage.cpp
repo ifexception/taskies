@@ -428,6 +428,7 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
         wxMessageBox("Can only sort one column at a time!",
             Common::GetProgramName(),
             wxICON_INFORMATION | wxOK_DEFAULT);
+        return;
     }
 
     if (mCheckedSelectedColumns.size() == 1) {
@@ -444,16 +445,53 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
             --pos;
             if (pos == 0) {
                 pSelectedTasksViewColumns->Check(opos, false);
+                mCheckedSelectedColumns.clear();
                 return;
             }
             pSelectedTasksViewColumns->Delete(opos);
             pSelectedTasksViewColumns->Insert(
                 match.Name, pos, Utils::IntToVoidPointer(match.ColumnModelIndex));
+            pSelectedTasksViewColumns->Check(pos);
+            mCheckedSelectedColumns[0].first = pos;
         }
-
-        mCheckedSelectedColumns.clear();
     }
 }
 
-void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event) {}
+void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
+{
+    // sort desc on selected column
+    if (mCheckedSelectedColumns.size() == 0 || mCheckedSelectedColumns.size() >= 2) {
+        wxMessageBox("Can only sort one column at a time!",
+            Common::GetProgramName(),
+            wxICON_INFORMATION | wxOK_DEFAULT);
+        return;
+    }
+
+    if (mCheckedSelectedColumns.size() == 1) {
+        auto& checkedSelectedColumn = mCheckedSelectedColumns[0];
+        auto iter = std::find_if(mAllTasksViewColumns.begin(),
+            mAllTasksViewColumns.end(),
+            [checkedSelectedColumn](const Common::TasksViewColumn& column) {
+                return checkedSelectedColumn.second == column.ColumnModelIndex;
+            });
+
+        if (iter != mAllTasksViewColumns.end()) {
+            Common::TasksViewColumn match = *iter;
+            int pos = pSelectedTasksViewColumns->FindString(match.Name);
+            if (pos >= (int) pSelectedTasksViewColumns->GetCount() - 1) {
+                pSelectedTasksViewColumns->Check(pos, false);
+                mCheckedSelectedColumns.clear();
+                return;
+            }
+            pSelectedTasksViewColumns->Delete(pos);
+            int opos = pos;
+            pos++;
+            pSelectedTasksViewColumns->Insert(
+                match.Name, pos, Utils::IntToVoidPointer(match.ColumnModelIndex));
+            pSelectedTasksViewColumns->Check(pos);
+
+            mCheckedSelectedColumns[0].first = pos;
+        }
+    }
+}
 } // namespace tks::UI::dlg
