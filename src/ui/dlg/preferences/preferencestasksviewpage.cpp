@@ -66,7 +66,8 @@ void PreferencesTasksViewPage::Save()
     pCfg->TodayAlwaysExpanded(pTodayAlwaysExpanded->GetValue());
     pCfg->UseProjectDisplayName(pUseProjectDisplayName->GetValue());
 
-    std::vector<Core::Configuration::TasksViewColumnSetting> selectedColumnsFromListBox;
+    std::vector<Core::Configuration::TasksViewColumnSetting>
+        selectedTasksViewColumnsFromCheckListBox;
 
     for (unsigned int i = 0; i < pSelectedTasksViewColumns->GetCount(); i++) {
         int clientData = Utils::VoidPointerToInt(pSelectedTasksViewColumns->GetClientData(i));
@@ -80,22 +81,25 @@ void PreferencesTasksViewPage::Save()
 
         if (iter != mAllTasksViewColumns.end()) {
             Core::Configuration::TasksViewColumnSetting foundSetting = *iter;
-            selectedColumnsFromListBox.push_back(foundSetting);
+            selectedTasksViewColumnsFromCheckListBox.push_back(foundSetting);
         }
     }
 
-    SPDLOG_LOGGER_TRACE(pLogger, "{0} columns selected", selectedColumnsFromListBox.size());
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "{0} columns selected", selectedTasksViewColumnsFromCheckListBox.size());
 
-    for (size_t i = 0; i < selectedColumnsFromListBox.size(); i++) {
-        selectedColumnsFromListBox[i].Order = i;
+    for (size_t i = 0; i < selectedTasksViewColumnsFromCheckListBox.size(); i++) {
+        selectedTasksViewColumnsFromCheckListBox[i].Order = i;
     }
 
-    assert(selectedColumnsFromListBox[0].Name == "Date" &&
-           selectedColumnsFromListBox[0].Order == TasksViewColumnModelIndex::ColumnModelIndexDate);
+    assert(selectedTasksViewColumnsFromCheckListBox[0].Name == "Date" &&
+           selectedTasksViewColumnsFromCheckListBox[0].Order ==
+               TasksViewColumnModelIndex::ColumnModelIndexDate);
 
-    SPDLOG_LOGGER_TRACE(
-        pLogger, "Applied order index to {0} columns", selectedColumnsFromListBox.size());
-    // pCfg->SetTasksViewColumns(selectedColumnsFromListBox);
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Applied order index to {0} columns",
+        selectedTasksViewColumnsFromCheckListBox.size());
+    pCfg->SetTasksViewColumns(selectedTasksViewColumnsFromCheckListBox);
 }
 
 void PreferencesTasksViewPage::Reset()
