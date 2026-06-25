@@ -61,7 +61,7 @@ bool PreferencesTasksViewPage::IsValid()
     return true;
 }
 
-void PreferencesTasksViewPage::Save()
+void PreferencesTasksViewPage::Save(bool* restartRequired)
 {
     pCfg->TodayAlwaysExpanded(pTodayAlwaysExpanded->GetValue());
     pCfg->UseProjectDisplayName(pUseProjectDisplayName->GetValue());
@@ -92,13 +92,28 @@ void PreferencesTasksViewPage::Save()
         selectedTasksViewColumnsFromCheckListBox[i].Order = i;
     }
 
-    assert(selectedTasksViewColumnsFromCheckListBox[0].Name == "Date" &&
-           selectedTasksViewColumnsFromCheckListBox[0].Order ==
-               TasksViewColumnModelIndex::ColumnModelIndexDate);
+    std::sort(selectedTasksViewColumnsFromCheckListBox.begin(),
+        selectedTasksViewColumnsFromCheckListBox.end(),
+        [](const Core::Configuration::TasksViewColumnSetting& lhs,
+            const Core::Configuration::TasksViewColumnSetting& rhs) {
+            return lhs.Order < rhs.Order;
+        });
 
     SPDLOG_LOGGER_TRACE(pLogger,
         "Applied order index to {0} columns",
         selectedTasksViewColumnsFromCheckListBox.size());
+
+    if (pCfg->GetTasksViewColumns().size() != selectedTasksViewColumnsFromCheckListBox.size()) {
+        *restartRequired = true;
+    } else {
+        bool orderChanged = pCfg->GetTasksViewColumns() == selectedTasksViewColumnsFromCheckListBox;
+        *restartRequired = orderChanged;
+    }
+
+    assert(selectedTasksViewColumnsFromCheckListBox[0].Name == "Date" &&
+           selectedTasksViewColumnsFromCheckListBox[0].Order ==
+               TasksViewColumnModelIndex::ColumnModelIndexDate);
+
     pCfg->SetTasksViewColumns(selectedTasksViewColumnsFromCheckListBox);
 }
 

@@ -56,7 +56,7 @@ public:
     PreferencesTasksViewPage& operator=(const PreferencesTasksViewPage&) = delete;
 
     bool IsValid();
-    void Save();
+    void Save(bool* restartRequired);
     void Reset();
 
 private:
