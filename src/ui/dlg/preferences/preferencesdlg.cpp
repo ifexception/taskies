@@ -253,11 +253,12 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
     if (restartRequired) {
         std::string title = fmt::format("Restart {0}", Common::GetProgramName());
         std::string main =
-            fmt::format("{0} needs to restart in order for some of the changes to take effect.",
+            fmt::format("{0} needs to restart in order for some of the changes to take effect",
                 Common::GetProgramName());
 
-        wxMessageDialog restartProgramDialog(this, main, title, wxOK_DEFAULT | wxICON_WARNING);
-        restartProgramDialog.Show();
+        wxMessageDialog restartProgramDialog(
+            this, main, title, wxCENTER | wxOK_DEFAULT | wxOK | wxICON_WARNING);
+        restartProgramDialog.ShowModal();
     } else {
         std::string main = fmt::format("{0} preferences updated successfully");
         wxMessageBox(main, Common::GetProgramName(), wxOK_DEFAULT | wxICON_INFORMATION);
