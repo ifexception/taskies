@@ -475,7 +475,7 @@ wxDataViewItem TaskTreeModel::TryExpandTodayDateNode(const std::string& todayDat
 {
     auto iterator = std::find_if(
         pRoots.begin(), pRoots.end(), [&](const std::unique_ptr<TaskTreeModelNode>& ptr) {
-            return ptr->GetProjectName() == todayDate;
+            return ptr->GetDate() == todayDate;
         });
 
     if (iterator != pRoots.end()) {
