@@ -56,7 +56,7 @@ Configuration::TasksViewColumnSetting::TasksViewColumnSetting(
     Type = tasksViewColumn.Type;
 }
 
-bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other)
+bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other) const
 {
     return Name == other.Name && ColumnModelIndex == other.ColumnModelIndex && Type == other.Type;
 }

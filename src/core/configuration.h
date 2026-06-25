@@ -60,7 +60,7 @@ public:
         TasksViewColumnSetting(Common::TasksViewColumn tasksViewColumn);
         ~TasksViewColumnSetting() = default;
 
-        bool operator==(const TasksViewColumnSetting& other);
+        bool operator==(const TasksViewColumnSetting& other) const;
 
         // Special method that returns true on "Description" column due to its unique attributes
         bool IsDecriptionColumn() const;
