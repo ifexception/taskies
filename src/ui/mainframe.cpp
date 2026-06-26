@@ -59,6 +59,9 @@
 #include "../persistence/taskspersistence.h"
 #include "../persistence/attendedmeetingspersistence.h"
 
+#include "../services/export/columnexportmodel.h"
+#include "../services/export/csvexporterservice.h"
+#include "../services/export/projectionbuilder.h"
 #include "../services/tasks/taskviewmodel.h"
 #include "../services/tasks/tasksservice.h"
 
@@ -1125,6 +1128,110 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
                 taskModels.size(),
                 mTaskDate);
         }
+    }
+
+    ResetTaskContextMenuVariables();
+}
+
+void MainFrame::OnCopyTasksUsingPreset(wxCommandEvent& event)
+{
+    assert(!mTaskDate.empty());
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks using default preset for date \"{0}\"", mTaskDate);
+
+    const auto& presets = pCfg->GetPresets();
+    if (presets.size() == 0) {
+        wxMessageBox("No presets defined to copy data with",
+            Common::GetProgramName(),
+            wxOK | wxOK_DEFAULT | wxICON_INFORMATION);
+        return;
+    }
+
+    std::vector<Services::TaskViewModel> taskModels;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return;
+    }
+
+    Services::Export::ExportOptions exportOptions;
+
+    auto iter = std::find_if(presets.begin(),
+        presets.end(),
+        [](const Core::Configuration::PresetSetting& presetSetting) {
+            return presetSetting.IsDefault == true;
+        });
+
+    Core::Configuration::PresetSetting presetSetting;
+    if (iter != presets.end()) {
+        presetSetting = *iter;
+    } else {
+        presetSetting = presets[0];
+    }
+
+    exportOptions.Delimiter = presetSetting.Delimiter;
+    exportOptions.TextQualifier = presetSetting.TextQualifier;
+    exportOptions.EmptyValuesHandler = presetSetting.EmptyValuesHandler;
+    exportOptions.NewLinesHandler = presetSetting.NewLinesHandler;
+    exportOptions.BooleanHandler = presetSetting.BooleanHandler;
+
+    exportOptions.ExcludeHeaders = presetSetting.ExcludeHeaders;
+    exportOptions.IncludeAttributes = presetSetting.IncludeAttributes;
+
+    const auto& columnsToExport = presetSetting.Columns;
+    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
+
+    if (columnsToExport.size() == 0) {
+        wxMessageBox("No columns to export in selected preset",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_WARNING);
+        return;
+    }
+
+    auto columnExportModels = Services::Export::BuildFromPreset(columnsToExport);
+
+    Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+    std::vector<Services::Export::Projection> projections =
+        projectionBuilder.BuildProjections(columnExportModels);
+    std::vector<Services::Export::ColumnJoinProjection> joinProjections =
+        projectionBuilder.BuildJoinProjections(columnExportModels);
+
+    Services::Export::CsvExporterService csvExporter(
+        pLogger, exportOptions, mDatabaseFilePath, false);
+
+    std::string exportedData = "";
+    ExportResult result = csvExporter.ExportToCsv(projections,
+        joinProjections,
+        pDateStore->PrintTodayDate,
+        pDateStore->PrintTodayDate,
+        exportedData);
+
+    if (!result.Success) {
+        wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+
+        return;
+    }
+
+    auto canOpen = wxTheClipboard->Open();
+    if (canOpen) {
+        wxTheClipboard->Clear();
+
+        auto textData = new wxTextDataObject(exportedData);
+        wxTheClipboard->SetData(textData);
+
+        wxTheClipboard->Close();
+    } else {
+        pLogger->error(
+            "Failed to open the system clipboard to copy tasks for date \"{0}\"", mTaskDate);
     }
 
     ResetTaskContextMenuVariables();
