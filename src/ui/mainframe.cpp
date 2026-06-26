@@ -1073,7 +1073,7 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
 {
     assert(!mTaskDate.empty());
 
-    pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
+    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks for date \"{0}\"", mTaskDate);
 
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
@@ -1088,46 +1088,66 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
         dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
         dialog.ShowModal();
-    } else {
-        std::stringstream formattedClipboardData;
-        if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-            formattedClipboardData << "Task Id"
-                                   << "\t";
-        }
-        formattedClipboardData << "Project"
-                               << "\t";
-        formattedClipboardData << "Category"
-                               << "\t";
-        formattedClipboardData << "Duration"
-                               << "\t";
-        formattedClipboardData << "Description"
-                               << "\t";
-        formattedClipboardData << "\n";
+        return;
+    }
 
-        for (const auto& taskModel : taskModels) {
-            if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-                formattedClipboardData << taskModel.TaskId << "\t";
+    std::stringstream formattedStringData;
+    const auto& tasksViewColumns = pCfg->GetTasksViewColumns();
+    for (const auto& column : tasksViewColumns) {
+        formattedStringData << column.Name << "\t";
+    }
+    formattedStringData << "\n";
+
+    for (const auto& taskModel : taskModels) {
+        for (const auto& column : tasksViewColumns) {
+            switch (column.ColumnModelIndex) {
+            case TasksViewColumnModelIndex::ColumnModelIndexDate:
+                formattedStringData << taskModel.WorkdayDate << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexEmployer:
+                formattedStringData << taskModel.EmployerName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexClient:
+                formattedStringData << taskModel.ClientName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexProject:
+                formattedStringData << taskModel.ProjectName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexCategory:
+                formattedStringData << taskModel.CategoryName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexDuration:
+                formattedStringData << taskModel.GetDuration() << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexBillable:
+                formattedStringData << taskModel.Billable << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexUniqueId:
+                formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexDescription:
+                formattedStringData << taskModel.Description << "\t";
+                break;
+            default:
+                break;
             }
-
-            formattedClipboardData << taskModel.ProjectName << "\t";
-            formattedClipboardData << taskModel.CategoryName << "\t";
-            formattedClipboardData << taskModel.GetDuration() << "\t";
-            formattedClipboardData << taskModel.Description << "\t";
-            formattedClipboardData << "\n";
         }
+        formattedStringData << "\n";
+    }
 
-        std::string clipboardData = formattedClipboardData.str();
-        auto canOpen = wxTheClipboard->Open();
-        if (canOpen) {
-            auto textData = new wxTextDataObject(clipboardData);
-            wxTheClipboard->SetData(textData);
-            wxTheClipboard->Close();
+    std::string clipboardData = formattedStringData.str();
+    auto canOpen = wxTheClipboard->Open();
+    if (canOpen) {
+        wxTheClipboard->Clear();
 
-            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" "
-                          "tasks for date \"{1}\"",
-                taskModels.size(),
-                mTaskDate);
-        }
+        auto textData = new wxTextDataObject(clipboardData);
+        wxTheClipboard->SetData(textData);
+        wxTheClipboard->Close();
+
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Successfully copied \"{0}\" tasks for date \"{1}\"",
+            taskModels.size(),
+            mTaskDate);
     }
 
     ResetTaskContextMenuVariables();
