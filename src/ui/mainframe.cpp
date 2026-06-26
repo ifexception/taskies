@@ -130,6 +130,7 @@ EVT_MENU(ID_POP_CONTAINER_COPY_TASKS, MainFrame::OnContainerCopyTasksToClipboard
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTasksWithHeadersToClipboard)
 EVT_MENU(ID_POP_COPY_TASKS_PRESET, MainFrame::OnCopyTasksUsingPreset)
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
+EVT_MENU(ID_POP_COPY_ROW_TASK_PRESET, MainFrame::OnCopyRowTaskToClipboardWithPreset)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
 EVT_MENU(ID_POP_CLONE_TASK, MainFrame::OnCloneTask)
@@ -1328,6 +1329,79 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
+void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
+{
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
+    Services::TaskViewModel taskModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return;
+    }
+
+    std::stringstream formattedStringData;
+    const auto& tasksViewColumns = pCfg->GetTasksViewColumns();
+    for (const auto& column : tasksViewColumns) {
+        formattedStringData << column.Name << "\t";
+    }
+    formattedStringData << "\n";
+
+    for (const auto& column : tasksViewColumns) {
+        switch (column.ColumnModelIndex) {
+        case TasksViewColumnModelIndex::ColumnModelIndexDate:
+            formattedStringData << taskModel.WorkdayDate << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexEmployer:
+            formattedStringData << taskModel.EmployerName << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexClient:
+            formattedStringData << taskModel.ClientName << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexProject:
+            formattedStringData << taskModel.ProjectName << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexCategory:
+            formattedStringData << taskModel.CategoryName << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexDuration:
+            formattedStringData << taskModel.GetDuration() << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexBillable:
+            formattedStringData << taskModel.Billable << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexUniqueId:
+            formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexDescription:
+            formattedStringData << taskModel.Description << "\t";
+            break;
+        default:
+            break;
+        }
+    }
+
+    std::string copyData = formattedStringData.str();
+    auto canOpen = wxTheClipboard->Open();
+    if (canOpen) {
+        auto textData = new wxTextDataObject(copyData);
+        wxTheClipboard->SetData(textData);
+        wxTheClipboard->Close();
+    }
+
+    ResetTaskContextMenuVariables();
+}
+
 void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
@@ -1874,7 +1948,9 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             mTaskDate = model->GetParent()->GetDate();
 
             wxMenu menu;
-            menu.Append(wxID_COPY, "&Copy", "Copy task description to the clipboard");
+            menu.Append(wxID_COPY, "&Copy", "Copy description to the clipboard");
+            menu.Append(
+                ID_POP_COPY_ROW_TASK_PRESET, "Copy &Row", "Copy row detail to the clipboard");
             menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
             menu.Append(wxID_DELETE, "&Delete", "Delete the selected task");
             menu.AppendSeparator();

@@ -87,7 +87,8 @@ enum class MenuIds : int {
     Pop_NewTask,
     Pop_ContainerCopyTasks,
     Pop_ContainerCopyTasksWithHeaders,
-    Pop_CopyTasksPreset
+    Pop_CopyTasksPreset,
+    Pop_CopyRowTaskPreset
 };
 
 /* File */
@@ -132,6 +133,7 @@ static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_Con
 static const int ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS =
     static_cast<int>(MenuIds::Pop_ContainerCopyTasksWithHeaders);
 static const int ID_POP_COPY_TASKS_PRESET = static_cast<int>(MenuIds::Pop_CopyTasksPreset);
+static const int ID_POP_COPY_ROW_TASK_PRESET = static_cast<int>(MenuIds::Pop_CopyRowTaskPreset);
 
 static const int MAX_EXPAND_COUNT = 3;
 
@@ -207,6 +209,7 @@ private:
     void OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& event);
     void OnCopyTasksUsingPreset(wxCommandEvent& event);
     void OnCopyTaskToClipboard(wxCommandEvent& event);
+    void OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
     void OnCloneTask(wxCommandEvent& event);
