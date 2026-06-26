@@ -128,6 +128,7 @@ EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 EVT_MENU(ID_POP_NEW_TASK, MainFrame::OnPopupNewTask)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS, MainFrame::OnContainerCopyTasksToClipboard)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTasksWithHeadersToClipboard)
+EVT_MENU(ID_POP_COPY_TASKS_PRESET, MainFrame::OnCopyTasksUsingPreset)
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
@@ -1272,11 +1273,8 @@ void MainFrame::OnCopyTasksUsingPreset(wxCommandEvent& event)
         pLogger, exportOptions, mDatabaseFilePath, false);
 
     std::string exportedData = "";
-    ExportResult result = csvExporter.ExportToCsv(projections,
-        joinProjections,
-        pDateStore->PrintTodayDate,
-        pDateStore->PrintTodayDate,
-        exportedData);
+    ExportResult result =
+        csvExporter.ExportToCsv(projections, joinProjections, mTaskDate, mTaskDate, exportedData);
 
     if (!result.Success) {
         wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
@@ -1858,13 +1856,16 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             ssTaskDate >> date::parse("%F", dateTaskDate);
 
             wxMenu menu;
-            auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "New Task");
+            auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "&New Task");
+            wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
+            newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
             if (dateTaskDate > pDateStore->TodayDate) {
                 newTaskMenuItem->Enable(false);
             }
             menu.AppendSeparator();
             menu.Append(ID_POP_CONTAINER_COPY_TASKS, "&Copy");
-            menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, "Copy with Headers");
+            menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, "Copy with &Headers");
+            menu.Append(ID_POP_COPY_TASKS_PRESET, "Copy using &Preset");
             PopupMenu(&menu);
         } else {
             pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"",
