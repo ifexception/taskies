@@ -1329,7 +1329,7 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
+void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
@@ -1395,6 +1395,96 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
     auto canOpen = wxTheClipboard->Open();
     if (canOpen) {
         auto textData = new wxTextDataObject(copyData);
+        wxTheClipboard->SetData(textData);
+        wxTheClipboard->Close();
+    }
+
+    ResetTaskContextMenuVariables();
+}
+
+void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
+{
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
+    const auto& presets = pCfg->GetPresets();
+    if (presets.size() == 0) {
+        wxMessageBox("No presets defined to copy data with",
+            Common::GetProgramName(),
+            wxOK | wxOK_DEFAULT | wxICON_INFORMATION);
+        return;
+    }
+
+    Services::TaskViewModel taskModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return;
+    }
+
+    auto iter = std::find_if(presets.begin(),
+        presets.end(),
+        [](const Core::Configuration::PresetSetting& presetSetting) {
+            return presetSetting.IsDefault == true;
+        });
+
+    Core::Configuration::PresetSetting presetSetting;
+    if (iter != presets.end()) {
+        presetSetting = *iter;
+    } else {
+        presetSetting = presets[0];
+    }
+
+    Services::Export::ExportOptions exportOptions;
+
+    exportOptions.Delimiter = presetSetting.Delimiter;
+    exportOptions.TextQualifier = presetSetting.TextQualifier;
+    exportOptions.EmptyValuesHandler = presetSetting.EmptyValuesHandler;
+    exportOptions.NewLinesHandler = presetSetting.NewLinesHandler;
+    exportOptions.BooleanHandler = presetSetting.BooleanHandler;
+
+    exportOptions.ExcludeHeaders = presetSetting.ExcludeHeaders;
+    exportOptions.IncludeAttributes = presetSetting.IncludeAttributes;
+
+    const auto& columnsToExport = presetSetting.Columns;
+    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
+
+    if (columnsToExport.size() == 0) {
+        wxMessageBox("No columns to export in selected preset",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_WARNING);
+        return;
+    }
+
+    auto columnExportModels = Services::Export::BuildFromPreset(columnsToExport);
+
+    Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+    std::vector<Services::Export::Projection> projections =
+        projectionBuilder.BuildProjections(columnExportModels);
+    std::vector<Services::Export::ColumnJoinProjection> joinProjections =
+        projectionBuilder.BuildJoinProjections(columnExportModels);
+
+    Services::Export::CsvExporterService csvExporter(
+        pLogger, exportOptions, mDatabaseFilePath, mTaskIdToModify);
+
+    std::string exportedData = "";
+    ExportResult result =
+        csvExporter.ExportToCsv(projections, joinProjections, mTaskDate, mTaskDate, exportedData);
+
+    auto canOpen = wxTheClipboard->Open();
+    if (canOpen) {
+        wxTheClipboard->Clear();
+
+        auto textData = new wxTextDataObject(exportedData);
         wxTheClipboard->SetData(textData);
         wxTheClipboard->Close();
     }
