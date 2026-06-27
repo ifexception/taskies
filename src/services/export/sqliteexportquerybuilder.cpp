@@ -111,8 +111,13 @@ std::string SQLiteExportQueryBuilder::BuildAttributeQueryString(const std::strin
     query << "SELECT ";
     query << "tasks.task_id, ";
     query << "attributes.name AS \"Name\", ";
-    query << "coalesce(task_attribute_values.text_value, task_attribute_values.boolean_value, "
-             "task_attribute_values.numeric_value, NULL) AS \"Value\" ";
+    query << "coalesce(";
+    query << "task_attribute_values.text_value, ";
+    query << "task_attribute_values.boolean_value, ";
+    query << "task_attribute_values.numeric_value, ";
+    query << "NULL";
+    query << ")";
+    query << " AS \"Value\" ";
 
     query << "FROM tasks ";
     query << "INNER JOIN workdays ";
