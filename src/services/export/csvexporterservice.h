@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -42,6 +43,10 @@ struct CsvExporterService final {
         ExportOptions options,
         const std::string& databaseFilePath,
         bool isPreview);
+    CsvExporterService(std::shared_ptr<spdlog::logger> logger,
+        ExportOptions options,
+        const std::string& databaseFilePath,
+        std::int64_t taskId);
     ~CsvExporterService() = default;
 
     const CsvExporterService& operator=(const CsvExporterService&) = delete;
@@ -58,5 +63,6 @@ struct CsvExporterService final {
     std::unique_ptr<DataGenerator> pDataGenerator;
 
     bool bIsPreview;
+    std::optional<std::int64_t> mTaskId;
 };
 } // namespace tks::Services::Export

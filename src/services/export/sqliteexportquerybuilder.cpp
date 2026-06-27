@@ -21,19 +21,11 @@
 
 namespace tks::Services::Export
 {
-SQLiteExportQueryBuilder::SQLiteExportQueryBuilder(bool isPreview)
-    : bIsPreview(isPreview)
+SQLiteExportQueryBuilder::SQLiteExportQueryBuilder(std::optional<std::int64_t> taskId,
+    bool isPreview)
+    : mTaskId(taskId)
+    , bIsPreview(isPreview)
 {
-}
-
-const bool SQLiteExportQueryBuilder::IsPreview() const
-{
-    return bIsPreview;
-}
-
-void SQLiteExportQueryBuilder::IsPreview(const bool preview)
-{
-    bIsPreview = preview;
 }
 
 std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& projections,
@@ -101,8 +93,11 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
 
     AppendClause(query, " WHERE ", where);
 
-    if (bIsPreview) {
+    if (bIsPreview && !mTaskId.has_value()) {
         AppendClause(query, " LIMIT ", "1");
+    }
+    if (!bIsPreview && mTaskId.has_value()) {
+        query << " AND tasks.task_id = " << mTaskId.value();
     }
 
     return query.str();

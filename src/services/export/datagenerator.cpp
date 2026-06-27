@@ -30,11 +30,13 @@ namespace tks::Services::Export
 DataGenerator::DataGenerator(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath,
     bool isPreview,
-    bool includeAttributes)
+    bool includeAttributes,
+    std::optional<std::int64_t> taskId)
     : pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , bIsPreview(isPreview)
     , bIncludeAttributes(includeAttributes)
+    , mTaskId(taskId)
     , mQueryBuilder(isPreview)
 {
 }
