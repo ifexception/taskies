@@ -128,8 +128,8 @@ EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 EVT_MENU(ID_POP_NEW_TASK, MainFrame::OnPopupNewTask)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS, MainFrame::OnContainerCopyTasksToClipboard)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTasksWithHeadersToClipboard)
-EVT_MENU(ID_POP_COPY_TASKS_PRESET, MainFrame::OnCopyTasksUsingPreset)
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
+EVT_MENU(ID_POP_COPY_TASKS_PRESET, MainFrame::OnCopyTasksUsingPreset)
 EVT_MENU(ID_POP_COPY_ROW_TASK_PRESET, MainFrame::OnCopyRowTaskToClipboardWithPreset)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
@@ -2039,8 +2039,10 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
 
             wxMenu menu;
             menu.Append(wxID_COPY, "&Copy", "Copy description to the clipboard");
-            menu.Append(
-                ID_POP_COPY_ROW_TASK_PRESET, "Copy &Row", "Copy row detail to the clipboard");
+            menu.Append(ID_POP_COPY_ROW_TASK, "Copy &Row", "Copy row detail to the clipboard");
+            menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
+                "Copy Row using &Preset",
+                "Copy row detail using preset to the clipboard");
             menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
             menu.Append(wxID_DELETE, "&Delete", "Delete the selected task");
             menu.AppendSeparator();

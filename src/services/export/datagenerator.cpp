@@ -37,7 +37,7 @@ DataGenerator::DataGenerator(std::shared_ptr<spdlog::logger> logger,
     , bIsPreview(isPreview)
     , bIncludeAttributes(includeAttributes)
     , mTaskId(taskId)
-    , mQueryBuilder(isPreview)
+    , mQueryBuilder(mTaskId, isPreview)
 {
 }
 
