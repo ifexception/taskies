@@ -1672,6 +1672,23 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
+void MainFrame::OnMenuHighlight(wxMenuEvent& event)
+{
+    wxMenuItem* item = nullptr;
+
+    wxMenu* menu = event.GetMenu();
+    if (menu) {
+        item = menu->FindItem(event.GetId());
+        if (item) {
+            if (item && !item->GetHelp().empty()) {
+                SetStatusText(item->GetHelp());
+            } else {
+                SetStatusText("");
+            }
+        }
+    }
+}
+
 void MainFrame::OnTaskAddedOnDate(wxCommandEvent& event)
 {
     // A task got inserted for a specific day
@@ -2006,55 +2023,67 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
 {
     wxDataViewItem item = event.GetItem();
 
-    if (item.IsOk()) {
-        pLogger->info("MainFrame::OnContextMenu - Clicked on valid wxDateViewItem");
-        auto model = (TaskTreeModelNode*) item.GetID();
+    if (!item.IsOk()) {
+        return;
+    }
+    pLogger->info("MainFrame::OnContextMenu - Clicked on valid wxDateViewItem");
+    auto model = (TaskTreeModelNode*) item.GetID();
 
-        if (model->IsContainer()) {
-            pLogger->info("MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"",
-                model->GetDate());
-            mTaskDate = model->GetDate();
+    if (model->IsContainer()) {
+        pLogger->info("MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"",
+            model->GetDate());
+        mTaskDate = model->GetDate();
 
-            std::istringstream ssTaskDate{ mTaskDate };
-            std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskDate;
-            ssTaskDate >> date::parse("%F", dateTaskDate);
+        std::istringstream ssTaskDate{ mTaskDate };
+        std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskDate;
+        ssTaskDate >> date::parse("%F", dateTaskDate);
 
-            wxMenu menu;
-            auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "&New Task");
-            wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
-            newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
-            if (dateTaskDate > pDateStore->TodayDate) {
-                newTaskMenuItem->Enable(false);
-            }
-            menu.AppendSeparator();
-            menu.Append(ID_POP_CONTAINER_COPY_TASKS, "&Copy");
-            menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, "Copy with &Headers");
-            menu.Append(ID_POP_COPY_TASKS_PRESET, "Copy using &Preset");
-            PopupMenu(&menu);
-        } else {
-            pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"",
-                model->GetTaskId());
-            mTaskIdToModify = model->GetTaskId();
-            mTaskDate = model->GetParent()->GetDate();
-
-            wxMenu menu;
-            menu.Append(wxID_COPY, "&Copy", "Copy description to the clipboard");
-            menu.Append(ID_POP_COPY_ROW_TASK, "Copy &Row", "Copy row detail to the clipboard");
-            menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
-                "Copy Row using &Preset",
-                "Copy row detail using preset to the clipboard");
-            menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
-            menu.Append(wxID_DELETE, "&Delete", "Delete the selected task");
-            menu.AppendSeparator();
-
-            menu.Append(ID_POP_CLONE_TASK, "C&lone", "Clone the selected task");
-            menu.AppendSeparator();
-
-            std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
-            menu.Append(wxID_ADD, addMenuLabel);
-
-            PopupMenu(&menu);
+        wxMenu menu;
+        auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "&New Task", "Create new task");
+        wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
+        newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
+        if (dateTaskDate > pDateStore->TodayDate) {
+            newTaskMenuItem->Enable(false);
         }
+        menu.AppendSeparator();
+        menu.Append(ID_POP_CONTAINER_COPY_TASKS,
+            "&Copy",
+            "Copy task values for selected date to the clipboard");
+        menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS,
+            "Copy with &Headers",
+            "Copy task values with headers for selected date to the clipboard");
+        menu.Append(ID_POP_COPY_TASKS_PRESET,
+            "Copy using &Preset",
+            "Copy task values using default preset for selected date to the clipboard");
+
+        menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+
+        PopupMenu(&menu);
+    } else {
+        pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"",
+            model->GetTaskId());
+        mTaskIdToModify = model->GetTaskId();
+        mTaskDate = model->GetParent()->GetDate();
+
+        wxMenu menu;
+        menu.Append(wxID_COPY, "&Copy Description", "Copy description to the clipboard");
+        menu.Append(ID_POP_COPY_ROW_TASK, "Copy &Row", "Copy row detail to the clipboard");
+        menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
+            "Copy Row using &Preset",
+            "Copy row detail using default preset to the clipboard");
+        menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
+        menu.Append(wxID_DELETE, "&Delete", "Delete the selected task");
+        menu.AppendSeparator();
+
+        menu.Append(ID_POP_CLONE_TASK, "C&lone", "Clone the selected task");
+        menu.AppendSeparator();
+
+        std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
+        menu.Append(wxID_ADD, addMenuLabel);
+
+        menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+
+        PopupMenu(&menu);
     }
 }
 
