@@ -15,3 +15,5 @@
 [Export icons created by Pixel bytess - Flaticon](https://www.flaticon.com/free-icons/export)
 
 [Time and date icons created by Ifanicon - Flaticon](https://www.flaticon.com/free-icons/time-and-date)
+
+[Copy and paste icons created by ranksol graphics - Flaticon](https://www.flaticon.com/free-icons/copy-and-paste)

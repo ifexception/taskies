@@ -2051,7 +2051,10 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         mTaskDate = model->GetParent()->GetDate();
 
         wxMenu menu;
-        menu.Append(wxID_COPY, "&Copy Description", "Copy description to the clipboard");
+        auto copyMenuItem = menu.Append(wxID_COPY, "&Copy Description", "Copy description to the clipboard");
+        wxIconBundle copyTaskIconBundle(Common::GetCopyPasteIconBundleName(), 0);
+        copyMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyTaskIconBundle));
+
         menu.Append(ID_POP_COPY_ROW_TASK, "Copy &Row", "Copy row detail to the clipboard");
         menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
             "Copy Row using &Preset",

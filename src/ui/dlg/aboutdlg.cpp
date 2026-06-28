@@ -227,6 +227,12 @@ void AboutDialog::CreateControls()
         listIndex, columnIndex++, "https://www.flaticon.com/free-icons/time-and-date");
     columnIndex = 0;
 
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "ranksol graphics");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Copy and Paste");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/copy-and-paste");
+    columnIndex = 0;
+
     attributionsCollPaneWindowSizer->Add(
         pAttributionsListView, wxSizerFlags().Border(wxALL, 5).Expand().Proportion(1));
 
