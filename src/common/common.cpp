@@ -85,6 +85,21 @@ std::string GetCopyPasteIconBundleName()
     return "COPY_PASTE_ICO";
 }
 
+std::string GetCopyRowIconBundleName()
+{
+    return "COPY_ROW_ICO";
+}
+
+std::string GetCopyWithPresetIconBundleName()
+{
+    return "COPY_WITH_PRESET_ICO";
+}
+
+std::string GetCopyRowWithPresetIconBundleName()
+{
+    return "COPY_ROW_WITH_PRESET_ICO";
+}
+
 std::string GetLicense()
 {
     return "Taskies is a time tracking productivity tool.\n"

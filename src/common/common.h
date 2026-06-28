@@ -50,6 +50,12 @@ std::string GetEditTaskIconBundleName();
 
 std::string GetCopyPasteIconBundleName();
 
+std::string GetCopyRowIconBundleName();
+
+std::string GetCopyWithPresetIconBundleName();
+
+std::string GetCopyRowWithPresetIconBundleName();
+
 std::string GetLicense();
 
 // Presets

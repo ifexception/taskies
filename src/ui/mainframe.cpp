@@ -2031,15 +2031,21 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
             newTaskMenuItem->Enable(false);
         }
         menu.AppendSeparator();
-        menu.Append(ID_POP_CONTAINER_COPY_TASKS,
+        auto copyRowMenuItem = menu.Append(ID_POP_CONTAINER_COPY_TASKS,
             "&Copy",
             "Copy task values for selected date to the clipboard");
+        wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
+        copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
+
         menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS,
             "Copy with &Headers",
             "Copy task values with headers for selected date to the clipboard");
-        menu.Append(ID_POP_CONTAINER_COPY_TASKS_PRESET,
+
+        auto copyWithPresetMenuItem = menu.Append(ID_POP_CONTAINER_COPY_TASKS_PRESET,
             "Copy using &Preset",
             "Copy task values using default preset for selected date to the clipboard");
+        wxIconBundle copyWithPresetIconBundle(Common::GetCopyWithPresetIconBundleName(), 0);
+        copyWithPresetMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyWithPresetIconBundle));
 
         menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
 
@@ -2051,14 +2057,22 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         mTaskDate = model->GetParent()->GetDate();
 
         wxMenu menu;
-        auto copyMenuItem = menu.Append(wxID_COPY, "&Copy Description", "Copy description to the clipboard");
+        auto copyMenuItem =
+            menu.Append(wxID_COPY, "&Copy Description", "Copy description to the clipboard");
         wxIconBundle copyTaskIconBundle(Common::GetCopyPasteIconBundleName(), 0);
         copyMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyTaskIconBundle));
 
-        menu.Append(ID_POP_COPY_ROW_TASK, "Copy &Row", "Copy row detail to the clipboard");
-        menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
+        auto copyRowMenuItem =
+            menu.Append(ID_POP_COPY_ROW_TASK, "Copy &Row", "Copy row detail to the clipboard");
+        wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
+        copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
+
+        auto copyRowWithPresetMenuItem = menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
             "Copy Row using &Preset",
             "Copy row detail using default preset to the clipboard");
+        wxIconBundle copyRowWithPresetIconBundle(Common::GetCopyRowWithPresetIconBundleName(), 0);
+        copyRowWithPresetMenuItem->SetBitmap(
+            wxBitmapBundle::FromIconBundle(copyRowWithPresetIconBundle));
 
         auto editTaskMenuItem = menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
         wxIconBundle editTaskIconBundle(Common::GetEditTaskIconBundleName(), 0);
