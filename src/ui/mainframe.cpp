@@ -128,8 +128,8 @@ EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 EVT_MENU(ID_POP_NEW_TASK, MainFrame::OnPopupNewTask)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS, MainFrame::OnContainerCopyTasksToClipboard)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTasksWithHeadersToClipboard)
-EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
-EVT_MENU(ID_POP_COPY_TASKS_PRESET, MainFrame::OnCopyTasksUsingPreset)
+EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_PRESET, MainFrame::OnContainerCopyTasksUsingPreset)
+EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskDescriptionToClipboard)
 EVT_MENU(ID_POP_COPY_ROW_TASK_PRESET, MainFrame::OnCopyRowTaskToClipboardWithPreset)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
@@ -1198,7 +1198,7 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnCopyTasksUsingPreset(wxCommandEvent& event)
+void MainFrame::OnContainerCopyTasksUsingPreset(wxCommandEvent& event)
 {
     assert(!mTaskDate.empty());
 
@@ -1209,22 +1209,6 @@ void MainFrame::OnCopyTasksUsingPreset(wxCommandEvent& event)
         wxMessageBox("No presets defined to copy data with",
             Common::GetProgramName(),
             wxOK | wxOK_DEFAULT | wxICON_INFORMATION);
-        return;
-    }
-
-    std::vector<Services::TaskViewModel> taskModels;
-    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
-
-    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskModels);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterByDateTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
         return;
     }
 
@@ -1299,7 +1283,7 @@ void MainFrame::OnCopyTasksUsingPreset(wxCommandEvent& event)
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnCopyTaskDescriptionToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
@@ -2042,6 +2026,7 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "&New Task", "Create new task");
         wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
         newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
+
         if (dateTaskDate > pDateStore->TodayDate) {
             newTaskMenuItem->Enable(false);
         }
@@ -2052,7 +2037,7 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS,
             "Copy with &Headers",
             "Copy task values with headers for selected date to the clipboard");
-        menu.Append(ID_POP_COPY_TASKS_PRESET,
+        menu.Append(ID_POP_CONTAINER_COPY_TASKS_PRESET,
             "Copy using &Preset",
             "Copy task values using default preset for selected date to the clipboard");
 

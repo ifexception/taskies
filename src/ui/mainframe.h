@@ -87,7 +87,7 @@ enum class MenuIds : int {
     Pop_NewTask,
     Pop_ContainerCopyTasks,
     Pop_ContainerCopyTasksWithHeaders,
-    Pop_CopyTasksPreset,
+    Pop_ContainerCopyTasksPreset,
     Pop_CopyRowTask,
     Pop_CopyRowTaskPreset
 };
@@ -133,7 +133,8 @@ static const int ID_POP_NEW_TASK = static_cast<int>(MenuIds::Pop_NewTask);
 static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_ContainerCopyTasks);
 static const int ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS =
     static_cast<int>(MenuIds::Pop_ContainerCopyTasksWithHeaders);
-static const int ID_POP_COPY_TASKS_PRESET = static_cast<int>(MenuIds::Pop_CopyTasksPreset);
+static const int ID_POP_CONTAINER_COPY_TASKS_PRESET =
+    static_cast<int>(MenuIds::Pop_ContainerCopyTasksPreset);
 static const int ID_POP_COPY_ROW_TASK = static_cast<int>(MenuIds::Pop_CopyRowTask);
 static const int ID_POP_COPY_ROW_TASK_PRESET = static_cast<int>(MenuIds::Pop_CopyRowTaskPreset);
 
@@ -209,8 +210,8 @@ private:
     void OnPopupNewTask(wxCommandEvent& event);
     void OnContainerCopyTasksToClipboard(wxCommandEvent& event);
     void OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& event);
-    void OnCopyTasksUsingPreset(wxCommandEvent& event);
-    void OnCopyTaskToClipboard(wxCommandEvent& event);
+    void OnContainerCopyTasksUsingPreset(wxCommandEvent& event);
+    void OnCopyTaskDescriptionToClipboard(wxCommandEvent& event);
     void OnCopyRowTaskToClipboard(wxCommandEvent& event);
     void OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
