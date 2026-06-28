@@ -2056,7 +2056,11 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
             "Copy Row using &Preset",
             "Copy row detail using default preset to the clipboard");
-        menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
+
+        auto editTaskMenuItem = menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
+        wxIconBundle editTaskIconBundle(Common::GetEditTaskIconBundleName(), 0);
+        editTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(editTaskIconBundle));
+
         menu.Append(wxID_DELETE, "&Delete", "Delete the selected task");
         menu.AppendSeparator();
 

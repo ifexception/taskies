@@ -864,12 +864,6 @@
     <None Include="res\migrations\20250427164010_create_static_attribute_values_table.sql">
       <Filter>Resource Files\migrations</Filter>
     </None>
-    <None Include="res\bell16x16.png">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\bellnotification16x16.png">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql">
       <Filter>Resource Files\migrations</Filter>
     </None>

@@ -197,12 +197,6 @@ void AboutDialog::CreateControls()
         listIndex, columnIndex++, "https://www.flaticon.com/free-icons/logout");
     columnIndex = 0;
 
-    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Freepik");
-    pAttributionsListView->SetItem(listIndex, columnIndex++, "Bell");
-    pAttributionsListView->SetItem(
-        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/bell");
-    columnIndex = 0;
-
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "Andrean Prabowo");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Calendar");
     pAttributionsListView->SetItem(
@@ -225,6 +219,12 @@ void AboutDialog::CreateControls()
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Export");
     pAttributionsListView->SetItem(
         listIndex, columnIndex++, "https://www.flaticon.com/free-icons/export");
+    columnIndex = 0;
+
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Andrean Prabowo");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Edit");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/modify");
     columnIndex = 0;
 
     attributionsCollPaneWindowSizer->Add(

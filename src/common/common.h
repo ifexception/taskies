@@ -46,6 +46,8 @@ std::string GetPreferencesIconBundleName();
 
 std::string GetQuickExportIconBundleName();
 
+std::string GetEditTaskIconBundleName();
+
 std::string GetLicense();
 
 // Presets
