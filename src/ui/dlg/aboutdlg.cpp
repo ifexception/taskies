@@ -221,10 +221,10 @@ void AboutDialog::CreateControls()
         listIndex, columnIndex++, "https://www.flaticon.com/free-icons/export");
     columnIndex = 0;
 
-    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Andrean Prabowo");
-    pAttributionsListView->SetItem(listIndex, columnIndex++, "Edit");
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Ifanicon");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Edit Calendar");
     pAttributionsListView->SetItem(
-        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/modify");
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/time-and-date");
     columnIndex = 0;
 
     attributionsCollPaneWindowSizer->Add(

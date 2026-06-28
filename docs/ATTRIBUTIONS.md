@@ -14,4 +14,4 @@
 
 [Export icons created by Pixel bytess - Flaticon](https://www.flaticon.com/free-icons/export)
 
-[Modify icons created by Andrean Prabowo - Flaticon](https://www.flaticon.com/free-icons/modify)
+[Time and date icons created by Ifanicon - Flaticon](https://www.flaticon.com/free-icons/time-and-date)
