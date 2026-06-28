@@ -100,6 +100,11 @@ std::string GetCopyRowWithPresetIconBundleName()
     return "COPY_ROW_WITH_PRESET_ICO";
 }
 
+std::string GetDeleteTaskIconBundleName()
+{
+    return "DELETE_TASK_ICO";
+}
+
 std::string GetLicense()
 {
     return "Taskies is a time tracking productivity tool.\n"

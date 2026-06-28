@@ -21,6 +21,7 @@ COPY_PASTE_ICO ICON "..\\res\\copy_and_paste.ico"
 COPY_ROW_ICO ICON "..\\res\\copy_row.ico"
 COPY_WITH_PRESET_ICO ICON "..\\res\\copy_with_preset.ico"
 COPY_ROW_WITH_PRESET_ICO ICON "..\\res\\copy_row_with_preset.ico"
+DELETE_TASK_ICO ICON "..\\res\\delete_task.ico"
 
 // Migrations
 20230104084922_create_persistent_objects_table MIGRATION "..\\res\\migrations\\20230104084922_create_persistent_objects_table.sql"

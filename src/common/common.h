@@ -55,6 +55,7 @@ std::string GetCopyRowIconBundleName();
 std::string GetCopyWithPresetIconBundleName();
 
 std::string GetCopyRowWithPresetIconBundleName();
+std::string GetDeleteTaskIconBundleName();
 
 std::string GetLicense();
 
