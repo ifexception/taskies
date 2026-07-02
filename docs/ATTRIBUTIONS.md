@@ -8,7 +8,7 @@
 
 [Time and date icons created by Andrean Prabowo - Flaticon](https://www.flaticon.com/free-icons/time-and-date)
 
-[Enquiry icons created by logisstudio - Flaticon](https://www.flaticon.com/free-icons/enquiry)
+[Info icons created by riajulislam - Flaticon](https://www.flaticon.com/free-icons/info)
 
 [Setting icons created by chehuna - Flaticon](https://www.flaticon.com/free-icons/setting)
 
