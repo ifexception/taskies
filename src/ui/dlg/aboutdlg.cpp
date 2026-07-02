@@ -209,10 +209,10 @@ void AboutDialog::CreateControls()
         listIndex, columnIndex++, "https://www.flaticon.com/free-icons/enquiry");
     columnIndex = 0;
 
-    listIndex = pAttributionsListView->InsertItem(columnIndex++, "chehuna");
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Fathema Khanom");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Setting");
     pAttributionsListView->SetItem(
-        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/setting");
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/set-up");
     columnIndex = 0;
 
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "Pixel bytess");
