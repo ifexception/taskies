@@ -42,7 +42,7 @@ std::string GetAddTaskIconBundleName();
 
 std::string GetAboutIconBundleName();
 
-std::string GetPreferencesIconBundleName();
+std::string GetSettingsIconBundleName();
 
 std::string GetQuickExportIconBundleName();
 

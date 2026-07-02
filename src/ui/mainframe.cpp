@@ -363,7 +363,7 @@ void MainFrame::CreateControls()
     auto preferencesMenuItem = viewMenu->Append(
         ID_VIEW_PREFERENCES, "&Preferences\tCtrl-,", "View, set, and adjust program options");
 
-    wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
+    wxIconBundle preferencesIconBundle(Common::GetSettingsIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
 
     /* Help */

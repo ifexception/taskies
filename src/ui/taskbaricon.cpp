@@ -122,7 +122,7 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
     auto preferencesMenuItem =
         menu->Append(tksIDC_MENU_PREFERENCES, "Preferences", "View and adjust program options");
 
-    wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
+    wxIconBundle preferencesIconBundle(Common::GetSettingsIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
 
     menu->AppendSeparator();

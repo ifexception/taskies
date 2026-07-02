@@ -10,7 +10,7 @@
 
 [Info icons created by riajulislam - Flaticon](https://www.flaticon.com/free-icons/info)
 
-[Setting icons created by chehuna - Flaticon](https://www.flaticon.com/free-icons/setting)
+[Set up icons created by Fathema Khanom - Flaticon](https://www.flaticon.com/free-icons/set-up)
 
 [Export icons created by Pixel bytess - Flaticon](https://www.flaticon.com/free-icons/export)
 

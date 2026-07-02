@@ -57,7 +57,7 @@ std::string GetExitIconBundleName()
 
 std::string GetAddTaskIconBundleName()
 {
-    return "ADD_TASK_ICO";
+    return "NEW_TASK_ICO";
 }
 
 std::string GetAboutIconBundleName()
@@ -65,9 +65,9 @@ std::string GetAboutIconBundleName()
     return "ABOUT_ICO";
 }
 
-std::string GetPreferencesIconBundleName()
+std::string GetSettingsIconBundleName()
 {
-    return "PREFERENCES_ICO";
+    return "SETTINGS_ICO";
 }
 
 std::string GetQuickExportIconBundleName()
