@@ -19,8 +19,6 @@
 
 #include "csvexporterservice.h"
 
-#include <optional>
-
 #include "../../common/enums.h"
 
 namespace tks::Services::Export
