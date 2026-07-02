@@ -132,7 +132,7 @@ bool TaskTreeModel::SetValue(const wxVariant& variant, const wxDataViewItem& ite
         node->Billable(variant.GetBool());
         break;
     case Col_UniqueId:
-        node->SetDuration(variant.GetString().ToStdString());
+        node->SetUniqueId(variant.GetString().ToStdString());
         break;
     case Col_Description:
         node->SetDescription(variant.GetString().ToStdString());
