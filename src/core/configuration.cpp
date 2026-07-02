@@ -61,7 +61,7 @@ bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSett
     return Name == other.Name && ColumnModelIndex == other.ColumnModelIndex && Type == other.Type;
 }
 
-bool Configuration::TasksViewColumnSetting::IsDecriptionColumn() const
+bool Configuration::TasksViewColumnSetting::IsDescriptionColumn() const
 {
     return Name == "Description" &&
            ColumnModelIndex == TasksViewColumnModelIndex::ColumnModelIndexDescription;
@@ -329,6 +329,7 @@ ConfigResult Configuration::RestoreDefaults()
 
     TodayAlwaysExpanded(false);
     UseProjectDisplayName(false);
+
     auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
     std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
     for (const auto& tasksViewColumn : defaultTasksViewColumns) {
@@ -400,30 +401,28 @@ ConfigResult Configuration::RestoreDefaults()
     // clang-format on
 
     // Tasks View Columns section
-    toml::value tasksViewColumnValues(toml::table{ { "tasksViewColumns", toml::array{} } });
-    tasksViewColumnValues.as_array_fmt().fmt = toml::array_format::multiline;
-    if (mSettings.TasksViewColumnSettings.size() > 0) {
-        for (const auto& tasksViewColumn : mSettings.TasksViewColumnSettings) {
-            // clang-format off
-                toml::value tasksViewColumnValue(
-                    toml::table {
-                        { "name", tasksViewColumn.Name },
-                        { "order", tasksViewColumn.Order },
-                        {
-                            "columnModelIndex",
-                            static_cast<unsigned int>(tasksViewColumn.ColumnModelIndex)
-                        },
-                        { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
-                        { "type", static_cast<int>(tasksViewColumn.Type) }
-                    }
-                );
-            // clang-format on
+    toml::value tasksViewColumnArray(toml::array{});
+    tasksViewColumnArray.as_array_fmt().fmt = toml::array_format::multiline;
+    tasksViewColumnArray.as_array_fmt().body_indent = 4;
+    tasksViewColumnArray.as_array_fmt().closing_indent = 0;
 
-            tasksViewColumnValues.push_back(std::move(tasksViewColumnValue));
-        }
+    for (const auto& tasksViewColumn : mSettings.TasksViewColumnSettings) {
+        // clang-format off
+        toml::value value(
+            toml::table {
+                { "name", tasksViewColumn.Name },
+                { "order", tasksViewColumn.Order },
+                { "columnModelIndex", static_cast<unsigned int>(tasksViewColumn.ColumnModelIndex) },
+                { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
+                { "type", static_cast<int>(tasksViewColumn.Type) }
+            }
+        );
+        // clang-format on
+
+        tasksViewColumnArray.push_back(std::move(value));
     }
 
-    root.at(Sections::TasksViewSection)["tasksViewColumn"] = tasksViewColumnValues;
+    root.at(Sections::TasksViewSection)["tasksViewColumns"] = tasksViewColumnArray;
 
     const std::string tomlContentsString = toml::format(root);
 

@@ -63,7 +63,7 @@ public:
         bool operator==(const TasksViewColumnSetting& other) const;
 
         // Special method that returns true on "Description" column due to its unique attributes
-        bool IsDecriptionColumn() const;
+        bool IsDescriptionColumn() const;
     };
 
     struct PresetColumnSetting {
