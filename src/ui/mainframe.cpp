@@ -441,7 +441,7 @@ void MainFrame::CreateControls()
         switch (taskViewColumn.Type) {
         case TasksViewColumnType::String: {
             auto columnTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-            if (taskViewColumn.IsDecriptionColumn()) {
+            if (taskViewColumn.IsDescriptionColumn()) {
                 columnTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
             }
             auto column = new wxDataViewColumn(taskViewColumn.Name,
