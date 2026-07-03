@@ -627,6 +627,10 @@ void TaskDialog::FillControls()
         }
     }
 
+    if (bIsEdit) {
+        return;
+    }
+
     std::vector<Model::ProjectModel> projects;
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
