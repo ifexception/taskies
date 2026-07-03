@@ -1239,7 +1239,16 @@ void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSetting& 
         }
     }
 
-    pBooleanHanderChoiceCtrl->SetSelection(static_cast<int>(presetSettings.BooleanHandler));
+    for (unsigned int i = 1; i < pBooleanHanderChoiceCtrl->GetCount(); i++) {
+        ClientData<Common::EnumClientData<BooleanHandler>>* booleanHandlerData =
+            reinterpret_cast<ClientData<Common::EnumClientData<BooleanHandler>>*>(
+                pBooleanHanderChoiceCtrl->GetClientObject(i));
+
+        if (booleanHandlerData->GetValue().Data == presetSettings.BooleanHandler) {
+            pBooleanHanderChoiceCtrl->SetSelection(i);
+            break;
+        }
+    }
 
     mNewLinesOption = presetSettings.NewLinesHandler;
     mBooleanOption = presetSettings.BooleanHandler;
