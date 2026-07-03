@@ -1228,7 +1228,17 @@ void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSetting& 
     pPresetNameTextCtrl->ChangeValue(presetSettings.Name);
     pPresetIsDefaultCheckBoxCtrl->SetValue(presetSettings.IsDefault);
 
-    pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.NewLinesHandler));
+    for (unsigned int i = 1; i < pNewLinesHandlerChoiceCtrl->GetCount(); i++) {
+        ClientData<Common::EnumClientData<NewLines>>* newLinesData =
+            reinterpret_cast<ClientData<Common::EnumClientData<NewLines>>*>(
+                pNewLinesHandlerChoiceCtrl->GetClientObject(i));
+
+        if (newLinesData->GetValue().Data == presetSettings.NewLinesHandler) {
+            pNewLinesHandlerChoiceCtrl->SetSelection(i);
+            break;
+        }
+    }
+
     pBooleanHanderChoiceCtrl->SetSelection(static_cast<int>(presetSettings.BooleanHandler));
 
     mNewLinesOption = presetSettings.NewLinesHandler;
