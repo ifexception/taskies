@@ -198,12 +198,14 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
     pTasksViewPage->Reset();
     pExportPage->Reset();
 
-    wxMessageDialog dialog(this,
-        "Successfully restored configuration to defaults",
-        Common::GetProgramName(),
-        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_INFORMATION);
+    std::string title = fmt::format("Restart {0}", Common::GetProgramName());
+    std::string main =
+        fmt::format("{0} needs to restart in order for some of the changes to take effect",
+            Common::GetProgramName());
 
-    dialog.ShowModal();
+    wxMessageDialog restartProgramDialog(
+        this, main, title, wxCENTER | wxOK_DEFAULT | wxOK | wxICON_WARNING);
+    restartProgramDialog.ShowModal();
 }
 
 void PreferencesDialog::OnOK(wxCommandEvent& event)
