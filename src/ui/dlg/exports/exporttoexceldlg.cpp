@@ -476,9 +476,6 @@ void ExportToExcelDialog::FillControls()
     pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
     pNewLinesHandlerChoiceCtrl->SetSelection(0);
 
-    pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
-    pNewLinesHandlerChoiceCtrl->SetSelection(0);
-
     auto newLines = Common::Static::NewLinesList();
     for (auto i = 0; i < newLines.size(); i++) {
         pNewLinesHandlerChoiceCtrl->Append(
