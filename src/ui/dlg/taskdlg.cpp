@@ -627,54 +627,51 @@ void TaskDialog::FillControls()
         }
     }
 
-    if (bIsEdit) {
-        return;
-    }
+    if (!bIsEdit) {
+        std::vector<Model::ProjectModel> projects;
+        Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    std::vector<Model::ProjectModel> projects;
-    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+        sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projects);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterProjectsMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-    sqliteResult =
-        projectPersistence.FilterByEmployerId(mEmployerId, projects);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterProjectsMessage,
-            tks::Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
-    }
-
-    if (!projects.empty()) {
-        if (!pProjectChoiceCtrl->IsEnabled()) {
-            pProjectChoiceCtrl->Enable();
+            dialog.ShowModal();
         }
 
-        bool hasDefaultProject = false;
-        std::int64_t defaultProjectId = -1;
-
-        for (auto& project : projects) {
-            pProjectChoiceCtrl->Append(
-                project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
-
-            if (project.IsDefault) {
-                hasDefaultProject = true;
-                defaultProjectId = project.ProjectId;
-                pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+        if (!projects.empty()) {
+            if (!pProjectChoiceCtrl->IsEnabled()) {
+                pProjectChoiceCtrl->Enable();
             }
-        }
 
-        if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
-            FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
-        } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
-            pCategoryChoiceCtrl->Disable();
+            bool hasDefaultProject = false;
+            std::int64_t defaultProjectId = -1;
+
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(
+                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+
+                if (project.IsDefault) {
+                    hasDefaultProject = true;
+                    defaultProjectId = project.ProjectId;
+                    pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+                }
+            }
+
+            if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+                FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
+            } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+                pCategoryChoiceCtrl->Disable();
+            } else {
+                FetchCategoryEntities(std::nullopt);
+            }
         } else {
-            FetchCategoryEntities(std::nullopt);
+            pProjectChoiceCtrl->Disable();
         }
-    } else {
-        pProjectChoiceCtrl->Disable();
     }
 }
 
