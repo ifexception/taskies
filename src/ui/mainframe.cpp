@@ -59,6 +59,9 @@
 #include "../persistence/taskspersistence.h"
 #include "../persistence/attendedmeetingspersistence.h"
 
+#include "../services/export/columnexportmodel.h"
+#include "../services/export/csvexporterservice.h"
+#include "../services/export/projectionbuilder.h"
 #include "../services/tasks/taskviewmodel.h"
 #include "../services/tasks/tasksservice.h"
 
@@ -125,7 +128,9 @@ EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 EVT_MENU(ID_POP_NEW_TASK, MainFrame::OnPopupNewTask)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS, MainFrame::OnContainerCopyTasksToClipboard)
 EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTasksWithHeadersToClipboard)
-EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskToClipboard)
+EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_PRESET, MainFrame::OnContainerCopyTasksUsingPreset)
+EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskDescriptionToClipboard)
+EVT_MENU(ID_POP_COPY_ROW_TASK_PRESET, MainFrame::OnCopyRowTaskToClipboardWithPreset)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
 EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
 EVT_MENU(ID_POP_CLONE_TASK, MainFrame::OnCloneTask)
@@ -358,7 +363,7 @@ void MainFrame::CreateControls()
     auto preferencesMenuItem = viewMenu->Append(
         ID_VIEW_PREFERENCES, "&Preferences\tCtrl-,", "View, set, and adjust program options");
 
-    wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
+    wxIconBundle preferencesIconBundle(Common::GetSettingsIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
 
     /* Help */
@@ -403,14 +408,6 @@ void MainFrame::CreateControls()
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
     /* Data View Ctrl */
-    /* Data View Columns Renderers */
-    auto projectNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    auto categoryNameTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    auto durationTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    auto descriptionTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    descriptionTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
-
-    auto idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
 
     /* Week Data View Ctrl */
     pDataViewCtrl = new wxDataViewCtrl(framePanel,
@@ -420,48 +417,108 @@ void MainFrame::CreateControls()
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
 
     /* Week Data View Model */
-    pTaskTreeModel = new TaskTreeModel(pDateStore->MondayToSundayDateRangeList, pLogger);
+    pTaskTreeModel = new TaskTreeModel(pDateStore->MondayToSundayDateRangeList, pCfg, pLogger);
     pDataViewCtrl->AssociateModel(pTaskTreeModel.get());
 
-    /* Project Column */
-    auto projectColumn = new wxDataViewColumn("Project",
-        projectNameTextRenderer,
-        TaskTreeModel::Col_Project,
-        80,
+    /* Date Data View Column Renderers */
+    auto dateTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+
+    /* Date Column */
+    auto dateColumn = new wxDataViewColumn("Date",
+        dateTextRenderer,
+        TaskTreeModel::Col_Date,
+        FromDIP(80),
         wxALIGN_LEFT,
         wxDATAVIEW_COL_RESIZABLE);
-    projectColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    pDataViewCtrl->AppendColumn(projectColumn);
+    dateColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    pDataViewCtrl->AppendColumn(dateColumn);
 
-    /* Category Column */
-    auto categoryColumn = new wxDataViewColumn("Category",
-        categoryNameTextRenderer,
-        TaskTreeModel::Col_Category,
-        80,
-        wxALIGN_LEFT,
-        wxDATAVIEW_COL_RESIZABLE);
-    categoryColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    pDataViewCtrl->AppendColumn(categoryColumn);
+    /* Get Cfg Tasks View Column headers */
+    auto cfgTasksViewColumns = pCfg->GetTasksViewColumns();
+    cfgTasksViewColumns.erase(cfgTasksViewColumns.begin());
 
-    /* Duration Column */
-    auto durationColumn = new wxDataViewColumn(
-        "Duration", durationTextRenderer, TaskTreeModel::Col_Duration, 80, wxALIGN_CENTER);
-    durationColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
-    durationColumn->SetResizeable(false);
-    pDataViewCtrl->AppendColumn(durationColumn);
+    for (const auto& taskViewColumn : cfgTasksViewColumns) {
+        switch (taskViewColumn.Type) {
+        case TasksViewColumnType::String: {
+            auto columnTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+            if (taskViewColumn.IsDescriptionColumn()) {
+                columnTextRenderer->EnableEllipsize(wxEllipsizeMode::wxELLIPSIZE_END);
+            }
+            auto column = new wxDataViewColumn(taskViewColumn.Name,
+                columnTextRenderer,
+                taskViewColumn.ColumnModelIndex,
+                FromDIP(80),
+                static_cast<wxAlignment>(taskViewColumn.TextAlignment),
+                wxDATAVIEW_COL_RESIZABLE);
+            column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+            pDataViewCtrl->AppendColumn(column);
+            break;
+        }
+        case TasksViewColumnType::Boolean: {
+            pDataViewCtrl->AppendToggleColumn(taskViewColumn.Name,
+                taskViewColumn.ColumnModelIndex,
+                wxDATAVIEW_CELL_INERT,
+                wxCOL_WIDTH_AUTOSIZE,
+                static_cast<wxAlignment>(taskViewColumn.TextAlignment));
+            break;
+        }
+        default:
+            break;
+        }
+    }
 
-    /* Description Column */
-    auto descriptionColumn = new wxDataViewColumn("Description",
-        descriptionTextRenderer,
-        TaskTreeModel::Col_Description,
-        80,
-        wxALIGN_LEFT,
-        wxDATAVIEW_COL_RESIZABLE);
-    pDataViewCtrl->AppendColumn(descriptionColumn);
+    /* Load all available tasks view columns */
+    auto availableTasksViewColumns = Common::AvailableTasksViewColumnList();
+    availableTasksViewColumns.erase(availableTasksViewColumns.begin());
+
+    std::vector<Core::Configuration::TasksViewColumnSetting> availableTasksViewColumnSettings;
+    for (const auto& column : availableTasksViewColumns) {
+        Core::Configuration::TasksViewColumnSetting setting(column);
+        availableTasksViewColumnSettings.push_back(setting);
+    }
+
+    std::vector<Core::Configuration::TasksViewColumnSetting> columnDiff;
+    // Get columns that the user hadn't selected into a separate vector
+    for (const auto& availableTasksViewColumnSetting : availableTasksViewColumnSettings) {
+        if (std::find(cfgTasksViewColumns.begin(),
+                cfgTasksViewColumns.end(),
+                availableTasksViewColumnSetting) == cfgTasksViewColumns.end()) {
+            columnDiff.push_back(availableTasksViewColumnSetting);
+        }
+    }
+
+    /* Add these columns as hidden columns so data view model still works correctly */
+    for (const auto& taskViewColumn : columnDiff) {
+        switch (taskViewColumn.Type) {
+        case TasksViewColumnType::String: {
+            auto columnTextRenderer = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
+            auto column = new wxDataViewColumn(
+                taskViewColumn.Name, columnTextRenderer, taskViewColumn.ColumnModelIndex);
+            column->SetHidden(true);
+            column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+            pDataViewCtrl->AppendColumn(column);
+            break;
+        }
+        case TasksViewColumnType::Boolean: {
+            pDataViewCtrl->AppendToggleColumn(taskViewColumn.Name,
+                taskViewColumn.ColumnModelIndex,
+                wxDATAVIEW_CELL_INERT,
+                wxCOL_WIDTH_AUTOSIZE,
+                wxALIGN_CENTER,
+                wxDATAVIEW_COL_HIDDEN);
+            break;
+        }
+        default:
+            break;
+        }
+    }
+
+    /* Data View ID Column Renderer */
+    auto idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
 
     /* ID Column */
     auto idColumn = new wxDataViewColumn(
-        "ID", idRenderer, TaskTreeModel::Col_Id, 32, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+        "ID", idRenderer, TaskTreeModel::Col_Id, 16, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
     pDataViewCtrl->AppendColumn(idColumn);
 
     sizer->Add(pDataViewCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
@@ -968,7 +1025,7 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
 
-    pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
+    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks for date \"{0}\"", mTaskDate);
 
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
@@ -983,32 +1040,69 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
         dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
         dialog.ShowModal();
-    } else {
-        std::stringstream formattedClipboardData;
-        for (const auto& taskModel : taskModels) {
-            if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-                formattedClipboardData << taskModel.TaskId << "\t";
+        ResetTaskContextMenuVariables();
+        return;
+    }
+
+    std::stringstream formattedStringData;
+    const auto& tasksViewColumns = pCfg->GetTasksViewColumns();
+
+    for (const auto& taskModel : taskModels) {
+        for (const auto& column : tasksViewColumns) {
+            switch (column.ColumnModelIndex) {
+            case TasksViewColumnModelIndex::ColumnModelIndexDate:
+                formattedStringData << taskModel.WorkdayDate << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexEmployer:
+                formattedStringData << taskModel.EmployerName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexClient:
+                formattedStringData << taskModel.ClientName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexProject:
+                formattedStringData << taskModel.ProjectName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexCategory:
+                formattedStringData << taskModel.CategoryName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexDuration:
+                formattedStringData << taskModel.GetDuration() << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexBillable:
+                formattedStringData << taskModel.Billable << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexUniqueId:
+                formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexDescription:
+                formattedStringData << taskModel.Description << "\t";
+                break;
+            default:
+                break;
             }
-
-            formattedClipboardData << taskModel.ProjectName << "\t";
-            formattedClipboardData << taskModel.CategoryName << "\t";
-            formattedClipboardData << taskModel.GetDuration() << "\t";
-            formattedClipboardData << taskModel.Description << "\t";
-            formattedClipboardData << "\n";
         }
+        formattedStringData << "\n";
+    }
 
-        std::string clipboardData = formattedClipboardData.str();
-        auto canOpen = wxTheClipboard->Open();
-        if (canOpen) {
-            auto textData = new wxTextDataObject(clipboardData);
-            wxTheClipboard->SetData(textData);
-            wxTheClipboard->Close();
+    std::string clipboardData = formattedStringData.str();
 
-            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" "
-                          "tasks for date \"{1}\"",
-                taskModels.size(),
-                mTaskDate);
-        }
+    if (clipboardData.empty()) {
+        ResetTaskContextMenuVariables();
+        return;
+    }
+
+    auto canOpen = wxTheClipboard->Open();
+    if (canOpen) {
+        wxTheClipboard->Clear();
+
+        auto textData = new wxTextDataObject(clipboardData);
+        wxTheClipboard->SetData(textData);
+        wxTheClipboard->Close();
+
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Successfully copied \"{0}\" tasks for date \"{1}\"",
+            taskModels.size(),
+            mTaskDate);
     }
 
     ResetTaskContextMenuVariables();
@@ -1018,7 +1112,7 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
 {
     assert(!mTaskDate.empty());
 
-    pLogger->info("MainFrame::OnContainerCopyToClipboard - Copy all tasks for date {0}", mTaskDate);
+    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks with headers for date \"{0}\"", mTaskDate);
 
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
@@ -1033,52 +1127,163 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
         dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
         dialog.ShowModal();
-    } else {
-        std::stringstream formattedClipboardData;
-        if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-            formattedClipboardData << "Task Id"
-                                   << "\t";
-        }
-        formattedClipboardData << "Project"
-                               << "\t";
-        formattedClipboardData << "Category"
-                               << "\t";
-        formattedClipboardData << "Duration"
-                               << "\t";
-        formattedClipboardData << "Description"
-                               << "\t";
-        formattedClipboardData << "\n";
+        ResetTaskContextMenuVariables();
+        return;
+    }
 
-        for (const auto& taskModel : taskModels) {
-            if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-                formattedClipboardData << taskModel.TaskId << "\t";
+    std::stringstream formattedStringData;
+    const auto& tasksViewColumns = pCfg->GetTasksViewColumns();
+    for (const auto& column : tasksViewColumns) {
+        formattedStringData << column.Name << "\t";
+    }
+    formattedStringData << "\n";
+
+    for (const auto& taskModel : taskModels) {
+        for (const auto& column : tasksViewColumns) {
+            switch (column.ColumnModelIndex) {
+            case TasksViewColumnModelIndex::ColumnModelIndexDate:
+                formattedStringData << taskModel.WorkdayDate << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexEmployer:
+                formattedStringData << taskModel.EmployerName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexClient:
+                formattedStringData << taskModel.ClientName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexProject:
+                formattedStringData << taskModel.ProjectName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexCategory:
+                formattedStringData << taskModel.CategoryName << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexDuration:
+                formattedStringData << taskModel.GetDuration() << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexBillable:
+                formattedStringData << taskModel.Billable << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexUniqueId:
+                formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
+                break;
+            case TasksViewColumnModelIndex::ColumnModelIndexDescription:
+                formattedStringData << taskModel.Description << "\t";
+                break;
+            default:
+                break;
             }
-
-            formattedClipboardData << taskModel.ProjectName << "\t";
-            formattedClipboardData << taskModel.CategoryName << "\t";
-            formattedClipboardData << taskModel.GetDuration() << "\t";
-            formattedClipboardData << taskModel.Description << "\t";
-            formattedClipboardData << "\n";
         }
+        formattedStringData << "\n";
+    }
 
-        std::string clipboardData = formattedClipboardData.str();
-        auto canOpen = wxTheClipboard->Open();
-        if (canOpen) {
-            auto textData = new wxTextDataObject(clipboardData);
-            wxTheClipboard->SetData(textData);
-            wxTheClipboard->Close();
+    std::string clipboardData = formattedStringData.str();
+    if (clipboardData.empty()) {
+        ResetTaskContextMenuVariables();
+        return;
+    }
 
-            pLogger->info("MainFrame::OnContainerCopyToClipboard - Successfully copied \"{0}\" "
-                          "tasks for date \"{1}\"",
-                taskModels.size(),
-                mTaskDate);
-        }
+    auto canOpen = wxTheClipboard->Open();
+    if (canOpen) {
+        wxTheClipboard->Clear();
+
+        auto textData = new wxTextDataObject(clipboardData);
+        wxTheClipboard->SetData(textData);
+        wxTheClipboard->Close();
+
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Successfully copied \"{0}\" tasks with headers for date \"{1}\"",
+            taskModels.size(),
+            mTaskDate);
     }
 
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnContainerCopyTasksUsingPreset(wxCommandEvent& event)
+{
+    assert(!mTaskDate.empty());
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks using default preset for date \"{0}\"", mTaskDate);
+
+    const auto& presets = pCfg->GetPresets();
+    if (presets.size() == 0) {
+        wxMessageBox("No presets defined to copy data with",
+            Common::GetProgramName(),
+            wxOK | wxOK_DEFAULT | wxICON_INFORMATION);
+        return;
+    }
+
+    Services::Export::ExportOptions exportOptions;
+
+    auto iter = std::find_if(presets.begin(),
+        presets.end(),
+        [](const Core::Configuration::PresetSetting& presetSetting) {
+            return presetSetting.IsDefault == true;
+        });
+
+    Core::Configuration::PresetSetting presetSetting;
+    if (iter != presets.end()) {
+        presetSetting = *iter;
+    } else {
+        presetSetting = presets[0];
+    }
+
+    exportOptions.Delimiter = presetSetting.Delimiter;
+    exportOptions.TextQualifier = presetSetting.TextQualifier;
+    exportOptions.EmptyValuesHandler = presetSetting.EmptyValuesHandler;
+    exportOptions.NewLinesHandler = presetSetting.NewLinesHandler;
+    exportOptions.BooleanHandler = presetSetting.BooleanHandler;
+
+    exportOptions.ExcludeHeaders = presetSetting.ExcludeHeaders;
+    exportOptions.IncludeAttributes = presetSetting.IncludeAttributes;
+
+    const auto& columnsToExport = presetSetting.Columns;
+    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
+
+    if (columnsToExport.size() == 0) {
+        wxMessageBox("No columns to export in selected preset",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_WARNING);
+        return;
+    }
+
+    auto columnExportModels = Services::Export::BuildFromPreset(columnsToExport);
+
+    Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+    std::vector<Services::Export::Projection> projections =
+        projectionBuilder.BuildProjections(columnExportModels);
+    std::vector<Services::Export::ColumnJoinProjection> joinProjections =
+        projectionBuilder.BuildJoinProjections(columnExportModels);
+
+    Services::Export::CsvExporterService csvExporter(
+        pLogger, exportOptions, mDatabaseFilePath, false);
+
+    std::string exportedData = "";
+    ExportResult result =
+        csvExporter.ExportToCsv(projections, joinProjections, mTaskDate, mTaskDate, exportedData);
+
+    if (!result.Success) {
+        wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
+
+        return;
+    }
+
+    auto canOpen = wxTheClipboard->Open();
+    if (canOpen) {
+        wxTheClipboard->Clear();
+
+        auto textData = new wxTextDataObject(exportedData);
+        wxTheClipboard->SetData(textData);
+
+        wxTheClipboard->Close();
+    } else {
+        pLogger->error(
+            "Failed to open the system clipboard to copy tasks for date \"{0}\"", mTaskDate);
+    }
+
+    ResetTaskContextMenuVariables();
+}
+
+void MainFrame::OnCopyTaskDescriptionToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToModify != -1);
@@ -1103,6 +1308,169 @@ void MainFrame::OnCopyTaskToClipboard(wxCommandEvent& WXUNUSED(event))
             wxTheClipboard->SetData(textData);
             wxTheClipboard->Close();
         }
+    }
+
+    ResetTaskContextMenuVariables();
+}
+
+void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
+{
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
+    Services::TaskViewModel taskModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return;
+    }
+
+    std::stringstream formattedStringData;
+    const auto& tasksViewColumns = pCfg->GetTasksViewColumns();
+    for (const auto& column : tasksViewColumns) {
+        formattedStringData << column.Name << "\t";
+    }
+    formattedStringData << "\n";
+
+    for (const auto& column : tasksViewColumns) {
+        switch (column.ColumnModelIndex) {
+        case TasksViewColumnModelIndex::ColumnModelIndexDate:
+            formattedStringData << taskModel.WorkdayDate << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexEmployer:
+            formattedStringData << taskModel.EmployerName << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexClient:
+            formattedStringData << taskModel.ClientName << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexProject:
+            formattedStringData << taskModel.ProjectName << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexCategory:
+            formattedStringData << taskModel.CategoryName << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexDuration:
+            formattedStringData << taskModel.GetDuration() << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexBillable:
+            formattedStringData << taskModel.Billable << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexUniqueId:
+            formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
+            break;
+        case TasksViewColumnModelIndex::ColumnModelIndexDescription:
+            formattedStringData << taskModel.Description << "\t";
+            break;
+        default:
+            break;
+        }
+    }
+
+    std::string copyData = formattedStringData.str();
+    auto canOpen = wxTheClipboard->Open();
+    if (canOpen) {
+        auto textData = new wxTextDataObject(copyData);
+        wxTheClipboard->SetData(textData);
+        wxTheClipboard->Close();
+    }
+
+    ResetTaskContextMenuVariables();
+}
+
+void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
+{
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToModify != -1);
+
+    const auto& presets = pCfg->GetPresets();
+    if (presets.size() == 0) {
+        wxMessageBox("No presets defined to copy data with",
+            Common::GetProgramName(),
+            wxOK | wxOK_DEFAULT | wxICON_INFORMATION);
+        return;
+    }
+
+    Services::TaskViewModel taskModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return;
+    }
+
+    auto iter = std::find_if(presets.begin(),
+        presets.end(),
+        [](const Core::Configuration::PresetSetting& presetSetting) {
+            return presetSetting.IsDefault == true;
+        });
+
+    Core::Configuration::PresetSetting presetSetting;
+    if (iter != presets.end()) {
+        presetSetting = *iter;
+    } else {
+        presetSetting = presets[0];
+    }
+
+    Services::Export::ExportOptions exportOptions;
+
+    exportOptions.Delimiter = presetSetting.Delimiter;
+    exportOptions.TextQualifier = presetSetting.TextQualifier;
+    exportOptions.EmptyValuesHandler = presetSetting.EmptyValuesHandler;
+    exportOptions.NewLinesHandler = presetSetting.NewLinesHandler;
+    exportOptions.BooleanHandler = presetSetting.BooleanHandler;
+
+    exportOptions.ExcludeHeaders = presetSetting.ExcludeHeaders;
+    exportOptions.IncludeAttributes = presetSetting.IncludeAttributes;
+
+    const auto& columnsToExport = presetSetting.Columns;
+    SPDLOG_LOGGER_TRACE(pLogger, "Count of columns to export: \"{0}\"", columnsToExport.size());
+
+    if (columnsToExport.size() == 0) {
+        wxMessageBox("No columns to export in selected preset",
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_WARNING);
+        return;
+    }
+
+    auto columnExportModels = Services::Export::BuildFromPreset(columnsToExport);
+
+    Services::Export::ProjectionBuilder projectionBuilder(pLogger);
+    std::vector<Services::Export::Projection> projections =
+        projectionBuilder.BuildProjections(columnExportModels);
+    std::vector<Services::Export::ColumnJoinProjection> joinProjections =
+        projectionBuilder.BuildJoinProjections(columnExportModels);
+
+    Services::Export::CsvExporterService csvExporter(
+        pLogger, exportOptions, mDatabaseFilePath, mTaskIdToModify);
+
+    std::string exportedData = "";
+    ExportResult result =
+        csvExporter.ExportToCsv(projections, joinProjections, mTaskDate, mTaskDate, exportedData);
+
+    auto canOpen = wxTheClipboard->Open();
+    if (canOpen) {
+        wxTheClipboard->Clear();
+
+        auto textData = new wxTextDataObject(exportedData);
+        wxTheClipboard->SetData(textData);
+        wxTheClipboard->Close();
     }
 
     ResetTaskContextMenuVariables();
@@ -1286,6 +1654,23 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     }
 
     ResetTaskContextMenuVariables();
+}
+
+void MainFrame::OnMenuHighlight(wxMenuEvent& event)
+{
+    wxMenuItem* item = nullptr;
+
+    wxMenu* menu = event.GetMenu();
+    if (menu) {
+        item = menu->FindItem(event.GetId());
+        if (item) {
+            if (item && !item->GetHelp().empty()) {
+                SetStatusText(item->GetHelp());
+            } else {
+                SetStatusText("");
+            }
+        }
+    }
 }
 
 void MainFrame::OnTaskAddedOnDate(wxCommandEvent& event)
@@ -1622,51 +2007,91 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
 {
     wxDataViewItem item = event.GetItem();
 
-    if (item.IsOk()) {
-        pLogger->info("MainFrame::OnContextMenu - Clicked on valid wxDateViewItem");
-        auto model = (TaskTreeModelNode*) item.GetID();
+    if (!item.IsOk()) {
+        return;
+    }
+    pLogger->info("MainFrame::OnContextMenu - Clicked on valid wxDateViewItem");
+    auto model = (TaskTreeModelNode*) item.GetID();
 
-        if (model->IsContainer()) {
-            pLogger->info("MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"",
-                model->GetProjectName());
-            mTaskDate = model->GetProjectName();
+    if (model->IsContainer()) {
+        pLogger->info("MainFrame::OnContextMenu - Clicked on container node with date \"{0}\"",
+            model->GetDate());
+        mTaskDate = model->GetDate();
 
-            std::istringstream ssTaskDate{ mTaskDate };
-            std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskDate;
-            ssTaskDate >> date::parse("%F", dateTaskDate);
+        std::istringstream ssTaskDate{ mTaskDate };
+        std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskDate;
+        ssTaskDate >> date::parse("%F", dateTaskDate);
 
-            wxMenu menu;
-            auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "New Task");
-            if (dateTaskDate > pDateStore->TodayDate) {
-                newTaskMenuItem->Enable(false);
-            }
-            menu.AppendSeparator();
-            menu.Append(ID_POP_CONTAINER_COPY_TASKS, "&Copy");
-            menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, "Copy with Headers");
-            PopupMenu(&menu);
-        } else {
-            pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"",
-                model->GetTaskId());
-            mTaskIdToModify = model->GetTaskId();
+        wxMenu menu;
+        auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "&New Task", "Create new task");
+        wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
+        newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
 
-            // This is confusing, but by calling `GetParent()` we are getting the container node
-            // pointer here `GetProjectName()` then returns the date of the container node value
-            mTaskDate = model->GetParent()->GetProjectName();
-
-            wxMenu menu;
-            menu.Append(wxID_COPY, "&Copy", "Copy task description to the clipboard");
-            menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
-            menu.Append(wxID_DELETE, "&Delete", "Delete the selected task");
-            menu.AppendSeparator();
-
-            menu.Append(ID_POP_CLONE_TASK, "C&lone", "Clone the selected task");
-            menu.AppendSeparator();
-
-            std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
-            menu.Append(wxID_ADD, addMenuLabel);
-
-            PopupMenu(&menu);
+        if (dateTaskDate > pDateStore->TodayDate) {
+            newTaskMenuItem->Enable(false);
         }
+        menu.AppendSeparator();
+        auto copyRowMenuItem = menu.Append(ID_POP_CONTAINER_COPY_TASKS,
+            "&Copy",
+            "Copy task values for selected date to the clipboard");
+        wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
+        copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
+
+        menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS,
+            "Copy with &Headers",
+            "Copy task values with headers for selected date to the clipboard");
+
+        auto copyWithPresetMenuItem = menu.Append(ID_POP_CONTAINER_COPY_TASKS_PRESET,
+            "Copy using &Preset",
+            "Copy task values using default preset for selected date to the clipboard");
+        wxIconBundle copyWithPresetIconBundle(Common::GetCopyWithPresetIconBundleName(), 0);
+        copyWithPresetMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyWithPresetIconBundle));
+
+        menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+
+        PopupMenu(&menu);
+    } else {
+        pLogger->info("MainFrame::OnContextMenu - Clicked on leaf node with task ID \"{0}\"",
+            model->GetTaskId());
+        mTaskIdToModify = model->GetTaskId();
+        mTaskDate = model->GetParent()->GetDate();
+
+        wxMenu menu;
+        auto copyMenuItem =
+            menu.Append(wxID_COPY, "&Copy Description", "Copy description to the clipboard");
+        wxIconBundle copyTaskIconBundle(Common::GetCopyPasteIconBundleName(), 0);
+        copyMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyTaskIconBundle));
+
+        auto copyRowMenuItem =
+            menu.Append(ID_POP_COPY_ROW_TASK, "Copy &Row", "Copy row detail to the clipboard");
+        wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
+        copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
+
+        auto copyRowWithPresetMenuItem = menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
+            "Copy Row using &Preset",
+            "Copy row detail using default preset to the clipboard");
+        wxIconBundle copyRowWithPresetIconBundle(Common::GetCopyRowWithPresetIconBundleName(), 0);
+        copyRowWithPresetMenuItem->SetBitmap(
+            wxBitmapBundle::FromIconBundle(copyRowWithPresetIconBundle));
+
+        auto editTaskMenuItem = menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
+        wxIconBundle editTaskIconBundle(Common::GetEditTaskIconBundleName(), 0);
+        editTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(editTaskIconBundle));
+
+        auto deleteTaskMenuItem = menu.Append(wxID_DELETE, "&Delete", "Delete selected task");
+        wxIconBundle deleteTaskIconBundle(Common::GetDeleteTaskIconBundleName(), 0);
+        deleteTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(deleteTaskIconBundle));
+        menu.AppendSeparator();
+
+        menu.Append(ID_POP_CLONE_TASK, "C&lone", "Clone the selected task");
+        menu.AppendSeparator();
+
+        std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
+        menu.Append(wxID_ADD, addMenuLabel);
+
+        menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+
+        PopupMenu(&menu);
     }
 }
 
@@ -1718,10 +2143,7 @@ void MainFrame::OnDataViewSelectionActivate(wxDataViewEvent& event)
     auto model = (TaskTreeModelNode*) item.GetID();
 
     mTaskIdToModify = model->GetTaskId();
-
-    // This is confusing, but by calling `GetParent()` we are getting the container node
-    // pointer here `GetProjectName()` then returns the date of the container node value
-    mTaskDate = model->GetParent()->GetProjectName();
+    mTaskDate = model->GetParent()->GetDate();
 
     SPDLOG_LOGGER_TRACE(
         pLogger, "Clicked on valid task with ID \"{0}\" on date ({1})", mTaskIdToModify, mTaskDate);

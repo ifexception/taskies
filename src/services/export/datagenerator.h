@@ -19,7 +19,9 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -41,7 +43,8 @@ struct DataGenerator final {
     DataGenerator(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath,
         bool isPreview,
-        bool includeAttributes);
+        bool includeAttributes,
+        std::optional<std::int64_t> taskId);
     ~DataGenerator() = default;
 
     DataGenerator& operator=(const DataGenerator&) = delete;
@@ -62,6 +65,7 @@ struct DataGenerator final {
     std::string mDatabaseFilePath;
     bool bIsPreview;
     bool bIncludeAttributes;
+    std::optional<std::int64_t> mTaskId;
 
     SQLiteExportQueryBuilder mQueryBuilder;
 };

@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <toml.hpp>
 
@@ -48,6 +49,23 @@ struct Sections {
 class Configuration
 {
 public:
+    struct TasksViewColumnSetting {
+        std::string Name;
+        int Order;
+        TasksViewColumnModelIndex ColumnModelIndex;
+        TasksViewColumnTextAlignment TextAlignment;
+        TasksViewColumnType Type;
+
+        TasksViewColumnSetting();
+        TasksViewColumnSetting(Common::TasksViewColumn tasksViewColumn);
+        ~TasksViewColumnSetting() = default;
+
+        bool operator==(const TasksViewColumnSetting& other) const;
+
+        // Special method that returns true on "Description" column due to its unique attributes
+        bool IsDescriptionColumn() const;
+    };
+
     struct PresetColumnSetting {
         std::string Column;
         std::string OriginalColumn;
@@ -166,6 +184,12 @@ public:
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
+    bool UseProjectDisplayName() const;
+    void UseProjectDisplayName(const bool value);
+
+    std::vector<Configuration::TasksViewColumnSetting> GetTasksViewColumns() const;
+    void SetTasksViewColumns(const std::vector<Configuration::TasksViewColumnSetting> values);
+
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
 
@@ -218,6 +242,8 @@ private:
         bool OpenTaskDialogOnReminderClick;
 
         bool TodayAlwaysExpanded;
+        bool UseProjectDisplayName;
+        std::vector<Configuration::TasksViewColumnSetting> TasksViewColumnSettings;
 
         std::string ExportPath;
         bool CloseExportDialogAfterExporting;

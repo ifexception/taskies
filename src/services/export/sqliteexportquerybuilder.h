@@ -35,13 +35,10 @@ class SQLiteExportQueryBuilder final
 public:
     SQLiteExportQueryBuilder() = delete;
     SQLiteExportQueryBuilder(const SQLiteExportQueryBuilder&) = delete;
-    explicit SQLiteExportQueryBuilder(bool isPreview = false);
+    explicit SQLiteExportQueryBuilder(std::optional<std::int64_t> taskId, bool isPreview = false);
     ~SQLiteExportQueryBuilder() = default;
 
     const SQLiteExportQueryBuilder& operator=(const SQLiteExportQueryBuilder&) = delete;
-
-    const bool IsPreview() const;
-    void IsPreview(const bool preview);
 
     std::string BuildQuery(const std::vector<Projection>& projections,
         const std::vector<ColumnJoinProjection>& joinProjections,
@@ -87,6 +84,7 @@ private:
     void AppendJoins(std::stringstream& query, const std::vector<std::string>& joins);
     void AppendClause(std::stringstream& query, std::string name, std::string clause);
 
+    std::optional<std::int64_t> mTaskId;
     bool bIsPreview;
 };
 } // namespace tks::Services::Export

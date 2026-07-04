@@ -20,6 +20,9 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
+#include <utility>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -28,10 +31,14 @@
 
 #include <spdlog/logger.h>
 
+#include "../../../common/common.h"
+#include "../../../common/enums.h"
+
 namespace tks
 {
 namespace Core
 {
+class TasksViewColumnSetting;
 class Configuration;
 } // namespace Core
 namespace UI::dlg
@@ -49,7 +56,7 @@ public:
     PreferencesTasksViewPage& operator=(const PreferencesTasksViewPage&) = delete;
 
     bool IsValid();
-    void Save();
+    void Save(bool* restartRequired);
     void Reset();
 
 private:
@@ -58,12 +65,42 @@ private:
     void FillControls();
     void DataToControls();
 
+    void OnAvailableColumnCheck(wxCommandEvent& event);
+    void OnSelectedColumnCheck(wxCommandEvent& event);
+    void OnRightChevronButtonClick(wxCommandEvent& event);
+    void OnLeftChevronButtonClick(wxCommandEvent& event);
+    void OnAscButtonClick(wxCommandEvent& event);
+    void OnDescButtonClick(wxCommandEvent& event);
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxCheckBox* pTodayAlwaysExpanded;
+    wxCheckBox* pUseProjectDisplayName;
 
-    enum { tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100 };
+    wxCheckListBox* pAvailableTasksViewColumns;
+    wxButton* pRightChevronButton;
+    wxButton* pLeftChevronButton;
+    wxCheckListBox* pSelectedTasksViewColumns;
+    wxButton* pAscSortButton;
+    wxButton* pDescSortButton;
+    //wxButton* pClearButton;
+
+    std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedAvailableColumns;
+    std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedSelectedColumns;
+
+    std::vector<Common::TasksViewColumn> mAllTasksViewColumns;
+
+    enum {
+        tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100,
+        tksIDC_USEPROJECTDISPLAYNAME,
+        tksIDC_AVAILABLETASKSVIEWCOLUMNS,
+        tksIDC_RIGHTCHEVRONBUTTON,
+        tksIDC_LEFTCHEVRONBUTTON,
+        tksIDC_SELECTEDTASKSVIEWCOLUMNS,
+        tksIDC_ASCSORTBUTTON,
+        tksIDC_DESCSORTBUTTON
+    };
 };
 } // namespace UI::dlg
 } // namespace tks

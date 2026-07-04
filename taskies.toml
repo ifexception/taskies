@@ -25,6 +25,8 @@ openTaskDialogOnReminderClick=false
 
 [tasksView]
 todayAlwaysExpanded=false
+useProjectDisplayName=false
+tasksViewColumns=[]
 
 [export]
 exportPath=""
