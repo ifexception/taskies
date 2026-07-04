@@ -880,19 +880,37 @@
     <Image Include="res\about.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\add_task.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\exit.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\preferences.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\quick_export.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\taskies.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\setting.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\new_task.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\edit_task.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\delete_task.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\copy_with_preset.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\copy_row_with_preset.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\copy_row.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\copy_and_paste.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
