@@ -1033,7 +1033,7 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
         toml::find_or<bool>(tasksViewSection, "useProjectDisplayName", false);
 
     bool tasksViewColumnParsingFailed = false;
-    if (root.contains("tasksViewColumns")) {
+    if (tasksViewSection.contains("tasksViewColumns")) {
         const auto& tasksViewArrayTable = toml::find(tasksViewSection, "tasksViewColumns");
         try {
             if (tasksViewArrayTable.is_array()) {
