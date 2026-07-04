@@ -91,13 +91,17 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
         AppendJoins(query, secondLevelJoins);
     }
 
-    AppendClause(query, " WHERE ", where);
+    if (!where.empty()) {
+        AppendClause(query, " WHERE ", where);
+        if (!bIsPreview && mTaskId.has_value()) {
+            query << " AND tasks.task_id = " << mTaskId.value();
+        }
+    } else if (!bIsPreview && mTaskId.has_value()) {
+        query << " WHERE tasks.task_id = " << mTaskId.value();
+    }
 
     if (bIsPreview && !mTaskId.has_value()) {
         AppendClause(query, " LIMIT ", "1");
-    }
-    if (!bIsPreview && mTaskId.has_value()) {
-        query << " AND tasks.task_id = " << mTaskId.value();
     }
 
     return query.str();
@@ -129,12 +133,19 @@ std::string SQLiteExportQueryBuilder::BuildAttributeQueryString(const std::strin
     query << "INNER JOIN attributes ";
     query << "ON task_attribute_values.attribute_id = attributes.attribute_id ";
 
-    AppendClause(query, " WHERE ", where);
-    AppendClause(query, " AND ", "task_attribute_values.is_active = 1");
+    bool whereHasPredicates = !where.empty();
+    if (whereHasPredicates) {
+        AppendClause(query, " WHERE ", where);
+        AppendClause(query, " AND ", "task_attribute_values.is_active = 1");
+    } else {
+        // No incoming where predicates: start with is_active
+        AppendClause(query, " WHERE ", "task_attribute_values.is_active = 1");
+    }
 
-    if (bIsPreview && taskId.has_value()) {
-        std::string whereClause = "tasks.task_id = " + std::to_string(taskId.value());
-        AppendClause(query, " AND ", whereClause);
+    // Append task filter when provided (apply regardless of preview flag)
+    if (!bIsPreview && taskId.has_value()) {
+        std::string clause = "tasks.task_id = " + std::to_string(taskId.value());
+        AppendClause(query, " AND ", clause);
     }
 
     return query.str();
