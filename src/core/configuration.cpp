@@ -122,22 +122,42 @@ ConfigResult Configuration::LoadAndOrRecreate()
     toml::value root;
     try {
         root = toml::parse(pEnv->GetConfigurationFilePath().string());
+
+        GetGeneralConfig(root);
+        GetDatabaseConfig(root);
+        GetTasksConfig(root);
+        GetTasksViewConfig(root);
+        GetExportConfig(root);
+        GetPresetsConfig(root);
     } catch (const toml::syntax_error& error) {
         pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
+
+        return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
+            Messages::CongfigurationFileParseUserMessage,
+            fmt::format(Messages::CongfigurationFileParseErrorMessage,
+                pEnv->GetConfigurationFilePath().string(),
+                error.what()));
+    } catch (const toml::type_error& error) {
+        pLogger->error(
+            "A TOML type error occurred when reading configuration values - {0}", error.what());
+
+        return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
+            Messages::CongfigurationFileParseUserMessage,
+            fmt::format(Messages::CongfigurationFileParseErrorMessage,
+                pEnv->GetConfigurationFilePath().string(),
+                error.what()));
+    } catch (const std::out_of_range& error) {
+        pLogger->error(
+            "A (TOML) out-of-range error occurred when reading configuration values - {0}",
+            error.what());
+
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
                 pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     }
-
-    GetGeneralConfig(root);
-    GetDatabaseConfig(root);
-    GetTasksConfig(root);
-    GetTasksViewConfig(root);
-    GetExportConfig(root);
-    GetPresetsConfig(root);
 
     return ConfigResult::OK();
 }
@@ -1012,37 +1032,35 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
     mSettings.UseProjectDisplayName =
         toml::find_or<bool>(tasksViewSection, "useProjectDisplayName", false);
 
-    const auto& tasksViewArrayTable = toml::find(tasksViewSection, "tasksViewColumns");
-
     bool tasksViewColumnParsingFailed = false;
-    // Any TOML error must immediately fail while reading this section and just fallback to using
-    // the default tasks view columns to err on the safe side
-    try {
-        if (tasksViewArrayTable.is_array()) {
-            if (tasksViewArrayTable.size() == 0) {
-                auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
-                std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
-                for (const auto& tasksViewColumn : defaultTasksViewColumns) {
-                    TasksViewColumnSetting setting(tasksViewColumn);
-                    tasksViewColumnSettings.push_back(setting);
-                }
-            } else {
-                std::vector<Configuration::TasksViewColumnSetting> columns;
-                for (size_t i = 0; i < tasksViewArrayTable.size(); i++) {
-                    Configuration::TasksViewColumnSetting column;
-                    column.Name = toml::find<std::string>(tasksViewArrayTable[i], "name");
-                    column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
-                    column.ColumnModelIndex = static_cast<TasksViewColumnModelIndex>(
-                        toml::find<unsigned int>(tasksViewArrayTable[i], "columnModelIndex"));
-                    column.TextAlignment = static_cast<TasksViewColumnTextAlignment>(
-                        toml::find<int>(tasksViewArrayTable[i], "textAlignment"));
-                    column.Type = static_cast<TasksViewColumnType>(
-                        toml::find<int>(tasksViewArrayTable[i], "type"));
+    if (root.contains("tasksViewColumns")) {
+        const auto& tasksViewArrayTable = toml::find(tasksViewSection, "tasksViewColumns");
+        try {
+            if (tasksViewArrayTable.is_array()) {
+                if (tasksViewArrayTable.size() == 0) {
+                    auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
+                    std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
+                    for (const auto& tasksViewColumn : defaultTasksViewColumns) {
+                        TasksViewColumnSetting setting(tasksViewColumn);
+                        tasksViewColumnSettings.push_back(setting);
+                    }
+                } else {
+                    std::vector<Configuration::TasksViewColumnSetting> columns;
+                    for (size_t i = 0; i < tasksViewArrayTable.size(); i++) {
+                        Configuration::TasksViewColumnSetting column;
+                        column.Name = toml::find<std::string>(tasksViewArrayTable[i], "name");
+                        column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
+                        column.ColumnModelIndex = static_cast<TasksViewColumnModelIndex>(
+                            toml::find<unsigned int>(tasksViewArrayTable[i], "columnModelIndex"));
+                        column.TextAlignment = static_cast<TasksViewColumnTextAlignment>(
+                            toml::find<int>(tasksViewArrayTable[i], "textAlignment"));
+                        column.Type = static_cast<TasksViewColumnType>(
+                            toml::find<int>(tasksViewArrayTable[i], "type"));
 
-                    columns.push_back(column);
-                }
+                        columns.push_back(column);
+                    }
 
-                // clang-format off
+                    // clang-format off
                 std::sort(
                     columns.begin(),
                     columns.end(),
@@ -1053,18 +1071,21 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                         return lhs.Order < rhs.Order;
                     }
                 );
-                // clang-format on
+                    // clang-format on
 
-                mSettings.TasksViewColumnSettings = columns;
+                    mSettings.TasksViewColumnSettings = columns;
+                }
+            } else {
+                tasksViewColumnParsingFailed = true;
             }
-        } else {
+        } catch (const std::out_of_range& error) {
+            pLogger->error("Error - {0}", error.what());
+            tasksViewColumnParsingFailed = true;
+        } catch (const toml::type_error& error) {
+            pLogger->error("Error - {0}", error.what());
             tasksViewColumnParsingFailed = true;
         }
-    } catch (const std::out_of_range& error) {
-        pLogger->error("Error - {0}", error.what());
-        tasksViewColumnParsingFailed = true;
-    } catch (const toml::type_error& error) {
-        pLogger->error("Error - {0}", error.what());
+    } else {
         tasksViewColumnParsingFailed = true;
     }
 
