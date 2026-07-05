@@ -148,7 +148,7 @@ void PreferencesTasksPage::CreateControls()
 
     /* Task Options box */
     auto taskOptionsBox = new wxStaticBox(this, wxID_ANY, "Task Options");
-    auto taskOptionsBoxSizer = new wxStaticBoxSizer(taskOptionsBox, wxHORIZONTAL);
+    auto taskOptionsBoxSizer = new wxStaticBoxSizer(taskOptionsBox, wxVERTICAL);
     sizer->Add(taskOptionsBoxSizer, wxSizerFlags().Expand());
 
     /* Time Duration label */
@@ -173,16 +173,19 @@ void PreferencesTasksPage::CreateControls()
     pMaximumDescriptionLengthSpinCtrl->SetToolTip(
         "Set the maximum number of characters when typing a task description");
 
+    auto taskOptionsFlexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     taskOptionsBoxSizer->Add(
-        timeIncrementLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    taskOptionsBoxSizer->AddStretchSpacer(1);
-    taskOptionsBoxSizer->Add(
-        pMinutesIncrementChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        taskOptionsFlexGridSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    taskOptionsFlexGridSizer->AddGrowableCol(1, 1);
 
-    taskOptionsBoxSizer->Add(
+    taskOptionsFlexGridSizer->Add(
+        timeIncrementLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    taskOptionsFlexGridSizer->Add(
+        pMinutesIncrementChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    taskOptionsFlexGridSizer->Add(
         taskMaxDescriptionLengthLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    taskOptionsBoxSizer->AddStretchSpacer(1);
-    taskOptionsBoxSizer->Add(
+    taskOptionsFlexGridSizer->Add(
         pMaximumDescriptionLengthSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Show project associated categories control */
