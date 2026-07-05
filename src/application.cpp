@@ -19,6 +19,8 @@
 
 #include "application.h"
 
+#include <filesystem>
+
 #include <wx/ipc.h>
 #include <wx/richmsgdlg.h>
 #include <wx/taskbarbutton.h>
@@ -209,6 +211,16 @@ bool Application::InitializeConfiguration()
         dialog.ShowModal();
         return false;
     }
+
+    // remove database file from database path config
+    std::string ext(".db");
+    std::string databasePath = pCfg->GetDatabasePath();
+    auto fullPath = std::filesystem::path(databasePath);
+    if (fullPath.has_filename() && fullPath.extension() == ext) {
+        auto& pathWithoutFileName = fullPath.remove_filename();
+        pCfg->SetDatabasePath(pathWithoutFileName.string());
+    }
+
     /*
      * we then save the file just in case the file didn't exist or a setting(s) was missing
      * if a setting was missing, saving the configuration ensures the configuration is

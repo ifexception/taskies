@@ -476,9 +476,6 @@ void ExportToExcelDialog::FillControls()
     pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
     pNewLinesHandlerChoiceCtrl->SetSelection(0);
 
-    pNewLinesHandlerChoiceCtrl->Append("(default)", new ClientData<int>(-1));
-    pNewLinesHandlerChoiceCtrl->SetSelection(0);
-
     auto newLines = Common::Static::NewLinesList();
     for (auto i = 0; i < newLines.size(); i++) {
         pNewLinesHandlerChoiceCtrl->Append(
@@ -868,7 +865,7 @@ void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
 
     const auto& presets = pCfg->GetPresets();
     auto presetIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings cfgPreset) {
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting cfgPreset) {
             return cfgPreset.Uuid == preset.Uuid;
         });
 
@@ -953,7 +950,7 @@ void ExportToExcelDialog::OnPresetChoice(wxCommandEvent& event)
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetToApplyIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings& preset) {
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting& preset) {
             return preset.Uuid == presetUuid;
         });
 
@@ -1226,13 +1223,32 @@ void ExportToExcelDialog::SetToDateAndDatePicker()
     mToCtrlDate = pDateStore->SundayDateSeconds;
 }
 
-void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSettings& presetSettings)
+void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSetting& presetSettings)
 {
     pPresetNameTextCtrl->ChangeValue(presetSettings.Name);
     pPresetIsDefaultCheckBoxCtrl->SetValue(presetSettings.IsDefault);
 
-    pNewLinesHandlerChoiceCtrl->SetSelection(static_cast<int>(presetSettings.NewLinesHandler));
-    pBooleanHanderChoiceCtrl->SetSelection(static_cast<int>(presetSettings.BooleanHandler));
+    for (unsigned int i = 1; i < pNewLinesHandlerChoiceCtrl->GetCount(); i++) {
+        ClientData<Common::EnumClientData<NewLines>>* newLinesData =
+            reinterpret_cast<ClientData<Common::EnumClientData<NewLines>>*>(
+                pNewLinesHandlerChoiceCtrl->GetClientObject(i));
+
+        if (newLinesData->GetValue().Data == presetSettings.NewLinesHandler) {
+            pNewLinesHandlerChoiceCtrl->SetSelection(i);
+            break;
+        }
+    }
+
+    for (unsigned int i = 1; i < pBooleanHanderChoiceCtrl->GetCount(); i++) {
+        ClientData<Common::EnumClientData<BooleanHandler>>* booleanHandlerData =
+            reinterpret_cast<ClientData<Common::EnumClientData<BooleanHandler>>*>(
+                pBooleanHanderChoiceCtrl->GetClientObject(i));
+
+        if (booleanHandlerData->GetValue().Data == presetSettings.BooleanHandler) {
+            pBooleanHanderChoiceCtrl->SetSelection(i);
+            break;
+        }
+    }
 
     mNewLinesOption = presetSettings.NewLinesHandler;
     mBooleanOption = presetSettings.BooleanHandler;
@@ -1250,7 +1266,7 @@ void ExportToExcelDialog::ApplyPreset(const Core::Configuration::PresetSettings&
 
         auto presetOriginalColumnIterator = std::find_if(presetSettings.Columns.begin(),
             presetSettings.Columns.end(),
-            [=](const Core::Configuration::PresetColumnSettings& presetColumn) {
+            [=](const Core::Configuration::PresetColumnSetting& presetColumn) {
                 return name == presetColumn.OriginalColumn;
             });
 

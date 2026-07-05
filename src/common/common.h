@@ -32,6 +32,8 @@ namespace Common
 {
 std::string GetProgramName();
 
+std::string GetProgramNameLowerCase();
+
 std::string GetProgramIconBundleName();
 
 std::string GetExitIconBundleName();
@@ -40,12 +42,24 @@ std::string GetAddTaskIconBundleName();
 
 std::string GetAboutIconBundleName();
 
-std::string GetPreferencesIconBundleName();
+std::string GetSettingsIconBundleName();
 
 std::string GetQuickExportIconBundleName();
 
+std::string GetEditTaskIconBundleName();
+
+std::string GetCopyPasteIconBundleName();
+
+std::string GetCopyRowIconBundleName();
+
+std::string GetCopyWithPresetIconBundleName();
+
+std::string GetCopyRowWithPresetIconBundleName();
+std::string GetDeleteTaskIconBundleName();
+
 std::string GetLicense();
 
+// Presets
 struct PresetColumn {
     std::string Column;
     std::string OriginalColumn;
@@ -88,6 +102,19 @@ struct Preset {
     }
     ~Preset() {}
 };
+
+// Tasks View Columns
+struct TasksViewColumn {
+    std::string Name;
+    int Order;
+    TasksViewColumnModelIndex ColumnModelIndex;
+    TasksViewColumnTextAlignment TextAlignment;
+    TasksViewColumnType Type;
+};
+
+std::vector<TasksViewColumn> DefaultTasksViewColumnList();
+
+std::vector<TasksViewColumn> AvailableTasksViewColumnList();
 
 namespace Resources
 {

@@ -90,6 +90,9 @@
     <Filter Include="Source\common\messages">
       <UniqueIdentifier>{71416d9f-b9e2-4593-b433-50d7dfe14f09}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\services\filterentity">
+      <UniqueIdentifier>{dab9d520-b1fb-46e0-bd41-bff72092e1cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -438,6 +441,12 @@
       <Filter>Source\common</Filter>
     </ClCompile>
     <ClCompile Include="src\core\database_optimizer.cpp">
+      <Filter>Source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\services\filterentity\filterentityservice.cpp">
+      <Filter>Source\services\filterentity</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\zip_database_backup.cpp">
       <Filter>Source\core</Filter>
     </ClCompile>
   </ItemGroup>
@@ -790,6 +799,12 @@
     <ClInclude Include="src\core\database_optimizer.h">
       <Filter>Source\core</Filter>
     </ClInclude>
+    <ClInclude Include="src\services\filterentity\filterentityservice.h">
+      <Filter>Source\services\filterentity</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\zip_database_backup.h">
+      <Filter>Source\core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc">
@@ -849,12 +864,6 @@
     <None Include="res\migrations\20250427164010_create_static_attribute_values_table.sql">
       <Filter>Resource Files\migrations</Filter>
     </None>
-    <None Include="res\bell16x16.png">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="res\bellnotification16x16.png">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql">
       <Filter>Resource Files\migrations</Filter>
     </None>
@@ -871,19 +880,37 @@
     <Image Include="res\about.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\add_task.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\exit.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="res\preferences.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\quick_export.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\taskies.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\setting.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\new_task.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\edit_task.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\delete_task.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\copy_with_preset.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\copy_row_with_preset.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\copy_row.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\copy_and_paste.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

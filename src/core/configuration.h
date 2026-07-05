@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <toml.hpp>
 
@@ -48,22 +49,39 @@ struct Sections {
 class Configuration
 {
 public:
-    struct PresetColumnSettings {
+    struct TasksViewColumnSetting {
+        std::string Name;
+        int Order;
+        TasksViewColumnModelIndex ColumnModelIndex;
+        TasksViewColumnTextAlignment TextAlignment;
+        TasksViewColumnType Type;
+
+        TasksViewColumnSetting();
+        TasksViewColumnSetting(Common::TasksViewColumn tasksViewColumn);
+        ~TasksViewColumnSetting() = default;
+
+        bool operator==(const TasksViewColumnSetting& other) const;
+
+        // Special method that returns true on "Description" column due to its unique attributes
+        bool IsDescriptionColumn() const;
+    };
+
+    struct PresetColumnSetting {
         std::string Column;
         std::string OriginalColumn;
         int Order;
 
-        PresetColumnSettings()
+        PresetColumnSetting()
             : Column()
             , OriginalColumn()
             , Order(-1)
         {
         }
-        PresetColumnSettings(Common::PresetColumn presetColumn);
-        ~PresetColumnSettings() = default;
+        PresetColumnSetting(Common::PresetColumn presetColumn);
+        ~PresetColumnSetting() = default;
     };
 
-    struct PresetSettings {
+    struct PresetSetting {
         std::string Uuid;
         std::string Name;
         bool IsDefault;
@@ -74,9 +92,9 @@ public:
         BooleanHandler BooleanHandler;
         bool ExcludeHeaders;
         bool IncludeAttributes;
-        std::vector<PresetColumnSettings> Columns;
+        std::vector<PresetColumnSetting> Columns;
 
-        PresetSettings()
+        PresetSetting()
             : Uuid()
             , Name()
             , IsDefault(false)
@@ -90,8 +108,8 @@ public:
             , Columns()
         {
         }
-        PresetSettings(Common::Preset preset);
-        ~PresetSettings() = default;
+        PresetSetting(Common::Preset preset);
+        ~PresetSetting() = default;
     };
 
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
@@ -139,6 +157,9 @@ public:
     bool BackupOnProgramClose() const;
     void BackupOnProgramClose(const bool value);
 
+    bool ZipBackupFile() const;
+    void ZipBackupFile(const bool value);
+
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
 
@@ -163,6 +184,12 @@ public:
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
+    bool UseProjectDisplayName() const;
+    void UseProjectDisplayName(const bool value);
+
+    std::vector<Configuration::TasksViewColumnSetting> GetTasksViewColumns() const;
+    void SetTasksViewColumns(const std::vector<Configuration::TasksViewColumnSetting> values);
+
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
 
@@ -172,10 +199,10 @@ public:
     int GetPresetCount() const;
     void SetPresetCount(const int value);
 
-    std::vector<PresetSettings> GetPresets() const;
-    void SetPresets(const std::vector<PresetSettings>& values);
-    void AddPreset(const PresetSettings& value);
-    void EmplacePreset(const PresetSettings& value);
+    std::vector<PresetSetting> GetPresets() const;
+    void SetPresets(const std::vector<PresetSetting>& values);
+    void AddPreset(const PresetSetting& value);
+    void EmplacePreset(const PresetSetting& value);
     void ClearPresets();
 
     std::string BuildFullDatabaseFilePath() const;
@@ -204,6 +231,7 @@ private:
         bool BackupDatabase;
         std::string BackupPath;
         bool BackupOnProgramClose;
+        bool ZipBackupFile;
 
         int TaskMinutesIncrement;
         bool ShowProjectAssociatedCategories;
@@ -214,12 +242,14 @@ private:
         bool OpenTaskDialogOnReminderClick;
 
         bool TodayAlwaysExpanded;
+        bool UseProjectDisplayName;
+        std::vector<Configuration::TasksViewColumnSetting> TasksViewColumnSettings;
 
         std::string ExportPath;
         bool CloseExportDialogAfterExporting;
         int PresetCount;
 
-        std::vector<PresetSettings> PresetSettings;
+        std::vector<PresetSetting> PresetSettings;
     };
 
     Settings mSettings;

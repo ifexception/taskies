@@ -30,11 +30,27 @@ CsvExporterService::CsvExporterService(std::shared_ptr<spdlog::logger> logger,
     : pLogger(logger)
     , mOptions(options)
     , mDatabaseFilePath(databaseFilePath)
-    , bIsPreview(isPreview)
     , pDataGenerator(nullptr)
+    , bIsPreview(isPreview)
+    , mTaskId(std::nullopt)
 {
     pDataGenerator = std::make_unique<DataGenerator>(
-        pLogger, mDatabaseFilePath, bIsPreview, mOptions.IncludeAttributes);
+        pLogger, mDatabaseFilePath, bIsPreview, mOptions.IncludeAttributes, mTaskId);
+}
+
+CsvExporterService::CsvExporterService(std::shared_ptr<spdlog::logger> logger,
+    ExportOptions options,
+    const std::string& databaseFilePath,
+    std::int64_t taskId)
+    : pLogger(logger)
+    , mOptions(options)
+    , mDatabaseFilePath(databaseFilePath)
+    , pDataGenerator(nullptr)
+    , bIsPreview(false)
+    , mTaskId(std::make_optional<std::int64_t>(taskId))
+{
+    pDataGenerator = std::make_unique<DataGenerator>(
+        pLogger, mDatabaseFilePath, bIsPreview, mOptions.IncludeAttributes, mTaskId);
 }
 
 ExportResult CsvExporterService::ExportToCsv(const std::vector<Projection>& projections,
@@ -46,8 +62,8 @@ ExportResult CsvExporterService::ExportToCsv(const std::vector<Projection>& proj
     /* `SData` is our main struct to store the headers and rows */
     SData exportData;
 
-    auto result = pDataGenerator->FillData(
-        projections, joinProjections, fromDate, toDate, exportData);
+    auto result =
+        pDataGenerator->FillData(projections, joinProjections, fromDate, toDate, exportData);
     if (!result.Success) {
         pLogger->error("Failed to generate export data. See earlier logs for detail");
         return result;

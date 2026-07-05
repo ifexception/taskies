@@ -32,19 +32,39 @@
 #include <date/date.h>
 
 #include <spdlog/logger.h>
+#include <spdlog/spdlog.h>
 
 #include "tasktreemodelnode.h"
 
 #include "../../services/tasks/taskviewmodel.h"
 
-namespace tks::UI
+namespace tks
+{
+namespace Core
+{
+class Configuration;
+}
+namespace UI
 {
 class TaskTreeModel : public wxDataViewModel
 {
 public:
-    enum { Col_Project = 0, Col_Category, Col_Duration, Col_Description, Col_Id, Col_Max };
+    enum {
+        Col_Date = 0,
+        Col_Employer,
+        Col_Client,
+        Col_Project,
+        Col_Category,
+        Col_Duration,
+        Col_Billable,
+        Col_UniqueId,
+        Col_Description,
+        Col_Id,
+        Col_Max
+    };
 
     TaskTreeModel(const std::vector<std::string>& weekDates,
+        std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger);
     ~TaskTreeModel();
 
@@ -55,13 +75,13 @@ public:
     bool IsEnabled(const wxDataViewItem& item, unsigned int col) const override;
     wxDataViewItem GetParent(const wxDataViewItem& item) const override;
     bool IsContainer(const wxDataViewItem& item) const override;
-    unsigned int GetChildren(const wxDataViewItem& parent, wxDataViewItemArray& array) const override;
+    unsigned int GetChildren(const wxDataViewItem& parent,
+        wxDataViewItemArray& array) const override;
 
     void Delete(const wxDataViewItem& item);
     void DeleteChild(const std::string& date, const std::int64_t taskId);
 
     void ChangeChild(const std::string& date, Services::TaskViewModel& taskModel);
-    //void ChangeContainerLabelWithTime(const std::string date, const std::string time);
 
     void Clear();
     void ClearAll();
@@ -69,7 +89,8 @@ public:
 
     void InsertChildNode(const std::string& date, Services::TaskViewModel& taskModel);
     void InsertChildNodes(const std::string& date, std::vector<Services::TaskViewModel> models);
-    void InsertRootAndChildNodes(const std::string& date, std::vector<Services::TaskViewModel> models);
+    void InsertRootAndChildNodes(const std::string& date,
+        std::vector<Services::TaskViewModel> models);
 
     wxDataViewItem TryExpandTodayDateNode(const std::string& todaysDate);
     wxDataViewItemArray TryCollapseDateNodes();
@@ -77,7 +98,9 @@ public:
     wxDataViewItemArray TryExpandAllDateNodes(const std::vector<std::string>& dates);
 
 private:
+    std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
     std::vector<std::unique_ptr<TaskTreeModelNode>> pRoots;
 };
+} // namespace UI
 } // namespace tks::UI

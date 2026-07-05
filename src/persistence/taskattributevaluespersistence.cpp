@@ -521,7 +521,7 @@ std::string TaskAttributeValuesPersistence::create = "INSERT INTO "
                                                      "(?, ?, ?, ?, ?)";
 
 std::string TaskAttributeValuesPersistence::deleteByTaskId = "UPDATE task_attribute_values "
-                                                             "SET  "
+                                                             "SET "
                                                              "is_active = 0, "
                                                              "date_modified = ? "
                                                              "WHERE task_id = ?";

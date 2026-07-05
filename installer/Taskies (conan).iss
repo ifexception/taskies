@@ -1,6 +1,6 @@
 ; -- Install Taskies --
 
-#define TaskiesVersion "0.3.1"
+#define TaskiesVersion "0.3.8"
 
 [Setup]
 AppName=Taskies
@@ -17,7 +17,7 @@ WizardStyle=modern
 Compression=lzma2
 SolidCompression=yes
 OutputDir=Installer
-OutputBaseFilename=Taskies-x64.{#TaskiesVersion}-Installer
+OutputBaseFilename=Taskies.{#TaskiesVersion}
 LicenseFile=License
 DisableWelcomePage=no
 ArchitecturesAllowed=x64compatible
@@ -68,7 +68,7 @@ Source: "sqlite3.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "sqlite3.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "tiff.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "wcurl"; DestDir: "{app}"; Flags: ignoreversion
-Source: "wxbase32u_net_vc_x64_custom.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "wxbase32u_vc_x64_custom.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "wxmsw32u_core_vc_x64_custom.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "wxmsw32u_aui_vc_x64_custom.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "wxrc.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -76,8 +76,6 @@ Source: "xz.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "xzdec.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "taskies.toml"; DestDir: "{userappdata}\Taskies"; Flags: onlyifdoesntexist
-Source: "res\bell16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
-Source: "res\bellnotification16x16.png"; DestDir: "{app}\res"; Flags: ignoreversion
 Source: "res\install-wizard.svg"; DestDir: "{app}\res"; Flags: ignoreversion
 
 [Icons]
@@ -88,19 +86,14 @@ WelcomeLabel1=Welcome to the Taskies Installation Wizard
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{userappdata}\Taskies\logs"
+Type: filesandordirs; Name: "{userappdata}\Taskies\data"
 Type: files; Name: "{userappdata}\Taskies\taskies.toml"
-Type: files; Name: "{app}\fmt.dll";
-Type: files; Name: "{app}\jpeg62.dll";
-Type: files; Name: "{app}\liblzma.dll";
-Type: files; Name: "{app}\libpng16.dll";
-Type: files; Name: "{app}\pcre2-16.dll";
-Type: files; Name: "{app}\spdlog.dll";
-Type: files; Name: "{app}\sqlite3.dll";
-Type: files; Name: "{app}\tiff.dll";
-Type: files; Name: "{app}\wxbase32u_vc_x64_custom.dll";
-Type: files; Name: "{app}\wxmsw32u_core_vc_x64_custom.dll";
-Type: files; Name: "{app}\zlib1.dll";
-Type: filesandordirs; Name: "{app}\lang";
+Type: filesandordirs; Name: "{app}\mswu\*";
+Type: files; Name: "{app}\*.dll";
+Type: files; Name: "{app}\*.exe";
+Type: files; Name: "{app}\c_rehash.pl";
+Type: files; Name: "{app}\curl-config";
+Type: files; Name: "{app}\wcurl";
 Type: filesandordirs; Name: "{app}\res";
 
 

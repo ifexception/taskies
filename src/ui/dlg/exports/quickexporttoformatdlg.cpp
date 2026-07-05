@@ -511,7 +511,7 @@ void QuickExportToFormatDialog::OnPresetChoiceSelection(wxCommandEvent& event)
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetToApplyIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings& preset) {
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting& preset) {
             return preset.Uuid == presetUuid;
         });
 
@@ -543,7 +543,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSettings& preset) {
+        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting& preset) {
             return preset.Uuid == presetUuid;
         });
 
@@ -668,15 +668,15 @@ void QuickExportToFormatDialog::SetToDateAndDatePicker()
 }
 
 void QuickExportToFormatDialog::ApplyPreset(
-    const Core::Configuration::PresetSettings& presetSettings)
+    const Core::Configuration::PresetSetting& presetSetting)
 {
-    mExportOptions.Delimiter = presetSettings.Delimiter;
-    mExportOptions.TextQualifier = presetSettings.TextQualifier;
-    mExportOptions.EmptyValuesHandler = presetSettings.EmptyValuesHandler;
-    mExportOptions.NewLinesHandler = presetSettings.NewLinesHandler;
-    mExportOptions.BooleanHandler = presetSettings.BooleanHandler;
+    mExportOptions.Delimiter = presetSetting.Delimiter;
+    mExportOptions.TextQualifier = presetSetting.TextQualifier;
+    mExportOptions.EmptyValuesHandler = presetSetting.EmptyValuesHandler;
+    mExportOptions.NewLinesHandler = presetSetting.NewLinesHandler;
+    mExportOptions.BooleanHandler = presetSetting.BooleanHandler;
 
-    mExportOptions.ExcludeHeaders = presetSettings.ExcludeHeaders;
-    mExportOptions.IncludeAttributes = presetSettings.IncludeAttributes;
+    mExportOptions.ExcludeHeaders = presetSetting.ExcludeHeaders;
+    mExportOptions.IncludeAttributes = presetSetting.IncludeAttributes;
 }
 } // namespace tks::UI::dlg

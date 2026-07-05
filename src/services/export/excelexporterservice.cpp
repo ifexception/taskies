@@ -38,8 +38,8 @@ ExcelExporterService::ExcelExporterService(std::shared_ptr<spdlog::logger> logge
     , pDataGenerator(nullptr)
     , mExportDataProcessor(newLinesOption, booleanHandlerOption)
 {
-    pDataGenerator =
-        std::make_unique<DataGenerator>(pLogger, mDatabaseFilePath, false, bIncludeAttributes);
+    pDataGenerator = std::make_unique<DataGenerator>(
+        pLogger, mDatabaseFilePath, false, bIncludeAttributes, std::nullopt);
 }
 
 ExportResult ExcelExporterService::ExportToExcel(const std::vector<Projection>& projections,

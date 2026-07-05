@@ -26,5 +26,7 @@
 
 namespace tks::Common
 {
+wxDateTime MakeMaximumFromDate();
+
 bool IsDarkColour(const wxColor& color);
 } // namespace tks::Common

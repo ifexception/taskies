@@ -120,13 +120,13 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
     menu->AppendSeparator();
 
     auto preferencesMenuItem =
-        menu->Append(tksIDC_MENU_PREFERENCES, "Preferences", "View and adjust program options");
+        menu->Append(tksIDC_MENU_PREFERENCES, "&Preferences\tCtrl-,", "View and adjust program options");
 
-    wxIconBundle preferencesIconBundle(Common::GetPreferencesIconBundleName(), 0);
+    wxIconBundle preferencesIconBundle(Common::GetSettingsIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
 
     menu->AppendSeparator();
-    auto exitMenuItem = menu->Append(wxID_EXIT, "Ex&it", "Exit the program");
+    auto exitMenuItem = menu->Append(wxID_EXIT, "E&xit\tAlt-F4", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));

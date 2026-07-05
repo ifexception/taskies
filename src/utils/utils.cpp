@@ -74,8 +74,16 @@ std::int64_t UnixTimestampTomorrowMidnight()
 
 std::string ToISODateTime(std::int64_t unixTimestamp)
 {
+    date::sys_seconds tp{ std::chrono::seconds{ unixTimestamp } };
+    std::string date = date::format("%F %T", tp);
+    return date;
+}
+
+std::string Timestamp()
+{
     auto now = std::chrono::system_clock::now();
-    auto date = date::format("%F %T", date::floor<std::chrono::seconds>(now));
+    std::string date = date::format("%F-%T", now);
+    date = ReplaceAll(date, ":", "-");
     return date;
 }
 

@@ -53,8 +53,6 @@
 #include "taskbaricon.h"
 #include "statusbar.h"
 
-wxDateTime MakeMaximumFromDate();
-
 namespace tks
 {
 enum class MenuIds : int {
@@ -89,6 +87,9 @@ enum class MenuIds : int {
     Pop_NewTask,
     Pop_ContainerCopyTasks,
     Pop_ContainerCopyTasksWithHeaders,
+    Pop_ContainerCopyTasksPreset,
+    Pop_CopyRowTask,
+    Pop_CopyRowTaskPreset
 };
 
 /* File */
@@ -128,9 +129,14 @@ static const int ID_HELP_ABOUT = static_cast<int>(MenuIds::Help_About);
 /* Popup Menu Ids */
 static const int ID_POP_CLONE_TASK = static_cast<int>(MenuIds::Pop_CloneTask);
 static const int ID_POP_NEW_TASK = static_cast<int>(MenuIds::Pop_NewTask);
+
 static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_ContainerCopyTasks);
 static const int ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS =
     static_cast<int>(MenuIds::Pop_ContainerCopyTasksWithHeaders);
+static const int ID_POP_CONTAINER_COPY_TASKS_PRESET =
+    static_cast<int>(MenuIds::Pop_ContainerCopyTasksPreset);
+static const int ID_POP_COPY_ROW_TASK = static_cast<int>(MenuIds::Pop_CopyRowTask);
+static const int ID_POP_COPY_ROW_TASK_PRESET = static_cast<int>(MenuIds::Pop_CopyRowTaskPreset);
 
 static const int MAX_EXPAND_COUNT = 3;
 
@@ -204,11 +210,15 @@ private:
     void OnPopupNewTask(wxCommandEvent& event);
     void OnContainerCopyTasksToClipboard(wxCommandEvent& event);
     void OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& event);
-    void OnCopyTaskToClipboard(wxCommandEvent& event);
+    void OnContainerCopyTasksUsingPreset(wxCommandEvent& event);
+    void OnCopyTaskDescriptionToClipboard(wxCommandEvent& event);
+    void OnCopyRowTaskToClipboard(wxCommandEvent& event);
+    void OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event);
     void OnEditTask(wxCommandEvent& event);
     void OnDeleteTask(wxCommandEvent& event);
     void OnCloneTask(wxCommandEvent& event);
     void OnAddMinutes(wxCommandEvent& event);
+    void OnMenuHighlight(wxMenuEvent& event);
     /* Custom Event Handlers */
     void OnTaskAddedOnDate(wxCommandEvent& event);
     void OnTaskDeletedOnDate(wxCommandEvent& event);

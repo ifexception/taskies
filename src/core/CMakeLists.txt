@@ -8,5 +8,6 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/database_backup.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/database_optimizer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/environment.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/zip_database_backup.cpp"
     PARENT_SCOPE
 )

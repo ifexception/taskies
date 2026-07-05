@@ -21,19 +21,11 @@
 
 namespace tks::Services::Export
 {
-SQLiteExportQueryBuilder::SQLiteExportQueryBuilder(bool isPreview)
-    : bIsPreview(isPreview)
+SQLiteExportQueryBuilder::SQLiteExportQueryBuilder(std::optional<std::int64_t> taskId,
+    bool isPreview)
+    : mTaskId(taskId)
+    , bIsPreview(isPreview)
 {
-}
-
-const bool SQLiteExportQueryBuilder::IsPreview() const
-{
-    return bIsPreview;
-}
-
-void SQLiteExportQueryBuilder::IsPreview(const bool preview)
-{
-    bIsPreview = preview;
 }
 
 std::string SQLiteExportQueryBuilder::BuildQuery(const std::vector<Projection>& projections,
@@ -99,9 +91,16 @@ std::string SQLiteExportQueryBuilder::BuildQueryString(const std::vector<std::st
         AppendJoins(query, secondLevelJoins);
     }
 
-    AppendClause(query, " WHERE ", where);
+    if (!where.empty()) {
+        AppendClause(query, " WHERE ", where);
+        if (!bIsPreview && mTaskId.has_value()) {
+            query << " AND tasks.task_id = " << mTaskId.value();
+        }
+    } else if (!bIsPreview && mTaskId.has_value()) {
+        query << " WHERE tasks.task_id = " << mTaskId.value();
+    }
 
-    if (bIsPreview) {
+    if (bIsPreview && !mTaskId.has_value()) {
         AppendClause(query, " LIMIT ", "1");
     }
 
@@ -116,8 +115,13 @@ std::string SQLiteExportQueryBuilder::BuildAttributeQueryString(const std::strin
     query << "SELECT ";
     query << "tasks.task_id, ";
     query << "attributes.name AS \"Name\", ";
-    query << "coalesce(task_attribute_values.text_value, task_attribute_values.boolean_value, "
-             "task_attribute_values.numeric_value, NULL) AS \"Value\" ";
+    query << "coalesce(";
+    query << "task_attribute_values.text_value, ";
+    query << "task_attribute_values.boolean_value, ";
+    query << "task_attribute_values.numeric_value, ";
+    query << "NULL";
+    query << ")";
+    query << " AS \"Value\" ";
 
     query << "FROM tasks ";
     query << "INNER JOIN workdays ";
@@ -129,12 +133,19 @@ std::string SQLiteExportQueryBuilder::BuildAttributeQueryString(const std::strin
     query << "INNER JOIN attributes ";
     query << "ON task_attribute_values.attribute_id = attributes.attribute_id ";
 
-    AppendClause(query, " WHERE ", where);
-    AppendClause(query, " AND ", "task_attribute_values.is_active = 1");
+    bool whereHasPredicates = !where.empty();
+    if (whereHasPredicates) {
+        AppendClause(query, " WHERE ", where);
+        AppendClause(query, " AND ", "task_attribute_values.is_active = 1");
+    } else {
+        // No incoming where predicates: start with is_active
+        AppendClause(query, " WHERE ", "task_attribute_values.is_active = 1");
+    }
 
-    if (bIsPreview && taskId.has_value()) {
-        std::string whereClause = "tasks.task_id = " + std::to_string(taskId.value());
-        AppendClause(query, " AND ", whereClause);
+    // Append task filter when provided (apply regardless of preview flag)
+    if (!bIsPreview && taskId.has_value()) {
+        std::string clause = "tasks.task_id = " + std::to_string(taskId.value());
+        AppendClause(query, " AND ", clause);
     }
 
     return query.str();

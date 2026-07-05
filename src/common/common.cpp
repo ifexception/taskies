@@ -19,11 +19,30 @@
 
 #include "common.h"
 
+#include <algorithm>
+
 namespace tks::Common
 {
 std::string GetProgramName()
 {
     return "Taskies";
+}
+
+std::string GetProgramNameLowerCase()
+{
+    std::string data = GetProgramName();
+    // clang-format off
+    std::transform(
+        data.begin(),
+        data.end(),
+        data.begin(),
+        [](unsigned char c) {
+            return std::tolower(c);
+        }
+    );
+    // clang-format on
+
+    return data;
 }
 
 std::string GetProgramIconBundleName()
@@ -38,7 +57,7 @@ std::string GetExitIconBundleName()
 
 std::string GetAddTaskIconBundleName()
 {
-    return "ADD_TASK_ICO";
+    return "NEW_TASK_ICO";
 }
 
 std::string GetAboutIconBundleName()
@@ -46,14 +65,44 @@ std::string GetAboutIconBundleName()
     return "ABOUT_ICO";
 }
 
-std::string GetPreferencesIconBundleName()
+std::string GetSettingsIconBundleName()
 {
-    return "PREFERENCES_ICO";
+    return "SETTINGS_ICO";
 }
 
 std::string GetQuickExportIconBundleName()
 {
     return "QUICK_EXPORT_ICO";
+}
+
+std::string GetEditTaskIconBundleName()
+{
+    return "EDIT_TASK_ICO";
+}
+
+std::string GetCopyPasteIconBundleName()
+{
+    return "COPY_PASTE_ICO";
+}
+
+std::string GetCopyRowIconBundleName()
+{
+    return "COPY_ROW_ICO";
+}
+
+std::string GetCopyWithPresetIconBundleName()
+{
+    return "COPY_WITH_PRESET_ICO";
+}
+
+std::string GetCopyRowWithPresetIconBundleName()
+{
+    return "COPY_ROW_WITH_PRESET_ICO";
+}
+
+std::string GetDeleteTaskIconBundleName()
+{
+    return "DELETE_TASK_ICO";
 }
 
 std::string GetLicense()
@@ -73,6 +122,90 @@ std::string GetLicense()
            "\n"
            "You should have received a copy of the GNU General Public License\n"
            "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
+}
+
+std::vector<TasksViewColumn> DefaultTasksViewColumnList()
+{
+    int orderIndex = 1;
+    return std::vector<TasksViewColumn>{
+        { "Date",
+            orderIndex++,
+            TasksViewColumnModelIndex::ColumnModelIndexDate,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String },
+        { "Project",
+            orderIndex++,
+            TasksViewColumnModelIndex::ColumnModelIndexProject,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String },
+        { "Category",
+            orderIndex++,
+            TasksViewColumnModelIndex::ColumnModelIndexCategory,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String },
+        { "Duration",
+            orderIndex++,
+            TasksViewColumnModelIndex::ColumnModelIndexDuration,
+            TasksViewColumnTextAlignment::AlignCenter,
+            TasksViewColumnType::String },
+        { "Description",
+            orderIndex++,
+            TasksViewColumnModelIndex::ColumnModelIndexDescription,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String }
+    };
+}
+
+std::vector<TasksViewColumn> AvailableTasksViewColumnList()
+{
+    int orderIndex = -1;
+    return std::vector<TasksViewColumn>{
+        { "Date",
+            1,
+            TasksViewColumnModelIndex::ColumnModelIndexDate,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String },
+        { "Employer",
+            orderIndex,
+            TasksViewColumnModelIndex::ColumnModelIndexEmployer,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String },
+        { "Client",
+            orderIndex,
+            TasksViewColumnModelIndex::ColumnModelIndexClient,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String },
+        { "Project",
+            orderIndex,
+            TasksViewColumnModelIndex::ColumnModelIndexProject,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String },
+        { "Category",
+            orderIndex,
+            TasksViewColumnModelIndex::ColumnModelIndexCategory,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String },
+        { "Duration",
+            orderIndex,
+            TasksViewColumnModelIndex::ColumnModelIndexDuration,
+            TasksViewColumnTextAlignment::AlignCenter,
+            TasksViewColumnType::String },
+        { "Billable",
+            orderIndex,
+            TasksViewColumnModelIndex::ColumnModelIndexBillable,
+            TasksViewColumnTextAlignment::AlignCenter,
+            TasksViewColumnType::Boolean },
+        { "Unique ID",
+            orderIndex,
+            TasksViewColumnModelIndex::ColumnModelIndexUniqueId,
+            TasksViewColumnTextAlignment::AlignCenter,
+            TasksViewColumnType::String },
+        { "Description",
+            orderIndex,
+            TasksViewColumnModelIndex::ColumnModelIndexDescription,
+            TasksViewColumnTextAlignment::AlignLeft,
+            TasksViewColumnType::String },
+    };
 }
 
 namespace Resources

@@ -124,11 +124,31 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
             model.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
             res = sqlite3_column_text(stmt, columnIndex);
+            model.WorkdayDate = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
             model.ProjectName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
             res = sqlite3_column_text(stmt, columnIndex);
+            model.ProjectDisplayName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            res = sqlite3_column_text(stmt, columnIndex);
             model.CategoryName = std::string(
+                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.ClientName = "";
+            } else {
+                res = sqlite3_column_text(stmt, columnIndex);
+                model.ClientName = std::string(
+                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            }
+
+            res = sqlite3_column_text(stmt, columnIndex);
+            model.EmployerName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
             taskViewModels.push_back(model);
@@ -226,11 +246,31 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     taskModel.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
     res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.WorkdayDate =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    res = sqlite3_column_text(stmt, columnIndex);
     taskModel.ProjectName =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
     res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.ProjectDisplayName =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    res = sqlite3_column_text(stmt, columnIndex);
     taskModel.CategoryName =
+        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        taskModel.ClientName = "";
+    } else {
+        res = sqlite3_column_text(stmt, columnIndex);
+        taskModel.ClientName = std::string(
+            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    }
+
+    res = sqlite3_column_text(stmt, columnIndex);
+    taskModel.EmployerName =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
     rc = sqlite3_step(stmt);
@@ -263,8 +303,12 @@ std::string TasksService::filterByDate = "SELECT "
                                          "tasks.project_id, "
                                          "tasks.category_id, "
                                          "tasks.workday_id, "
+                                         "workdays.date, "
+                                         "projects.name,"
                                          "projects.display_name,"
-                                         "categories.name "
+                                         "categories.name, "
+                                         "clients.name, "
+                                         "employers.name "
                                          "FROM tasks "
                                          "INNER JOIN workdays "
                                          "ON tasks.workday_id = workdays.workday_id "
@@ -272,6 +316,10 @@ std::string TasksService::filterByDate = "SELECT "
                                          "ON tasks.project_id = projects.project_id "
                                          "INNER JOIN categories "
                                          "ON tasks.category_id = categories.category_id "
+                                         "LEFT JOIN clients "
+                                         "ON projects.client_id = clients.client_id "
+                                         "INNER JOIN employers "
+                                         "ON projects.employer_id = employers.employer_id "
                                          "WHERE workdays.date = ? "
                                          "AND tasks.is_active = 1;";
 
@@ -288,13 +336,23 @@ std::string TasksService::getById = "SELECT "
                                     "tasks.project_id, "
                                     "tasks.category_id, "
                                     "tasks.workday_id, "
+                                    "workdays.date, "
+                                    "projects.name,"
                                     "projects.display_name,"
-                                    "categories.name "
+                                    "categories.name, "
+                                    "clients.name, "
+                                    "employers.name "
                                     "FROM tasks "
+                                    "INNER JOIN workdays "
+                                    "ON tasks.workday_id = workdays.workday_id "
                                     "INNER JOIN projects "
                                     "ON tasks.project_id = projects.project_id "
                                     "INNER JOIN categories "
                                     "ON tasks.category_id = categories.category_id "
+                                    "LEFT JOIN clients "
+                                    "ON projects.client_id = clients.client_id "
+                                    "INNER JOIN employers "
+                                    "ON projects.employer_id = employers.employer_id "
                                     "WHERE tasks.task_id = ? "
                                     "AND tasks.is_active = 1;";
 } // namespace tks::Services

@@ -197,12 +197,6 @@ void AboutDialog::CreateControls()
         listIndex, columnIndex++, "https://www.flaticon.com/free-icons/logout");
     columnIndex = 0;
 
-    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Freepik");
-    pAttributionsListView->SetItem(listIndex, columnIndex++, "Bell");
-    pAttributionsListView->SetItem(
-        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/bell");
-    columnIndex = 0;
-
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "Andrean Prabowo");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Calendar");
     pAttributionsListView->SetItem(
@@ -215,16 +209,34 @@ void AboutDialog::CreateControls()
         listIndex, columnIndex++, "https://www.flaticon.com/free-icons/enquiry");
     columnIndex = 0;
 
-    listIndex = pAttributionsListView->InsertItem(columnIndex++, "chehuna");
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Fathema Khanom");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Setting");
     pAttributionsListView->SetItem(
-        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/setting");
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/set-up");
     columnIndex = 0;
 
     listIndex = pAttributionsListView->InsertItem(columnIndex++, "Pixel bytess");
     pAttributionsListView->SetItem(listIndex, columnIndex++, "Export");
     pAttributionsListView->SetItem(
         listIndex, columnIndex++, "https://www.flaticon.com/free-icons/export");
+    columnIndex = 0;
+
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Ifanicon");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Edit Calendar");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/time-and-date");
+    columnIndex = 0;
+
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "ranksol graphics");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Copy and Paste");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/copy-and-paste");
+    columnIndex = 0;
+
+    listIndex = pAttributionsListView->InsertItem(columnIndex++, "Andrean Prabowo");
+    pAttributionsListView->SetItem(listIndex, columnIndex++, "Delete Calendar");
+    pAttributionsListView->SetItem(
+        listIndex, columnIndex++, "https://www.flaticon.com/free-icons/time-and-date");
     columnIndex = 0;
 
     attributionsCollPaneWindowSizer->Add(

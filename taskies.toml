@@ -7,11 +7,12 @@ minimizeToTray=false
 closeToTray=false
 
 [database]
-databaseFileName=""
+databaseFileName="taskies.db"
 databasePath=""
 backupDatabase=false
 backupPath=""
 backupOnProgramClose=false
+zipBackupFile=false
 
 [tasks]
 minutesIncrement=15
@@ -24,6 +25,8 @@ openTaskDialogOnReminderClick=false
 
 [tasksView]
 todayAlwaysExpanded=false
+useProjectDisplayName=false
+tasksViewColumns=[]
 
 [export]
 exportPath=""

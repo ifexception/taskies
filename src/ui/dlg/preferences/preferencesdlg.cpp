@@ -117,15 +117,17 @@ void PreferencesDialog::CreateControls()
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(buttonsSizer, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
-    buttonsSizer->AddStretchSpacer();
-
     pRestoreDefaultsButton = new wxButton(this, tksIDC_RESTOREDEFAULTBUTTON, "Restore Defaults");
 
     pOKButton = new wxButton(this, wxID_OK, "OK");
     pOKButton->SetDefault();
 
+    pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
+
     buttonsSizer->Add(pRestoreDefaultsButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->AddStretchSpacer();
     buttonsSizer->Add(pOKButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -151,6 +153,13 @@ void PreferencesDialog::ConfigureEventBindings()
         &PreferencesDialog::OnOK,
         this,
         wxID_OK
+    );
+
+    pCancelButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesDialog::OnCancel,
+        this,
+        wxID_CANCEL
     );
 
     Bind(
@@ -189,12 +198,14 @@ void PreferencesDialog::OnRestoreDefaults(wxCommandEvent& event)
     pTasksViewPage->Reset();
     pExportPage->Reset();
 
-    wxMessageDialog dialog(this,
-        "Successfully restored configuration to defaults",
-        Common::GetProgramName(),
-        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_INFORMATION);
+    std::string title = fmt::format("Restart {0}", Common::GetProgramName());
+    std::string main =
+        fmt::format("{0} needs to restart in order for some of the changes to take effect",
+            Common::GetProgramName());
 
-    dialog.ShowModal();
+    wxMessageDialog restartProgramDialog(
+        this, main, title, wxCENTER | wxOK_DEFAULT | wxOK | wxICON_WARNING);
+    restartProgramDialog.ShowModal();
 }
 
 void PreferencesDialog::OnOK(wxCommandEvent& event)
@@ -229,26 +240,42 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
         return;
     }
 
+    bool restartRequired = false;
+
     // Save changes to cfg pointer in memory
     pGeneralPage->Save();
     pDatabasePage->Save();
     pTasksPage->Save();
-    pTasksViewPage->Save();
+    pTasksViewPage->Save(&restartRequired);
     pExportPage->Save();
 
     // Save changes to disk
     pCfg->Save();
 
-    // Post success notification event
-    wxMessageBox("Successfully updated preferences",
-        Common::GetProgramName(),
-        wxOK_DEFAULT | wxICON_INFORMATION);
+    if (restartRequired) {
+        std::string title = fmt::format("Restart {0}", Common::GetProgramName());
+        std::string main =
+            fmt::format("{0} needs to restart in order for some of the changes to take effect",
+                Common::GetProgramName());
+
+        wxMessageDialog restartProgramDialog(
+            this, main, title, wxCENTER | wxOK_DEFAULT | wxOK | wxICON_WARNING);
+        restartProgramDialog.ShowModal();
+    } else {
+        std::string main = fmt::format("{0} preferences updated successfully");
+        wxMessageBox(main, Common::GetProgramName(), wxOK_DEFAULT | wxICON_INFORMATION);
+    }
 
     EndDialog(wxID_OK);
 }
 
-void PreferencesDialog::OnClose(wxCloseEvent& event)
+void PreferencesDialog::OnCancel(wxCommandEvent& event)
 {
     EndDialog(wxID_CANCEL);
+}
+
+void PreferencesDialog::OnClose(wxCloseEvent& event)
+{
+    EndDialog(wxID_EXIT);
 }
 } // namespace tks::UI::dlg

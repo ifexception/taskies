@@ -27,7 +27,8 @@
 
 namespace tks::Core
 {
-static std::string DATABASE_NAME = "taskies.db";
+static std::string DATABASE_FILENAME = "taskies.db";
+static std::string SETUP_FILENAME = "taskies.setup";
 
 class Environment final
 {

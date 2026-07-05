@@ -22,15 +22,25 @@
 namespace tks::UI
 {
 TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
+    const std::string& dateName,
+    const std::string& employerName,
+    const std::string& clientName,
     const std::string& projectName,
     const std::string& categoryName,
     const std::string& duration,
+    const bool billable,
+    const std::string& uniqueId,
     const std::string& description,
     std::int64_t taskId)
     : pParent(parent)
+    , mDate(dateName)
+    , mEmployerName(employerName)
+    , mClientName(clientName)
     , mProjectName(projectName)
     , mCategoryName(categoryName)
     , mDuration(duration)
+    , bBillable(billable)
+    , mUniqueId(uniqueId)
     , mDescription(description)
     , mTaskId(taskId)
     , bContainer(false)
@@ -39,12 +49,15 @@ TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent,
 
 TaskTreeModelNode::TaskTreeModelNode(TaskTreeModelNode* parent, const std::string& branch)
     : pParent(parent)
-    , mProjectName(branch)
-    , bContainer(true)
+    , mDate(branch)
+    , mProjectName("")
     , mCategoryName("")
     , mDuration("")
+    , bBillable(false)
+    , mUniqueId("")
     , mDescription("")
     , mTaskId(0)
+    , bContainer(true)
 {
 }
 
@@ -83,6 +96,21 @@ const unsigned int TaskTreeModelNode::GetChildCount() const
     return mChildren.size();
 }
 
+std::string TaskTreeModelNode::GetDate() const
+{
+    return mDate;
+}
+
+std::string TaskTreeModelNode::GetEmployerName() const
+{
+    return mEmployerName;
+}
+
+std::string TaskTreeModelNode::GetClientName() const
+{
+    return mClientName;
+}
+
 std::string TaskTreeModelNode::GetProjectName() const
 {
     return mProjectName;
@@ -98,6 +126,16 @@ std::string TaskTreeModelNode::GetDuration() const
     return mDuration;
 }
 
+bool TaskTreeModelNode::Billable() const
+{
+    return bBillable;
+}
+
+std::string TaskTreeModelNode::GetUniqueId() const
+{
+    return mUniqueId;
+}
+
 std::string TaskTreeModelNode::GetDescription() const
 {
     return mDescription;
@@ -106,6 +144,21 @@ std::string TaskTreeModelNode::GetDescription() const
 std::int64_t TaskTreeModelNode::GetTaskId() const
 {
     return mTaskId;
+}
+
+void TaskTreeModelNode::SetDate(const std::string& value)
+{
+    mDate = value;
+}
+
+void TaskTreeModelNode::SetEmployerName(const std::string& value)
+{
+    mEmployerName = value;
+}
+
+void TaskTreeModelNode::SetClientName(const std::string& value)
+{
+    mClientName = value;
 }
 
 void TaskTreeModelNode::SetProjectName(const std::string& value)
@@ -121,6 +174,16 @@ void TaskTreeModelNode::SetCategoryName(const std::string& value)
 void TaskTreeModelNode::SetDuration(const std::string& value)
 {
     mDuration = value;
+}
+
+void TaskTreeModelNode::Billable(const bool value)
+{
+    bBillable = value;
+}
+
+void TaskTreeModelNode::SetUniqueId(const std::string& value)
+{
+    mUniqueId = value;
 }
 
 void TaskTreeModelNode::SetDescription(const std::string& value)

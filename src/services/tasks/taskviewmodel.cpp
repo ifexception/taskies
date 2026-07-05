@@ -39,7 +39,11 @@ TaskViewModel::TaskViewModel()
     , ProjectId(-1)
     , CategoryId(-1)
     , WorkdayId(-1)
+    , WorkdayDate()
+    , EmployerName()
+    , ClientName()
     , ProjectName()
+    , ProjectDisplayName()
     , CategoryName()
 {
 }
@@ -47,6 +51,11 @@ TaskViewModel::TaskViewModel()
 const std::string TaskViewModel::GetDuration() const
 {
     return fmt::format("{0:02}:{1:02}", Hours, Minutes);
+}
+
+const std::string TaskViewModel::TryGetUniqueIdentifier() const
+{
+    return UniqueIdentifier.has_value() ? UniqueIdentifier.value() : "";
 }
 
 const std::string TaskViewModel::GetTrimmedDescription()
