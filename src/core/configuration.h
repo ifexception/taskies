@@ -163,6 +163,9 @@ public:
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
 
+    int MaximumDescriptionLength() const;
+    void SetMaximumDescriptionLength(const int value);
+
     bool ShowProjectAssociatedCategories() const;
     void ShowProjectAssociatedCategories(const bool value);
 
@@ -234,6 +237,7 @@ private:
         bool ZipBackupFile;
 
         int TaskMinutesIncrement;
+        int MaximumDescriptionLength;
         bool ShowProjectAssociatedCategories;
         bool UseReminders;
         bool UseNotificationBanners;

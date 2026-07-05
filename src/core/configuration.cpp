@@ -212,6 +212,7 @@ ConfigResult Configuration::Save()
     // Task section
     root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
     root.at(Sections::TaskSection)["minutesIncrement"] = mSettings.TaskMinutesIncrement;
+    root.at(Sections::TaskSection)["maximumDescriptionLength"] = mSettings.MaximumDescriptionLength;
     root.at(Sections::TaskSection)["showProjectAssociatedCategories"] =
         mSettings.ShowProjectAssociatedCategories;
     root.at(Sections::TaskSection)["useReminders"] = mSettings.UseReminders;
@@ -340,6 +341,7 @@ ConfigResult Configuration::RestoreDefaults()
     ZipBackupFile(false);
 
     SetMinutesIncrement(15);
+    SetMaximumDescriptionLength(3000);
     ShowProjectAssociatedCategories(false);
     UseReminders(false);
     UseNotificationBanners(false);
@@ -391,6 +393,7 @@ ConfigResult Configuration::RestoreDefaults()
                 Sections::TaskSection,
                 toml::table {
                     { "minutesIncrement", 15 },
+                    { "maximumDescriptionLength", 3000 },
                     { "showProjectAssociatedCategories", false },
                     { "useLegacyTaskDialog", false },
                     { "useReminders", false },
@@ -737,6 +740,16 @@ void Configuration::SetMinutesIncrement(const int value)
     mSettings.TaskMinutesIncrement = value;
 }
 
+int Configuration::MaximumDescriptionLength() const
+{
+    return mSettings.MaximumDescriptionLength;
+}
+
+void Configuration::SetMaximumDescriptionLength(const int value)
+{
+    mSettings.MaximumDescriptionLength = value;
+}
+
 bool Configuration::ShowProjectAssociatedCategories() const
 {
     return mSettings.ShowProjectAssociatedCategories;
@@ -1001,6 +1014,9 @@ void Configuration::GetTasksConfig(const toml::value& root)
     const auto& taskSection = toml::find(root, Sections::TaskSection);
 
     mSettings.TaskMinutesIncrement = toml::find_or<int>(taskSection, "minutesIncrement", 15);
+
+    mSettings.MaximumDescriptionLength =
+        toml::find_or<int>(taskSection, "maximumDescriptionLength", 3000);
 
     mSettings.ShowProjectAssociatedCategories =
         toml::find_or<bool>(taskSection, "showProjectAssociatedCategories", false);
