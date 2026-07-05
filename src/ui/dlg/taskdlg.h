@@ -95,6 +95,8 @@ private:
     void OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event);
     void OnCategoryChoiceSelection(wxCommandEvent& event);
 
+    void OnTaskDescriptionChange(wxCommandEvent& event);
+
     void OnIsActiveCheck(wxCommandEvent& event);
 
     void OnOK(wxCommandEvent& event);
@@ -139,6 +141,7 @@ private:
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxTextCtrl* pTaskDescriptionTextCtrl;
+    wxStaticText* pTaskDescriptionCharCountStaticText;
 
     wxButton* pOkButton;
     wxButton* pCancelButton;
@@ -175,6 +178,7 @@ private:
         tksIDC_TIMEHOURSSPINCTRL,
         tksIDC_TIMEMINUTESSPINCTRL,
         tksIDC_TASKDESCRIPTIONTEXTCTRL,
+        tksIDC_TASKDESCRIPTIONCHARCOUNTSTATICTEXT,
         tksIDC_ISACTIVECHECKBOXCTRL
     };
 };

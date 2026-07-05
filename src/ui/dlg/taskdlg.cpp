@@ -108,6 +108,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pCategoryChoiceCtrl(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
+    , pTaskDescriptionCharCountStaticText(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mDate()
@@ -434,8 +435,19 @@ void TaskDialog::CreateControls()
     pTaskDescriptionTextCtrl->SetHint("Task description");
     pTaskDescriptionTextCtrl->SetToolTip("Enter the description of the task");
 
+    pTaskDescriptionCharCountStaticText = new wxStaticText(
+        descriptionBox, tksIDC_TASKDESCRIPTIONCHARCOUNTSTATICTEXT, wxGetEmptyString());
+    pTaskDescriptionCharCountStaticText->SetToolTip(
+        "Remaining task description count of characters left");
+    auto taskDescriptionCharCountStaticTextLabelFont =
+        wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    pTaskDescriptionCharCountStaticText->SetFont(taskDescriptionCharCountStaticTextLabelFont);
+
     descriptionBoxSizer->Add(
         pTaskDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    descriptionBoxSizer->Add(
+        pTaskDescriptionCharCountStaticText, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
+
     rightSizer->Add(
         descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
@@ -482,6 +494,9 @@ void TaskDialog::FillControls()
                        "Keep default date",
             mDate);
     }
+
+    pTaskDescriptionCharCountStaticText->SetLabel(
+        std::to_string(pCfg->GetMaximumDescriptionLength()));
 
     std::string defaultSearchTerm = "";
 
@@ -734,6 +749,12 @@ void TaskDialog::ConfigureEventBindings()
         this
     );
 
+    pTaskDescriptionTextCtrl->Bind(
+        wxEVT_TEXT,
+        &TaskDialog::OnTaskDescriptionChange,
+        this
+    );
+
     pIsActiveCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &TaskDialog::OnIsActiveCheck,
@@ -761,7 +782,6 @@ void TaskDialog::DataToControls()
     // load task
     Model::TaskModel taskModel;
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
-    bool isSuccess = false;
 
     auto sqliteResult = taskPersistence.GetById(mTaskId, taskModel);
     if (!sqliteResult.Success) {
@@ -784,7 +804,10 @@ void TaskDialog::DataToControls()
 
         pIsActiveCheckBoxCtrl->Enable();
 
-        isSuccess = true;
+        int maxDescriptionLength = pCfg->GetMaximumDescriptionLength();
+        int taskDescriptionLength = static_cast<int>(taskModel.Description.size());
+        int remainingLength = maxDescriptionLength - taskDescriptionLength;
+        pTaskDescriptionCharCountStaticText->SetLabel(std::to_string(remainingLength));
     }
 
     // -- load related entities
@@ -807,10 +830,8 @@ void TaskDialog::DataToControls()
 
             dialog.ShowModal();
 
-            isSuccess = false;
         } else {
             pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
-            isSuccess = true;
             employerSelected = true;
         }
     }
@@ -866,7 +887,6 @@ void TaskDialog::DataToControls()
     }
 
     pProjectChoiceCtrl->SetStringSelection(projectModel.DisplayName);
-    isSuccess = true;
 
     // load clients
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
@@ -907,10 +927,8 @@ void TaskDialog::DataToControls()
                         dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
                         dialog.ShowModal();
-                        isSuccess = false;
                     } else {
                         pClientChoiceCtrl->SetStringSelection(client.Name);
-                        isSuccess = true;
                     }
                 }
 
@@ -931,10 +949,8 @@ void TaskDialog::DataToControls()
                 dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
                 dialog.ShowModal();
-                isSuccess = false;
             } else {
                 pClientChoiceCtrl->SetStringSelection(client.Name);
-                isSuccess = true;
             }
         }
     }
@@ -963,11 +979,7 @@ void TaskDialog::DataToControls()
         dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
         dialog.ShowModal();
-
-        isSuccess = false;
     }
-
-    int ret = 0;
 
     if (!categories.empty()) {
         if (!pCategoryChoiceCtrl->IsEnabled()) {
@@ -992,7 +1004,6 @@ void TaskDialog::DataToControls()
             dialog.ShowModal();
         } else {
             pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
-            isSuccess = true;
         }
     } else {
         ResetCategoryChoiceControl(true);
@@ -1043,11 +1054,9 @@ void TaskDialog::DataToControls()
         pAttributeGroupChoiceCtrl->SetSelection(0);
     }
 
-    if (isSuccess) {
-        pOkButton->Enable();
-        pOkButton->SetFocus();
-        pOkButton->SetDefault();
-    }
+    pOkButton->Enable();
+    pOkButton->SetFocus();
+    pOkButton->SetDefault();
 }
 
 void TaskDialog::OnDateChange(wxDateEvent& event)
@@ -1328,9 +1337,19 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     } else {
         if (model.Billable) {
             pBillableCheckBoxCtrl->SetValue(true);
-            pBillableCheckBoxCtrl->SetToolTip("Task is billable since category is billable");
+            pBillableCheckBoxCtrl->SetToolTip("Task billability inherits from category");
         }
     }
+}
+
+void TaskDialog::OnTaskDescriptionChange(wxCommandEvent& WXUNUSED(event))
+{
+    int cfgDescriptionLength = pCfg->GetMaximumDescriptionLength();
+    int currentDescriptionLength =
+        static_cast<int>(pTaskDescriptionTextCtrl->GetValue().ToStdString().size());
+    int remainderDescriptionLength = cfgDescriptionLength - currentDescriptionLength;
+
+    pTaskDescriptionCharCountStaticText->SetLabel(std::to_string(remainderDescriptionLength));
 }
 
 void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)
@@ -1645,12 +1664,12 @@ bool TaskDialog::Validate()
         return false;
     }
 
-    if (description.length() < MIN_CHARACTER_COUNT ||
-        description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS) {
+    int maxDescriptionLength = pCfg->GetMaximumDescriptionLength();
+    if (description.length() < MIN_CHARACTER_COUNT || description.length() > maxDescriptionLength) {
         auto valMsg =
             fmt::format("Description must be at minimum {0} or maximum {1} characters long",
                 MIN_CHARACTER_COUNT,
-                MAX_CHARACTER_COUNT_NAMES);
+                maxDescriptionLength);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pTaskDescriptionTextCtrl);
