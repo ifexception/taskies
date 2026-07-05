@@ -24,6 +24,7 @@
 #include "../../common/clientdata.h"
 
 #include "../../../common/common.h"
+
 #include "../../../core/configuration.h"
 
 namespace tks::UI::dlg
@@ -35,6 +36,7 @@ PreferencesTasksPage::PreferencesTasksPage(wxWindow* parent,
     , pCfg(cfg)
     , pLogger(logger)
     , pMinutesIncrementChoiceCtrl(nullptr)
+    , pMaximumDescriptionLengthSpinCtrl(nullptr)
     , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
     , pUseRemindersCheckBoxCtrl(nullptr)
     , pReminderIntervalChoiceCtrl(nullptr)
@@ -99,6 +101,9 @@ void PreferencesTasksPage::Save()
         pMinutesIncrementChoiceCtrl->GetClientObject(choiceIndex));
 
     pCfg->SetMinutesIncrement(incrementData->GetValue());
+
+    pCfg->SetMaximumDescriptionLength(pMaximumDescriptionLengthSpinCtrl->GetValue());
+
     pCfg->ShowProjectAssociatedCategories(pShowProjectAssociatedCategoriesCheckBoxCtrl->GetValue());
 
     pCfg->UseReminders(pUseRemindersCheckBoxCtrl->GetValue());
@@ -121,6 +126,8 @@ void PreferencesTasksPage::Save()
 void PreferencesTasksPage::Reset()
 {
     pMinutesIncrementChoiceCtrl->SetSelection(pCfg->GetMinutesIncrement());
+    pMaximumDescriptionLengthSpinCtrl->SetValue(pCfg->GetMaximumDescriptionLength());
+
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
 
     pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
@@ -139,23 +146,44 @@ void PreferencesTasksPage::CreateControls()
     /* Base Sizer */
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
-    /* Task Increment box */
-    auto taskIncrementBox = new wxStaticBox(this, wxID_ANY, "Task Increment");
-    auto taskIncrementBoxSizer = new wxStaticBoxSizer(taskIncrementBox, wxHORIZONTAL);
-    sizer->Add(taskIncrementBoxSizer, wxSizerFlags().Expand());
+    /* Task Options box */
+    auto taskOptionsBox = new wxStaticBox(this, wxID_ANY, "Task Options");
+    auto taskOptionsBoxSizer = new wxStaticBoxSizer(taskOptionsBox, wxHORIZONTAL);
+    sizer->Add(taskOptionsBoxSizer, wxSizerFlags().Expand());
 
     /* Time Duration label */
     auto timeIncrementLabel =
-        new wxStaticText(taskIncrementBox, wxID_ANY, "Task Duration (in minutes)");
+        new wxStaticText(taskOptionsBox, wxID_ANY, "Task Duration (in minutes)");
 
-    pMinutesIncrementChoiceCtrl = new wxChoice(taskIncrementBox, tksIDC_MINUTES_INCREMENT);
+    pMinutesIncrementChoiceCtrl = new wxChoice(taskOptionsBox, tksIDC_MINUTES_INCREMENT);
     pMinutesIncrementChoiceCtrl->SetToolTip("Set task duration increment value");
 
-    taskIncrementBoxSizer->Add(
+    /* Task maximum description length */
+    auto taskMaxDescriptionLengthLabel =
+        new wxStaticText(taskOptionsBox, wxID_ANY, "Description Length");
+
+    pMaximumDescriptionLengthSpinCtrl = new wxSpinCtrl(taskOptionsBox,
+        tksIDC_MAXIMUMDESCRIPTIONLENGTHSPINCTRL,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxSP_ARROW_KEYS | wxSP_WRAP | wxALIGN_CENTRE_HORIZONTAL,
+        MIN_CHARACTER_COUNT_DESCRIPTION,
+        MAX_CHARACTER_COUNT_DESCRIPTION);
+    pMaximumDescriptionLengthSpinCtrl->SetToolTip(
+        "Set the maximum number of characters when typing a task description");
+
+    taskOptionsBoxSizer->Add(
         timeIncrementLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    taskIncrementBoxSizer->AddStretchSpacer(1);
-    taskIncrementBoxSizer->Add(
+    taskOptionsBoxSizer->AddStretchSpacer(1);
+    taskOptionsBoxSizer->Add(
         pMinutesIncrementChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    taskOptionsBoxSizer->Add(
+        taskMaxDescriptionLengthLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    taskOptionsBoxSizer->AddStretchSpacer(1);
+    taskOptionsBoxSizer->Add(
+        pMaximumDescriptionLengthSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Show project associated categories control */
     pShowProjectAssociatedCategoriesCheckBoxCtrl =
@@ -274,6 +302,9 @@ void PreferencesTasksPage::FillControls()
 void PreferencesTasksPage::DataToControls()
 {
     pMinutesIncrementChoiceCtrl->SetStringSelection(std::to_string(pCfg->GetMinutesIncrement()));
+
+    pMaximumDescriptionLengthSpinCtrl->SetValue(pCfg->GetMaximumDescriptionLength());
+
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
 
     pUseRemindersCheckBoxCtrl->SetValue(pCfg->UseReminders());
