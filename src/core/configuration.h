@@ -163,7 +163,7 @@ public:
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
 
-    int MaximumDescriptionLength() const;
+    int GetMaximumDescriptionLength() const;
     void SetMaximumDescriptionLength(const int value);
 
     bool ShowProjectAssociatedCategories() const;

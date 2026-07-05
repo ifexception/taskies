@@ -740,7 +740,7 @@ void Configuration::SetMinutesIncrement(const int value)
     mSettings.TaskMinutesIncrement = value;
 }
 
-int Configuration::MaximumDescriptionLength() const
+int Configuration::GetMaximumDescriptionLength() const
 {
     return mSettings.MaximumDescriptionLength;
 }
