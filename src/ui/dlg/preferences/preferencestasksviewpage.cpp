@@ -106,8 +106,10 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
     if (pCfg->GetTasksViewColumns().size() != selectedTasksViewColumnsFromCheckListBox.size()) {
         *restartRequired = true;
     } else {
-        bool orderChanged = pCfg->GetTasksViewColumns() == selectedTasksViewColumnsFromCheckListBox;
-        *restartRequired = orderChanged;
+        bool orderChanged = pCfg->GetTasksViewColumns() != selectedTasksViewColumnsFromCheckListBox;
+        if (orderChanged) {
+            *restartRequired = orderChanged;
+        }
     }
 
     assert(selectedTasksViewColumnsFromCheckListBox[0].Name == "Date" &&

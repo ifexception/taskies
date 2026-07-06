@@ -61,6 +61,11 @@ bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSett
     return Name == other.Name && ColumnModelIndex == other.ColumnModelIndex && Type == other.Type;
 }
 
+bool Configuration::TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const
+{
+    return Name != other.Name && ColumnModelIndex != other.ColumnModelIndex && Type != other.Type;
+}
+
 bool Configuration::TasksViewColumnSetting::IsDescriptionColumn() const
 {
     return Name == "Description" &&
