@@ -219,12 +219,6 @@ void OutlookMeetingsViewFrame::FillControls()
     pEmployerChoiceCtrl->Append("Select employer", new ClientData<std::int64_t>(-1));
     pEmployerChoiceCtrl->SetSelection(0);
 
-    ResetProjectsChoiceControl(true);
-
-    pShowProjectAssociatedCategoriesCheckBoxCtrl->SetValue(pCfg->ShowProjectAssociatedCategories());
-
-    ResetCategoriesChoiceControl();
-
     std::vector<Model::EmployerModel> employers;
     Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
@@ -250,7 +244,7 @@ void OutlookMeetingsViewFrame::FillControls()
         }
     }
 
-    if (mEmployerId > 0) {
+    /*if (mEmployerId > 0) {
         std::vector<Model::ProjectModel> projects;
         Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
@@ -323,7 +317,7 @@ void OutlookMeetingsViewFrame::FillControls()
         } else {
             pProjectsChoiceCtrl->Disable();
         }
-    }
+    }*/
 
     pAccountsChoiceCtrl->Append("Select account");
     pAccountsChoiceCtrl->SetSelection(0);
@@ -363,12 +357,6 @@ void OutlookMeetingsViewFrame::ConfigureEventBindings()
         &OutlookMeetingsViewFrame::OnClose,
         this,
         wxID_ANY
-    );
-
-    pProjectsChoiceCtrl->Bind(
-        wxEVT_CHOICE,
-        &OutlookMeetingsViewFrame::OnProjectChoice,
-        this
     );
 }
 // clang-format on
@@ -508,7 +496,99 @@ void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
     SetDialogSizeFromParent();
 }
 
-void OutlookMeetingsViewFrame::OnEmployerChoice(wxCommandEvent& event) {}
+void OutlookMeetingsViewFrame::OnEmployerChoice(wxCommandEvent& event)
+{
+    ResetProjectsChoiceControl();
+    ResetCategoriesChoiceControl();
+
+    int employerIndex = event.GetSelection();
+    ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
+        pEmployerChoiceCtrl->GetClientObject(employerIndex));
+
+    if (employerIdData->GetValue() < 1) {
+        pProjectsChoiceCtrl->Disable();
+        pCategoriesChoiceCtrl->Disable();
+
+        mEmployerId = -1;
+
+        return;
+    }
+
+    mEmployerId = employerIdData->GetValue();
+
+    std::vector<Model::ProjectModel> projects;
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projects);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+    }
+
+    if (!projects.empty()) {
+        if (!pProjectsChoiceCtrl->IsEnabled()) {
+            pProjectsChoiceCtrl->Enable();
+        }
+
+        bool hasDefaultProject = false;
+        std::int64_t defaultProjectId = -1;
+
+        for (auto& project : projects) {
+            pProjectsChoiceCtrl->Append(
+                project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+
+            if (project.IsDefault) {
+                hasDefaultProject = true;
+                defaultProjectId = project.ProjectId;
+                pProjectsChoiceCtrl->SetStringSelection(project.DisplayName);
+            }
+        }
+
+        if (hasDefaultProject) {
+            std::vector<Services::CategoryViewModel> categories;
+            Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
+
+            tks::SqliteResult
+
+                sqliteResult = categoryService.FilterByProjectId(defaultProjectId, categories);
+            std::string operationMessage = Messages::FilterCategoriesByProjectMessage;
+
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    operationMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+
+                return;
+            }
+
+            if (!categories.empty()) {
+                if (!pCategoriesChoiceCtrl->IsEnabled()) {
+                    pCategoriesChoiceCtrl->Enable();
+                }
+
+                for (auto& category : categories) {
+                    pCategoriesChoiceCtrl->Append(category.GetFormattedName(),
+                        new ClientData<std::int64_t>(category.CategoryId));
+                }
+            } else {
+                pCategoriesChoiceCtrl->Disable();
+            }
+        }
+    } else {
+        pProjectsChoiceCtrl->Disable();
+    }
+}
 
 void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 {
