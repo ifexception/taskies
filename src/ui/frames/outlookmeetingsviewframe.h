@@ -38,7 +38,7 @@ namespace tks::Core
 {
 class Configuration;
 class Environment;
-}
+} // namespace tks::Core
 
 namespace tks::Services::Outlook
 {
@@ -68,20 +68,21 @@ private:
     void Create();
 
     void CreateControls();
-    void ConfigureEventBindings();
     void FillControls();
+    void ConfigureEventBindings();
     void DataToControls();
 
     void OnDateSelection(wxDateEvent& event);
     void OnRefresh(wxCommandEvent& event);
+    void OnEmployerChoice(wxCommandEvent& event);
     void OnAccountChoice(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
+    void OnProjectChoice(wxCommandEvent& event);
     void OnAttendedCheckBoxCheck(wxCommandEvent& event);
 
     void FetchOutlookMeetingsAndUpdateFeedbackLabel();
     std::vector<Model::AttendedMeetingModel> FetchAttendedMeetings();
-    void AddMeetingsToPanel(
-        const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels);
+    void AddMeetingsToPanel(const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels);
     void SetDialogSizeFromParent();
 
     void RemoveActiveMeetingsPanel();
@@ -91,6 +92,9 @@ private:
         int* attendedCheckBoxControlId,
         const Services::Outlook::OutlookMeetingModel& meetingModel,
         bool meetingAttended);
+
+    void ResetProjectsChoiceControl(bool disable = false);
+    void ResetCategoriesChoiceControl(bool disable = true);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<Core::Environment> pEnv;
@@ -103,8 +107,9 @@ private:
     wxBoxSizer* pMainSizer;
 
     wxDatePickerCtrl* pDatePickerCtrl;
-
     wxBitmapButton* pRefreshButton;
+
+    wxChoice* pEmployerChoiceCtrl;
     wxChoice* pAccountsChoiceCtrl;
 
     wxStaticText* pFeedbackLabel;
@@ -113,17 +118,25 @@ private:
     wxSizer* pScrolledWindowSizer;
     wxPanel* pActiveMeetingsPanel;
 
+    wxChoice* pProjectsChoiceCtrl;
+    wxChoice* pCategoriesChoiceCtrl;
+
     std::string mSelectedAccount;
     std::string mSelectedDate;
     std::vector<Services::Outlook::OutlookMeetingModel> mMeetingModels;
     bool bIsMainFrameMaximized;
+    std::int64_t mEmployerId;
 
     enum {
         tksIDC_DATEPICKERCTRL = wxID_HIGHEST + 1001,
+        tksIDC_EMPLOYERCHOICECTRL,
         tksIDC_REFRESH_BUTTON,
         tksIDC_ACCOUNT_CHOICE_CTRL,
         tksIDC_FEEDBACKLABEL,
-        tksIDC_ATTENDEDCHECKBOX_BASE
+        tksIDC_PROJECTSCHOICECTRL,
+        tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
+        tksIDC_CATEGORIESCHOICECTRL,
+        tksIDC_ATTENDEDCHECKBOX_BASE,
     };
 };
 } // namespace tks::UI::frames
