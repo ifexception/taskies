@@ -585,6 +585,7 @@ void OutlookMeetingsViewFrame::OnProjectChoice(wxCommandEvent& event)
         ClientData<std::int64_t>* projectIdData =
             reinterpret_cast<ClientData<std::int64_t>*>(choiceCtrl->GetClientObject(projectIndex));
         std::int64_t projectId = projectIdData->GetValue();
+        SPDLOG_LOGGER_TRACE(pLogger, "Selected project ID from choice ctrl \"{0}\"", projectId);
     }
 }
 
@@ -708,6 +709,23 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsViewFrame::FetchAttended
 void OutlookMeetingsViewFrame::AddMeetingsToPanel(
     const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels)
 {
+    std::vector<Model::ProjectModel> projectModels;
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+
+    if (mMeetingModels.size() != 0) {
+        auto sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projectModels);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterProjectsMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
+    }
+
     /* Panel Sizer */
     auto panelSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -735,7 +753,8 @@ void OutlookMeetingsViewFrame::AddMeetingsToPanel(
             &attendedCheckBoxControlId,
             &projectChoiceControlId,
             meetingModel,
-            meetingAttended);
+            meetingAttended,
+            projectModels);
     }
 
     pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
@@ -805,7 +824,8 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
     int* attendedCheckBoxControlId,
     int* projectChoiceControlId,
     const Services::Outlook::OutlookMeetingModel& meetingModel,
-    bool meetingAttended)
+    bool meetingAttended,
+    const std::vector<Model::ProjectModel>& projectModels)
 {
     // static box for meeting controls
     auto staticBox = new wxStaticBox(pActiveMeetingsPanel, wxID_ANY, "");
@@ -869,6 +889,31 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
 
     projectChoiceCtrl->Bind(
         wxEVT_CHOICE, &OutlookMeetingsViewFrame::OnProjectChoice, this, *projectChoiceControlId);
+    if (!projectModels.empty()) {
+        bool hasDefaultProject = false;
+        std::int64_t defaultProjectId = -1;
+
+        for (auto& project : projectModels) {
+            projectChoiceCtrl->Append(
+                project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+
+            if (project.IsDefault) {
+                hasDefaultProject = true;
+                defaultProjectId = project.ProjectId;
+                projectChoiceCtrl->SetStringSelection(project.DisplayName);
+            }
+        }
+
+        /*if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+            FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
+        } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+            pCategoryChoiceCtrl->Disable();
+        } else {
+            FetchCategoryEntities(std::nullopt);
+        }*/
+    } else {
+        projectChoiceCtrl->Disable();
+    }
 
     staticBoxSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     staticBoxSizer->Add(projectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());

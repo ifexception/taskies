@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -33,6 +35,7 @@
 #include <spdlog/logger.h>
 
 #include "../../models/attendedmeetingmodel.h"
+#include "../../models/projectmodel.h"
 
 namespace tks::Core
 {
@@ -92,7 +95,8 @@ private:
         int* attendedCheckBoxControlId,
         int* projectChoiceControlId,
         const Services::Outlook::OutlookMeetingModel& meetingModel,
-        bool meetingAttended);
+        bool meetingAttended,
+        const std::vector<Model::ProjectModel>& projectModels);
 
     /*void ResetProjectsChoiceControl(bool disable = false);
     void ResetCategoriesChoiceControl(bool disable = true);*/
