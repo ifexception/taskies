@@ -575,7 +575,18 @@ void OutlookMeetingsViewFrame::OnClose(wxCloseEvent& event)
     event.Skip();
 }
 
-void OutlookMeetingsViewFrame::OnProjectChoice(wxCommandEvent& event) {}
+void OutlookMeetingsViewFrame::OnProjectChoice(wxCommandEvent& event)
+{
+    SPDLOG_LOGGER_TRACE(pLogger, "Project choice selection: \"{0}\"", event.GetSelection());
+    int projectIndex = event.GetSelection();
+
+    wxChoice* choiceCtrl = dynamic_cast<wxChoice*>(event.GetEventObject());
+    if (choiceCtrl) {
+        ClientData<std::int64_t>* projectIdData =
+            reinterpret_cast<ClientData<std::int64_t>*>(choiceCtrl->GetClientObject(projectIndex));
+        std::int64_t projectId = projectIdData->GetValue();
+    }
+}
 
 void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 {
@@ -853,8 +864,11 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
     /* Project choice ctrl */
     auto projectLabel = new wxStaticText(staticBox, wxID_ANY, "Project");
     auto projectChoiceCtrl = new wxChoice(staticBox, *projectChoiceControlId);
-    projectChoiceCtrl->AppendString("Please select");
+    projectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
     projectChoiceCtrl->SetSelection(0);
+
+    projectChoiceCtrl->Bind(
+        wxEVT_CHOICE, &OutlookMeetingsViewFrame::OnProjectChoice, this, *projectChoiceControlId);
 
     staticBoxSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     staticBoxSizer->Add(projectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
