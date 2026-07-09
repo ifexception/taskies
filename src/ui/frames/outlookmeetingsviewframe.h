@@ -90,11 +90,12 @@ private:
 
     void AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
         int* attendedCheckBoxControlId,
+        int* projectChoiceControlId,
         const Services::Outlook::OutlookMeetingModel& meetingModel,
         bool meetingAttended);
 
-    void ResetProjectsChoiceControl(bool disable = false);
-    void ResetCategoriesChoiceControl(bool disable = true);
+    /*void ResetProjectsChoiceControl(bool disable = false);
+    void ResetCategoriesChoiceControl(bool disable = true);*/
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<Core::Environment> pEnv;
@@ -118,9 +119,6 @@ private:
     wxSizer* pScrolledWindowSizer;
     wxPanel* pActiveMeetingsPanel;
 
-    wxChoice* pProjectsChoiceCtrl;
-    wxChoice* pCategoriesChoiceCtrl;
-
     std::string mSelectedAccount;
     std::string mSelectedDate;
     std::vector<Services::Outlook::OutlookMeetingModel> mMeetingModels;
@@ -133,10 +131,15 @@ private:
         tksIDC_REFRESH_BUTTON,
         tksIDC_ACCOUNT_CHOICE_CTRL,
         tksIDC_FEEDBACKLABEL,
-        tksIDC_PROJECTSCHOICECTRL,
-        tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
-        tksIDC_CATEGORIESCHOICECTRL,
         tksIDC_ATTENDEDCHECKBOX_BASE,
+    };
+
+    enum {
+        tksIDC_PROJECTSCHOICECTRL_BASE = wxID_HIGHEST + 1256,
+    };
+
+    enum {
+        tksIDC_CATEGORIESCHOICECTRL_BASE = wxID_HIGHEST + 1556,
     };
 };
 } // namespace tks::UI::frames
