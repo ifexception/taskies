@@ -586,20 +586,35 @@ void OutlookMeetingsViewFrame::OnProjectChoice(wxCommandEvent& event)
             reinterpret_cast<ClientData<std::int64_t>*>(choiceCtrl->GetClientObject(projectIndex));
         std::int64_t projectId = projectIdData->GetValue();
         SPDLOG_LOGGER_TRACE(pLogger, "Selected project ID from choice ctrl \"{0}\"", projectId);
+
+        wxWindowID choiceControlId = choiceCtrl->GetId();
+
+        for (size_t i = 0; i < mControlChoicesData.size(); i++) {
+            if (mControlChoicesData[i].ProjectChoiceControlId == choiceControlId) {
+                SPDLOG_LOGGER_TRACE(pLogger,
+                    "Updating project ID \"{0}\" of control choice ID \"{1}\" data struct",
+                    projectId,
+                    choiceControlId);
+                mControlChoicesData[i].ProjectId = projectId;
+                break;
+            }
+        }
     }
 }
 
 void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
-        SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" checked", event.GetId());
+        SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID: \"{0}\" checked", event.GetId());
         wxWindow* wnd = dynamic_cast<wxWindow*>(event.GetEventObject());
         wxStringClientData* scd = dynamic_cast<wxStringClientData*>(wnd->GetClientObject());
         if (scd) {
             auto& s = scd->GetData();
             auto eventEntryId = s.ToStdString();
-            SPDLOG_LOGGER_TRACE(
-                pLogger, "Checkbox with ID \"{0}\" ENTRY_ID -> \n{1}", event.GetId(), eventEntryId);
+            SPDLOG_LOGGER_TRACE(pLogger,
+                "Checkbox with ID: \"{0}\" and ENTRY_ID -> \n{1}",
+                event.GetId(),
+                eventEntryId);
 
             const auto& foundMeetingIterator = std::find_if(mMeetingModels.begin(),
                 mMeetingModels.end(),
@@ -827,6 +842,10 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
     bool meetingAttended,
     const std::vector<Model::ProjectModel>& projectModels)
 {
+    ControlChoiceData choiceData;
+    choiceData.CheckBoxControlId = *attendedCheckBoxControlId;
+    choiceData.ProjectChoiceControlId = *projectChoiceControlId;
+
     // static box for meeting controls
     auto staticBox = new wxStaticBox(pActiveMeetingsPanel, wxID_ANY, "");
     auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
@@ -900,17 +919,14 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
             if (project.IsDefault) {
                 hasDefaultProject = true;
                 defaultProjectId = project.ProjectId;
+                choiceData.ProjectId = defaultProjectId;
                 projectChoiceCtrl->SetStringSelection(project.DisplayName);
             }
         }
 
-        /*if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+        /*if (hasDefaultProject) {
             FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
-        } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
-            pCategoryChoiceCtrl->Disable();
-        } else {
-            FetchCategoryEntities(std::nullopt);
-        }*/
+        } */
     } else {
         projectChoiceCtrl->Disable();
     }
@@ -938,6 +954,8 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
         attendedCheckBox->SetValue(true);
         attendedCheckBox->Disable();
     }
+
+    mControlChoicesData.push_back(choiceData);
 }
 
 } // namespace tks::UI::frames

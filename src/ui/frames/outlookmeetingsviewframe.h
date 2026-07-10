@@ -50,6 +50,24 @@ struct OutlookMeetingModel;
 
 namespace tks::UI::frames
 {
+struct ControlChoiceData {
+    int CheckBoxControlId;
+    int ProjectChoiceControlId;
+
+    std::int64_t ProjectId;
+    std::int64_t CategoryId;
+
+    ControlChoiceData()
+        : CheckBoxControlId(-1)
+        , ProjectChoiceControlId(-1)
+        , ProjectId(-1)
+        , CategoryId(-1)
+    {
+    }
+
+    ~ControlChoiceData() {}
+};
+
 class OutlookMeetingsViewFrame final : public wxFrame
 {
 public:
@@ -128,6 +146,8 @@ private:
     std::vector<Services::Outlook::OutlookMeetingModel> mMeetingModels;
     bool bIsMainFrameMaximized;
     std::int64_t mEmployerId;
+
+    std::vector<ControlChoiceData> mControlChoicesData;
 
     enum {
         tksIDC_DATEPICKERCTRL = wxID_HIGHEST + 1001,
