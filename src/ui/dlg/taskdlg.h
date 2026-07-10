@@ -74,6 +74,9 @@ public:
         const std::string& end,
         const int duration,
         const std::string& location);
+    void SetProjectAndCategoryIdsFromAttendedMeeting(const std::int64_t employerId,
+        const std::int64_t projectId,
+        const std::int64_t categoryId);
 
 private:
     void Create();
@@ -160,6 +163,9 @@ private:
     Model::AttendedMeetingModel mAttendedMeetingModel;
     bool bHasTaskAttributeValues;
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
+
+    std::int64_t mProjectIdFromAttendedMeeting;
+    std::int64_t mCategoryIdFromAttendedMeeting;
 
     static std::string AttributeValuesCapturedLabel;
 

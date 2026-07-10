@@ -119,6 +119,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , bHasTaskAttributeValues(false)
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
+    , mProjectIdFromAttendedMeeting(-1)
+    , mCategoryIdFromAttendedMeeting(-1)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -179,6 +181,15 @@ void TaskDialog::SetAttendedMeetingDataEx(const std::string& entryId,
     mAttendedMeetingModel.End = end;
     mAttendedMeetingModel.Duration = duration;
     mAttendedMeetingModel.Location = location;
+}
+
+void TaskDialog::SetProjectAndCategoryIdsFromAttendedMeeting(const std::int64_t employerId,
+    const std::int64_t projectId,
+    const std::int64_t categoryId)
+{
+    mEmployerId = employerId;
+    mProjectIdFromAttendedMeeting = projectId;
+    mCategoryIdFromAttendedMeeting = categoryId;
 }
 
 void TaskDialog::Create()
