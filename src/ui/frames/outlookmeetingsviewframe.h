@@ -53,6 +53,7 @@ namespace tks::UI::frames
 struct ControlChoiceData {
     int CheckBoxControlId;
     int ProjectChoiceControlId;
+    int CategoryChoiceControlId;
 
     std::int64_t ProjectId;
     std::int64_t CategoryId;
@@ -60,6 +61,7 @@ struct ControlChoiceData {
     ControlChoiceData()
         : CheckBoxControlId(-1)
         , ProjectChoiceControlId(-1)
+        , CategoryChoiceControlId(-1)
         , ProjectId(-1)
         , CategoryId(-1)
     {
@@ -99,6 +101,7 @@ private:
     void OnAccountChoice(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
     void OnProjectChoice(wxCommandEvent& event);
+    void OnCategoryChoice(wxCommandEvent& event);
     void OnAttendedCheckBoxCheck(wxCommandEvent& event);
 
     void FetchOutlookMeetingsAndUpdateFeedbackLabel();
@@ -112,12 +115,10 @@ private:
     void AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
         int* attendedCheckBoxControlId,
         int* projectChoiceControlId,
+        int* categoryChoiceControlId,
         const Services::Outlook::OutlookMeetingModel& meetingModel,
         bool meetingAttended,
         const std::vector<Model::ProjectModel>& projectModels);
-
-    /*void ResetProjectsChoiceControl(bool disable = false);
-    void ResetCategoriesChoiceControl(bool disable = true);*/
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<Core::Environment> pEnv;
