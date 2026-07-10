@@ -481,92 +481,90 @@ void OutlookMeetingsViewFrame::OnEmployerChoice(wxCommandEvent& event)
             }
         }
     }
-    if (mControlChoicesData.size() > 0) {
-        std::vector<Model::ProjectModel> projectModels;
-        Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-        auto sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projectModels);
-        if (!sqliteResult.Success) {
-            wxRichMessageDialog dialog(this,
-                Messages::FilterProjectsMessage,
-                tks::Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+    if (mControlChoicesData.size() <= 0) {
+        return;
+    }
 
-            dialog.ShowModal();
-        } else {
-            for (size_t i = 0; i < mControlChoicesData.size(); i++) {
-                wxWindow* projectWnd =
-                    FindWindowById(mControlChoicesData[i].ProjectChoiceControlId);
-                if (projectWnd) {
-                    wxChoice* projectChoiceCtrl = wxDynamicCast(projectWnd, wxChoice);
-                    if (!projectChoiceCtrl->IsEnabled()) {
-                        projectChoiceCtrl->Enable();
-                    }
-                    if (projectChoiceCtrl) {
-                        if (!projectModels.empty()) {
-                            bool hasDefaultProject = false;
-                            std::int64_t defaultProjectId = -1;
+    std::vector<Model::ProjectModel> projectModels;
+    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-                            for (auto& project : projectModels) {
-                                projectChoiceCtrl->Append(project.DisplayName,
-                                    new ClientData<std::int64_t>(project.ProjectId));
+    auto sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projectModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterProjectsMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-                                if (project.IsDefault) {
-                                    hasDefaultProject = true;
-                                    defaultProjectId = project.ProjectId;
-                                    projectChoiceCtrl->SetStringSelection(project.DisplayName);
-                                }
-                            }
+        dialog.ShowModal();
 
-                            if (hasDefaultProject) {
-                                std::vector<Services::CategoryViewModel> categories;
-                                Services::CategoryService categoryService(
-                                    pLogger, mDatabaseFilePath);
+        return;
+    }
+    for (size_t i = 0; i < mControlChoicesData.size(); i++) {
+        wxWindow* projectWnd = FindWindowById(mControlChoicesData[i].ProjectChoiceControlId);
+        if (projectWnd) {
+            wxChoice* projectChoiceCtrl = wxDynamicCast(projectWnd, wxChoice);
+            if (!projectChoiceCtrl->IsEnabled()) {
+                projectChoiceCtrl->Enable();
+            }
+            if (projectChoiceCtrl) {
+                if (!projectModels.empty()) {
+                    bool hasDefaultProject = false;
+                    std::int64_t defaultProjectId = -1;
 
-                                auto sqliteResult =
-                                    categoryService.FilterByProjectId(defaultProjectId, categories);
+                    for (auto& project : projectModels) {
+                        projectChoiceCtrl->Append(
+                            project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
 
-                                if (!sqliteResult.Success) {
-                                    wxRichMessageDialog dialog(this,
-                                        Messages::FilterCategoriesByProjectMessage,
-                                        tks::Common::GetProgramName(),
-                                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL |
-                                            wxICON_ERROR);
-                                    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-                                    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-                                    dialog.ShowModal();
-
-                                    return;
-                                }
-                                wxWindow* categoryWnd =
-                                    FindWindowById(mControlChoicesData[i].CategoryChoiceControlId);
-                                if (categoryWnd) {
-                                    wxChoice* categoryChoiceCtrl =
-                                        wxDynamicCast(categoryWnd, wxChoice);
-                                    if (categoryChoiceCtrl) {
-                                        if (!categoryChoiceCtrl->IsEnabled()) {
-                                            categoryChoiceCtrl->Enable();
-                                        }
-                                        if (!categories.empty()) {
-                                            for (auto& category : categories) {
-                                                categoryChoiceCtrl->Append(
-                                                    category.GetFormattedName(),
-                                                    new ClientData<std::int64_t>(
-                                                        category.CategoryId));
-                                            }
-                                        } else {
-                                            categoryChoiceCtrl->Disable();
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            projectChoiceCtrl->Disable();
+                        if (project.IsDefault) {
+                            hasDefaultProject = true;
+                            defaultProjectId = project.ProjectId;
+                            projectChoiceCtrl->SetStringSelection(project.DisplayName);
                         }
                     }
+
+                    if (hasDefaultProject) {
+                        std::vector<Services::CategoryViewModel> categories;
+                        Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
+
+                        auto sqliteResult =
+                            categoryService.FilterByProjectId(defaultProjectId, categories);
+
+                        if (!sqliteResult.Success) {
+                            wxRichMessageDialog dialog(this,
+                                Messages::FilterCategoriesByProjectMessage,
+                                tks::Common::GetProgramName(),
+                                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                            dialog.ShowModal();
+
+                            return;
+                        }
+                        wxWindow* categoryWnd =
+                            FindWindowById(mControlChoicesData[i].CategoryChoiceControlId);
+                        if (categoryWnd) {
+                            wxChoice* categoryChoiceCtrl = wxDynamicCast(categoryWnd, wxChoice);
+                            if (categoryChoiceCtrl) {
+                                if (!categoryChoiceCtrl->IsEnabled()) {
+                                    categoryChoiceCtrl->Enable();
+                                }
+                                if (!categories.empty()) {
+                                    for (auto& category : categories) {
+                                        categoryChoiceCtrl->Append(category.GetFormattedName(),
+                                            new ClientData<std::int64_t>(category.CategoryId));
+                                    }
+                                } else {
+                                    categoryChoiceCtrl->Disable();
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    projectChoiceCtrl->Disable();
                 }
             }
         }
