@@ -185,6 +185,9 @@ public:
     bool OpenTaskDialogOnReminderClick() const;
     void OpenTaskDialogOnReminderClick(const bool value);
 
+    bool OpenTaskDialogOnOutlookMeetingAttendanceCheck() const;
+    void OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value);
+
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
 
@@ -245,6 +248,7 @@ private:
         bool UseTaskbarFlashing;
         int ReminderInterval;
         bool OpenTaskDialogOnReminderClick;
+        bool OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
         bool TodayAlwaysExpanded;
         bool UseProjectDisplayName;

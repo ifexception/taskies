@@ -226,6 +226,8 @@ ConfigResult Configuration::Save()
         mSettings.OpenTaskDialogOnReminderClick;
     root.at(Sections::TaskSection)["useTaskbarFlashing"] = mSettings.UseTaskbarFlashing;
     root.at(Sections::TaskSection)["reminderInterval"] = mSettings.ReminderInterval;
+    root.at(Sections::TaskSection)["openTaskDialogOnOutlookMeetingAttendanceCheck"] =
+        mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -353,6 +355,7 @@ ConfigResult Configuration::RestoreDefaults()
     UseTaskbarFlashing(false);
     SetReminderInterval(0);
     OpenTaskDialogOnReminderClick(false);
+    OpenTaskDialogOnOutlookMeetingAttendanceCheck(false);
 
     TodayAlwaysExpanded(false);
     UseProjectDisplayName(false);
@@ -405,7 +408,8 @@ ConfigResult Configuration::RestoreDefaults()
                     { "useNotificationBanners", false },
                     { "useTaskbarFlashing", false },
                     { "reminderInterval", 0 },
-                    { "openTaskDialogOnReminderClick", false }
+                    { "openTaskDialogOnReminderClick", false },
+                    { "openTaskDialogOnOutlookMeetingAttendanceCheck", true }
                 }
             },
             {
@@ -815,6 +819,16 @@ void Configuration::OpenTaskDialogOnReminderClick(const bool value)
     mSettings.OpenTaskDialogOnReminderClick = value;
 }
 
+bool Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck() const
+{
+    return mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck;
+}
+
+void Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value)
+{
+    mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck = value;
+}
+
 bool Configuration::TodayAlwaysExpanded() const
 {
     return mSettings.TodayAlwaysExpanded;
@@ -1037,6 +1051,9 @@ void Configuration::GetTasksConfig(const toml::value& root)
     mSettings.UseTaskbarFlashing = toml::find_or<bool>(taskSection, "useTaskbarFlashing", false);
 
     mSettings.ReminderInterval = toml::find_or<int>(taskSection, "reminderInterval", 0);
+
+    mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck =
+        toml::find_or<bool>(taskSection, "openTaskDialogOnOutlookMeetingAttendanceCheck", true);
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)
