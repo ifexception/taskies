@@ -119,6 +119,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , bHasTaskAttributeValues(false)
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
+    , bSetFromAttendedMeeting(false)
     , mProjectIdFromAttendedMeeting(-1)
     , mCategoryIdFromAttendedMeeting(-1)
 {
@@ -187,6 +188,7 @@ void TaskDialog::SetProjectAndCategoryIdsFromAttendedMeeting(const std::int64_t 
     const std::int64_t projectId,
     const std::int64_t categoryId)
 {
+    bSetFromAttendedMeeting = true;
     mEmployerId = employerId;
     mProjectIdFromAttendedMeeting = projectId;
     mCategoryIdFromAttendedMeeting = categoryId;
@@ -622,6 +624,102 @@ void TaskDialog::FillControls()
                 mEmployerId = employer.EmployerId;
                 pEmployerChoiceCtrl->SetStringSelection(employer.Name);
             }
+        }
+    }
+
+    if (!bIsEdit && bSetFromAttendedMeeting) {
+        Model::EmployerModel employerModel;
+        Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
+
+        sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterEmployersMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        } else {
+            pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
+        }
+
+        std::vector<Model::ProjectModel> projects;
+        Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+
+        sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projects);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterProjectsMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
+
+        if (!projects.empty()) {
+            if (!pProjectChoiceCtrl->IsEnabled()) {
+                pProjectChoiceCtrl->Enable();
+            }
+
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(
+                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+
+                if (project.ProjectId == mProjectIdFromAttendedMeeting) {
+                    pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+                }
+            }
+
+            std::vector<Services::CategoryViewModel> categories;
+            Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
+
+            tks::SqliteResult sqliteResult;
+            std::string operationMessage;
+
+            if (pCfg->ShowProjectAssociatedCategories()) {
+                sqliteResult = categoryService.FilterByProjectId(mProjectIdFromAttendedMeeting, categories);
+                operationMessage = Messages::FilterCategoriesByProjectMessage;
+            } else {
+                sqliteResult = categoryService.Filter(categories);
+                operationMessage = Messages::FilterCategoriesMessage;
+            }
+
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    operationMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+
+                return;
+            }
+
+            if (!categories.empty()) {
+                if (!pCategoryChoiceCtrl->IsEnabled()) {
+                    pCategoryChoiceCtrl->Enable();
+                }
+
+                int i = 0;
+                for (auto& category : categories) {
+                    pCategoryChoiceCtrl->Append(category.GetFormattedName(),
+                        new ClientData<std::int64_t>(category.CategoryId));
+                    if (category.CategoryId == mCategoryIdFromAttendedMeeting) {
+                        pCategoryChoiceCtrl->SetSelection(i);
+                    }
+                    i++;
+                }
+            } else {
+                pCategoryChoiceCtrl->Disable();
+            }
+        } else {
+            pProjectChoiceCtrl->Disable();
         }
     }
 

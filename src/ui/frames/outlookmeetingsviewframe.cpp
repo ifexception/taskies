@@ -716,6 +716,8 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
         wxStringClientData* scd = dynamic_cast<wxStringClientData*>(wnd->GetClientObject());
 
         SPDLOG_LOGGER_TRACE(pLogger, "Window ID \"{0}\"", wnd->GetId());
+        wxWindowID checkboxId = event.GetId();
+
         if (scd) {
             auto& s = scd->GetData();
             auto eventEntryId = s.ToStdString();
@@ -735,7 +737,20 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                 SPDLOG_LOGGER_TRACE(
                     pLogger, "Meeting found with detail: \n{0}", meetingModel.DebugPrint());
 
-                wxCheckBox* attendedCheckBoxCtrl = wxDynamicCast(wnd, wxCheckBox);
+                std::int64_t projectId = -1;
+                std::int64_t categoryId = -1;
+
+                auto controlDataIterator = std::find_if(mControlChoicesData.begin(),
+                    mControlChoicesData.end(),
+                    [=](const ControlChoiceData& cch) {
+                        return cch.CheckBoxControlId == checkboxId;
+                    });
+
+                if (controlDataIterator != mControlChoicesData.end()) {
+                    ControlChoiceData cch = *controlDataIterator;
+                    projectId = cch.ProjectId;
+                    categoryId = cch.CategoryId;
+                }
 
                 dlg::TaskDialog meetingTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
                 meetingTaskDialog.SetAttendedMeetingData(
@@ -746,9 +761,14 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                     meetingModel.End,
                     meetingModel.Duration,
                     meetingModel.Location);
+                if (projectId != -1 && categoryId != -1) {
+                    meetingTaskDialog.SetProjectAndCategoryIdsFromAttendedMeeting(
+                        mEmployerId, projectId, categoryId);
+                }
 
                 int ret = meetingTaskDialog.ShowModal();
 
+                wxCheckBox* attendedCheckBoxCtrl = wxDynamicCast(wnd, wxCheckBox);
                 if (attendedCheckBoxCtrl) {
                     if (ret != wxID_OK) {
                         attendedCheckBoxCtrl->SetValue(false);

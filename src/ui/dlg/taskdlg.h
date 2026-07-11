@@ -164,6 +164,7 @@ private:
     bool bHasTaskAttributeValues;
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
+    bool bSetFromAttendedMeeting;
     std::int64_t mProjectIdFromAttendedMeeting;
     std::int64_t mCategoryIdFromAttendedMeeting;
 
