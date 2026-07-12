@@ -718,63 +718,62 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
         SPDLOG_LOGGER_TRACE(pLogger, "Window ID \"{0}\"", wnd->GetId());
         wxWindowID checkboxId = event.GetId();
 
-        if (scd) {
-            auto& s = scd->GetData();
-            auto eventEntryId = s.ToStdString();
-            SPDLOG_LOGGER_TRACE(pLogger,
-                "Checkbox with ID: \"{0}\" and ENTRY_ID -> \n{1}",
-                event.GetId(),
-                eventEntryId);
+        if (!scd) {
+            return;
+        }
+        auto& s = scd->GetData();
+        auto eventEntryId = s.ToStdString();
+        SPDLOG_LOGGER_TRACE(pLogger,
+            "Checkbox with ID: \"{0}\" and ENTRY_ID -> \n{1}",
+            event.GetId(),
+            eventEntryId);
 
-            const auto& foundMeetingIterator = std::find_if(mMeetingModels.begin(),
-                mMeetingModels.end(),
-                [=](const Services::Outlook::OutlookMeetingModel& model) {
-                    return model.EntryId == eventEntryId;
-                });
+        const auto& foundMeetingIterator = std::find_if(mMeetingModels.begin(),
+            mMeetingModels.end(),
+            [=](const Services::Outlook::OutlookMeetingModel& model) {
+                return model.EntryId == eventEntryId;
+            });
 
-            if (foundMeetingIterator != mMeetingModels.end()) {
-                auto& meetingModel = *foundMeetingIterator;
-                SPDLOG_LOGGER_TRACE(
-                    pLogger, "Meeting found with detail: \n{0}", meetingModel.DebugPrint());
+        if (foundMeetingIterator != mMeetingModels.end()) {
+            auto& meetingModel = *foundMeetingIterator;
+            SPDLOG_LOGGER_TRACE(
+                pLogger, "Meeting found with detail: \n{0}", meetingModel.DebugPrint());
 
-                std::int64_t projectId = -1;
-                std::int64_t categoryId = -1;
+            std::int64_t projectId = -1;
+            std::int64_t categoryId = -1;
 
-                auto controlDataIterator = std::find_if(mControlChoicesData.begin(),
-                    mControlChoicesData.end(),
-                    [=](const ControlChoiceData& cch) {
-                        return cch.CheckBoxControlId == checkboxId;
-                    });
+            auto controlDataIterator = std::find_if(mControlChoicesData.begin(),
+                mControlChoicesData.end(),
+                [=](const ControlChoiceData& cch) { return cch.CheckBoxControlId == checkboxId; });
 
-                if (controlDataIterator != mControlChoicesData.end()) {
-                    ControlChoiceData cch = *controlDataIterator;
-                    projectId = cch.ProjectId;
-                    categoryId = cch.CategoryId;
-                }
+            if (controlDataIterator != mControlChoicesData.end()) {
+                ControlChoiceData cch = *controlDataIterator;
+                projectId = cch.ProjectId;
+                categoryId = cch.CategoryId;
+            }
 
-                dlg::TaskDialog meetingTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
-                meetingTaskDialog.SetAttendedMeetingData(
-                    meetingModel.TrimmedSubject(), meetingModel.Duration, meetingModel.Location);
-                meetingTaskDialog.SetAttendedMeetingDataEx(meetingModel.EntryId,
-                    meetingModel.TrimmedSubject(),
-                    meetingModel.Start,
-                    meetingModel.End,
-                    meetingModel.Duration,
-                    meetingModel.Location);
-                if (projectId != -1 && categoryId != -1) {
-                    meetingTaskDialog.SetProjectAndCategoryIdsFromAttendedMeeting(
-                        mEmployerId, projectId, categoryId);
-                }
+            dlg::TaskDialog meetingTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
+            meetingTaskDialog.SetAttendedMeetingData(
+                meetingModel.TrimmedSubject(), meetingModel.Duration, meetingModel.Location);
+            meetingTaskDialog.SetAttendedMeetingDataEx(meetingModel.EntryId,
+                meetingModel.TrimmedSubject(),
+                meetingModel.Start,
+                meetingModel.End,
+                meetingModel.Duration,
+                meetingModel.Location);
+            if (projectId != -1 && categoryId != -1) {
+                meetingTaskDialog.UpdateChoicesFromAttendedMeeting(
+                    mEmployerId, projectId, categoryId);
+            }
 
-                int ret = meetingTaskDialog.ShowModal();
+            int ret = meetingTaskDialog.ShowModal();
 
-                wxCheckBox* attendedCheckBoxCtrl = wxDynamicCast(wnd, wxCheckBox);
-                if (attendedCheckBoxCtrl) {
-                    if (ret != wxID_OK) {
-                        attendedCheckBoxCtrl->SetValue(false);
-                    } else {
-                        attendedCheckBoxCtrl->Disable();
-                    }
+            wxCheckBox* attendedCheckBoxCtrl = wxDynamicCast(wnd, wxCheckBox);
+            if (attendedCheckBoxCtrl) {
+                if (ret != wxID_OK) {
+                    attendedCheckBoxCtrl->SetValue(false);
+                } else {
+                    attendedCheckBoxCtrl->Disable();
                 }
             }
         }
