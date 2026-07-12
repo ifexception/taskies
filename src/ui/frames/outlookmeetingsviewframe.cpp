@@ -772,8 +772,10 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                 meetingTaskDialog.UpdateChoicesFromAttendedMeeting(
                     mEmployerId, projectId, categoryId);
 
-                wxCommandEvent okEvent(wxEVT_BUTTON, wxID_OK);
-                wxPostEvent(&meetingTaskDialog, okEvent);
+                if (!pCfg->OpenTaskDialogOnOutlookMeetingAttendanceCheck()) {
+                    wxCommandEvent okEvent(wxEVT_BUTTON, wxID_OK);
+                    wxPostEvent(&meetingTaskDialog, okEvent);
+                }
             }
 
             int ret = meetingTaskDialog.ShowModal();
