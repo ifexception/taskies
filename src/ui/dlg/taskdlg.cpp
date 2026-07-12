@@ -481,7 +481,7 @@ void TaskDialog::CreateControls()
     /* Associated categories control */
     pShowProjectAssociatedCategoriesCheckBoxCtrl = new wxCheckBox(this,
         tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
-        "Only show associated categories");
+        "Show project associated categories");
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetToolTip(
         "Only show categories associated to selected project");
 
