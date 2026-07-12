@@ -308,6 +308,9 @@ void TaskDialog::UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
                         new ClientData<std::int64_t>(category.CategoryId));
                     if (category.CategoryId == mCategoryIdFromAttendedMeeting) {
                         pCategoryChoiceCtrl->SetSelection(i);
+                        if (category.Billable) {
+                            pBillableCheckBoxCtrl->SetValue(true);
+                        }
                     }
                     i++;
                 }
@@ -318,6 +321,13 @@ void TaskDialog::UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
             pProjectChoiceCtrl->Disable();
         }
     }
+}
+
+void TaskDialog::AutoCloseDialog()
+{
+    /*wxCommandEvent event(wxEVT_BUTTON, wxID_OK);
+    event.SetEventObject(this);
+    GetEventHandler()->ProcessEvent(event);*/
 }
 
 // PRIVATE methods
@@ -903,6 +913,13 @@ void TaskDialog::ConfigureEventBindings()
     );
 
     pOkButton->Bind(
+        wxEVT_BUTTON,
+        &TaskDialog::OnOK,
+        this,
+        wxID_OK
+    );
+
+    Bind(
         wxEVT_BUTTON,
         &TaskDialog::OnOK,
         this,

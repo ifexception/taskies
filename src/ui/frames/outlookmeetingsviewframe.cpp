@@ -42,7 +42,6 @@
 #include "../../core/environment.h"
 
 #include "../../models/employermodel.h"
-#include "../../models/projectmodel.h"
 
 #include "../../persistence/attendedmeetingspersistence.h"
 #include "../../persistence/employerspersistence.h"
@@ -50,6 +49,7 @@
 
 #include "../../services/categories/categoryviewmodel.h"
 #include "../../services/categories/categoryservice.h"
+
 #include "../../services/outlook/outlookclassicservice.h"
 
 #include "../../utils/utils.h"
@@ -754,6 +754,8 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                 categoryId = cch.CategoryId;
             }
 
+            bool isOK = false;
+
             dlg::TaskDialog meetingTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
 
             meetingTaskDialog.SetAttendedMeetingData(
@@ -769,16 +771,20 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
             if (mEmployerId > 0 && projectId > 0 && categoryId > 0) {
                 meetingTaskDialog.UpdateChoicesFromAttendedMeeting(
                     mEmployerId, projectId, categoryId);
+
+                wxCommandEvent okEvent(wxEVT_BUTTON, wxID_OK);
+                wxPostEvent(&meetingTaskDialog, okEvent);
             }
 
             int ret = meetingTaskDialog.ShowModal();
+            isOK = ret == wxID_OK;
 
             wxCheckBox* attendedCheckBoxCtrl = wxDynamicCast(windowPtr, wxCheckBox);
             if (attendedCheckBoxCtrl) {
-                if (ret != wxID_OK) {
-                    attendedCheckBoxCtrl->SetValue(false);
-                } else {
+                if (isOK) {
                     attendedCheckBoxCtrl->Disable();
+                } else {
+                    attendedCheckBoxCtrl->SetValue(false);
                 }
             }
         }
