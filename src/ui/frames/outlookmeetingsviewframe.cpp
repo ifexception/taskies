@@ -712,26 +712,28 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID: \"{0}\" checked", event.GetId());
-        wxWindow* wnd = dynamic_cast<wxWindow*>(event.GetEventObject());
-        wxStringClientData* scd = dynamic_cast<wxStringClientData*>(wnd->GetClientObject());
+        wxWindow* windowPtr = dynamic_cast<wxWindow*>(event.GetEventObject());
+        wxStringClientData* windowStringClientDataPtr =
+            dynamic_cast<wxStringClientData*>(windowPtr->GetClientObject());
 
-        SPDLOG_LOGGER_TRACE(pLogger, "Window ID \"{0}\"", wnd->GetId());
+        SPDLOG_LOGGER_TRACE(pLogger, "Window ID \"{0}\"", windowPtr->GetId());
         wxWindowID checkboxId = event.GetId();
 
-        if (!scd) {
+        if (!windowStringClientDataPtr) {
             return;
         }
-        auto& s = scd->GetData();
-        auto eventEntryId = s.ToStdString();
+
+        auto& stringData = windowStringClientDataPtr->GetData();
+        auto eventMeetingEntryId = stringData.ToStdString();
         SPDLOG_LOGGER_TRACE(pLogger,
             "Checkbox with ID: \"{0}\" and ENTRY_ID -> \n{1}",
             event.GetId(),
-            eventEntryId);
+            eventMeetingEntryId);
 
         const auto& foundMeetingIterator = std::find_if(mMeetingModels.begin(),
             mMeetingModels.end(),
             [=](const Services::Outlook::OutlookMeetingModel& model) {
-                return model.EntryId == eventEntryId;
+                return model.EntryId == eventMeetingEntryId;
             });
 
         if (foundMeetingIterator != mMeetingModels.end()) {
@@ -753,22 +755,25 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
             }
 
             dlg::TaskDialog meetingTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
+
             meetingTaskDialog.SetAttendedMeetingData(
                 meetingModel.TrimmedSubject(), meetingModel.Duration, meetingModel.Location);
+
             meetingTaskDialog.SetAttendedMeetingDataEx(meetingModel.EntryId,
                 meetingModel.TrimmedSubject(),
                 meetingModel.Start,
                 meetingModel.End,
                 meetingModel.Duration,
                 meetingModel.Location);
-            if (projectId != -1 && categoryId != -1) {
+
+            if (mEmployerId > 0 && projectId > 0 && categoryId > 0) {
                 meetingTaskDialog.UpdateChoicesFromAttendedMeeting(
                     mEmployerId, projectId, categoryId);
             }
 
             int ret = meetingTaskDialog.ShowModal();
 
-            wxCheckBox* attendedCheckBoxCtrl = wxDynamicCast(wnd, wxCheckBox);
+            wxCheckBox* attendedCheckBoxCtrl = wxDynamicCast(windowPtr, wxCheckBox);
             if (attendedCheckBoxCtrl) {
                 if (ret != wxID_OK) {
                     attendedCheckBoxCtrl->SetValue(false);

@@ -199,6 +199,7 @@ void TaskDialog::UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
         ResetProjectChoiceControl();
         ResetCategoryChoiceControl();
 
+        // select an employer from attended meetings frame
         Model::EmployerModel employerModel;
         Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
 
@@ -216,6 +217,36 @@ void TaskDialog::UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
             pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
         }
 
+        // set a client (if applicable)
+        std::vector<Model::ClientModel> clients;
+        Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
+
+        auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
+        if (!result.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterClientsByEmployerMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        } else {
+            if (!clients.empty()) {
+                if (!pClientChoiceCtrl->IsEnabled()) {
+                    pClientChoiceCtrl->Enable();
+                }
+
+                for (auto& client : clients) {
+                    pClientChoiceCtrl->Append(
+                        client.Name, new ClientData<std::int64_t>(client.ClientId));
+                }
+            } else {
+                pClientChoiceCtrl->Disable();
+            }
+        }
+
+        // populate project choice control and set selected project
         std::vector<Model::ProjectModel> projects;
         Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
@@ -241,6 +272,7 @@ void TaskDialog::UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
                 }
             }
 
+            // populate category choice control and select category
             std::vector<Services::CategoryViewModel> categories;
             Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
 
@@ -547,7 +579,7 @@ void TaskDialog::CreateControls()
     pTaskDescriptionCharCountStaticText = new wxStaticText(
         descriptionBox, tksIDC_TASKDESCRIPTIONCHARCOUNTSTATICTEXT, wxGetEmptyString());
     pTaskDescriptionCharCountStaticText->SetToolTip(
-        "Remaining task description count of characters left");
+        "Remaining count of task description characters left");
     auto taskDescriptionCharCountStaticTextLabelFont =
         wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     pTaskDescriptionCharCountStaticText->SetFont(taskDescriptionCharCountStaticTextLabelFont);
