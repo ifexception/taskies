@@ -112,6 +112,8 @@ const std::string FilterAttributesByStaticFlagMessage =
     "Something went wrong while trying get static linked attributes";
 const std::string CheckUsageAttributeMessage =
     "Something went wrong while check the usages of the attribute";
+const std::string SelectDefaultAttributeGroupMessage =
+    "Something went wrong while trying get a default attribute group";
 #pragma endregion
 
 #pragma region StaticAttributes
