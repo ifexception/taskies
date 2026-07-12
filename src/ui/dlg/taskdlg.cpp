@@ -323,13 +323,6 @@ void TaskDialog::UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
     }
 }
 
-void TaskDialog::AutoCloseDialog()
-{
-    /*wxCommandEvent event(wxEVT_BUTTON, wxID_OK);
-    event.SetEventObject(this);
-    GetEventHandler()->ProcessEvent(event);*/
-}
-
 // PRIVATE methods
 
 void TaskDialog::Create()

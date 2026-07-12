@@ -38,3 +38,5 @@ build/
 
 # conan generated files
 .conan/
+
+*.zip

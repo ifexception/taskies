@@ -77,7 +77,6 @@ public:
     void UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
         const std::int64_t projectId,
         const std::int64_t categoryId);
-    void AutoCloseDialog();
 
 private:
     void Create();
