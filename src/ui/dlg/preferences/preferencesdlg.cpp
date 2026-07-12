@@ -262,7 +262,8 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
             this, main, title, wxCENTER | wxOK_DEFAULT | wxOK | wxICON_WARNING);
         restartProgramDialog.ShowModal();
     } else {
-        std::string main = fmt::format("{0} preferences updated successfully");
+        std::string main =
+            fmt::format("{0} preferences updated successfully", Common::GetProgramName());
         wxMessageBox(main, Common::GetProgramName(), wxOK_DEFAULT | wxICON_INFORMATION);
     }
 

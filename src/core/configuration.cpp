@@ -61,6 +61,11 @@ bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSett
     return Name == other.Name && ColumnModelIndex == other.ColumnModelIndex && Type == other.Type;
 }
 
+bool Configuration::TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const
+{
+    return Name != other.Name && ColumnModelIndex != other.ColumnModelIndex && Type != other.Type;
+}
+
 bool Configuration::TasksViewColumnSetting::IsDescriptionColumn() const
 {
     return Name == "Description" &&
@@ -212,6 +217,7 @@ ConfigResult Configuration::Save()
     // Task section
     root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
     root.at(Sections::TaskSection)["minutesIncrement"] = mSettings.TaskMinutesIncrement;
+    root.at(Sections::TaskSection)["maximumDescriptionLength"] = mSettings.MaximumDescriptionLength;
     root.at(Sections::TaskSection)["showProjectAssociatedCategories"] =
         mSettings.ShowProjectAssociatedCategories;
     root.at(Sections::TaskSection)["useReminders"] = mSettings.UseReminders;
@@ -220,6 +226,8 @@ ConfigResult Configuration::Save()
         mSettings.OpenTaskDialogOnReminderClick;
     root.at(Sections::TaskSection)["useTaskbarFlashing"] = mSettings.UseTaskbarFlashing;
     root.at(Sections::TaskSection)["reminderInterval"] = mSettings.ReminderInterval;
+    root.at(Sections::TaskSection)["openTaskDialogOnOutlookMeetingAttendanceCheck"] =
+        mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -340,12 +348,14 @@ ConfigResult Configuration::RestoreDefaults()
     ZipBackupFile(false);
 
     SetMinutesIncrement(15);
+    SetMaximumDescriptionLength(3000);
     ShowProjectAssociatedCategories(false);
     UseReminders(false);
     UseNotificationBanners(false);
     UseTaskbarFlashing(false);
     SetReminderInterval(0);
     OpenTaskDialogOnReminderClick(false);
+    OpenTaskDialogOnOutlookMeetingAttendanceCheck(false);
 
     TodayAlwaysExpanded(false);
     UseProjectDisplayName(false);
@@ -391,13 +401,15 @@ ConfigResult Configuration::RestoreDefaults()
                 Sections::TaskSection,
                 toml::table {
                     { "minutesIncrement", 15 },
+                    { "maximumDescriptionLength", 3000 },
                     { "showProjectAssociatedCategories", false },
                     { "useLegacyTaskDialog", false },
                     { "useReminders", false },
                     { "useNotificationBanners", false },
                     { "useTaskbarFlashing", false },
                     { "reminderInterval", 0 },
-                    { "openTaskDialogOnReminderClick", false }
+                    { "openTaskDialogOnReminderClick", false },
+                    { "openTaskDialogOnOutlookMeetingAttendanceCheck", true }
                 }
             },
             {
@@ -737,6 +749,16 @@ void Configuration::SetMinutesIncrement(const int value)
     mSettings.TaskMinutesIncrement = value;
 }
 
+int Configuration::GetMaximumDescriptionLength() const
+{
+    return mSettings.MaximumDescriptionLength;
+}
+
+void Configuration::SetMaximumDescriptionLength(const int value)
+{
+    mSettings.MaximumDescriptionLength = value;
+}
+
 bool Configuration::ShowProjectAssociatedCategories() const
 {
     return mSettings.ShowProjectAssociatedCategories;
@@ -795,6 +817,16 @@ bool Configuration::OpenTaskDialogOnReminderClick() const
 void Configuration::OpenTaskDialogOnReminderClick(const bool value)
 {
     mSettings.OpenTaskDialogOnReminderClick = value;
+}
+
+bool Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck() const
+{
+    return mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck;
+}
+
+void Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value)
+{
+    mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck = value;
 }
 
 bool Configuration::TodayAlwaysExpanded() const
@@ -1002,6 +1034,9 @@ void Configuration::GetTasksConfig(const toml::value& root)
 
     mSettings.TaskMinutesIncrement = toml::find_or<int>(taskSection, "minutesIncrement", 15);
 
+    mSettings.MaximumDescriptionLength =
+        toml::find_or<int>(taskSection, "maximumDescriptionLength", 3000);
+
     mSettings.ShowProjectAssociatedCategories =
         toml::find_or<bool>(taskSection, "showProjectAssociatedCategories", false);
 
@@ -1016,6 +1051,9 @@ void Configuration::GetTasksConfig(const toml::value& root)
     mSettings.UseTaskbarFlashing = toml::find_or<bool>(taskSection, "useTaskbarFlashing", false);
 
     mSettings.ReminderInterval = toml::find_or<int>(taskSection, "reminderInterval", 0);
+
+    mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck =
+        toml::find_or<bool>(taskSection, "openTaskDialogOnOutlookMeetingAttendanceCheck", true);
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)

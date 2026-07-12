@@ -16,12 +16,14 @@ zipBackupFile=false
 
 [tasks]
 minutesIncrement=15
+maximumDescriptionLength=3000
 showProjectAssociatedCategories=false
 useReminders=false
 useNotificationBanners=false
 useTaskbarFlashing=false
 reminderInterval=0
 openTaskDialogOnReminderClick=false
+openTaskDialogOnOutlookMeetingAttendanceCheck=true
 
 [tasksView]
 todayAlwaysExpanded=false

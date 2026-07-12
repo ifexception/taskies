@@ -26,6 +26,7 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/spinctrl.h>
 
 #include <spdlog/logger.h>
 
@@ -39,6 +40,9 @@ namespace UI
 {
 namespace dlg
 {
+constexpr int MIN_CHARACTER_COUNT_DESCRIPTION = 64;
+constexpr int MAX_CHARACTER_COUNT_DESCRIPTION = 4096;
+
 class PreferencesTasksPage : public wxPanel
 {
 public:
@@ -69,21 +73,25 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxChoice* pMinutesIncrementChoiceCtrl;
+    wxSpinCtrl* pMaximumDescriptionLengthSpinCtrl;
     wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
     wxCheckBox* pUseRemindersCheckBoxCtrl;
     wxCheckBox* pUseNotificationBanners;
     wxCheckBox* pUseTaskbarFlashing;
     wxChoice* pReminderIntervalChoiceCtrl;
     wxCheckBox* pOpenTaskDialogOnReminderClickCheckBoxCtrl;
+    wxCheckBox* pOpenTaskDialogOnOutlookMeetingAttendanceCheckBoxCtrl;
 
     enum {
         tksIDC_MINUTES_INCREMENT = wxID_HIGHEST + 100,
+        tksIDC_MAXIMUMDESCRIPTIONLENGTHSPINCTRL,
         tksIDC_ASSOCIATEDCATEGORIES,
         tksIDC_USEREMINDERSCHECKBOXCTRL,
         tksIDC_USENOTIFICATIONBANNERS,
         tksIDC_USETASKBARFLASHING,
         tksIDC_REMINDERINTERVALCHOICECTRL,
-        tksIDC_OPENTASKDIALOGONREMINDERCLICKCHECKBOXCTRL
+        tksIDC_OPENTASKDIALOGONREMINDERCLICKCHECKBOXCTRL,
+        tksIDC_OPENTASKDIALOGONOUTLOOKMEETINGATTENDANCECHECKBOXCTRL
     };
 };
 } // namespace dlg

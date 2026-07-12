@@ -2074,6 +2074,8 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         copyRowWithPresetMenuItem->SetBitmap(
             wxBitmapBundle::FromIconBundle(copyRowWithPresetIconBundle));
 
+        menu.AppendSeparator();
+
         auto editTaskMenuItem = menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
         wxIconBundle editTaskIconBundle(Common::GetEditTaskIconBundleName(), 0);
         editTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(editTaskIconBundle));
@@ -2081,6 +2083,7 @@ void MainFrame::OnContextMenu(wxDataViewEvent& event)
         auto deleteTaskMenuItem = menu.Append(wxID_DELETE, "&Delete", "Delete selected task");
         wxIconBundle deleteTaskIconBundle(Common::GetDeleteTaskIconBundleName(), 0);
         deleteTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(deleteTaskIconBundle));
+
         menu.AppendSeparator();
 
         menu.Append(ID_POP_CLONE_TASK, "C&lone", "Clone the selected task");

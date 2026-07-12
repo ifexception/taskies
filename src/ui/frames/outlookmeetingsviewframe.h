@@ -19,8 +19,10 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -33,12 +35,13 @@
 #include <spdlog/logger.h>
 
 #include "../../models/attendedmeetingmodel.h"
+#include "../../models/projectmodel.h"
 
 namespace tks::Core
 {
 class Configuration;
 class Environment;
-}
+} // namespace tks::Core
 
 namespace tks::Services::Outlook
 {
@@ -47,6 +50,26 @@ struct OutlookMeetingModel;
 
 namespace tks::UI::frames
 {
+struct ControlChoiceData {
+    int CheckBoxControlId;
+    int ProjectChoiceControlId;
+    int CategoryChoiceControlId;
+
+    std::int64_t ProjectId;
+    std::int64_t CategoryId;
+
+    ControlChoiceData()
+        : CheckBoxControlId(-1)
+        , ProjectChoiceControlId(-1)
+        , CategoryChoiceControlId(-1)
+        , ProjectId(-1)
+        , CategoryId(-1)
+    {
+    }
+
+    ~ControlChoiceData() {}
+};
+
 class OutlookMeetingsViewFrame final : public wxFrame
 {
 public:
@@ -68,20 +91,22 @@ private:
     void Create();
 
     void CreateControls();
-    void ConfigureEventBindings();
     void FillControls();
+    void ConfigureEventBindings();
     void DataToControls();
 
     void OnDateSelection(wxDateEvent& event);
     void OnRefresh(wxCommandEvent& event);
+    void OnEmployerChoice(wxCommandEvent& event);
     void OnAccountChoice(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event);
+    void OnProjectChoice(wxCommandEvent& event);
+    void OnCategoryChoice(wxCommandEvent& event);
     void OnAttendedCheckBoxCheck(wxCommandEvent& event);
 
     void FetchOutlookMeetingsAndUpdateFeedbackLabel();
     std::vector<Model::AttendedMeetingModel> FetchAttendedMeetings();
-    void AddMeetingsToPanel(
-        const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels);
+    void AddMeetingsToPanel(const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels);
     void SetDialogSizeFromParent();
 
     void RemoveActiveMeetingsPanel();
@@ -89,8 +114,11 @@ private:
 
     void AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
         int* attendedCheckBoxControlId,
+        int* projectChoiceControlId,
+        int* categoryChoiceControlId,
         const Services::Outlook::OutlookMeetingModel& meetingModel,
-        bool meetingAttended);
+        bool meetingAttended,
+        const std::vector<Model::ProjectModel>& projectModels);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<Core::Environment> pEnv;
@@ -103,8 +131,9 @@ private:
     wxBoxSizer* pMainSizer;
 
     wxDatePickerCtrl* pDatePickerCtrl;
-
     wxBitmapButton* pRefreshButton;
+
+    wxChoice* pEmployerChoiceCtrl;
     wxChoice* pAccountsChoiceCtrl;
 
     wxStaticText* pFeedbackLabel;
@@ -117,13 +146,25 @@ private:
     std::string mSelectedDate;
     std::vector<Services::Outlook::OutlookMeetingModel> mMeetingModels;
     bool bIsMainFrameMaximized;
+    std::int64_t mEmployerId;
+
+    std::vector<ControlChoiceData> mControlChoicesData;
 
     enum {
         tksIDC_DATEPICKERCTRL = wxID_HIGHEST + 1001,
+        tksIDC_EMPLOYERCHOICECTRL,
         tksIDC_REFRESH_BUTTON,
         tksIDC_ACCOUNT_CHOICE_CTRL,
         tksIDC_FEEDBACKLABEL,
-        tksIDC_ATTENDEDCHECKBOX_BASE
+        tksIDC_ATTENDEDCHECKBOX_BASE,
+    };
+
+    enum {
+        tksIDC_PROJECTSCHOICECTRL_BASE = wxID_HIGHEST + 1256,
+    };
+
+    enum {
+        tksIDC_CATEGORIESCHOICECTRL_BASE = wxID_HIGHEST + 1556,
     };
 };
 } // namespace tks::UI::frames

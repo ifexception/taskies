@@ -108,6 +108,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pCategoryChoiceCtrl(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
+    , pTaskDescriptionCharCountStaticText(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mDate()
@@ -118,6 +119,9 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , bHasTaskAttributeValues(false)
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
+    , bSetFromAttendedMeeting(false)
+    , mProjectIdFromAttendedMeeting(-1)
+    , mCategoryIdFromAttendedMeeting(-1)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -153,7 +157,7 @@ void TaskDialog::SetAttendedMeetingData(const std::string& subject,
         taskDescription = subject + "\n\n" + additionalData;
     }
 
-    pTaskDescriptionTextCtrl->ChangeValue(taskDescription);
+    pTaskDescriptionTextCtrl->SetValue(taskDescription);
 
     int roundedDuration = Utils::RoundUpToMultiple(duration, pCfg->GetMinutesIncrement());
 
@@ -179,6 +183,147 @@ void TaskDialog::SetAttendedMeetingDataEx(const std::string& entryId,
     mAttendedMeetingModel.Duration = duration;
     mAttendedMeetingModel.Location = location;
 }
+
+void TaskDialog::UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
+    const std::int64_t projectId,
+    const std::int64_t categoryId)
+{
+    bSetFromAttendedMeeting = true;
+    mEmployerId = employerId;
+    mProjectIdFromAttendedMeeting = projectId;
+    mCategoryIdFromAttendedMeeting = categoryId;
+
+    // `UpdateChoicesFromAttendedMeeting` only gets called _after_ the `Create` method gets called
+    // Need to find a better to set data rather than resetting it like below
+    if (!bIsEdit && bSetFromAttendedMeeting) {
+        ResetProjectChoiceControl();
+        ResetCategoryChoiceControl();
+
+        // select an employer from attended meetings frame
+        Model::EmployerModel employerModel;
+        Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
+
+        auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterEmployersMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        } else {
+            pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
+        }
+
+        // set a client (if applicable)
+        std::vector<Model::ClientModel> clients;
+        Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
+
+        auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
+        if (!result.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterClientsByEmployerMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        } else {
+            if (!clients.empty()) {
+                if (!pClientChoiceCtrl->IsEnabled()) {
+                    pClientChoiceCtrl->Enable();
+                }
+
+                for (auto& client : clients) {
+                    pClientChoiceCtrl->Append(
+                        client.Name, new ClientData<std::int64_t>(client.ClientId));
+                }
+            } else {
+                pClientChoiceCtrl->Disable();
+            }
+        }
+
+        // populate project choice control and set selected project
+        std::vector<Model::ProjectModel> projects;
+        Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+
+        sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projects);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterProjectsMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
+
+        if (!projects.empty()) {
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(
+                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+
+                if (project.ProjectId == mProjectIdFromAttendedMeeting) {
+                    pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+                }
+            }
+
+            // populate category choice control and select category
+            std::vector<Services::CategoryViewModel> categories;
+            Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
+
+            tks::SqliteResult sqliteResult;
+            std::string operationMessage;
+
+            if (pCfg->ShowProjectAssociatedCategories()) {
+                sqliteResult =
+                    categoryService.FilterByProjectId(mProjectIdFromAttendedMeeting, categories);
+                operationMessage = Messages::FilterCategoriesByProjectMessage;
+            } else {
+                sqliteResult = categoryService.Filter(categories);
+                operationMessage = Messages::FilterCategoriesMessage;
+            }
+
+            if (!sqliteResult.Success) {
+                wxRichMessageDialog dialog(this,
+                    operationMessage,
+                    tks::Common::GetProgramName(),
+                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                dialog.ShowModal();
+
+                return;
+            }
+
+            if (!categories.empty()) {
+                int i = 1;
+                for (auto& category : categories) {
+                    pCategoryChoiceCtrl->Append(category.GetFormattedName(),
+                        new ClientData<std::int64_t>(category.CategoryId));
+                    if (category.CategoryId == mCategoryIdFromAttendedMeeting) {
+                        pCategoryChoiceCtrl->SetSelection(i);
+                        if (category.Billable) {
+                            pBillableCheckBoxCtrl->SetValue(true);
+                        }
+                    }
+                    i++;
+                }
+            } else {
+                pCategoryChoiceCtrl->Disable();
+            }
+        } else {
+            pProjectChoiceCtrl->Disable();
+        }
+    }
+}
+
+// PRIVATE methods
 
 void TaskDialog::Create()
 {
@@ -371,7 +516,7 @@ void TaskDialog::CreateControls()
     /* Associated categories control */
     pShowProjectAssociatedCategoriesCheckBoxCtrl = new wxCheckBox(this,
         tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
-        "Only show associated categories");
+        "Show project associated categories");
     pShowProjectAssociatedCategoriesCheckBoxCtrl->SetToolTip(
         "Only show categories associated to selected project");
 
@@ -434,8 +579,19 @@ void TaskDialog::CreateControls()
     pTaskDescriptionTextCtrl->SetHint("Task description");
     pTaskDescriptionTextCtrl->SetToolTip("Enter the description of the task");
 
+    pTaskDescriptionCharCountStaticText = new wxStaticText(
+        descriptionBox, tksIDC_TASKDESCRIPTIONCHARCOUNTSTATICTEXT, wxGetEmptyString());
+    pTaskDescriptionCharCountStaticText->SetToolTip(
+        "Remaining count of task description characters left");
+    auto taskDescriptionCharCountStaticTextLabelFont =
+        wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    pTaskDescriptionCharCountStaticText->SetFont(taskDescriptionCharCountStaticTextLabelFont);
+
     descriptionBoxSizer->Add(
         pTaskDescriptionTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+    descriptionBoxSizer->Add(
+        pTaskDescriptionCharCountStaticText, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
+
     rightSizer->Add(
         descriptionBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
@@ -482,6 +638,9 @@ void TaskDialog::FillControls()
                        "Keep default date",
             mDate);
     }
+
+    pTaskDescriptionCharCountStaticText->SetLabel(
+        std::to_string(pCfg->GetMaximumDescriptionLength()));
 
     std::string defaultSearchTerm = "";
 
@@ -734,6 +893,12 @@ void TaskDialog::ConfigureEventBindings()
         this
     );
 
+    pTaskDescriptionTextCtrl->Bind(
+        wxEVT_TEXT,
+        &TaskDialog::OnTaskDescriptionChange,
+        this
+    );
+
     pIsActiveCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &TaskDialog::OnIsActiveCheck,
@@ -741,6 +906,13 @@ void TaskDialog::ConfigureEventBindings()
     );
 
     pOkButton->Bind(
+        wxEVT_BUTTON,
+        &TaskDialog::OnOK,
+        this,
+        wxID_OK
+    );
+
+    Bind(
         wxEVT_BUTTON,
         &TaskDialog::OnOK,
         this,
@@ -761,7 +933,6 @@ void TaskDialog::DataToControls()
     // load task
     Model::TaskModel taskModel;
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
-    bool isSuccess = false;
 
     auto sqliteResult = taskPersistence.GetById(mTaskId, taskModel);
     if (!sqliteResult.Success) {
@@ -784,7 +955,10 @@ void TaskDialog::DataToControls()
 
         pIsActiveCheckBoxCtrl->Enable();
 
-        isSuccess = true;
+        int maxDescriptionLength = pCfg->GetMaximumDescriptionLength();
+        int taskDescriptionLength = static_cast<int>(taskModel.Description.size());
+        int remainingLength = maxDescriptionLength - taskDescriptionLength;
+        pTaskDescriptionCharCountStaticText->SetLabel(std::to_string(remainingLength));
     }
 
     // -- load related entities
@@ -807,10 +981,8 @@ void TaskDialog::DataToControls()
 
             dialog.ShowModal();
 
-            isSuccess = false;
         } else {
             pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
-            isSuccess = true;
             employerSelected = true;
         }
     }
@@ -866,7 +1038,6 @@ void TaskDialog::DataToControls()
     }
 
     pProjectChoiceCtrl->SetStringSelection(projectModel.DisplayName);
-    isSuccess = true;
 
     // load clients
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
@@ -907,10 +1078,8 @@ void TaskDialog::DataToControls()
                         dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
                         dialog.ShowModal();
-                        isSuccess = false;
                     } else {
                         pClientChoiceCtrl->SetStringSelection(client.Name);
-                        isSuccess = true;
                     }
                 }
 
@@ -931,10 +1100,8 @@ void TaskDialog::DataToControls()
                 dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
                 dialog.ShowModal();
-                isSuccess = false;
             } else {
                 pClientChoiceCtrl->SetStringSelection(client.Name);
-                isSuccess = true;
             }
         }
     }
@@ -963,11 +1130,7 @@ void TaskDialog::DataToControls()
         dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
         dialog.ShowModal();
-
-        isSuccess = false;
     }
-
-    int ret = 0;
 
     if (!categories.empty()) {
         if (!pCategoryChoiceCtrl->IsEnabled()) {
@@ -992,7 +1155,6 @@ void TaskDialog::DataToControls()
             dialog.ShowModal();
         } else {
             pCategoryChoiceCtrl->SetStringSelection(category.GetFormattedName());
-            isSuccess = true;
         }
     } else {
         ResetCategoryChoiceControl(true);
@@ -1043,11 +1205,9 @@ void TaskDialog::DataToControls()
         pAttributeGroupChoiceCtrl->SetSelection(0);
     }
 
-    if (isSuccess) {
-        pOkButton->Enable();
-        pOkButton->SetFocus();
-        pOkButton->SetDefault();
-    }
+    pOkButton->Enable();
+    pOkButton->SetFocus();
+    pOkButton->SetDefault();
 }
 
 void TaskDialog::OnDateChange(wxDateEvent& event)
@@ -1328,9 +1488,19 @@ void TaskDialog::OnCategoryChoiceSelection(wxCommandEvent& event)
     } else {
         if (model.Billable) {
             pBillableCheckBoxCtrl->SetValue(true);
-            pBillableCheckBoxCtrl->SetToolTip("Task is billable since category is billable");
+            pBillableCheckBoxCtrl->SetToolTip("Task billability inherits from category");
         }
     }
+}
+
+void TaskDialog::OnTaskDescriptionChange(wxCommandEvent& WXUNUSED(event))
+{
+    int cfgDescriptionLength = pCfg->GetMaximumDescriptionLength();
+    int currentDescriptionLength =
+        static_cast<int>(pTaskDescriptionTextCtrl->GetValue().ToStdString().size());
+    int remainderDescriptionLength = cfgDescriptionLength - currentDescriptionLength;
+
+    pTaskDescriptionCharCountStaticText->SetLabel(std::to_string(remainderDescriptionLength));
 }
 
 void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)
@@ -1645,12 +1815,12 @@ bool TaskDialog::Validate()
         return false;
     }
 
-    if (description.length() < MIN_CHARACTER_COUNT ||
-        description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS) {
+    int maxDescriptionLength = pCfg->GetMaximumDescriptionLength();
+    if (description.length() < MIN_CHARACTER_COUNT || description.length() > maxDescriptionLength) {
         auto valMsg =
             fmt::format("Description must be at minimum {0} or maximum {1} characters long",
                 MIN_CHARACTER_COUNT,
-                MAX_CHARACTER_COUNT_NAMES);
+                maxDescriptionLength);
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pTaskDescriptionTextCtrl);

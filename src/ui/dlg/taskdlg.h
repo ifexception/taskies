@@ -74,6 +74,9 @@ public:
         const std::string& end,
         const int duration,
         const std::string& location);
+    void UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
+        const std::int64_t projectId,
+        const std::int64_t categoryId);
 
 private:
     void Create();
@@ -94,6 +97,8 @@ private:
     void OnProjectChoiceSelection(wxCommandEvent& event);
     void OnShowProjectAssociatedCategoriesCheck(wxCommandEvent& event);
     void OnCategoryChoiceSelection(wxCommandEvent& event);
+
+    void OnTaskDescriptionChange(wxCommandEvent& event);
 
     void OnIsActiveCheck(wxCommandEvent& event);
 
@@ -139,6 +144,7 @@ private:
     wxCheckBox* pIsActiveCheckBoxCtrl;
 
     wxTextCtrl* pTaskDescriptionTextCtrl;
+    wxStaticText* pTaskDescriptionCharCountStaticText;
 
     wxButton* pOkButton;
     wxButton* pCancelButton;
@@ -158,6 +164,10 @@ private:
     bool bHasTaskAttributeValues;
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
+    bool bSetFromAttendedMeeting;
+    std::int64_t mProjectIdFromAttendedMeeting;
+    std::int64_t mCategoryIdFromAttendedMeeting;
+
     static std::string AttributeValuesCapturedLabel;
 
     enum {
@@ -175,6 +185,7 @@ private:
         tksIDC_TIMEHOURSSPINCTRL,
         tksIDC_TIMEMINUTESSPINCTRL,
         tksIDC_TASKDESCRIPTIONTEXTCTRL,
+        tksIDC_TASKDESCRIPTIONCHARCOUNTSTATICTEXT,
         tksIDC_ISACTIVECHECKBOXCTRL
     };
 };

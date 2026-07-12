@@ -61,6 +61,7 @@ public:
         ~TasksViewColumnSetting() = default;
 
         bool operator==(const TasksViewColumnSetting& other) const;
+        bool operator!=(const TasksViewColumnSetting& other) const;
 
         // Special method that returns true on "Description" column due to its unique attributes
         bool IsDescriptionColumn() const;
@@ -163,6 +164,9 @@ public:
     int GetMinutesIncrement() const;
     void SetMinutesIncrement(const int value);
 
+    int GetMaximumDescriptionLength() const;
+    void SetMaximumDescriptionLength(const int value);
+
     bool ShowProjectAssociatedCategories() const;
     void ShowProjectAssociatedCategories(const bool value);
 
@@ -180,6 +184,9 @@ public:
 
     bool OpenTaskDialogOnReminderClick() const;
     void OpenTaskDialogOnReminderClick(const bool value);
+
+    bool OpenTaskDialogOnOutlookMeetingAttendanceCheck() const;
+    void OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value);
 
     bool TodayAlwaysExpanded() const;
     void TodayAlwaysExpanded(const bool value);
@@ -234,12 +241,14 @@ private:
         bool ZipBackupFile;
 
         int TaskMinutesIncrement;
+        int MaximumDescriptionLength;
         bool ShowProjectAssociatedCategories;
         bool UseReminders;
         bool UseNotificationBanners;
         bool UseTaskbarFlashing;
         int ReminderInterval;
         bool OpenTaskDialogOnReminderClick;
+        bool OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
         bool TodayAlwaysExpanded;
         bool UseProjectDisplayName;
