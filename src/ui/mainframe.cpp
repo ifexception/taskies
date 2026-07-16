@@ -2118,7 +2118,7 @@ void MainFrame::OnDataViewSelectionChanged(wxDataViewEvent& event)
         pDataViewCtrl->Expand(item);
 
         auto model = (TaskTreeModelNode*) item.GetID();
-        auto selectedDate = model->GetProjectName();
+        auto selectedDate = model->GetDate();
 
         TryUpdateSelectedDateAndAllTaskDurations(selectedDate);
 
