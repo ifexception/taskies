@@ -406,9 +406,6 @@ void MainFrame::CreateControls()
     wxListItem dateColumn;
     dateColumn.SetAlign(wxLIST_FORMAT_CENTRE);
     dateColumn.SetText("Date");
-    long mask = dateColumn.GetMask();
-    mask |= wxLIST_MASK_FORMAT;
-    dateColumn.SetMask(mask);
     dateColumn.SetId(columnId);
     dateColumn.SetWidth(wxLIST_AUTOSIZE_USEHEADER);
     pListCtrl->InsertColumn(columnId++, dateColumn);
@@ -428,9 +425,6 @@ void MainFrame::CreateControls()
     wxListItem durationColumn;
     durationColumn.SetAlign(wxLIST_FORMAT_CENTER);
     durationColumn.SetId(columnId);
-    mask = durationColumn.GetMask();
-    mask |= wxLIST_MASK_FORMAT;
-    durationColumn.SetMask(mask);
     durationColumn.SetText("Duration");
     durationColumn.SetWidth(wxLIST_AUTOSIZE);
     pListCtrl->InsertColumn(columnId++, durationColumn);
@@ -503,9 +497,20 @@ void MainFrame::DataToControls()
             columnIndex = 0;
         }
 
-        for (int i = 0; i < pListCtrl->GetColumnCount(); i++) {
+        int fixedWidth = 0;
+        for (int i = 0; i < pListCtrl->GetColumnCount() - 2; i++) {
             pListCtrl->SetColumnWidth(i, wxLIST_AUTOSIZE);
+            fixedWidth += pListCtrl->GetColumnWidth(i);
         }
+        fixedWidth += pListCtrl->GetColumnWidth(3);
+
+        int totalWidth = pListCtrl->GetClientSize().GetWidth();
+
+        // Ensure the expanding column fills the remaining space
+        int expandWidth = totalWidth - fixedWidth - 4; // -4 for borders
+        if (expandWidth < 80)
+            expandWidth = 80; // Minimum width
+        pListCtrl->SetColumnWidth(4, expandWidth);
 
         // Status Bar durations
         CalculateStatusBarTaskDurations();
