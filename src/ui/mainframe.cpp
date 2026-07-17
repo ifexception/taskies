@@ -404,23 +404,25 @@ void MainFrame::CreateControls()
     int columnId = 0;
 
     wxListItem dateColumn;
-    dateColumn.SetAlign(wxLIST_FORMAT_CENTER);
+    dateColumn.SetAlign(wxLIST_FORMAT_CENTRE);
     dateColumn.SetText("Date");
     long mask = dateColumn.GetMask();
     mask |= wxLIST_MASK_FORMAT;
-    dateColumn.SetId(columnId);
     dateColumn.SetMask(mask);
-    dateColumn.SetWidth(wxLIST_AUTOSIZE);
+    dateColumn.SetId(columnId);
+    dateColumn.SetWidth(wxLIST_AUTOSIZE_USEHEADER);
     pListCtrl->InsertColumn(columnId++, dateColumn);
 
     wxListItem projectColumn;
     projectColumn.SetId(columnId);
     projectColumn.SetText("Project");
+    projectColumn.SetWidth(wxLIST_AUTOSIZE);
     pListCtrl->InsertColumn(columnId++, projectColumn);
 
     wxListItem categoryColumn;
     categoryColumn.SetId(columnId);
     categoryColumn.SetText("Category");
+    categoryColumn.SetWidth(wxLIST_AUTOSIZE);
     pListCtrl->InsertColumn(columnId++, categoryColumn);
 
     wxListItem durationColumn;
@@ -436,6 +438,7 @@ void MainFrame::CreateControls()
     wxListItem descriptionColumn;
     descriptionColumn.SetId(columnId);
     descriptionColumn.SetText("Description");
+    descriptionColumn.SetWidth(wxLIST_AUTOSIZE);
     pListCtrl->InsertColumn(columnId++, descriptionColumn);
 
     /* Accelerator Table */
@@ -491,9 +494,17 @@ void MainFrame::DataToControls()
             pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.GetDuration());
             pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.Description);
 
-            //pListCtrl->SetItemBackgroundColour(listIndex, taskViewModel.CategoryColor);
+            pListCtrl->SetItemBackgroundColour(listIndex, wxColor(taskViewModel.CategoryColor));
+            if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
+                pListCtrl->SetItemTextColour(listIndex, *wxWHITE);
+            }
 
             pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));
+            columnIndex = 0;
+        }
+
+        for (int i = 0; i < pListCtrl->GetColumnCount(); i++) {
+            pListCtrl->SetColumnWidth(i, wxLIST_AUTOSIZE);
         }
 
         // Status Bar durations
