@@ -32,7 +32,7 @@
 #endif
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
-#include <wx/dataview.h>
+#include <wx/listctrl.h>
 #include <wx/infobar.h>
 #include <wx/notifmsg.h>
 #include <wx/taskbarbutton.h>
@@ -43,7 +43,6 @@
 
 #include "../common/enums.h"
 
-#include "../ui/dataview/tasktreemodel.h"
 #include "../ui/frames/outlookmeetingsviewframe.h"
 
 #include "../models/taskmodel.h"
@@ -76,7 +75,6 @@ enum class MenuIds : int {
     Edit_Attribute,
     Edit_StaticAttributeValues,
     View_Reset,
-    View_Expand,
     View_Outlook,
     // View_Day,
     View_Preferences,
@@ -119,7 +117,6 @@ static const int ID_EDIT_STATIC_ATTRIBUTE_VALUES =
 
 /* View */
 static const int ID_VIEW_RESET = static_cast<int>(MenuIds::View_Reset);
-static const int ID_VIEW_EXPAND = static_cast<int>(MenuIds::View_Expand);
 static const int ID_VIEW_OUTLOOK = static_cast<int>(MenuIds::View_Outlook);
 static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preferences);
 
@@ -202,7 +199,6 @@ private:
     void OnEditAttribute(wxCommandEvent& event);
     void OnEditStaticAttributeValues(wxCommandEvent& event);
     void OnViewReset(wxCommandEvent& event);
-    void OnViewExpand(wxCommandEvent& event);
     void OnViewOutlook(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
@@ -226,22 +222,14 @@ private:
     void OnTaskDateChangedTo(wxCommandEvent& event);
     void OnOutlookMeetingViewClose(wxCommandEvent& event);
     /* Control Event Handlers */
-    void OnFromDateSelection(wxDateEvent& event);
-    void OnToDateSelection(wxDateEvent& event);
-    /* DataViewCtrl Event Handlers */
-    void OnContextMenu(wxDataViewEvent& event);
-    void OnDataViewSelectionChanged(wxDataViewEvent& event);
-    void OnDataViewSelectionActivate(wxDataViewEvent& event);
+    void OnDateChanged(wxDateEvent& event);
+    /* ListCtrl Event Handlers */
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
     /* Power Event Handlers */
     void OnPowerResume(wxPowerEvent& event);
 
     void DoResetToCurrentWeekAndOrToday();
-    void ResetDateRange();
-    void ResetDatePickerValues();
-    void RefetchTasksForDateRange();
-    void RefetchTasksForDate(const std::string& date, const std::int64_t taskId);
 
     void CalculateStatusBarTaskDurations();
     void CalculateDefaultTaskDurations();
@@ -255,10 +243,6 @@ private:
 
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
-
-    void SetFromAndToDatePickerRanges();
-    void SetFromDateAndDatePicker();
-    void SetToDateAndDatePicker();
 
     void ResetTaskContextMenuVariables();
 
@@ -276,24 +260,19 @@ private:
     TaskBarIcon* pTaskBarIcon;
     StatusBar* pStatusBar;
 
-    wxDatePickerCtrl* pFromDatePickerCtrl;
-    wxDatePickerCtrl* pToDatePickerCtrl;
+    wxDatePickerCtrl* pDatePickerCtrl;
+
+    wxListCtrl* pListCtrl;
 
     std::unique_ptr<DateStore> pDateStore;
 
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
 
-    wxDataViewCtrl* pDataViewCtrl;
-    wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
-
-    wxDateTime mFromCtrlDate;
-    wxDateTime mToCtrlDate;
     wxDateTime mToLatestPossibleDate;
 
     std::int64_t mTaskIdToModify;
     std::string mTaskDate;
-    int mExpandCounter;
     bool bDateRangeChanged;
 
     /*
@@ -309,10 +288,8 @@ private:
     enum {
         tksIDC_THUMBBAR_NEWTASK = wxID_HIGHEST + 1000,
         tksIDC_THUMBBAR_QUICKEXPORT,
-        tksIDC_FROMDATE,
-        tksIDC_TODATE,
-        tksIDC_TASKDATAVIEWCTRL,
-        tksIDC_DAY_TASKDATAVIEW,
+        tksIDC_DATEPICKERCTRL,
+        tksIDC_LISTCTRL,
         tksIDC_TASKREMINDERTIMER
     };
 };

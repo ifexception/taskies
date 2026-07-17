@@ -296,12 +296,6 @@
     <ClCompile Include="src\ui\dataview\columnlistmodel.cpp">
       <Filter>Source\ui\dataview</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\dataview\tasktreemodel.cpp">
-      <Filter>Source\ui\dataview</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ui\dataview\tasktreemodelnode.cpp">
-      <Filter>Source\ui\dataview</Filter>
-    </ClCompile>
     <ClCompile Include="src\services\export\columnexportmodel.cpp">
       <Filter>Source\services\export</Filter>
     </ClCompile>
@@ -656,12 +650,6 @@
       <Filter>Source\ui\dataview</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\dataview\columnlistmodel.h">
-      <Filter>Source\ui\dataview</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\dataview\tasktreemodel.h">
-      <Filter>Source\ui\dataview</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\dataview\tasktreemodelnode.h">
       <Filter>Source\ui\dataview</Filter>
     </ClInclude>
     <ClInclude Include="src\ui\wizards\setupwizard.h">
