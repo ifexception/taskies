@@ -45,6 +45,7 @@ TaskViewModel::TaskViewModel()
     , ProjectName()
     , ProjectDisplayName()
     , CategoryName()
+    , CategoryColor(-1)
 {
 }
 

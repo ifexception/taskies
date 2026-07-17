@@ -46,6 +46,7 @@ struct TaskViewModel {
     std::string ProjectName;
     std::string ProjectDisplayName;
     std::string CategoryName;
+    unsigned int CategoryColor;
 
     const std::string GetDuration() const;
     const std::string TryGetUniqueIdentifier() const;

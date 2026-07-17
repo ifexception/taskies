@@ -139,6 +139,9 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
             model.CategoryName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
+            model.CategoryColor =
+                static_cast<unsigned int>(sqlite3_column_int(stmt, columnIndex++));
+
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
                 model.ClientName = "";
             } else {
@@ -261,6 +264,8 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     taskModel.CategoryName =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
+    taskModel.CategoryColor = static_cast<unsigned int>(sqlite3_column_int(stmt, columnIndex++));
+
     if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
         taskModel.ClientName = "";
     } else {
@@ -307,6 +312,7 @@ std::string TasksService::filterByDate = "SELECT "
                                          "projects.name,"
                                          "projects.display_name,"
                                          "categories.name, "
+                                         "categories.color, "
                                          "clients.name, "
                                          "employers.name "
                                          "FROM tasks "
@@ -340,6 +346,7 @@ std::string TasksService::getById = "SELECT "
                                     "projects.name,"
                                     "projects.display_name,"
                                     "categories.name, "
+                                    "categories.color, "
                                     "clients.name, "
                                     "employers.name "
                                     "FROM tasks "
