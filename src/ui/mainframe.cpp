@@ -1398,10 +1398,10 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
         }
 
         if (isActive) {
-            Services::TaskViewModel taskModel;
+            Services::TaskViewModel taskViewModel;
             Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-            auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskModel);
+            auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskViewModel);
             if (!sqliteResult.Success) {
                 wxRichMessageDialog dialog(this,
                     Messages::GetByIdTaskMessage,
@@ -1413,11 +1413,26 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
                 dialog.ShowModal();
             } else {
                 TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
+
+                int columnIndex = 0;
+                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.WorkdayDate);
+                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.ProjectName);
+                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.CategoryName);
+                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.GetDuration());
+                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.Description);
+
+                pListCtrl->SetItemBackgroundColour(
+                    mItemIndex, wxColor(taskViewModel.CategoryColor));
+                if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
+                    pListCtrl->SetItemTextColour(mItemIndex, *wxWHITE);
+                }
+
+                pListCtrl->RefreshItem(mItemIndex);
             }
         }
     }
 
-    mTaskIdToEdit = -1;
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
