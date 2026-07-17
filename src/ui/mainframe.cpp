@@ -56,8 +56,9 @@
 #include "../core/database_optimizer.h"
 #include "../core/zip_database_backup.h"
 
-#include "../persistence/taskspersistence.h"
 #include "../persistence/attendedmeetingspersistence.h"
+#include "../persistence/taskattributevaluespersistence.h"
+#include "../persistence/taskspersistence.h"
 
 #include "../services/export/columnexportmodel.h"
 #include "../services/export/csvexporterservice.h"
@@ -1451,8 +1452,6 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
-    // TODO: task attribute values need to be deleted as well
-
     if (taskModel.AttendedMeetingId.has_value()) {
         Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
             pLogger, mDatabaseFilePath);
@@ -1471,6 +1470,23 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
             ResetTaskContextMenuVariables();
             return;
         }
+    }
+
+    Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+        pLogger, mDatabaseFilePath);
+    sqliteResult = taskAttributeValuesPersistence.DeleteByTaskId(mTaskIdToEdit);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::DeleteTaskAttributeValuesMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+
+        ResetTaskContextMenuVariables();
+        return;
     }
 
     sqliteResult = taskPersistence.Delete(mTaskIdToEdit);
