@@ -1423,10 +1423,11 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
+    assert(mItemIndex > 0);
 
     int ret = wxMessageBox("Are you sure you want to delete this task?",
         Common::GetProgramName(),
-        wxYES_NO | wxICON_WARNING);
+        wxYES_NO | wxNO_DEFAULT | wxICON_WARNING);
     if (ret == wxNO) {
         ResetTaskContextMenuVariables();
         return;
@@ -1482,11 +1483,14 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
         dialog.ShowModal();
+
+        ResetTaskContextMenuVariables();
+        return;
     } else {
+        pListCtrl->DeleteItem(mItemIndex);
+
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
     }
-
-    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
@@ -1565,8 +1569,8 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
     // A task got inserted for a specific day
     auto eventTaskDateAdded = event.GetString().ToStdString();
     auto taskInsertedId = static_cast<std::int64_t>(event.GetExtraLong());
-    pLogger->info(
-        "MainFrame::OnTaskAddedOnDate - Received task added event with date \"{0}\" and ID \"{1}\"",
+    SPDLOG_LOGGER_INFO(pLogger,
+        "Received task inserted event with date \"{0}\" and ID \"{1}\"",
         eventTaskDateAdded,
         taskInsertedId);
 
@@ -1583,7 +1587,7 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
     Services::TaskViewModel taskViewModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskViewModel);
+    auto sqliteResult = tasksService.GetById(taskInsertedId, taskViewModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::GetByIdTaskMessage,
@@ -1613,6 +1617,8 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
 
 void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
 {
+    assert(mItemIndex > 0);
+
     // A task got moved from one day to another day
     auto eventTaskDateChanged = event.GetString().ToStdString();
     auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
@@ -1630,6 +1636,8 @@ void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
 
 void MainFrame::OnTaskUpdated(wxCommandEvent& event)
 {
+    assert(mItemIndex > 0);
+
     auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
 
     SPDLOG_LOGGER_TRACE(pLogger, "Received task update event for ID: \"{0}\"", taskChangedId);
@@ -1669,6 +1677,8 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
 
 void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 {
+    assert(mItemIndex > 0);
+
     auto taskDeletedId = static_cast<std::int64_t>(event.GetExtraLong());
 
     SPDLOG_LOGGER_TRACE(pLogger, "Received task delete event with ID \"{0}\"", taskDeletedId);
