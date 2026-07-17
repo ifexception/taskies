@@ -1724,7 +1724,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         return;
     }
     if (!bIsEdit) {
-        wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
+        wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKINSERTED);
         taskAddedEvent->SetString(mDate);
         taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
 

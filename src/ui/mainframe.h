@@ -216,7 +216,7 @@ private:
     void OnAddMinutes(wxCommandEvent& event);
     void OnMenuHighlight(wxMenuEvent& event);
     /* Custom Event Handlers */
-    void OnTaskAddedOnDate(wxCommandEvent& event);
+    void OnTaskInserted(wxCommandEvent& event);
     void OnTaskDeletedOnDate(wxCommandEvent& event);
     void OnTaskDateChangedFrom(wxCommandEvent& event);
     void OnTaskDateChangedTo(wxCommandEvent& event);

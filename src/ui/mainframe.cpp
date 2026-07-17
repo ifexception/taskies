@@ -135,7 +135,7 @@ EVT_MENU(wxID_DELETE, MainFrame::OnDeleteTask)
 EVT_MENU(ID_POP_CLONE_TASK, MainFrame::OnCloneTask)
 EVT_MENU(wxID_ADD, MainFrame::OnAddMinutes)
 /* Custom Event Handlers */
-EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEADDED, MainFrame::OnTaskAddedOnDate)
+EVT_COMMAND(wxID_ANY, tksEVT_TASKINSERTED, MainFrame::OnTaskInserted)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDFROM, MainFrame::OnTaskDateChangedFrom)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDTO, MainFrame::OnTaskDateChangedTo)
@@ -1560,7 +1560,7 @@ void MainFrame::OnMenuHighlight(wxMenuEvent& event)
     }
 }
 
-void MainFrame::OnTaskAddedOnDate(wxCommandEvent& event)
+void MainFrame::OnTaskInserted(wxCommandEvent& event)
 {
     // A task got inserted for a specific day
     auto eventTaskDateAdded = event.GetString().ToStdString();
@@ -1570,21 +1570,45 @@ void MainFrame::OnTaskAddedOnDate(wxCommandEvent& event)
         eventTaskDateAdded,
         taskInsertedId);
 
-    // Check if our current from and to dates encapsulate the date the task was inserted
-    // by calculating _this_ date range
-    std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
+    std::istringstream ssTaskDateAdded{ eventTaskDateAdded };
+    std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskAdded;
+    ssTaskDateAdded >> date::parse("%F", dateTaskAdded);
 
-    // Check if date that the task was inserted for is in the selected range of our wxDateTimeCtrl's
-    auto iterator = std::find_if(dates.begin(), dates.end(), [&](const std::string& date) {
-        return date == eventTaskDateAdded;
-    });
+    TryUpdateSelectedDateAndAllTaskDurations(pDateStore->FormatDate(dateTaskAdded));
 
-    // If we are in range, refetch the data for our particular date
-    if (iterator != dates.end() && taskInsertedId != 0 && eventTaskDateAdded.size() != 0) {
-        auto& foundDate = *iterator;
-
-        TryUpdateSelectedDateAndAllTaskDurations(foundDate);
+    if (dateTaskAdded != pDateStore->TodayDate) {
+        return;
     }
+
+    Services::TaskViewModel taskViewModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return;
+    }
+
+    int columnIndex = 0;
+    int listIndex = pListCtrl->InsertItem(columnIndex++, taskViewModel.WorkdayDate);
+    pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.ProjectName);
+    pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.CategoryName);
+    pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.GetDuration());
+    pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.Description);
+
+    pListCtrl->SetItemBackgroundColour(listIndex, wxColor(taskViewModel.CategoryColor));
+    if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
+        pListCtrl->SetItemTextColour(listIndex, *wxWHITE);
+    }
+
+    pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));
 }
 
 void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
