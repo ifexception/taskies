@@ -136,9 +136,9 @@ EVT_MENU(ID_POP_CLONE_TASK, MainFrame::OnCloneTask)
 EVT_MENU(wxID_ADD, MainFrame::OnAddMinutes)
 /* Custom Event Handlers */
 EVT_COMMAND(wxID_ANY, tksEVT_TASKINSERTED, MainFrame::OnTaskInserted)
-EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
-EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDFROM, MainFrame::OnTaskDateChangedFrom)
-EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDCHANGEDTO, MainFrame::OnTaskDateChangedTo)
+EVT_COMMAND(wxID_ANY, tksEVT_TASKDATECHANGED, MainFrame::OnTaskDateChanged)
+EVT_COMMAND(wxID_ANY, tksEVT_TASKUPDATED, MainFrame::OnTaskUpdated)
+//EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
 EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeetingViewClose)
 /* Ctrl Event Handlers */
 EVT_DATE_CHANGED(tksIDC_DATEPICKERCTRL, MainFrame::OnDateChanged)
@@ -171,7 +171,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pDateStore(nullptr)
     , mFromDate()
     , mToDate()
-    , mTaskIdToModify(-1)
+    , mTaskIdToEdit(-1)
     , mTaskDate()
     //, bDateRangeChanged(false)
     , pTaskReminderTimer(std::make_unique<wxTimer>(this, tksIDC_TASKREMINDERTIMER))
@@ -1179,12 +1179,12 @@ void MainFrame::OnContainerCopyTasksUsingPreset(wxCommandEvent& event)
 void MainFrame::OnCopyTaskDescriptionToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
-    assert(mTaskIdToModify != -1);
+    assert(mTaskIdToEdit != -1);
 
     std::string description;
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = taskPersistence.GetDescriptionById(mTaskIdToModify, description);
+    auto sqliteResult = taskPersistence.GetDescriptionById(mTaskIdToEdit, description);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::GetDescriptionByIdTaskMessage,
@@ -1209,12 +1209,12 @@ void MainFrame::OnCopyTaskDescriptionToClipboard(wxCommandEvent& WXUNUSED(event)
 void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
 {
     assert(!mTaskDate.empty());
-    assert(mTaskIdToModify != -1);
+    assert(mTaskIdToEdit != -1);
 
     Services::TaskViewModel taskModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterByDateTaskMessage,
@@ -1282,7 +1282,7 @@ void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
 void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
 {
     assert(!mTaskDate.empty());
-    assert(mTaskIdToModify != -1);
+    assert(mTaskIdToEdit != -1);
 
     const auto& presets = pCfg->GetPresets();
     if (presets.size() == 0) {
@@ -1295,7 +1295,7 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
     Services::TaskViewModel taskModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterByDateTaskMessage,
@@ -1351,7 +1351,7 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
     Services::Export::CsvExporterService csvExporter(
-        pLogger, exportOptions, mDatabaseFilePath, mTaskIdToModify);
+        pLogger, exportOptions, mDatabaseFilePath, mTaskIdToEdit);
 
     std::string exportedData = "";
     ExportResult result =
@@ -1372,19 +1372,19 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
 void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
-    assert(mTaskIdToModify != -1);
+    assert(mTaskIdToEdit != -1);
 
     int ret = -1;
 
     dlg::TaskDialog editTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, mTaskDate);
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDate);
     ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {
         bool isActive = false;
         Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
 
-        auto sqliteResult = taskPersistence.IsDeleted(mTaskIdToModify, isActive);
+        auto sqliteResult = taskPersistence.IsDeleted(mTaskIdToEdit, isActive);
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,
                 Messages::GetByIdTaskMessage,
@@ -1400,7 +1400,7 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
             Services::TaskViewModel taskModel;
             Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-            auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+            auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskModel);
             if (!sqliteResult.Success) {
                 wxRichMessageDialog dialog(this,
                     Messages::GetByIdTaskMessage,
@@ -1416,13 +1416,13 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
         }
     }
 
-    ResetTaskContextMenuVariables();
+    mTaskIdToEdit = -1;
 }
 
 void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
-    assert(mTaskIdToModify != -1);
+    assert(mTaskIdToEdit != -1);
 
     int ret = wxMessageBox("Are you sure you want to delete this task?",
         Common::GetProgramName(),
@@ -1435,7 +1435,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
     Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
     Model::TaskModel taskModel;
 
-    auto sqliteResult = taskPersistence.GetById(mTaskIdToModify, taskModel);
+    auto sqliteResult = taskPersistence.GetById(mTaskIdToEdit, taskModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::GetByIdTaskMessage,
@@ -1472,7 +1472,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         }
     }
 
-    sqliteResult = taskPersistence.Delete(mTaskIdToModify);
+    sqliteResult = taskPersistence.Delete(mTaskIdToEdit);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::DeleteTaskMessage,
@@ -1492,10 +1492,10 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
-    assert(mTaskIdToModify != -1);
+    assert(mTaskIdToEdit != -1);
 
     dlg::TaskDialog cloneTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToModify, "", true);
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, "", true);
     cloneTaskDialog.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -1504,12 +1504,12 @@ void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
 void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
-    assert(mTaskIdToModify != -1);
+    assert(mTaskIdToEdit != -1);
 
     Services::TaskDurationService taskDurationService(pLogger, mDatabaseFilePath);
 
     auto sqliteResult = taskDurationService.GetTaskTimeByIdAndIncrementByValue(
-        mTaskIdToModify, pCfg->GetMinutesIncrement());
+        mTaskIdToEdit, pCfg->GetMinutesIncrement());
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::DurationIncrementMessage,
@@ -1526,7 +1526,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     Services::TaskViewModel taskModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    sqliteResult = tasksService.GetById(mTaskIdToEdit, taskModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::GetByIdTaskMessage,
@@ -1583,7 +1583,7 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
     Services::TaskViewModel taskViewModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.GetById(mTaskIdToModify, taskModel);
+    auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskViewModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::GetByIdTaskMessage,
@@ -1611,100 +1611,60 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
     pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));
 }
 
-void MainFrame::OnTaskDeletedOnDate(wxCommandEvent& event)
-{
-    // A task got deleted on a specific day
-    // auto eventTaskDateDeleted = event.GetString().ToStdString();
-    // auto taskDeletedId = static_cast<std::int64_t>(event.GetExtraLong());
-
-    // pLogger->info("MainFrame::OnTaskDeletedOnDate - Received task added event with date \"{0}\" "
-    //               "and ID \"{1}\"",
-    //     eventTaskDateDeleted,
-    //     taskDeletedId);
-
-    //// Check if our current from and to dates encapsulate the date the task was inserted
-    //// by calculating _this_ date range
-    // std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
-
-    //// Check if date that the task was deleted is in the selected range of our wxDateTimeCtrl's
-    // auto iterator = std::find_if(dates.begin(), dates.end(), [&](const std::string& date) {
-    //     return date == eventTaskDateDeleted;
-    // });
-
-    //// If we are in range, remove the task data for our particular date
-    // if (iterator != dates.end() && taskDeletedId != 0 && eventTaskDateDeleted.size() != 0) {
-    //     pLogger->info("MainFrame::OnTaskDeletedOnDate - Task deleted on a date within bounds!");
-
-    //    auto& foundDate = *iterator;
-    //    pTaskTreeModel->DeleteChild(foundDate, taskDeletedId);
-
-    //    TryUpdateSelectedDateAndAllTaskDurations(foundDate);
-    //}
-}
-
-void MainFrame::OnTaskDateChangedFrom(wxCommandEvent& event)
+void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
 {
     // A task got moved from one day to another day
-    // auto eventTaskDateChanged = event.GetString().ToStdString();
-    // auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
+    auto eventTaskDateChanged = event.GetString().ToStdString();
+    auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
 
-    // pLogger->info("MainFrame::OnTaskDateChangedFrom - Received task date changed event with date
-    // "
-    //               "\"{0}\" and ID \"{1}\"",
-    //     eventTaskDateChanged,
-    //     taskChangedId);
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Received task date changed event with new date"
+        "\"{0}\" and ID \"{1}\"",
+        eventTaskDateChanged,
+        taskChangedId);
 
-    //// Check if our current from and to dates encapsulate the date the task was inserted
-    //// by calculating _this_ date range
-    // std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
+    pListCtrl->DeleteItem(mItemIndex);
 
-    //// Check if date that the task was changed to is in the selected range of our wxDateTimeCtrl's
-    // auto iterator = std::find_if(dates.begin(), dates.end(), [&](const std::string& date) {
-    //     return date == eventTaskDateChanged;
-    // });
-
-    //// If we are in range, remove the item data for our particular date
-    // if (iterator != dates.end() && taskChangedId != 0 && eventTaskDateChanged.size() != 0) {
-    //     pLogger->info("MainFrame::OnTaskDateChangedFrom - Task changed from a date within
-    //     bounds");
-
-    //    auto& foundDate = *iterator;
-    //    pTaskTreeModel->DeleteChild(foundDate, taskChangedId);
-
-    //    TryUpdateSelectedDateAndAllTaskDurations(foundDate);
-    //}
+    mItemIndex = -1;
 }
 
-void MainFrame::OnTaskDateChangedTo(wxCommandEvent& event)
+void MainFrame::OnTaskUpdated(wxCommandEvent& event)
 {
-    // A task got moved from one day to another day
-    // auto eventTaskDateChanged = event.GetString().ToStdString();
-    // auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
+    auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
 
-    // pLogger->info("MainFrame::OnTaskDateChangedTo - Received task date changed event with date "
-    //               "\"{0}\" and ID \"{1}\"",
-    //     eventTaskDateChanged,
-    //     taskChangedId);
+    SPDLOG_LOGGER_TRACE(pLogger, "Received task update event for ID: \"{0}\"", taskChangedId);
 
-    //// Check if our current from and to dates encapsulate the date the task was inserted
-    //// by calculating _this_ date range
-    // std::vector<std::string> dates = pDateStore->CalculateDatesInRange(mFromDate, mToDate);
+    Services::TaskViewModel taskViewModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    //// Check if date that the task was changed to is in the selected range of our wxDateTimeCtrl's
-    // auto iterator = std::find_if(dates.begin(), dates.end(), [&](const std::string& date) {
-    //     return date == eventTaskDateChanged;
-    // });
+    auto sqliteResult = tasksService.GetById(taskChangedId, taskViewModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-    //// If we are in range, add the task for our particular date
-    // if (iterator != dates.end() && taskChangedId != 0 && eventTaskDateChanged.size() != 0) {
-    //     pLogger->info("MainFrame::OnTaskDateChangedTo - Task date changed to date within
-    //     bounds!");
+        dialog.ShowModal();
+        return;
+    }
 
-    //    auto& foundDate = *iterator;
-    //    RefetchTasksForDate(foundDate, taskChangedId);
+    int columnIndex = 0;
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.WorkdayDate);
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.ProjectName);
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.CategoryName);
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.GetDuration());
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.Description);
 
-    //    TryUpdateSelectedDateAndAllTaskDurations(foundDate);
-    //}
+    pListCtrl->SetItemBackgroundColour(mItemIndex, wxColor(taskViewModel.CategoryColor));
+    if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
+        pListCtrl->SetItemTextColour(mItemIndex, *wxWHITE);
+    }
+
+    pListCtrl->RefreshItem(mItemIndex);
+
+    mItemIndex = -1;
 }
 
 void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
@@ -1741,7 +1701,7 @@ void MainFrame::OnDateChanged(wxDateEvent& event) {}
 void MainFrame::OnItemRightClick(wxListEvent& event)
 {
     mItemIndex = event.GetIndex();
-    mTaskIdToModify = static_cast<std::int64_t>(event.GetData());
+    mTaskIdToEdit = static_cast<std::int64_t>(event.GetData());
 
     wxMenu menu;
     auto copyMenuItem =
@@ -1882,7 +1842,7 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 
 void MainFrame::ResetTaskContextMenuVariables()
 {
-    mTaskIdToModify = -1;
+    mTaskIdToEdit = -1;
     mItemIndex = -1;
 }
 } // namespace tks::UI

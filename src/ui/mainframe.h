@@ -217,9 +217,9 @@ private:
     void OnMenuHighlight(wxMenuEvent& event);
     /* Custom Event Handlers */
     void OnTaskInserted(wxCommandEvent& event);
-    void OnTaskDeletedOnDate(wxCommandEvent& event);
-    void OnTaskDateChangedFrom(wxCommandEvent& event);
-    void OnTaskDateChangedTo(wxCommandEvent& event);
+    void OnTaskDateChanged(wxCommandEvent& event);
+    void OnTaskUpdated(wxCommandEvent& event);
+    //void OnTaskDeletedOnDate(wxCommandEvent& event);
     void OnOutlookMeetingViewClose(wxCommandEvent& event);
     /* Control Event Handlers */
     void OnDateChanged(wxDateEvent& event);
@@ -270,7 +270,7 @@ private:
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
 
-    std::int64_t mTaskIdToModify;
+    std::int64_t mTaskIdToEdit;
     std::string mTaskDate;
     long mItemIndex;
     //bool bDateRangeChanged;

@@ -1736,22 +1736,21 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         // CONT: probably should use date::date types and "escape" to std::string at the last
         // possible moment
         if (mOldDate != mDate) {
-            // notify frame control of task date changed TO
-            wxCommandEvent* taskDateChangedToEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
-
-            taskDateChangedToEvent->SetString(mDate);
-            taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
-
-            wxQueueEvent(pParent, taskDateChangedToEvent);
-
-            // notify frame control of task date changed FROM
+            // notify frame control of task date changed
             wxCommandEvent* taskDateChangedFromEvent =
-                new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
+                new wxCommandEvent(tksEVT_TASKDATECHANGED);
 
-            taskDateChangedFromEvent->SetString(mOldDate);
+            taskDateChangedFromEvent->SetString(mDate);
             taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
 
             wxQueueEvent(pParent, taskDateChangedFromEvent);
+        } else {
+            // notify frame control of task update
+            wxCommandEvent* taskUpdatedEvent = new wxCommandEvent(tksEVT_TASKUPDATED);
+
+            taskUpdatedEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+            wxQueueEvent(pParent, taskUpdatedEvent);
         }
     }
 
