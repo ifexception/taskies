@@ -138,7 +138,7 @@ EVT_MENU(wxID_ADD, MainFrame::OnAddMinutes)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKINSERTED, MainFrame::OnTaskInserted)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATECHANGED, MainFrame::OnTaskDateChanged)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKUPDATED, MainFrame::OnTaskUpdated)
-//EVT_COMMAND(wxID_ANY, tksEVT_TASKDATEDELETED, MainFrame::OnTaskDeletedOnDate)
+EVT_COMMAND(wxID_ANY, tksEVT_TASKDELETED, MainFrame::OnTaskDeleted)
 EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeetingViewClose)
 /* Ctrl Event Handlers */
 EVT_DATE_CHANGED(tksIDC_DATEPICKERCTRL, MainFrame::OnDateChanged)
@@ -1663,6 +1663,17 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
     }
 
     pListCtrl->RefreshItem(mItemIndex);
+
+    mItemIndex = -1;
+}
+
+void MainFrame::OnTaskDeleted(wxCommandEvent& event)
+{
+    auto taskDeletedId = static_cast<std::int64_t>(event.GetExtraLong());
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Received task delete event with ID \"{0}\"", taskDeletedId);
+
+    pListCtrl->DeleteItem(mItemIndex);
 
     mItemIndex = -1;
 }

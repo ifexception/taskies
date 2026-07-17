@@ -1737,8 +1737,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         // possible moment
         if (mOldDate != mDate) {
             // notify frame control of task date changed
-            wxCommandEvent* taskDateChangedFromEvent =
-                new wxCommandEvent(tksEVT_TASKDATECHANGED);
+            wxCommandEvent* taskDateChangedFromEvent = new wxCommandEvent(tksEVT_TASKDATECHANGED);
 
             taskDateChangedFromEvent->SetString(mDate);
             taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
@@ -1755,8 +1754,8 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
-        wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
-        taskDeletedEvent->SetString(mDate);
+        wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDELETED);
+
         taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
         wxQueueEvent(pParent, taskDeletedEvent);

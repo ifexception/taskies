@@ -219,7 +219,7 @@ private:
     void OnTaskInserted(wxCommandEvent& event);
     void OnTaskDateChanged(wxCommandEvent& event);
     void OnTaskUpdated(wxCommandEvent& event);
-    //void OnTaskDeletedOnDate(wxCommandEvent& event);
+    void OnTaskDeleted(wxCommandEvent& event);
     void OnOutlookMeetingViewClose(wxCommandEvent& event);
     /* Control Event Handlers */
     void OnDateChanged(wxDateEvent& event);
