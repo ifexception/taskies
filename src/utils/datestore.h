@@ -61,6 +61,9 @@ struct DateStore {
     void ReinitializeFromWeekChange(
         std::chrono::time_point<std::chrono::system_clock, date::days> newMondayDate);
 
+    std::string FormatDate(
+        std::chrono::time_point<std::chrono::system_clock, date::days> dateToFormat);
+
     // -private
     void Initialize();
 

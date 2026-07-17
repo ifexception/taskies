@@ -83,6 +83,12 @@ void DateStore::ReinitializeFromWeekChange(
     MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
 }
 
+std::string DateStore::FormatDate(
+    std::chrono::time_point<std::chrono::system_clock, date::days> dateToFormat)
+{
+    return date::format("%F", dateToFormat);
+}
+
 void DateStore::Initialize()
 {
     TodayDate = date::floor<date::days>(std::chrono::system_clock::now());
