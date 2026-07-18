@@ -1599,7 +1599,7 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
 
 void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
 {
-    assert(mItemIndex > 0);
+    assert(mItemIndex >= 0);
 
     // A task got moved from one day to another day
     auto eventTaskDateChanged = event.GetString().ToStdString();
@@ -1659,7 +1659,7 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
 
 void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 {
-    assert(mItemIndex > 0);
+    assert(mItemIndex >= 0);
 
     auto taskDeletedId = static_cast<std::int64_t>(event.GetExtraLong());
 
