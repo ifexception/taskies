@@ -225,6 +225,7 @@ private:
     void OnDateChanged(wxDateEvent& event);
     /* ListCtrl Event Handlers */
     void OnItemRightClick(wxListEvent& event);
+    void OnColumnEndDrag(wxListEvent& event);
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
     /* Power Event Handlers */
@@ -245,6 +246,7 @@ private:
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
+    //void AdjustColumnWidths();
     void ResetTaskContextMenuVariables();
 
     std::shared_ptr<spdlog::logger> pLogger;

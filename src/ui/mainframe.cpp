@@ -145,6 +145,7 @@ EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeeti
 EVT_DATE_CHANGED(tksIDC_DATEPICKERCTRL, MainFrame::OnDateChanged)
 /* List Ctrl Event Handlers */
 EVT_LIST_ITEM_RIGHT_CLICK(tksIDC_LISTCTRL, MainFrame::OnItemRightClick)
+EVT_LIST_COL_END_DRAG(tksIDC_LISTCTRL, MainFrame::OnColumnEndDrag)
 /* Power Event Handlers */
 EVT_POWER_RESUME(MainFrame::OnPowerResume)
 wxEND_EVENT_TABLE()
@@ -406,10 +407,10 @@ void MainFrame::CreateControls()
     int columnId = 0;
 
     wxListItem dateColumn;
-    dateColumn.SetAlign(wxLIST_FORMAT_CENTRE);
+    dateColumn.SetAlign(wxLIST_FORMAT_CENTER);
     dateColumn.SetText("Date");
     dateColumn.SetId(columnId);
-    dateColumn.SetWidth(wxLIST_AUTOSIZE_USEHEADER);
+    dateColumn.SetWidth(wxLIST_AUTOSIZE);
     pListCtrl->InsertColumn(columnId++, dateColumn);
 
     wxListItem projectColumn;
@@ -500,11 +501,11 @@ void MainFrame::DataToControls()
         }
 
         int fixedWidth = 0;
-        for (int i = 0; i < pListCtrl->GetColumnCount() - 2; i++) {
-            pListCtrl->SetColumnWidth(i, wxLIST_AUTOSIZE);
+        for (int i = 0; i < pListCtrl->GetColumnCount() - 1; i++) {
+            // pListCtrl->SetColumnWidth(i, wxLIST_AUTOSIZE);
             fixedWidth += pListCtrl->GetColumnWidth(i);
         }
-        fixedWidth += pListCtrl->GetColumnWidth(3);
+        // fixedWidth += pListCtrl->GetColumnWidth(3);
 
         int totalWidth = pListCtrl->GetClientSize().GetWidth();
 
@@ -1794,6 +1795,32 @@ void MainFrame::OnItemRightClick(wxListEvent& event)
     menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
 
     PopupMenu(&menu);
+}
+
+void MainFrame::OnColumnEndDrag(wxListEvent& event)
+{
+    int totalWidth = pListCtrl->GetClientSize().GetWidth();
+    int colCount = pListCtrl->GetColumnCount();
+
+    // Subtract widths of all columns except last
+    int usedWidth = 0;
+    for (int i = 0; i < colCount - 1; i++) {
+        usedWidth += pListCtrl->GetColumnWidth(i);
+    }
+
+    int lastColWidth = totalWidth - usedWidth - 4; // -4 for border/padding
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Resize columns. usedWith: {0} | lastColWidth: {1} | totalWidth: {2}",
+        usedWidth,
+        lastColWidth,
+        totalWidth);
+
+    if (lastColWidth < 80)
+        lastColWidth = 80;
+
+    pListCtrl->SetColumnWidth(colCount - 1, lastColWidth);
+    event.Skip();
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()
