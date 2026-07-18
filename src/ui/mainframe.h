@@ -246,6 +246,9 @@ private:
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
+    void RefreshListControlTaskItem(const std::int64_t taskId);
+    void RefreshListControlTaskItems();
+
     //void AdjustColumnWidths();
     void ResetTaskContextMenuVariables();
 

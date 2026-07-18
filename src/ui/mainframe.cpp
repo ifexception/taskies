@@ -1288,7 +1288,7 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
 
     const auto& presets = pCfg->GetPresets();
     if (presets.size() == 0) {
-        wxMessageBox("No presets defined to copy data with",
+        wxMessageBox("No preset saved to use for copying data with",
             Common::GetProgramName(),
             wxOK | wxOK_DEFAULT | wxICON_INFORMATION);
         return;
@@ -1376,8 +1376,6 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
     assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
     assert(mItemIndex >= 0);
-
-    int ret = -1;
 
     dlg::TaskDialog editTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDate);
@@ -1491,6 +1489,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
+    assert(mItemIndex >= 0);
 
     Services::TaskDurationService taskDurationService(pLogger, mDatabaseFilePath);
 
@@ -1509,22 +1508,8 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
-    Services::TaskViewModel taskModel;
-    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
-
-    sqliteResult = tasksService.GetById(mTaskIdToEdit, taskModel);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::GetByIdTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
-    } else {
-        TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
-    }
+    TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
+    RefreshListControlTaskItem(mTaskIdToEdit);
 
     ResetTaskContextMenuVariables();
 }
@@ -1624,35 +1609,7 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Received task update event for ID: \"{0}\"", taskChangedId);
 
-    Services::TaskViewModel taskViewModel;
-    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
-
-    auto sqliteResult = tasksService.GetById(taskChangedId, taskViewModel);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::GetByIdTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
-        return;
-    }
-
-    int columnIndex = 0;
-    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.WorkdayDate);
-    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.ProjectName);
-    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.CategoryName);
-    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.GetDuration());
-    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.Description);
-
-    pListCtrl->SetItemBackgroundColour(mItemIndex, wxColor(taskViewModel.CategoryColor));
-    if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
-        pListCtrl->SetItemTextColour(mItemIndex, *wxWHITE);
-    }
-
-    pListCtrl->RefreshItem(mItemIndex);
+    RefreshListControlTaskItem(taskChangedId);
 
     mItemIndex = -1;
 }
@@ -1867,6 +1824,79 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 {
     pStatusBar->UpdateDefaultHoursDay(date, date);
     pStatusBar->UpdateBillableHoursDay(date, date);
+}
+
+void MainFrame::RefreshListControlTaskItem(const std::int64_t taskId)
+{
+    Services::TaskViewModel taskViewModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.GetById(taskId, taskViewModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return;
+    }
+
+    int columnIndex = 0;
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.WorkdayDate);
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.ProjectName);
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.CategoryName);
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.GetDuration());
+    pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.Description);
+
+    pListCtrl->SetItemBackgroundColour(mItemIndex, wxColor(taskViewModel.CategoryColor));
+    if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
+        pListCtrl->SetItemTextColour(mItemIndex, *wxWHITE);
+    }
+
+    pListCtrl->RefreshItem(mItemIndex);
+}
+
+void MainFrame::RefreshListControlTaskItems()
+{
+    assert(!mTaskDate.empty());
+
+    std::vector<Services::TaskViewModel> taskViewModels;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskViewModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+    } else {
+        int columnIndex = 0;
+        for (const auto& taskViewModel : taskViewModels) {
+            int listIndex = pListCtrl->InsertItem(columnIndex++, taskViewModel.WorkdayDate);
+            pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.ProjectName);
+            pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.CategoryName);
+            pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.GetDuration());
+            pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.Description);
+
+            pListCtrl->SetItemBackgroundColour(listIndex, wxColor(taskViewModel.CategoryColor));
+            if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
+                pListCtrl->SetItemTextColour(listIndex, *wxWHITE);
+            }
+
+            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));
+            columnIndex = 0;
+        }
+
+        // Status Bar durations
+        CalculateStatusBarTaskDurations();
+    }
 }
 
 void MainFrame::ResetTaskContextMenuVariables()
