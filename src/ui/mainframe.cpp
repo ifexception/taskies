@@ -1656,7 +1656,19 @@ void MainFrame::OnOutlookMeetingViewClose(wxCommandEvent& event)
     pMeetingsViewFrame = nullptr;
 }
 
-void MainFrame::OnDateChanged(wxDateEvent& event) {}
+void MainFrame::OnDateChanged(wxDateEvent& event)
+{
+    wxDateTime eventDate = wxDateTime(event.GetDate());
+    wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+    time_t eventDateUtcTicks = eventDateUtc.GetTicks();
+    auto newSelectedDate =
+        date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+    std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
+
+    mTaskDate = dateStringFormat;
+
+    RefreshListControlTaskItems();
+}
 
 void MainFrame::OnItemRightClick(wxListEvent& event)
 {
@@ -1863,6 +1875,8 @@ void MainFrame::RefreshListControlTaskItems()
 {
     assert(!mTaskDate.empty());
 
+    pListCtrl->DeleteAllItems();
+
     std::vector<Services::TaskViewModel> taskViewModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
@@ -1893,10 +1907,10 @@ void MainFrame::RefreshListControlTaskItems()
             pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));
             columnIndex = 0;
         }
-
-        // Status Bar durations
-        CalculateStatusBarTaskDurations();
     }
+
+    // Status Bar durations
+    CalculateStatusBarTaskDurations();
 }
 
 void MainFrame::ResetTaskContextMenuVariables()

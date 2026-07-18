@@ -278,13 +278,13 @@ private:
     std::int64_t mTaskIdToEdit;
     std::string mTaskDate;
     long mItemIndex;
-    //bool bDateRangeChanged;
 
     /*
      * this variable ensures that only one dialog is opened at a time from the thumb bar actions
      * the thumb bar allows a user to open an as many dialogs as they want so we cap at 1
      */
     int mThumbBarDialogOpenCounter;
+
     int mOutlookMeetingViewFrameOpenCounter;
 
     std::unique_ptr<wxTimer> pTaskReminderTimer;
