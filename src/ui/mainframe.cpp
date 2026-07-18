@@ -1375,65 +1375,15 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
+    assert(mItemIndex >= 0);
 
     int ret = -1;
 
     dlg::TaskDialog editTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDate);
-    ret = editTaskDialog.ShowModal();
+    editTaskDialog.ShowModal();
 
-    if (ret == wxID_OK) {
-        bool isActive = false;
-        Persistence::TasksPersistence taskPersistence(pLogger, mDatabaseFilePath);
-
-        auto sqliteResult = taskPersistence.IsDeleted(mTaskIdToEdit, isActive);
-        if (!sqliteResult.Success) {
-            wxRichMessageDialog dialog(this,
-                Messages::GetByIdTaskMessage,
-                Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-            dialog.ShowModal();
-        }
-
-        if (isActive) {
-            Services::TaskViewModel taskViewModel;
-            Services::TasksService tasksService(pLogger, mDatabaseFilePath);
-
-            auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskViewModel);
-            if (!sqliteResult.Success) {
-                wxRichMessageDialog dialog(this,
-                    Messages::GetByIdTaskMessage,
-                    Common::GetProgramName(),
-                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-                dialog.ShowModal();
-            } else {
-                TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
-
-                int columnIndex = 0;
-                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.WorkdayDate);
-                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.ProjectName);
-                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.CategoryName);
-                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.GetDuration());
-                pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.Description);
-
-                pListCtrl->SetItemBackgroundColour(
-                    mItemIndex, wxColor(taskViewModel.CategoryColor));
-                if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
-                    pListCtrl->SetItemTextColour(mItemIndex, *wxWHITE);
-                }
-
-                pListCtrl->RefreshItem(mItemIndex);
-            }
-        }
-    }
-
-    ResetTaskContextMenuVariables();
+    mTaskIdToEdit = -1;
 }
 
 void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
@@ -1668,7 +1618,7 @@ void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
 
 void MainFrame::OnTaskUpdated(wxCommandEvent& event)
 {
-    assert(mItemIndex > 0);
+    assert(mItemIndex >= 0);
 
     auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
 
