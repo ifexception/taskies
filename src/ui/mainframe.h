@@ -226,6 +226,7 @@ private:
     /* ListCtrl Event Handlers */
     void OnItemRightClick(wxListEvent& event);
     void OnColumnEndDrag(wxListEvent& event);
+    void OnColumnRightClick(wxListEvent& event);
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
     /* Power Event Handlers */

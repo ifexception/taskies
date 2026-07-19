@@ -146,6 +146,7 @@ EVT_DATE_CHANGED(tksIDC_DATEPICKERCTRL, MainFrame::OnDateChanged)
 /* List Ctrl Event Handlers */
 EVT_LIST_ITEM_RIGHT_CLICK(tksIDC_LISTCTRL, MainFrame::OnItemRightClick)
 EVT_LIST_COL_END_DRAG(tksIDC_LISTCTRL, MainFrame::OnColumnEndDrag)
+EVT_LIST_COL_RIGHT_CLICK(tksIDC_LISTCTRL, MainFrame::OnColumnRightClick)
 /* Power Event Handlers */
 EVT_POWER_RESUME(MainFrame::OnPowerResume)
 wxEND_EVENT_TABLE()
@@ -1740,6 +1741,35 @@ void MainFrame::OnColumnEndDrag(wxListEvent& event)
 
     pListCtrl->SetColumnWidth(colCount - 1, lastColWidth);
     event.Skip();
+}
+
+void MainFrame::OnColumnRightClick(wxListEvent& event)
+{
+    wxMenu menu;
+    auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "&New Task", "Create new task");
+    wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
+    newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
+
+    menu.AppendSeparator();
+    auto copyRowMenuItem = menu.Append(ID_POP_CONTAINER_COPY_TASKS,
+        "&Copy",
+        "Copy task values for selected date to the clipboard");
+    wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
+    copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
+
+    menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS,
+        "Copy with &Headers",
+        "Copy task values with headers for selected date to the clipboard");
+
+    auto copyWithPresetMenuItem = menu.Append(ID_POP_CONTAINER_COPY_TASKS_PRESET,
+        "Copy using &Preset",
+        "Copy task values using default preset for selected date to the clipboard");
+    wxIconBundle copyWithPresetIconBundle(Common::GetCopyWithPresetIconBundleName(), 0);
+    copyWithPresetMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyWithPresetIconBundle));
+
+    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+
+    PopupMenu(&menu);
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()
