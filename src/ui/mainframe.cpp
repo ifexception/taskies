@@ -126,9 +126,9 @@ EVT_MENU(ID_VIEW_PREFERENCES, MainFrame::OnViewPreferences)
 EVT_MENU(ID_HELP_ABOUT, MainFrame::OnAbout)
 /* Popup Menu Event Handlers */
 EVT_MENU(ID_POP_NEW_TASK, MainFrame::OnPopupNewTask)
-EVT_MENU(ID_POP_CONTAINER_COPY_TASKS, MainFrame::OnContainerCopyTasksToClipboard)
-EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS, MainFrame::OnContainerCopyTasksWithHeadersToClipboard)
-EVT_MENU(ID_POP_CONTAINER_COPY_TASKS_PRESET, MainFrame::OnContainerCopyTasksUsingPreset)
+EVT_MENU(ID_POP_COLUMN_COPY_TASKS, MainFrame::OnColumnCopyTasksToClipboard)
+EVT_MENU(ID_POP_COLUMN_COPY_TASKS_WITH_HEADERS, MainFrame::OnColumnCopyTasksWithHeadersToClipboard)
+EVT_MENU(ID_POP_COLUMN_COPY_TASKS_PRESET, MainFrame::OnColumnCopyTasksUsingPreset)
 EVT_MENU(wxID_COPY, MainFrame::OnCopyTaskDescriptionToClipboard)
 EVT_MENU(ID_POP_COPY_ROW_TASK_PRESET, MainFrame::OnCopyRowTaskToClipboardWithPreset)
 EVT_MENU(wxID_EDIT, MainFrame::OnEditTask)
@@ -917,7 +917,7 @@ void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
 
@@ -1004,7 +1004,7 @@ void MainFrame::OnContainerCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED(event))
+void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
 
@@ -1094,7 +1094,7 @@ void MainFrame::OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNU
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnContainerCopyTasksUsingPreset(wxCommandEvent& event)
+void MainFrame::OnColumnCopyTasksUsingPreset(wxCommandEvent& event)
 {
     assert(!mTaskDate.empty());
 
@@ -1751,17 +1751,17 @@ void MainFrame::OnColumnRightClick(wxListEvent& event)
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
 
     menu.AppendSeparator();
-    auto copyRowMenuItem = menu.Append(ID_POP_CONTAINER_COPY_TASKS,
+    auto copyRowMenuItem = menu.Append(ID_POP_COLUMN_COPY_TASKS,
         "&Copy",
         "Copy task values for selected date to the clipboard");
     wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
     copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
 
-    menu.Append(ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS,
+    menu.Append(ID_POP_COLUMN_COPY_TASKS_WITH_HEADERS,
         "Copy with &Headers",
         "Copy task values with headers for selected date to the clipboard");
 
-    auto copyWithPresetMenuItem = menu.Append(ID_POP_CONTAINER_COPY_TASKS_PRESET,
+    auto copyWithPresetMenuItem = menu.Append(ID_POP_COLUMN_COPY_TASKS_PRESET,
         "Copy using &Preset",
         "Copy task values using default preset for selected date to the clipboard");
     wxIconBundle copyWithPresetIconBundle(Common::GetCopyWithPresetIconBundleName(), 0);

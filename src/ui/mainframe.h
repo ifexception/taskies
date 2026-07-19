@@ -83,9 +83,9 @@ enum class MenuIds : int {
     /* Popup Menu Ids */
     Pop_CloneTask,
     Pop_NewTask,
-    Pop_ContainerCopyTasks,
-    Pop_ContainerCopyTasksWithHeaders,
-    Pop_ContainerCopyTasksPreset,
+    Pop_ColumnCopyTasks,
+    Pop_ColumnCopyTasksWithHeaders,
+    Pop_ColumnCopyTasksPreset,
     Pop_CopyRowTask,
     Pop_CopyRowTaskPreset
 };
@@ -127,11 +127,11 @@ static const int ID_HELP_ABOUT = static_cast<int>(MenuIds::Help_About);
 static const int ID_POP_CLONE_TASK = static_cast<int>(MenuIds::Pop_CloneTask);
 static const int ID_POP_NEW_TASK = static_cast<int>(MenuIds::Pop_NewTask);
 
-static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_ContainerCopyTasks);
-static const int ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS =
-    static_cast<int>(MenuIds::Pop_ContainerCopyTasksWithHeaders);
-static const int ID_POP_CONTAINER_COPY_TASKS_PRESET =
-    static_cast<int>(MenuIds::Pop_ContainerCopyTasksPreset);
+static const int ID_POP_COLUMN_COPY_TASKS = static_cast<int>(MenuIds::Pop_ColumnCopyTasks);
+static const int ID_POP_COLUMN_COPY_TASKS_WITH_HEADERS =
+    static_cast<int>(MenuIds::Pop_ColumnCopyTasksWithHeaders);
+static const int ID_POP_COLUMN_COPY_TASKS_PRESET =
+    static_cast<int>(MenuIds::Pop_ColumnCopyTasksPreset);
 static const int ID_POP_COPY_ROW_TASK = static_cast<int>(MenuIds::Pop_CopyRowTask);
 static const int ID_POP_COPY_ROW_TASK_PRESET = static_cast<int>(MenuIds::Pop_CopyRowTaskPreset);
 
@@ -204,9 +204,9 @@ private:
     void OnAbout(wxCommandEvent& event);
     /* Popup Menu Event Handlers */
     void OnPopupNewTask(wxCommandEvent& event);
-    void OnContainerCopyTasksToClipboard(wxCommandEvent& event);
-    void OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& event);
-    void OnContainerCopyTasksUsingPreset(wxCommandEvent& event);
+    void OnColumnCopyTasksToClipboard(wxCommandEvent& event);
+    void OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& event);
+    void OnColumnCopyTasksUsingPreset(wxCommandEvent& event);
     void OnCopyTaskDescriptionToClipboard(wxCommandEvent& event);
     void OnCopyRowTaskToClipboard(wxCommandEvent& event);
     void OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event);
