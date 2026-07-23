@@ -108,7 +108,7 @@ struct TasksViewColumn {
     std::string Name;
     int Order;
     TasksViewColumnTextAlignment TextAlignment;
-    TasksViewColumns TaskViewColumnId;
+    TasksViewColumnIdentifier TaskViewColumnId;
     int Width;
 };
 

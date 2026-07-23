@@ -72,7 +72,7 @@ enum class ExportFormat { Csv = 1, Excel };
 
 enum class TasksViewColumnTextAlignment : int { Left = 0, Right = 1, Center = 2 };
 
-enum class TasksViewColumns : int {
+enum class TasksViewColumnIdentifier : int {
     Date = 1,
     Employer,
     Client,

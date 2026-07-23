@@ -41,7 +41,7 @@ Configuration::TasksViewColumnSetting::TasksViewColumnSetting()
     : Name("")
     , Order(-1)
     , TextAlignment(TasksViewColumnTextAlignment::Left)
-    , TaskViewColumnId(TasksViewColumns::Unknown)
+    , TaskViewColumnId(TasksViewColumnIdentifier::Unknown)
 {
 }
 
@@ -1087,7 +1087,7 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                         column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
                         column.TextAlignment = static_cast<TasksViewColumnTextAlignment>(
                             toml::find<int>(tasksViewArrayTable[i], "textAlignment"));
-                        column.TaskViewColumnId = static_cast<TasksViewColumns>(
+                        column.TaskViewColumnId = static_cast<TasksViewColumnIdentifier>(
                             toml::find<int>(tasksViewArrayTable[i], "id"));
                         column.Width = toml::find<int>(tasksViewArrayTable[i], "width");
 
