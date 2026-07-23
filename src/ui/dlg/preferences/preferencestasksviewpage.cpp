@@ -254,14 +254,6 @@ void PreferencesTasksViewPage::DataToControls()
 
     auto cfgTasksViewColumns = pCfg->GetTasksViewColumns();
 
-    // Demarcate the date column is readonly and cannot be removed / modified
-    auto& dateTasksViewColumn = cfgTasksViewColumns[0];
-    auto dateTasksViewColumnName = fmt::format("{0} (readonly)", dateTasksViewColumn.Name);
-    pSelectedTasksViewColumns->Append(dateTasksViewColumnName,
-        Utils::IntToVoidPointer(static_cast<int>(dateTasksViewColumn.TaskViewColumnId)));
-
-    cfgTasksViewColumns.erase(cfgTasksViewColumns.begin());
-
     for (const auto& tasksViewColumn : cfgTasksViewColumns) {
         pSelectedTasksViewColumns->Append(tasksViewColumn.Name,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
@@ -322,12 +314,6 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
     if (pSelectedTasksViewColumns->IsChecked(item)) {
         SPDLOG_LOGGER_TRACE(
             pLogger, "Item checked on selected list box with ID \"{0}\"", event.GetInt());
-
-        if (item == 0) {
-            SPDLOG_LOGGER_TRACE(pLogger, "Selected special \"Date\" column, deselect it");
-            pSelectedTasksViewColumns->Check(item, false);
-            return;
-        }
 
         wxCheckListBox* cListBox = wxDynamicCast(event.GetEventObject(), wxCheckListBox);
         if (cListBox != nullptr) {
@@ -474,7 +460,7 @@ void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
 {
     // sort desc on selected column
     if (mCheckedSelectedColumns.size() == 0 || mCheckedSelectedColumns.size() >= 2) {
-        wxMessageBox("Can only sort one column at a time!",
+        wxMessageBox("Only one column at a time can be sorted",
             Common::GetProgramName(),
             wxICON_INFORMATION | wxOK_DEFAULT);
         return;

@@ -944,7 +944,7 @@ void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
     std::stringstream formattedStringData;
     const auto& tasksViewColumns = pCfg->GetTasksViewColumns();
 
-    for (const auto& taskModel : taskModels) {
+    /*for (const auto& taskModel : taskModels) {
         for (const auto& column : tasksViewColumns) {
             switch (column.ColumnModelIndex) {
             case TasksViewColumnModelIndex::ColumnModelIndexDate:
@@ -979,7 +979,7 @@ void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
             }
         }
         formattedStringData << "\n";
-    }
+    }*/
 
     std::string clipboardData = formattedStringData.str();
 
@@ -1035,7 +1035,7 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
     }
     formattedStringData << "\n";
 
-    for (const auto& taskModel : taskModels) {
+    /*for (const auto& taskModel : taskModels) {
         for (const auto& column : tasksViewColumns) {
             switch (column.ColumnModelIndex) {
             case TasksViewColumnModelIndex::ColumnModelIndexDate:
@@ -1070,7 +1070,7 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
             }
         }
         formattedStringData << "\n";
-    }
+    }*/
 
     std::string clipboardData = formattedStringData.str();
     if (clipboardData.empty()) {
@@ -1238,7 +1238,7 @@ void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
     }
     formattedStringData << "\n";
 
-    for (const auto& column : tasksViewColumns) {
+    /*for (const auto& column : tasksViewColumns) {
         switch (column.ColumnModelIndex) {
         case TasksViewColumnModelIndex::ColumnModelIndexDate:
             formattedStringData << taskModel.WorkdayDate << "\t";
@@ -1270,7 +1270,7 @@ void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
         default:
             break;
         }
-    }
+    }*/
 
     std::string copyData = formattedStringData.str();
     auto canOpen = wxTheClipboard->Open();
