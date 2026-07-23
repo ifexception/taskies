@@ -84,15 +84,14 @@ private:
     wxCheckListBox* pSelectedTasksViewColumns;
     wxButton* pAscSortButton;
     wxButton* pDescSortButton;
-    //wxButton* pClearButton;
 
-    std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedAvailableColumns;
-    std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedSelectedColumns;
+    std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedAvailableColumns;
+    std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedSelectedColumns;
 
     std::vector<Common::TasksViewColumn> mAllTasksViewColumns;
 
     enum {
-        tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100,
+        tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,
         tksIDC_USEPROJECTDISPLAYNAME,
         tksIDC_AVAILABLETASKSVIEWCOLUMNS,
         tksIDC_RIGHTCHEVRONBUTTON,
