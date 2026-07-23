@@ -225,6 +225,7 @@ private:
     void OnDateChanged(wxDateEvent& event);
     /* ListCtrl Event Handlers */
     void OnItemRightClick(wxListEvent& event);
+    void OnItemActivated(wxListEvent& event);
     void OnColumnEndDrag(wxListEvent& event);
     void OnColumnRightClick(wxListEvent& event);
     /* Notification Event Handlers */

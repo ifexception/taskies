@@ -145,6 +145,7 @@ EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeeti
 EVT_DATE_CHANGED(tksIDC_DATEPICKERCTRL, MainFrame::OnDateChanged)
 /* List Ctrl Event Handlers */
 EVT_LIST_ITEM_RIGHT_CLICK(tksIDC_LISTCTRL, MainFrame::OnItemRightClick)
+EVT_LIST_ITEM_ACTIVATED(tksIDC_LISTCTRL, MainFrame::OnItemActivated)
 EVT_LIST_COL_END_DRAG(tksIDC_LISTCTRL, MainFrame::OnColumnEndDrag)
 EVT_LIST_COL_RIGHT_CLICK(tksIDC_LISTCTRL, MainFrame::OnColumnRightClick)
 /* Power Event Handlers */
@@ -1717,6 +1718,22 @@ void MainFrame::OnItemRightClick(wxListEvent& event)
     PopupMenu(&menu);
 }
 
+void MainFrame::OnItemActivated(wxListEvent& event)
+{
+    mItemIndex = event.GetIndex();
+    mTaskIdToEdit = static_cast<std::int64_t>(event.GetData());
+
+    assert(!mTaskDate.empty());
+    assert(mTaskIdToEdit != -1);
+    assert(mItemIndex >= 0);
+
+    dlg::TaskDialog editTaskDialog(
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDate);
+    editTaskDialog.ShowModal();
+
+    mTaskIdToEdit = -1;
+}
+
 void MainFrame::OnColumnEndDrag(wxListEvent& event)
 {
     int totalWidth = pListCtrl->GetClientSize().GetWidth();
@@ -1751,9 +1768,8 @@ void MainFrame::OnColumnRightClick(wxListEvent& event)
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
 
     menu.AppendSeparator();
-    auto copyRowMenuItem = menu.Append(ID_POP_COLUMN_COPY_TASKS,
-        "&Copy",
-        "Copy task values for selected date to the clipboard");
+    auto copyRowMenuItem = menu.Append(
+        ID_POP_COLUMN_COPY_TASKS, "&Copy", "Copy task values for selected date to the clipboard");
     wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
     copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
 
