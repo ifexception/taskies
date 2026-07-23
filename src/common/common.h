@@ -107,9 +107,9 @@ struct Preset {
 struct TasksViewColumn {
     std::string Name;
     int Order;
-    TasksViewColumnModelIndex ColumnModelIndex;
     TasksViewColumnTextAlignment TextAlignment;
-    TasksViewColumnType Type;
+    TasksViewColumns TaskViewColumnId;
+    int Width;
 };
 
 std::vector<TasksViewColumn> DefaultTasksViewColumnList();

@@ -52,9 +52,9 @@ public:
     struct TasksViewColumnSetting {
         std::string Name;
         int Order;
-        TasksViewColumnModelIndex ColumnModelIndex;
         TasksViewColumnTextAlignment TextAlignment;
-        TasksViewColumnType Type;
+        TasksViewColumns TaskViewColumnId;
+        int Width;
 
         TasksViewColumnSetting();
         TasksViewColumnSetting(Common::TasksViewColumn tasksViewColumn);

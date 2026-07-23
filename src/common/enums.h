@@ -70,27 +70,20 @@ enum class AttributeTypes { Text = 1, Numeric, Boolean };
 
 enum class ExportFormat { Csv = 1, Excel };
 
-/* These values are taken directly from `tasktreemodel.h` to match the enum column dataview model */
-enum TasksViewColumnModelIndex : unsigned int {
-    ColumnModelIndexDate = 0,
-    ColumnModelIndexEmployer,
-    ColumnModelIndexClient,
-    ColumnModelIndexProject,
-    ColumnModelIndexCategory,
-    ColumnModelIndexDuration,
-    ColumnModelIndexBillable,
-    ColumnModelIndexUniqueId,
-    ColumnModelIndexDescription,
+enum class TasksViewColumnTextAlignment : int { Left = 0, Right = 1, Center = 2 };
+
+enum class TasksViewColumns : int {
+    Date = 1,
+    Employer,
+    Client,
+    Project,
+    Category,
+    Duration,
+    Billable,
+    UniqueIdentifier,
+    Description,
     Unknown = 99
 };
-
-/* These values are taken directly from wxWidgets `wxAlignment` enum defined in `defs.h`
- * Because of this we need this to be a "plain old enum" so it maps to an int at the end
- * Taskies only needs center and left for the data view column
- */
-enum TasksViewColumnTextAlignment { AlignLeft = 0, AlignCenter = 2304 };
-
-enum class TasksViewColumnType { String = 1, Integer, Boolean };
 
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string InstallLocationToString(InstallLocation installLocation);

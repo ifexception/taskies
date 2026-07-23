@@ -40,9 +40,8 @@ const std::string Sections::PresetsSection = "presets";
 Configuration::TasksViewColumnSetting::TasksViewColumnSetting()
     : Name("")
     , Order(-1)
-    , ColumnModelIndex(TasksViewColumnModelIndex::Unknown)
-    , TextAlignment(TasksViewColumnTextAlignment::AlignLeft)
-    , Type(TasksViewColumnType::String)
+    , TextAlignment(TasksViewColumnTextAlignment::Left)
+    , TaskViewColumnId(TasksViewColumns::Unknown)
 {
 }
 
@@ -51,25 +50,23 @@ Configuration::TasksViewColumnSetting::TasksViewColumnSetting(
 {
     Name = tasksViewColumn.Name;
     Order = tasksViewColumn.Order;
-    ColumnModelIndex = tasksViewColumn.ColumnModelIndex;
     TextAlignment = tasksViewColumn.TextAlignment;
-    Type = tasksViewColumn.Type;
+    TaskViewColumnId = tasksViewColumn.TaskViewColumnId;
 }
 
 bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other) const
 {
-    return Name == other.Name && ColumnModelIndex == other.ColumnModelIndex && Type == other.Type;
+    return Name == other.Name && TaskViewColumnId == other.TaskViewColumnId;
 }
 
 bool Configuration::TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const
 {
-    return Name != other.Name && ColumnModelIndex != other.ColumnModelIndex && Type != other.Type;
+    return Name != other.Name && TaskViewColumnId != other.TaskViewColumnId;
 }
 
 bool Configuration::TasksViewColumnSetting::IsDescriptionColumn() const
 {
-    return Name == "Description" &&
-           ColumnModelIndex == TasksViewColumnModelIndex::ColumnModelIndexDescription;
+    return Name == "Description";
 }
 
 Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
@@ -257,9 +254,9 @@ ConfigResult Configuration::Save()
             toml::table {
                 { "name", tasksViewColumn.Name },
                 { "order", tasksViewColumn.Order },
-                { "columnModelIndex", static_cast<unsigned int>(tasksViewColumn.ColumnModelIndex) },
                 { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
-                { "type", static_cast<int>(tasksViewColumn.Type) }
+                { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
+                { "width", tasksViewColumn.Width }
             }
         );
         // clang-format on
@@ -444,9 +441,9 @@ ConfigResult Configuration::RestoreDefaults()
             toml::table {
                 { "name", tasksViewColumn.Name },
                 { "order", tasksViewColumn.Order },
-                { "columnModelIndex", static_cast<unsigned int>(tasksViewColumn.ColumnModelIndex) },
                 { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
-                { "type", static_cast<int>(tasksViewColumn.Type) }
+                { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
+                { "width", tasksViewColumn.Width }
             }
         );
         // clang-format on
@@ -1088,12 +1085,11 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                         Configuration::TasksViewColumnSetting column;
                         column.Name = toml::find<std::string>(tasksViewArrayTable[i], "name");
                         column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
-                        column.ColumnModelIndex = static_cast<TasksViewColumnModelIndex>(
-                            toml::find<unsigned int>(tasksViewArrayTable[i], "columnModelIndex"));
                         column.TextAlignment = static_cast<TasksViewColumnTextAlignment>(
                             toml::find<int>(tasksViewArrayTable[i], "textAlignment"));
-                        column.Type = static_cast<TasksViewColumnType>(
-                            toml::find<int>(tasksViewArrayTable[i], "type"));
+                        column.TaskViewColumnId = static_cast<TasksViewColumns>(
+                            toml::find<int>(tasksViewArrayTable[i], "id"));
+                        column.Width = toml::find<int>(tasksViewArrayTable[i], "width");
 
                         columns.push_back(column);
                     }
