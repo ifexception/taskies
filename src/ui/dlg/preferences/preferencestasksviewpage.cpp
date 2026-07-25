@@ -48,8 +48,11 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pDescSortButton(nullptr)
     , mCheckedAvailableColumns()
     , mCheckedSelectedColumns()
-    , mAllTasksViewColumns(Common::AvailableTasksViewColumnList())
+    , mAllTasksViewColumns()
 {
+    mAllTasksViewColumns = Common::AvailableTasksViewColumnList();
+    mAllTasksViewColumns.pop_back();
+
     CreateControls();
     ConfigureEventBindings();
     FillControls();
@@ -73,14 +76,14 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
         int clientData = Utils::VoidPointerToInt(pSelectedTasksViewColumns->GetClientData(i));
         auto index = static_cast<TasksViewColumnIdentifier>(clientData);
 
-        auto iter = std::find_if(mAllTasksViewColumns.begin(),
+        auto iterator = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
             [index](const Core::Configuration::TasksViewColumnSetting& setting) {
                 return setting.TaskViewColumnId == index;
             });
 
-        if (iter != mAllTasksViewColumns.end()) {
-            Core::Configuration::TasksViewColumnSetting foundSetting = *iter;
+        if (iterator != mAllTasksViewColumns.end()) {
+            Core::Configuration::TasksViewColumnSetting foundSetting = *iterator;
             selectedTasksViewColumnsFromCheckListBox.push_back(foundSetting);
         }
     }
@@ -172,8 +175,7 @@ void PreferencesTasksViewPage::CreateControls()
 
     /* Tasks view selected columns */
     pSelectedTasksViewColumns = new wxCheckListBox(this, tksIDC_SELECTEDTASKSVIEWCOLUMNS);
-    pSelectedTasksViewColumns->SetToolTip("Columns selected for display in the tasks view "
-                                          "(\"Date\" column cannot be modified/selected)");
+    pSelectedTasksViewColumns->SetToolTip("Columns selected for display in the tasks view");
     tasksViewColumnBoxSizer->Add(
         pSelectedTasksViewColumns, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
@@ -319,6 +321,10 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
         if (cListBox != nullptr) {
             int clientData = Utils::VoidPointerToInt(cListBox->GetClientData(item));
             index = static_cast<TasksViewColumnIdentifier>(clientData);
+
+            if (index == TasksViewColumnIdentifier::Description) {
+                pSelectedTasksViewColumns->Check(item, false);
+            }
         }
 
         mCheckedSelectedColumns.push_back(std::make_pair(item, index));
