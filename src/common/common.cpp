@@ -124,11 +124,23 @@ std::string GetLicense()
            "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
 }
 
+TasksViewColumn DescriptionTasksViewColumn()
+{
+    return { "Description",
+        0,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Description,
+        -1 };
+}
+
 std::vector<TasksViewColumn> DefaultTasksViewColumnList()
 {
     int orderIndex = 1;
-    return std::vector<TasksViewColumn>{
-        { "Date", orderIndex++, TasksViewColumnTextAlignment::Center, TasksViewColumnIdentifier::Date, 80 },
+    return std::vector<TasksViewColumn>{ { "Date",
+                                             orderIndex++,
+                                             TasksViewColumnTextAlignment::Center,
+                                             TasksViewColumnIdentifier::Date,
+                                             80 },
         { "Project",
             orderIndex++,
             TasksViewColumnTextAlignment::Left,
@@ -148,21 +160,28 @@ std::vector<TasksViewColumn> DefaultTasksViewColumnList()
             orderIndex++,
             TasksViewColumnTextAlignment::Left,
             TasksViewColumnIdentifier::Description,
-            -1 }
-    };
+            -1 } };
 }
 
 std::vector<TasksViewColumn> AvailableTasksViewColumnList()
 {
     int orderIndex = -1;
     return std::vector<TasksViewColumn>{
-        { "Date", orderIndex, TasksViewColumnTextAlignment::Center, TasksViewColumnIdentifier::Date, 80 },
+        { "Date",
+            orderIndex,
+            TasksViewColumnTextAlignment::Center,
+            TasksViewColumnIdentifier::Date,
+            80 },
         { "Employer",
             orderIndex,
             TasksViewColumnTextAlignment::Left,
             TasksViewColumnIdentifier::Employer,
             80 },
-        { "Client", orderIndex, TasksViewColumnTextAlignment::Left, TasksViewColumnIdentifier::Client, 80 },
+        { "Client",
+            orderIndex,
+            TasksViewColumnTextAlignment::Left,
+            TasksViewColumnIdentifier::Client,
+            80 },
         { "Project",
             orderIndex,
             TasksViewColumnTextAlignment::Left,

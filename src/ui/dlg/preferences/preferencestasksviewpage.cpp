@@ -88,6 +88,8 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
         }
     }
 
+    selectedTasksViewColumnsFromCheckListBox.push_back(Common::DescriptionTasksViewColumn());
+
     SPDLOG_LOGGER_TRACE(
         pLogger, "{0} columns selected", selectedTasksViewColumnsFromCheckListBox.size());
 
@@ -255,6 +257,7 @@ void PreferencesTasksViewPage::DataToControls()
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 
     auto cfgTasksViewColumns = pCfg->GetTasksViewColumns();
+    cfgTasksViewColumns.pop_back();
 
     for (const auto& tasksViewColumn : cfgTasksViewColumns) {
         pSelectedTasksViewColumns->Append(tasksViewColumn.Name,

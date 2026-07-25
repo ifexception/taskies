@@ -112,6 +112,8 @@ struct TasksViewColumn {
     int Width;
 };
 
+TasksViewColumn DescriptionTasksViewColumn();
+
 std::vector<TasksViewColumn> DefaultTasksViewColumnList();
 
 std::vector<TasksViewColumn> AvailableTasksViewColumnList();
