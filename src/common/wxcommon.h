@@ -23,10 +23,15 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/listbase.h>
+
+#include "enums.h"
 
 namespace tks::Common
 {
 wxDateTime MakeMaximumFromDate();
 
 bool IsDarkColour(const wxColor& color);
+
+wxListColumnFormat MapTasksViewColumnTextAlignment(TasksViewColumnTextAlignment textAlignment);
 } // namespace tks::Common

@@ -408,37 +408,15 @@ void MainFrame::CreateControls()
 
     int columnId = 0;
 
-    wxListItem dateColumn;
-    dateColumn.SetAlign(wxLIST_FORMAT_CENTER);
-    dateColumn.SetText("Date");
-    dateColumn.SetId(columnId);
-    dateColumn.SetWidth(wxLIST_AUTOSIZE);
-    pListCtrl->InsertColumn(columnId++, dateColumn);
-
-    wxListItem projectColumn;
-    projectColumn.SetId(columnId);
-    projectColumn.SetText("Project");
-    projectColumn.SetWidth(wxLIST_AUTOSIZE);
-    pListCtrl->InsertColumn(columnId++, projectColumn);
-
-    wxListItem categoryColumn;
-    categoryColumn.SetId(columnId);
-    categoryColumn.SetText("Category");
-    categoryColumn.SetWidth(wxLIST_AUTOSIZE);
-    pListCtrl->InsertColumn(columnId++, categoryColumn);
-
-    wxListItem durationColumn;
-    durationColumn.SetAlign(wxLIST_FORMAT_CENTER);
-    durationColumn.SetId(columnId);
-    durationColumn.SetText("Duration");
-    durationColumn.SetWidth(wxLIST_AUTOSIZE);
-    pListCtrl->InsertColumn(columnId++, durationColumn);
-
-    wxListItem descriptionColumn;
-    descriptionColumn.SetId(columnId);
-    descriptionColumn.SetText("Description");
-    descriptionColumn.SetWidth(wxLIST_AUTOSIZE);
-    pListCtrl->InsertColumn(columnId++, descriptionColumn);
+    // set columns dynamically from config
+    for (const auto& cfgTaskViewColumn : pCfg->GetTasksViewColumns()) {
+        wxListItem column;
+        column.SetAlign(Common::MapTasksViewColumnTextAlignment(cfgTaskViewColumn.TextAlignment));
+        column.SetText(cfgTaskViewColumn.Name);
+        column.SetId(columnId);
+        column.SetWidth(cfgTaskViewColumn.Width);
+        pListCtrl->InsertColumn(columnId++, column);
+    }
 
     /* Accelerator Table */
     wxAcceleratorEntry entries[5];

@@ -49,4 +49,16 @@ bool IsDarkColour(const wxColor& color)
     double brightness = 0.299 * r + 0.587 * g + 0.114 * b;
     return brightness < 128.0; // Threshold for "dark"
 }
+wxListColumnFormat MapTasksViewColumnTextAlignment(TasksViewColumnTextAlignment textAlignment)
+{
+    switch (textAlignment) {
+    case TasksViewColumnTextAlignment::Left:
+        return wxLIST_FORMAT_LEFT;
+    case tks::TasksViewColumnTextAlignment::Right:
+        return wxLIST_FORMAT_RIGHT;
+    case tks::TasksViewColumnTextAlignment::Center:
+    default:
+        return wxLIST_FORMAT_CENTER;
+    }
+}
 } // namespace tks::Common
