@@ -30,6 +30,7 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/dataview.h>
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
 #include <wx/listctrl.h>
@@ -224,10 +225,10 @@ private:
     /* Control Event Handlers */
     void OnDateChanged(wxDateEvent& event);
     /* ListCtrl Event Handlers */
-    void OnItemRightClick(wxListEvent& event);
+    /*void OnItemRightClick(wxListEvent& event);
     void OnItemActivated(wxListEvent& event);
     void OnColumnEndDrag(wxListEvent& event);
-    void OnColumnRightClick(wxListEvent& event);
+    void OnColumnRightClick(wxListEvent& event);*/
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
     /* Power Event Handlers */
@@ -270,7 +271,7 @@ private:
 
     wxDatePickerCtrl* pDatePickerCtrl;
 
-    wxListCtrl* pListCtrl;
+    wxDataViewListCtrl* pDataViewListCtrl;
 
     std::unique_ptr<DateStore> pDateStore;
 
@@ -296,7 +297,7 @@ private:
         tksIDC_THUMBBAR_NEWTASK = wxID_HIGHEST + 1000,
         tksIDC_THUMBBAR_QUICKEXPORT,
         tksIDC_DATEPICKERCTRL,
-        tksIDC_LISTCTRL,
+        tksIDC_DATAVIEWLISTCTRL,
         tksIDC_TASKREMINDERTIMER
     };
 };

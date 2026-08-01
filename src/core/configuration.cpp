@@ -256,7 +256,8 @@ ConfigResult Configuration::Save()
                 { "order", tasksViewColumn.Order },
                 { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
                 { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
-                { "width", tasksViewColumn.Width }
+                { "width", tasksViewColumn.Width },
+                { "type", static_cast<int>(tasksViewColumn.Type) }
             }
         );
         // clang-format on
@@ -443,7 +444,8 @@ ConfigResult Configuration::RestoreDefaults()
                 { "order", tasksViewColumn.Order },
                 { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
                 { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
-                { "width", tasksViewColumn.Width }
+                { "width", tasksViewColumn.Width },
+                { "type", static_cast<int>(tasksViewColumn.Type) }
             }
         );
         // clang-format on
@@ -1090,6 +1092,8 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                         column.TaskViewColumnId = static_cast<TasksViewColumnIdentifier>(
                             toml::find<int>(tasksViewArrayTable[i], "id"));
                         column.Width = toml::find<int>(tasksViewArrayTable[i], "width");
+                        column.Type = static_cast<TasksViewColumnType>(
+                            toml::find<int>(tasksViewArrayTable[i], "type"));
 
                         columns.push_back(column);
                     }

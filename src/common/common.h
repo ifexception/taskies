@@ -110,6 +110,7 @@ struct TasksViewColumn {
     TasksViewColumnTextAlignment TextAlignment;
     TasksViewColumnIdentifier TaskViewColumnId;
     int Width;
+    TasksViewColumnType Type;
 };
 
 TasksViewColumn DescriptionTasksViewColumn();

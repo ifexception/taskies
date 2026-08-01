@@ -85,6 +85,11 @@ enum class TasksViewColumnIdentifier : int {
     Unknown = 99
 };
 
+enum class TasksViewColumnType : int {
+    Text = 1,
+    Toggle
+};
+
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string InstallLocationToString(InstallLocation installLocation);
 std::string WindowStateToString(WindowState windowState);

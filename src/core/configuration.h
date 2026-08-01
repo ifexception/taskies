@@ -55,6 +55,7 @@ public:
         TasksViewColumnTextAlignment TextAlignment;
         TasksViewColumnIdentifier TaskViewColumnId;
         int Width;
+        TasksViewColumnType Type;
 
         TasksViewColumnSetting();
         TasksViewColumnSetting(Common::TasksViewColumn tasksViewColumn);

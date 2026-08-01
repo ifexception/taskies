@@ -144,10 +144,10 @@ EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeeti
 /* Ctrl Event Handlers */
 EVT_DATE_CHANGED(tksIDC_DATEPICKERCTRL, MainFrame::OnDateChanged)
 /* List Ctrl Event Handlers */
-EVT_LIST_ITEM_RIGHT_CLICK(tksIDC_LISTCTRL, MainFrame::OnItemRightClick)
-EVT_LIST_ITEM_ACTIVATED(tksIDC_LISTCTRL, MainFrame::OnItemActivated)
-EVT_LIST_COL_END_DRAG(tksIDC_LISTCTRL, MainFrame::OnColumnEndDrag)
-EVT_LIST_COL_RIGHT_CLICK(tksIDC_LISTCTRL, MainFrame::OnColumnRightClick)
+//EVT_LIST_ITEM_RIGHT_CLICK(tksIDC_LISTCTRL, MainFrame::OnItemRightClick)
+//EVT_LIST_ITEM_ACTIVATED(tksIDC_LISTCTRL, MainFrame::OnItemActivated)
+//EVT_LIST_COL_END_DRAG(tksIDC_LISTCTRL, MainFrame::OnColumnEndDrag)
+//EVT_LIST_COL_RIGHT_CLICK(tksIDC_LISTCTRL, MainFrame::OnColumnRightClick)
 /* Power Event Handlers */
 EVT_POWER_RESUME(MainFrame::OnPowerResume)
 wxEND_EVENT_TABLE()
@@ -171,7 +171,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pTaskBarIcon(nullptr)
     , pStatusBar(nullptr)
     , pDatePickerCtrl(nullptr)
-    , pListCtrl(nullptr)
+    , pDataViewListCtrl(nullptr)
     , pDateStore(nullptr)
     , mFromDate()
     , mToDate()
@@ -397,26 +397,47 @@ void MainFrame::CreateControls()
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
-    /* List Ctrl */
-    pListCtrl = new wxListCtrl(framePanel,
-        tksIDC_LISTCTRL,
+    /* Data View List Ctrl */
+    pDataViewListCtrl = new wxDataViewListCtrl(framePanel,
+        tksIDC_DATAVIEWLISTCTRL,
         wxDefaultPosition,
         wxDefaultSize,
-        wxLC_REPORT | wxLC_SINGLE_SEL | wxLC_HRULES | wxLC_VRULES);
-    pListCtrl->SetFocus();
-    sizer->Add(pListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+        wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
+    pDataViewListCtrl->SetFocus();
+    sizer->Add(pDataViewListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    int columnId = 0;
+    auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
+    const size_t countOfTasksViewColumns = allTasksViewColumns.size();
 
-    for (const auto& cfgTaskViewColumn : Common::AvailableTasksViewColumnList()) {
-        wxListItem column;
-        column.SetAlign(Common::MapTasksViewColumnTextAlignment(cfgTaskViewColumn.TextAlignment));
-        column.SetText(cfgTaskViewColumn.Name);
-        column.SetId(columnId);
-        column.SetWidth(cfgTaskViewColumn.Width);
+    auto selectedTasksViewColumns = pCfg->GetTasksViewColumns();
 
-        pListCtrl->InsertColumn(columnId++, column);
+    for (size_t i = 0; i < countOfTasksViewColumns; i++) {
+        if (allTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
+            pDataViewListCtrl->AppendToggleColumn(allTasksViewColumns[i].Name);
+        } else if (allTasksViewColumns[i].Type == TasksViewColumnType::Text) {
+            pDataViewListCtrl->AppendTextColumn(allTasksViewColumns[i].Name,
+                wxDATAVIEW_CELL_INERT,
+                allTasksViewColumns[i].Width,
+                Common::MapTasksViewColumnTextAlignment(allTasksViewColumns[i].TextAlignment));
+        }
+
+        auto iterator = std::find_if(selectedTasksViewColumns.begin(),
+            selectedTasksViewColumns.end(),
+            [&](const Core::Configuration::TasksViewColumnSetting& setting) {
+                return setting.TaskViewColumnId == allTasksViewColumns[i].TaskViewColumnId;
+            });
+        if (iterator == selectedTasksViewColumns.end()) {
+            wxDataViewColumn* column = pDataViewListCtrl->GetColumn(i);
+            if (column) {
+                column->SetHidden(true);
+            }
+        }
     }
+
+    wxDataViewTextRenderer* idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
+    wxDataViewColumn* idColumn = new wxDataViewColumn(
+        "ID", idRenderer, countOfTasksViewColumns, 80, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+    pDataViewListCtrl->AppendColumn(idColumn);
 
     /* Accelerator Table */
     wxAcceleratorEntry entries[5];
@@ -449,17 +470,17 @@ void MainFrame::DataToControls()
         pInfoBar->ShowMessage(infoBarMessage, wxICON_INFORMATION);
     }
 
-    //std::vector<Services::TaskViewModel> taskViewModels;
-    //Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+    // std::vector<Services::TaskViewModel> taskViewModels;
+    // Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    //auto sqliteResult = tasksService.FilterByDate(pDateStore->PrintTodayDate, taskViewModels);
-    //if (!sqliteResult.Success) {
-    //    wxRichMessageDialog dialog(this,
-    //        Messages::FilterByDateRangeTaskMessage,
-    //        Common::GetProgramName(),
-    //        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-    //    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-    //    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+    // auto sqliteResult = tasksService.FilterByDate(pDateStore->PrintTodayDate, taskViewModels);
+    // if (!sqliteResult.Success) {
+    //     wxRichMessageDialog dialog(this,
+    //         Messages::FilterByDateRangeTaskMessage,
+    //         Common::GetProgramName(),
+    //         wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+    //     dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+    //     dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
     //    dialog.ShowModal();
     //} else {
@@ -1447,7 +1468,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         ResetTaskContextMenuVariables();
         return;
     } else {
-        pListCtrl->DeleteItem(mItemIndex);
+        // pListCtrl->DeleteItem(mItemIndex);
 
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
     }
@@ -1547,19 +1568,19 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
         return;
     }
 
-    int columnIndex = 0;
-    int listIndex = pListCtrl->InsertItem(columnIndex++, taskViewModel.WorkdayDate);
-    pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.ProjectName);
-    pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.CategoryName);
-    pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.GetDuration());
-    pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.Description);
+    /* int columnIndex = 0;
+     int listIndex = pListCtrl->InsertItem(columnIndex++, taskViewModel.WorkdayDate);
+     pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.ProjectName);
+     pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.CategoryName);
+     pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.GetDuration());
+     pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.Description);
 
-    pListCtrl->SetItemBackgroundColour(listIndex, wxColor(taskViewModel.CategoryColor));
-    if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
-        pListCtrl->SetItemTextColour(listIndex, *wxWHITE);
-    }
+     pListCtrl->SetItemBackgroundColour(listIndex, wxColor(taskViewModel.CategoryColor));
+     if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
+         pListCtrl->SetItemTextColour(listIndex, *wxWHITE);
+     }
 
-    pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));
+     pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));*/
 }
 
 void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
@@ -1576,7 +1597,7 @@ void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
         eventTaskDateChanged,
         taskChangedId);
 
-    pListCtrl->DeleteItem(mItemIndex);
+    // pListCtrl->DeleteItem(mItemIndex);
 
     mItemIndex = -1;
 }
@@ -1602,7 +1623,7 @@ void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 
     SPDLOG_LOGGER_TRACE(pLogger, "Received task delete event with ID \"{0}\"", taskDeletedId);
 
-    pListCtrl->DeleteItem(mItemIndex);
+    // pListCtrl->DeleteItem(mItemIndex);
 
     mItemIndex = -1;
 }
@@ -1648,122 +1669,6 @@ void MainFrame::OnDateChanged(wxDateEvent& event)
     mTaskDate = dateStringFormat;
 
     RefreshListControlTaskItems();
-}
-
-void MainFrame::OnItemRightClick(wxListEvent& event)
-{
-    mItemIndex = event.GetIndex();
-    mTaskIdToEdit = static_cast<std::int64_t>(event.GetData());
-
-    wxMenu menu;
-    auto copyMenuItem =
-        menu.Append(wxID_COPY, "&Copy Description", "Copy description to the clipboard");
-    wxIconBundle copyTaskIconBundle(Common::GetCopyPasteIconBundleName(), 0);
-    copyMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyTaskIconBundle));
-
-    auto copyRowMenuItem =
-        menu.Append(ID_POP_COPY_ROW_TASK, "Copy &Row", "Copy row detail to the clipboard");
-    wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
-    copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
-
-    auto copyRowWithPresetMenuItem = menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
-        "Copy Row using &Preset",
-        "Copy row detail using default preset to the clipboard");
-    wxIconBundle copyRowWithPresetIconBundle(Common::GetCopyRowWithPresetIconBundleName(), 0);
-    copyRowWithPresetMenuItem->SetBitmap(
-        wxBitmapBundle::FromIconBundle(copyRowWithPresetIconBundle));
-
-    menu.AppendSeparator();
-
-    auto editTaskMenuItem = menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
-    wxIconBundle editTaskIconBundle(Common::GetEditTaskIconBundleName(), 0);
-    editTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(editTaskIconBundle));
-
-    auto deleteTaskMenuItem = menu.Append(wxID_DELETE, "&Delete", "Delete selected task");
-    wxIconBundle deleteTaskIconBundle(Common::GetDeleteTaskIconBundleName(), 0);
-    deleteTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(deleteTaskIconBundle));
-
-    menu.AppendSeparator();
-
-    menu.Append(ID_POP_CLONE_TASK, "C&lone", "Clone the selected task");
-    menu.AppendSeparator();
-
-    std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
-    menu.Append(wxID_ADD, addMenuLabel);
-
-    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
-
-    PopupMenu(&menu);
-}
-
-void MainFrame::OnItemActivated(wxListEvent& event)
-{
-    mItemIndex = event.GetIndex();
-    mTaskIdToEdit = static_cast<std::int64_t>(event.GetData());
-
-    assert(!mTaskDate.empty());
-    assert(mTaskIdToEdit != -1);
-    assert(mItemIndex >= 0);
-
-    dlg::TaskDialog editTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDate);
-    editTaskDialog.ShowModal();
-
-    mTaskIdToEdit = -1;
-}
-
-void MainFrame::OnColumnEndDrag(wxListEvent& event)
-{
-    int totalWidth = pListCtrl->GetClientSize().GetWidth();
-    int colCount = pListCtrl->GetColumnCount();
-
-    // Subtract widths of all columns except last
-    int usedWidth = 0;
-    for (int i = 0; i < colCount - 1; i++) {
-        usedWidth += pListCtrl->GetColumnWidth(i);
-    }
-
-    int lastColWidth = totalWidth - usedWidth - 4; // -4 for border/padding
-
-    SPDLOG_LOGGER_TRACE(pLogger,
-        "Resize columns. usedWith: {0} | lastColWidth: {1} | totalWidth: {2}",
-        usedWidth,
-        lastColWidth,
-        totalWidth);
-
-    if (lastColWidth < 80)
-        lastColWidth = 80;
-
-    pListCtrl->SetColumnWidth(colCount - 1, lastColWidth);
-    event.Skip();
-}
-
-void MainFrame::OnColumnRightClick(wxListEvent& event)
-{
-    wxMenu menu;
-    auto newTaskMenuItem = menu.Append(ID_POP_NEW_TASK, "&New Task", "Create new task");
-    wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
-    newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
-
-    menu.AppendSeparator();
-    auto copyRowMenuItem = menu.Append(
-        ID_POP_COLUMN_COPY_TASKS, "&Copy", "Copy task values for selected date to the clipboard");
-    wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
-    copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
-
-    menu.Append(ID_POP_COLUMN_COPY_TASKS_WITH_HEADERS,
-        "Copy with &Headers",
-        "Copy task values with headers for selected date to the clipboard");
-
-    auto copyWithPresetMenuItem = menu.Append(ID_POP_COLUMN_COPY_TASKS_PRESET,
-        "Copy using &Preset",
-        "Copy task values using default preset for selected date to the clipboard");
-    wxIconBundle copyWithPresetIconBundle(Common::GetCopyWithPresetIconBundleName(), 0);
-    copyWithPresetMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyWithPresetIconBundle));
-
-    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
-
-    PopupMenu(&menu);
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()
@@ -1880,7 +1785,7 @@ void MainFrame::RefreshListControlTaskItem(const std::int64_t taskId)
         return;
     }
 
-    int columnIndex = 0;
+    /*int columnIndex = 0;
     pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.WorkdayDate);
     pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.ProjectName);
     pListCtrl->SetItem(mItemIndex, columnIndex++, taskViewModel.CategoryName);
@@ -1892,14 +1797,14 @@ void MainFrame::RefreshListControlTaskItem(const std::int64_t taskId)
         pListCtrl->SetItemTextColour(mItemIndex, *wxWHITE);
     }
 
-    pListCtrl->RefreshItem(mItemIndex);
+    pListCtrl->RefreshItem(mItemIndex);*/
 }
 
 void MainFrame::RefreshListControlTaskItems()
 {
     assert(!mTaskDate.empty());
 
-    pListCtrl->DeleteAllItems();
+    // pListCtrl->DeleteAllItems();
 
     std::vector<Services::TaskViewModel> taskViewModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
@@ -1915,7 +1820,7 @@ void MainFrame::RefreshListControlTaskItems()
 
         dialog.ShowModal();
     } else {
-        int columnIndex = 0;
+        /*int columnIndex = 0;
         for (const auto& taskViewModel : taskViewModels) {
             int listIndex = pListCtrl->InsertItem(columnIndex++, taskViewModel.WorkdayDate);
             pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.ProjectName);
@@ -1930,7 +1835,7 @@ void MainFrame::RefreshListControlTaskItems()
 
             pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));
             columnIndex = 0;
-        }
+        }*/
     }
 
     // Status Bar durations
