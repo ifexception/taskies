@@ -408,13 +408,13 @@ void MainFrame::CreateControls()
 
     int columnId = 0;
 
-    // set columns dynamically from config
-    for (const auto& cfgTaskViewColumn : pCfg->GetTasksViewColumns()) {
+    for (const auto& cfgTaskViewColumn : Common::AvailableTasksViewColumnList()) {
         wxListItem column;
         column.SetAlign(Common::MapTasksViewColumnTextAlignment(cfgTaskViewColumn.TextAlignment));
         column.SetText(cfgTaskViewColumn.Name);
         column.SetId(columnId);
         column.SetWidth(cfgTaskViewColumn.Width);
+
         pListCtrl->InsertColumn(columnId++, column);
     }
 
@@ -449,55 +449,55 @@ void MainFrame::DataToControls()
         pInfoBar->ShowMessage(infoBarMessage, wxICON_INFORMATION);
     }
 
-    std::vector<Services::TaskViewModel> taskViewModels;
-    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+    //std::vector<Services::TaskViewModel> taskViewModels;
+    //Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.FilterByDate(pDateStore->PrintTodayDate, taskViewModels);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterByDateRangeTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+    //auto sqliteResult = tasksService.FilterByDate(pDateStore->PrintTodayDate, taskViewModels);
+    //if (!sqliteResult.Success) {
+    //    wxRichMessageDialog dialog(this,
+    //        Messages::FilterByDateRangeTaskMessage,
+    //        Common::GetProgramName(),
+    //        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+    //    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+    //    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
-        dialog.ShowModal();
-    } else {
-        int columnIndex = 0;
-        for (const auto& taskViewModel : taskViewModels) {
-            int listIndex = pListCtrl->InsertItem(columnIndex++, taskViewModel.WorkdayDate);
-            pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.ProjectName);
-            pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.CategoryName);
-            pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.GetDuration());
-            pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.Description);
+    //    dialog.ShowModal();
+    //} else {
+    //    int columnIndex = 0;
+    //    for (const auto& taskViewModel : taskViewModels) {
+    //        int listIndex = pListCtrl->InsertItem(columnIndex++, taskViewModel.WorkdayDate);
+    //        pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.ProjectName);
+    //        pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.CategoryName);
+    //        pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.GetDuration());
+    //        pListCtrl->SetItem(listIndex, columnIndex++, taskViewModel.Description);
 
-            pListCtrl->SetItemBackgroundColour(listIndex, wxColor(taskViewModel.CategoryColor));
-            if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
-                pListCtrl->SetItemTextColour(listIndex, *wxWHITE);
-            }
+    //        pListCtrl->SetItemBackgroundColour(listIndex, wxColor(taskViewModel.CategoryColor));
+    //        if (Common::IsDarkColour(taskViewModel.CategoryColor)) {
+    //            pListCtrl->SetItemTextColour(listIndex, *wxWHITE);
+    //        }
 
-            pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));
-            columnIndex = 0;
-        }
+    //        pListCtrl->SetItemPtrData(listIndex, static_cast<wxUIntPtr>(taskViewModel.TaskId));
+    //        columnIndex = 0;
+    //    }
 
-        int fixedWidth = 0;
-        for (int i = 0; i < pListCtrl->GetColumnCount() - 1; i++) {
-            // pListCtrl->SetColumnWidth(i, wxLIST_AUTOSIZE);
-            fixedWidth += pListCtrl->GetColumnWidth(i);
-        }
-        // fixedWidth += pListCtrl->GetColumnWidth(3);
+    //    int fixedWidth = 0;
+    //    for (int i = 0; i < pListCtrl->GetColumnCount() - 1; i++) {
+    //        // pListCtrl->SetColumnWidth(i, wxLIST_AUTOSIZE);
+    //        fixedWidth += pListCtrl->GetColumnWidth(i);
+    //    }
+    //    // fixedWidth += pListCtrl->GetColumnWidth(3);
 
-        int totalWidth = pListCtrl->GetClientSize().GetWidth();
+    //    int totalWidth = pListCtrl->GetClientSize().GetWidth();
 
-        // Ensure the expanding column fills the remaining space
-        int expandWidth = totalWidth - fixedWidth - 4; // -4 for borders
-        if (expandWidth < 80)
-            expandWidth = 80; // Minimum width
-        pListCtrl->SetColumnWidth(4, expandWidth);
+    //    // Ensure the expanding column fills the remaining space
+    //    int expandWidth = totalWidth - fixedWidth - 4; // -4 for borders
+    //    if (expandWidth < 80)
+    //        expandWidth = 80; // Minimum width
+    //    pListCtrl->SetColumnWidth(4, expandWidth);
 
-        // Status Bar durations
-        CalculateStatusBarTaskDurations();
-    }
+    //    // Status Bar durations
+    //    CalculateStatusBarTaskDurations();
+    //}
 }
 
 void MainFrame::OnClose(wxCloseEvent& event)
