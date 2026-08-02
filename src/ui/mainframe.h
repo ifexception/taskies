@@ -225,10 +225,7 @@ private:
     /* Control Event Handlers */
     void OnDateChanged(wxDateEvent& event);
     /* ListCtrl Event Handlers */
-    /*void OnItemRightClick(wxListEvent& event);
-    void OnItemActivated(wxListEvent& event);
-    void OnColumnEndDrag(wxListEvent& event);
-    void OnColumnRightClick(wxListEvent& event);*/
+    void OnContextMenu(wxDataViewEvent& event);
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
     /* Power Event Handlers */
@@ -276,6 +273,7 @@ private:
 
     std::int64_t mTaskIdToEdit;
     std::string mTaskDate;
+    unsigned int mDataViewListCtrlRow;
 
     /*
      * this variable ensures that only one dialog is opened at a time from the thumb bar actions

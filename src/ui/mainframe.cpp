@@ -144,7 +144,7 @@ EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeeti
 /* Ctrl Event Handlers */
 EVT_DATE_CHANGED(tksIDC_DATEPICKERCTRL, MainFrame::OnDateChanged)
 /* Data View List Ctrl Event Handlers */
-
+EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_DATAVIEWLISTCTRL, MainFrame::OnContextMenu)
 /* Power Event Handlers */
 EVT_POWER_RESUME(MainFrame::OnPowerResume)
 wxEND_EVENT_TABLE()
@@ -1638,6 +1638,64 @@ void MainFrame::OnDateChanged(wxDateEvent& event)
     std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
 
     mTaskDate = dateStringFormat;
+}
+
+void MainFrame::OnContextMenu(wxDataViewEvent& event)
+{
+    wxDataViewItem item = event.GetItem();
+
+    if (!item.IsOk()) {
+        return;
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Clicked on valid wxDataViewItem");
+
+    mDataViewListCtrlRow = pDataViewListCtrl->ItemToRow(item);
+
+    unsigned int columnCount = pDataViewListCtrl->GetColumnCount();
+    wxVariant dataAtIdColumn;
+    pDataViewListCtrl->GetValue(dataAtIdColumn, mDataViewListCtrlRow, columnCount - 1);
+    mTaskIdToEdit = static_cast<std::int64_t>(dataAtIdColumn.GetLong());
+
+    wxMenu menu;
+    auto copyMenuItem =
+        menu.Append(wxID_COPY, "&Copy Description", "Copy description to the clipboard");
+    wxIconBundle copyTaskIconBundle(Common::GetCopyPasteIconBundleName(), 0);
+    copyMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyTaskIconBundle));
+
+    auto copyRowMenuItem =
+        menu.Append(ID_POP_COPY_ROW_TASK, "Copy &Row", "Copy row detail to the clipboard");
+    wxIconBundle copyRowIconBundle(Common::GetCopyRowIconBundleName(), 0);
+    copyRowMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyRowIconBundle));
+
+    auto copyRowWithPresetMenuItem = menu.Append(ID_POP_COPY_ROW_TASK_PRESET,
+        "Copy Row using &Preset",
+        "Copy row detail using default preset to the clipboard");
+    wxIconBundle copyRowWithPresetIconBundle(Common::GetCopyRowWithPresetIconBundleName(), 0);
+    copyRowWithPresetMenuItem->SetBitmap(
+        wxBitmapBundle::FromIconBundle(copyRowWithPresetIconBundle));
+
+    menu.AppendSeparator();
+
+    auto editTaskMenuItem = menu.Append(wxID_EDIT, "&Edit", "Edit the selected task");
+    wxIconBundle editTaskIconBundle(Common::GetEditTaskIconBundleName(), 0);
+    editTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(editTaskIconBundle));
+
+    auto deleteTaskMenuItem = menu.Append(wxID_DELETE, "&Delete", "Delete selected task");
+    wxIconBundle deleteTaskIconBundle(Common::GetDeleteTaskIconBundleName(), 0);
+    deleteTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(deleteTaskIconBundle));
+
+    menu.AppendSeparator();
+
+    menu.Append(ID_POP_CLONE_TASK, "C&lone", "Clone the selected task");
+    menu.AppendSeparator();
+
+    std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
+    menu.Append(wxID_ADD, addMenuLabel);
+
+    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+
+    PopupMenu(&menu);
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()
