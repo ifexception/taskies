@@ -249,10 +249,6 @@ private:
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
-    void RefreshListControlTaskItem(const std::int64_t taskId);
-    void RefreshListControlTaskItems();
-
-    //void AdjustColumnWidths();
     void ResetTaskContextMenuVariables();
 
     std::shared_ptr<spdlog::logger> pLogger;
@@ -272,6 +268,7 @@ private:
     wxDatePickerCtrl* pDatePickerCtrl;
 
     wxDataViewListCtrl* pDataViewListCtrl;
+    std::vector<wxVariant> mDataViewListModelRows;
 
     std::unique_ptr<DateStore> pDateStore;
 
@@ -280,7 +277,6 @@ private:
 
     std::int64_t mTaskIdToEdit;
     std::string mTaskDate;
-    long mItemIndex;
 
     /*
      * this variable ensures that only one dialog is opened at a time from the thumb bar actions
