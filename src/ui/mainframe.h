@@ -225,7 +225,8 @@ private:
     /* Control Event Handlers */
     void OnDateChanged(wxDateEvent& event);
     /* ListCtrl Event Handlers */
-    void OnContextMenu(wxDataViewEvent& event);
+    void OnItemContextMenu(wxDataViewEvent& event);
+    void OnItemActivated(wxDataViewEvent& event);
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
     /* Power Event Handlers */
