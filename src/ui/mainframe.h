@@ -268,7 +268,6 @@ private:
     wxDatePickerCtrl* pDatePickerCtrl;
 
     wxDataViewListCtrl* pDataViewListCtrl;
-    std::vector<wxVariant> mDataViewListModelRows;
 
     std::unique_ptr<DateStore> pDateStore;
 

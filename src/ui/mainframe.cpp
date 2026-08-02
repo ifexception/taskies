@@ -172,7 +172,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pStatusBar(nullptr)
     , pDatePickerCtrl(nullptr)
     , pDataViewListCtrl(nullptr)
-    , mDataViewListModelRows()
     , pDateStore(nullptr)
     , mFromDate()
     , mToDate()
@@ -410,13 +409,15 @@ void MainFrame::CreateControls()
 
     for (size_t i = 0; i < countOfTasksViewColumns; i++) {
         if (allTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
-            wxDataViewColumn* toggleColumn = pDataViewListCtrl->AppendToggleColumn(allTasksViewColumns[i].Name);
+            wxDataViewColumn* toggleColumn =
+                pDataViewListCtrl->AppendToggleColumn(allTasksViewColumns[i].Name);
             toggleColumn->SetResizeable(true);
         } else if (allTasksViewColumns[i].Type == TasksViewColumnType::Text) {
-            wxDataViewColumn* textColumn = pDataViewListCtrl->AppendTextColumn(allTasksViewColumns[i].Name,
-                wxDATAVIEW_CELL_INERT,
-                allTasksViewColumns[i].Width,
-                Common::MapTasksViewColumnTextAlignment(allTasksViewColumns[i].TextAlignment));
+            wxDataViewColumn* textColumn =
+                pDataViewListCtrl->AppendTextColumn(allTasksViewColumns[i].Name,
+                    wxDATAVIEW_CELL_INERT,
+                    allTasksViewColumns[i].Width,
+                    Common::MapTasksViewColumnTextAlignment(allTasksViewColumns[i].TextAlignment));
             textColumn->SetResizeable(true);
         }
 
@@ -483,43 +484,45 @@ void MainFrame::DataToControls()
 
         dialog.ShowModal();
     } else {
-        mDataViewListModelRows.clear();
+        wxVector<wxVariant> row;
 
         auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
         for (size_t i = 0; i < taskViewModels.size(); i++) {
             for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
-                switch (allTasksViewColumns[i].TaskViewColumnId) {
+                switch (allTasksViewColumns[j].TaskViewColumnId) {
                 case TasksViewColumnIdentifier::Date:
-                    mDataViewListModelRows.push_back(taskViewModels[i].WorkdayDate);
+                    row.push_back(taskViewModels[i].WorkdayDate);
                     break;
                 case TasksViewColumnIdentifier::Employer:
-                    mDataViewListModelRows.push_back(taskViewModels[i].EmployerName);
+                    row.push_back(taskViewModels[i].EmployerName);
                     break;
                 case TasksViewColumnIdentifier::Client:
-                    mDataViewListModelRows.push_back(taskViewModels[i].ClientName);
+                    row.push_back(taskViewModels[i].ClientName);
                     break;
                 case TasksViewColumnIdentifier::Project:
-                    mDataViewListModelRows.push_back(taskViewModels[i].ProjectName);
+                    row.push_back(taskViewModels[i].ProjectName);
                     break;
                 case TasksViewColumnIdentifier::Category:
-                    mDataViewListModelRows.push_back(taskViewModels[i].CategoryName);
+                    row.push_back(taskViewModels[i].CategoryName);
                     break;
                 case TasksViewColumnIdentifier::Duration:
-                    mDataViewListModelRows.push_back(taskViewModels[i].GetDuration());
+                    row.push_back(taskViewModels[i].GetDuration());
                     break;
                 case TasksViewColumnIdentifier::Billable:
-                    mDataViewListModelRows.push_back(taskViewModels[i].Billable);
+                    row.push_back(taskViewModels[i].Billable);
                     break;
                 case TasksViewColumnIdentifier::UniqueIdentifier:
-                    mDataViewListModelRows.push_back(taskViewModels[i].TryGetUniqueIdentifier());
+                    row.push_back(taskViewModels[i].TryGetUniqueIdentifier());
                     break;
                 case TasksViewColumnIdentifier::Description:
-                    mDataViewListModelRows.push_back(taskViewModels[i].GetTrimmedDescription());
+                    row.push_back(taskViewModels[i].GetTrimmedDescription());
                     break;
                 default:
                     break;
                 }
             }
+            row.push_back(static_cast<long>(taskViewModels[i].TaskId));
+            pDataViewListCtrl->AppendItem(row);
         }
 
         // Status Bar durations
@@ -1472,7 +1475,6 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         ResetTaskContextMenuVariables();
         return;
     } else {
-
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
     }
 }
@@ -1636,7 +1638,6 @@ void MainFrame::OnDateChanged(wxDateEvent& event)
     std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
 
     mTaskDate = dateStringFormat;
-
 }
 
 void MainFrame::DoResetToCurrentWeekAndOrToday()
