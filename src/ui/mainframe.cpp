@@ -412,7 +412,7 @@ void MainFrame::CreateControls()
         if (allTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
             wxDataViewColumn* toggleColumn =
                 pDataViewListCtrl->AppendToggleColumn(allTasksViewColumns[i].Name);
-            toggleColumn->SetResizeable(true);
+            toggleColumn->SetResizeable(false);
         } else if (allTasksViewColumns[i].Type == TasksViewColumnType::Text) {
             wxDataViewColumn* textColumn =
                 pDataViewListCtrl->AppendTextColumn(allTasksViewColumns[i].Name,
@@ -489,6 +489,8 @@ void MainFrame::DataToControls()
 
         auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
         for (size_t i = 0; i < taskViewModels.size(); i++) {
+            row.clear();
+
             for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
                 switch (allTasksViewColumns[j].TaskViewColumnId) {
                 case TasksViewColumnIdentifier::Date:
@@ -1386,18 +1388,20 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
+    assert(mDataViewListCtrlRow != -1);
 
     dlg::TaskDialog editTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDate);
     editTaskDialog.ShowModal();
 
-    mTaskIdToEdit = -1;
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
+    assert(mDataViewListCtrlRow != -1);
 
     int ret = wxMessageBox("Are you sure you want to delete this task?",
         Common::GetProgramName(),
@@ -1477,7 +1481,11 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         return;
     } else {
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
+
+        pDataViewListCtrl->DeleteItem(mDataViewListCtrlRow);
     }
+
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
@@ -1496,6 +1504,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 {
     assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
+    assert(mDataViewListCtrlRow != -1);
 
     Services::TaskDurationService taskDurationService(pLogger, mDatabaseFilePath);
 
@@ -1516,6 +1525,60 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 
     TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
 
+    Services::TaskViewModel taskViewModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    sqliteResult = tasksService.GetById(mTaskIdToEdit, taskViewModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+    } else {
+        auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
+        for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
+            switch (allTasksViewColumns[j].TaskViewColumnId) {
+            case TasksViewColumnIdentifier::Date:
+                pDataViewListCtrl->SetTextValue(taskViewModel.WorkdayDate, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Employer:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.EmployerName, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Client:
+                pDataViewListCtrl->SetTextValue(taskViewModel.ClientName, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Project:
+                pDataViewListCtrl->SetTextValue(taskViewModel.ProjectName, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Category:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.CategoryName, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Duration:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.GetDuration(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Billable:
+                pDataViewListCtrl->SetToggleValue(taskViewModel.Billable, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::UniqueIdentifier:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.TryGetUniqueIdentifier(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Description:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.GetTrimmedDescription(), mDataViewListCtrlRow, j);
+                break;
+            default:
+                break;
+            }
+        }
+    }
     ResetTaskContextMenuVariables();
 }
 
@@ -1904,5 +1967,6 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 void MainFrame::ResetTaskContextMenuVariables()
 {
     mTaskIdToEdit = -1;
+    mDataViewListCtrlRow = -1;
 }
 } // namespace tks::UI
