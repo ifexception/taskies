@@ -227,6 +227,7 @@ private:
     /* ListCtrl Event Handlers */
     void OnItemContextMenu(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
+    void OnColumnHeaderRightClick(wxDataViewEvent& event);
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
     /* Power Event Handlers */
