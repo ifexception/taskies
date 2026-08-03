@@ -956,34 +956,34 @@ void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
     std::stringstream formattedStringData;
     const auto& tasksViewColumns = pCfg->GetTasksViewColumns();
 
-    /*for (const auto& taskModel : taskModels) {
+    for (const auto& taskModel : taskModels) {
         for (const auto& column : tasksViewColumns) {
-            switch (column.ColumnModelIndex) {
-            case TasksViewColumnModelIndex::ColumnModelIndexDate:
+            switch (column.TaskViewColumnId) {
+            case TasksViewColumnIdentifier::Date:
                 formattedStringData << taskModel.WorkdayDate << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexEmployer:
+            case TasksViewColumnIdentifier::Employer:
                 formattedStringData << taskModel.EmployerName << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexClient:
+            case TasksViewColumnIdentifier::Client:
                 formattedStringData << taskModel.ClientName << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexProject:
+            case TasksViewColumnIdentifier::Project:
                 formattedStringData << taskModel.ProjectName << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexCategory:
+            case TasksViewColumnIdentifier::Category:
                 formattedStringData << taskModel.CategoryName << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexDuration:
+            case TasksViewColumnIdentifier::Duration:
                 formattedStringData << taskModel.GetDuration() << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexBillable:
+            case TasksViewColumnIdentifier::Billable:
                 formattedStringData << taskModel.Billable << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexUniqueId:
+            case TasksViewColumnIdentifier::UniqueIdentifier:
                 formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexDescription:
+            case TasksViewColumnIdentifier::Description:
                 formattedStringData << taskModel.Description << "\t";
                 break;
             default:
@@ -991,7 +991,7 @@ void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
             }
         }
         formattedStringData << "\n";
-    }*/
+    }
 
     std::string clipboardData = formattedStringData.str();
 
@@ -1047,34 +1047,34 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
     }
     formattedStringData << "\n";
 
-    /*for (const auto& taskModel : taskModels) {
+    for (const auto& taskModel : taskModels) {
         for (const auto& column : tasksViewColumns) {
-            switch (column.ColumnModelIndex) {
-            case TasksViewColumnModelIndex::ColumnModelIndexDate:
+            switch (column.TaskViewColumnId) {
+            case TasksViewColumnIdentifier::Date:
                 formattedStringData << taskModel.WorkdayDate << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexEmployer:
+            case TasksViewColumnIdentifier::Employer:
                 formattedStringData << taskModel.EmployerName << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexClient:
+            case TasksViewColumnIdentifier::Client:
                 formattedStringData << taskModel.ClientName << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexProject:
+            case TasksViewColumnIdentifier::Project:
                 formattedStringData << taskModel.ProjectName << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexCategory:
+            case TasksViewColumnIdentifier::Category:
                 formattedStringData << taskModel.CategoryName << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexDuration:
+            case TasksViewColumnIdentifier::Duration:
                 formattedStringData << taskModel.GetDuration() << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexBillable:
+            case TasksViewColumnIdentifier::Billable:
                 formattedStringData << taskModel.Billable << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexUniqueId:
+            case TasksViewColumnIdentifier::UniqueIdentifier:
                 formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
                 break;
-            case TasksViewColumnModelIndex::ColumnModelIndexDescription:
+            case TasksViewColumnIdentifier::Description:
                 formattedStringData << taskModel.Description << "\t";
                 break;
             default:
@@ -1082,7 +1082,7 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
             }
         }
         formattedStringData << "\n";
-    }*/
+    }
 
     std::string clipboardData = formattedStringData.str();
     if (clipboardData.empty()) {
@@ -1250,39 +1250,39 @@ void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
     }
     formattedStringData << "\n";
 
-    /*for (const auto& column : tasksViewColumns) {
-        switch (column.ColumnModelIndex) {
-        case TasksViewColumnModelIndex::ColumnModelIndexDate:
+    for (const auto& column : tasksViewColumns) {
+        switch (column.TaskViewColumnId) {
+        case TasksViewColumnIdentifier::Date:
             formattedStringData << taskModel.WorkdayDate << "\t";
             break;
-        case TasksViewColumnModelIndex::ColumnModelIndexEmployer:
+        case TasksViewColumnIdentifier::Employer:
             formattedStringData << taskModel.EmployerName << "\t";
             break;
-        case TasksViewColumnModelIndex::ColumnModelIndexClient:
+        case TasksViewColumnIdentifier::Client:
             formattedStringData << taskModel.ClientName << "\t";
             break;
-        case TasksViewColumnModelIndex::ColumnModelIndexProject:
+        case TasksViewColumnIdentifier::Project:
             formattedStringData << taskModel.ProjectName << "\t";
             break;
-        case TasksViewColumnModelIndex::ColumnModelIndexCategory:
+        case TasksViewColumnIdentifier::Category:
             formattedStringData << taskModel.CategoryName << "\t";
             break;
-        case TasksViewColumnModelIndex::ColumnModelIndexDuration:
+        case TasksViewColumnIdentifier::Duration:
             formattedStringData << taskModel.GetDuration() << "\t";
             break;
-        case TasksViewColumnModelIndex::ColumnModelIndexBillable:
+        case TasksViewColumnIdentifier::Billable:
             formattedStringData << taskModel.Billable << "\t";
             break;
-        case TasksViewColumnModelIndex::ColumnModelIndexUniqueId:
+        case TasksViewColumnIdentifier::UniqueIdentifier:
             formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
             break;
-        case TasksViewColumnModelIndex::ColumnModelIndexDescription:
+        case TasksViewColumnIdentifier::Description:
             formattedStringData << taskModel.Description << "\t";
             break;
         default:
             break;
         }
-    }*/
+    }
 
     std::string copyData = formattedStringData.str();
     auto canOpen = wxTheClipboard->Open();
