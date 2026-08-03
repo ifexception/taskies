@@ -1594,7 +1594,7 @@ void MainFrame::OnMenuHighlight(wxMenuEvent& event)
             if (item && !item->GetHelp().empty()) {
                 SetStatusText(item->GetHelp());
             } else {
-                SetStatusText("");
+                SetStatusText("Ready");
             }
         }
     }
@@ -1634,7 +1634,48 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
 
         dialog.ShowModal();
         return;
+    } else {
+        auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
+        wxVector<wxVariant> row;
+
+        for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
+            switch (allTasksViewColumns[j].TaskViewColumnId) {
+            case TasksViewColumnIdentifier::Date:
+                row.push_back(taskViewModel.WorkdayDate);
+                break;
+            case TasksViewColumnIdentifier::Employer:
+                row.push_back(taskViewModel.EmployerName);
+                break;
+            case TasksViewColumnIdentifier::Client:
+                row.push_back(taskViewModel.ClientName);
+                break;
+            case TasksViewColumnIdentifier::Project:
+                row.push_back(taskViewModel.ProjectName);
+                break;
+            case TasksViewColumnIdentifier::Category:
+                row.push_back(taskViewModel.CategoryName);
+                break;
+            case TasksViewColumnIdentifier::Duration:
+                row.push_back(taskViewModel.GetDuration());
+                break;
+            case TasksViewColumnIdentifier::Billable:
+                row.push_back(taskViewModel.Billable);
+                break;
+            case TasksViewColumnIdentifier::UniqueIdentifier:
+                row.push_back(taskViewModel.TryGetUniqueIdentifier());
+                break;
+            case TasksViewColumnIdentifier::Description:
+                row.push_back(taskViewModel.GetTrimmedDescription());
+                break;
+            default:
+                break;
+            }
+        }
+        row.push_back(static_cast<long>(taskViewModel.TaskId));
+        pDataViewListCtrl->AppendItem(row);
     }
+
+    ResetTaskContextMenuVariables();
 }
 
 void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
