@@ -1689,6 +1689,20 @@ void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
         "\"{0}\" and ID \"{1}\"",
         eventTaskDateChanged,
         taskChangedId);
+
+    unsigned int lastColumn = pDataViewListCtrl->GetColumnCount() - 1;
+    unsigned int rowCount = pDataViewListCtrl->GetItemCount();
+    for (unsigned int row = 0; row < rowCount; row++) {
+        wxVariant cellValue;
+        pDataViewListCtrl->GetValue(cellValue, row, lastColumn);
+
+        std::int64_t dataViewListCtrlTaskId = static_cast<std::int64_t>(cellValue.GetLong());
+
+        if (taskChangedId == dataViewListCtrlTaskId) {
+            pDataViewListCtrl->DeleteItem(row);
+            break;
+        }
+    }
 }
 
 void MainFrame::OnTaskUpdated(wxCommandEvent& event)
