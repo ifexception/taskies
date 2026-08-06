@@ -175,6 +175,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pDatePickerCtrl(nullptr)
     , pDataViewListCtrl(nullptr)
     , pDateStore(nullptr)
+    , mTodayDate()
     , mFromDate()
     , mToDate()
     , mTaskIdToEdit(-1)
@@ -215,6 +216,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     // Setup DateStore
     pDateStore = std::make_unique<DateStore>(pLogger);
 
+    mTodayDate = pDateStore->TodayDate;
     mFromDate = pDateStore->MondayDate;
     mToDate = pDateStore->SundayDate;
     mTaskDate = pDateStore->PrintTodayDate;
@@ -1800,6 +1802,70 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
 
     pDateStore->Reset();
 
+    pDatePickerCtrl->SetValue(wxDateTime::Now());
+
+    if (pDateStore->TodayDate != mTodayDate) {
+        pDataViewListCtrl->DeleteAllItems();
+
+        std::vector<Services::TaskViewModel> taskViewModels;
+        Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+        auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskViewModels);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterByDateRangeTaskMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        } else {
+            wxVector<wxVariant> row;
+
+            auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
+            for (size_t i = 0; i < taskViewModels.size(); i++) {
+                row.clear();
+
+                for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
+                    switch (allTasksViewColumns[j].TaskViewColumnId) {
+                    case TasksViewColumnIdentifier::Date:
+                        row.push_back(taskViewModels[i].WorkdayDate);
+                        break;
+                    case TasksViewColumnIdentifier::Employer:
+                        row.push_back(taskViewModels[i].EmployerName);
+                        break;
+                    case TasksViewColumnIdentifier::Client:
+                        row.push_back(taskViewModels[i].ClientName);
+                        break;
+                    case TasksViewColumnIdentifier::Project:
+                        row.push_back(taskViewModels[i].ProjectName);
+                        break;
+                    case TasksViewColumnIdentifier::Category:
+                        row.push_back(taskViewModels[i].CategoryName);
+                        break;
+                    case TasksViewColumnIdentifier::Duration:
+                        row.push_back(taskViewModels[i].GetDuration());
+                        break;
+                    case TasksViewColumnIdentifier::Billable:
+                        row.push_back(taskViewModels[i].Billable);
+                        break;
+                    case TasksViewColumnIdentifier::UniqueIdentifier:
+                        row.push_back(taskViewModels[i].TryGetUniqueIdentifier());
+                        break;
+                    case TasksViewColumnIdentifier::Description:
+                        row.push_back(taskViewModels[i].GetTrimmedDescription());
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                row.push_back(static_cast<long>(taskViewModels[i].TaskId));
+                pDataViewListCtrl->AppendItem(row);
+            }
+        }
+    }
+
     CalculateStatusBarTaskDurations();
 }
 
@@ -1827,6 +1893,68 @@ void MainFrame::OnDateChanged(wxDateEvent& event)
     std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
 
     mTaskDate = dateStringFormat;
+
+    pDataViewListCtrl->DeleteAllItems();
+
+    std::vector<Services::TaskViewModel> taskViewModels;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskViewModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateRangeTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+    } else {
+        wxVector<wxVariant> row;
+
+        auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
+        for (size_t i = 0; i < taskViewModels.size(); i++) {
+            row.clear();
+
+            for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
+                switch (allTasksViewColumns[j].TaskViewColumnId) {
+                case TasksViewColumnIdentifier::Date:
+                    row.push_back(taskViewModels[i].WorkdayDate);
+                    break;
+                case TasksViewColumnIdentifier::Employer:
+                    row.push_back(taskViewModels[i].EmployerName);
+                    break;
+                case TasksViewColumnIdentifier::Client:
+                    row.push_back(taskViewModels[i].ClientName);
+                    break;
+                case TasksViewColumnIdentifier::Project:
+                    row.push_back(taskViewModels[i].ProjectName);
+                    break;
+                case TasksViewColumnIdentifier::Category:
+                    row.push_back(taskViewModels[i].CategoryName);
+                    break;
+                case TasksViewColumnIdentifier::Duration:
+                    row.push_back(taskViewModels[i].GetDuration());
+                    break;
+                case TasksViewColumnIdentifier::Billable:
+                    row.push_back(taskViewModels[i].Billable);
+                    break;
+                case TasksViewColumnIdentifier::UniqueIdentifier:
+                    row.push_back(taskViewModels[i].TryGetUniqueIdentifier());
+                    break;
+                case TasksViewColumnIdentifier::Description:
+                    row.push_back(taskViewModels[i].GetTrimmedDescription());
+                    break;
+                default:
+                    break;
+                }
+            }
+            row.push_back(static_cast<long>(taskViewModels[i].TaskId));
+            pDataViewListCtrl->AppendItem(row);
+        }
+
+        CalculateStatusBarTaskDurations();
+    }
 }
 
 void MainFrame::OnItemContextMenu(wxDataViewEvent& event)
@@ -2103,10 +2231,7 @@ void MainFrame::TryUpdateSelectedDateAndAllTaskDurations(const std::string& date
 {
     pStatusBar->UpdateDefaultHoursDay(date, date);
     pStatusBar->UpdateBillableHoursDay(date, date);
-    /*if (bDateRangeChanged) {
-        UpdateDefaultRangeTaskDurations();
-        UpdateBillableRangeTaskDurations();
-    }*/
+
     UpdateDefaultWeekMonthTaskDurations();
     UpdateBillableWeekMonthTaskDurations();
 }
