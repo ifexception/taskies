@@ -1772,6 +1772,20 @@ void MainFrame::OnTaskDeleted(wxCommandEvent& event)
     auto taskDeletedId = static_cast<std::int64_t>(event.GetExtraLong());
 
     SPDLOG_LOGGER_TRACE(pLogger, "Received task delete event with ID \"{0}\"", taskDeletedId);
+
+    unsigned int lastColumn = pDataViewListCtrl->GetColumnCount() - 1;
+    unsigned int rowCount = pDataViewListCtrl->GetItemCount();
+    for (unsigned int row = 0; row < rowCount; row++) {
+        wxVariant cellValue;
+        pDataViewListCtrl->GetValue(cellValue, row, lastColumn);
+
+        std::int64_t dataViewListCtrlTaskId = static_cast<std::int64_t>(cellValue.GetLong());
+
+        if (taskDeletedId == dataViewListCtrlTaskId) {
+            pDataViewListCtrl->DeleteItem(row);
+            break;
+        }
+    }
 }
 
 void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
