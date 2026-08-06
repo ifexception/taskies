@@ -223,7 +223,9 @@ private:
     void OnTaskDeleted(wxCommandEvent& event);
     void OnOutlookMeetingViewClose(wxCommandEvent& event);
     /* Control Event Handlers */
+    void OnPreviousDayButtonClick(wxCommandEvent& event);
     void OnDateChanged(wxDateEvent& event);
+    void OnNextDayButtonClick(wxCommandEvent& event);
     /* ListCtrl Event Handlers */
     void OnItemContextMenu(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
@@ -264,8 +266,9 @@ private:
     TaskBarIcon* pTaskBarIcon;
     StatusBar* pStatusBar;
 
+    wxButton* pPreviousDayButton;
     wxDatePickerCtrl* pDatePickerCtrl;
-
+    wxButton* pNextDayButton;
     wxDataViewListCtrl* pDataViewListCtrl;
 
     std::unique_ptr<DateStore> pDateStore;
@@ -292,7 +295,9 @@ private:
     enum {
         tksIDC_THUMBBAR_NEWTASK = wxID_HIGHEST + 1000,
         tksIDC_THUMBBAR_QUICKEXPORT,
+        tksIDC_PREVIOUSDAYBUTTON,
         tksIDC_DATEPICKERCTRL,
+        tksIDC_NEXTDAYBUTTON,
         tksIDC_DATAVIEWLISTCTRL,
         tksIDC_TASKREMINDERTIMER
     };
