@@ -1710,6 +1710,61 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
     auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
 
     SPDLOG_LOGGER_TRACE(pLogger, "Received task update event for ID: \"{0}\"", taskChangedId);
+
+    Services::TaskViewModel taskViewModel;
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.GetById(taskChangedId, taskViewModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+    } else {
+        auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
+        for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
+            switch (allTasksViewColumns[j].TaskViewColumnId) {
+            case TasksViewColumnIdentifier::Date:
+                pDataViewListCtrl->SetTextValue(taskViewModel.WorkdayDate, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Employer:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.EmployerName, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Client:
+                pDataViewListCtrl->SetTextValue(taskViewModel.ClientName, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Project:
+                pDataViewListCtrl->SetTextValue(taskViewModel.ProjectName, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Category:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.CategoryName, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Duration:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.GetDuration(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Billable:
+                pDataViewListCtrl->SetToggleValue(taskViewModel.Billable, mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::UniqueIdentifier:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.TryGetUniqueIdentifier(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::Description:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.GetTrimmedDescription(), mDataViewListCtrlRow, j);
+                break;
+            default:
+                break;
+            }
+        }
+    }
 }
 
 void MainFrame::OnTaskDeleted(wxCommandEvent& event)
