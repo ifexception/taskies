@@ -480,7 +480,7 @@ void MainFrame::DataToControls()
     auto sqliteResult = tasksService.FilterByDate(pDateStore->PrintTodayDate, taskViewModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterByDateRangeTaskMessage,
+            Messages::FilterByDateTaskMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -1813,7 +1813,7 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
         auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskViewModels);
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,
-                Messages::FilterByDateRangeTaskMessage,
+                Messages::FilterByDateTaskMessage,
                 Common::GetProgramName(),
                 wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
             dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -1902,7 +1902,7 @@ void MainFrame::OnDateChanged(wxDateEvent& event)
     auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskViewModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::FilterByDateRangeTaskMessage,
+            Messages::FilterByDateTaskMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
