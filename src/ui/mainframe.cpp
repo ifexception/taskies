@@ -877,7 +877,18 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
 {
     wxBusyCursor wait;
 
-    DoResetToCurrentWeekAndOrToday();
+    wxDateTime dateNow = pDatePickerCtrl->GetValue();
+    wxDateTime dateUtc = dateNow.MakeFromTimezone(wxDateTime::UTC);
+
+    time_t eventDateUtcTicks = dateUtc.GetTicks();
+    auto datePickerDate =
+        date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+
+    if (datePickerDate == pDateStore->TodayDate) {
+        return;
+    }
+
+    DateChangedProcedure(dateUtc);
 }
 
 void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event))
@@ -2107,29 +2118,6 @@ void MainFrame::OnColumnHeaderRightClick(wxDataViewEvent& event)
     PopupMenu(&menu);
 }
 
-void MainFrame::DoResetToCurrentWeekAndOrToday()
-{
-    bool shouldReset = false;
-
-    if (mFromDate != pDateStore->MondayDate) {
-        shouldReset = true;
-    }
-
-    if (mToDate != pDateStore->SundayDate) {
-        shouldReset = true;
-    }
-
-    if (pDateStore->MondayDate != pDateStore->CurrentWeekMondayDate) {
-        shouldReset = true;
-    }
-
-    if (shouldReset) {
-        pDateStore->Reset();
-    }
-
-    CalculateStatusBarTaskDurations();
-}
-
 void MainFrame::CalculateStatusBarTaskDurations()
 {
     // Default hours
@@ -2204,19 +2192,15 @@ void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
 {
     SetDatePickerDate(dateTime);
     RefreshDataViewListControl();
+
+    UpdateSelectedDayStatusBarTaskDurations(mTaskDate);
 }
 
 void MainFrame::SetDatePickerDate(const wxDateTime& dateTime)
 {
     pDatePickerCtrl->SetValue(dateTime);
 
-    time_t eventDateUtcTicks = dateTime.GetTicks();
-    auto newSelectedDate =
-        date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
-
-    std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
-
-    mTaskDate = dateStringFormat;
+    ParseWXDateTimeToDate(dateTime);
 }
 
 void MainFrame::RefreshDataViewListControl()
@@ -2279,9 +2263,18 @@ void MainFrame::RefreshDataViewListControl()
             row.push_back(static_cast<long>(taskViewModels[i].TaskId));
             pDataViewListCtrl->AppendItem(row);
         }
-
-        UpdateSelectedDayStatusBarTaskDurations(mTaskDate);
     }
+}
+
+void MainFrame::ParseWXDateTimeToDate(const wxDateTime& dateTime)
+{
+    time_t eventDateUtcTicks = dateTime.GetTicks();
+    auto newSelectedDate =
+        date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+
+    std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
+
+    mTaskDate = dateStringFormat;
 }
 
 void MainFrame::ResetTaskContextMenuVariables()

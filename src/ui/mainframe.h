@@ -235,8 +235,6 @@ private:
     /* Power Event Handlers */
     void OnPowerResume(wxPowerEvent& event);
 
-    void DoResetToCurrentWeekAndOrToday();
-
     void CalculateStatusBarTaskDurations();
     void CalculateDefaultTaskDurations();
     void CalculateBillableTaskDurations();
@@ -253,6 +251,8 @@ private:
     void DateChangedProcedure(const wxDateTime& dateTime);
     void SetDatePickerDate(const wxDateTime& dateTime);
     void RefreshDataViewListControl();
+
+    void ParseWXDateTimeToDate(const wxDateTime& dateTime);
 
     void ResetTaskContextMenuVariables();
 
