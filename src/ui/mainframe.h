@@ -282,7 +282,7 @@ private:
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
 
     std::int64_t mTaskIdToEdit;
-    std::string mTaskDate;
+    std::string mTaskDateString;
     unsigned int mDataViewListCtrlRow;
 
     /*

@@ -183,7 +183,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mFromDate()
     , mToDate()
     , mTaskIdToEdit(-1)
-    , mTaskDate()
+    , mTaskDateString()
     , mThumbBarDialogOpenCounter(0)
     , mOutlookMeetingViewFrameOpenCounter(0)
     , pTaskReminderTimer(std::make_unique<wxTimer>(this, tksIDC_TASKREMINDERTIMER))
@@ -223,7 +223,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     mTodayDate = pDateStore->TodayDate;
     mFromDate = pDateStore->MondayDate;
     mToDate = pDateStore->SundayDate;
-    mTaskDate = pDateStore->PrintTodayDate;
+    mTaskDateString = pDateStore->PrintTodayDate;
 
     // Setup reminders (if enabled)
     if (pCfg->UseReminders()) {
@@ -943,9 +943,7 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    assert(!mTaskDate.empty());
-
-    dlg::TaskDialog popupNewTask(this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDate);
+    dlg::TaskDialog popupNewTask(this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDateString);
     popupNewTask.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -953,14 +951,12 @@ void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 {
-    assert(!mTaskDate.empty());
-
-    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks for date \"{0}\"", mTaskDate);
+    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks for date \"{0}\"", mTaskDateString);
 
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskModels);
+    auto sqliteResult = tasksService.FilterByDate(mTaskDateString, taskModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterByDateTaskMessage,
@@ -1032,7 +1028,7 @@ void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
         SPDLOG_LOGGER_TRACE(pLogger,
             "Successfully copied \"{0}\" tasks for date \"{1}\"",
             taskModels.size(),
-            mTaskDate);
+            mTaskDateString);
     }
 
     ResetTaskContextMenuVariables();
@@ -1040,14 +1036,12 @@ void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED(event))
 {
-    assert(!mTaskDate.empty());
-
-    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks with headers for date \"{0}\"", mTaskDate);
+    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks with headers for date \"{0}\"", mTaskDateString);
 
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskModels);
+    auto sqliteResult = tasksService.FilterByDate(mTaskDateString, taskModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterByDateTaskMessage,
@@ -1122,7 +1116,7 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
         SPDLOG_LOGGER_TRACE(pLogger,
             "Successfully copied \"{0}\" tasks with headers for date \"{1}\"",
             taskModels.size(),
-            mTaskDate);
+            mTaskDateString);
     }
 
     ResetTaskContextMenuVariables();
@@ -1130,9 +1124,7 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
 
 void MainFrame::OnColumnCopyTasksUsingPreset(wxCommandEvent& event)
 {
-    assert(!mTaskDate.empty());
-
-    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks using default preset for date \"{0}\"", mTaskDate);
+    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks using default preset for date \"{0}\"", mTaskDateString);
 
     const auto& presets = pCfg->GetPresets();
     if (presets.size() == 0) {
@@ -1189,7 +1181,7 @@ void MainFrame::OnColumnCopyTasksUsingPreset(wxCommandEvent& event)
 
     std::string exportedData = "";
     ExportResult result =
-        csvExporter.ExportToCsv(projections, joinProjections, mTaskDate, mTaskDate, exportedData);
+        csvExporter.ExportToCsv(projections, joinProjections, mTaskDateString, mTaskDateString, exportedData);
 
     if (!result.Success) {
         wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
@@ -1207,7 +1199,7 @@ void MainFrame::OnColumnCopyTasksUsingPreset(wxCommandEvent& event)
         wxTheClipboard->Close();
     } else {
         pLogger->error(
-            "Failed to open the system clipboard to copy tasks for date \"{0}\"", mTaskDate);
+            "Failed to open the system clipboard to copy tasks for date \"{0}\"", mTaskDateString);
     }
 
     ResetTaskContextMenuVariables();
@@ -1215,7 +1207,6 @@ void MainFrame::OnColumnCopyTasksUsingPreset(wxCommandEvent& event)
 
 void MainFrame::OnCopyTaskDescriptionToClipboard(wxCommandEvent& WXUNUSED(event))
 {
-    assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
 
     std::string description;
@@ -1245,7 +1236,6 @@ void MainFrame::OnCopyTaskDescriptionToClipboard(wxCommandEvent& WXUNUSED(event)
 
 void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
 {
-    assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
 
     Services::TaskViewModel taskModel;
@@ -1318,7 +1308,6 @@ void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
 
 void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
 {
-    assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
 
     const auto& presets = pCfg->GetPresets();
@@ -1392,7 +1381,7 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
 
     std::string exportedData = "";
     ExportResult result =
-        csvExporter.ExportToCsv(projections, joinProjections, mTaskDate, mTaskDate, exportedData);
+        csvExporter.ExportToCsv(projections, joinProjections, mTaskDateString, mTaskDateString, exportedData);
 
     auto canOpen = wxTheClipboard->Open();
     if (canOpen) {
@@ -1408,12 +1397,11 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
 
 void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 {
-    assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
     assert(mDataViewListCtrlRow != -1);
 
     dlg::TaskDialog editTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDate);
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDateString);
     editTaskDialog.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -1421,7 +1409,6 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 {
-    assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
     assert(mDataViewListCtrlRow != -1);
 
@@ -1502,7 +1489,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         ResetTaskContextMenuVariables();
         return;
     } else {
-        TryUpdateSelectedDateAndAllTaskDurations(mTaskDate);
+        TryUpdateSelectedDateAndAllTaskDurations(mTaskDateString);
 
         pDataViewListCtrl->DeleteItem(mDataViewListCtrlRow);
     }
@@ -1512,7 +1499,6 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
 {
-    assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
 
     dlg::TaskDialog cloneTaskDialog(
@@ -1524,7 +1510,6 @@ void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 {
-    assert(!mTaskDate.empty());
     assert(mTaskIdToEdit != -1);
     assert(mDataViewListCtrlRow != -1);
 
@@ -1545,7 +1530,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
-    UpdateSelectedDayStatusBarTaskDurations(mTaskDate);
+    UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
 
     Services::TaskViewModel taskViewModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
@@ -1829,7 +1814,7 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
         std::vector<Services::TaskViewModel> taskViewModels;
         Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskViewModels);
+        auto sqliteResult = tasksService.FilterByDate(mTaskDateString, taskViewModels);
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,
                 Messages::FilterByDateTaskMessage,
@@ -2006,7 +1991,7 @@ void MainFrame::OnItemActivated(wxDataViewEvent& event)
     int ret = -1;
 
     dlg::TaskDialog editTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDate);
+        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDateString);
     ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {
@@ -2193,7 +2178,7 @@ void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
     SetDatePickerDate(dateTime);
     RefreshDataViewListControl();
 
-    UpdateSelectedDayStatusBarTaskDurations(mTaskDate);
+    UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
 }
 
 void MainFrame::SetDatePickerDate(const wxDateTime& dateTime)
@@ -2210,7 +2195,7 @@ void MainFrame::RefreshDataViewListControl()
     std::vector<Services::TaskViewModel> taskViewModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.FilterByDate(mTaskDate, taskViewModels);
+    auto sqliteResult = tasksService.FilterByDate(mTaskDateString, taskViewModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterByDateTaskMessage,
@@ -2274,7 +2259,7 @@ void MainFrame::ParseWXDateTimeToDate(const wxDateTime& dateTime)
 
     std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
 
-    mTaskDate = dateStringFormat;
+    mTaskDateString = dateStringFormat;
 }
 
 void MainFrame::ResetTaskContextMenuVariables()
