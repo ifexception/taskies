@@ -250,6 +250,10 @@ private:
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
+    void DateChangedProcedure(const wxDateTime& dateTime);
+    void SetDatePickerDate(const wxDateTime& dateTime);
+    void RefreshDataViewListControl();
+
     void ResetTaskContextMenuVariables();
 
     std::shared_ptr<spdlog::logger> pLogger;
