@@ -421,7 +421,10 @@ void MainFrame::CreateControls()
     for (size_t i = 0; i < countOfTasksViewColumns; i++) {
         if (allTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
             wxDataViewColumn* toggleColumn =
-                pDataViewListCtrl->AppendToggleColumn(allTasksViewColumns[i].Name);
+                pDataViewListCtrl->AppendToggleColumn(allTasksViewColumns[i].Name,
+                    wxDATAVIEW_CELL_INERT,
+                    wxCOL_WIDTH_AUTOSIZE,
+                    wxALIGN_CENTRE);
             toggleColumn->SetResizeable(false);
         } else if (allTasksViewColumns[i].Type == TasksViewColumnType::Text) {
             wxDataViewColumn* textColumn =
@@ -943,7 +946,8 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    dlg::TaskDialog popupNewTask(this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDateString);
+    dlg::TaskDialog popupNewTask(
+        this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDateString);
     popupNewTask.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -1124,7 +1128,8 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
 
 void MainFrame::OnColumnCopyTasksUsingPreset(wxCommandEvent& event)
 {
-    SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks using default preset for date \"{0}\"", mTaskDateString);
+    SPDLOG_LOGGER_TRACE(
+        pLogger, "Copy all tasks using default preset for date \"{0}\"", mTaskDateString);
 
     const auto& presets = pCfg->GetPresets();
     if (presets.size() == 0) {
@@ -1180,8 +1185,8 @@ void MainFrame::OnColumnCopyTasksUsingPreset(wxCommandEvent& event)
         pLogger, exportOptions, mDatabaseFilePath, false);
 
     std::string exportedData = "";
-    ExportResult result =
-        csvExporter.ExportToCsv(projections, joinProjections, mTaskDateString, mTaskDateString, exportedData);
+    ExportResult result = csvExporter.ExportToCsv(
+        projections, joinProjections, mTaskDateString, mTaskDateString, exportedData);
 
     if (!result.Success) {
         wxMessageBox(result.ErrorMessage, Common::GetProgramName(), wxICON_ERROR | wxOK_DEFAULT);
@@ -1380,8 +1385,8 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
         pLogger, exportOptions, mDatabaseFilePath, mTaskIdToEdit);
 
     std::string exportedData = "";
-    ExportResult result =
-        csvExporter.ExportToCsv(projections, joinProjections, mTaskDateString, mTaskDateString, exportedData);
+    ExportResult result = csvExporter.ExportToCsv(
+        projections, joinProjections, mTaskDateString, mTaskDateString, exportedData);
 
     auto canOpen = wxTheClipboard->Open();
     if (canOpen) {
