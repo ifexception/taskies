@@ -891,7 +891,20 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
-    DateChangedProcedure(dateUtc);
+    auto todayDate = pDateStore->TodayDate;
+    date::year_month_day todayDateYmd = date::year_month_day{ todayDate };
+    // Extract integer values
+    int year = static_cast<int>(todayDateYmd.year());
+    unsigned month = static_cast<unsigned>(todayDateYmd.month()); // 1-12
+    unsigned day = static_cast<unsigned>(todayDateYmd.day()); // 1-31
+
+    // wxDateTime months are 0-based (Jan = 0)
+    wxDateTime wxDateTimeValue(day, static_cast<wxDateTime::Month>(month - 1), year);
+    if (!wxDateTimeValue.IsValid()) {
+        throw std::runtime_error("wxDateTime creation failed");
+    }
+
+    DateChangedProcedure(wxDateTimeValue);
 }
 
 void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event))
