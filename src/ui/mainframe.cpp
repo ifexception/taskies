@@ -396,6 +396,7 @@ void MainFrame::CreateControls()
     pDatePickerCtrl = new wxDatePickerCtrl(framePanel, tksIDC_DATEPICKERCTRL);
     pNextDayButton = new wxButton(
         framePanel, tksIDC_NEXTDAYBUTTON, ">", wxDefaultPosition, FromDIP(wxSize(32, -1)));
+    pNextDayButton->SetToolTip("Navigate to the next date");
 
     topSizer->Add(pPreviousDayButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     topSizer->Add(pDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -548,6 +549,7 @@ void MainFrame::OnClose(wxCloseEvent& event)
 {
     if (pCfg->CloseToTray() && pCfg->ShowInTray() && event.CanVeto()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Closing program to tray area");
+
         Hide();
         MSWGetTaskBarButton()->Hide();
 
@@ -819,8 +821,6 @@ void MainFrame::OnTasksQuickExportToFormat(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnExit(wxCommandEvent& WXUNUSED(event))
 {
-    pLogger->info("MainFrame::OnExit - Menu/shortcut clicked to exit program");
-
     Close(true);
 }
 
@@ -888,7 +888,7 @@ void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event))
             this, pCfg, pEnv, pLogger, mDatabaseFilePath, IsMaximized());
         pMeetingsViewFrame->Show();
     } else {
-        SPDLOG_LOGGER_TRACE(pLogger, "Outlook meetings frame already open -> call Raise()");
+        SPDLOG_LOGGER_TRACE(pLogger, "Outlook meetings frame already open and call Raise() method");
         pMeetingsViewFrame->Raise();
     }
 }
@@ -1902,6 +1902,7 @@ void MainFrame::OnPreviousDayButtonClick(wxCommandEvent& event)
     time_t eventDateUtcTicks = previousDayDateUtc.GetTicks();
     auto newSelectedDate =
         date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+
     std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
 
     mTaskDate = dateStringFormat;
