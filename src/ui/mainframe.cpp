@@ -416,53 +416,29 @@ void MainFrame::CreateControls()
     pDataViewListCtrl->SetFocus();
     sizer->Add(pDataViewListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    auto selectedTasksViewColumns = pCfg->GetTasksViewColumns();
-    const size_t countOfSelectedTasksViewColumns = selectedTasksViewColumns.size();
-
-    for (size_t i = 0; i < countOfSelectedTasksViewColumns; i++) {
-        if (selectedTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
-            wxDataViewColumn* toggleColumn = pDataViewListCtrl->AppendToggleColumn(
-                selectedTasksViewColumns[i].Name,
+    for (size_t i = 0; i < mTasksViewColumns.size(); i++) {
+        wxDataViewColumn* column = nullptr;
+        if (mTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
+            column = pDataViewListCtrl->AppendToggleColumn(mTasksViewColumns[i].Name,
                 wxDATAVIEW_CELL_INERT,
-                selectedTasksViewColumns[i].Width,
-                Common::MapTasksViewColumnTextAlignment(selectedTasksViewColumns[i].TextAlignment));
-            toggleColumn->SetResizeable(false);
-        } else if (selectedTasksViewColumns[i].Type == TasksViewColumnType::Text) {
-            wxDataViewColumn* textColumn = pDataViewListCtrl->AppendTextColumn(
-                selectedTasksViewColumns[i].Name,
+                mTasksViewColumns[i].Width,
+                Common::MapTasksViewColumnTextAlignment(mTasksViewColumns[i].TextAlignment));
+            column->SetResizeable(false);
+        } else if (mTasksViewColumns[i].Type == TasksViewColumnType::Text) {
+            column = pDataViewListCtrl->AppendTextColumn(mTasksViewColumns[i].Name,
                 wxDATAVIEW_CELL_INERT,
-                selectedTasksViewColumns[i].Width,
-                Common::MapTasksViewColumnTextAlignment(selectedTasksViewColumns[i].TextAlignment));
-            textColumn->SetResizeable(true);
+                mTasksViewColumns[i].Width,
+                Common::MapTasksViewColumnTextAlignment(mTasksViewColumns[i].TextAlignment));
+            column->SetResizeable(true);
         }
-    }
 
-    auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
-    const size_t countOfAllTasksViewColumns = allTasksViewColumns.size();
-
-    for (size_t i = 0; i < countOfAllTasksViewColumns; i++) {
-        auto iterator = std::find_if(selectedTasksViewColumns.begin(),
-            selectedTasksViewColumns.end(),
-            [&](const Core::Configuration::TasksViewColumnSetting& setting) {
-                return setting.TaskViewColumnId == allTasksViewColumns[i].TaskViewColumnId;
-            });
-        if (iterator == selectedTasksViewColumns.end()) {
-            wxDataViewColumn* column = nullptr;
-            if (allTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
-                column = pDataViewListCtrl->AppendToggleColumn(
-                    allTasksViewColumns[i].Name, wxDATAVIEW_CELL_INERT);
-            } else if (allTasksViewColumns[i].Type == TasksViewColumnType::Text) {
-                column = pDataViewListCtrl->AppendTextColumn(
-                    allTasksViewColumns[i].Name, wxDATAVIEW_CELL_INERT);
-            }
+        if (!mTasksViewColumns[i].UserSelected) {
             column->SetHidden(true);
         }
     }
 
-    wxDataViewTextRenderer* idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
-    wxDataViewColumn* idColumn = new wxDataViewColumn(
-        "ID", idRenderer, countOfAllTasksViewColumns, 80, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
-    pDataViewListCtrl->AppendColumn(idColumn);
+    pDataViewListCtrl->AppendTextColumn(
+        "ID", wxDATAVIEW_CELL_INERT, wxSIZE_AUTO_WIDTH, wxALIGN_LEFT, wxDATAVIEW_COL_HIDDEN);
 
     /* Accelerator Table */
     wxAcceleratorEntry entries[6];
@@ -1670,11 +1646,10 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
         dialog.ShowModal();
         return;
     } else {
-        auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
         wxVector<wxVariant> row;
 
-        for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
-            switch (allTasksViewColumns[j].TaskViewColumnId) {
+        for (size_t j = 0; j < mTasksViewColumns.size(); j++) {
+            switch (mTasksViewColumns[j].TaskViewColumnId) {
             case TasksViewColumnIdentifier::Date:
                 row.push_back(taskViewModel.WorkdayDate);
                 break;
@@ -2052,9 +2027,8 @@ void MainFrame::OnItemActivated(wxDataViewEvent& event)
 
                 dialog.ShowModal();
             } else {
-                auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
-                for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
-                    switch (allTasksViewColumns[j].TaskViewColumnId) {
+                for (size_t j = 0; j < mTasksViewColumns.size(); j++) {
+                    switch (mTasksViewColumns[j].TaskViewColumnId) {
                     case TasksViewColumnIdentifier::Date:
                         pDataViewListCtrl->SetTextValue(
                             taskViewModel.WorkdayDate, mDataViewListCtrlRow, j);
@@ -2235,12 +2209,11 @@ void MainFrame::RefreshDataViewListControl()
     } else {
         wxVector<wxVariant> row;
 
-        auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
         for (size_t i = 0; i < taskViewModels.size(); i++) {
             row.clear();
 
-            for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
-                switch (allTasksViewColumns[j].TaskViewColumnId) {
+            for (size_t j = 0; j < mTasksViewColumns.size(); j++) {
+                switch (mTasksViewColumns[j].TaskViewColumnId) {
                 case TasksViewColumnIdentifier::Date:
                     row.push_back(taskViewModels[i].WorkdayDate);
                     break;
