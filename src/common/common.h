@@ -111,6 +111,8 @@ struct TasksViewColumn {
     TasksViewColumnIdentifier TaskViewColumnId;
     int Width;
     TasksViewColumnType Type;
+
+    bool UserSelected;
 };
 
 TasksViewColumn DescriptionTasksViewColumn();

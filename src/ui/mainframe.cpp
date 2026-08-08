@@ -51,7 +51,6 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "../core/environment.h"
-#include "../core/configuration.h"
 #include "../core/database_backup.h"
 #include "../core/database_optimizer.h"
 #include "../core/zip_database_backup.h"
@@ -188,6 +187,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mOutlookMeetingViewFrameOpenCounter(0)
     , pTaskReminderTimer(std::make_unique<wxTimer>(this, tksIDC_TASKREMINDERTIMER))
     , pTaskReminderNotification()
+    , mTasksViewColumns()
 // clang-format on
 {
     // Initialization setup
@@ -245,6 +245,9 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 
     MSWGetTaskBarButton()->AppendThumbBarButton(pThumbBarNewTaskButton);
     MSWGetTaskBarButton()->AppendThumbBarButton(pThumbBarQuickExportButton);
+
+    // Build list of tasks view columns
+    mTasksViewColumns = CombineTasksViewColumns();
 
     // Create, fill, and set data to controls
     Create();
@@ -413,44 +416,52 @@ void MainFrame::CreateControls()
     pDataViewListCtrl->SetFocus();
     sizer->Add(pDataViewListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
-    auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
-    const size_t countOfTasksViewColumns = allTasksViewColumns.size();
-
     auto selectedTasksViewColumns = pCfg->GetTasksViewColumns();
+    const size_t countOfSelectedTasksViewColumns = selectedTasksViewColumns.size();
 
-    for (size_t i = 0; i < countOfTasksViewColumns; i++) {
-        if (allTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
-            wxDataViewColumn* toggleColumn =
-                pDataViewListCtrl->AppendToggleColumn(allTasksViewColumns[i].Name,
-                    wxDATAVIEW_CELL_INERT,
-                    wxCOL_WIDTH_AUTOSIZE,
-                    wxALIGN_CENTRE);
+    for (size_t i = 0; i < countOfSelectedTasksViewColumns; i++) {
+        if (selectedTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
+            wxDataViewColumn* toggleColumn = pDataViewListCtrl->AppendToggleColumn(
+                selectedTasksViewColumns[i].Name,
+                wxDATAVIEW_CELL_INERT,
+                selectedTasksViewColumns[i].Width,
+                Common::MapTasksViewColumnTextAlignment(selectedTasksViewColumns[i].TextAlignment));
             toggleColumn->SetResizeable(false);
-        } else if (allTasksViewColumns[i].Type == TasksViewColumnType::Text) {
-            wxDataViewColumn* textColumn =
-                pDataViewListCtrl->AppendTextColumn(allTasksViewColumns[i].Name,
-                    wxDATAVIEW_CELL_INERT,
-                    allTasksViewColumns[i].Width,
-                    Common::MapTasksViewColumnTextAlignment(allTasksViewColumns[i].TextAlignment));
+        } else if (selectedTasksViewColumns[i].Type == TasksViewColumnType::Text) {
+            wxDataViewColumn* textColumn = pDataViewListCtrl->AppendTextColumn(
+                selectedTasksViewColumns[i].Name,
+                wxDATAVIEW_CELL_INERT,
+                selectedTasksViewColumns[i].Width,
+                Common::MapTasksViewColumnTextAlignment(selectedTasksViewColumns[i].TextAlignment));
             textColumn->SetResizeable(true);
         }
+    }
 
+    auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
+    const size_t countOfAllTasksViewColumns = allTasksViewColumns.size();
+
+    for (size_t i = 0; i < countOfAllTasksViewColumns; i++) {
         auto iterator = std::find_if(selectedTasksViewColumns.begin(),
             selectedTasksViewColumns.end(),
             [&](const Core::Configuration::TasksViewColumnSetting& setting) {
                 return setting.TaskViewColumnId == allTasksViewColumns[i].TaskViewColumnId;
             });
         if (iterator == selectedTasksViewColumns.end()) {
-            wxDataViewColumn* column = pDataViewListCtrl->GetColumn(i);
-            if (column) {
-                column->SetHidden(true);
+            wxDataViewColumn* column = nullptr;
+            if (allTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
+                column = pDataViewListCtrl->AppendToggleColumn(
+                    allTasksViewColumns[i].Name, wxDATAVIEW_CELL_INERT);
+            } else if (allTasksViewColumns[i].Type == TasksViewColumnType::Text) {
+                column = pDataViewListCtrl->AppendTextColumn(
+                    allTasksViewColumns[i].Name, wxDATAVIEW_CELL_INERT);
             }
+            column->SetHidden(true);
         }
     }
 
     wxDataViewTextRenderer* idRenderer = new wxDataViewTextRenderer("long", wxDATAVIEW_CELL_INERT);
     wxDataViewColumn* idColumn = new wxDataViewColumn(
-        "ID", idRenderer, countOfTasksViewColumns, 80, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
+        "ID", idRenderer, countOfAllTasksViewColumns, 80, wxALIGN_CENTER, wxDATAVIEW_COL_HIDDEN);
     pDataViewListCtrl->AppendColumn(idColumn);
 
     /* Accelerator Table */
@@ -502,12 +513,11 @@ void MainFrame::DataToControls()
     } else {
         wxVector<wxVariant> row;
 
-        auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
         for (size_t i = 0; i < taskViewModels.size(); i++) {
             row.clear();
 
-            for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
-                switch (allTasksViewColumns[j].TaskViewColumnId) {
+            for (size_t j = 0; j < mTasksViewColumns.size(); j++) {
+                switch (mTasksViewColumns[j].TaskViewColumnId) {
                 case TasksViewColumnIdentifier::Date:
                     row.push_back(taskViewModels[i].WorkdayDate);
                     break;
@@ -1566,9 +1576,8 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
 
         dialog.ShowModal();
     } else {
-        auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
-        for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
-            switch (allTasksViewColumns[j].TaskViewColumnId) {
+        for (size_t j = 0; j < mTasksViewColumns.size(); j++) {
+            switch (mTasksViewColumns[j].TaskViewColumnId) {
             case TasksViewColumnIdentifier::Date:
                 pDataViewListCtrl->SetTextValue(taskViewModel.WorkdayDate, mDataViewListCtrlRow, j);
                 break;
@@ -1751,9 +1760,8 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
 
         dialog.ShowModal();
     } else {
-        auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
-        for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
-            switch (allTasksViewColumns[j].TaskViewColumnId) {
+        for (size_t j = 0; j < mTasksViewColumns.size(); j++) {
+            switch (mTasksViewColumns[j].TaskViewColumnId) {
             case TasksViewColumnIdentifier::Date:
                 pDataViewListCtrl->SetTextValue(taskViewModel.WorkdayDate, mDataViewListCtrlRow, j);
                 break;
@@ -1847,12 +1855,11 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
         } else {
             wxVector<wxVariant> row;
 
-            auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
             for (size_t i = 0; i < taskViewModels.size(); i++) {
                 row.clear();
 
-                for (size_t j = 0; j < allTasksViewColumns.size(); j++) {
-                    switch (allTasksViewColumns[j].TaskViewColumnId) {
+                for (size_t j = 0; j < mTasksViewColumns.size(); j++) {
+                    switch (mTasksViewColumns[j].TaskViewColumnId) {
                     case TasksViewColumnIdentifier::Date:
                         row.push_back(taskViewModels[i].WorkdayDate);
                         break;
@@ -2286,5 +2293,44 @@ void MainFrame::ResetTaskContextMenuVariables()
 {
     mTaskIdToEdit = -1;
     mDataViewListCtrlRow = -1;
+}
+
+std::vector<Common::TasksViewColumn> MainFrame::CombineTasksViewColumns()
+{
+    std::vector<Common::TasksViewColumn> columns;
+
+    auto selectedTasksViewColumns = pCfg->GetTasksViewColumns();
+    for (size_t i = 0; i < selectedTasksViewColumns.size(); i++) {
+        Common::TasksViewColumn column;
+
+        column.Name = selectedTasksViewColumns[i].Name;
+        column.Order = selectedTasksViewColumns[i].Order;
+        column.TextAlignment = selectedTasksViewColumns[i].TextAlignment;
+        column.TaskViewColumnId = selectedTasksViewColumns[i].TaskViewColumnId;
+        column.Width = selectedTasksViewColumns[i].Width;
+        column.Type = selectedTasksViewColumns[i].Type;
+        column.UserSelected = true;
+
+        columns.push_back(column);
+    }
+
+    auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
+    const size_t countOfAllTasksViewColumns = allTasksViewColumns.size();
+
+    for (size_t i = 0; i < countOfAllTasksViewColumns; i++) {
+        auto iterator = std::find_if(selectedTasksViewColumns.begin(),
+            selectedTasksViewColumns.end(),
+            [&](const Core::Configuration::TasksViewColumnSetting& setting) {
+                return setting.TaskViewColumnId == allTasksViewColumns[i].TaskViewColumnId;
+            });
+        if (iterator == selectedTasksViewColumns.end()) {
+            Common::TasksViewColumn column(allTasksViewColumns[i]);
+            column.UserSelected = false;
+
+            columns.push_back(column);
+        }
+    }
+
+    return columns;
 }
 } // namespace tks::UI

@@ -42,6 +42,8 @@ Configuration::TasksViewColumnSetting::TasksViewColumnSetting()
     , Order(-1)
     , TextAlignment(TasksViewColumnTextAlignment::Left)
     , TaskViewColumnId(TasksViewColumnIdentifier::Unknown)
+    , Width(80)
+    , Type(TasksViewColumnType::Text)
 {
 }
 
@@ -52,21 +54,18 @@ Configuration::TasksViewColumnSetting::TasksViewColumnSetting(
     Order = tasksViewColumn.Order;
     TextAlignment = tasksViewColumn.TextAlignment;
     TaskViewColumnId = tasksViewColumn.TaskViewColumnId;
+    Width = tasksViewColumn.Width;
+    Type = tasksViewColumn.Type;
 }
 
 bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other) const
 {
-    return Name == other.Name && TaskViewColumnId == other.TaskViewColumnId;
+    return Name == other.Name && TaskViewColumnId == other.TaskViewColumnId && Type == other.Type;
 }
 
 bool Configuration::TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const
 {
-    return Name != other.Name && TaskViewColumnId != other.TaskViewColumnId;
-}
-
-bool Configuration::TasksViewColumnSetting::IsDescriptionColumn() const
-{
-    return Name == "Description";
+    return Name != other.Name && TaskViewColumnId != other.TaskViewColumnId && Type != other.Type;
 }
 
 Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
