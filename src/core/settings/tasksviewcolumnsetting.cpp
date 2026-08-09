@@ -19,7 +19,7 @@
 
 #include "tasksviewcolumnsetting.h"
 
-namespace tks::Core::Configuration::Settings
+namespace tks::Core::Settings
 {
 TasksViewColumnSetting::TasksViewColumnSetting()
     : Name("")

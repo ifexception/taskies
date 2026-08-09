@@ -23,7 +23,7 @@
 
 #include "../../common/enums.h"
 
-namespace tks::Core::Configuration::Settings
+namespace tks::Core::Settings
 {
 static int DefaultWidth = 80;
 
