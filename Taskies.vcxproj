@@ -432,6 +432,7 @@
     <ClCompile Include="src\utils\mswutils.cpp" />
     <ClCompile Include="src\utils\utils.cpp" />
     <ClCompile Include="src\common\wxcommon.cpp" />
+    <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\zip_database_backup.h" />
@@ -550,6 +551,7 @@
     <ClInclude Include="src\utils\mswutils.h" />
     <ClInclude Include="src\utils\utils.h" />
     <ClInclude Include="src\common\wxcommon.h" />
+    <ClInclude Include="src\core\settings\tasksviewcolumnsetting.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc" />

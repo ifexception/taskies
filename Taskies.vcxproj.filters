@@ -93,6 +93,9 @@
     <Filter Include="Source\services\filterentity">
       <UniqueIdentifier>{dab9d520-b1fb-46e0-bd41-bff72092e1cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\core\settings">
+      <UniqueIdentifier>{ab3493aa-ef92-41ac-9a93-51232cc461ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -443,6 +446,9 @@
     <ClCompile Include="src\core\zip_database_backup.cpp">
       <Filter>Source\core</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp">
+      <Filter>Source\core\settings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -792,6 +798,9 @@
     </ClInclude>
     <ClInclude Include="src\core\zip_database_backup.h">
       <Filter>Source\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\settings\tasksviewcolumnsetting.h">
+      <Filter>Source\core\settings</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
