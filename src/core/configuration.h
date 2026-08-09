@@ -28,6 +28,8 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
+#include "settings/tasksviewcolumnsetting.h"
+
 #include "../common/common.h"
 #include "../common/enums.h"
 
@@ -49,22 +51,6 @@ struct Sections {
 class Configuration
 {
 public:
-    struct TasksViewColumnSetting {
-        std::string Name;
-        int Order;
-        TasksViewColumnTextAlignment TextAlignment;
-        TasksViewColumnIdentifier TaskViewColumnId;
-        int Width;
-        TasksViewColumnType Type;
-
-        TasksViewColumnSetting();
-        TasksViewColumnSetting(Common::TasksViewColumn tasksViewColumn);
-        ~TasksViewColumnSetting() = default;
-
-        bool operator==(const TasksViewColumnSetting& other) const;
-        bool operator!=(const TasksViewColumnSetting& other) const;
-    };
-
     struct PresetColumnSetting {
         std::string Column;
         std::string OriginalColumn;
@@ -192,8 +178,8 @@ public:
     bool UseProjectDisplayName() const;
     void UseProjectDisplayName(const bool value);
 
-    std::vector<Configuration::TasksViewColumnSetting> GetTasksViewColumns() const;
-    void SetTasksViewColumns(const std::vector<Configuration::TasksViewColumnSetting> values);
+    std::vector<Settings::TasksViewColumnSetting> GetTasksViewColumns() const;
+    void SetTasksViewColumns(const std::vector<Settings::TasksViewColumnSetting> values);
 
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
@@ -250,7 +236,7 @@ private:
 
         bool TodayAlwaysExpanded;
         bool UseProjectDisplayName;
-        std::vector<Configuration::TasksViewColumnSetting> TasksViewColumnSettings;
+        std::vector<Core::Settings::TasksViewColumnSetting> TasksViewColumnSettings;
 
         std::string ExportPath;
         bool CloseExportDialogAfterExporting;

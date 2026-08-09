@@ -37,37 +37,6 @@ const std::string Sections::TasksViewSection = "tasksView";
 const std::string Sections::ExportSection = "export";
 const std::string Sections::PresetsSection = "presets";
 
-Configuration::TasksViewColumnSetting::TasksViewColumnSetting()
-    : Name("")
-    , Order(-1)
-    , TextAlignment(TasksViewColumnTextAlignment::Left)
-    , TaskViewColumnId(TasksViewColumnIdentifier::Unknown)
-    , Width(80)
-    , Type(TasksViewColumnType::Text)
-{
-}
-
-Configuration::TasksViewColumnSetting::TasksViewColumnSetting(
-    Common::TasksViewColumn tasksViewColumn)
-{
-    Name = tasksViewColumn.Name;
-    Order = tasksViewColumn.Order;
-    TextAlignment = tasksViewColumn.TextAlignment;
-    TaskViewColumnId = tasksViewColumn.TaskViewColumnId;
-    Width = tasksViewColumn.Width;
-    Type = tasksViewColumn.Type;
-}
-
-bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other) const
-{
-    return Name == other.Name && TaskViewColumnId == other.TaskViewColumnId && Type == other.Type;
-}
-
-bool Configuration::TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const
-{
-    return Name != other.Name && TaskViewColumnId != other.TaskViewColumnId && Type != other.Type;
-}
-
 Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
 {
     Column = presetColumn.Column;
@@ -237,10 +206,10 @@ ConfigResult Configuration::Save()
     tasksViewColumnArray.as_array_fmt().closing_indent = 0;
 
     if (mSettings.TasksViewColumnSettings.size() == 0) {
-        auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
-        std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
+        auto defaultTasksViewColumns = Settings::Make;
+        std::vector<Settings::TasksViewColumnSetting> tasksViewColumnSettings;
         for (const auto& tasksViewColumn : defaultTasksViewColumns) {
-            TasksViewColumnSetting setting(tasksViewColumn);
+            Settings::TasksViewColumnSetting setting(tasksViewColumn);
             tasksViewColumnSettings.push_back(setting);
         }
 

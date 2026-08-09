@@ -316,6 +316,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\settings\settings.cpp" />
     <ClCompile Include="src\core\zip_database_backup.cpp" />
     <ClCompile Include="src\services\filterentity\filterentityservice.cpp" />
     <ClCompile Include="src\core\database_optimizer.cpp" />
@@ -435,6 +436,7 @@
     <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\settings\settings.h" />
     <ClInclude Include="src\core\zip_database_backup.h" />
     <ClInclude Include="src\services\filterentity\filterentityservice.h" />
     <ClInclude Include="src\core\database_optimizer.h" />
