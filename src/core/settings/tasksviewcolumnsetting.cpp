@@ -89,11 +89,149 @@ std::vector<TasksViewColumnSetting> MakeDefaultTasksViewColumnList()
         TasksViewColumnType::Text,
         true);
 
-    return std::vector<TasksViewColumnSetting>{
+    return std::vector<TasksViewColumnSetting>{ project, category, duration, description };
+}
+
+std::vector<TasksViewColumnSetting> MakeAllTasksViewColumnList()
+{
+    TasksViewColumnSetting date("Date",
+        "Date",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::Date,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting employer("Employer",
+        "Employer",
+        -1,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Employer,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting client("Client",
+        "Client",
+        -1,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Client,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting project("Project",
+        "Project",
+        -1,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Project,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting category("Category",
+        "Category",
+        -1,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Category,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting duration("Duration",
+        "Duration",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::Duration,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting billable("Billable",
+        "Billable",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::Billable,
+        DefaultWidth,
+        TasksViewColumnType::Toggle,
+        false);
+
+    TasksViewColumnSetting uniqueIdentifier("UniqueIdentifier",
+        "Unique ID",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::UniqueIdentifier,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting taskAttributeValues("TaskAttributeValues",
+        "Attributes + Values",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::TaskAttributeValues,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting taskCreatedDate("TaskCreatedDate",
+        "Created",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::TaskCreatedDate,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting taskModifiedDate("TaskModifiedDate",
+        "Modified",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::TaskModifiedDate,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting taskAttributes("TaskAttributes",
+        "Attribute Values",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::TaskAttributes,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting isMeeting("IsMeeting",
+        "Meeting",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::IsMeeting,
+        DefaultWidth,
+        TasksViewColumnType::Toggle,
+        false);
+
+    TasksViewColumnSetting description("Description",
+        "Description",
+        -1,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Description,
+        -1,
+        TasksViewColumnType::Text,
+        false);
+
+    return std::vector<TasksViewColumnSetting>{ date,
+        employer,
+        client,
         project,
         category,
         duration,
-        description
-    };
+        billable,
+        uniqueIdentifier,
+        taskAttributeValues,
+        taskCreatedDate,
+        taskModifiedDate,
+        isMeeting,
+        description };
 }
 } // namespace tks::Core::Configuration::Settings
