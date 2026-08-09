@@ -37,35 +37,10 @@ const std::string Sections::TasksViewSection = "tasksView";
 const std::string Sections::ExportSection = "export";
 const std::string Sections::PresetsSection = "presets";
 
-Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
-{
-    Column = presetColumn.Column;
-    OriginalColumn = presetColumn.OriginalColumn;
-    Order = presetColumn.Order;
-}
-
-Configuration::PresetSetting::PresetSetting(Common::Preset preset)
-{
-    Uuid = preset.Uuid;
-    Name = preset.Name;
-    IsDefault = preset.IsDefault;
-    Delimiter = preset.Delimiter;
-    TextQualifier = preset.TextQualifier;
-    EmptyValuesHandler = preset.EmptyValuesHandler;
-    NewLinesHandler = preset.NewLinesHandler;
-    BooleanHandler = preset.BooleanHandler;
-    ExcludeHeaders = preset.ExcludeHeaders;
-    IncludeAttributes = preset.IncludeAttributes;
-
-    for (auto& presetColumn : preset.Columns) {
-        PresetColumnSetting presetColumnSettings(presetColumn);
-        Columns.push_back(presetColumnSettings);
-    }
-}
-
 Configuration::Configuration(std::shared_ptr<Environment> env,
     std::shared_ptr<spdlog::logger> logger)
-    : pEnv(env)
+    : pSettings(std::make_unique<Settings::Settings>())
+    , pEnv(env)
     , pLogger(logger)
 {
 }
@@ -429,7 +404,7 @@ ConfigResult Configuration::RestoreDefaults()
     return result;
 }
 
-ConfigResult Configuration::SaveExportPreset(const Common::Preset& presetToSave)
+ConfigResult Configuration::SaveExportPreset(const Settings::PresetSetting& presetToSave)
 {
     toml::value root;
     try {
@@ -498,7 +473,7 @@ ConfigResult Configuration::SaveExportPreset(const Common::Preset& presetToSave)
     return result;
 }
 
-ConfigResult Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
+ConfigResult Configuration::UpdateExportPreset(const Settings::PresetSetting& presetToUpdate)
 {
     toml::value root;
     try {

@@ -23,12 +23,12 @@
 
 namespace tks::Core::Settings
 {
-struct PresetColumnSettings {
+struct PresetColumnSetting {
     std::string Column;
     std::string OriginalColumn;
     int Order;
 
-    PresetColumnSettings();
-    ~PresetColumnSettings() = default;
+    PresetColumnSetting();
+    ~PresetColumnSetting() = default;
 };
-} // namespace MyNamespace
+} // namespace tks::Core::Settings

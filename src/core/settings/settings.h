@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "presetsetting.h"
 #include "tasksviewcolumnsetting.h"
 
 #include "../../common/enums.h"

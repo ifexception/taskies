@@ -21,7 +21,7 @@
 
 namespace tks::Core::Settings
 {
-PresetColumnSettings::PresetColumnSettings()
+PresetColumnSetting::PresetColumnSetting()
     : Column()
     , OriginalColumn()
     , Order(-1)

@@ -452,6 +452,12 @@
     <ClCompile Include="src\core\settings\settings.cpp">
       <Filter>Source\core\settings</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\settings\presetcolumnsetting.cpp">
+      <Filter>Source\core\settings</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\settings\presetsetting.cpp">
+      <Filter>Source\core\settings</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -806,6 +812,12 @@
       <Filter>Source\core\settings</Filter>
     </ClInclude>
     <ClInclude Include="src\core\settings\settings.h">
+      <Filter>Source\core\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\settings\presetcolumnsetting.h">
+      <Filter>Source\core\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\settings\presetsetting.h">
       <Filter>Source\core\settings</Filter>
     </ClInclude>
   </ItemGroup>
