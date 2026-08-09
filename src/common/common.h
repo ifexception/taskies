@@ -59,50 +59,6 @@ std::string GetDeleteTaskIconBundleName();
 
 std::string GetLicense();
 
-// Presets
-struct PresetColumn {
-    std::string Column;
-    std::string OriginalColumn;
-    int Order;
-
-    PresetColumn()
-        : Column()
-        , OriginalColumn()
-        , Order(-1)
-    {
-    }
-};
-
-struct Preset {
-    std::string Uuid;
-    std::string Name;
-    bool IsDefault;
-    DelimiterType Delimiter;
-    TextQualifierType TextQualifier;
-    EmptyValues EmptyValuesHandler;
-    NewLines NewLinesHandler;
-    BooleanHandler BooleanHandler;
-    bool ExcludeHeaders;
-    bool IncludeAttributes;
-    std::vector<PresetColumn> Columns;
-
-    Preset()
-        : Uuid()
-        , Name()
-        , IsDefault(false)
-        , Delimiter(DelimiterType::None)
-        , TextQualifier(TextQualifierType::None)
-        , EmptyValuesHandler(EmptyValues::None)
-        , NewLinesHandler(NewLines::None)
-        , BooleanHandler(BooleanHandler::None)
-        , ExcludeHeaders(false)
-        , IncludeAttributes(false)
-        , Columns()
-    {
-    }
-    ~Preset() {}
-};
-
 namespace Resources
 {
 std::string Wizard();
