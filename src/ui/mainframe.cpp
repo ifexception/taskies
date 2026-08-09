@@ -1870,6 +1870,8 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
                 pDataViewListCtrl->AppendItem(row);
             }
         }
+
+        mTodayDate = pDateStore->TodayDate;
     }
 
     CalculateStatusBarTaskDurations();
@@ -2141,22 +2143,6 @@ void MainFrame::UpdateBillableWeekMonthTaskDurations()
     pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
     pStatusBar->UpdateBillableHoursMonth(
         pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
-}
-
-void MainFrame::UpdateDefaultRangeTaskDurations()
-{
-    const std::string fromDate = date::format("%F", mFromDate);
-    const std::string toDate = date::format("%F", mToDate);
-
-    pStatusBar->UpdateDefaultHoursRange(fromDate, toDate);
-}
-
-void MainFrame::UpdateBillableRangeTaskDurations()
-{
-    const std::string fromDate = date::format("%F", mFromDate);
-    const std::string toDate = date::format("%F", mToDate);
-
-    pStatusBar->UpdateBillableHoursRange(fromDate, toDate);
 }
 
 void MainFrame::TryUpdateSelectedDateAndAllTaskDurations(const std::string& date)

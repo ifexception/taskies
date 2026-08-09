@@ -243,9 +243,6 @@ private:
     void UpdateDefaultWeekMonthTaskDurations();
     void UpdateBillableWeekMonthTaskDurations();
 
-    void UpdateDefaultRangeTaskDurations();
-    void UpdateBillableRangeTaskDurations();
-
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
