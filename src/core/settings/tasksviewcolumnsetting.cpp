@@ -21,5 +21,79 @@
 
 namespace tks::Core::Configuration::Settings
 {
-TasksViewColumnSetting::TasksViewColumnSetting() {}
+TasksViewColumnSetting::TasksViewColumnSetting()
+    : Name("")
+    , DisplayName("")
+    , Order(-1)
+    , TextAlignment(TasksViewColumnTextAlignment::Left)
+    , TaskViewColumnId(TasksViewColumnIdentifier::Unknown)
+    , Width(DefaultWidth)
+    , Type(TasksViewColumnType::Text)
+    , Selected(false)
+{
 }
+
+TasksViewColumnSetting::TasksViewColumnSetting(const std::string& name,
+    const std::string& displayName,
+    int order,
+    TasksViewColumnTextAlignment textAlignment,
+    TasksViewColumnIdentifier columnId,
+    int width,
+    TasksViewColumnType type,
+    bool selected)
+    : Name(name)
+    , DisplayName(displayName)
+    , Order(order)
+    , TextAlignment(textAlignment)
+    , TaskViewColumnId(columnId)
+    , Width(width)
+    , Type(type)
+    , Selected(selected)
+{
+}
+
+std::vector<TasksViewColumnSetting> MakeDefaultTasksViewColumnList()
+{
+    int orderIndex = 1;
+
+    TasksViewColumnSetting project("Project",
+        "Project",
+        orderIndex++,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Project,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        true);
+    TasksViewColumnSetting category("Category",
+        "Category",
+        orderIndex++,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Category,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        true);
+    TasksViewColumnSetting duration("Duration",
+        "Duration",
+        orderIndex++,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::Duration,
+        DefaultWidth,
+        TasksViewColumnType::Text,
+        true);
+    TasksViewColumnSetting description("Description",
+        "Description",
+        orderIndex++,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Description,
+        -1,
+        TasksViewColumnType::Text,
+        true);
+
+    return std::vector<TasksViewColumnSetting>{
+        project,
+        category,
+        duration,
+        description
+    };
+}
+} // namespace tks::Core::Configuration::Settings

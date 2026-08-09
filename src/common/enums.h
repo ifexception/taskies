@@ -81,6 +81,11 @@ enum class TasksViewColumnIdentifier : int {
     Duration,
     Billable,
     UniqueIdentifier,
+    TaskAttributeValues,
+    TaskCreatedDate,
+    TaskModifiedDate,
+    TaskAttributes,
+    IsMeeting,
     Description,
     Unknown = 99
 };

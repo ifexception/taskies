@@ -19,10 +19,37 @@
 
 #pragma once
 
+#include <vector>
+
+#include "../../common/enums.h"
+
 namespace tks::Core::Configuration::Settings
 {
+static int DefaultWidth = 80;
+
 struct TasksViewColumnSetting {
     TasksViewColumnSetting();
+    TasksViewColumnSetting(const std::string& name,
+        const std::string& displayName,
+        int order,
+        TasksViewColumnTextAlignment textAlignment,
+        TasksViewColumnIdentifier columnId,
+        int width,
+        TasksViewColumnType type,
+        bool selected);
     ~TasksViewColumnSetting() = default;
+
+    std::string Name;
+    std::string DisplayName;
+    int Order;
+    TasksViewColumnTextAlignment TextAlignment;
+    TasksViewColumnIdentifier TaskViewColumnId;
+    int Width;
+    TasksViewColumnType Type;
+    bool Selected;
 };
+
+static std::vector<TasksViewColumnSetting> MakeDefaultTasksViewColumnList();
+
+static std::vector<TasksViewColumnSetting> MakeAllTasksViewColumnList();
 } // namespace tks::Core::Configuration::Settings
