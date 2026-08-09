@@ -103,24 +103,6 @@ struct Preset {
     ~Preset() {}
 };
 
-// Tasks View Columns
-struct TasksViewColumn {
-    std::string Name;
-    int Order;
-    TasksViewColumnTextAlignment TextAlignment;
-    TasksViewColumnIdentifier TaskViewColumnId;
-    int Width;
-    TasksViewColumnType Type;
-
-    bool UserSelected;
-};
-
-TasksViewColumn DescriptionTasksViewColumn();
-
-std::vector<TasksViewColumn> DefaultTasksViewColumnList();
-
-std::vector<TasksViewColumn> AvailableTasksViewColumnList();
-
 namespace Resources
 {
 std::string Wizard();
