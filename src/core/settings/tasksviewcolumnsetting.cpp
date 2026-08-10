@@ -220,6 +220,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         taskAttributeValues,
         taskCreatedDate,
         taskModifiedDate,
+        taskAttributes,
         isMeeting,
         description };
 
@@ -365,6 +366,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         taskAttributeValues,
         taskCreatedDate,
         taskModifiedDate,
+        taskAttributes,
         isMeeting,
         description };
 
