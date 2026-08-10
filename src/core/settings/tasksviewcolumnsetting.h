@@ -47,9 +47,14 @@ struct TasksViewColumnSetting {
     int Width;
     TasksViewColumnType Type;
     bool Selected;
+
+    bool operator==(const TasksViewColumnSetting& other) const;
+    bool operator!=(const TasksViewColumnSetting& other) const;
 };
 
-static std::vector<TasksViewColumnSetting> MakeDefaultTasksViewColumnList();
+TasksViewColumnSetting MakeDescriptionTasksViewColumn();
 
-static std::vector<TasksViewColumnSetting> MakeAllTasksViewColumnList();
-} // namespace tks::Core::Configuration::Settings
+const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList();
+
+const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList();
+} // namespace tks::Core::Settings

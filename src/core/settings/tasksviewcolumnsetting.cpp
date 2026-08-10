@@ -52,7 +52,31 @@ TasksViewColumnSetting::TasksViewColumnSetting(const std::string& name,
 {
 }
 
-std::vector<TasksViewColumnSetting> MakeDefaultTasksViewColumnList()
+bool TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other) const
+{
+    return Order == other.Order;
+}
+
+bool TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const
+{
+    return Order != other.Order;
+}
+
+TasksViewColumnSetting MakeDescriptionTasksViewColumn()
+{
+    TasksViewColumnSetting description("Description",
+        "Description",
+        -1,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Description,
+        -1,
+        TasksViewColumnType::Text,
+        true);
+
+    return description;
+}
+
+const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
 {
     int orderIndex = 1;
 
@@ -89,10 +113,11 @@ std::vector<TasksViewColumnSetting> MakeDefaultTasksViewColumnList()
         TasksViewColumnType::Text,
         true);
 
-    return std::vector<TasksViewColumnSetting>{ project, category, duration, description };
+    static std::vector<TasksViewColumnSetting> columns{ project, category, duration, description };
+    return columns;
 }
 
-std::vector<TasksViewColumnSetting> MakeAllTasksViewColumnList()
+const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
 {
     TasksViewColumnSetting date("Date",
         "Date",
@@ -220,7 +245,7 @@ std::vector<TasksViewColumnSetting> MakeAllTasksViewColumnList()
         TasksViewColumnType::Text,
         false);
 
-    return std::vector<TasksViewColumnSetting>{ date,
+    static std::vector<TasksViewColumnSetting> columns{ date,
         employer,
         client,
         project,
@@ -233,5 +258,6 @@ std::vector<TasksViewColumnSetting> MakeAllTasksViewColumnList()
         taskModifiedDate,
         isMeeting,
         description };
+    return columns;
 }
-} // namespace tks::Core::Configuration::Settings
+} // namespace tks::Core::Settings
