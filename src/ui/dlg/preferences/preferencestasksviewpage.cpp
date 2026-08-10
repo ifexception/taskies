@@ -256,20 +256,25 @@ void PreferencesTasksViewPage::DataToControls()
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 
     auto cfgTasksViewColumns = pCfg->GetTasksViewColumns();
-    cfgTasksViewColumns.pop_back();
+    cfgTasksViewColumns.pop_back(); // description column should always be last
+
+    cfgTasksViewColumns.erase(std::remove_if(cfgTasksViewColumns.begin(),
+        cfgTasksViewColumns.end(),
+        [&](const Core::Settings::TasksViewColumnSetting& s) { return !s.Selected; }));
 
     for (const auto& tasksViewColumn : cfgTasksViewColumns) {
         pSelectedTasksViewColumns->Append(tasksViewColumn.Name,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 
-    std::vector<Core::Settings::TasksViewColumnSetting> availableTasksViewColumnSettings;
-    for (const auto& column : mAllTasksViewColumns) {
-        Core::Settings::TasksViewColumnSetting setting(column);
-        availableTasksViewColumnSettings.push_back(setting);
-    }
+    auto cfgTasksViewColumnsUnselected = pCfg->GetTasksViewColumns();
+    cfgTasksViewColumnsUnselected.pop_back(); // description column should always be last
 
-    for (const auto& column : pCfg->GetTasksViewColumns()) {
+    cfgTasksViewColumnsUnselected.erase(std::remove_if(cfgTasksViewColumnsUnselected.begin(),
+        cfgTasksViewColumnsUnselected.end(),
+        [&](const Core::Settings::TasksViewColumnSetting& s) { return s.Selected; }));
+
+    for (const auto& column : cfgTasksViewColumnsUnselected) {
         int itemId = pAvailableTasksViewColumns->FindString(column.Name);
         if (itemId >= 0) {
             pAvailableTasksViewColumns->Delete(itemId);
@@ -287,10 +292,11 @@ void PreferencesTasksViewPage::OnAvailableColumnCheck(wxCommandEvent& event)
             pLogger, "Item checked on available list box with ID \"{0}\"", event.GetInt());
 
         wxCheckListBox* cListBox = wxDynamicCast(event.GetEventObject(), wxCheckListBox);
-        if (cListBox != nullptr) {
+        if (cListBox == nullptr) {
+
+        }
             int clientData = Utils::VoidPointerToInt(cListBox->GetClientData(item));
             index = static_cast<TasksViewColumnIdentifier>(clientData);
-        }
 
         mCheckedAvailableColumns.push_back(std::make_pair(item, index));
     } else {
