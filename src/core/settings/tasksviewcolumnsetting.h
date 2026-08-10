@@ -25,9 +25,11 @@
 
 namespace tks::Core::Settings
 {
-static int DefaultWidth = 80;
 
 struct TasksViewColumnSetting {
+    static int DefaultWidth;
+    static int AutoWidth;
+
     TasksViewColumnSetting();
     TasksViewColumnSetting(const std::string& name,
         const std::string& displayName,

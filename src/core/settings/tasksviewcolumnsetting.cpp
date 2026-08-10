@@ -21,13 +21,16 @@
 
 namespace tks::Core::Settings
 {
+int TasksViewColumnSetting::DefaultWidth = 80;
+int TasksViewColumnSetting::AutoWidth = -1;
+
 TasksViewColumnSetting::TasksViewColumnSetting()
     : Name("")
     , DisplayName("")
     , Order(-1)
     , TextAlignment(TasksViewColumnTextAlignment::Left)
     , TaskViewColumnId(TasksViewColumnIdentifier::Unknown)
-    , Width(DefaultWidth)
+    , Width(TasksViewColumnSetting::DefaultWidth)
     , Type(TasksViewColumnType::Text)
     , Selected(false)
 {
@@ -69,7 +72,7 @@ TasksViewColumnSetting MakeDescriptionTasksViewColumn()
         -1,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnIdentifier::Description,
-        -1,
+        TasksViewColumnSetting::AutoWidth,
         TasksViewColumnType::Text,
         true);
 
@@ -80,30 +83,123 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
 {
     int orderIndex = 1;
 
+    TasksViewColumnSetting date("Date",
+        "Date",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::Date,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting employer("Employer",
+        "Employer",
+        -1,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Employer,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting client("Client",
+        "Client",
+        -1,
+        TasksViewColumnTextAlignment::Left,
+        TasksViewColumnIdentifier::Client,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
     TasksViewColumnSetting project("Project",
         "Project",
         orderIndex++,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnIdentifier::Project,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         true);
+
     TasksViewColumnSetting category("Category",
         "Category",
         orderIndex++,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnIdentifier::Category,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         true);
+
     TasksViewColumnSetting duration("Duration",
         "Duration",
         orderIndex++,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::Duration,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         true);
+
+    TasksViewColumnSetting billable("Billable",
+        "Billable",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::Billable,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Toggle,
+        false);
+
+    TasksViewColumnSetting uniqueIdentifier("UniqueIdentifier",
+        "Unique ID",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::UniqueIdentifier,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting taskAttributeValues("TaskAttributeValues",
+        "Attributes + Values",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::TaskAttributeValues,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting taskCreatedDate("TaskCreatedDate",
+        "Created",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::TaskCreatedDate,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting taskModifiedDate("TaskModifiedDate",
+        "Modified",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::TaskModifiedDate,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting taskAttributes("TaskAttributes",
+        "Attribute Values",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::TaskAttributes,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Text,
+        false);
+
+    TasksViewColumnSetting isMeeting("IsMeeting",
+        "Meeting",
+        -1,
+        TasksViewColumnTextAlignment::Center,
+        TasksViewColumnIdentifier::IsMeeting,
+        TasksViewColumnSetting::DefaultWidth,
+        TasksViewColumnType::Toggle,
+        false);
+
     TasksViewColumnSetting description("Description",
         "Description",
         orderIndex++,
@@ -113,7 +209,20 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnType::Text,
         true);
 
-    static std::vector<TasksViewColumnSetting> columns{ project, category, duration, description };
+    static std::vector<TasksViewColumnSetting> columns{ date,
+        employer,
+        client,
+        project,
+        category,
+        duration,
+        billable,
+        uniqueIdentifier,
+        taskAttributeValues,
+        taskCreatedDate,
+        taskModifiedDate,
+        isMeeting,
+        description };
+
     return columns;
 }
 
@@ -124,7 +233,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::Date,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -133,7 +242,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnIdentifier::Employer,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -142,7 +251,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnIdentifier::Client,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -151,7 +260,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnIdentifier::Project,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -160,7 +269,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnIdentifier::Category,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -169,7 +278,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::Duration,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -178,7 +287,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::Billable,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Toggle,
         false);
 
@@ -187,7 +296,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::UniqueIdentifier,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -196,7 +305,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::TaskAttributeValues,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -205,7 +314,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::TaskCreatedDate,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -214,7 +323,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::TaskModifiedDate,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -223,7 +332,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::TaskAttributes,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
 
@@ -232,7 +341,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         -1,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnIdentifier::IsMeeting,
-        DefaultWidth,
+        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Toggle,
         false);
 
@@ -258,6 +367,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         taskModifiedDate,
         isMeeting,
         description };
+
     return columns;
 }
 } // namespace tks::Core::Settings
