@@ -29,6 +29,7 @@
 #include "../../../utils/utils.h"
 
 #include "../../../core/configuration.h"
+#include "../../../core/settings/tasksviewcolumnsetting.h"
 
 namespace tks::UI::dlg
 {
@@ -50,7 +51,7 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , mCheckedSelectedColumns()
     , mAllTasksViewColumns()
 {
-    mAllTasksViewColumns = Common::AvailableTasksViewColumnList();
+    mAllTasksViewColumns = Core::Settings::MakeAllTasksViewColumnList();
     mAllTasksViewColumns.pop_back();
 
     CreateControls();
@@ -69,8 +70,7 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
     pCfg->TodayAlwaysExpanded(pTodayAlwaysExpanded->GetValue());
     pCfg->UseProjectDisplayName(pUseProjectDisplayName->GetValue());
 
-    std::vector<Core::Configuration::TasksViewColumnSetting>
-        selectedTasksViewColumnsFromCheckListBox;
+    std::vector<Core::Settings::TasksViewColumnSetting> selectedTasksViewColumnsFromCheckListBox;
 
     for (unsigned int i = 0; i < pSelectedTasksViewColumns->GetCount(); i++) {
         int clientData = Utils::VoidPointerToInt(pSelectedTasksViewColumns->GetClientData(i));
@@ -78,17 +78,18 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
 
         auto iterator = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
-            [index](const Core::Configuration::TasksViewColumnSetting& setting) {
+            [index](const Core::Settings::TasksViewColumnSetting& setting) {
                 return setting.TaskViewColumnId == index;
             });
 
         if (iterator != mAllTasksViewColumns.end()) {
-            Core::Configuration::TasksViewColumnSetting foundSetting = *iterator;
+            Core::Settings::TasksViewColumnSetting foundSetting = *iterator;
             selectedTasksViewColumnsFromCheckListBox.push_back(foundSetting);
         }
     }
 
-    selectedTasksViewColumnsFromCheckListBox.push_back(Common::DescriptionTasksViewColumn());
+    selectedTasksViewColumnsFromCheckListBox.push_back(
+        Core::Settings::MakeDescriptionTasksViewColumn());
 
     SPDLOG_LOGGER_TRACE(
         pLogger, "{0} columns selected", selectedTasksViewColumnsFromCheckListBox.size());
@@ -99,13 +100,11 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
 
     std::sort(selectedTasksViewColumnsFromCheckListBox.begin(),
         selectedTasksViewColumnsFromCheckListBox.end(),
-        [](const Core::Configuration::TasksViewColumnSetting& lhs,
-            const Core::Configuration::TasksViewColumnSetting& rhs) {
-            return lhs.Order < rhs.Order;
-        });
+        [](const Core::Settings::TasksViewColumnSetting& lhs,
+            const Core::Settings::TasksViewColumnSetting& rhs) { return lhs.Order < rhs.Order; });
 
     SPDLOG_LOGGER_TRACE(pLogger,
-        "Applied order index to {0} columns",
+        "Applied ordering to {0} columns",
         selectedTasksViewColumnsFromCheckListBox.size());
 
     if (pCfg->GetTasksViewColumns().size() != selectedTasksViewColumnsFromCheckListBox.size()) {
@@ -264,9 +263,9 @@ void PreferencesTasksViewPage::DataToControls()
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 
-    std::vector<Core::Configuration::TasksViewColumnSetting> availableTasksViewColumnSettings;
+    std::vector<Core::Settings::TasksViewColumnSetting> availableTasksViewColumnSettings;
     for (const auto& column : mAllTasksViewColumns) {
-        Core::Configuration::TasksViewColumnSetting setting(column);
+        Core::Settings::TasksViewColumnSetting setting(column);
         availableTasksViewColumnSettings.push_back(setting);
     }
 
@@ -374,7 +373,7 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
     for (const auto& tasksViewColumn : mCheckedAvailableColumns) {
         auto iter = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
-            [tasksViewColumn](const Common::TasksViewColumn& column) {
+            [tasksViewColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return tasksViewColumn.second == column.TaskViewColumnId;
             });
 
@@ -414,7 +413,7 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
     for (const auto& tasksViewColumn : mCheckedSelectedColumns) {
         auto iter = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
-            [tasksViewColumn](const Common::TasksViewColumn& column) {
+            [tasksViewColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return tasksViewColumn.second == column.TaskViewColumnId;
             });
 
@@ -443,11 +442,11 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
         auto& checkedSelectedColumn = mCheckedSelectedColumns[0];
         auto iter = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
-            [checkedSelectedColumn](const Common::TasksViewColumn& column) {
+            [checkedSelectedColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return checkedSelectedColumn.second == column.TaskViewColumnId;
             });
         if (iter != mAllTasksViewColumns.end()) {
-            Common::TasksViewColumn match = *iter;
+            Core::Settings::TasksViewColumnSetting match = *iter;
             int pos = pSelectedTasksViewColumns->FindString(match.Name);
             int opos = pos;
             --pos;
@@ -479,12 +478,12 @@ void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
         auto& checkedSelectedColumn = mCheckedSelectedColumns[0];
         auto iter = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
-            [checkedSelectedColumn](const Common::TasksViewColumn& column) {
+            [checkedSelectedColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return checkedSelectedColumn.second == column.TaskViewColumnId;
             });
 
         if (iter != mAllTasksViewColumns.end()) {
-            Common::TasksViewColumn match = *iter;
+            Core::Settings::TasksViewColumnSetting match = *iter;
             int pos = pSelectedTasksViewColumns->FindString(match.Name);
             if (pos >= (int) pSelectedTasksViewColumns->GetCount() - 1) {
                 pSelectedTasksViewColumns->Check(pos, false);

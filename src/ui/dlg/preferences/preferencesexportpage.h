@@ -80,7 +80,7 @@ private:
     wxBitmapButton* pRemovePresetButton;
 
     std::vector<long> mSelectedItemIndexes;
-    std::vector<Core::Configuration::PresetSetting> mPresetSettings;
+    std::vector<Core::Settings::PresetSetting> mPresetSettings;
 
     enum {
         tksIDC_EXPORT_PATH = wxID_HIGHEST + 100,

@@ -55,6 +55,8 @@
 #include "../core/database_optimizer.h"
 #include "../core/zip_database_backup.h"
 
+#include "../core/settings/presetsetting.h"
+
 #include "../persistence/attendedmeetingspersistence.h"
 #include "../persistence/taskattributevaluespersistence.h"
 #include "../persistence/taskspersistence.h"
@@ -247,7 +249,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     MSWGetTaskBarButton()->AppendThumbBarButton(pThumbBarQuickExportButton);
 
     // Build list of tasks view columns
-    mTasksViewColumns = CombineTasksViewColumns();
+    mTasksViewColumns = pCfg->GetTasksViewColumns();
 
     // Create, fill, and set data to controls
     Create();
@@ -432,7 +434,7 @@ void MainFrame::CreateControls()
             column->SetResizeable(true);
         }
 
-        if (!mTasksViewColumns[i].UserSelected) {
+        if (!mTasksViewColumns[i].Selected) {
             column->SetHidden(true);
         }
     }
@@ -1142,13 +1144,12 @@ void MainFrame::OnColumnCopyTasksUsingPreset(wxCommandEvent& event)
 
     Services::Export::ExportOptions exportOptions;
 
-    auto iter = std::find_if(presets.begin(),
-        presets.end(),
-        [](const Core::Configuration::PresetSetting& presetSetting) {
+    auto iter = std::find_if(
+        presets.begin(), presets.end(), [](const Core::Settings::PresetSetting& presetSetting) {
             return presetSetting.IsDefault == true;
         });
 
-    Core::Configuration::PresetSetting presetSetting;
+    Core::Settings::PresetSetting presetSetting;
     if (iter != presets.end()) {
         presetSetting = *iter;
     } else {
@@ -1340,13 +1341,12 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
         return;
     }
 
-    auto iter = std::find_if(presets.begin(),
-        presets.end(),
-        [](const Core::Configuration::PresetSetting& presetSetting) {
+    auto iter = std::find_if(
+        presets.begin(), presets.end(), [](const Core::Settings::PresetSetting& presetSetting) {
             return presetSetting.IsDefault == true;
         });
 
-    Core::Configuration::PresetSetting presetSetting;
+    Core::Settings::PresetSetting presetSetting;
     if (iter != presets.end()) {
         presetSetting = *iter;
     } else {
@@ -2252,44 +2252,5 @@ void MainFrame::ResetTaskContextMenuVariables()
 {
     mTaskIdToEdit = -1;
     mDataViewListCtrlRow = -1;
-}
-
-std::vector<Common::TasksViewColumn> MainFrame::CombineTasksViewColumns()
-{
-    std::vector<Common::TasksViewColumn> columns;
-
-    auto selectedTasksViewColumns = pCfg->GetTasksViewColumns();
-    for (size_t i = 0; i < selectedTasksViewColumns.size(); i++) {
-        Common::TasksViewColumn column;
-
-        column.Name = selectedTasksViewColumns[i].Name;
-        column.Order = selectedTasksViewColumns[i].Order;
-        column.TextAlignment = selectedTasksViewColumns[i].TextAlignment;
-        column.TaskViewColumnId = selectedTasksViewColumns[i].TaskViewColumnId;
-        column.Width = selectedTasksViewColumns[i].Width;
-        column.Type = selectedTasksViewColumns[i].Type;
-        column.UserSelected = true;
-
-        columns.push_back(column);
-    }
-
-    auto allTasksViewColumns = Common::AvailableTasksViewColumnList();
-    const size_t countOfAllTasksViewColumns = allTasksViewColumns.size();
-
-    for (size_t i = 0; i < countOfAllTasksViewColumns; i++) {
-        auto iterator = std::find_if(selectedTasksViewColumns.begin(),
-            selectedTasksViewColumns.end(),
-            [&](const Core::Configuration::TasksViewColumnSetting& setting) {
-                return setting.TaskViewColumnId == allTasksViewColumns[i].TaskViewColumnId;
-            });
-        if (iterator == selectedTasksViewColumns.end()) {
-            Common::TasksViewColumn column(allTasksViewColumns[i]);
-            column.UserSelected = false;
-
-            columns.push_back(column);
-        }
-    }
-
-    return columns;
 }
 } // namespace tks::UI

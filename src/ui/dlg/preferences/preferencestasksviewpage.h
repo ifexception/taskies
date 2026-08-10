@@ -38,7 +38,10 @@ namespace tks
 {
 namespace Core
 {
-class TasksViewColumnSetting;
+namespace Settings
+{
+struct TasksViewColumnSetting;
+} // namespace Settings
 class Configuration;
 } // namespace Core
 namespace UI::dlg
@@ -88,7 +91,7 @@ private:
     std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedAvailableColumns;
     std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedSelectedColumns;
 
-    std::vector<Common::TasksViewColumn> mAllTasksViewColumns;
+    std::vector<Core::Settings::TasksViewColumnSetting> mAllTasksViewColumns;
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,

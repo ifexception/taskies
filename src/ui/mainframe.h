@@ -45,6 +45,7 @@
 #include "../common/enums.h"
 
 #include "../core/configuration.h"
+#include "../core/settings/tasksviewcolumnsetting.h"
 
 #include "../ui/frames/outlookmeetingsviewframe.h"
 
@@ -254,8 +255,6 @@ private:
 
     void ResetTaskContextMenuVariables();
 
-    std::vector<Common::TasksViewColumn> CombineTasksViewColumns();
-
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
@@ -296,7 +295,7 @@ private:
     std::unique_ptr<wxTimer> pTaskReminderTimer;
     std::shared_ptr<wxNotificationMessage> pTaskReminderNotification;
 
-    std::vector<Common::TasksViewColumn> mTasksViewColumns;
+    std::vector<Core::Settings::TasksViewColumnSetting> mTasksViewColumns;
 
     enum {
         tksIDC_THUMBBAR_NEWTASK = wxID_HIGHEST + 1000,
