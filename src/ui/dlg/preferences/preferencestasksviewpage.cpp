@@ -258,23 +258,18 @@ void PreferencesTasksViewPage::DataToControls()
     auto cfgTasksViewColumns = pCfg->GetTasksViewColumns();
     cfgTasksViewColumns.pop_back(); // description column should always be last
 
-    cfgTasksViewColumns.erase(std::remove_if(cfgTasksViewColumns.begin(),
-        cfgTasksViewColumns.end(),
-        [&](const Core::Settings::TasksViewColumnSetting& s) { return !s.Selected; }));
+    cfgTasksViewColumns.erase(
+        std::remove_if(cfgTasksViewColumns.begin(),
+            cfgTasksViewColumns.end(),
+            [&](const Core::Settings::TasksViewColumnSetting& s) { return !s.Selected; }),
+        cfgTasksViewColumns.end());
 
     for (const auto& tasksViewColumn : cfgTasksViewColumns) {
         pSelectedTasksViewColumns->Append(tasksViewColumn.Name,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 
-    auto cfgTasksViewColumnsUnselected = pCfg->GetTasksViewColumns();
-    cfgTasksViewColumnsUnselected.pop_back(); // description column should always be last
-
-    cfgTasksViewColumnsUnselected.erase(std::remove_if(cfgTasksViewColumnsUnselected.begin(),
-        cfgTasksViewColumnsUnselected.end(),
-        [&](const Core::Settings::TasksViewColumnSetting& s) { return s.Selected; }));
-
-    for (const auto& column : cfgTasksViewColumnsUnselected) {
+    for (const auto& column : cfgTasksViewColumns) {
         int itemId = pAvailableTasksViewColumns->FindString(column.Name);
         if (itemId >= 0) {
             pAvailableTasksViewColumns->Delete(itemId);
@@ -293,10 +288,9 @@ void PreferencesTasksViewPage::OnAvailableColumnCheck(wxCommandEvent& event)
 
         wxCheckListBox* cListBox = wxDynamicCast(event.GetEventObject(), wxCheckListBox);
         if (cListBox == nullptr) {
-
         }
-            int clientData = Utils::VoidPointerToInt(cListBox->GetClientData(item));
-            index = static_cast<TasksViewColumnIdentifier>(clientData);
+        int clientData = Utils::VoidPointerToInt(cListBox->GetClientData(item));
+        index = static_cast<TasksViewColumnIdentifier>(clientData);
 
         mCheckedAvailableColumns.push_back(std::make_pair(item, index));
     } else {
