@@ -190,11 +190,13 @@ ConfigResult Configuration::Save()
         toml::value value(
             toml::table {
                 { "name", tasksViewColumn.Name },
+                { "displayName", tasksViewColumn.DisplayName },
                 { "order", tasksViewColumn.Order },
                 { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
                 { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
                 { "width", tasksViewColumn.Width },
-                { "type", static_cast<int>(tasksViewColumn.Type) }
+                { "type", static_cast<int>(tasksViewColumn.Type) },
+                { "selected", static_cast<int>(tasksViewColumn.Selected) }
             }
         );
         // clang-format on
