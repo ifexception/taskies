@@ -84,6 +84,7 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
 
         if (iterator != mAllTasksViewColumns.end()) {
             Core::Settings::TasksViewColumnSetting foundSetting = *iterator;
+            foundSetting.Selected = true;
             selectedTasksViewColumnsFromCheckListBox.push_back(foundSetting);
         }
     }
