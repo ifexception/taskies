@@ -421,7 +421,7 @@ void MainFrame::CreateControls()
     for (size_t i = 0; i < mTasksViewColumns.size(); i++) {
         wxDataViewColumn* column = nullptr;
         if (mTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
-            column = pDataViewListCtrl->AppendToggleColumn(mTasksViewColumns[i].Name,
+            column = pDataViewListCtrl->AppendToggleColumn(mTasksViewColumns[i].DisplayName,
                 wxDATAVIEW_CELL_INERT,
                 mTasksViewColumns[i].Width,
                 Common::MapTasksViewColumnTextAlignment(mTasksViewColumns[i].TextAlignment));

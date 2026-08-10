@@ -245,7 +245,7 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
 void PreferencesTasksViewPage::FillControls()
 {
     for (const auto& tasksViewColumn : mAllTasksViewColumns) {
-        pAvailableTasksViewColumns->Append(tasksViewColumn.Name,
+        pAvailableTasksViewColumns->Append(tasksViewColumn.DisplayName,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 }
@@ -265,12 +265,12 @@ void PreferencesTasksViewPage::DataToControls()
         cfgTasksViewColumns.end());
 
     for (const auto& tasksViewColumn : cfgTasksViewColumns) {
-        pSelectedTasksViewColumns->Append(tasksViewColumn.Name,
+        pSelectedTasksViewColumns->Append(tasksViewColumn.DisplayName,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 
     for (const auto& column : cfgTasksViewColumns) {
-        int itemId = pAvailableTasksViewColumns->FindString(column.Name);
+        int itemId = pAvailableTasksViewColumns->FindString(column.DisplayName);
         if (itemId >= 0) {
             pAvailableTasksViewColumns->Delete(itemId);
         }
@@ -288,6 +288,7 @@ void PreferencesTasksViewPage::OnAvailableColumnCheck(wxCommandEvent& event)
 
         wxCheckListBox* cListBox = wxDynamicCast(event.GetEventObject(), wxCheckListBox);
         if (cListBox == nullptr) {
+            return;
         }
         int clientData = Utils::VoidPointerToInt(cListBox->GetClientData(item));
         index = static_cast<TasksViewColumnIdentifier>(clientData);
@@ -379,7 +380,7 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
 
         if (iter != mAllTasksViewColumns.end()) {
             auto& foundColumn = *iter;
-            pSelectedTasksViewColumns->Append(foundColumn.Name,
+            pSelectedTasksViewColumns->Append(foundColumn.DisplayName,
                 Utils::IntToVoidPointer(static_cast<int>(foundColumn.TaskViewColumnId)));
         }
     }
@@ -420,7 +421,7 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
         if (iter != mAllTasksViewColumns.end()) {
             auto& foundColumn = *iter;
 
-            pAvailableTasksViewColumns->Append(foundColumn.Name,
+            pAvailableTasksViewColumns->Append(foundColumn.DisplayName,
                 Utils::IntToVoidPointer(static_cast<int>(foundColumn.TaskViewColumnId)));
         }
     }
