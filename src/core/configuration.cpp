@@ -196,7 +196,7 @@ ConfigResult Configuration::Save()
                 { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
                 { "width", tasksViewColumn.Width },
                 { "type", static_cast<int>(tasksViewColumn.Type) },
-                { "selected", static_cast<int>(tasksViewColumn.Selected) }
+                { "selected", tasksViewColumn.Selected }
             }
         );
         // clang-format on
