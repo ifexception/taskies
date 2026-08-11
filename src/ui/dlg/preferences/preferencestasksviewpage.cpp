@@ -89,9 +89,6 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
         }
     }
 
-    selectedTasksViewColumnsFromCheckListBox.push_back(
-        Core::Settings::MakeDescriptionTasksViewColumn());
-
     SPDLOG_LOGGER_TRACE(
         pLogger, "{0} columns selected", selectedTasksViewColumnsFromCheckListBox.size());
 
@@ -108,16 +105,36 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
         "Applied ordering to {0} columns",
         selectedTasksViewColumnsFromCheckListBox.size());
 
-    if (pCfg->GetTasksViewColumns().size() != selectedTasksViewColumnsFromCheckListBox.size()) {
-        *restartRequired = true;
-    } else {
-        bool orderChanged = pCfg->GetTasksViewColumns() != selectedTasksViewColumnsFromCheckListBox;
-        if (orderChanged) {
-            *restartRequired = orderChanged;
+    auto tasksViewColumns = pCfg->GetTasksViewColumns();
+    for (size_t i = 0; i < tasksViewColumns.size(); i++) {
+        auto iterator = std::find_if(selectedTasksViewColumnsFromCheckListBox.begin(),
+            selectedTasksViewColumnsFromCheckListBox.end(),
+            [&](const Core::Settings::TasksViewColumnSetting& s) {
+                return s.TaskViewColumnId == tasksViewColumns[i].TaskViewColumnId;
+            });
+
+        if (iterator != selectedTasksViewColumnsFromCheckListBox.end()) {
+            Core::Settings::TasksViewColumnSetting setting = *iterator;
+            tasksViewColumns[i] = setting;
+
+            *restartRequired = true;
         }
     }
 
-    pCfg->SetTasksViewColumns(selectedTasksViewColumnsFromCheckListBox);
+    // clang-format off
+    std::sort(
+        tasksViewColumns.begin(),
+        tasksViewColumns.end(),
+        [](
+            const Core::Settings::TasksViewColumnSetting& lhs,
+            const Core::Settings::TasksViewColumnSetting& rhs
+        ) {
+            return lhs.Order < rhs.Order;
+        }
+    );
+    // clang-format on
+
+    pCfg->SetTasksViewColumns(tasksViewColumns);
 }
 
 void PreferencesTasksViewPage::Reset()
