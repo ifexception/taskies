@@ -147,12 +147,22 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
             } else {
                 res = sqlite3_column_text(stmt, columnIndex);
                 model.ClientName = std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
             }
+
+            columnIndex++;
 
             res = sqlite3_column_text(stmt, columnIndex);
             model.EmployerName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+                model.IsMeeting = false;
+            } else {
+                model.IsMeeting = sqlite3_column_int(stmt, columnIndex++) > 0;
+            }
+
+            columnIndex++;
 
             taskViewModels.push_back(model);
             break;
@@ -271,12 +281,22 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     } else {
         res = sqlite3_column_text(stmt, columnIndex);
         taskModel.ClientName = std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
     }
+
+    columnIndex++;
 
     res = sqlite3_column_text(stmt, columnIndex);
     taskModel.EmployerName =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+
+    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
+        taskModel.IsMeeting = false;
+    } else {
+        taskModel.IsMeeting = sqlite3_column_int(stmt, columnIndex++) > 0;
+    }
+
+    columnIndex++;
 
     rc = sqlite3_step(stmt);
 
@@ -295,71 +315,79 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     return SqliteResult::OK();
 }
 
-std::string TasksService::filterByDate = "SELECT "
-                                         "tasks.task_id, "
-                                         "tasks.billable, "
-                                         "tasks.unique_identifier, "
-                                         "tasks.hours, "
-                                         "tasks.minutes, "
-                                         "tasks.description, "
-                                         "tasks.date_created, "
-                                         "tasks.date_modified, "
-                                         "tasks.is_active, "
-                                         "tasks.project_id, "
-                                         "tasks.category_id, "
-                                         "tasks.workday_id, "
-                                         "workdays.date, "
-                                         "projects.name,"
-                                         "projects.display_name,"
-                                         "categories.name, "
-                                         "categories.color, "
-                                         "clients.name, "
-                                         "employers.name "
-                                         "FROM tasks "
-                                         "INNER JOIN workdays "
-                                         "ON tasks.workday_id = workdays.workday_id "
-                                         "INNER JOIN projects "
-                                         "ON tasks.project_id = projects.project_id "
-                                         "INNER JOIN categories "
-                                         "ON tasks.category_id = categories.category_id "
-                                         "LEFT JOIN clients "
-                                         "ON projects.client_id = clients.client_id "
-                                         "INNER JOIN employers "
-                                         "ON projects.employer_id = employers.employer_id "
-                                         "WHERE workdays.date = ? "
-                                         "AND tasks.is_active = 1;";
+std::string TasksService::filterByDate =
+    "SELECT "
+    "tasks.task_id, "
+    "tasks.billable, "
+    "tasks.unique_identifier, "
+    "tasks.hours, "
+    "tasks.minutes, "
+    "tasks.description, "
+    "tasks.date_created, "
+    "tasks.date_modified, "
+    "tasks.is_active, "
+    "tasks.project_id, "
+    "tasks.category_id, "
+    "tasks.workday_id, "
+    "workdays.date, "
+    "projects.name,"
+    "projects.display_name,"
+    "categories.name, "
+    "categories.color, "
+    "clients.name, "
+    "employers.name, "
+    "attended_meetings.attended_meeting_id "
+    "FROM tasks "
+    "INNER JOIN workdays "
+    "ON tasks.workday_id = workdays.workday_id "
+    "INNER JOIN projects "
+    "ON tasks.project_id = projects.project_id "
+    "INNER JOIN categories "
+    "ON tasks.category_id = categories.category_id "
+    "LEFT JOIN clients "
+    "ON projects.client_id = clients.client_id "
+    "INNER JOIN employers "
+    "ON projects.employer_id = employers.employer_id "
+    "LEFT JOIN attended_meetings "
+    "ON tasks.attended_meeting_id = attended_meetings.attended_meeting_id "
+    "WHERE workdays.date = ? "
+    "AND tasks.is_active = 1;";
 
-std::string TasksService::getById = "SELECT "
-                                    "tasks.task_id, "
-                                    "tasks.billable, "
-                                    "tasks.unique_identifier, "
-                                    "tasks.hours, "
-                                    "tasks.minutes, "
-                                    "tasks.description, "
-                                    "tasks.date_created, "
-                                    "tasks.date_modified, "
-                                    "tasks.is_active, "
-                                    "tasks.project_id, "
-                                    "tasks.category_id, "
-                                    "tasks.workday_id, "
-                                    "workdays.date, "
-                                    "projects.name,"
-                                    "projects.display_name,"
-                                    "categories.name, "
-                                    "categories.color, "
-                                    "clients.name, "
-                                    "employers.name "
-                                    "FROM tasks "
-                                    "INNER JOIN workdays "
-                                    "ON tasks.workday_id = workdays.workday_id "
-                                    "INNER JOIN projects "
-                                    "ON tasks.project_id = projects.project_id "
-                                    "INNER JOIN categories "
-                                    "ON tasks.category_id = categories.category_id "
-                                    "LEFT JOIN clients "
-                                    "ON projects.client_id = clients.client_id "
-                                    "INNER JOIN employers "
-                                    "ON projects.employer_id = employers.employer_id "
-                                    "WHERE tasks.task_id = ? "
-                                    "AND tasks.is_active = 1;";
+std::string TasksService::getById =
+    "SELECT "
+    "tasks.task_id, "
+    "tasks.billable, "
+    "tasks.unique_identifier, "
+    "tasks.hours, "
+    "tasks.minutes, "
+    "tasks.description, "
+    "tasks.date_created, "
+    "tasks.date_modified, "
+    "tasks.is_active, "
+    "tasks.project_id, "
+    "tasks.category_id, "
+    "tasks.workday_id, "
+    "workdays.date, "
+    "projects.name,"
+    "projects.display_name,"
+    "categories.name, "
+    "categories.color, "
+    "clients.name, "
+    "employers.name, "
+    "attended_meetings.attended_meeting_id "
+    "FROM tasks "
+    "INNER JOIN workdays "
+    "ON tasks.workday_id = workdays.workday_id "
+    "INNER JOIN projects "
+    "ON tasks.project_id = projects.project_id "
+    "INNER JOIN categories "
+    "ON tasks.category_id = categories.category_id "
+    "LEFT JOIN clients "
+    "ON projects.client_id = clients.client_id "
+    "INNER JOIN employers "
+    "ON projects.employer_id = employers.employer_id "
+    "LEFT JOIN attended_meetings "
+    "ON tasks.attended_meeting_id = attended_meetings.attended_meeting_id "
+    "WHERE tasks.task_id = ? "
+    "AND tasks.is_active = 1;";
 } // namespace tks::Services

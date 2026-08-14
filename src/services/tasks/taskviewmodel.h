@@ -22,6 +22,9 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
+
+#include "../../models/taskattributevaluemodel.h"
 
 namespace tks::Services
 {
@@ -47,12 +50,17 @@ struct TaskViewModel {
     std::string ProjectDisplayName;
     std::string CategoryName;
     unsigned int CategoryColor;
+    bool IsMeeting;
+
+    std::vector<Model::TaskAttributeValueModel> TaskAttributeValueModels;
 
     const std::string GetDuration() const;
     const std::string TryGetUniqueIdentifier() const;
-    const std::string GetTrimmedDescription();
+    const std::string GetTrimmedDescription() const;
+
+    const std::string TryGetTaskAttributeValues();
 
     const std::string GetDateCreatedString() const;
     const std::string GetDateModifiedString() const;
 };
-} // namespace MyNamespace
+} // namespace tks::Services
