@@ -57,6 +57,8 @@
 
 #include "../core/settings/presetsetting.h"
 
+#include "../models/taskattributevaluemodel.h"
+
 #include "../persistence/attendedmeetingspersistence.h"
 #include "../persistence/taskattributevaluespersistence.h"
 #include "../persistence/taskspersistence.h"
@@ -64,7 +66,6 @@
 #include "../services/export/columnexportmodel.h"
 #include "../services/export/csvexporterservice.h"
 #include "../services/export/projectionbuilder.h"
-#include "../services/tasks/taskviewmodel.h"
 #include "../services/tasks/tasksservice.h"
 
 #include "../utils/mswutils.h"
@@ -476,18 +477,12 @@ void MainFrame::DataToControls()
     }
 
     std::vector<Services::TaskViewModel> taskViewModels;
-    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.FilterByDate(pDateStore->PrintTodayDate, taskViewModels);
+    auto sqliteResult =
+        FetchTasksAndTaskAttributeValues(pDateStore->PrintTodayDate, taskViewModels);
     if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterByDateTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
+        // handling sqlite result non-success case is done in FetchTasksAndTaskAttributeValues
+        return;
     } else {
         wxVector<wxVariant> row;
 
@@ -519,6 +514,18 @@ void MainFrame::DataToControls()
                     break;
                 case TasksViewColumnIdentifier::UniqueIdentifier:
                     row.push_back(taskViewModels[i].TryGetUniqueIdentifier());
+                    break;
+                case TasksViewColumnIdentifier::TaskCreatedDate:
+                    row.push_back(taskViewModels[i].GetDateCreatedString());
+                    break;
+                case TasksViewColumnIdentifier::TaskModifiedDate:
+                    row.push_back(taskViewModels[i].GetDateModifiedString());
+                    break;
+                case TasksViewColumnIdentifier::TaskAttributeValues:
+                    row.push_back(taskViewModels[i].TryGetTaskAttributeValues());
+                    break;
+                case TasksViewColumnIdentifier::IsMeeting:
+                    row.push_back(taskViewModels[i].IsMeeting);
                     break;
                 case TasksViewColumnIdentifier::Description:
                     row.push_back(taskViewModels[i].GetTrimmedDescription());
@@ -889,7 +896,7 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     // wxDateTime months are 0-based (Jan = 0)
     wxDateTime dateTimeValue(day, static_cast<wxDateTime::Month>(month - 1), year);
     if (!dateTimeValue.IsValid()) {
-        pLogger->error("Invalid value(s) passed to wxDateTime, reset to current data");
+        pLogger->error("Invalid value(s) passed to wxDateTime, reset to current date");
 
         dateTimeValue = wxDateTime::Now();
     }
@@ -963,25 +970,16 @@ void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
     std::vector<Services::TaskViewModel> taskModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.FilterByDate(mTaskDateString, taskModels);
+    auto sqliteResult = FetchTasksAndTaskAttributeValues(mTaskDateString, taskModels);
     if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterByDateTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
-        ResetTaskContextMenuVariables();
         return;
     }
 
     std::stringstream formattedStringData;
     const auto& tasksViewColumns = pCfg->GetTasksViewColumns();
 
-    for (const auto& taskModel : taskModels) {
-        for (const auto& column : tasksViewColumns) {
+    for (auto& taskModel : taskModels) {
+        for (auto& column : tasksViewColumns) {
             switch (column.TaskViewColumnId) {
             case TasksViewColumnIdentifier::Date:
                 formattedStringData << taskModel.WorkdayDate << "\t";
@@ -1006,6 +1004,18 @@ void MainFrame::OnColumnCopyTasksToClipboard(wxCommandEvent& WXUNUSED(event))
                 break;
             case TasksViewColumnIdentifier::UniqueIdentifier:
                 formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
+                break;
+            case TasksViewColumnIdentifier::TaskCreatedDate:
+                formattedStringData << taskModel.GetDateCreatedString() << "\t";
+                break;
+            case TasksViewColumnIdentifier::TaskModifiedDate:
+                formattedStringData << taskModel.GetDateModifiedString() << "\t";
+                break;
+            case TasksViewColumnIdentifier::TaskAttributeValues:
+                formattedStringData << taskModel.TryGetTaskAttributeValues() << "\t";
+                break;
+            case TasksViewColumnIdentifier::IsMeeting:
+                formattedStringData << taskModel.IsMeeting << "\t";
                 break;
             case TasksViewColumnIdentifier::Description:
                 formattedStringData << taskModel.Description << "\t";
@@ -1046,9 +1056,8 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
     SPDLOG_LOGGER_TRACE(pLogger, "Copy all tasks with headers for date \"{0}\"", mTaskDateString);
 
     std::vector<Services::TaskViewModel> taskModels;
-    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.FilterByDate(mTaskDateString, taskModels);
+    auto sqliteResult = FetchTasksAndTaskAttributeValues(mTaskDateString, taskModels);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::FilterByDateTaskMessage,
@@ -1069,7 +1078,7 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
     }
     formattedStringData << "\n";
 
-    for (const auto& taskModel : taskModels) {
+    for (auto& taskModel : taskModels) {
         for (const auto& column : tasksViewColumns) {
             switch (column.TaskViewColumnId) {
             case TasksViewColumnIdentifier::Date:
@@ -1095,6 +1104,18 @@ void MainFrame::OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& WXUNUSED
                 break;
             case TasksViewColumnIdentifier::UniqueIdentifier:
                 formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
+                break;
+            case TasksViewColumnIdentifier::TaskCreatedDate:
+                formattedStringData << taskModel.GetDateCreatedString() << "\t";
+                break;
+            case TasksViewColumnIdentifier::TaskModifiedDate:
+                formattedStringData << taskModel.GetDateModifiedString() << "\t";
+                break;
+            case TasksViewColumnIdentifier::TaskAttributeValues:
+                formattedStringData << taskModel.TryGetTaskAttributeValues() << "\t";
+                break;
+            case TasksViewColumnIdentifier::IsMeeting:
+                formattedStringData << taskModel.IsMeeting << "\t";
                 break;
             case TasksViewColumnIdentifier::Description:
                 formattedStringData << taskModel.Description << "\t";
@@ -1248,16 +1269,8 @@ void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
     Services::TaskViewModel taskModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskModel);
+    auto sqliteResult = FetchTaskAndTaskAttributeValues(mTaskIdToEdit, taskModel);
     if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterByDateTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
         return;
     }
 
@@ -1268,7 +1281,7 @@ void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
     }
     formattedStringData << "\n";
 
-    for (const auto& column : tasksViewColumns) {
+    for (auto& column : tasksViewColumns) {
         switch (column.TaskViewColumnId) {
         case TasksViewColumnIdentifier::Date:
             formattedStringData << taskModel.WorkdayDate << "\t";
@@ -1293,6 +1306,18 @@ void MainFrame::OnCopyRowTaskToClipboard(wxCommandEvent& event)
             break;
         case TasksViewColumnIdentifier::UniqueIdentifier:
             formattedStringData << taskModel.TryGetUniqueIdentifier() << "\t";
+            break;
+        case TasksViewColumnIdentifier::TaskCreatedDate:
+            formattedStringData << taskModel.GetDateCreatedString() << "\t";
+            break;
+        case TasksViewColumnIdentifier::TaskModifiedDate:
+            formattedStringData << taskModel.GetDateModifiedString() << "\t";
+            break;
+        case TasksViewColumnIdentifier::TaskAttributeValues:
+            formattedStringData << taskModel.TryGetTaskAttributeValues() << "\t";
+            break;
+        case TasksViewColumnIdentifier::IsMeeting:
+            formattedStringData << taskModel.IsMeeting << "\t";
             break;
         case TasksViewColumnIdentifier::Description:
             formattedStringData << taskModel.Description << "\t";
@@ -1322,22 +1347,6 @@ void MainFrame::OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event)
         wxMessageBox("No preset saved to use for copying data with",
             Common::GetProgramName(),
             wxOK | wxOK_DEFAULT | wxICON_INFORMATION);
-        return;
-    }
-
-    Services::TaskViewModel taskModel;
-    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
-
-    auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskModel);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterByDateTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
         return;
     }
 
@@ -1541,16 +1550,9 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     Services::TaskViewModel taskViewModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    sqliteResult = tasksService.GetById(mTaskIdToEdit, taskViewModel);
+    sqliteResult = FetchTaskAndTaskAttributeValues(mTaskIdToEdit, taskViewModel);
     if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::GetByIdTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
+        return;
     } else {
         for (size_t j = 0; j < mTasksViewColumns.size(); j++) {
             switch (mTasksViewColumns[j].TaskViewColumnId) {
@@ -1581,6 +1583,21 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
             case TasksViewColumnIdentifier::UniqueIdentifier:
                 pDataViewListCtrl->SetTextValue(
                     taskViewModel.TryGetUniqueIdentifier(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::TaskCreatedDate:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.GetDateCreatedString(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::TaskModifiedDate:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.GetDateModifiedString(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::TaskAttributeValues:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.TryGetTaskAttributeValues(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::IsMeeting:
+                pDataViewListCtrl->SetToggleValue(taskViewModel.IsMeeting, mDataViewListCtrlRow, j);
                 break;
             case TasksViewColumnIdentifier::Description:
                 pDataViewListCtrl->SetTextValue(
@@ -1634,16 +1651,8 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
     Services::TaskViewModel taskViewModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.GetById(taskInsertedId, taskViewModel);
+    auto sqliteResult = FetchTaskAndTaskAttributeValues(taskInsertedId, taskViewModel);
     if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::GetByIdTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
         return;
     } else {
         wxVector<wxVariant> row;
@@ -1673,6 +1682,18 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
                 break;
             case TasksViewColumnIdentifier::UniqueIdentifier:
                 row.push_back(taskViewModel.TryGetUniqueIdentifier());
+                break;
+            case TasksViewColumnIdentifier::TaskCreatedDate:
+                row.push_back(taskViewModel.GetDateCreatedString());
+                break;
+            case TasksViewColumnIdentifier::TaskModifiedDate:
+                row.push_back(taskViewModel.GetDateModifiedString());
+                break;
+            case TasksViewColumnIdentifier::TaskAttributeValues:
+                row.push_back(taskViewModel.TryGetTaskAttributeValues());
+                break;
+            case TasksViewColumnIdentifier::IsMeeting:
+                row.push_back(taskViewModel.IsMeeting);
                 break;
             case TasksViewColumnIdentifier::Description:
                 row.push_back(taskViewModel.GetTrimmedDescription());
@@ -1765,6 +1786,21 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
                 pDataViewListCtrl->SetTextValue(
                     taskViewModel.TryGetUniqueIdentifier(), mDataViewListCtrlRow, j);
                 break;
+            case TasksViewColumnIdentifier::TaskCreatedDate:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.GetDateCreatedString(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::TaskModifiedDate:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.GetDateModifiedString(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::TaskAttributeValues:
+                pDataViewListCtrl->SetTextValue(
+                    taskViewModel.TryGetTaskAttributeValues(), mDataViewListCtrlRow, j);
+                break;
+            case TasksViewColumnIdentifier::IsMeeting:
+                pDataViewListCtrl->SetToggleValue(taskViewModel.IsMeeting, mDataViewListCtrlRow, j);
+                break;
             case TasksViewColumnIdentifier::Description:
                 pDataViewListCtrl->SetTextValue(
                     taskViewModel.GetTrimmedDescription(), mDataViewListCtrlRow, j);
@@ -1817,16 +1853,10 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
         std::vector<Services::TaskViewModel> taskViewModels;
         Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-        auto sqliteResult = tasksService.FilterByDate(mTaskDateString, taskViewModels);
+        auto sqliteResult = FetchTasksAndTaskAttributeValues(mTaskDateString, taskViewModels);
         if (!sqliteResult.Success) {
-            wxRichMessageDialog dialog(this,
-                Messages::FilterByDateTaskMessage,
-                Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-            dialog.ShowModal();
+            // handling sqlite result non-success case is done in FetchTasksAndTaskAttributeValues
+            return;
         } else {
             wxVector<wxVariant> row;
 
@@ -1859,6 +1889,18 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
                     case TasksViewColumnIdentifier::UniqueIdentifier:
                         row.push_back(taskViewModels[i].TryGetUniqueIdentifier());
                         break;
+                    case TasksViewColumnIdentifier::TaskCreatedDate:
+                        row.push_back(taskViewModels[i].GetDateCreatedString());
+                        break;
+                    case TasksViewColumnIdentifier::TaskModifiedDate:
+                        row.push_back(taskViewModels[i].GetDateModifiedString());
+                        break;
+                    case TasksViewColumnIdentifier::TaskAttributeValues:
+                        row.push_back(taskViewModels[i].TryGetTaskAttributeValues());
+                        break;
+                    case TasksViewColumnIdentifier::IsMeeting:
+                        row.push_back(taskViewModels[i].IsMeeting);
+                        break;
                     case TasksViewColumnIdentifier::Description:
                         row.push_back(taskViewModels[i].GetTrimmedDescription());
                         break;
@@ -1869,12 +1911,12 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
                 row.push_back(static_cast<long>(taskViewModels[i].TaskId));
                 pDataViewListCtrl->AppendItem(row);
             }
+
+            mTodayDate = pDateStore->TodayDate;
         }
 
-        mTodayDate = pDateStore->TodayDate;
+        CalculateStatusBarTaskDurations();
     }
-
-    CalculateStatusBarTaskDurations();
 }
 
 void MainFrame::OnOutlookMeetingViewClose(wxCommandEvent& event)
@@ -2018,16 +2060,9 @@ void MainFrame::OnItemActivated(wxDataViewEvent& event)
             Services::TaskViewModel taskViewModel;
             Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-            auto sqliteResult = tasksService.GetById(mTaskIdToEdit, taskViewModel);
+            auto sqliteResult = FetchTaskAndTaskAttributeValues(mTaskIdToEdit, taskViewModel);
             if (!sqliteResult.Success) {
-                wxRichMessageDialog dialog(this,
-                    Messages::GetByIdTaskMessage,
-                    Common::GetProgramName(),
-                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-                dialog.ShowModal();
+                return;
             } else {
                 for (size_t j = 0; j < mTasksViewColumns.size(); j++) {
                     switch (mTasksViewColumns[j].TaskViewColumnId) {
@@ -2062,6 +2097,22 @@ void MainFrame::OnItemActivated(wxDataViewEvent& event)
                     case TasksViewColumnIdentifier::UniqueIdentifier:
                         pDataViewListCtrl->SetTextValue(
                             taskViewModel.TryGetUniqueIdentifier(), mDataViewListCtrlRow, j);
+                        break;
+                    case TasksViewColumnIdentifier::TaskCreatedDate:
+                        pDataViewListCtrl->SetTextValue(
+                            taskViewModel.GetDateCreatedString(), mDataViewListCtrlRow, j);
+                        break;
+                    case TasksViewColumnIdentifier::TaskModifiedDate:
+                        pDataViewListCtrl->SetTextValue(
+                            taskViewModel.GetDateModifiedString(), mDataViewListCtrlRow, j);
+                        break;
+                    case TasksViewColumnIdentifier::TaskAttributeValues:
+                        pDataViewListCtrl->SetTextValue(
+                            taskViewModel.TryGetTaskAttributeValues(), mDataViewListCtrlRow, j);
+                        break;
+                    case TasksViewColumnIdentifier::IsMeeting:
+                        pDataViewListCtrl->SetToggleValue(
+                            taskViewModel.IsMeeting, mDataViewListCtrlRow, j);
                         break;
                     case TasksViewColumnIdentifier::Description:
                         pDataViewListCtrl->SetTextValue(
@@ -2182,16 +2233,9 @@ void MainFrame::RefreshDataViewListControl()
     std::vector<Services::TaskViewModel> taskViewModels;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
 
-    auto sqliteResult = tasksService.FilterByDate(mTaskDateString, taskViewModels);
+    auto sqliteResult = FetchTasksAndTaskAttributeValues(mTaskDateString, taskViewModels);
     if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterByDateTaskMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
+        return;
     } else {
         wxVector<wxVariant> row;
 
@@ -2224,6 +2268,18 @@ void MainFrame::RefreshDataViewListControl()
                 case TasksViewColumnIdentifier::UniqueIdentifier:
                     row.push_back(taskViewModels[i].TryGetUniqueIdentifier());
                     break;
+                case TasksViewColumnIdentifier::TaskCreatedDate:
+                    row.push_back(taskViewModels[i].GetDateCreatedString());
+                    break;
+                case TasksViewColumnIdentifier::TaskModifiedDate:
+                    row.push_back(taskViewModels[i].GetDateModifiedString());
+                    break;
+                case TasksViewColumnIdentifier::TaskAttributeValues:
+                    row.push_back(taskViewModels[i].TryGetTaskAttributeValues());
+                    break;
+                case TasksViewColumnIdentifier::IsMeeting:
+                    row.push_back(taskViewModels[i].IsMeeting);
+                    break;
                 case TasksViewColumnIdentifier::Description:
                     row.push_back(taskViewModels[i].GetTrimmedDescription());
                     break;
@@ -2252,5 +2308,88 @@ void MainFrame::ResetTaskContextMenuVariables()
 {
     mTaskIdToEdit = -1;
     mDataViewListCtrlRow = -1;
+}
+
+SqliteResult MainFrame::FetchTaskAndTaskAttributeValues(const std::int64_t taskId,
+    Services::TaskViewModel& taskViewModel)
+{
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.GetById(taskId, taskViewModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return sqliteResult;
+    }
+
+    std::vector<Model::TaskAttributeValueModel> taskAttributeValues;
+    Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+        pLogger, mDatabaseFilePath);
+    sqliteResult =
+        taskAttributeValuesPersistence.GetByTaskId(taskViewModel.TaskId, taskAttributeValues);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return sqliteResult;
+    }
+
+    taskViewModel.TaskAttributeValueModels = taskAttributeValues;
+
+    return sqliteResult;
+}
+
+SqliteResult MainFrame::FetchTasksAndTaskAttributeValues(const std::string& date,
+    std::vector<Services::TaskViewModel>& taskViewModels)
+{
+    Services::TasksService tasksService(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = tasksService.FilterByDate(date, taskViewModels);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterByDateTaskMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+        return sqliteResult;
+    }
+
+    std::vector<Model::TaskAttributeValueModel> taskAttributeValues;
+    Persistence::TaskAttributeValuesPersistence taskAttributeValuesPersistence(
+        pLogger, mDatabaseFilePath);
+    for (auto& taskViewModel : taskViewModels) {
+        sqliteResult =
+            taskAttributeValuesPersistence.GetByTaskId(taskViewModel.TaskId, taskAttributeValues);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterByDateTaskMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return sqliteResult;
+        }
+
+        taskViewModel.TaskAttributeValueModels = taskAttributeValues;
+        taskAttributeValues.clear();
+    }
+
+    return sqliteResult;
 }
 } // namespace tks::UI

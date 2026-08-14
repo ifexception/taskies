@@ -49,7 +49,7 @@
 
 #include "../ui/frames/outlookmeetingsviewframe.h"
 
-#include "../models/taskmodel.h"
+#include "../services/tasks/taskviewmodel.h"
 
 #include "../utils/datestore.h"
 
@@ -254,6 +254,11 @@ private:
     void ParseWXDateTimeToDate(const wxDateTime& dateTime);
 
     void ResetTaskContextMenuVariables();
+
+    SqliteResult FetchTaskAndTaskAttributeValues(const std::int64_t taskId,
+        Services::TaskViewModel& taskViewModel);
+    SqliteResult FetchTasksAndTaskAttributeValues(const std::string& date,
+        std::vector<Services::TaskViewModel>& taskViewModels);
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
