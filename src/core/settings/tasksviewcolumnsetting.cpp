@@ -155,15 +155,6 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnType::Text,
         false);
 
-    TasksViewColumnSetting taskAttributeValues("TaskAttributeValues",
-        "Attributes + Values",
-        -1,
-        TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskAttributeValues,
-        TasksViewColumnSetting::DefaultWidth,
-        TasksViewColumnType::Text,
-        false);
-
     TasksViewColumnSetting taskCreatedDate("TaskCreatedDate",
         "Created",
         -1,
@@ -182,11 +173,11 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnType::Text,
         false);
 
-    TasksViewColumnSetting taskAttributes("TaskAttributes",
+    TasksViewColumnSetting taskAttributeValues("TaskAttributeValues",
         "Attribute Values",
         -1,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskAttributes,
+        TasksViewColumnIdentifier::TaskAttributeValues,
         TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
@@ -217,10 +208,9 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         duration,
         billable,
         uniqueIdentifier,
-        taskAttributeValues,
         taskCreatedDate,
         taskModifiedDate,
-        taskAttributes,
+        taskAttributeValues,
         isMeeting,
         description };
 
@@ -301,15 +291,6 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnType::Text,
         false);
 
-    TasksViewColumnSetting taskAttributeValues("TaskAttributeValues",
-        "Attributes + Values",
-        -1,
-        TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskAttributeValues,
-        TasksViewColumnSetting::DefaultWidth,
-        TasksViewColumnType::Text,
-        false);
-
     TasksViewColumnSetting taskCreatedDate("TaskCreatedDate",
         "Created",
         -1,
@@ -328,11 +309,11 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnType::Text,
         false);
 
-    TasksViewColumnSetting taskAttributes("TaskAttributes",
+    TasksViewColumnSetting taskAttributeValues("TaskAttributeValues",
         "Attribute Values",
         -1,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskAttributes,
+        TasksViewColumnIdentifier::TaskAttributeValues,
         TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
         false);
@@ -363,10 +344,9 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         duration,
         billable,
         uniqueIdentifier,
-        taskAttributeValues,
         taskCreatedDate,
         taskModifiedDate,
-        taskAttributes,
+        taskAttributeValues,
         isMeeting,
         description };
 
