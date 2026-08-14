@@ -81,19 +81,15 @@ enum class TasksViewColumnIdentifier : int {
     Duration,
     Billable,
     UniqueIdentifier,
-    TaskAttributeValues,
     TaskCreatedDate,
     TaskModifiedDate,
-    TaskAttributes,
+    TaskAttributeValues,
     IsMeeting,
     Description,
     Unknown = 99
 };
 
-enum class TasksViewColumnType : int {
-    Text = 1,
-    Toggle
-};
+enum class TasksViewColumnType : int { Text = 1, Toggle };
 
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string InstallLocationToString(InstallLocation installLocation);
