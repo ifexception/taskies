@@ -26,28 +26,33 @@
 namespace tks::Core::Settings
 {
 struct TasksViewColumnSetting {
-    static int DefaultWidth;
-    static int AutoWidth;
+    static int ColumnDefaultWidth;
+    static int ColumnAutoWidth;
+
+    static int DefaultOrderIndex;
 
     TasksViewColumnSetting();
     TasksViewColumnSetting(const std::string& name,
         const std::string& displayName,
         int order,
         TasksViewColumnTextAlignment textAlignment,
-        TasksViewColumnIdentifier columnId,
-        int width,
         TasksViewColumnType type,
-        bool selected);
+        TasksViewColumnEllipsizeMode ellipsizeMode,
+        int width,
+        bool selected,
+        TasksViewColumnIdentifier columnId);
     ~TasksViewColumnSetting() = default;
 
     std::string Name;
     std::string DisplayName;
     int Order;
     TasksViewColumnTextAlignment TextAlignment;
-    TasksViewColumnIdentifier TaskViewColumnId;
-    int Width;
     TasksViewColumnType Type;
+    TasksViewColumnEllipsizeMode EllipsizeMode;
+    int Width;
     bool Selected;
+
+    TasksViewColumnIdentifier TaskViewColumnId;
 
     bool operator==(const TasksViewColumnSetting& other) const;
     bool operator!=(const TasksViewColumnSetting& other) const;

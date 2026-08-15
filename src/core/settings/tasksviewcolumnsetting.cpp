@@ -21,18 +21,21 @@
 
 namespace tks::Core::Settings
 {
-int TasksViewColumnSetting::DefaultWidth = 80;
-int TasksViewColumnSetting::AutoWidth = -1;
+int TasksViewColumnSetting::ColumnDefaultWidth = 80;
+int TasksViewColumnSetting::ColumnAutoWidth = -1;
+
+int TasksViewColumnSetting::DefaultOrderIndex = -1;
 
 TasksViewColumnSetting::TasksViewColumnSetting()
     : Name("")
     , DisplayName("")
     , Order(-1)
     , TextAlignment(TasksViewColumnTextAlignment::Left)
-    , TaskViewColumnId(TasksViewColumnIdentifier::Unknown)
-    , Width(TasksViewColumnSetting::DefaultWidth)
     , Type(TasksViewColumnType::Text)
+    , EllipsizeMode(TasksViewColumnEllipsizeMode::Middle)
+    , Width(TasksViewColumnSetting::ColumnDefaultWidth)
     , Selected(false)
+    , TaskViewColumnId(TasksViewColumnIdentifier::Unknown)
 {
 }
 
@@ -40,18 +43,20 @@ TasksViewColumnSetting::TasksViewColumnSetting(const std::string& name,
     const std::string& displayName,
     int order,
     TasksViewColumnTextAlignment textAlignment,
-    TasksViewColumnIdentifier columnId,
-    int width,
     TasksViewColumnType type,
-    bool selected)
+    TasksViewColumnEllipsizeMode ellipsizeMode,
+    int width,
+    bool selected,
+    TasksViewColumnIdentifier columnId)
     : Name(name)
     , DisplayName(displayName)
     , Order(order)
     , TextAlignment(textAlignment)
-    , TaskViewColumnId(columnId)
-    , Width(width)
     , Type(type)
+    , EllipsizeMode(ellipsizeMode)
+    , Width(width)
     , Selected(selected)
+    , TaskViewColumnId(columnId)
 {
 }
 
@@ -69,12 +74,13 @@ TasksViewColumnSetting MakeDescriptionTasksViewColumn()
 {
     TasksViewColumnSetting description("Description",
         "Description",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Description,
-        TasksViewColumnSetting::AutoWidth,
         TasksViewColumnType::Text,
-        true);
+        TasksViewColumnEllipsizeMode::End,
+        TasksViewColumnSetting::ColumnAutoWidth,
+        true,
+        TasksViewColumnIdentifier::Description);
 
     return description;
 }
@@ -85,120 +91,133 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
 
     TasksViewColumnSetting date("Date",
         "Date",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::Date,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::Date);
 
     TasksViewColumnSetting employer("Employer",
         "Employer",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Employer,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::Employer);
 
     TasksViewColumnSetting client("Client",
         "Client",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Client,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::Client);
 
     TasksViewColumnSetting project("Project",
         "Project",
         orderIndex++,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Project,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        true);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        true,
+        TasksViewColumnIdentifier::Project);
 
     TasksViewColumnSetting category("Category",
         "Category",
         orderIndex++,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Category,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        true);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        true,
+        TasksViewColumnIdentifier::Category);
 
     TasksViewColumnSetting duration("Duration",
         "Duration",
         orderIndex++,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::Duration,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        true);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        true,
+        TasksViewColumnIdentifier::Duration);
 
     TasksViewColumnSetting billable("Billable",
         "Billable",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::Billable,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Toggle,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::Billable);
 
     TasksViewColumnSetting uniqueIdentifier("UniqueIdentifier",
         "Unique ID",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::UniqueIdentifier,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::UniqueIdentifier);
 
     TasksViewColumnSetting taskCreatedDate("TaskCreatedDate",
         "Created",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskCreatedDate,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::TaskCreatedDate);
 
     TasksViewColumnSetting taskModifiedDate("TaskModifiedDate",
         "Modified",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskModifiedDate,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::TaskModifiedDate);
 
     TasksViewColumnSetting taskAttributeValues("TaskAttributeValues",
         "Attribute Values",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskAttributeValues,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::TaskAttributeValues);
 
     TasksViewColumnSetting isMeeting("IsMeeting",
         "Meeting",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::IsMeeting,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Toggle,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::IsMeeting);
 
     TasksViewColumnSetting description("Description",
         "Description",
         orderIndex++,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Description,
-        -1,
         TasksViewColumnType::Text,
-        true);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnAutoWidth,
+        true,
+        TasksViewColumnIdentifier::Description);
 
     static std::vector<TasksViewColumnSetting> columns{ date,
         employer,
@@ -221,120 +240,133 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
 {
     TasksViewColumnSetting date("Date",
         "Date",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::Date,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::Date);
 
     TasksViewColumnSetting employer("Employer",
         "Employer",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Employer,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::Employer);
 
     TasksViewColumnSetting client("Client",
         "Client",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Client,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::Client);
 
     TasksViewColumnSetting project("Project",
         "Project",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Project,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        true,
+        TasksViewColumnIdentifier::Project);
 
     TasksViewColumnSetting category("Category",
         "Category",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Category,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        true,
+        TasksViewColumnIdentifier::Category);
 
     TasksViewColumnSetting duration("Duration",
         "Duration",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::Duration,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        true,
+        TasksViewColumnIdentifier::Duration);
 
     TasksViewColumnSetting billable("Billable",
         "Billable",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::Billable,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Toggle,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::Billable);
 
     TasksViewColumnSetting uniqueIdentifier("UniqueIdentifier",
         "Unique ID",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::UniqueIdentifier,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::UniqueIdentifier);
 
     TasksViewColumnSetting taskCreatedDate("TaskCreatedDate",
         "Created",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskCreatedDate,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::TaskCreatedDate);
 
     TasksViewColumnSetting taskModifiedDate("TaskModifiedDate",
         "Modified",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskModifiedDate,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::TaskModifiedDate);
 
     TasksViewColumnSetting taskAttributeValues("TaskAttributeValues",
         "Attribute Values",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::TaskAttributeValues,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::TaskAttributeValues);
 
     TasksViewColumnSetting isMeeting("IsMeeting",
         "Meeting",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
-        TasksViewColumnIdentifier::IsMeeting,
-        TasksViewColumnSetting::DefaultWidth,
         TasksViewColumnType::Toggle,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnDefaultWidth,
+        false,
+        TasksViewColumnIdentifier::IsMeeting);
 
     TasksViewColumnSetting description("Description",
         "Description",
-        -1,
+        TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
-        TasksViewColumnIdentifier::Description,
-        -1,
         TasksViewColumnType::Text,
-        false);
+        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnSetting::ColumnAutoWidth,
+        true,
+        TasksViewColumnIdentifier::Description);
 
     static std::vector<TasksViewColumnSetting> columns{ date,
         employer,
