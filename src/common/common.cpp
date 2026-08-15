@@ -181,5 +181,23 @@ std::vector<EnumClientData<BooleanHandler>> BooleanHandlerList()
 
     return std::vector<EnumClientData<BooleanHandler>>{ o1, o2, o3, o4, o5 };
 }
+
+std::vector<EnumClientData<TasksViewColumnTextAlignment>> TasksViewColumnTextAlignmentChoices()
+{
+    EnumClientData<TasksViewColumnTextAlignment> o1("Left", TasksViewColumnTextAlignment::Left);
+    EnumClientData<TasksViewColumnTextAlignment> o2("Center", TasksViewColumnTextAlignment::Center);
+    EnumClientData<TasksViewColumnTextAlignment> o3("Right", TasksViewColumnTextAlignment::Right);
+
+    return std::vector<EnumClientData<TasksViewColumnTextAlignment>>{ o1, o2, o3 };
+}
+
+std::vector<EnumClientData<TasksViewColumnEllipsizeMode>> TasksViewColumnEllipsizeModeChoices()
+{
+    EnumClientData<TasksViewColumnEllipsizeMode> o1("Start", TasksViewColumnEllipsizeMode::Start);
+    EnumClientData<TasksViewColumnEllipsizeMode> o2("Middle", TasksViewColumnEllipsizeMode::Middle);
+    EnumClientData<TasksViewColumnEllipsizeMode> o3("End", TasksViewColumnEllipsizeMode::End);
+
+    return std::vector<EnumClientData<TasksViewColumnEllipsizeMode>>{ o1, o2, o3 };
+}
 } // namespace Static
 } // namespace tks::Common
