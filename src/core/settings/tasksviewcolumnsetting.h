@@ -25,7 +25,6 @@
 
 namespace tks::Core::Settings
 {
-
 struct TasksViewColumnSetting {
     static int DefaultWidth;
     static int AutoWidth;
