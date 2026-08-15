@@ -89,6 +89,9 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
         }
     }
 
+    selectedTasksViewColumnsFromCheckListBox.push_back(
+        Core::Settings::MakeDescriptionTasksViewColumn());
+
     SPDLOG_LOGGER_TRACE(
         pLogger, "\"{0}\" columns selected", selectedTasksViewColumnsFromCheckListBox.size());
 
@@ -97,7 +100,7 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
     }
 
     SPDLOG_LOGGER_TRACE(pLogger,
-        "Applied order index for \"{0}\" columns selected",
+        "Set order index for \"{0}\" selected columns",
         selectedTasksViewColumnsFromCheckListBox.size());
 
     std::sort(selectedTasksViewColumnsFromCheckListBox.begin(),
