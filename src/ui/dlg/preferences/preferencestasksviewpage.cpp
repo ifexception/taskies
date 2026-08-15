@@ -24,7 +24,12 @@
 
 #include <fmt/format.h>
 
+#include <wx/spinctrl.h>
 #include <wx/richtooltip.h>
+
+#include "../../common/clientdata.h"
+
+#include "../../../common/enumclientdata.h"
 
 #include "../../../utils/utils.h"
 
@@ -47,6 +52,10 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pSelectedTasksViewColumns(nullptr)
     , pAscSortButton(nullptr)
     , pDescSortButton(nullptr)
+    , pSelectedColumnNameReadonlyTextCtrl(nullptr)
+    , pSelectedColumnWidthSpinCtrl(nullptr)
+    , pSelectedColumnTextAlignmentChoiceCtrl(nullptr)
+    , pSelectedColumnTextEllipsizeChoiceCtrl(nullptr)
     , mCheckedAvailableColumns()
     , mCheckedSelectedColumns()
     , mAllTasksViewColumns()
@@ -148,6 +157,8 @@ void PreferencesTasksViewPage::Reset()
 {
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
+
+    // TODO: Reset tasks view columns
 }
 
 void PreferencesTasksViewPage::CreateControls()
@@ -177,45 +188,132 @@ void PreferencesTasksViewPage::CreateControls()
     /* Tasks View Columns group box */
     auto tasksViewColumnsStaticBox =
         new wxStaticBox(this, wxID_ANY, "Tasks View Columns Selection");
-    auto tasksViewColumnBoxSizer = new wxStaticBoxSizer(tasksViewColumnsStaticBox, wxHORIZONTAL);
-    sizer->Add(tasksViewColumnBoxSizer, wxSizerFlags().Expand().Proportion(1));
+    auto tasksViewColumnStaticBoxSizer =
+        new wxStaticBoxSizer(tasksViewColumnsStaticBox, wxVERTICAL);
+    sizer->Add(tasksViewColumnStaticBoxSizer, wxSizerFlags().Expand().Proportion(1));
 
-    pAvailableTasksViewColumns = new wxCheckListBox(this, tksIDC_AVAILABLETASKSVIEWCOLUMNS);
+    /* Columns selection sizer */
+    auto columnsSelectionSizer = new wxBoxSizer(wxHORIZONTAL);
+    tasksViewColumnStaticBoxSizer->Add(columnsSelectionSizer, wxSizerFlags().Expand());
+
+    pAvailableTasksViewColumns =
+        new wxCheckListBox(tasksViewColumnsStaticBox, tksIDC_AVAILABLETASKSVIEWCOLUMNS);
     pAvailableTasksViewColumns->SetToolTip("Available columns to display in the tasks view");
-    tasksViewColumnBoxSizer->Add(
+    columnsSelectionSizer->Add(
         pAvailableTasksViewColumns, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Chevrons (right/left) buttons */
     auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
-    tasksViewColumnBoxSizer->Add(chevronButtonSizer, wxSizerFlags().CenterVertical());
+    columnsSelectionSizer->Add(chevronButtonSizer, wxSizerFlags().CenterVertical());
 
-    pRightChevronButton =
-        new wxButton(this, tksIDC_RIGHTCHEVRONBUTTON, ">", wxDefaultPosition, wxSize(32, -1));
+    pRightChevronButton = new wxButton(tasksViewColumnsStaticBox,
+        tksIDC_RIGHTCHEVRONBUTTON,
+        ">",
+        wxDefaultPosition,
+        wxSize(32, -1));
     pRightChevronButton->SetToolTip("Select a column to include in the tasks view display");
-    pLeftChevronButton =
-        new wxButton(this, tksIDC_LEFTCHEVRONBUTTON, "<", wxDefaultPosition, wxSize(32, -1));
+    pLeftChevronButton = new wxButton(tasksViewColumnsStaticBox,
+        tksIDC_LEFTCHEVRONBUTTON,
+        "<",
+        wxDefaultPosition,
+        wxSize(32, -1));
     pLeftChevronButton->SetToolTip("Select a column to exclude in the tasks view display");
 
     chevronButtonSizer->Add(pRightChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
 
     /* Tasks view selected columns */
-    pSelectedTasksViewColumns = new wxCheckListBox(this, tksIDC_SELECTEDTASKSVIEWCOLUMNS);
+    pSelectedTasksViewColumns =
+        new wxCheckListBox(tasksViewColumnsStaticBox, tksIDC_SELECTEDTASKSVIEWCOLUMNS);
     pSelectedTasksViewColumns->SetToolTip("Columns selected for display in the tasks view");
-    tasksViewColumnBoxSizer->Add(
+    columnsSelectionSizer->Add(
         pSelectedTasksViewColumns, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Sort (up/down) buttons */
     auto sortButtonSizer = new wxBoxSizer(wxVERTICAL);
-    tasksViewColumnBoxSizer->Add(sortButtonSizer, wxSizerFlags().CenterVertical());
+    columnsSelectionSizer->Add(sortButtonSizer, wxSizerFlags().CenterVertical());
 
-    pAscSortButton = new wxButton(this, tksIDC_ASCSORTBUTTON, "Asc");
+    pAscSortButton = new wxButton(tasksViewColumnsStaticBox, tksIDC_ASCSORTBUTTON, "Asc");
     pAscSortButton->SetToolTip("Sort a column ascending in the tasks view display");
-    pDescSortButton = new wxButton(this, tksIDC_DESCSORTBUTTON, "Desc");
+    pDescSortButton = new wxButton(tasksViewColumnsStaticBox, tksIDC_DESCSORTBUTTON, "Desc");
     pDescSortButton->SetToolTip("Sort a column descending in the tasks view display");
 
     sortButtonSizer->Add(pAscSortButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
     sortButtonSizer->Add(pDescSortButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
+
+    /* Tasks View Column Properties */
+    auto tasksViewColumnPropertiesStaticBox =
+        new wxStaticBox(tasksViewColumnsStaticBox, wxID_ANY, "Selected Column Properties");
+    auto tasksViewColumnPropertiesStaticBoxSizer =
+        new wxStaticBoxSizer(tasksViewColumnPropertiesStaticBox, wxVERTICAL);
+    tasksViewColumnStaticBoxSizer->Add(
+        tasksViewColumnPropertiesStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Selected column name text ctrl */
+    auto columnNameLabel = new wxStaticText(tasksViewColumnPropertiesStaticBox, wxID_ANY, "Column");
+    pSelectedColumnNameReadonlyTextCtrl = new wxTextCtrl(tasksViewColumnPropertiesStaticBox,
+        tksIDC_SELECTEDCOLUMNNAMEREADONLYTEXTCTRL,
+        "Selected column name",
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_READONLY);
+    pSelectedColumnNameReadonlyTextCtrl->SetToolTip("Name of column currently selected");
+
+    /* Selected column width spin ctrl */
+    auto selectedColumnWidthLabel =
+        new wxStaticText(tasksViewColumnPropertiesStaticBox, wxID_ANY, "Width");
+    pSelectedColumnWidthSpinCtrl = new wxSpinCtrl(tasksViewColumnPropertiesStaticBox,
+        tksIDC_SELECTEDCOLUMNWIDTHSPINCTRL,
+        wxEmptyString,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxSP_WRAP,
+        Core::Settings::TasksViewColumnSetting::ColumnDefaultWidth,
+        260,
+        Core::Settings::TasksViewColumnSetting::ColumnDefaultWidth);
+    pSelectedColumnWidthSpinCtrl->SetToolTip("Configure the width of the column");
+
+    /* Selected column alignment choice ctrl*/
+    auto selectedColumnAlignmentLabel =
+        new wxStaticText(tasksViewColumnPropertiesStaticBox, wxID_ANY, "Alignment");
+    pSelectedColumnTextAlignmentChoiceCtrl =
+        new wxChoice(tasksViewColumnPropertiesStaticBox, tksIDC_SELECTEDCOLUMNTEXTALIGNMENTCHOICE);
+    pSelectedColumnTextAlignmentChoiceCtrl->SetToolTip("Set the column text alignment");
+
+    /* Selected column ellipsis mode choice ctrl*/
+    auto selectedColumnEllipsisModeLabel =
+        new wxStaticText(tasksViewColumnPropertiesStaticBox, wxID_ANY, "Ellipsis Mode");
+    pSelectedColumnTextEllipsizeChoiceCtrl =
+        new wxChoice(tasksViewColumnPropertiesStaticBox, tksIDC_SELECTEDCOLUMNTEXTELLIPSIZECHOICE);
+    pSelectedColumnTextEllipsizeChoiceCtrl->SetToolTip(
+        "Set the column ellipsis mode when the column text exceeds the tasks view column area");
+
+    /* Flex grid sizer for property controls */
+    auto tasksViewColumnPropertiesGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    tasksViewColumnPropertiesGridSizer->AddGrowableCol(1, 1);
+
+    tasksViewColumnPropertiesGridSizer->Add(
+        columnNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    tasksViewColumnPropertiesGridSizer->Add(
+        pSelectedColumnNameReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    tasksViewColumnPropertiesGridSizer->Add(
+        selectedColumnWidthLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    tasksViewColumnPropertiesGridSizer->Add(
+        pSelectedColumnWidthSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    tasksViewColumnPropertiesGridSizer->Add(
+        selectedColumnAlignmentLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    tasksViewColumnPropertiesGridSizer->Add(
+        pSelectedColumnTextAlignmentChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    tasksViewColumnPropertiesGridSizer->Add(
+        selectedColumnEllipsisModeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    tasksViewColumnPropertiesGridSizer->Add(
+        pSelectedColumnTextEllipsizeChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    tasksViewColumnPropertiesStaticBoxSizer->Add(
+        tasksViewColumnPropertiesGridSizer, wxSizerFlags().Expand());
 
     SetSizerAndFit(sizer);
 }
@@ -273,6 +371,24 @@ void PreferencesTasksViewPage::FillControls()
         pAvailableTasksViewColumns->Append(tasksViewColumn.DisplayName,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
+
+    pSelectedColumnTextAlignmentChoiceCtrl->AppendString("Please select");
+    auto taskAlignments = Common::Static::TasksViewColumnTextAlignmentChoices();
+    for (size_t i = 0; i < taskAlignments.size(); i++) {
+        pSelectedColumnTextAlignmentChoiceCtrl->Append(taskAlignments[i].Value,
+            new ClientData<Common::EnumClientData<TasksViewColumnTextAlignment>>(
+                taskAlignments[i]));
+    }
+    pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
+
+    pSelectedColumnTextEllipsizeChoiceCtrl->AppendString("Please select");
+    auto taskEllipsisModes = Common::Static::TasksViewColumnEllipsizeModeChoices();
+    for (size_t i = 0; i < taskEllipsisModes.size(); i++) {
+        pSelectedColumnTextEllipsizeChoiceCtrl->Append(taskEllipsisModes[i].Value,
+            new ClientData<Common::EnumClientData<TasksViewColumnEllipsizeMode>>(
+                taskEllipsisModes[i]));
+    }
+    pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(0);
 }
 
 void PreferencesTasksViewPage::DataToControls()

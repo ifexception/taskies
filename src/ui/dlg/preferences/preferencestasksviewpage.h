@@ -88,6 +88,11 @@ private:
     wxButton* pAscSortButton;
     wxButton* pDescSortButton;
 
+    wxTextCtrl* pSelectedColumnNameReadonlyTextCtrl;
+    wxSpinCtrl* pSelectedColumnWidthSpinCtrl;
+    wxChoice* pSelectedColumnTextAlignmentChoiceCtrl;
+    wxChoice* pSelectedColumnTextEllipsizeChoiceCtrl;
+
     std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedAvailableColumns;
     std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedSelectedColumns;
 
@@ -101,7 +106,11 @@ private:
         tksIDC_LEFTCHEVRONBUTTON,
         tksIDC_SELECTEDTASKSVIEWCOLUMNS,
         tksIDC_ASCSORTBUTTON,
-        tksIDC_DESCSORTBUTTON
+        tksIDC_DESCSORTBUTTON,
+        tksIDC_SELECTEDCOLUMNNAMEREADONLYTEXTCTRL,
+        tksIDC_SELECTEDCOLUMNWIDTHSPINCTRL,
+        tksIDC_SELECTEDCOLUMNTEXTALIGNMENTCHOICE,
+        tksIDC_SELECTEDCOLUMNTEXTELLIPSIZECHOICE
     };
 };
 } // namespace UI::dlg
