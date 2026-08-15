@@ -428,7 +428,7 @@ void MainFrame::CreateControls()
                 Common::MapTasksViewColumnTextAlignment(mTasksViewColumns[i].TextAlignment));
             column->SetResizeable(false);
         } else if (mTasksViewColumns[i].Type == TasksViewColumnType::Text) {
-            column = pDataViewListCtrl->AppendTextColumn(mTasksViewColumns[i].Name,
+            column = pDataViewListCtrl->AppendTextColumn(mTasksViewColumns[i].DisplayName,
                 wxDATAVIEW_CELL_INERT,
                 mTasksViewColumns[i].Width,
                 Common::MapTasksViewColumnTextAlignment(mTasksViewColumns[i].TextAlignment));
@@ -439,6 +439,11 @@ void MainFrame::CreateControls()
             column->SetHidden(true);
         }
     }
+
+    int lastColumn = pDataViewListCtrl->GetColumnCount() - 1;
+    wxDataViewColumn* descriptionColumn = pDataViewListCtrl->GetColumn(lastColumn);
+    descriptionColumn->SetFlags(descriptionColumn->GetFlags() | wxDATAVIEW_COL_RESIZABLE);
+    descriptionColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
 
     pDataViewListCtrl->AppendTextColumn(
         "ID", wxDATAVIEW_CELL_INERT, wxSIZE_AUTO_WIDTH, wxALIGN_LEFT, wxDATAVIEW_COL_HIDDEN);
@@ -537,6 +542,8 @@ void MainFrame::DataToControls()
             row.push_back(static_cast<long>(taskViewModels[i].TaskId));
             pDataViewListCtrl->AppendItem(row);
         }
+
+        ResizeColumns();
 
         // Status Bar durations
         CalculateStatusBarTaskDurations();
@@ -1507,6 +1514,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         TryUpdateSelectedDateAndAllTaskDurations(mTaskDateString);
 
         pDataViewListCtrl->DeleteItem(mDataViewListCtrlRow);
+        ResizeColumns();
     }
 
     ResetTaskContextMenuVariables();
@@ -1704,6 +1712,7 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
         }
         row.push_back(static_cast<long>(taskViewModel.TaskId));
         pDataViewListCtrl->AppendItem(row);
+        ResizeColumns();
     }
 
     ResetTaskContextMenuVariables();
@@ -1731,6 +1740,7 @@ void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
 
         if (taskChangedId == dataViewListCtrlTaskId) {
             pDataViewListCtrl->DeleteItem(row);
+            ResizeColumns();
             break;
         }
     }
@@ -1809,6 +1819,8 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
                 break;
             }
         }
+
+        ResizeColumns();
     }
 }
 
@@ -1828,6 +1840,8 @@ void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 
         if (taskDeletedId == dataViewListCtrlTaskId) {
             pDataViewListCtrl->DeleteItem(row);
+            ResizeColumns();
+
             break;
         }
     }
@@ -1911,6 +1925,8 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
                 row.push_back(static_cast<long>(taskViewModels[i].TaskId));
                 pDataViewListCtrl->AppendItem(row);
             }
+
+            ResizeColumns();
 
             mTodayDate = pDateStore->TodayDate;
         }
@@ -2123,6 +2139,8 @@ void MainFrame::OnItemActivated(wxDataViewEvent& event)
                     }
                 }
             }
+
+            ResizeColumns();
         }
     }
 
@@ -2290,6 +2308,8 @@ void MainFrame::RefreshDataViewListControl()
             row.push_back(static_cast<long>(taskViewModels[i].TaskId));
             pDataViewListCtrl->AppendItem(row);
         }
+
+        ResizeColumns();
     }
 }
 
@@ -2308,6 +2328,17 @@ void MainFrame::ResetTaskContextMenuVariables()
 {
     mTaskIdToEdit = -1;
     mDataViewListCtrlRow = -1;
+}
+
+void MainFrame::ResizeColumns()
+{
+    unsigned int columnCount = pDataViewListCtrl->GetColumnCount() - 1;
+    for (unsigned int i = 0; i < columnCount; i++) {
+        wxDataViewColumn* column = pDataViewListCtrl->GetColumn(i);
+        if (column->IsShown() && column->IsResizeable()) {
+            column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+        }
+    }
 }
 
 SqliteResult MainFrame::FetchTaskAndTaskAttributeValues(const std::int64_t taskId,
