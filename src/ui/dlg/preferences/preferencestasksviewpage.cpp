@@ -88,13 +88,13 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
         int clientData = Utils::VoidPointerToInt(pSelectedTasksViewColumns->GetClientData(i));
         auto index = static_cast<TasksViewColumnIdentifier>(clientData);
 
-        auto iterator = std::find_if(mAllTasksViewColumns.begin(),
-            mAllTasksViewColumns.end(),
+        auto iterator = std::find_if(mCfgTasksViewColumns.begin(),
+            mCfgTasksViewColumns.end(),
             [index](const Core::Settings::TasksViewColumnSetting& setting) {
                 return setting.TaskViewColumnId == index;
             });
 
-        if (iterator != mAllTasksViewColumns.end()) {
+        if (iterator != mCfgTasksViewColumns.end()) {
             Core::Settings::TasksViewColumnSetting foundSetting = *iterator;
             foundSetting.Selected = true;
             selectedTasksViewColumnsFromCheckListBox.push_back(foundSetting);
