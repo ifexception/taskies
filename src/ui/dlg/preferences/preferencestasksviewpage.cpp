@@ -34,7 +34,6 @@
 #include "../../../utils/utils.h"
 
 #include "../../../core/configuration.h"
-#include "../../../core/settings/tasksviewcolumnsetting.h"
 
 namespace tks::UI::dlg
 {
@@ -55,11 +54,12 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pSelectedColumnNameReadonlyTextCtrl(nullptr)
     , pSelectedColumnWidthSpinCtrl(nullptr)
     , pSelectedColumnTextAlignmentChoiceCtrl(nullptr)
-    , pSelectedColumnTextEllipsizeChoiceCtrl(nullptr)
+    , pSelectedColumnTextEllipsisModeChoiceCtrl(nullptr)
     , mCheckedAvailableColumns()
     , mCheckedSelectedColumns()
     , mAllTasksViewColumns()
     , mCfgTasksViewColumns(pCfg->GetTasksViewColumns())
+    , mTasksViewColumnSettingProperties()
 {
     mAllTasksViewColumns = Core::Settings::MakeAllTasksViewColumnList();
     mAllTasksViewColumns.pop_back();
@@ -287,9 +287,9 @@ void PreferencesTasksViewPage::CreateControls()
     /* Selected column ellipsis mode choice ctrl*/
     auto selectedColumnEllipsisModeLabel =
         new wxStaticText(tasksViewColumnPropertiesStaticBox, wxID_ANY, "Ellipsis Mode");
-    pSelectedColumnTextEllipsizeChoiceCtrl =
-        new wxChoice(tasksViewColumnPropertiesStaticBox, tksIDC_SELECTEDCOLUMNTEXTELLIPSIZECHOICE);
-    pSelectedColumnTextEllipsizeChoiceCtrl->SetToolTip(
+    pSelectedColumnTextEllipsisModeChoiceCtrl = new wxChoice(
+        tasksViewColumnPropertiesStaticBox, tksIDC_SELECTEDCOLUMNTEXTELLIPSISMODECHOICECTRL);
+    pSelectedColumnTextEllipsisModeChoiceCtrl->SetToolTip(
         "Set the column ellipsis mode when the column text exceeds the tasks view column area");
 
     /* Apply properties button */
@@ -318,7 +318,7 @@ void PreferencesTasksViewPage::CreateControls()
     tasksViewColumnPropertiesGridSizer->Add(
         selectedColumnEllipsisModeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     tasksViewColumnPropertiesGridSizer->Add(
-        pSelectedColumnTextEllipsizeChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+        pSelectedColumnTextEllipsisModeChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     tasksViewColumnPropertiesStaticBoxSizer->Add(
         tasksViewColumnPropertiesGridSizer, wxSizerFlags().Expand());
@@ -373,6 +373,31 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
         this,
         tksIDC_DESCSORTBUTTON
     );
+
+    pSelectedColumnWidthSpinCtrl->Bind(
+        wxEVT_SPINCTRL,
+        &PreferencesTasksViewPage::OnColumnWidthChange,
+        this
+    );
+
+    pSelectedColumnTextAlignmentChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &PreferencesTasksViewPage::OnTextAlignmentChoice,
+        this
+    );
+
+    pSelectedColumnTextEllipsisModeChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &PreferencesTasksViewPage::OnEllipsisModeChoice,
+        this
+    );
+
+    pApplyButton->Bind(
+        wxEVT_BUTTON,
+        &PreferencesTasksViewPage::OnApplyButtonClick,
+        this,
+        tksIDC_APPLYBUTTON
+    );
 }
 // clang-format on
 
@@ -395,15 +420,15 @@ void PreferencesTasksViewPage::FillControls()
     pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
     pSelectedColumnTextAlignmentChoiceCtrl->Disable();
 
-    pSelectedColumnTextEllipsizeChoiceCtrl->AppendString("Please select");
+    pSelectedColumnTextEllipsisModeChoiceCtrl->AppendString("Please select");
     auto taskEllipsisModes = Common::Static::TasksViewColumnEllipsizeModeChoices();
     for (size_t i = 0; i < taskEllipsisModes.size(); i++) {
-        pSelectedColumnTextEllipsizeChoiceCtrl->Append(taskEllipsisModes[i].Value,
-            new ClientData<Common::EnumClientData<TasksViewColumnEllipsizeMode>>(
+        pSelectedColumnTextEllipsisModeChoiceCtrl->Append(taskEllipsisModes[i].Value,
+            new ClientData<Common::EnumClientData<TasksViewColumnEllipsisMode>>(
                 taskEllipsisModes[i]));
     }
-    pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(0);
-    pSelectedColumnTextEllipsizeChoiceCtrl->Disable();
+    pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(0);
+    pSelectedColumnTextEllipsisModeChoiceCtrl->Disable();
 
     pApplyButton->Disable();
 }
@@ -497,6 +522,7 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
 
             if (mCheckedSelectedColumns.size() == 1) {
                 column = mCheckedSelectedColumns[0].second;
+                mTasksViewColumnSettingProperties = column;
 
                 pSelectedColumnNameReadonlyTextCtrl->ChangeValue(column.DisplayName);
 
@@ -507,21 +533,23 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
                     static_cast<int>(column.TextAlignment));
                 pSelectedColumnTextAlignmentChoiceCtrl->Enable();
 
-                pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(
-                    static_cast<int>(column.EllipsizeMode));
-                pSelectedColumnTextEllipsizeChoiceCtrl->Enable();
+                pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(
+                    static_cast<int>(column.EllipsisMode));
+                pSelectedColumnTextEllipsisModeChoiceCtrl->Enable();
 
                 pApplyButton->Enable();
             } else {
                 pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
 
+                pSelectedColumnWidthSpinCtrl->SetValue(
+                    Core::Settings::TasksViewColumnSetting::ColumnDefaultWidth);
                 pSelectedColumnWidthSpinCtrl->Disable();
 
                 pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
                 pSelectedColumnTextAlignmentChoiceCtrl->Disable();
 
-                pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(0);
-                pSelectedColumnTextEllipsizeChoiceCtrl->Disable();
+                pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(0);
+                pSelectedColumnTextEllipsisModeChoiceCtrl->Disable();
 
                 pApplyButton->Disable();
             }
@@ -553,21 +581,23 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
                 static_cast<int>(column.TextAlignment));
             pSelectedColumnTextAlignmentChoiceCtrl->Enable();
 
-            pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(
-                static_cast<int>(column.EllipsizeMode));
-            pSelectedColumnTextEllipsizeChoiceCtrl->Enable();
+            pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(
+                static_cast<int>(column.EllipsisMode));
+            pSelectedColumnTextEllipsisModeChoiceCtrl->Enable();
 
             pApplyButton->Enable();
         } else {
             pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
 
+            pSelectedColumnWidthSpinCtrl->SetValue(
+                Core::Settings::TasksViewColumnSetting::ColumnDefaultWidth);
             pSelectedColumnWidthSpinCtrl->Disable();
 
             pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
             pSelectedColumnTextAlignmentChoiceCtrl->Disable();
 
-            pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(0);
-            pSelectedColumnTextEllipsizeChoiceCtrl->Disable();
+            pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(0);
+            pSelectedColumnTextEllipsisModeChoiceCtrl->Disable();
 
             pApplyButton->Disable();
         }
@@ -628,9 +658,23 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
             std::pair<int, Core::Settings::TasksViewColumnSetting>& rhs
             ) {
                 return lhs.first > rhs.first;
-        }
+            }
     );
     // clang-format on
+
+    if (mCheckedSelectedColumns.size() == 1) {
+        pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
+
+        pSelectedColumnWidthSpinCtrl->Disable();
+
+        pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
+        pSelectedColumnTextAlignmentChoiceCtrl->Disable();
+
+        pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(0);
+        pSelectedColumnTextEllipsisModeChoiceCtrl->Disable();
+
+        pApplyButton->Disable();
+    }
 
     for (const auto& checkedPair : mCheckedSelectedColumns) {
         pSelectedTasksViewColumns->Check(checkedPair.first, false);
@@ -667,14 +711,14 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
 
     if (mCheckedSelectedColumns.size() == 1) {
         auto& checkedSelectedColumn = mCheckedSelectedColumns[0];
-        auto iter = std::find_if(mAllTasksViewColumns.begin(),
+        auto iterator = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
             [checkedSelectedColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return checkedSelectedColumn.second.TaskViewColumnId == column.TaskViewColumnId;
             });
-        if (iter != mAllTasksViewColumns.end()) {
-            Core::Settings::TasksViewColumnSetting match = *iter;
-            int pos = pSelectedTasksViewColumns->FindString(match.Name);
+        if (iterator != mAllTasksViewColumns.end()) {
+            Core::Settings::TasksViewColumnSetting match = *iterator;
+            int pos = pSelectedTasksViewColumns->FindString(match.DisplayName);
             int opos = pos;
             --pos;
             if (pos == 0) {
@@ -711,20 +755,68 @@ void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
 
         if (iter != mAllTasksViewColumns.end()) {
             Core::Settings::TasksViewColumnSetting match = *iter;
-            int pos = pSelectedTasksViewColumns->FindString(match.Name);
+            int pos = pSelectedTasksViewColumns->FindString(match.DisplayName);
             if (pos >= (int) pSelectedTasksViewColumns->GetCount() - 1) {
                 pSelectedTasksViewColumns->Check(pos, false);
                 mCheckedSelectedColumns.clear();
                 return;
             }
             pSelectedTasksViewColumns->Delete(pos);
-            int opos = pos;
+            // int opos = pos;
             pos++;
             pSelectedTasksViewColumns->Insert(
                 match.Name, pos, Utils::IntToVoidPointer(static_cast<int>(match.TaskViewColumnId)));
             pSelectedTasksViewColumns->Check(pos);
 
             mCheckedSelectedColumns[0].first = pos;
+        }
+    }
+}
+
+void PreferencesTasksViewPage::OnColumnWidthChange(wxSpinEvent& event)
+{
+    assert(mTasksViewColumnSettingProperties.IsValid());
+
+    mTasksViewColumnSettingProperties.Width = event.GetValue();
+}
+
+void PreferencesTasksViewPage::OnTextAlignmentChoice(wxCommandEvent& event)
+{
+    assert(mTasksViewColumnSettingProperties.IsValid());
+
+    int textAlignmentChoiceIndex = pSelectedColumnTextAlignmentChoiceCtrl->GetSelection();
+    ClientData<Common::EnumClientData<TasksViewColumnTextAlignment>>* textAlignmentChoiceData =
+        reinterpret_cast<ClientData<Common::EnumClientData<TasksViewColumnTextAlignment>>*>(
+            pSelectedColumnTextAlignmentChoiceCtrl->GetClientObject(textAlignmentChoiceIndex));
+
+    mTasksViewColumnSettingProperties.TextAlignment = textAlignmentChoiceData->GetValue().Data;
+}
+
+void PreferencesTasksViewPage::OnEllipsisModeChoice(wxCommandEvent& event)
+{
+    assert(mTasksViewColumnSettingProperties.IsValid());
+
+    int textEllipsisModeChoiceIndex = pSelectedColumnTextEllipsisModeChoiceCtrl->GetSelection();
+    ClientData<Common::EnumClientData<TasksViewColumnEllipsisMode>>* textEllipsisModeChoiceData =
+        reinterpret_cast<ClientData<Common::EnumClientData<TasksViewColumnEllipsisMode>>*>(
+            pSelectedColumnTextEllipsisModeChoiceCtrl->GetClientObject(
+                textEllipsisModeChoiceIndex));
+
+    mTasksViewColumnSettingProperties.EllipsisMode = textEllipsisModeChoiceData->GetValue().Data;
+}
+
+void PreferencesTasksViewPage::OnApplyButtonClick(wxCommandEvent& event)
+{
+    assert(mTasksViewColumnSettingProperties.IsValid());
+
+    for (size_t i = 0; i < mCfgTasksViewColumns.size(); i++) {
+        if (mTasksViewColumnSettingProperties.TaskViewColumnId ==
+            mCfgTasksViewColumns[i].TaskViewColumnId) {
+            mCfgTasksViewColumns[i].Width = mTasksViewColumnSettingProperties.Width;
+            mCfgTasksViewColumns[i].TextAlignment = mTasksViewColumnSettingProperties.TextAlignment;
+            mCfgTasksViewColumns[i].EllipsisMode = mTasksViewColumnSettingProperties.EllipsisMode;
+
+            break;
         }
     }
 }

@@ -34,14 +34,12 @@
 #include "../../../common/common.h"
 #include "../../../common/enums.h"
 
+#include "../../../core/settings/tasksviewcolumnsetting.h"
+
 namespace tks
 {
 namespace Core
 {
-namespace Settings
-{
-struct TasksViewColumnSetting;
-} // namespace Settings
 class Configuration;
 } // namespace Core
 namespace UI::dlg
@@ -74,6 +72,10 @@ private:
     void OnLeftChevronButtonClick(wxCommandEvent& event);
     void OnAscButtonClick(wxCommandEvent& event);
     void OnDescButtonClick(wxCommandEvent& event);
+    void OnColumnWidthChange(wxSpinEvent& event);
+    void OnTextAlignmentChoice(wxCommandEvent& event);
+    void OnEllipsisModeChoice(wxCommandEvent& event);
+    void OnApplyButtonClick(wxCommandEvent& event);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
@@ -91,7 +93,7 @@ private:
     wxTextCtrl* pSelectedColumnNameReadonlyTextCtrl;
     wxSpinCtrl* pSelectedColumnWidthSpinCtrl;
     wxChoice* pSelectedColumnTextAlignmentChoiceCtrl;
-    wxChoice* pSelectedColumnTextEllipsizeChoiceCtrl;
+    wxChoice* pSelectedColumnTextEllipsisModeChoiceCtrl;
     wxButton* pApplyButton;
 
     std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedAvailableColumns;
@@ -99,6 +101,8 @@ private:
 
     std::vector<Core::Settings::TasksViewColumnSetting> mAllTasksViewColumns;
     std::vector<Core::Settings::TasksViewColumnSetting> mCfgTasksViewColumns;
+
+    Core::Settings::TasksViewColumnSetting mTasksViewColumnSettingProperties;
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,
@@ -112,7 +116,7 @@ private:
         tksIDC_SELECTEDCOLUMNNAMEREADONLYTEXTCTRL,
         tksIDC_SELECTEDCOLUMNWIDTHSPINCTRL,
         tksIDC_SELECTEDCOLUMNTEXTALIGNMENTCHOICE,
-        tksIDC_SELECTEDCOLUMNTEXTELLIPSIZECHOICE,
+        tksIDC_SELECTEDCOLUMNTEXTELLIPSISMODECHOICECTRL,
         tksIDC_APPLYBUTTON
     };
 };
