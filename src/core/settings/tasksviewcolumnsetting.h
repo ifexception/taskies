@@ -37,7 +37,7 @@ struct TasksViewColumnSetting {
         int order,
         TasksViewColumnTextAlignment textAlignment,
         TasksViewColumnType type,
-        TasksViewColumnEllipsizeMode ellipsizeMode,
+        TasksViewColumnEllipsisMode ellipsizeMode,
         int width,
         bool selected,
         TasksViewColumnIdentifier columnId);
@@ -48,7 +48,7 @@ struct TasksViewColumnSetting {
     int Order;
     TasksViewColumnTextAlignment TextAlignment;
     TasksViewColumnType Type;
-    TasksViewColumnEllipsizeMode EllipsizeMode;
+    TasksViewColumnEllipsisMode EllipsisMode;
     int Width;
     bool Selected;
 
@@ -56,6 +56,8 @@ struct TasksViewColumnSetting {
 
     bool operator==(const TasksViewColumnSetting& other) const;
     bool operator!=(const TasksViewColumnSetting& other) const;
+
+    bool IsValid() const;
 };
 
 TasksViewColumnSetting MakeDescriptionTasksViewColumn();

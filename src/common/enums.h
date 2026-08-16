@@ -91,7 +91,7 @@ enum class TasksViewColumnIdentifier : int {
 
 enum class TasksViewColumnType : int { Text = 1, Toggle };
 
-enum class TasksViewColumnEllipsizeMode : int { Start = 1, Middle, End };
+enum class TasksViewColumnEllipsisMode : int { Start = 1, Middle, End };
 
 std::string BuildConfigurationToString(BuildConfiguration buildConfiguration);
 std::string InstallLocationToString(InstallLocation installLocation);

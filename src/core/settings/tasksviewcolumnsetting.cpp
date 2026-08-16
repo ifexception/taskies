@@ -32,7 +32,7 @@ TasksViewColumnSetting::TasksViewColumnSetting()
     , Order(-1)
     , TextAlignment(TasksViewColumnTextAlignment::Left)
     , Type(TasksViewColumnType::Text)
-    , EllipsizeMode(TasksViewColumnEllipsizeMode::Middle)
+    , EllipsisMode(TasksViewColumnEllipsisMode::Middle)
     , Width(TasksViewColumnSetting::ColumnDefaultWidth)
     , Selected(false)
     , TaskViewColumnId(TasksViewColumnIdentifier::Unknown)
@@ -44,7 +44,7 @@ TasksViewColumnSetting::TasksViewColumnSetting(const std::string& name,
     int order,
     TasksViewColumnTextAlignment textAlignment,
     TasksViewColumnType type,
-    TasksViewColumnEllipsizeMode ellipsizeMode,
+    TasksViewColumnEllipsisMode ellipsizeMode,
     int width,
     bool selected,
     TasksViewColumnIdentifier columnId)
@@ -53,7 +53,7 @@ TasksViewColumnSetting::TasksViewColumnSetting(const std::string& name,
     , Order(order)
     , TextAlignment(textAlignment)
     , Type(type)
-    , EllipsizeMode(ellipsizeMode)
+    , EllipsisMode(ellipsizeMode)
     , Width(width)
     , Selected(selected)
     , TaskViewColumnId(columnId)
@@ -70,6 +70,12 @@ bool TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) con
     return Order != other.Order;
 }
 
+bool TasksViewColumnSetting::IsValid() const
+{
+    return !Name.empty() && !DisplayName.empty() &&
+           TaskViewColumnId != TasksViewColumnIdentifier::Unknown;
+}
+
 TasksViewColumnSetting MakeDescriptionTasksViewColumn()
 {
     TasksViewColumnSetting description("Description",
@@ -77,7 +83,7 @@ TasksViewColumnSetting MakeDescriptionTasksViewColumn()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::End,
+        TasksViewColumnEllipsisMode::End,
         TasksViewColumnSetting::ColumnAutoWidth,
         true,
         TasksViewColumnIdentifier::Description);
@@ -94,7 +100,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::Date);
@@ -104,7 +110,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::Employer);
@@ -114,7 +120,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::Client);
@@ -124,7 +130,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         orderIndex++,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         true,
         TasksViewColumnIdentifier::Project);
@@ -134,7 +140,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         orderIndex++,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         true,
         TasksViewColumnIdentifier::Category);
@@ -144,7 +150,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         orderIndex++,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         true,
         TasksViewColumnIdentifier::Duration);
@@ -154,7 +160,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Toggle,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::Billable);
@@ -164,7 +170,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::UniqueIdentifier);
@@ -174,7 +180,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::TaskCreatedDate);
@@ -184,7 +190,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::TaskModifiedDate);
@@ -194,7 +200,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::TaskAttributeValues);
@@ -204,7 +210,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Toggle,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::IsMeeting);
@@ -214,7 +220,7 @@ const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList()
         orderIndex++,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnAutoWidth,
         true,
         TasksViewColumnIdentifier::Description);
@@ -243,7 +249,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::Date);
@@ -253,7 +259,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::Employer);
@@ -263,7 +269,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::Client);
@@ -273,7 +279,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         true,
         TasksViewColumnIdentifier::Project);
@@ -283,7 +289,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         true,
         TasksViewColumnIdentifier::Category);
@@ -293,7 +299,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         true,
         TasksViewColumnIdentifier::Duration);
@@ -303,7 +309,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Toggle,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::Billable);
@@ -313,7 +319,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::UniqueIdentifier);
@@ -323,7 +329,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::TaskCreatedDate);
@@ -333,7 +339,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::TaskModifiedDate);
@@ -343,7 +349,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::TaskAttributeValues);
@@ -353,7 +359,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Center,
         TasksViewColumnType::Toggle,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnDefaultWidth,
         false,
         TasksViewColumnIdentifier::IsMeeting);
@@ -363,7 +369,7 @@ const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList()
         TasksViewColumnSetting::DefaultOrderIndex,
         TasksViewColumnTextAlignment::Left,
         TasksViewColumnType::Text,
-        TasksViewColumnEllipsizeMode::Middle,
+        TasksViewColumnEllipsisMode::Middle,
         TasksViewColumnSetting::ColumnAutoWidth,
         true,
         TasksViewColumnIdentifier::Description);

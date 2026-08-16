@@ -191,13 +191,13 @@ std::vector<EnumClientData<TasksViewColumnTextAlignment>> TasksViewColumnTextAli
     return std::vector<EnumClientData<TasksViewColumnTextAlignment>>{ o1, o2, o3 };
 }
 
-std::vector<EnumClientData<TasksViewColumnEllipsizeMode>> TasksViewColumnEllipsizeModeChoices()
+std::vector<EnumClientData<TasksViewColumnEllipsisMode>> TasksViewColumnEllipsizeModeChoices()
 {
-    EnumClientData<TasksViewColumnEllipsizeMode> o1("Start", TasksViewColumnEllipsizeMode::Start);
-    EnumClientData<TasksViewColumnEllipsizeMode> o2("Middle", TasksViewColumnEllipsizeMode::Middle);
-    EnumClientData<TasksViewColumnEllipsizeMode> o3("End", TasksViewColumnEllipsizeMode::End);
+    EnumClientData<TasksViewColumnEllipsisMode> o1("Start", TasksViewColumnEllipsisMode::Start);
+    EnumClientData<TasksViewColumnEllipsisMode> o2("Middle", TasksViewColumnEllipsisMode::Middle);
+    EnumClientData<TasksViewColumnEllipsisMode> o3("End", TasksViewColumnEllipsisMode::End);
 
-    return std::vector<EnumClientData<TasksViewColumnEllipsizeMode>>{ o1, o2, o3 };
+    return std::vector<EnumClientData<TasksViewColumnEllipsisMode>>{ o1, o2, o3 };
 }
 } // namespace Static
 } // namespace tks::Common

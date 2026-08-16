@@ -72,7 +72,7 @@ std::vector<EnumClientData<EmptyValues>> EmptyValuesList();
 std::vector<EnumClientData<NewLines>> NewLinesList();
 std::vector<EnumClientData<BooleanHandler>> BooleanHandlerList();
 std::vector<EnumClientData<TasksViewColumnTextAlignment>> TasksViewColumnTextAlignmentChoices();
-std::vector<EnumClientData<TasksViewColumnEllipsizeMode>> TasksViewColumnEllipsizeModeChoices();
+std::vector<EnumClientData<TasksViewColumnEllipsisMode>> TasksViewColumnEllipsizeModeChoices();
 } // namespace Static
 } // namespace Common
 } // namespace tks
