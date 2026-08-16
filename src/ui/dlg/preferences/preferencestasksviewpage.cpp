@@ -190,7 +190,7 @@ void PreferencesTasksViewPage::CreateControls()
         new wxStaticBox(this, wxID_ANY, "Tasks View Columns Selection");
     auto tasksViewColumnStaticBoxSizer =
         new wxStaticBoxSizer(tasksViewColumnsStaticBox, wxVERTICAL);
-    sizer->Add(tasksViewColumnStaticBoxSizer, wxSizerFlags().Expand().Proportion(1));
+    sizer->Add(tasksViewColumnStaticBoxSizer, wxSizerFlags().Expand());
 
     /* Columns selection sizer */
     auto columnsSelectionSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -247,7 +247,7 @@ void PreferencesTasksViewPage::CreateControls()
     auto tasksViewColumnPropertiesStaticBoxSizer =
         new wxStaticBoxSizer(tasksViewColumnPropertiesStaticBox, wxVERTICAL);
     tasksViewColumnStaticBoxSizer->Add(
-        tasksViewColumnPropertiesStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        tasksViewColumnPropertiesStaticBoxSizer, wxSizerFlags().Expand());
 
     /* Selected column name text ctrl */
     auto columnNameLabel = new wxStaticText(tasksViewColumnPropertiesStaticBox, wxID_ANY, "Column");
@@ -372,6 +372,8 @@ void PreferencesTasksViewPage::FillControls()
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 
+    pSelectedColumnWidthSpinCtrl->Disable();
+
     pSelectedColumnTextAlignmentChoiceCtrl->AppendString("Please select");
     auto taskAlignments = Common::Static::TasksViewColumnTextAlignmentChoices();
     for (size_t i = 0; i < taskAlignments.size(); i++) {
@@ -380,6 +382,7 @@ void PreferencesTasksViewPage::FillControls()
                 taskAlignments[i]));
     }
     pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
+    pSelectedColumnTextAlignmentChoiceCtrl->Disable();
 
     pSelectedColumnTextEllipsizeChoiceCtrl->AppendString("Please select");
     auto taskEllipsisModes = Common::Static::TasksViewColumnEllipsizeModeChoices();
@@ -389,6 +392,7 @@ void PreferencesTasksViewPage::FillControls()
                 taskEllipsisModes[i]));
     }
     pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(0);
+    pSelectedColumnTextEllipsizeChoiceCtrl->Disable();
 }
 
 void PreferencesTasksViewPage::DataToControls()
