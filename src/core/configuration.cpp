@@ -193,10 +193,11 @@ ConfigResult Configuration::Save()
                 { "displayName", tasksViewColumn.DisplayName },
                 { "order", tasksViewColumn.Order },
                 { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
-                { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
-                { "width", tasksViewColumn.Width },
                 { "type", static_cast<int>(tasksViewColumn.Type) },
-                { "selected", tasksViewColumn.Selected }
+                { "ellipsisMode", static_cast<int>(tasksViewColumn.EllipsisMode) },
+                { "width", tasksViewColumn.Width },
+                { "selected", tasksViewColumn.Selected },
+                { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
             }
         );
         // clang-format on
@@ -377,10 +378,11 @@ ConfigResult Configuration::RestoreDefaults()
                 { "displayName", tasksViewColumn.Name },
                 { "order", tasksViewColumn.Order },
                 { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
-                { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
-                { "width", tasksViewColumn.Width },
                 { "type", static_cast<int>(tasksViewColumn.Type) },
-                { "selected", tasksViewColumn.Selected }
+                { "ellipsisMode", static_cast<int>(tasksViewColumn.EllipsisMode) },
+                { "width", tasksViewColumn.Width },
+                { "selected", tasksViewColumn.Selected },
+                { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
             }
         );
         // clang-format on
@@ -1023,12 +1025,14 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                         column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
                         column.TextAlignment = static_cast<TasksViewColumnTextAlignment>(
                             toml::find<int>(tasksViewArrayTable[i], "textAlignment"));
-                        column.TaskViewColumnId = static_cast<TasksViewColumnIdentifier>(
-                            toml::find<int>(tasksViewArrayTable[i], "id"));
-                        column.Width = toml::find<int>(tasksViewArrayTable[i], "width");
+                        column.EllipsisMode = static_cast<TasksViewColumnEllipsisMode>(
+                            toml::find<int>(tasksViewArrayTable[i], "ellipsisMode"));
                         column.Type = static_cast<TasksViewColumnType>(
                             toml::find<int>(tasksViewArrayTable[i], "type"));
+                        column.Width = toml::find<int>(tasksViewArrayTable[i], "width");
                         column.Selected = toml::find<bool>(tasksViewArrayTable[i], "selected");
+                        column.TaskViewColumnId = static_cast<TasksViewColumnIdentifier>(
+                            toml::find<int>(tasksViewArrayTable[i], "id"));
 
                         columns.push_back(column);
                     }
