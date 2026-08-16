@@ -59,9 +59,12 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , mCheckedAvailableColumns()
     , mCheckedSelectedColumns()
     , mAllTasksViewColumns()
+    , mCfgTasksViewColumns(pCfg->GetTasksViewColumns())
 {
     mAllTasksViewColumns = Core::Settings::MakeAllTasksViewColumnList();
     mAllTasksViewColumns.pop_back();
+
+    mCfgTasksViewColumns.pop_back();
 
     CreateControls();
     ConfigureEventBindings();
@@ -253,10 +256,11 @@ void PreferencesTasksViewPage::CreateControls()
     auto columnNameLabel = new wxStaticText(tasksViewColumnPropertiesStaticBox, wxID_ANY, "Column");
     pSelectedColumnNameReadonlyTextCtrl = new wxTextCtrl(tasksViewColumnPropertiesStaticBox,
         tksIDC_SELECTEDCOLUMNNAMEREADONLYTEXTCTRL,
-        "Selected column name",
+        "",
         wxDefaultPosition,
         wxDefaultSize,
         wxTE_READONLY);
+    pSelectedColumnNameReadonlyTextCtrl->SetHint("Selected column name");
     pSelectedColumnNameReadonlyTextCtrl->SetToolTip("Name of column currently selected");
 
     /* Selected column width spin ctrl */
@@ -288,6 +292,10 @@ void PreferencesTasksViewPage::CreateControls()
     pSelectedColumnTextEllipsizeChoiceCtrl->SetToolTip(
         "Set the column ellipsis mode when the column text exceeds the tasks view column area");
 
+    /* Apply properties button */
+    pApplyButton = new wxButton(tasksViewColumnPropertiesStaticBox, tksIDC_APPLYBUTTON, "Apply");
+    pApplyButton->SetToolTip("Apply and save column properties (if any)");
+
     /* Flex grid sizer for property controls */
     auto tasksViewColumnPropertiesGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     tasksViewColumnPropertiesGridSizer->AddGrowableCol(1, 1);
@@ -314,6 +322,9 @@ void PreferencesTasksViewPage::CreateControls()
 
     tasksViewColumnPropertiesStaticBoxSizer->Add(
         tasksViewColumnPropertiesGridSizer, wxSizerFlags().Expand());
+
+    tasksViewColumnPropertiesStaticBoxSizer->Add(
+        pApplyButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
 
     SetSizerAndFit(sizer);
 }
@@ -393,6 +404,8 @@ void PreferencesTasksViewPage::FillControls()
     }
     pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(0);
     pSelectedColumnTextEllipsizeChoiceCtrl->Disable();
+
+    pApplyButton->Disable();
 }
 
 void PreferencesTasksViewPage::DataToControls()
@@ -400,21 +413,18 @@ void PreferencesTasksViewPage::DataToControls()
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 
-    auto cfgTasksViewColumns = pCfg->GetTasksViewColumns();
-    cfgTasksViewColumns.pop_back(); // description column should always be last
-
-    cfgTasksViewColumns.erase(
-        std::remove_if(cfgTasksViewColumns.begin(),
-            cfgTasksViewColumns.end(),
+    mCfgTasksViewColumns.erase(
+        std::remove_if(mCfgTasksViewColumns.begin(),
+            mCfgTasksViewColumns.end(),
             [&](const Core::Settings::TasksViewColumnSetting& s) { return !s.Selected; }),
-        cfgTasksViewColumns.end());
+        mCfgTasksViewColumns.end());
 
-    for (const auto& tasksViewColumn : cfgTasksViewColumns) {
+    for (const auto& tasksViewColumn : mCfgTasksViewColumns) {
         pSelectedTasksViewColumns->Append(tasksViewColumn.DisplayName,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 
-    for (const auto& column : cfgTasksViewColumns) {
+    for (const auto& column : mCfgTasksViewColumns) {
         int itemId = pAvailableTasksViewColumns->FindString(column.DisplayName);
         if (itemId >= 0) {
             pAvailableTasksViewColumns->Delete(itemId);
@@ -475,7 +485,47 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
             }
         }
 
-        mCheckedSelectedColumns.push_back(std::make_pair(item, index));
+        auto cfgTasksViewColumnIterator = std::find_if(mCfgTasksViewColumns.begin(),
+            mCfgTasksViewColumns.end(),
+            [&](const Core::Settings::TasksViewColumnSetting& s) {
+                return s.TaskViewColumnId == index;
+            });
+
+        if (cfgTasksViewColumnIterator != mCfgTasksViewColumns.end()) {
+            Core::Settings::TasksViewColumnSetting column = *cfgTasksViewColumnIterator;
+            mCheckedSelectedColumns.push_back(std::make_pair(item, column));
+
+            if (mCheckedSelectedColumns.size() == 1) {
+                column = mCheckedSelectedColumns[0].second;
+
+                pSelectedColumnNameReadonlyTextCtrl->ChangeValue(column.DisplayName);
+
+                pSelectedColumnWidthSpinCtrl->SetValue(column.Width);
+                pSelectedColumnWidthSpinCtrl->Enable();
+
+                pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(
+                    static_cast<int>(column.TextAlignment));
+                pSelectedColumnTextAlignmentChoiceCtrl->Enable();
+
+                pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(
+                    static_cast<int>(column.EllipsizeMode));
+                pSelectedColumnTextEllipsizeChoiceCtrl->Enable();
+
+                pApplyButton->Enable();
+            } else {
+                pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
+
+                pSelectedColumnWidthSpinCtrl->Disable();
+
+                pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
+                pSelectedColumnTextAlignmentChoiceCtrl->Disable();
+
+                pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(0);
+                pSelectedColumnTextEllipsizeChoiceCtrl->Disable();
+
+                pApplyButton->Disable();
+            }
+        }
     } else {
         SPDLOG_LOGGER_TRACE(
             pLogger, "Item unchecked from selected list box with ID \"{0}\"", event.GetInt());
@@ -485,11 +535,42 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
             std::remove_if(
                 mCheckedSelectedColumns.begin(),
                 mCheckedSelectedColumns.end(),
-                [item](const std::pair<int, TasksViewColumnIdentifier>& p) {
+                [item](const std::pair<int, Core::Settings::TasksViewColumnSetting>& p) {
                     return p.first == item;
                 }),
             mCheckedSelectedColumns.end());
         // clang-format on
+
+        if (mCheckedSelectedColumns.size() == 1) {
+            Core::Settings::TasksViewColumnSetting column = mCheckedSelectedColumns[0].second;
+
+            pSelectedColumnNameReadonlyTextCtrl->ChangeValue(column.DisplayName);
+
+            pSelectedColumnWidthSpinCtrl->SetValue(column.Width);
+            pSelectedColumnWidthSpinCtrl->Enable();
+
+            pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(
+                static_cast<int>(column.TextAlignment));
+            pSelectedColumnTextAlignmentChoiceCtrl->Enable();
+
+            pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(
+                static_cast<int>(column.EllipsizeMode));
+            pSelectedColumnTextEllipsizeChoiceCtrl->Enable();
+
+            pApplyButton->Enable();
+        } else {
+            pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
+
+            pSelectedColumnWidthSpinCtrl->Disable();
+
+            pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
+            pSelectedColumnTextAlignmentChoiceCtrl->Disable();
+
+            pSelectedColumnTextEllipsizeChoiceCtrl->SetSelection(0);
+            pSelectedColumnTextEllipsizeChoiceCtrl->Disable();
+
+            pApplyButton->Disable();
+        }
     }
 }
 
@@ -543,8 +624,8 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
     std::sort(
         mCheckedSelectedColumns.begin(),
         mCheckedSelectedColumns.end(),
-        [&](std::pair<int, TasksViewColumnIdentifier>& lhs,
-            std::pair<int, TasksViewColumnIdentifier>& rhs
+        [&](std::pair<int, Core::Settings::TasksViewColumnSetting>& lhs,
+            std::pair<int, Core::Settings::TasksViewColumnSetting>& rhs
             ) {
                 return lhs.first > rhs.first;
         }
@@ -560,7 +641,7 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
         auto iter = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
             [tasksViewColumn](const Core::Settings::TasksViewColumnSetting& column) {
-                return tasksViewColumn.second == column.TaskViewColumnId;
+                return tasksViewColumn.second.TaskViewColumnId == column.TaskViewColumnId;
             });
 
         if (iter != mAllTasksViewColumns.end()) {
@@ -589,7 +670,7 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
         auto iter = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
             [checkedSelectedColumn](const Core::Settings::TasksViewColumnSetting& column) {
-                return checkedSelectedColumn.second == column.TaskViewColumnId;
+                return checkedSelectedColumn.second.TaskViewColumnId == column.TaskViewColumnId;
             });
         if (iter != mAllTasksViewColumns.end()) {
             Core::Settings::TasksViewColumnSetting match = *iter;
@@ -625,7 +706,7 @@ void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
         auto iter = std::find_if(mAllTasksViewColumns.begin(),
             mAllTasksViewColumns.end(),
             [checkedSelectedColumn](const Core::Settings::TasksViewColumnSetting& column) {
-                return checkedSelectedColumn.second == column.TaskViewColumnId;
+                return checkedSelectedColumn.second.TaskViewColumnId == column.TaskViewColumnId;
             });
 
         if (iter != mAllTasksViewColumns.end()) {

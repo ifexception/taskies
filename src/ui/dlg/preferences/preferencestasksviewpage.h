@@ -92,11 +92,13 @@ private:
     wxSpinCtrl* pSelectedColumnWidthSpinCtrl;
     wxChoice* pSelectedColumnTextAlignmentChoiceCtrl;
     wxChoice* pSelectedColumnTextEllipsizeChoiceCtrl;
+    wxButton* pApplyButton;
 
     std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedAvailableColumns;
-    std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedSelectedColumns;
+    std::vector<std::pair<int, Core::Settings::TasksViewColumnSetting>> mCheckedSelectedColumns;
 
     std::vector<Core::Settings::TasksViewColumnSetting> mAllTasksViewColumns;
+    std::vector<Core::Settings::TasksViewColumnSetting> mCfgTasksViewColumns;
 
     enum {
         tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,
@@ -110,7 +112,8 @@ private:
         tksIDC_SELECTEDCOLUMNNAMEREADONLYTEXTCTRL,
         tksIDC_SELECTEDCOLUMNWIDTHSPINCTRL,
         tksIDC_SELECTEDCOLUMNTEXTALIGNMENTCHOICE,
-        tksIDC_SELECTEDCOLUMNTEXTELLIPSIZECHOICE
+        tksIDC_SELECTEDCOLUMNTEXTELLIPSIZECHOICE,
+        tksIDC_APPLYBUTTON
     };
 };
 } // namespace UI::dlg
