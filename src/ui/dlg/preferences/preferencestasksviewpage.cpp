@@ -59,6 +59,7 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , mAllTasksViewColumns()
     , mCfgTasksViewColumns(pCfg->GetTasksViewColumns())
     , mTasksViewColumnSettingProperties()
+    , mDefaultTasksViewColumnSettingProperties()
 {
     mAllTasksViewColumns = Core::Settings::MakeAllTasksViewColumnList();
     mAllTasksViewColumns.pop_back();
@@ -152,7 +153,7 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
     );
     // clang-format on
 
-    pCfg->SetTasksViewColumns(tasksViewColumns);
+    //pCfg->SetTasksViewColumns(tasksViewColumns);
 }
 
 void PreferencesTasksViewPage::Reset()
@@ -517,6 +518,8 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
                 pSelectedColumnTextEllipsisModeChoiceCtrl->Disable();
 
                 pApplyButton->Disable();
+
+                mTasksViewColumnSettingProperties = mDefaultTasksViewColumnSettingProperties;
             }
         }
     } else {
@@ -558,6 +561,8 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
             pSelectedColumnTextEllipsisModeChoiceCtrl->Disable();
 
             pApplyButton->Disable();
+
+            mTasksViewColumnSettingProperties = mDefaultTasksViewColumnSettingProperties;
         }
     }
 }
@@ -630,6 +635,8 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
         pSelectedColumnTextEllipsisModeChoiceCtrl->Disable();
 
         pApplyButton->Disable();
+
+        mTasksViewColumnSettingProperties = mDefaultTasksViewColumnSettingProperties;
     }
 
     for (const auto& checkedPair : mCheckedSelectedColumns) {
@@ -770,6 +777,21 @@ void PreferencesTasksViewPage::OnApplyButtonClick(wxCommandEvent& event)
             mCfgTasksViewColumns[i].TaskViewColumnId) {
             mCfgTasksViewColumns[i].TextAlignment = mTasksViewColumnSettingProperties.TextAlignment;
             mCfgTasksViewColumns[i].EllipsisMode = mTasksViewColumnSettingProperties.EllipsisMode;
+
+            pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
+
+            pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
+            pSelectedColumnTextAlignmentChoiceCtrl->Disable();
+
+            pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(0);
+            pSelectedColumnTextEllipsisModeChoiceCtrl->Disable();
+
+            pApplyButton->Disable();
+
+            mTasksViewColumnSettingProperties = mDefaultTasksViewColumnSettingProperties;
+
+            int item = mCheckedSelectedColumns[0].first;
+            pSelectedTasksViewColumns->Check(item, false);
 
             break;
         }

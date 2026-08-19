@@ -101,6 +101,7 @@ private:
     std::vector<Core::Settings::TasksViewColumnSetting> mAllTasksViewColumns;
     std::vector<Core::Settings::TasksViewColumnSetting> mCfgTasksViewColumns;
 
+    Core::Settings::TasksViewColumnSetting mDefaultTasksViewColumnSettingProperties;
     Core::Settings::TasksViewColumnSetting mTasksViewColumnSettingProperties;
 
     enum {
