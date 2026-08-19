@@ -91,7 +91,6 @@ private:
     wxButton* pDescSortButton;
 
     wxTextCtrl* pSelectedColumnNameReadonlyTextCtrl;
-    wxSpinCtrl* pSelectedColumnWidthSpinCtrl;
     wxChoice* pSelectedColumnTextAlignmentChoiceCtrl;
     wxChoice* pSelectedColumnTextEllipsisModeChoiceCtrl;
     wxButton* pApplyButton;
@@ -114,7 +113,6 @@ private:
         tksIDC_ASCSORTBUTTON,
         tksIDC_DESCSORTBUTTON,
         tksIDC_SELECTEDCOLUMNNAMEREADONLYTEXTCTRL,
-        tksIDC_SELECTEDCOLUMNWIDTHSPINCTRL,
         tksIDC_SELECTEDCOLUMNTEXTALIGNMENTCHOICE,
         tksIDC_SELECTEDCOLUMNTEXTELLIPSISMODECHOICECTRL,
         tksIDC_APPLYBUTTON

@@ -52,7 +52,6 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pAscSortButton(nullptr)
     , pDescSortButton(nullptr)
     , pSelectedColumnNameReadonlyTextCtrl(nullptr)
-    , pSelectedColumnWidthSpinCtrl(nullptr)
     , pSelectedColumnTextAlignmentChoiceCtrl(nullptr)
     , pSelectedColumnTextEllipsisModeChoiceCtrl(nullptr)
     , mCheckedAvailableColumns()
@@ -263,20 +262,6 @@ void PreferencesTasksViewPage::CreateControls()
     pSelectedColumnNameReadonlyTextCtrl->SetHint("Selected column name");
     pSelectedColumnNameReadonlyTextCtrl->SetToolTip("Name of column currently selected");
 
-    /* Selected column width spin ctrl */
-    auto selectedColumnWidthLabel =
-        new wxStaticText(tasksViewColumnPropertiesStaticBox, wxID_ANY, "Width");
-    pSelectedColumnWidthSpinCtrl = new wxSpinCtrl(tasksViewColumnPropertiesStaticBox,
-        tksIDC_SELECTEDCOLUMNWIDTHSPINCTRL,
-        wxEmptyString,
-        wxDefaultPosition,
-        wxDefaultSize,
-        wxSP_WRAP,
-        Core::Settings::TasksViewColumnSetting::ColumnDefaultWidth,
-        260,
-        Core::Settings::TasksViewColumnSetting::ColumnDefaultWidth);
-    pSelectedColumnWidthSpinCtrl->SetToolTip("Configure the width of the column");
-
     /* Selected column alignment choice ctrl*/
     auto selectedColumnAlignmentLabel =
         new wxStaticText(tasksViewColumnPropertiesStaticBox, wxID_ANY, "Alignment");
@@ -304,11 +289,6 @@ void PreferencesTasksViewPage::CreateControls()
         columnNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     tasksViewColumnPropertiesGridSizer->Add(
         pSelectedColumnNameReadonlyTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    tasksViewColumnPropertiesGridSizer->Add(
-        selectedColumnWidthLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    tasksViewColumnPropertiesGridSizer->Add(
-        pSelectedColumnWidthSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     tasksViewColumnPropertiesGridSizer->Add(
         selectedColumnAlignmentLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
@@ -374,12 +354,6 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
         tksIDC_DESCSORTBUTTON
     );
 
-    pSelectedColumnWidthSpinCtrl->Bind(
-        wxEVT_SPINCTRL,
-        &PreferencesTasksViewPage::OnColumnWidthChange,
-        this
-    );
-
     pSelectedColumnTextAlignmentChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &PreferencesTasksViewPage::OnTextAlignmentChoice,
@@ -407,8 +381,6 @@ void PreferencesTasksViewPage::FillControls()
         pAvailableTasksViewColumns->Append(tasksViewColumn.DisplayName,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
-
-    pSelectedColumnWidthSpinCtrl->Disable();
 
     pSelectedColumnTextAlignmentChoiceCtrl->AppendString("Please select");
     auto taskAlignments = Common::Static::TasksViewColumnTextAlignmentChoices();
@@ -526,9 +498,6 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
 
                 pSelectedColumnNameReadonlyTextCtrl->ChangeValue(column.DisplayName);
 
-                pSelectedColumnWidthSpinCtrl->SetValue(column.Width);
-                pSelectedColumnWidthSpinCtrl->Enable();
-
                 pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(
                     static_cast<int>(column.TextAlignment));
                 pSelectedColumnTextAlignmentChoiceCtrl->Enable();
@@ -540,10 +509,6 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
                 pApplyButton->Enable();
             } else {
                 pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
-
-                pSelectedColumnWidthSpinCtrl->SetValue(
-                    Core::Settings::TasksViewColumnSetting::ColumnDefaultWidth);
-                pSelectedColumnWidthSpinCtrl->Disable();
 
                 pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
                 pSelectedColumnTextAlignmentChoiceCtrl->Disable();
@@ -574,9 +539,6 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
 
             pSelectedColumnNameReadonlyTextCtrl->ChangeValue(column.DisplayName);
 
-            pSelectedColumnWidthSpinCtrl->SetValue(column.Width);
-            pSelectedColumnWidthSpinCtrl->Enable();
-
             pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(
                 static_cast<int>(column.TextAlignment));
             pSelectedColumnTextAlignmentChoiceCtrl->Enable();
@@ -588,10 +550,6 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
             pApplyButton->Enable();
         } else {
             pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
-
-            pSelectedColumnWidthSpinCtrl->SetValue(
-                Core::Settings::TasksViewColumnSetting::ColumnDefaultWidth);
-            pSelectedColumnWidthSpinCtrl->Disable();
 
             pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
             pSelectedColumnTextAlignmentChoiceCtrl->Disable();
@@ -664,8 +622,6 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
 
     if (mCheckedSelectedColumns.size() == 1) {
         pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
-
-        pSelectedColumnWidthSpinCtrl->Disable();
 
         pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
         pSelectedColumnTextAlignmentChoiceCtrl->Disable();
@@ -812,7 +768,6 @@ void PreferencesTasksViewPage::OnApplyButtonClick(wxCommandEvent& event)
     for (size_t i = 0; i < mCfgTasksViewColumns.size(); i++) {
         if (mTasksViewColumnSettingProperties.TaskViewColumnId ==
             mCfgTasksViewColumns[i].TaskViewColumnId) {
-            mCfgTasksViewColumns[i].Width = mTasksViewColumnSettingProperties.Width;
             mCfgTasksViewColumns[i].TextAlignment = mTasksViewColumnSettingProperties.TextAlignment;
             mCfgTasksViewColumns[i].EllipsisMode = mTasksViewColumnSettingProperties.EllipsisMode;
 
