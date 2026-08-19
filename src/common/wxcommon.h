@@ -33,4 +33,6 @@ wxDateTime MakeMaximumFromDate();
 bool IsDarkColour(const wxColor& color);
 
 wxAlignment MapTasksViewColumnTextAlignment(TasksViewColumnTextAlignment textAlignment);
+
+wxEllipsizeMode MapTasksViewColumnEllipsisMode(TasksViewColumnEllipsisMode ellipsisMode);
 } // namespace tks::Common

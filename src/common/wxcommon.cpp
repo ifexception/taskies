@@ -55,11 +55,24 @@ wxAlignment MapTasksViewColumnTextAlignment(TasksViewColumnTextAlignment textAli
     switch (textAlignment) {
     case TasksViewColumnTextAlignment::Left:
         return wxALIGN_LEFT;
-    case tks::TasksViewColumnTextAlignment::Right:
+    case TasksViewColumnTextAlignment::Right:
         return wxALIGN_RIGHT;
-    case tks::TasksViewColumnTextAlignment::Center:
+    case TasksViewColumnTextAlignment::Center:
     default:
         return wxALIGN_CENTER;
+    }
+}
+
+wxEllipsizeMode MapTasksViewColumnEllipsisMode(TasksViewColumnEllipsisMode ellipsisMode)
+{
+    switch (ellipsisMode) {
+    case TasksViewColumnEllipsisMode::Start:
+        return wxELLIPSIZE_START;
+    case TasksViewColumnEllipsisMode::Middle:
+        return wxELLIPSIZE_MIDDLE;
+    case TasksViewColumnEllipsisMode::End:
+    default:
+        return wxELLIPSIZE_END;
     }
 }
 } // namespace tks::Common
