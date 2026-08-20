@@ -185,8 +185,8 @@ std::vector<EnumClientData<BooleanHandler>> BooleanHandlerList()
 std::vector<EnumClientData<TasksViewColumnTextAlignment>> TasksViewColumnTextAlignmentChoices()
 {
     EnumClientData<TasksViewColumnTextAlignment> o1("Left", TasksViewColumnTextAlignment::Left);
-    EnumClientData<TasksViewColumnTextAlignment> o2("Center", TasksViewColumnTextAlignment::Center);
-    EnumClientData<TasksViewColumnTextAlignment> o3("Right", TasksViewColumnTextAlignment::Right);
+    EnumClientData<TasksViewColumnTextAlignment> o2("Right", TasksViewColumnTextAlignment::Right);
+    EnumClientData<TasksViewColumnTextAlignment> o3("Center", TasksViewColumnTextAlignment::Center);
 
     return std::vector<EnumClientData<TasksViewColumnTextAlignment>>{ o1, o2, o3 };
 }
