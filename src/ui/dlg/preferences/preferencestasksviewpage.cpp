@@ -45,10 +45,10 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pLogger(logger)
     , pTodayAlwaysExpanded(nullptr)
     , pUseProjectDisplayName(nullptr)
-    , pAvailableTasksViewColumns(nullptr)
+    , pAvailableTasksViewColumnsListBox(nullptr)
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
-    , pSelectedTasksViewColumns(nullptr)
+    , pSelectedTasksViewColumnsListBox(nullptr)
     , pAscSortButton(nullptr)
     , pDescSortButton(nullptr)
     , pSelectedColumnNameReadonlyTextCtrl(nullptr)
@@ -58,8 +58,8 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , mCheckedSelectedColumns()
     , mAllTasksViewColumns()
     , mCfgTasksViewColumns(pCfg->GetTasksViewColumns())
-    , mTasksViewColumnSettingProperties()
     , mDefaultTasksViewColumnSettingProperties()
+    , mTasksViewColumnSettingProperties()
 {
     mAllTasksViewColumns = Core::Settings::MakeAllTasksViewColumnList();
     mAllTasksViewColumns.pop_back();
@@ -84,8 +84,8 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
 
     std::vector<Core::Settings::TasksViewColumnSetting> selectedTasksViewColumnsFromCheckListBox;
 
-    for (unsigned int i = 0; i < pSelectedTasksViewColumns->GetCount(); i++) {
-        int clientData = Utils::VoidPointerToInt(pSelectedTasksViewColumns->GetClientData(i));
+    for (unsigned int i = 0; i < pSelectedTasksViewColumnsListBox->GetCount(); i++) {
+        int clientData = Utils::VoidPointerToInt(pSelectedTasksViewColumnsListBox->GetClientData(i));
         auto index = static_cast<TasksViewColumnIdentifier>(clientData);
 
         auto iterator = std::find_if(mCfgTasksViewColumns.begin(),
@@ -199,11 +199,11 @@ void PreferencesTasksViewPage::CreateControls()
     auto columnsSelectionSizer = new wxBoxSizer(wxHORIZONTAL);
     tasksViewColumnStaticBoxSizer->Add(columnsSelectionSizer, wxSizerFlags().Expand());
 
-    pAvailableTasksViewColumns =
+    pAvailableTasksViewColumnsListBox =
         new wxCheckListBox(tasksViewColumnsStaticBox, tksIDC_AVAILABLETASKSVIEWCOLUMNS);
-    pAvailableTasksViewColumns->SetToolTip("Available columns to display in the tasks view");
+    pAvailableTasksViewColumnsListBox->SetToolTip("Available columns to display in the tasks view");
     columnsSelectionSizer->Add(
-        pAvailableTasksViewColumns, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        pAvailableTasksViewColumnsListBox, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Chevrons (right/left) buttons */
     auto chevronButtonSizer = new wxBoxSizer(wxVERTICAL);
@@ -226,11 +226,11 @@ void PreferencesTasksViewPage::CreateControls()
     chevronButtonSizer->Add(pLeftChevronButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Center());
 
     /* Tasks view selected columns */
-    pSelectedTasksViewColumns =
+    pSelectedTasksViewColumnsListBox =
         new wxCheckListBox(tasksViewColumnsStaticBox, tksIDC_SELECTEDTASKSVIEWCOLUMNS);
-    pSelectedTasksViewColumns->SetToolTip("Columns selected for display in the tasks view");
+    pSelectedTasksViewColumnsListBox->SetToolTip("Columns selected for display in the tasks view");
     columnsSelectionSizer->Add(
-        pSelectedTasksViewColumns, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+        pSelectedTasksViewColumnsListBox, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Sort (up/down) buttons */
     auto sortButtonSizer = new wxBoxSizer(wxVERTICAL);
@@ -313,14 +313,14 @@ void PreferencesTasksViewPage::CreateControls()
 // clang-format off
 void PreferencesTasksViewPage::ConfigureEventBindings()
 {
-    pAvailableTasksViewColumns->Bind(
+    pAvailableTasksViewColumnsListBox->Bind(
         wxEVT_CHECKLISTBOX,
         &PreferencesTasksViewPage::OnAvailableColumnCheck,
         this,
         tksIDC_AVAILABLETASKSVIEWCOLUMNS
     );
 
-    pSelectedTasksViewColumns->Bind(
+    pSelectedTasksViewColumnsListBox->Bind(
         wxEVT_CHECKLISTBOX,
         &PreferencesTasksViewPage::OnSelectedColumnCheck,
         this,
@@ -379,7 +379,7 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
 void PreferencesTasksViewPage::FillControls()
 {
     for (const auto& tasksViewColumn : mAllTasksViewColumns) {
-        pAvailableTasksViewColumns->Append(tasksViewColumn.DisplayName,
+        pAvailableTasksViewColumnsListBox->Append(tasksViewColumn.DisplayName,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 
@@ -418,14 +418,14 @@ void PreferencesTasksViewPage::DataToControls()
         mCfgTasksViewColumns.end());
 
     for (const auto& tasksViewColumn : mCfgTasksViewColumns) {
-        pSelectedTasksViewColumns->Append(tasksViewColumn.DisplayName,
+        pSelectedTasksViewColumnsListBox->Append(tasksViewColumn.DisplayName,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 
     for (const auto& column : mCfgTasksViewColumns) {
-        int itemId = pAvailableTasksViewColumns->FindString(column.DisplayName);
+        int itemId = pAvailableTasksViewColumnsListBox->FindString(column.DisplayName);
         if (itemId >= 0) {
-            pAvailableTasksViewColumns->Delete(itemId);
+            pAvailableTasksViewColumnsListBox->Delete(itemId);
         }
     }
 }
@@ -435,7 +435,7 @@ void PreferencesTasksViewPage::OnAvailableColumnCheck(wxCommandEvent& event)
     TasksViewColumnIdentifier index = TasksViewColumnIdentifier::Unknown;
     int item = event.GetInt();
 
-    if (pAvailableTasksViewColumns->IsChecked(item)) {
+    if (pAvailableTasksViewColumnsListBox->IsChecked(item)) {
         SPDLOG_LOGGER_TRACE(
             pLogger, "Item checked on available list box with ID \"{0}\"", event.GetInt());
 
@@ -469,7 +469,7 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
     TasksViewColumnIdentifier index = TasksViewColumnIdentifier::Unknown;
     int item = event.GetInt();
 
-    if (pSelectedTasksViewColumns->IsChecked(item)) {
+    if (pSelectedTasksViewColumnsListBox->IsChecked(item)) {
         SPDLOG_LOGGER_TRACE(
             pLogger, "Item checked on selected list box with ID \"{0}\"", event.GetInt());
 
@@ -479,7 +479,7 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
             index = static_cast<TasksViewColumnIdentifier>(clientData);
 
             if (index == TasksViewColumnIdentifier::Description) {
-                pSelectedTasksViewColumns->Check(item, false);
+                pSelectedTasksViewColumnsListBox->Check(item, false);
             }
         }
 
@@ -586,8 +586,8 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
     // clang-format on
 
     for (const auto& checkedPair : mCheckedAvailableColumns) {
-        pAvailableTasksViewColumns->Check(checkedPair.first, false);
-        pAvailableTasksViewColumns->Delete(checkedPair.first);
+        pAvailableTasksViewColumnsListBox->Check(checkedPair.first, false);
+        pAvailableTasksViewColumnsListBox->Delete(checkedPair.first);
     }
 
     for (const auto& tasksViewColumn : mCheckedAvailableColumns) {
@@ -599,7 +599,7 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
 
         if (iter != mAllTasksViewColumns.end()) {
             auto& foundColumn = *iter;
-            pSelectedTasksViewColumns->Append(foundColumn.DisplayName,
+            pSelectedTasksViewColumnsListBox->Append(foundColumn.DisplayName,
                 Utils::IntToVoidPointer(static_cast<int>(foundColumn.TaskViewColumnId)));
         }
     }
@@ -640,8 +640,8 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
     }
 
     for (const auto& checkedPair : mCheckedSelectedColumns) {
-        pSelectedTasksViewColumns->Check(checkedPair.first, false);
-        pSelectedTasksViewColumns->Delete(checkedPair.first);
+        pSelectedTasksViewColumnsListBox->Check(checkedPair.first, false);
+        pSelectedTasksViewColumnsListBox->Delete(checkedPair.first);
     }
 
     for (const auto& tasksViewColumn : mCheckedSelectedColumns) {
@@ -654,7 +654,7 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
         if (iter != mAllTasksViewColumns.end()) {
             auto& foundColumn = *iter;
 
-            pAvailableTasksViewColumns->Append(foundColumn.DisplayName,
+            pAvailableTasksViewColumnsListBox->Append(foundColumn.DisplayName,
                 Utils::IntToVoidPointer(static_cast<int>(foundColumn.TaskViewColumnId)));
         }
     }
@@ -681,18 +681,18 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
             });
         if (iterator != mAllTasksViewColumns.end()) {
             Core::Settings::TasksViewColumnSetting match = *iterator;
-            int pos = pSelectedTasksViewColumns->FindString(match.DisplayName);
+            int pos = pSelectedTasksViewColumnsListBox->FindString(match.DisplayName);
             int opos = pos;
             --pos;
             if (pos == 0) {
-                pSelectedTasksViewColumns->Check(opos, false);
+                pSelectedTasksViewColumnsListBox->Check(opos, false);
                 mCheckedSelectedColumns.clear();
                 return;
             }
-            pSelectedTasksViewColumns->Delete(opos);
-            pSelectedTasksViewColumns->Insert(
+            pSelectedTasksViewColumnsListBox->Delete(opos);
+            pSelectedTasksViewColumnsListBox->Insert(
                 match.Name, pos, Utils::IntToVoidPointer(static_cast<int>(match.TaskViewColumnId)));
-            pSelectedTasksViewColumns->Check(pos);
+            pSelectedTasksViewColumnsListBox->Check(pos);
             mCheckedSelectedColumns[0].first = pos;
         }
     }
@@ -718,18 +718,18 @@ void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
 
         if (iter != mAllTasksViewColumns.end()) {
             Core::Settings::TasksViewColumnSetting match = *iter;
-            int pos = pSelectedTasksViewColumns->FindString(match.DisplayName);
-            if (pos >= (int) pSelectedTasksViewColumns->GetCount() - 1) {
-                pSelectedTasksViewColumns->Check(pos, false);
+            int pos = pSelectedTasksViewColumnsListBox->FindString(match.DisplayName);
+            if (pos >= (int) pSelectedTasksViewColumnsListBox->GetCount() - 1) {
+                pSelectedTasksViewColumnsListBox->Check(pos, false);
                 mCheckedSelectedColumns.clear();
                 return;
             }
-            pSelectedTasksViewColumns->Delete(pos);
+            pSelectedTasksViewColumnsListBox->Delete(pos);
             // int opos = pos;
             pos++;
-            pSelectedTasksViewColumns->Insert(
+            pSelectedTasksViewColumnsListBox->Insert(
                 match.Name, pos, Utils::IntToVoidPointer(static_cast<int>(match.TaskViewColumnId)));
-            pSelectedTasksViewColumns->Check(pos);
+            pSelectedTasksViewColumnsListBox->Check(pos);
 
             mCheckedSelectedColumns[0].first = pos;
         }
@@ -791,7 +791,9 @@ void PreferencesTasksViewPage::OnApplyButtonClick(wxCommandEvent& event)
             mTasksViewColumnSettingProperties = mDefaultTasksViewColumnSettingProperties;
 
             int item = mCheckedSelectedColumns[0].first;
-            pSelectedTasksViewColumns->Check(item, false);
+            pSelectedTasksViewColumnsListBox->Check(item, false);
+
+            pSelectedTasksViewColumnsListBox->SetFocus();
 
             break;
         }

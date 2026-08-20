@@ -83,10 +83,10 @@ private:
     wxCheckBox* pTodayAlwaysExpanded;
     wxCheckBox* pUseProjectDisplayName;
 
-    wxCheckListBox* pAvailableTasksViewColumns;
+    wxCheckListBox* pAvailableTasksViewColumnsListBox;
     wxButton* pRightChevronButton;
     wxButton* pLeftChevronButton;
-    wxCheckListBox* pSelectedTasksViewColumns;
+    wxCheckListBox* pSelectedTasksViewColumnsListBox;
     wxButton* pAscSortButton;
     wxButton* pDescSortButton;
 
