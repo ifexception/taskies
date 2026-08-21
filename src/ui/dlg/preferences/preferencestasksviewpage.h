@@ -72,7 +72,6 @@ private:
     void OnLeftChevronButtonClick(wxCommandEvent& event);
     void OnAscButtonClick(wxCommandEvent& event);
     void OnDescButtonClick(wxCommandEvent& event);
-    void OnColumnWidthChange(wxSpinEvent& event);
     void OnTextAlignmentChoice(wxCommandEvent& event);
     void OnEllipsisModeChoice(wxCommandEvent& event);
     void OnApplyButtonClick(wxCommandEvent& event);

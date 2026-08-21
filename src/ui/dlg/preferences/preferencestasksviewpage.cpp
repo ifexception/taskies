@@ -57,13 +57,14 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , mCheckedAvailableColumns()
     , mCheckedSelectedColumns()
     , mAllTasksViewColumns()
-    , mCfgTasksViewColumns(pCfg->GetTasksViewColumns())
+    , mCfgTasksViewColumns()
     , mDefaultTasksViewColumnSettingProperties()
     , mTasksViewColumnSettingProperties()
 {
     mAllTasksViewColumns = Core::Settings::MakeAllTasksViewColumnList();
     mAllTasksViewColumns.pop_back();
 
+    mCfgTasksViewColumns = pCfg->GetTasksViewColumns();
     mCfgTasksViewColumns.pop_back();
 
     CreateControls();
@@ -85,7 +86,8 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
     std::vector<Core::Settings::TasksViewColumnSetting> selectedTasksViewColumnsFromCheckListBox;
 
     for (unsigned int i = 0; i < pSelectedTasksViewColumnsListBox->GetCount(); i++) {
-        int clientData = Utils::VoidPointerToInt(pSelectedTasksViewColumnsListBox->GetClientData(i));
+        int clientData =
+            Utils::VoidPointerToInt(pSelectedTasksViewColumnsListBox->GetClientData(i));
         auto index = static_cast<TasksViewColumnIdentifier>(clientData);
 
         auto iterator = std::find_if(mCfgTasksViewColumns.begin(),
@@ -153,7 +155,7 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
     );
     // clang-format on
 
-    //pCfg->SetTasksViewColumns(tasksViewColumns);
+    // pCfg->SetTasksViewColumns(tasksViewColumns);
 }
 
 void PreferencesTasksViewPage::Reset()
@@ -411,18 +413,20 @@ void PreferencesTasksViewPage::DataToControls()
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 
-    mCfgTasksViewColumns.erase(
-        std::remove_if(mCfgTasksViewColumns.begin(),
-            mCfgTasksViewColumns.end(),
-            [&](const Core::Settings::TasksViewColumnSetting& s) { return !s.Selected; }),
-        mCfgTasksViewColumns.end());
+    std::vector<Core::Settings::TasksViewColumnSetting> cfgTasksViewColumns = mCfgTasksViewColumns;
 
-    for (const auto& tasksViewColumn : mCfgTasksViewColumns) {
+    cfgTasksViewColumns.erase(
+        std::remove_if(cfgTasksViewColumns.begin(),
+            cfgTasksViewColumns.end(),
+            [&](const Core::Settings::TasksViewColumnSetting& s) { return !s.Selected; }),
+        cfgTasksViewColumns.end());
+
+    for (const auto& tasksViewColumn : cfgTasksViewColumns) {
         pSelectedTasksViewColumnsListBox->Append(tasksViewColumn.DisplayName,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
 
-    for (const auto& column : mCfgTasksViewColumns) {
+    for (const auto& column : cfgTasksViewColumns) {
         int itemId = pAvailableTasksViewColumnsListBox->FindString(column.DisplayName);
         if (itemId >= 0) {
             pAvailableTasksViewColumnsListBox->Delete(itemId);
@@ -734,13 +738,6 @@ void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
             mCheckedSelectedColumns[0].first = pos;
         }
     }
-}
-
-void PreferencesTasksViewPage::OnColumnWidthChange(wxSpinEvent& event)
-{
-    assert(mTasksViewColumnSettingProperties.IsValid());
-
-    mTasksViewColumnSettingProperties.Width = event.GetValue();
 }
 
 void PreferencesTasksViewPage::OnTextAlignmentChoice(wxCommandEvent& event)
