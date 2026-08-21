@@ -543,6 +543,7 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
 
         if (mCheckedSelectedColumns.size() == 1) {
             Core::Settings::TasksViewColumnSetting column = mCheckedSelectedColumns[0].second;
+            mTasksViewColumnSettingProperties = column;
 
             pSelectedColumnNameReadonlyTextCtrl->ChangeValue(column.DisplayName);
 
@@ -629,7 +630,7 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
     );
     // clang-format on
 
-    if (mCheckedSelectedColumns.size() == 1) {
+    if (mCheckedSelectedColumns.size() >= 1) {
         pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
 
         pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
@@ -643,9 +644,9 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
         mTasksViewColumnSettingProperties = mDefaultTasksViewColumnSettingProperties;
     }
 
-    for (const auto& checkedPair : mCheckedSelectedColumns) {
-        pSelectedTasksViewColumnsListBox->Check(checkedPair.first, false);
-        pSelectedTasksViewColumnsListBox->Delete(checkedPair.first);
+    for (const auto& checkedColumn : mCheckedSelectedColumns) {
+        pSelectedTasksViewColumnsListBox->Check(checkedColumn.first, false);
+        pSelectedTasksViewColumnsListBox->Delete(checkedColumn.first);
     }
 
     for (const auto& tasksViewColumn : mCheckedSelectedColumns) {
@@ -790,7 +791,7 @@ void PreferencesTasksViewPage::OnApplyButtonClick(wxCommandEvent& event)
             int item = mCheckedSelectedColumns[0].first;
             pSelectedTasksViewColumnsListBox->Check(item, false);
 
-            mCheckedAvailableColumns.clear();
+            mCheckedSelectedColumns.clear();
 
             pSelectedTasksViewColumnsListBox->SetFocus();
 
