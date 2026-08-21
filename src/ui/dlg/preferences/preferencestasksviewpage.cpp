@@ -155,7 +155,7 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
     );
     // clang-format on
 
-    // pCfg->SetTasksViewColumns(tasksViewColumns);
+    pCfg->SetTasksViewColumns(tasksViewColumns);
 }
 
 void PreferencesTasksViewPage::Reset()
@@ -789,6 +789,8 @@ void PreferencesTasksViewPage::OnApplyButtonClick(wxCommandEvent& event)
 
             int item = mCheckedSelectedColumns[0].first;
             pSelectedTasksViewColumnsListBox->Check(item, false);
+
+            mCheckedAvailableColumns.clear();
 
             pSelectedTasksViewColumnsListBox->SetFocus();
 
