@@ -172,7 +172,6 @@ ConfigResult Configuration::Save()
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
-    root.at(Sections::TasksViewSection)["todayAlwaysExpanded"] = pSettings->TodayAlwaysExpanded;
     root.at(Sections::TasksViewSection)["useProjectDisplayName"] = pSettings->UseProjectDisplayName;
 
     // Tasks View Columns (sub)section
@@ -295,7 +294,6 @@ ConfigResult Configuration::RestoreDefaults()
     OpenTaskDialogOnReminderClick(false);
     OpenTaskDialogOnOutlookMeetingAttendanceCheck(false);
 
-    TodayAlwaysExpanded(false);
     UseProjectDisplayName(false);
 
     SetTasksViewColumns(Settings::MakeDefaultTasksViewColumnList());
@@ -347,7 +345,6 @@ ConfigResult Configuration::RestoreDefaults()
             {
                 Sections::TasksViewSection,
                 toml::table {
-                    { "todayAlwaysExpanded", false },
                     { "useProjectDisplayName", false },
                     { "tasksViewColumns", toml::array {} }
                 }
@@ -765,16 +762,6 @@ void Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool val
     pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck = value;
 }
 
-bool Configuration::TodayAlwaysExpanded() const
-{
-    return pSettings->TodayAlwaysExpanded;
-}
-
-void Configuration::TodayAlwaysExpanded(const bool value)
-{
-    pSettings->TodayAlwaysExpanded = value;
-}
-
 bool Configuration::UseProjectDisplayName() const
 {
     return pSettings->UseProjectDisplayName;
@@ -999,9 +986,6 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
     }
 
     const auto& tasksViewSection = toml::find(root, Sections::TasksViewSection);
-
-    pSettings->TodayAlwaysExpanded =
-        toml::find_or<bool>(tasksViewSection, "todayAlwaysExpanded", false);
 
     pSettings->UseProjectDisplayName =
         toml::find_or<bool>(tasksViewSection, "useProjectDisplayName", false);

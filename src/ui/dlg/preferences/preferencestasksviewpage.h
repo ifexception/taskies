@@ -82,7 +82,6 @@ private:
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
-    wxCheckBox* pTodayAlwaysExpanded;
     wxCheckBox* pUseProjectDisplayName;
 
     wxCheckListBox* pAvailableTasksViewColumnsListBox;
@@ -106,7 +105,7 @@ private:
     Core::Settings::TasksViewColumnSetting mTasksViewColumnSettingProperties;
 
     enum {
-        tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 1001,
+        tksIDC_BASE = wxID_HIGHEST + 1001,
         tksIDC_USEPROJECTDISPLAYNAME,
         tksIDC_AVAILABLETASKSVIEWCOLUMNS,
         tksIDC_RIGHTCHEVRONBUTTON,

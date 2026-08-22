@@ -43,7 +43,6 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     : wxPanel(parent, wxID_ANY)
     , pCfg(cfg)
     , pLogger(logger)
-    , pTodayAlwaysExpanded(nullptr)
     , pUseProjectDisplayName(nullptr)
     , pAvailableTasksViewColumnsListBox(nullptr)
     , pRightChevronButton(nullptr)
@@ -76,7 +75,6 @@ bool PreferencesTasksViewPage::IsValid()
 
 void PreferencesTasksViewPage::Save(bool* restartRequired)
 {
-    pCfg->TodayAlwaysExpanded(pTodayAlwaysExpanded->GetValue());
     pCfg->UseProjectDisplayName(pUseProjectDisplayName->GetValue());
 
     std::vector<Core::Settings::TasksViewColumnSetting> selectedTasksViewColumnsFromCheckListBox;
@@ -158,7 +156,6 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
 
 void PreferencesTasksViewPage::Reset()
 {
-    pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 
     ResetColumnPropertiesControls();
@@ -204,12 +201,6 @@ void PreferencesTasksViewPage::CreateControls()
     auto tasksViewBox = new wxStaticBox(this, wxID_ANY, "Tasks View");
     auto tasksViewBoxSizer = new wxStaticBoxSizer(tasksViewBox, wxVERTICAL);
     sizer->Add(tasksViewBoxSizer, wxSizerFlags().Expand());
-
-    /* Today always expanded control */
-    pTodayAlwaysExpanded =
-        new wxCheckBox(tasksViewBox, tksIDC_TODAYALWAYSEXPANDED, "Today's date always expanded");
-    pTodayAlwaysExpanded->SetToolTip("When selecting other dates, keep today's date expanded too");
-    tasksViewBoxSizer->Add(pTodayAlwaysExpanded, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Use project display name control */
     pUseProjectDisplayName =
@@ -439,7 +430,6 @@ void PreferencesTasksViewPage::FillControls()
 
 void PreferencesTasksViewPage::DataToControls()
 {
-    pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 
     std::vector<Core::Settings::TasksViewColumnSetting> cfgTasksViewColumns = mCfgTasksViewColumns;

@@ -128,9 +128,6 @@ public:
     bool OpenTaskDialogOnOutlookMeetingAttendanceCheck() const;
     void OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value);
 
-    bool TodayAlwaysExpanded() const;
-    void TodayAlwaysExpanded(const bool value);
-
     bool UseProjectDisplayName() const;
     void UseProjectDisplayName(const bool value);
 

@@ -54,7 +54,6 @@ struct Settings {
     bool OpenTaskDialogOnReminderClick;
     bool OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
-    bool TodayAlwaysExpanded;
     bool UseProjectDisplayName;
     std::vector<TasksViewColumnSetting> TasksViewColumnSettings;
 
