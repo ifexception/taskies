@@ -76,6 +76,8 @@ private:
     void OnEllipsisModeChoice(wxCommandEvent& event);
     void OnApplyButtonClick(wxCommandEvent& event);
 
+    void ResetColumnPropertiesControls();
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
