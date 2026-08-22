@@ -560,6 +560,10 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
         pAvailableTasksViewColumnsListBox->Delete(checkedPair.first);
     }
 
+    for (unsigned int i = 0; i < pSelectedTasksViewColumnsListBox->GetCount(); i++) {
+        pSelectedTasksViewColumnsListBox->Check(i, false);
+    }
+
     for (const auto& tasksViewColumn : mCheckedAvailableColumns) {
         auto iterator = std::find_if(mCfgTasksViewColumns.begin(),
             mCfgTasksViewColumns.end(),
@@ -604,6 +608,10 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
         pSelectedTasksViewColumnsListBox->Delete(checkedColumn.first);
     }
 
+    for (unsigned int i = 0; i < pAvailableTasksViewColumnsListBox->GetCount(); i++) {
+        pAvailableTasksViewColumnsListBox->Check(i, false);
+    }
+
     for (const auto& selectedTasksViewColumn : mCheckedSelectedColumns) {
         auto& columnSetting = selectedTasksViewColumn.second;
         pAvailableTasksViewColumnsListBox->Append(columnSetting.DisplayName,
@@ -616,7 +624,7 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
 void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
 {
     if (mCheckedSelectedColumns.size() == 0 || mCheckedSelectedColumns.size() >= 2) {
-        wxMessageBox("Only one column at a time can be sorted",
+        wxMessageBox("A column selection is required or only one column at a time can be sorted",
             Common::GetProgramName(),
             wxICON_INFORMATION | wxOK_DEFAULT);
         return;
@@ -651,7 +659,7 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
 void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
 {
     if (mCheckedSelectedColumns.size() == 0 || mCheckedSelectedColumns.size() >= 2) {
-        wxMessageBox("Only one column at a time can be sorted",
+        wxMessageBox("A column selection is required or only one column at a time can be sorted",
             Common::GetProgramName(),
             wxICON_INFORMATION | wxOK_DEFAULT);
         return;
