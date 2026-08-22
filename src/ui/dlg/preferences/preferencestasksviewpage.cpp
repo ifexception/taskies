@@ -56,14 +56,10 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pSelectedColumnTextEllipsisModeChoiceCtrl(nullptr)
     , mCheckedAvailableColumns()
     , mCheckedSelectedColumns()
-    , mAllTasksViewColumns()
     , mCfgTasksViewColumns()
     , mDefaultTasksViewColumnSettingProperties()
     , mTasksViewColumnSettingProperties()
 {
-    mAllTasksViewColumns = Core::Settings::MakeAllTasksViewColumnList();
-    mAllTasksViewColumns.pop_back();
-
     mCfgTasksViewColumns = pCfg->GetTasksViewColumns();
     mCfgTasksViewColumns.pop_back();
 
@@ -380,7 +376,7 @@ void PreferencesTasksViewPage::ConfigureEventBindings()
 
 void PreferencesTasksViewPage::FillControls()
 {
-    for (const auto& tasksViewColumn : mAllTasksViewColumns) {
+    for (const auto& tasksViewColumn : mCfgTasksViewColumns) {
         pAvailableTasksViewColumnsListBox->Append(tasksViewColumn.DisplayName,
             Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
     }
@@ -576,13 +572,13 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
     }
 
     for (const auto& tasksViewColumn : mCheckedAvailableColumns) {
-        auto iter = std::find_if(mAllTasksViewColumns.begin(),
-            mAllTasksViewColumns.end(),
+        auto iter = std::find_if(mCfgTasksViewColumns.begin(),
+            mCfgTasksViewColumns.end(),
             [tasksViewColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return tasksViewColumn.second == column.TaskViewColumnId;
             });
 
-        if (iter != mAllTasksViewColumns.end()) {
+        if (iter != mCfgTasksViewColumns.end()) {
             auto& foundColumn = *iter;
             pSelectedTasksViewColumnsListBox->Append(foundColumn.DisplayName,
                 Utils::IntToVoidPointer(static_cast<int>(foundColumn.TaskViewColumnId)));
@@ -620,13 +616,13 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
     }
 
     for (const auto& tasksViewColumn : mCheckedSelectedColumns) {
-        auto iter = std::find_if(mAllTasksViewColumns.begin(),
-            mAllTasksViewColumns.end(),
+        auto iter = std::find_if(mCfgTasksViewColumns.begin(),
+            mCfgTasksViewColumns.end(),
             [tasksViewColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return tasksViewColumn.second.TaskViewColumnId == column.TaskViewColumnId;
             });
 
-        if (iter != mAllTasksViewColumns.end()) {
+        if (iter != mCfgTasksViewColumns.end()) {
             auto& foundColumn = *iter;
 
             pAvailableTasksViewColumnsListBox->Append(foundColumn.DisplayName,
@@ -649,12 +645,12 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
 
     if (mCheckedSelectedColumns.size() == 1) {
         auto& checkedSelectedColumn = mCheckedSelectedColumns[0];
-        auto iterator = std::find_if(mAllTasksViewColumns.begin(),
-            mAllTasksViewColumns.end(),
+        auto iterator = std::find_if(mCfgTasksViewColumns.begin(),
+            mCfgTasksViewColumns.end(),
             [checkedSelectedColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return checkedSelectedColumn.second.TaskViewColumnId == column.TaskViewColumnId;
             });
-        if (iterator != mAllTasksViewColumns.end()) {
+        if (iterator != mCfgTasksViewColumns.end()) {
             Core::Settings::TasksViewColumnSetting match = *iterator;
 
             int pos = pSelectedTasksViewColumnsListBox->FindString(match.DisplayName);
@@ -670,8 +666,9 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
             }
 
             pSelectedTasksViewColumnsListBox->Delete(opos);
-            pSelectedTasksViewColumnsListBox->Insert(
-                match.Name, pos, Utils::IntToVoidPointer(static_cast<int>(match.TaskViewColumnId)));
+            pSelectedTasksViewColumnsListBox->Insert(match.DisplayName,
+                pos,
+                Utils::IntToVoidPointer(static_cast<int>(match.TaskViewColumnId)));
             pSelectedTasksViewColumnsListBox->Check(pos);
             mCheckedSelectedColumns[0].first = pos;
         }
@@ -690,13 +687,13 @@ void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
 
     if (mCheckedSelectedColumns.size() == 1) {
         auto& checkedSelectedColumn = mCheckedSelectedColumns[0];
-        auto iter = std::find_if(mAllTasksViewColumns.begin(),
-            mAllTasksViewColumns.end(),
+        auto iter = std::find_if(mCfgTasksViewColumns.begin(),
+            mCfgTasksViewColumns.end(),
             [checkedSelectedColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return checkedSelectedColumn.second.TaskViewColumnId == column.TaskViewColumnId;
             });
 
-        if (iter != mAllTasksViewColumns.end()) {
+        if (iter != mCfgTasksViewColumns.end()) {
             Core::Settings::TasksViewColumnSetting match = *iter;
 
             int pos = pSelectedTasksViewColumnsListBox->FindString(match.DisplayName);
@@ -713,8 +710,9 @@ void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
 
             pos++;
 
-            pSelectedTasksViewColumnsListBox->Insert(
-                match.Name, pos, Utils::IntToVoidPointer(static_cast<int>(match.TaskViewColumnId)));
+            pSelectedTasksViewColumnsListBox->Insert(match.DisplayName,
+                pos,
+                Utils::IntToVoidPointer(static_cast<int>(match.TaskViewColumnId)));
             pSelectedTasksViewColumnsListBox->Check(pos);
 
             mCheckedSelectedColumns[0].first = pos;
