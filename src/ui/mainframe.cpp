@@ -629,6 +629,10 @@ void MainFrame::OnResize(wxSizeEvent& event)
         pMeetingsViewFrame->OnParentFrameResize();
     }
 
+    if (pDataViewListCtrl) {
+        ResizeLastColumn();
+    }
+
     event.Skip();
 }
 
@@ -2341,6 +2345,28 @@ void MainFrame::ResizeColumns()
                 column->SetWidth(wxCOL_WIDTH_DEFAULT);
             }
         }
+    }
+}
+
+void MainFrame::ResizeLastColumn()
+{
+    int columnCount = pDataViewListCtrl->GetColumnCount() - 1;
+    if (columnCount <= 0) {
+        return;
+    }
+
+    int totalWidth = pDataViewListCtrl->GetClientSize().GetWidth();
+    int usedWidth = 0;
+
+    // Calculate width used by all columns except the last
+    for (int i = 0; i < columnCount - 1; ++i) {
+        usedWidth += pDataViewListCtrl->GetColumn(i)->GetWidth();
+    }
+
+    // Set last column to fill remaining space
+    int lastColWidth = totalWidth - usedWidth;
+    if (lastColWidth > 80) {
+        pDataViewListCtrl->GetColumn(columnCount - 1)->SetWidth(lastColWidth);
     }
 }
 

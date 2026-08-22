@@ -256,6 +256,7 @@ private:
     void ResetTaskContextMenuVariables();
 
     void ResizeColumns();
+    void ResizeLastColumn();
 
     SqliteResult FetchTaskAndTaskAttributeValues(const std::int64_t taskId,
         Services::TaskViewModel& taskViewModel);
