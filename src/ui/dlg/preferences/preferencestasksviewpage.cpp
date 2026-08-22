@@ -135,6 +135,8 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
             tasksViewColumns[i] = setting;
 
             *restartRequired = true;
+        } else {
+            tasksViewColumns[i].Selected = false;
         }
     }
 
