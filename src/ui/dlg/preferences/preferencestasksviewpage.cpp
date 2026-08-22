@@ -432,21 +432,25 @@ void PreferencesTasksViewPage::DataToControls()
 
 void PreferencesTasksViewPage::OnAvailableColumnCheck(wxCommandEvent& event)
 {
-    TasksViewColumnIdentifier index = TasksViewColumnIdentifier::Unknown;
+    TasksViewColumnIdentifier columnIdentifier = TasksViewColumnIdentifier::Unknown;
     int item = event.GetInt();
 
     if (pAvailableTasksViewColumnsListBox->IsChecked(item)) {
         SPDLOG_LOGGER_TRACE(
             pLogger, "Item checked on available list box with ID \"{0}\"", event.GetInt());
 
-        wxCheckListBox* cListBox = wxDynamicCast(event.GetEventObject(), wxCheckListBox);
-        if (cListBox == nullptr) {
+        wxCheckListBox* availableCheckListBox =
+            wxDynamicCast(event.GetEventObject(), wxCheckListBox);
+        if (availableCheckListBox == nullptr) {
+            pLogger->warn(
+                "Could not perform dynamic cast to get \"wxCheckListBox\" and cannot proceed");
             return;
         }
-        int clientData = Utils::VoidPointerToInt(cListBox->GetClientData(item));
-        index = static_cast<TasksViewColumnIdentifier>(clientData);
 
-        mCheckedAvailableColumns.push_back(std::make_pair(item, index));
+        int clientData = Utils::VoidPointerToInt(availableCheckListBox->GetClientData(item));
+        columnIdentifier = static_cast<TasksViewColumnIdentifier>(clientData);
+
+        mCheckedAvailableColumns.push_back(std::make_pair(item, columnIdentifier));
     } else {
         SPDLOG_LOGGER_TRACE(
             pLogger, "Item unchecked from available list box with ID \"{0}\"", event.GetInt());
@@ -459,55 +463,49 @@ void PreferencesTasksViewPage::OnAvailableColumnCheck(wxCommandEvent& event)
                 [item](const std::pair<int, TasksViewColumnIdentifier>& p) {
                     return p.first == item;
                 }),
-            mCheckedAvailableColumns.end());
+            mCheckedAvailableColumns.end()
+        );
         // clang-format on
     }
 }
 
 void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
 {
-    TasksViewColumnIdentifier index = TasksViewColumnIdentifier::Unknown;
+    TasksViewColumnIdentifier columnIdentifier = TasksViewColumnIdentifier::Unknown;
     int item = event.GetInt();
 
     if (pSelectedTasksViewColumnsListBox->IsChecked(item)) {
         SPDLOG_LOGGER_TRACE(
             pLogger, "Item checked on selected list box with ID \"{0}\"", event.GetInt());
 
-        wxCheckListBox* cListBox = wxDynamicCast(event.GetEventObject(), wxCheckListBox);
-        if (cListBox != nullptr) {
-            int clientData = Utils::VoidPointerToInt(cListBox->GetClientData(item));
-            index = static_cast<TasksViewColumnIdentifier>(clientData);
+        wxCheckListBox* selectedColumnListBox =
+            wxDynamicCast(event.GetEventObject(), wxCheckListBox);
+        if (selectedColumnListBox != nullptr) {
+            int clientData = Utils::VoidPointerToInt(selectedColumnListBox->GetClientData(item));
+            columnIdentifier = static_cast<TasksViewColumnIdentifier>(clientData);
 
-            if (index == TasksViewColumnIdentifier::Description) {
+            if (columnIdentifier == TasksViewColumnIdentifier::Description) {
                 pSelectedTasksViewColumnsListBox->Check(item, false);
             }
+        } else {
+            pLogger->warn(
+                "Could not perform dynamic cast to get \"wxCheckListBox\" and cannot proceed");
+            return;
         }
 
         auto cfgTasksViewColumnIterator = std::find_if(mCfgTasksViewColumns.begin(),
             mCfgTasksViewColumns.end(),
             [&](const Core::Settings::TasksViewColumnSetting& s) {
-                return s.TaskViewColumnId == index;
+                return s.TaskViewColumnId == columnIdentifier;
             });
 
         if (cfgTasksViewColumnIterator != mCfgTasksViewColumns.end()) {
-            Core::Settings::TasksViewColumnSetting column = *cfgTasksViewColumnIterator;
-            mCheckedSelectedColumns.push_back(std::make_pair(item, column));
+            Core::Settings::TasksViewColumnSetting columnSetting = *cfgTasksViewColumnIterator;
+            mCheckedSelectedColumns.push_back(std::make_pair(item, columnSetting));
 
             if (mCheckedSelectedColumns.size() == 1) {
-                column = mCheckedSelectedColumns[0].second;
-                mTasksViewColumnSettingProperties = column;
-
-                pSelectedColumnNameReadonlyTextCtrl->ChangeValue(column.DisplayName);
-
-                pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(
-                    static_cast<int>(column.TextAlignment));
-                pSelectedColumnTextAlignmentChoiceCtrl->Enable();
-
-                pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(
-                    static_cast<int>(column.EllipsisMode));
-                pSelectedColumnTextEllipsisModeChoiceCtrl->Enable();
-
-                pApplyButton->Enable();
+                columnSetting = mCheckedSelectedColumns[0].second;
+                SetColumnPropertiesControlsData(columnSetting);
             } else {
                 ResetColumnPropertiesControls();
             }
@@ -524,24 +522,15 @@ void PreferencesTasksViewPage::OnSelectedColumnCheck(wxCommandEvent& event)
                 [item](const std::pair<int, Core::Settings::TasksViewColumnSetting>& p) {
                     return p.first == item;
                 }),
-            mCheckedSelectedColumns.end());
+            mCheckedSelectedColumns.end()
+        );
         // clang-format on
 
         if (mCheckedSelectedColumns.size() == 1) {
-            Core::Settings::TasksViewColumnSetting column = mCheckedSelectedColumns[0].second;
-            mTasksViewColumnSettingProperties = column;
+            Core::Settings::TasksViewColumnSetting columnSetting =
+                mCheckedSelectedColumns[0].second;
 
-            pSelectedColumnNameReadonlyTextCtrl->ChangeValue(column.DisplayName);
-
-            pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(
-                static_cast<int>(column.TextAlignment));
-            pSelectedColumnTextAlignmentChoiceCtrl->Enable();
-
-            pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(
-                static_cast<int>(column.EllipsisMode));
-            pSelectedColumnTextEllipsisModeChoiceCtrl->Enable();
-
-            pApplyButton->Enable();
+            SetColumnPropertiesControlsData(columnSetting);
         } else {
             ResetColumnPropertiesControls();
         }
@@ -572,14 +561,14 @@ void PreferencesTasksViewPage::OnRightChevronButtonClick(wxCommandEvent& event)
     }
 
     for (const auto& tasksViewColumn : mCheckedAvailableColumns) {
-        auto iter = std::find_if(mCfgTasksViewColumns.begin(),
+        auto iterator = std::find_if(mCfgTasksViewColumns.begin(),
             mCfgTasksViewColumns.end(),
             [tasksViewColumn](const Core::Settings::TasksViewColumnSetting& column) {
                 return tasksViewColumn.second == column.TaskViewColumnId;
             });
 
-        if (iter != mCfgTasksViewColumns.end()) {
-            auto& foundColumn = *iter;
+        if (iterator != mCfgTasksViewColumns.end()) {
+            auto& foundColumn = *iterator;
             pSelectedTasksViewColumnsListBox->Append(foundColumn.DisplayName,
                 Utils::IntToVoidPointer(static_cast<int>(foundColumn.TaskViewColumnId)));
         }
@@ -615,19 +604,10 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
         pSelectedTasksViewColumnsListBox->Delete(checkedColumn.first);
     }
 
-    for (const auto& tasksViewColumn : mCheckedSelectedColumns) {
-        auto iter = std::find_if(mCfgTasksViewColumns.begin(),
-            mCfgTasksViewColumns.end(),
-            [tasksViewColumn](const Core::Settings::TasksViewColumnSetting& column) {
-                return tasksViewColumn.second.TaskViewColumnId == column.TaskViewColumnId;
-            });
-
-        if (iter != mCfgTasksViewColumns.end()) {
-            auto& foundColumn = *iter;
-
-            pAvailableTasksViewColumnsListBox->Append(foundColumn.DisplayName,
-                Utils::IntToVoidPointer(static_cast<int>(foundColumn.TaskViewColumnId)));
-        }
+    for (const auto& selectedTasksViewColumn : mCheckedSelectedColumns) {
+        auto& columnSetting = selectedTasksViewColumn.second;
+        pAvailableTasksViewColumnsListBox->Append(columnSetting.DisplayName,
+            Utils::IntToVoidPointer(static_cast<int>(columnSetting.TaskViewColumnId)));
     }
 
     mCheckedSelectedColumns.clear();
@@ -636,7 +616,7 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
 void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
 {
     if (mCheckedSelectedColumns.size() == 0 || mCheckedSelectedColumns.size() >= 2) {
-        wxMessageBox("Can only sort one column at a time!",
+        wxMessageBox("Only one column at a time can be sorted",
             Common::GetProgramName(),
             wxICON_INFORMATION | wxOK_DEFAULT);
         return;
@@ -651,7 +631,7 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
         int originalItemPosition = itemPosition;
         --itemPosition;
 
-        if (itemPosition == 0) {
+        if (itemPosition <= 0) {
             pSelectedTasksViewColumnsListBox->Check(originalItemPosition, false);
             mCheckedSelectedColumns.clear();
             ResetColumnPropertiesControls();
@@ -739,20 +719,10 @@ void PreferencesTasksViewPage::OnApplyButtonClick(wxCommandEvent& event)
             mCfgTasksViewColumns[i].TextAlignment = mTasksViewColumnSettingProperties.TextAlignment;
             mCfgTasksViewColumns[i].EllipsisMode = mTasksViewColumnSettingProperties.EllipsisMode;
 
-            pSelectedColumnNameReadonlyTextCtrl->ChangeValue("");
+            ResetColumnPropertiesControls();
 
-            pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(0);
-            pSelectedColumnTextAlignmentChoiceCtrl->Disable();
-
-            pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(0);
-            pSelectedColumnTextEllipsisModeChoiceCtrl->Disable();
-
-            pApplyButton->Disable();
-
-            mTasksViewColumnSettingProperties = mDefaultTasksViewColumnSettingProperties;
-
-            int item = mCheckedSelectedColumns[0].first;
-            pSelectedTasksViewColumnsListBox->Check(item, false);
+            int itemPosition = mCheckedSelectedColumns[0].first;
+            pSelectedTasksViewColumnsListBox->Check(itemPosition, false);
 
             mCheckedSelectedColumns.clear();
 
@@ -761,6 +731,24 @@ void PreferencesTasksViewPage::OnApplyButtonClick(wxCommandEvent& event)
             break;
         }
     }
+}
+
+void PreferencesTasksViewPage::SetColumnPropertiesControlsData(
+    Core::Settings::TasksViewColumnSetting& columnSetting)
+{
+    mTasksViewColumnSettingProperties = columnSetting;
+
+    pSelectedColumnNameReadonlyTextCtrl->ChangeValue(columnSetting.DisplayName);
+
+    pSelectedColumnTextAlignmentChoiceCtrl->SetSelection(
+        static_cast<int>(columnSetting.TextAlignment));
+    pSelectedColumnTextAlignmentChoiceCtrl->Enable();
+
+    pSelectedColumnTextEllipsisModeChoiceCtrl->SetSelection(
+        static_cast<int>(columnSetting.EllipsisMode));
+    pSelectedColumnTextEllipsisModeChoiceCtrl->Enable();
+
+    pApplyButton->Enable();
 }
 
 void PreferencesTasksViewPage::ResetColumnPropertiesControls()

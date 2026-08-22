@@ -76,6 +76,7 @@ private:
     void OnEllipsisModeChoice(wxCommandEvent& event);
     void OnApplyButtonClick(wxCommandEvent& event);
 
+    void SetColumnPropertiesControlsData(Core::Settings::TasksViewColumnSetting& columnSetting);
     void ResetColumnPropertiesControls();
 
     std::shared_ptr<Core::Configuration> pCfg;
