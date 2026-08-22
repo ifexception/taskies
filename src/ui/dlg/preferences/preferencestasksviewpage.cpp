@@ -635,7 +635,6 @@ void PreferencesTasksViewPage::OnLeftChevronButtonClick(wxCommandEvent& event)
 
 void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
 {
-    // sort asc on selected column
     if (mCheckedSelectedColumns.size() == 0 || mCheckedSelectedColumns.size() >= 2) {
         wxMessageBox("Can only sort one column at a time!",
             Common::GetProgramName(),
@@ -644,40 +643,33 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
     }
 
     if (mCheckedSelectedColumns.size() == 1) {
-        auto& checkedSelectedColumn = mCheckedSelectedColumns[0];
-        auto iterator = std::find_if(mCfgTasksViewColumns.begin(),
-            mCfgTasksViewColumns.end(),
-            [checkedSelectedColumn](const Core::Settings::TasksViewColumnSetting& column) {
-                return checkedSelectedColumn.second.TaskViewColumnId == column.TaskViewColumnId;
-            });
-        if (iterator != mCfgTasksViewColumns.end()) {
-            Core::Settings::TasksViewColumnSetting match = *iterator;
+        auto& checkedSelectedColumnPair = mCheckedSelectedColumns[0];
 
-            int pos = pSelectedTasksViewColumnsListBox->FindString(match.DisplayName);
+        int itemPosition = checkedSelectedColumnPair.first;
+        Core::Settings::TasksViewColumnSetting columnSetting = checkedSelectedColumnPair.second;
 
-            int opos = pos;
-            --pos;
+        int originalItemPosition = itemPosition;
+        --itemPosition;
 
-            if (pos == 0) {
-                pSelectedTasksViewColumnsListBox->Check(opos, false);
-                mCheckedSelectedColumns.clear();
-                ResetColumnPropertiesControls();
-                return;
-            }
-
-            pSelectedTasksViewColumnsListBox->Delete(opos);
-            pSelectedTasksViewColumnsListBox->Insert(match.DisplayName,
-                pos,
-                Utils::IntToVoidPointer(static_cast<int>(match.TaskViewColumnId)));
-            pSelectedTasksViewColumnsListBox->Check(pos);
-            mCheckedSelectedColumns[0].first = pos;
+        if (itemPosition == 0) {
+            pSelectedTasksViewColumnsListBox->Check(originalItemPosition, false);
+            mCheckedSelectedColumns.clear();
+            ResetColumnPropertiesControls();
+            return;
         }
+
+        pSelectedTasksViewColumnsListBox->Delete(originalItemPosition);
+        pSelectedTasksViewColumnsListBox->Insert(columnSetting.DisplayName,
+            itemPosition,
+            Utils::IntToVoidPointer(static_cast<int>(columnSetting.TaskViewColumnId)));
+        pSelectedTasksViewColumnsListBox->Check(itemPosition);
+
+        mCheckedSelectedColumns[0].first = itemPosition;
     }
 }
 
 void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
 {
-    // sort desc on selected column
     if (mCheckedSelectedColumns.size() == 0 || mCheckedSelectedColumns.size() >= 2) {
         wxMessageBox("Only one column at a time can be sorted",
             Common::GetProgramName(),
