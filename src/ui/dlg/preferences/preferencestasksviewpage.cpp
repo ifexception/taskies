@@ -159,7 +159,38 @@ void PreferencesTasksViewPage::Reset()
     pTodayAlwaysExpanded->SetValue(pCfg->TodayAlwaysExpanded());
     pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
 
-    // TODO: Reset tasks view columns
+    ResetColumnPropertiesControls();
+
+    auto& defaultTasksViewColumns = Core::Settings::MakeDefaultTasksViewColumnList();
+    mCfgTasksViewColumns = defaultTasksViewColumns;
+    for (const auto& tasksViewColumn : mCfgTasksViewColumns) {
+        pAvailableTasksViewColumnsListBox->Append(tasksViewColumn.DisplayName,
+            Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
+    }
+
+    std::vector<Core::Settings::TasksViewColumnSetting> cfgTasksViewColumns = mCfgTasksViewColumns;
+
+    cfgTasksViewColumns.erase(
+        std::remove_if(cfgTasksViewColumns.begin(),
+            cfgTasksViewColumns.end(),
+            [&](const Core::Settings::TasksViewColumnSetting& s) { return !s.Selected; }),
+        cfgTasksViewColumns.end());
+
+    for (const auto& tasksViewColumn : cfgTasksViewColumns) {
+        pSelectedTasksViewColumnsListBox->Append(tasksViewColumn.DisplayName,
+            Utils::IntToVoidPointer(static_cast<int>(tasksViewColumn.TaskViewColumnId)));
+    }
+
+    for (const auto& column : cfgTasksViewColumns) {
+        for (unsigned int i = 0; i < pAvailableTasksViewColumnsListBox->GetCount(); i++) {
+            int clientData =
+                Utils::VoidPointerToInt(pAvailableTasksViewColumnsListBox->GetClientData(i));
+            TasksViewColumnIdentifier columnId = static_cast<TasksViewColumnIdentifier>(clientData);
+            if (column.TaskViewColumnId == columnId) {
+                pAvailableTasksViewColumnsListBox->Delete(i);
+            }
+        }
+    }
 }
 
 void PreferencesTasksViewPage::CreateControls()
@@ -423,9 +454,13 @@ void PreferencesTasksViewPage::DataToControls()
     }
 
     for (const auto& column : cfgTasksViewColumns) {
-        int itemId = pAvailableTasksViewColumnsListBox->FindString(column.DisplayName);
-        if (itemId >= 0) {
-            pAvailableTasksViewColumnsListBox->Delete(itemId);
+        for (unsigned int i = 0; i < pAvailableTasksViewColumnsListBox->GetCount(); i++) {
+            int clientData =
+                Utils::VoidPointerToInt(pAvailableTasksViewColumnsListBox->GetClientData(i));
+            TasksViewColumnIdentifier columnId = static_cast<TasksViewColumnIdentifier>(clientData);
+            if (column.TaskViewColumnId == columnId) {
+                pAvailableTasksViewColumnsListBox->Delete(i);
+            }
         }
     }
 }
