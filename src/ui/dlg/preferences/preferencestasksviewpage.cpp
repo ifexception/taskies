@@ -631,7 +631,7 @@ void PreferencesTasksViewPage::OnAscButtonClick(wxCommandEvent& event)
         int originalItemPosition = itemPosition;
         --itemPosition;
 
-        if (itemPosition <= 0) {
+        if (itemPosition < 0) {
             pSelectedTasksViewColumnsListBox->Check(originalItemPosition, false);
             mCheckedSelectedColumns.clear();
             ResetColumnPropertiesControls();
