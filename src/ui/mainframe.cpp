@@ -424,7 +424,7 @@ void MainFrame::CreateControls()
         if (mTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
             column = pDataViewListCtrl->AppendToggleColumn(mTasksViewColumns[i].DisplayName,
                 wxDATAVIEW_CELL_INERT,
-                mTasksViewColumns[i].Width,
+                wxCOL_WIDTH_AUTOSIZE,
                 Common::MapTasksViewColumnTextAlignment(mTasksViewColumns[i].TextAlignment));
             column->SetResizeable(false);
         } else if (mTasksViewColumns[i].Type == TasksViewColumnType::Text) {
@@ -443,7 +443,7 @@ void MainFrame::CreateControls()
     int lastColumn = pDataViewListCtrl->GetColumnCount() - 1;
     wxDataViewColumn* descriptionColumn = pDataViewListCtrl->GetColumn(lastColumn);
     descriptionColumn->SetFlags(descriptionColumn->GetFlags() | wxDATAVIEW_COL_RESIZABLE);
-    descriptionColumn->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+    descriptionColumn->SetWidth(wxCOL_WIDTH_DEFAULT);
 
     pDataViewListCtrl->AppendTextColumn(
         "ID", wxDATAVIEW_CELL_INERT, wxSIZE_AUTO_WIDTH, wxALIGN_LEFT, wxDATAVIEW_COL_HIDDEN);
@@ -2337,6 +2337,9 @@ void MainFrame::ResizeColumns()
         wxDataViewColumn* column = pDataViewListCtrl->GetColumn(i);
         if (column->IsShown() && column->IsResizeable()) {
             column->SetWidth(wxCOL_WIDTH_AUTOSIZE);
+            if (i == columnCount - 1) {
+                column->SetWidth(wxCOL_WIDTH_DEFAULT);
+            }
         }
     }
 }
