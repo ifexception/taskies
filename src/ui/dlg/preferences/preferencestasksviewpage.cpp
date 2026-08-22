@@ -678,37 +678,29 @@ void PreferencesTasksViewPage::OnDescButtonClick(wxCommandEvent& event)
     }
 
     if (mCheckedSelectedColumns.size() == 1) {
-        auto& checkedSelectedColumn = mCheckedSelectedColumns[0];
-        auto iter = std::find_if(mCfgTasksViewColumns.begin(),
-            mCfgTasksViewColumns.end(),
-            [checkedSelectedColumn](const Core::Settings::TasksViewColumnSetting& column) {
-                return checkedSelectedColumn.second.TaskViewColumnId == column.TaskViewColumnId;
-            });
+        auto& checkedSelectedColumnPair = mCheckedSelectedColumns[0];
 
-        if (iter != mCfgTasksViewColumns.end()) {
-            Core::Settings::TasksViewColumnSetting match = *iter;
+        int itemPosition = checkedSelectedColumnPair.first;
+        Core::Settings::TasksViewColumnSetting columnSetting = checkedSelectedColumnPair.second;
 
-            int pos = pSelectedTasksViewColumnsListBox->FindString(match.DisplayName);
+        if (itemPosition >= (int) pSelectedTasksViewColumnsListBox->GetCount() - 1) {
+            pSelectedTasksViewColumnsListBox->Check(itemPosition, false);
+            mCheckedSelectedColumns.clear();
+            ResetColumnPropertiesControls();
 
-            if (pos >= (int) pSelectedTasksViewColumnsListBox->GetCount() - 1) {
-                pSelectedTasksViewColumnsListBox->Check(pos, false);
-                mCheckedSelectedColumns.clear();
-                ResetColumnPropertiesControls();
-
-                return;
-            }
-
-            pSelectedTasksViewColumnsListBox->Delete(pos);
-
-            pos++;
-
-            pSelectedTasksViewColumnsListBox->Insert(match.DisplayName,
-                pos,
-                Utils::IntToVoidPointer(static_cast<int>(match.TaskViewColumnId)));
-            pSelectedTasksViewColumnsListBox->Check(pos);
-
-            mCheckedSelectedColumns[0].first = pos;
+            return;
         }
+
+        pSelectedTasksViewColumnsListBox->Delete(itemPosition);
+
+        itemPosition++;
+
+        pSelectedTasksViewColumnsListBox->Insert(columnSetting.DisplayName,
+            itemPosition,
+            Utils::IntToVoidPointer(static_cast<int>(columnSetting.TaskViewColumnId)));
+        pSelectedTasksViewColumnsListBox->Check(itemPosition);
+
+        mCheckedSelectedColumns[0].first = itemPosition;
     }
 }
 
