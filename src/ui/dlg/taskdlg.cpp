@@ -265,10 +265,10 @@ void TaskDialog::UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
         if (!projects.empty()) {
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(
-                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                    project.Name, new ClientData<std::int64_t>(project.ProjectId));
 
                 if (project.ProjectId == mProjectIdFromAttendedMeeting) {
-                    pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+                    pProjectChoiceCtrl->SetStringSelection(project.Name);
                 }
             }
 
@@ -812,12 +812,12 @@ void TaskDialog::FillControls()
 
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(
-                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                    project.Name, new ClientData<std::int64_t>(project.ProjectId));
 
                 if (project.IsDefault) {
                     hasDefaultProject = true;
                     defaultProjectId = project.ProjectId;
-                    pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+                    pProjectChoiceCtrl->SetStringSelection(project.Name);
                 }
             }
 
@@ -1031,13 +1031,13 @@ void TaskDialog::DataToControls()
 
                 for (auto& project : projects) {
                     pProjectChoiceCtrl->Append(
-                        project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                        project.Name, new ClientData<std::int64_t>(project.ProjectId));
                 }
             }
         }
     }
 
-    pProjectChoiceCtrl->SetStringSelection(projectModel.DisplayName);
+    pProjectChoiceCtrl->SetStringSelection(projectModel.Name);
 
     // load clients
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
@@ -1993,12 +1993,12 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
 
         for (auto& project : projects) {
             pProjectChoiceCtrl->Append(
-                project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                project.Name, new ClientData<std::int64_t>(project.ProjectId));
 
             if (project.IsDefault) {
                 hasDefaultProject = true;
                 defaultProjectId = project.ProjectId;
-                pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+                pProjectChoiceCtrl->SetStringSelection(project.Name);
             }
         }
 

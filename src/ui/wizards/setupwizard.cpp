@@ -686,27 +686,6 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
         return false;
     }
 
-    auto projectDisplayName = pProjectDisplayNameCtrl->GetValue().ToStdString();
-    if (projectDisplayName.empty()) {
-        auto valMsg = "Display name is required";
-        wxRichToolTip toolTip("Validation", valMsg);
-        toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pProjectDisplayNameCtrl);
-        return false;
-    }
-
-    if (projectDisplayName.length() < MIN_CHARACTER_COUNT ||
-        projectDisplayName.length() > MAX_CHARACTER_COUNT_NAMES) {
-        auto valMsg =
-            fmt::format("Display name must be at minimum {0} or maximum {1} characters long",
-                MIN_CHARACTER_COUNT,
-                MAX_CHARACTER_COUNT_NAMES);
-        wxRichToolTip toolTip("Validation", valMsg);
-        toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pProjectDisplayNameCtrl);
-        return false;
-    }
-
     // Validate category properties
     auto categoryName = pCategoryNameTextCtrl->GetValue().ToStdString();
     if (categoryName.empty()) {
@@ -732,7 +711,6 @@ bool CreateProjectAndCategoryPage::TransferDataFromWindow()
     Model::ProjectModel project;
 
     project.Name = Utils::TrimWhitespace(projectName);
-    project.DisplayName = Utils::TrimWhitespace(projectDisplayName);
     project.IsDefault = pProjectIsDefaultCtrl->GetValue();
     project.EmployerId = pParent->GetEmployerId();
     project.ClientId = pParent->GetClientId() == -1
@@ -805,15 +783,6 @@ void CreateProjectAndCategoryPage::CreateControls()
     pProjectNameTextCtrl->SetToolTip("Enter a name for a project");
     pProjectNameTextCtrl->SetValidator(NameValidator());
 
-    /* Display Name Ctrl */
-    auto displayNameLabel = new wxStaticText(projectBox, wxID_ANY, "Display Name");
-
-    pProjectDisplayNameCtrl = new wxTextCtrl(projectBox, tksIDC_PROJECTDISPLAYNAME);
-    pProjectDisplayNameCtrl->SetHint("Display name");
-    pProjectDisplayNameCtrl->SetToolTip(
-        "Enter a nickname, abbreviation or common name for a project (if applicable)");
-    pProjectDisplayNameCtrl->SetValidator(NameValidator());
-
     /* Is Default Checkbox Ctrl */
     pProjectIsDefaultCtrl = new wxCheckBox(projectBox, tksIDC_PROJECTISDEFAULT, "Is Default");
     pProjectIsDefaultCtrl->SetToolTip(
@@ -827,11 +796,6 @@ void CreateProjectAndCategoryPage::CreateControls()
         projectNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     projectDetailsGridSizer->Add(
         pProjectNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
-
-    projectDetailsGridSizer->Add(
-        displayNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    projectDetailsGridSizer->Add(
-        pProjectDisplayNameCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     projectDetailsGridSizer->Add(0, 0);
     projectDetailsGridSizer->Add(pProjectIsDefaultCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -884,12 +848,6 @@ void CreateProjectAndCategoryPage::CreateControls()
 // clang-format off
 void CreateProjectAndCategoryPage::ConfigureEventBindings()
 {
-    pProjectNameTextCtrl->Bind(
-        wxEVT_TEXT,
-        &CreateProjectAndCategoryPage::OnProjectNameChange,
-        this
-    );
-
     Bind(
         wxEVT_WIZARD_CANCEL,
         &CreateProjectAndCategoryPage::OnWizardCancel,
@@ -903,12 +861,6 @@ void CreateProjectAndCategoryPage::ConfigureEventBindings()
     );
 }
 // clang-format on
-
-void CreateProjectAndCategoryPage::OnProjectNameChange(wxCommandEvent& event)
-{
-    auto name = pProjectNameTextCtrl->GetValue().ToStdString();
-    pProjectDisplayNameCtrl->ChangeValue(name);
-}
 
 void CreateProjectAndCategoryPage::OnWizardCancel(wxWizardEvent& event)
 {
@@ -935,7 +887,6 @@ void CreateProjectAndCategoryPage::OnWizardPageShown(wxWizardEvent& event)
         }
 
         pProjectNameTextCtrl->ChangeValue(project.Name);
-        pProjectDisplayNameCtrl->ChangeValue(project.DisplayName);
         pProjectIsDefaultCtrl->SetValue(project.IsDefault);
     }
 

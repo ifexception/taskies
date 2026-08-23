@@ -82,8 +82,6 @@ private:
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
-    wxCheckBox* pUseProjectDisplayName;
-
     wxCheckListBox* pAvailableTasksViewColumnsListBox;
     wxButton* pRightChevronButton;
     wxButton* pLeftChevronButton;

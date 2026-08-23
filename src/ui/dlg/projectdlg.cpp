@@ -63,7 +63,6 @@ ProjectDialog::ProjectDialog(wxWindow* parent,
     , pParent(parent)
     , pLogger(logger)
     , pNameTextCtrl(nullptr)
-    , pDisplayNameCtrl(nullptr)
     , pIsDefaultCheckBoxCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pEmployerChoiceCtrl(nullptr)
@@ -112,15 +111,6 @@ void ProjectDialog::CreateControls()
     pNameTextCtrl->SetToolTip("Enter a name for a project");
     pNameTextCtrl->SetValidator(NameValidator());
 
-    /* Display Name Ctrl */
-    auto displayNameLabel = new wxStaticText(detailsBox, wxID_ANY, "Display Name");
-
-    pDisplayNameCtrl = new wxTextCtrl(detailsBox, tksIDC_DISPLAYNAMETEXTCTRL);
-    pDisplayNameCtrl->SetHint("Display name");
-    pDisplayNameCtrl->SetToolTip(
-        "Enter a nickname, abbreviation or common name for a project (if applicable)");
-    pDisplayNameCtrl->SetValidator(NameValidator());
-
     /* Is Default Checkbox Ctrl */
     pIsDefaultCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_ISDEFAULTCHECKBOXCTRL, "Is Default");
     pIsDefaultCheckBoxCtrl->SetToolTip(
@@ -133,10 +123,6 @@ void ProjectDialog::CreateControls()
     detailsGridSizer->Add(
         projectNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     detailsGridSizer->Add(pNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    detailsGridSizer->Add(
-        displayNameLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    detailsGridSizer->Add(pDisplayNameCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     detailsGridSizer->Add(0, 0);
     detailsGridSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -253,12 +239,6 @@ void ProjectDialog::FillControls()
 // clang-format off
 void ProjectDialog::ConfigureEventBindings()
 {
-    pNameTextCtrl->Bind(
-        wxEVT_TEXT,
-        &ProjectDialog::OnNameChange,
-        this
-    );
-
     pEmployerChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ProjectDialog::OnEmployerChoiceSelection,
@@ -303,7 +283,6 @@ void ProjectDialog::DataToControls()
         dialog.ShowModal();
     } else {
         pNameTextCtrl->ChangeValue(mProjectModel.Name);
-        pDisplayNameCtrl->ChangeValue(mProjectModel.DisplayName);
         pIsDefaultCheckBoxCtrl->SetValue(mProjectModel.IsDefault);
 
         if (mProjectModel.Description.has_value()) {
@@ -337,12 +316,6 @@ void ProjectDialog::DataToControls()
             }
         }
     }
-}
-
-void ProjectDialog::OnNameChange(wxCommandEvent& event)
-{
-    auto name = pNameTextCtrl->GetValue().ToStdString();
-    pDisplayNameCtrl->ChangeValue(name);
 }
 
 void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
@@ -451,7 +424,6 @@ void ProjectDialog::OnIsActiveCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
         pNameTextCtrl->Enable();
-        pDisplayNameCtrl->Enable();
         pIsDefaultCheckBoxCtrl->Enable();
         pDescriptionTextCtrl->Enable();
         pEmployerChoiceCtrl->Enable();
@@ -462,7 +434,6 @@ void ProjectDialog::OnIsActiveCheck(wxCommandEvent& event)
 
     } else {
         pNameTextCtrl->Disable();
-        pDisplayNameCtrl->Disable();
         pIsDefaultCheckBoxCtrl->Disable();
         pDescriptionTextCtrl->Disable();
         pEmployerChoiceCtrl->Disable();
@@ -488,27 +459,6 @@ bool ProjectDialog::Validate()
         wxRichToolTip toolTip("Validation", valMsg);
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pNameTextCtrl);
-        return false;
-    }
-
-    auto displayName = pDisplayNameCtrl->GetValue().ToStdString();
-    if (displayName.empty()) {
-        auto valMsg = "Display name is required";
-        wxRichToolTip toolTip("Validation", valMsg);
-        toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pDisplayNameCtrl);
-        return false;
-    }
-
-    if (displayName.length() < MIN_CHARACTER_COUNT ||
-        displayName.length() > MAX_CHARACTER_COUNT_NAMES) {
-        auto valMsg =
-            fmt::format("Display name must be at minimum {0} or maximum {1} characters long",
-                MIN_CHARACTER_COUNT,
-                MAX_CHARACTER_COUNT_NAMES);
-        wxRichToolTip toolTip("Validation", valMsg);
-        toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pDisplayNameCtrl);
         return false;
     }
 
@@ -545,9 +495,6 @@ void ProjectDialog::TransferDataFromControls()
 
     auto name = pNameTextCtrl->GetValue().ToStdString();
     mProjectModel.Name = Utils::TrimWhitespace(name);
-
-    auto displayName = pDisplayNameCtrl->GetValue().ToStdString();
-    mProjectModel.DisplayName = Utils::TrimWhitespace(displayName);
 
     mProjectModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
 

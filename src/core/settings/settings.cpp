@@ -21,5 +21,4 @@
 
 namespace tks::Core::Settings
 {
-
 }

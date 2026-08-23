@@ -58,7 +58,6 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
-    void OnNameChange(wxCommandEvent& event);
     void OnEmployerChoiceSelection(wxCommandEvent& event);
 
     void OnIsActiveCheck(wxCommandEvent& event);
@@ -75,7 +74,6 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxTextCtrl* pNameTextCtrl;
-    wxTextCtrl* pDisplayNameCtrl;
     wxCheckBox* pIsDefaultCheckBoxCtrl;
 
     wxTextCtrl* pDescriptionTextCtrl;
@@ -96,7 +94,6 @@ private:
 
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
-        tksIDC_DISPLAYNAMETEXTCTRL,
         tksIDC_ISDEFAULTCHECKBOXCTRL,
         tksIDC_DESCRIPTIONTEXTCTRL,
         tksIDC_EMPLOYERCHOICECTRL,

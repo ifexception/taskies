@@ -172,7 +172,6 @@ ConfigResult Configuration::Save()
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
-    root.at(Sections::TasksViewSection)["useProjectDisplayName"] = pSettings->UseProjectDisplayName;
 
     // Tasks View Columns (sub)section
     toml::value tasksViewColumnArray(toml::array{});
@@ -294,8 +293,6 @@ ConfigResult Configuration::RestoreDefaults()
     OpenTaskDialogOnReminderClick(false);
     OpenTaskDialogOnOutlookMeetingAttendanceCheck(false);
 
-    UseProjectDisplayName(false);
-
     SetTasksViewColumns(Settings::MakeDefaultTasksViewColumnList());
 
     SetExportPath(pEnv->GetExportPath().string());
@@ -345,7 +342,6 @@ ConfigResult Configuration::RestoreDefaults()
             {
                 Sections::TasksViewSection,
                 toml::table {
-                    { "useProjectDisplayName", false },
                     { "tasksViewColumns", toml::array {} }
                 }
             },
@@ -762,16 +758,6 @@ void Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool val
     pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck = value;
 }
 
-bool Configuration::UseProjectDisplayName() const
-{
-    return pSettings->UseProjectDisplayName;
-}
-
-void Configuration::UseProjectDisplayName(const bool value)
-{
-    pSettings->UseProjectDisplayName = value;
-}
-
 std::vector<Settings::TasksViewColumnSetting> Configuration::GetTasksViewColumns() const
 {
     return pSettings->TasksViewColumnSettings;
@@ -986,9 +972,6 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
     }
 
     const auto& tasksViewSection = toml::find(root, Sections::TasksViewSection);
-
-    pSettings->UseProjectDisplayName =
-        toml::find_or<bool>(tasksViewSection, "useProjectDisplayName", false);
 
     bool tasksViewColumnParsingFailed = false;
     if (tasksViewSection.contains("tasksViewColumns")) {

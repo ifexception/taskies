@@ -43,7 +43,6 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     : wxPanel(parent, wxID_ANY)
     , pCfg(cfg)
     , pLogger(logger)
-    , pUseProjectDisplayName(nullptr)
     , pAvailableTasksViewColumnsListBox(nullptr)
     , pRightChevronButton(nullptr)
     , pLeftChevronButton(nullptr)
@@ -75,8 +74,6 @@ bool PreferencesTasksViewPage::IsValid()
 
 void PreferencesTasksViewPage::Save(bool* restartRequired)
 {
-    pCfg->UseProjectDisplayName(pUseProjectDisplayName->GetValue());
-
     std::vector<Core::Settings::TasksViewColumnSetting> selectedTasksViewColumnsFromCheckListBox;
 
     for (unsigned int i = 0; i < pSelectedTasksViewColumnsListBox->GetCount(); i++) {
@@ -156,8 +153,6 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
 
 void PreferencesTasksViewPage::Reset()
 {
-    pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
-
     ResetColumnPropertiesControls();
 
     auto& defaultTasksViewColumns = Core::Settings::MakeDefaultTasksViewColumnList();
@@ -198,17 +193,9 @@ void PreferencesTasksViewPage::CreateControls()
     auto sizer = new wxBoxSizer(wxVERTICAL);
 
     /* Tasks view box */
-    auto tasksViewBox = new wxStaticBox(this, wxID_ANY, "Tasks View");
+    /*auto tasksViewBox = new wxStaticBox(this, wxID_ANY, "Tasks View");
     auto tasksViewBoxSizer = new wxStaticBoxSizer(tasksViewBox, wxVERTICAL);
-    sizer->Add(tasksViewBoxSizer, wxSizerFlags().Expand());
-
-    /* Use project display name control */
-    pUseProjectDisplayName =
-        new wxCheckBox(tasksViewBox, tksIDC_USEPROJECTDISPLAYNAME, "Use project display name");
-    pUseProjectDisplayName->SetToolTip(
-        "Use the project's display name instead of full name on the tasks view");
-    tasksViewBoxSizer->Add(
-        pUseProjectDisplayName, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+    sizer->Add(tasksViewBoxSizer, wxSizerFlags().Expand());*/
 
     /* Tasks View Columns group box */
     auto tasksViewColumnsStaticBox =
@@ -430,8 +417,6 @@ void PreferencesTasksViewPage::FillControls()
 
 void PreferencesTasksViewPage::DataToControls()
 {
-    pUseProjectDisplayName->SetValue(pCfg->UseProjectDisplayName());
-
     std::vector<Core::Settings::TasksViewColumnSetting> cfgTasksViewColumns = mCfgTasksViewColumns;
 
     cfgTasksViewColumns.erase(

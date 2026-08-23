@@ -95,10 +95,10 @@ SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& categories)
             columnIndex++;
 
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.ProjectDisplayName = std::nullopt;
+                model.ProjectName = std::nullopt;
             } else {
                 res = sqlite3_column_text(stmt, columnIndex);
-                model.ProjectDisplayName = std::make_optional<std::string>(std::string(
+                model.ProjectName = std::make_optional<std::string>(std::string(
                     reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
             }
             columnIndex++;
@@ -203,7 +203,7 @@ SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
             columnIndex++;
 
             res = sqlite3_column_text(stmt, columnIndex);
-            model.ProjectDisplayName = std::string(
+            model.ProjectName = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
             categories.push_back(model);
@@ -307,10 +307,10 @@ SqliteResult CategoryService::GetById(const std::int64_t categoryId,
     columnIndex++;
 
     if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        category.ProjectDisplayName = std::nullopt;
+        category.ProjectName = std::nullopt;
     } else {
         res = sqlite3_column_text(stmt, columnIndex);
-        category.ProjectDisplayName = std::make_optional<std::string>(std::string(
+        category.ProjectName = std::make_optional<std::string>(std::string(
             reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
     }
     columnIndex++;
@@ -342,7 +342,7 @@ std::string CategoryService::filter = "SELECT "
                                       "categories.date_modified, "
                                       "categories.is_active, "
                                       "categories.project_id, "
-                                      "projects.display_name "
+                                      "projects.name "
                                       "FROM categories "
                                       "LEFT JOIN projects "
                                       "ON categories.project_id = projects.project_id "
@@ -358,7 +358,7 @@ std::string CategoryService::filterByProjectId = "SELECT "
                                                  "categories.date_modified, "
                                                  "categories.is_active, "
                                                  "categories.project_id, "
-                                                 "projects.display_name "
+                                                 "projects.name "
                                                  "FROM categories "
                                                  "INNER JOIN projects "
                                                  "ON categories.project_id = projects.project_id "
@@ -375,7 +375,7 @@ std::string CategoryService::getById = "SELECT "
                                        "categories.date_modified, "
                                        "categories.is_active, "
                                        "categories.project_id, "
-                                       "projects.display_name "
+                                       "projects.name "
                                        "FROM categories "
                                        "LEFT JOIN projects "
                                        "ON categories.project_id = projects.project_id "

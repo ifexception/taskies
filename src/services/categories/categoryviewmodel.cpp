@@ -34,13 +34,13 @@ CategoryViewModel::CategoryViewModel()
     , DateModified(0)
     , IsActive(false)
     , ProjectId()
-    , ProjectDisplayName()
+    , ProjectName()
 {
 }
 
 std::string CategoryViewModel::GetFormattedName()
 {
-    auto displayName = ProjectDisplayName.has_value() ? ProjectDisplayName.value() : "none";
+    auto displayName = ProjectName.has_value() ? ProjectName.value() : "none";
     return fmt::format("({0}) - {1}", displayName, Name);
 }
 

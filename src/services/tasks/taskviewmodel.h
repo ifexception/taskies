@@ -47,7 +47,6 @@ struct TaskViewModel {
     std::string EmployerName;
     std::string ClientName;
     std::string ProjectName;
-    std::string ProjectDisplayName;
     std::string CategoryName;
     unsigned int CategoryColor;
     bool IsMeeting;

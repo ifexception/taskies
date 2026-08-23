@@ -516,12 +516,12 @@ void OutlookMeetingsViewFrame::OnEmployerChoice(wxCommandEvent& event)
 
                     for (auto& project : projectModels) {
                         projectChoiceCtrl->Append(
-                            project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                            project.Name, new ClientData<std::int64_t>(project.ProjectId));
 
                         if (project.IsDefault) {
                             hasDefaultProject = true;
                             defaultProjectId = project.ProjectId;
-                            projectChoiceCtrl->SetStringSelection(project.DisplayName);
+                            projectChoiceCtrl->SetStringSelection(project.Name);
                         }
                     }
 
@@ -1072,13 +1072,13 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
 
         for (auto& project : projectModels) {
             projectChoiceCtrl->Append(
-                project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                project.Name, new ClientData<std::int64_t>(project.ProjectId));
 
             if (project.IsDefault) {
                 hasDefaultProject = true;
                 defaultProjectId = project.ProjectId;
                 choiceData.ProjectId = defaultProjectId;
-                projectChoiceCtrl->SetStringSelection(project.DisplayName);
+                projectChoiceCtrl->SetStringSelection(project.Name);
             }
         }
 

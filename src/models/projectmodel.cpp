@@ -26,7 +26,6 @@ namespace tks::Model
 ProjectModel::ProjectModel()
     : ProjectId(-1)
     , Name()
-    , DisplayName()
     , IsDefault(false)
     , Description()
     , DateCreated()

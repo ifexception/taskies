@@ -54,7 +54,6 @@ struct Settings {
     bool OpenTaskDialogOnReminderClick;
     bool OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
-    bool UseProjectDisplayName;
     std::vector<TasksViewColumnSetting> TasksViewColumnSettings;
 
     std::string ExportPath;
@@ -63,4 +62,4 @@ struct Settings {
 
     std::vector<PresetSetting> PresetSettings;
 };
-} // namespace MyNamespace
+} // namespace tks::Core::Settings

@@ -128,9 +128,6 @@ public:
     bool OpenTaskDialogOnOutlookMeetingAttendanceCheck() const;
     void OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value);
 
-    bool UseProjectDisplayName() const;
-    void UseProjectDisplayName(const bool value);
-
     std::vector<Settings::TasksViewColumnSetting> GetTasksViewColumns() const;
     void SetTasksViewColumns(const std::vector<Settings::TasksViewColumnSetting> values);
 

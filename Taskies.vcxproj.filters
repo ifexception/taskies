@@ -890,6 +890,9 @@
     <None Include="res\install-wizard.svg">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="res\migrations\20260823103130_drop_display_name_column.sql">
+      <Filter>Resource Files\migrations</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\about.ico">

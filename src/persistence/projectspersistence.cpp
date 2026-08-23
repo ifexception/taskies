@@ -77,23 +77,6 @@ SqliteResult ProjectsPersistence::Filter(const std::string& searchTerm,
 
     bindIndex++;
 
-    // display name
-    rc = sqlite3_bind_text(stmt,
-        bindIndex,
-        formattedSearchTerm.c_str(),
-        static_cast<int>(formattedSearchTerm.size()),
-        SQLITE_TRANSIENT);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "display_name", bindIndex, rc, error);
-
-        sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
-    }
-
-    bindIndex++;
-
     // project description
     rc = sqlite3_bind_text(stmt,
         bindIndex,
@@ -158,10 +141,6 @@ SqliteResult ProjectsPersistence::Filter(const std::string& searchTerm,
             const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
             projectModel.Name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
-
-            const unsigned char* res2 = sqlite3_column_text(stmt, columnIndex);
-            projectModel.DisplayName = std::string(
-                reinterpret_cast<const char*>(res2), sqlite3_column_bytes(stmt, columnIndex++));
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
@@ -287,10 +266,6 @@ SqliteResult ProjectsPersistence::FilterByEmployerIdOrClientId(
             projectModel.Name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-            const unsigned char* res2 = sqlite3_column_text(stmt, columnIndex);
-            projectModel.DisplayName = std::string(
-                reinterpret_cast<const char*>(res2), sqlite3_column_bytes(stmt, columnIndex++));
-
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
@@ -400,10 +375,6 @@ SqliteResult ProjectsPersistence::FilterByEmployerId(std::optional<std::int64_t>
             projectModel.Name = std::string(
                 reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-            const unsigned char* res2 = sqlite3_column_text(stmt, columnIndex);
-            projectModel.DisplayName = std::string(
-                reinterpret_cast<const char*>(res2), sqlite3_column_bytes(stmt, columnIndex++));
-
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
             if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
@@ -511,10 +482,6 @@ SqliteResult ProjectsPersistence::GetById(const std::int64_t projectId,
     projectModel.Name =
         std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
 
-    const unsigned char* res2 = sqlite3_column_text(stmt, columnIndex);
-    projectModel.DisplayName =
-        std::string(reinterpret_cast<const char*>(res2), sqlite3_column_bytes(stmt, columnIndex++));
-
     projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
     if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
@@ -589,23 +556,6 @@ SqliteResult ProjectsPersistence::Create(std::int64_t& projectId,
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
-
-        sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
-    }
-
-    bindIndex++;
-
-    // display name
-    rc = sqlite3_bind_text(stmt,
-        bindIndex,
-        projectModel.DisplayName.c_str(),
-        static_cast<int>(projectModel.DisplayName.size()),
-        SQLITE_TRANSIENT);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "display_name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -726,23 +676,6 @@ SqliteResult ProjectsPersistence::Update(const Model::ProjectModel& projectModel
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
-
-        sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
-    }
-
-    bindIndex++;
-
-    // display name
-    rc = sqlite3_bind_text(stmt,
-        bindIndex,
-        projectModel.DisplayName.c_str(),
-        static_cast<int>(projectModel.DisplayName.size()),
-        SQLITE_TRANSIENT);
-
-    if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::BindParameterTemplate, "display_name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -971,7 +904,6 @@ std::string ProjectsPersistence::filter =
     "SELECT "
     "projects.project_id, "
     "projects.name AS project_name, "
-    "projects.display_name, "
     "projects.is_default, "
     "projects.description AS project_description, "
     "projects.date_created, "
@@ -986,7 +918,6 @@ std::string ProjectsPersistence::filter =
     "LEFT JOIN clients ON projects.client_id = clients.client_id "
     "WHERE projects.is_active = 1 "
     "AND (project_name LIKE ? "
-    "OR display_name LIKE ? "
     "OR project_description LIKE ? "
     "OR employer_name LIKE ? "
     "OR client_name LIKE ?);";
@@ -994,7 +925,6 @@ std::string ProjectsPersistence::filter =
 std::string ProjectsPersistence::getById = "SELECT "
                                            "projects.project_id, "
                                            "projects.name, "
-                                           "projects.display_name, "
                                            "projects.is_default, "
                                            "projects.description, "
                                            "projects.date_created, "
@@ -1009,7 +939,6 @@ std::string ProjectsPersistence::create = "INSERT INTO "
                                           "projects"
                                           "("
                                           "name, "
-                                          "display_name, "
                                           "is_default, "
                                           "description, "
                                           "employer_id, "
@@ -1020,7 +949,6 @@ std::string ProjectsPersistence::create = "INSERT INTO "
 std::string ProjectsPersistence::update = "UPDATE projects "
                                           "SET "
                                           "name = ?,"
-                                          "display_name = ?,"
                                           "is_default = ?,"
                                           "description = ?,"
                                           "date_modified = ?,"
@@ -1043,7 +971,6 @@ std::string ProjectsPersistence::filterByEmployerId =
     "SELECT "
     "projects.project_id, "
     "projects.name, "
-    "projects.display_name, "
     "projects.is_default, "
     "projects.description, "
     "projects.date_created, "
@@ -1061,7 +988,6 @@ std::string ProjectsPersistence::filterByEmployerIdAndOrClientId =
     "SELECT "
     "projects.project_id, "
     "projects.name, "
-    "projects.display_name, "
     "projects.is_default, "
     "projects.description, "
     "projects.date_created, "
