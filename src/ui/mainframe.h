@@ -168,6 +168,7 @@ private:
 
     void CreateControls();
     void FillControls();
+    void ConfigureEventBindings();
     void DataToControls();
 
     /* Event Table Handlers */
@@ -232,6 +233,7 @@ private:
     void OnItemContextMenu(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
     void OnColumnHeaderRightClick(wxDataViewEvent& event);
+    void OnDataViewListCtrlResize(wxSizeEvent& event);
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
     /* Power Event Handlers */

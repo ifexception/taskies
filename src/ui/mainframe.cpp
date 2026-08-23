@@ -468,6 +468,12 @@ void MainFrame::CreateControls()
 
 void MainFrame::FillControls() {}
 
+void MainFrame::ConfigureEventBindings()
+{
+    pDataViewListCtrl->Bind(
+        wxEVT_SIZE, &MainFrame::OnDataViewListCtrlResize, this, tksIDC_DATAVIEWLISTCTRL);
+}
+
 void MainFrame::DataToControls()
 {
     // Set InfoBar
@@ -627,10 +633,6 @@ void MainFrame::OnResize(wxSizeEvent& event)
 {
     if (pMeetingsViewFrame) {
         pMeetingsViewFrame->OnParentFrameResize();
-    }
-
-    if (pDataViewListCtrl) {
-        ResizeLastColumn();
     }
 
     event.Skip();
@@ -2179,6 +2181,11 @@ void MainFrame::OnColumnHeaderRightClick(wxDataViewEvent& event)
     PopupMenu(&menu);
 }
 
+void MainFrame::OnDataViewListCtrlResize(wxSizeEvent& event)
+{
+    ResizeLastColumn();
+}
+
 void MainFrame::CalculateStatusBarTaskDurations()
 {
     // Default hours
@@ -2360,7 +2367,7 @@ void MainFrame::ResizeLastColumn()
 
     // Calculate width used by all columns except the last
     for (int i = 0; i < columnCount - 1; ++i) {
-        usedWidth += pDataViewListCtrl->GetColumn(i)->GetWidth();
+        usedWidth -= pDataViewListCtrl->GetColumn(i)->GetWidth();
     }
 
     // Set last column to fill remaining space
