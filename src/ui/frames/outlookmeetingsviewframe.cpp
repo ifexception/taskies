@@ -41,14 +41,7 @@
 #include "../../core/configuration.h"
 #include "../../core/environment.h"
 
-#include "../../models/employermodel.h"
-
 #include "../../persistence/attendedmeetingspersistence.h"
-#include "../../persistence/employerspersistence.h"
-#include "../../persistence/projectspersistence.h"
-
-#include "../../services/categories/categoryviewmodel.h"
-#include "../../services/categories/categoryservice.h"
 
 #include "../../services/outlook/outlookclassicservice.h"
 
@@ -79,7 +72,6 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     , pMainSizer(nullptr)
     , pDatePickerCtrl(nullptr)
     , pRefreshButton(nullptr)
-    , pEmployerChoiceCtrl(nullptr)
     , pAccountsChoiceCtrl(nullptr)
     , pFeedbackLabel(nullptr)
     , pScrolledWindow(nullptr)
@@ -89,7 +81,6 @@ OutlookMeetingsViewFrame::OutlookMeetingsViewFrame(wxWindow* parent,
     , mSelectedDate()
     , mMeetingModels()
     , bIsMainFrameMaximized(isMainFrameMaximized)
-    , mEmployerId(-1)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -168,14 +159,6 @@ void OutlookMeetingsViewFrame::CreateControls()
     datePickerAndButtonHorizontalSizer->Add(
         pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    /* Employer choice ctrl */
-    auto employerLabel = new wxStaticText(pThisPanel, wxID_ANY, "Employer");
-    pEmployerChoiceCtrl = new wxChoice(pThisPanel, tksIDC_EMPLOYERCHOICECTRL);
-    pEmployerChoiceCtrl->SetToolTip("Select employer to associate this meeting task with");
-
-    pMainSizer->Add(employerLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    pMainSizer->Add(pEmployerChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
     /* Horizontal Line */
     auto line0 = new wxStaticLine(pThisPanel, wxID_ANY);
     pMainSizer->Add(line0, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
@@ -214,34 +197,6 @@ void OutlookMeetingsViewFrame::FillControls()
 
     pDatePickerCtrl->SetRange(dt, wxDateTime::Now());
 
-    pEmployerChoiceCtrl->Append("Select employer", new ClientData<std::int64_t>(-1));
-    pEmployerChoiceCtrl->SetSelection(0);
-
-    std::vector<Model::EmployerModel> employers;
-    Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-
-    auto sqliteResult = employerPersistence.Filter("", employers);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterEmployersMessage,
-            tks::Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
-    } else {
-        for (auto& employer : employers) {
-            pEmployerChoiceCtrl->Append(
-                employer.Name, new ClientData<std::int64_t>(employer.EmployerId));
-
-            if (employer.IsDefault) {
-                mEmployerId = employer.EmployerId;
-                pEmployerChoiceCtrl->SetStringSelection(employer.Name);
-            }
-        }
-    }
-
     pAccountsChoiceCtrl->Append("Select account");
     pAccountsChoiceCtrl->SetSelection(0);
 }
@@ -261,12 +216,6 @@ void OutlookMeetingsViewFrame::ConfigureEventBindings()
         &OutlookMeetingsViewFrame::OnRefresh,
         this,
         tksIDC_REFRESH_BUTTON
-    );
-
-    pEmployerChoiceCtrl->Bind(
-        wxEVT_CHOICE,
-        &OutlookMeetingsViewFrame::OnEmployerChoice,
-        this
     );
 
     pAccountsChoiceCtrl->Bind(
@@ -422,155 +371,6 @@ void OutlookMeetingsViewFrame::OnRefresh(wxCommandEvent& event)
     SetDialogSizeFromParent();
 }
 
-void OutlookMeetingsViewFrame::OnEmployerChoice(wxCommandEvent& event)
-{
-    int employerIndex = event.GetSelection();
-    ClientData<std::int64_t>* employerIdData = reinterpret_cast<ClientData<std::int64_t>*>(
-        pEmployerChoiceCtrl->GetClientObject(employerIndex));
-
-    if (employerIdData->GetValue() < 1) {
-        for (size_t i = 0; i < mControlChoicesData.size(); i++) {
-            wxWindow* projectWnd = FindWindowById(mControlChoicesData[i].ProjectChoiceControlId);
-            if (projectWnd) {
-                wxChoice* projectChoiceCtrl = wxDynamicCast(projectWnd, wxChoice);
-                if (projectChoiceCtrl) {
-                    projectChoiceCtrl->Clear();
-                    projectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-                    projectChoiceCtrl->SetSelection(0);
-                    projectChoiceCtrl->Disable();
-                }
-            }
-
-            wxWindow* categoryWnd = FindWindowById(mControlChoicesData[i].CategoryChoiceControlId);
-            if (categoryWnd) {
-                wxChoice* categoryChoiceCtrl = wxDynamicCast(categoryWnd, wxChoice);
-                if (categoryChoiceCtrl) {
-                    categoryChoiceCtrl->Clear();
-                    categoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-                    categoryChoiceCtrl->SetSelection(0);
-                    categoryChoiceCtrl->Disable();
-                }
-            }
-        }
-
-        mEmployerId = -1;
-
-        return;
-    }
-
-    mEmployerId = employerIdData->GetValue();
-
-    for (size_t i = 0; i < mControlChoicesData.size(); i++) {
-        wxWindow* projectWnd = FindWindowById(mControlChoicesData[i].ProjectChoiceControlId);
-        if (projectWnd) {
-            wxChoice* projectChoiceCtrl = wxDynamicCast(projectWnd, wxChoice);
-            if (projectChoiceCtrl) {
-                projectChoiceCtrl->Clear();
-                projectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-                projectChoiceCtrl->SetSelection(0);
-            }
-        }
-
-        wxWindow* categoryWnd = FindWindowById(mControlChoicesData[i].CategoryChoiceControlId);
-        if (categoryWnd) {
-            wxChoice* categoryChoiceCtrl = wxDynamicCast(categoryWnd, wxChoice);
-            if (categoryChoiceCtrl) {
-                categoryChoiceCtrl->Clear();
-                categoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-                categoryChoiceCtrl->SetSelection(0);
-            }
-        }
-    }
-
-    if (mControlChoicesData.size() <= 0) {
-        return;
-    }
-
-    std::vector<Model::ProjectModel> projectModels;
-    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
-
-    auto sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projectModels);
-    if (!sqliteResult.Success) {
-        wxRichMessageDialog dialog(this,
-            Messages::FilterProjectsMessage,
-            tks::Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-        dialog.ShowModal();
-
-        return;
-    }
-    for (size_t i = 0; i < mControlChoicesData.size(); i++) {
-        wxWindow* projectWnd = FindWindowById(mControlChoicesData[i].ProjectChoiceControlId);
-        if (projectWnd) {
-            wxChoice* projectChoiceCtrl = wxDynamicCast(projectWnd, wxChoice);
-            if (!projectChoiceCtrl->IsEnabled()) {
-                projectChoiceCtrl->Enable();
-            }
-            if (projectChoiceCtrl) {
-                if (!projectModels.empty()) {
-                    bool hasDefaultProject = false;
-                    std::int64_t defaultProjectId = -1;
-
-                    for (auto& project : projectModels) {
-                        projectChoiceCtrl->Append(
-                            project.Name, new ClientData<std::int64_t>(project.ProjectId));
-
-                        if (project.IsDefault) {
-                            hasDefaultProject = true;
-                            defaultProjectId = project.ProjectId;
-                            projectChoiceCtrl->SetStringSelection(project.Name);
-                        }
-                    }
-
-                    if (hasDefaultProject) {
-                        std::vector<Services::CategoryViewModel> categories;
-                        Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
-
-                        auto sqliteResult =
-                            categoryService.FilterByProjectId(defaultProjectId, categories);
-
-                        if (!sqliteResult.Success) {
-                            wxRichMessageDialog dialog(this,
-                                Messages::FilterCategoriesByProjectMessage,
-                                tks::Common::GetProgramName(),
-                                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-                            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-                            dialog.ShowModal();
-
-                            return;
-                        }
-                        wxWindow* categoryWnd =
-                            FindWindowById(mControlChoicesData[i].CategoryChoiceControlId);
-                        if (categoryWnd) {
-                            wxChoice* categoryChoiceCtrl = wxDynamicCast(categoryWnd, wxChoice);
-                            if (categoryChoiceCtrl) {
-                                if (!categoryChoiceCtrl->IsEnabled()) {
-                                    categoryChoiceCtrl->Enable();
-                                }
-                                if (!categories.empty()) {
-                                    for (auto& category : categories) {
-                                        categoryChoiceCtrl->Append(category.GetFormattedName(),
-                                            new ClientData<std::int64_t>(category.CategoryId));
-                                    }
-                                } else {
-                                    categoryChoiceCtrl->Disable();
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    projectChoiceCtrl->Disable();
-                }
-            }
-        }
-    }
-}
-
 void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 {
     wxBusyCursor cursor;
@@ -613,101 +413,6 @@ void OutlookMeetingsViewFrame::OnClose(wxCloseEvent& event)
     event.Skip();
 }
 
-void OutlookMeetingsViewFrame::OnProjectChoice(wxCommandEvent& event)
-{
-    SPDLOG_LOGGER_TRACE(pLogger, "Project choice selection: \"{0}\"", event.GetSelection());
-    int projectIndex = event.GetSelection();
-
-    wxChoice* choiceCtrl = dynamic_cast<wxChoice*>(event.GetEventObject());
-    if (choiceCtrl) {
-        ClientData<std::int64_t>* projectIdData =
-            reinterpret_cast<ClientData<std::int64_t>*>(choiceCtrl->GetClientObject(projectIndex));
-        std::int64_t projectId = projectIdData->GetValue();
-        SPDLOG_LOGGER_TRACE(pLogger, "Selected project ID from choice ctrl \"{0}\"", projectId);
-
-        wxWindowID choiceControlId = choiceCtrl->GetId();
-        wxWindowID categoryChoiceCtrlId = -1;
-
-        for (size_t i = 0; i < mControlChoicesData.size(); i++) {
-            if (mControlChoicesData[i].ProjectChoiceControlId == choiceControlId) {
-                SPDLOG_LOGGER_TRACE(pLogger,
-                    "Updating project ID \"{0}\" of control choice ID \"{1}\" data struct",
-                    projectId,
-                    choiceControlId);
-                mControlChoicesData[i].ProjectId = projectId;
-                categoryChoiceCtrlId = mControlChoicesData[i].CategoryChoiceControlId;
-                break;
-            }
-        }
-
-        if (categoryChoiceCtrlId > 0) {
-            wxWindow* windowCtrl = FindWindowById(categoryChoiceCtrlId);
-            if (windowCtrl) {
-                wxChoice* categoryChoiceCtrl = wxDynamicCast(windowCtrl, wxChoice);
-                if (categoryChoiceCtrl) {
-                    categoryChoiceCtrl->Clear();
-                    categoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-                    categoryChoiceCtrl->SetSelection(0);
-
-                    std::vector<Services::CategoryViewModel> categories;
-                    Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
-
-                    auto sqliteResult = categoryService.FilterByProjectId(projectId, categories);
-
-                    if (!sqliteResult.Success) {
-                        wxRichMessageDialog dialog(this,
-                            Messages::FilterCategoriesByProjectMessage,
-                            tks::Common::GetProgramName(),
-                            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-                        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-                        dialog.ShowModal();
-
-                        return;
-                    }
-
-                    if (!categories.empty()) {
-                        for (auto& category : categories) {
-                            categoryChoiceCtrl->Append(category.GetFormattedName(),
-                                new ClientData<std::int64_t>(category.CategoryId));
-                        }
-                    } else {
-                        categoryChoiceCtrl->Disable();
-                    }
-                }
-            }
-        }
-    }
-}
-
-void OutlookMeetingsViewFrame::OnCategoryChoice(wxCommandEvent& event)
-{
-    SPDLOG_LOGGER_TRACE(pLogger, "Category choice selection: \"{0}\"", event.GetSelection());
-    int projectIndex = event.GetSelection();
-
-    wxChoice* choiceCtrl = dynamic_cast<wxChoice*>(event.GetEventObject());
-    if (choiceCtrl) {
-        ClientData<std::int64_t>* categoryIdData =
-            reinterpret_cast<ClientData<std::int64_t>*>(choiceCtrl->GetClientObject(projectIndex));
-        std::int64_t categoryId = categoryIdData->GetValue();
-        SPDLOG_LOGGER_TRACE(pLogger, "Selected category ID from choice ctrl \"{0}\"", categoryId);
-
-        wxWindowID choiceControlId = choiceCtrl->GetId();
-
-        for (size_t i = 0; i < mControlChoicesData.size(); i++) {
-            if (mControlChoicesData[i].CategoryChoiceControlId == choiceControlId) {
-                SPDLOG_LOGGER_TRACE(pLogger,
-                    "Updating category ID \"{0}\" of control choice ID \"{1}\" data struct",
-                    categoryId,
-                    choiceControlId);
-                mControlChoicesData[i].CategoryId = categoryId;
-                break;
-            }
-        }
-    }
-}
-
 void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 {
     if (event.IsChecked()) {
@@ -727,7 +432,7 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
         auto eventMeetingEntryId = stringData.ToStdString();
         SPDLOG_LOGGER_TRACE(pLogger,
             "Checkbox with ID: \"{0}\" and ENTRY_ID -> \n{1}",
-            event.GetId(),
+            checkboxId,
             eventMeetingEntryId);
 
         const auto& foundMeetingIterator = std::find_if(mMeetingModels.begin(),
@@ -741,21 +446,6 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
             SPDLOG_LOGGER_TRACE(
                 pLogger, "Meeting found with detail: \n{0}", meetingModel.DebugPrint());
 
-            std::int64_t projectId = -1;
-            std::int64_t categoryId = -1;
-
-            auto controlDataIterator = std::find_if(mControlChoicesData.begin(),
-                mControlChoicesData.end(),
-                [=](const ControlChoiceData& cch) { return cch.CheckBoxControlId == checkboxId; });
-
-            if (controlDataIterator != mControlChoicesData.end()) {
-                ControlChoiceData cch = *controlDataIterator;
-                projectId = cch.ProjectId;
-                categoryId = cch.CategoryId;
-            }
-
-            bool isOK = false;
-
             dlg::TaskDialog meetingTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
 
             meetingTaskDialog.SetAttendedMeetingData(
@@ -768,25 +458,16 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
                 meetingModel.Duration,
                 meetingModel.Location);
 
-            if (mEmployerId > 0 && projectId > 0 && categoryId > 0) {
-                meetingTaskDialog.UpdateChoicesFromAttendedMeeting(
-                    mEmployerId, projectId, categoryId);
-
-                if (!pCfg->OpenTaskDialogOnOutlookMeetingAttendanceCheck()) {
-                    wxCommandEvent okEvent(wxEVT_BUTTON, wxID_OK);
-                    wxPostEvent(&meetingTaskDialog, okEvent);
-                }
-            }
-
             int ret = meetingTaskDialog.ShowModal();
-            isOK = ret == wxID_OK;
 
             wxCheckBox* attendedCheckBoxCtrl = wxDynamicCast(windowPtr, wxCheckBox);
             if (attendedCheckBoxCtrl) {
-                if (isOK) {
-                    attendedCheckBoxCtrl->Disable();
-                } else {
-                    attendedCheckBoxCtrl->SetValue(false);
+                if (attendedCheckBoxCtrl) {
+                    if (ret != wxID_OK) {
+                        attendedCheckBoxCtrl->SetValue(false);
+                    } else {
+                        attendedCheckBoxCtrl->Disable();
+                    }
                 }
             }
         }
@@ -864,23 +545,6 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsViewFrame::FetchAttended
 void OutlookMeetingsViewFrame::AddMeetingsToPanel(
     const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels)
 {
-    std::vector<Model::ProjectModel> projectModels;
-    Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
-
-    if (mMeetingModels.size() != 0) {
-        auto sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projectModels);
-        if (!sqliteResult.Success) {
-            wxRichMessageDialog dialog(this,
-                Messages::FilterProjectsMessage,
-                tks::Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-            dialog.ShowModal();
-        }
-    }
-
     /* Panel Sizer */
     auto panelSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -889,8 +553,6 @@ void OutlookMeetingsViewFrame::AddMeetingsToPanel(
     pActiveMeetingsPanel->SetSizer(panelSizer);
 
     int attendedCheckBoxControlId = tksIDC_ATTENDEDCHECKBOX_BASE;
-    int projectChoiceControlId = tksIDC_PROJECTSCHOICECTRL_BASE;
-    int categoryChoiceControlId = tksIDC_CATEGORIESCHOICECTRL_BASE;
 
     for (const auto& meetingModel : mMeetingModels) {
         bool meetingAttended = false;
@@ -905,17 +567,10 @@ void OutlookMeetingsViewFrame::AddMeetingsToPanel(
             meetingAttended = true;
         }
 
-        AddMeetingControlsToPanel(panelSizer,
-            &attendedCheckBoxControlId,
-            &projectChoiceControlId,
-            &categoryChoiceControlId,
-            meetingModel,
-            meetingAttended,
-            projectModels);
+        AddMeetingControlsToPanel(
+            panelSizer, &attendedCheckBoxControlId, meetingModel, meetingAttended);
 
         ++attendedCheckBoxControlId;
-        ++projectChoiceControlId;
-        ++categoryChoiceControlId;
     }
 
     pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
@@ -961,6 +616,7 @@ void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& mes
     if (pFeedbackLabel == nullptr) {
         pFeedbackLabel = new wxStaticText(
             pThisPanel, tksIDC_FEEDBACKLABEL, message.empty() ? "No account selected" : message);
+
         // insert the feedback label above the scrolled window
         const int FeedbackLabelSizerIndex = 4;
         pMainSizer->Insert(FeedbackLabelSizerIndex,
@@ -983,18 +639,9 @@ void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& mes
 
 void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
     int* attendedCheckBoxControlId,
-    int* projectChoiceControlId,
-    int* categoryChoiceControlId,
     const Services::Outlook::OutlookMeetingModel& meetingModel,
-    bool meetingAttended,
-    const std::vector<Model::ProjectModel>& projectModels)
+    bool meetingAttended)
 {
-    ControlChoiceData choiceData;
-    choiceData.CheckBoxControlId = *attendedCheckBoxControlId;
-    choiceData.ProjectChoiceControlId = *projectChoiceControlId;
-    choiceData.CategoryChoiceControlId = *categoryChoiceControlId;
-
-    // static box for meeting controls
     auto staticBox = new wxStaticBox(pActiveMeetingsPanel, wxID_ANY, "");
     auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
     panelSizer->Add(staticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
@@ -1045,83 +692,6 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
     flexGridSizer->Add(locationLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Horizontal line */
-    auto line = new wxStaticLine(staticBox, wxID_ANY);
-    staticBoxSizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    /* Project choice ctrl */
-    auto projectLabel = new wxStaticText(staticBox, wxID_ANY, "Project");
-    auto projectChoiceCtrl = new wxChoice(staticBox, *projectChoiceControlId);
-    projectChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-    projectChoiceCtrl->SetSelection(0);
-
-    projectChoiceCtrl->Bind(
-        wxEVT_CHOICE, &OutlookMeetingsViewFrame::OnProjectChoice, this, *projectChoiceControlId);
-
-    /* Category choice ctrl */
-    auto categoryLabel = new wxStaticText(staticBox, wxID_ANY, "Category");
-    auto categoryChoiceCtrl = new wxChoice(staticBox, *categoryChoiceControlId);
-    categoryChoiceCtrl->Append("Please select", new ClientData<std::int64_t>(-1));
-    categoryChoiceCtrl->SetSelection(0);
-
-    categoryChoiceCtrl->Bind(
-        wxEVT_CHOICE, &OutlookMeetingsViewFrame::OnCategoryChoice, this, *categoryChoiceControlId);
-
-    if (!projectModels.empty()) {
-        bool hasDefaultProject = false;
-        std::int64_t defaultProjectId = -1;
-
-        for (auto& project : projectModels) {
-            projectChoiceCtrl->Append(
-                project.Name, new ClientData<std::int64_t>(project.ProjectId));
-
-            if (project.IsDefault) {
-                hasDefaultProject = true;
-                defaultProjectId = project.ProjectId;
-                choiceData.ProjectId = defaultProjectId;
-                projectChoiceCtrl->SetStringSelection(project.Name);
-            }
-        }
-
-        if (hasDefaultProject) {
-            std::vector<Services::CategoryViewModel> categories;
-            Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
-
-            auto sqliteResult = categoryService.FilterByProjectId(defaultProjectId, categories);
-            std::string operationMessage = Messages::FilterCategoriesByProjectMessage;
-
-            if (!sqliteResult.Success) {
-                wxRichMessageDialog dialog(this,
-                    operationMessage,
-                    tks::Common::GetProgramName(),
-                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-                dialog.ShowModal();
-
-                return;
-            }
-
-            if (!categories.empty()) {
-                for (auto& category : categories) {
-                    categoryChoiceCtrl->Append(category.GetFormattedName(),
-                        new ClientData<std::int64_t>(category.CategoryId));
-                }
-            } else {
-                categoryChoiceCtrl->Disable();
-            }
-        }
-    } else {
-        projectChoiceCtrl->Disable();
-    }
-
-    staticBoxSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    staticBoxSizer->Add(projectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    staticBoxSizer->Add(categoryLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    staticBoxSizer->Add(categoryChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    /* Horizontal line */
     auto line2 = new wxStaticLine(staticBox, wxID_ANY);
     staticBoxSizer->Add(line2, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
@@ -1141,7 +711,5 @@ void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
         attendedCheckBox->SetValue(true);
         attendedCheckBox->Disable();
     }
-
-    mControlChoicesData.push_back(choiceData);
 }
 } // namespace tks::UI::frames

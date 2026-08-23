@@ -74,9 +74,6 @@ public:
         const std::string& end,
         const int duration,
         const std::string& location);
-    void UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
-        const std::int64_t projectId,
-        const std::int64_t categoryId);
 
 private:
     void Create();
@@ -119,10 +116,10 @@ private:
 
     void SetDataWhenTaskCloned();
 
+    wxWindow* pParent;
+
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
-
-    wxWindow* pParent;
 
     wxDatePickerCtrl* pDateContextDatePickerCtrl;
     wxChoice* pEmployerChoiceCtrl;
@@ -164,7 +161,6 @@ private:
     bool bHasTaskAttributeValues;
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
-    bool bSetFromAttendedMeeting;
     std::int64_t mProjectIdFromAttendedMeeting;
     std::int64_t mCategoryIdFromAttendedMeeting;
 
