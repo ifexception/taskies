@@ -421,17 +421,27 @@ void MainFrame::CreateControls()
 
     for (size_t i = 0; i < mTasksViewColumns.size(); i++) {
         wxDataViewColumn* column = nullptr;
+
         if (mTasksViewColumns[i].Type == TasksViewColumnType::Toggle) {
             column = pDataViewListCtrl->AppendToggleColumn(mTasksViewColumns[i].DisplayName,
                 wxDATAVIEW_CELL_INERT,
                 wxCOL_WIDTH_AUTOSIZE,
                 Common::MapTasksViewColumnTextAlignment(mTasksViewColumns[i].TextAlignment));
+
+            column->GetRenderer()->EnableEllipsize(
+                Common::MapTasksViewColumnEllipsisMode(mTasksViewColumns[i].EllipsisMode));
+
             column->SetResizeable(false);
+            column->SetMinWidth(mTasksViewColumns[i].Width);
         } else if (mTasksViewColumns[i].Type == TasksViewColumnType::Text) {
             column = pDataViewListCtrl->AppendTextColumn(mTasksViewColumns[i].DisplayName,
                 wxDATAVIEW_CELL_INERT,
                 mTasksViewColumns[i].Width,
                 Common::MapTasksViewColumnTextAlignment(mTasksViewColumns[i].TextAlignment));
+
+            column->GetRenderer()->EnableEllipsize(
+                Common::MapTasksViewColumnEllipsisMode(mTasksViewColumns[i].EllipsisMode));
+
             column->SetResizeable(true);
         }
 
