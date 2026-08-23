@@ -316,6 +316,8 @@ void ProjectDialog::DataToControls()
             }
         }
     }
+
+    Fit();
 }
 
 void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)

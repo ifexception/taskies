@@ -280,6 +280,8 @@ void CategoryDialog::DataToControls()
             }
         }
     }
+
+    Fit();
 }
 
 void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)
