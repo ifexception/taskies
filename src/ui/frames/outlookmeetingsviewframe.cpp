@@ -462,13 +462,13 @@ void OutlookMeetingsViewFrame::OnAttendedCheckBoxCheck(wxCommandEvent& event)
 
             wxCheckBox* attendedCheckBoxCtrl = wxDynamicCast(windowPtr, wxCheckBox);
             if (attendedCheckBoxCtrl) {
-                if (attendedCheckBoxCtrl) {
-                    if (ret != wxID_OK) {
-                        attendedCheckBoxCtrl->SetValue(false);
-                    } else {
-                        attendedCheckBoxCtrl->Disable();
-                    }
+                if (ret != wxID_OK) {
+                    attendedCheckBoxCtrl->SetValue(false);
+                } else {
+                    attendedCheckBoxCtrl->Disable();
                 }
+            } else {
+                pLogger->warn("Failed to perform dynamic cast to get attended check box control");
             }
         }
     } else {
