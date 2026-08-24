@@ -114,7 +114,7 @@ private:
         const std::optional<std::int64_t> clientId);
     void FetchCategoryEntities(const std::optional<std::int64_t> projectId);
 
-    void SetDataWhenTaskCloned();
+    void ClonedDataToControls();
 
     wxWindow* pParent;
 

@@ -196,7 +196,7 @@ void TaskDialog::Create()
     }
 
     if (bIsClone) {
-        SetDataWhenTaskCloned();
+        ClonedDataToControls();
     }
 }
 
@@ -1917,7 +1917,7 @@ void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> project
     }
 }
 
-void TaskDialog::SetDataWhenTaskCloned()
+void TaskDialog::ClonedDataToControls()
 {
     // set task description to indicate task was cloned
     std::string clonedTaskDescription =
