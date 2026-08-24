@@ -144,7 +144,6 @@ void OutlookMeetingsViewFrame::CreateControls()
     /* Date picker ctrl */
     pDatePickerCtrl = new wxDatePickerCtrl(pThisPanel, tksIDC_DATEPICKERCTRL);
     pDatePickerCtrl->SetToolTip("Filter Outlook meetings by date");
-    pDatePickerCtrl->Disable();
 
     /* Refresh button */
     auto providedRefreshBitmap = wxArtProvider::GetBitmapBundle(
@@ -392,9 +391,6 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
         if (!pRefreshButton->IsEnabled()) {
             pRefreshButton->Enable();
         }
-        if (!pDatePickerCtrl->IsEnabled()) {
-            pDatePickerCtrl->Enable();
-        }
     }
 
     FetchOutlookMeetingsAndUpdateFeedbackLabel();
@@ -630,10 +626,6 @@ void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& mes
 
     if (pRefreshButton->IsEnabled()) {
         pRefreshButton->Disable();
-    }
-
-    if (pDatePickerCtrl->IsEnabled()) {
-        pDatePickerCtrl->Disable();
     }
 }
 
