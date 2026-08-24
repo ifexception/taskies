@@ -173,7 +173,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pMeetingsViewFrame(nullptr)
     , pThumbBarNewTaskButton(nullptr)
     , pThumbBarQuickExportButton(nullptr)
-    , pInfoBar(nullptr)
     , pTaskBarIcon(nullptr)
     , pStatusBar(nullptr)
     , pPreviousDayButton(nullptr)
@@ -201,6 +200,16 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
             800,
             600);
         SetSize(FromDIP(wxSize(800, 600)));
+    }
+
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+        auto debugTitle = fmt::format("{0} {1} - v{2}.{3}.{4}",
+            Common::GetProgramName(),
+            BuildConfigurationToString(pEnv->GetBuildConfiguration()),
+            TASKIES_MAJOR,
+            TASKIES_MINOR,
+            TASKIES_PATCH);
+        SetTitle(debugTitle);
     }
 
     // Set main icon in titlebar
@@ -293,16 +302,16 @@ void MainFrame::CreateControls()
 
     fileMenu->AppendSeparator();
     auto fileNewMenu = new wxMenu();
-    fileNewMenu->Append(ID_NEW_EMPLOYER, "New Employer", "Create new employer");
-    fileNewMenu->Append(ID_NEW_CLIENT, "New Client", "Create new client");
-    fileNewMenu->Append(ID_NEW_PROJECT, "New Project", "Create new project");
-    fileNewMenu->Append(ID_NEW_CATEGORY, "New Category", "Create new category");
+    fileNewMenu->Append(ID_NEW_EMPLOYER, "New &Employer", "Create new employer");
+    fileNewMenu->Append(ID_NEW_CLIENT, "New C&lient", "Create new client");
+    fileNewMenu->Append(ID_NEW_PROJECT, "New &Project", "Create new project");
+    fileNewMenu->Append(ID_NEW_CATEGORY, "New Ca&tegory", "Create new category");
     fileNewMenu->AppendSeparator();
-    fileNewMenu->Append(ID_NEW_ATTRIBUTEGROUP, "New Attribute Group", "Create new attribute group");
-    fileNewMenu->Append(ID_NEW_ATTRIBUTE, "New Attribute", "Create new attribute");
+    fileNewMenu->Append(ID_NEW_ATTRIBUTEGROUP, "New A&ttribute Group", "Create new attribute group");
+    fileNewMenu->Append(ID_NEW_ATTRIBUTE, "New &Attribute", "Create new attribute");
     fileNewMenu->Append(
-        ID_NEW_STATIC_ATTRIBUTES, "New Static Attributes", "Create new static attribute values");
-    fileMenu->AppendSubMenu(fileNewMenu, "New");
+        ID_NEW_STATIC_ATTRIBUTES, "New &Static Attributes", "Create new static attribute values");
+    fileMenu->AppendSubMenu(fileNewMenu, "Ne&w");
     fileMenu->AppendSeparator();
 
     auto fileTasksMenu = new wxMenu();
@@ -313,12 +322,12 @@ void MainFrame::CreateControls()
     }
     fileTasksMenu->AppendSeparator();
     fileTasksMenu->Append(
-        ID_TASKS_EXPORTTOCSV, "E&xport to CSV", "Export tasks data to CSV file/clipboard");
+        ID_TASKS_EXPORTTOCSV, "Export to &CSV", "Export tasks data to CSV file/clipboard");
 
     MswUtils::ExcelInstanceCheck isExcelInstalled;
     if (isExcelInstalled()) {
         fileTasksMenu->Append(
-            ID_TASKS_EXPORTTOEXCEL, "Ex&port to Excel", "Export tasks data to Excel");
+            ID_TASKS_EXPORTTOEXCEL, "Export to &Excel", "Export tasks data to Excel");
     }
 
     auto quickExportMenuItem = fileTasksMenu->Append(
@@ -327,25 +336,25 @@ void MainFrame::CreateControls()
     wxIconBundle quickExportBundle(Common::GetQuickExportIconBundleName(), 0);
     quickExportMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(quickExportBundle));
 
-    fileMenu->AppendSubMenu(fileTasksMenu, "Tasks");
+    fileMenu->AppendSubMenu(fileTasksMenu, "&Tasks");
     fileMenu->AppendSeparator();
 
-    auto exitMenuItem = fileMenu->Append(wxID_EXIT, "Ex&it\tAlt-F4", "Exit the program");
+    auto exitMenuItem = fileMenu->Append(wxID_EXIT, "E&xit\tAlt-F4", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
 
     /* Edit */
     auto editMenu = new wxMenu();
-    editMenu->Append(ID_EDIT_EMPLOYER, "Edit Employer", "Edit an employer");
-    editMenu->Append(ID_EDIT_CLIENT, "Edit Client", "Edit a client");
-    editMenu->Append(ID_EDIT_PROJECT, "Edit Project", "Edit a project");
-    editMenu->Append(ID_EDIT_CATEGORY, "Edit Category", "Edit a category");
+    editMenu->Append(ID_EDIT_EMPLOYER, "Edit &Employer", "Edit an employer");
+    editMenu->Append(ID_EDIT_CLIENT, "Edit C&lient", "Edit a client");
+    editMenu->Append(ID_EDIT_PROJECT, "Edit &Project", "Edit a project");
+    editMenu->Append(ID_EDIT_CATEGORY, "Edit Ca&tegory", "Edit a category");
     editMenu->AppendSeparator();
-    editMenu->Append(ID_EDIT_ATTRIBUTE_GROUP, "Edit Attribute Group", "Edit an attribute group");
-    editMenu->Append(ID_EDIT_ATTRIBUTE, "Edit Attribute", "Edit an attribute");
+    editMenu->Append(ID_EDIT_ATTRIBUTE_GROUP, "Edit A&ttribute Group", "Edit an attribute group");
+    editMenu->Append(ID_EDIT_ATTRIBUTE, "Edit &Attribute", "Edit an attribute");
     editMenu->Append(
-        ID_EDIT_STATIC_ATTRIBUTE_VALUES, "Edit Static Attributes", "Edit static attribute values");
+        ID_EDIT_STATIC_ATTRIBUTE_VALUES, "Edit &Static Attributes", "Edit static attribute values");
 
     /* View */
     auto viewMenu = new wxMenu();
@@ -390,10 +399,7 @@ void MainFrame::CreateControls()
     auto framePanel = new wxPanel(this);
     framePanel->SetSizer(sizer);
 
-    /* InfoBar */
-    pInfoBar = new wxInfoBar(framePanel, wxID_ANY);
-    sizer->Add(pInfoBar, wxSizerFlags().Expand());
-
+    /* Sizer for top controls */
     auto topSizer = new wxBoxSizer(wxHORIZONTAL);
 
     pPreviousDayButton = new wxButton(
@@ -452,7 +458,6 @@ void MainFrame::CreateControls()
 
     int lastColumn = pDataViewListCtrl->GetColumnCount() - 1;
     wxDataViewColumn* descriptionColumn = pDataViewListCtrl->GetColumn(lastColumn);
-    descriptionColumn->SetFlags(descriptionColumn->GetFlags() | wxDATAVIEW_COL_RESIZABLE);
     descriptionColumn->SetWidth(wxCOL_WIDTH_DEFAULT);
 
     pDataViewListCtrl->AppendTextColumn(
@@ -486,17 +491,6 @@ void MainFrame::ConfigureEventBindings()
 
 void MainFrame::DataToControls()
 {
-    // Set InfoBar
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        auto infoBarMessage = fmt::format("{0} {1} - v{2}.{3}.{4}",
-            Common::GetProgramName(),
-            BuildConfigurationToString(pEnv->GetBuildConfiguration()),
-            TASKIES_MAJOR,
-            TASKIES_MINOR,
-            TASKIES_PATCH);
-        pInfoBar->ShowMessage(infoBarMessage, wxICON_INFORMATION);
-    }
-
     std::vector<Services::TaskViewModel> taskViewModels;
 
     auto sqliteResult =

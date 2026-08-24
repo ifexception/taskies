@@ -34,7 +34,6 @@
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
 #include <wx/listctrl.h>
-#include <wx/infobar.h>
 #include <wx/notifmsg.h>
 #include <wx/taskbarbutton.h>
 #include <wx/power.h>
@@ -275,7 +274,6 @@ private:
     wxThumbBarButton* pThumbBarNewTaskButton;
     wxThumbBarButton* pThumbBarQuickExportButton;
 
-    wxInfoBar* pInfoBar;
     TaskBarIcon* pTaskBarIcon;
     StatusBar* pStatusBar;
 
