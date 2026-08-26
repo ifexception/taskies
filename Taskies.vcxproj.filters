@@ -458,6 +458,9 @@
     <ClCompile Include="src\core\settings\presetsetting.cpp">
       <Filter>Source\core\settings</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\sqlite_helpers.cpp">
+      <Filter>Source\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -819,6 +822,9 @@
     </ClInclude>
     <ClInclude Include="src\core\settings\presetsetting.h">
       <Filter>Source\core\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\sqlite_helpers.h">
+      <Filter>Source\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

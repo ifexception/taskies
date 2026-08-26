@@ -433,6 +433,7 @@
     <ClCompile Include="src\ui\wizards\setupwizard.cpp" />
     <ClCompile Include="src\utils\datestore.cpp" />
     <ClCompile Include="src\utils\mswutils.cpp" />
+    <ClCompile Include="src\utils\sqlite_helpers.cpp" />
     <ClCompile Include="src\utils\utils.cpp" />
     <ClCompile Include="src\common\wxcommon.cpp" />
     <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp" />
@@ -555,6 +556,7 @@
     <ClInclude Include="src\ui\wizards\setupwizard.h" />
     <ClInclude Include="src\utils\datestore.h" />
     <ClInclude Include="src\utils\mswutils.h" />
+    <ClInclude Include="src\utils\sqlite_helpers.h" />
     <ClInclude Include="src\utils\utils.h" />
     <ClInclude Include="src\common\wxcommon.h" />
     <ClInclude Include="src\core\settings\tasksviewcolumnsetting.h" />

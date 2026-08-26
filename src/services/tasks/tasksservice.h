@@ -22,7 +22,6 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <map>
 #include <vector>
 
 #include "../../common/results/sqliteresult.h"
@@ -41,8 +40,6 @@ struct TasksService final : public Persistence::PersistenceBase {
 
     TasksService& operator=(const TasksService&) = delete;
 
-    SqliteResult FilterByDateRange(std::vector<std::string> dates,
-        /*out*/ std::map<std::string, std::vector<TaskViewModel>>& taskViewModels);
     SqliteResult FilterByDate(const std::string& date,
         /*out*/ std::vector<TaskViewModel>& taskViewModels) const;
     SqliteResult GetById(const std::int64_t taskId, /*out*/ TaskViewModel& taskViewModel) const;
