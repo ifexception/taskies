@@ -316,6 +316,9 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\settings\presetcolumnsetting.cpp" />
+    <ClCompile Include="src\core\settings\presetsetting.cpp" />
+    <ClCompile Include="src\core\settings\settings.cpp" />
     <ClCompile Include="src\core\zip_database_backup.cpp" />
     <ClCompile Include="src\services\filterentity\filterentityservice.cpp" />
     <ClCompile Include="src\core\database_optimizer.cpp" />
@@ -400,8 +403,6 @@
     <ClCompile Include="src\ui\common\taskattributevalueclientdata.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistitemmodel.cpp" />
     <ClCompile Include="src\ui\dataview\columnlistmodel.cpp" />
-    <ClCompile Include="src\ui\dataview\tasktreemodel.cpp" />
-    <ClCompile Include="src\ui\dataview\tasktreemodelnode.cpp" />
     <ClCompile Include="src\ui\dlg\aboutdlg.cpp" />
     <ClCompile Include="src\ui\dlg\attributes\attributedlg.cpp" />
     <ClCompile Include="src\ui\dlg\attributes\attributegroupdlg.cpp" />
@@ -432,10 +433,15 @@
     <ClCompile Include="src\ui\wizards\setupwizard.cpp" />
     <ClCompile Include="src\utils\datestore.cpp" />
     <ClCompile Include="src\utils\mswutils.cpp" />
+    <ClCompile Include="src\utils\sqlite_helpers.cpp" />
     <ClCompile Include="src\utils\utils.cpp" />
     <ClCompile Include="src\common\wxcommon.cpp" />
+    <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\settings\presetcolumnsetting.h" />
+    <ClInclude Include="src\core\settings\presetsetting.h" />
+    <ClInclude Include="src\core\settings\settings.h" />
     <ClInclude Include="src\core\zip_database_backup.h" />
     <ClInclude Include="src\services\filterentity\filterentityservice.h" />
     <ClInclude Include="src\core\database_optimizer.h" />
@@ -520,8 +526,6 @@
     <ClInclude Include="src\ui\common\taskattributevalueclientdata.h" />
     <ClInclude Include="src\ui\dataview\columnlistitemmodel.h" />
     <ClInclude Include="src\ui\dataview\columnlistmodel.h" />
-    <ClInclude Include="src\ui\dataview\tasktreemodel.h" />
-    <ClInclude Include="src\ui\dataview\tasktreemodelnode.h" />
     <ClInclude Include="src\ui\dlg\aboutdlg.h" />
     <ClInclude Include="src\ui\dlg\attributes\attributedlg.h" />
     <ClInclude Include="src\ui\dlg\attributes\attributegroupdlg.h" />
@@ -552,8 +556,10 @@
     <ClInclude Include="src\ui\wizards\setupwizard.h" />
     <ClInclude Include="src\utils\datestore.h" />
     <ClInclude Include="src\utils\mswutils.h" />
+    <ClInclude Include="src\utils\sqlite_helpers.h" />
     <ClInclude Include="src\utils\utils.h" />
     <ClInclude Include="src\common\wxcommon.h" />
+    <ClInclude Include="src\core\settings\tasksviewcolumnsetting.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc" />
@@ -585,6 +591,7 @@
     <None Include="res\migrations\20250427164010_create_static_attribute_values_table.sql" />
     <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql" />
     <None Include="res\migrations\20260210185522_add_attended_meeting_id_column_to_tasks_table.sql" />
+    <None Include="res\migrations\20260823103130_drop_display_name_column.sql" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="taskies.toml">

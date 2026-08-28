@@ -37,6 +37,7 @@
 #include "../../../common/common.h"
 
 #include "../../../core/configuration.h"
+#include "../../../core/settings/presetsetting.h"
 
 #include "../../../services/export/exportoptions.h"
 
@@ -82,7 +83,7 @@ private:
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
 
-    void ApplyPreset(const Core::Configuration::PresetSetting& presetSettings);
+    void ApplyPreset(const Core::Settings::PresetSetting& presetSettings);
 
     wxWindow* pParent;
 

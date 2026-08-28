@@ -1047,7 +1047,7 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     ClientData<std::string>* presetData = reinterpret_cast<ClientData<std::string>*>(
         pPresetsChoiceCtrl->GetClientObject(presetIndex));
 
-    Common::Preset preset;
+    Core::Settings::PresetSetting preset;
     if (presetData->GetValue().empty()) {
         preset.Uuid = Utils::Uuid();
     } else {
@@ -1062,10 +1062,10 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     preset.NewLinesHandler = mExportOptions.NewLinesHandler;
     preset.BooleanHandler = mExportOptions.BooleanHandler;
 
-    std::vector<Common::PresetColumn> columns;
+    std::vector<Core::Settings::PresetColumnSetting> columns;
 
     for (const auto& selectedColumn : pExportColumnListModel->GetColumns()) {
-        Common::PresetColumn presetColumn;
+        Core::Settings::PresetColumnSetting presetColumn;
         presetColumn.Column = selectedColumn.Column;
         presetColumn.OriginalColumn = selectedColumn.OriginalColumn;
         presetColumn.Order = selectedColumn.Order;
@@ -1118,7 +1118,7 @@ void ExportToCsvDialog::OnPresetChoice(wxCommandEvent& event)
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetToApplyIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting& preset) {
+        presets.begin(), presets.end(), [&](const Core::Settings::PresetSetting& preset) {
             return preset.Uuid == presetUuid;
         });
 
@@ -1489,7 +1489,7 @@ void ExportToCsvDialog::SetToDateAndDatePicker()
     mToCtrlDate = pDateStore->SundayDateSeconds;
 }
 
-void ExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSetting& presetSettings)
+void ExportToCsvDialog::ApplyPreset(const Core::Settings::PresetSetting& presetSettings)
 {
     pDelimiterChoiceCtrl->SetSelection(static_cast<int>(presetSettings.Delimiter));
     pTextQualifierChoiceCtrl->SetSelection(static_cast<int>(presetSettings.TextQualifier));
@@ -1513,7 +1513,7 @@ void ExportToCsvDialog::ApplyPreset(const Core::Configuration::PresetSetting& pr
 
         auto presetOriginalColumnIterator = std::find_if(presetSettings.Columns.begin(),
             presetSettings.Columns.end(),
-            [=](const Core::Configuration::PresetColumnSetting& presetColumn) {
+            [=](const Core::Settings::PresetColumnSetting& presetColumn) {
                 return name == presetColumn.OriginalColumn;
             });
 

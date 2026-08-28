@@ -37,7 +37,8 @@ namespace Persistence
 struct EmployersPersistence final : public PersistenceBase {
     EmployersPersistence() = delete;
     EmployersPersistence(const EmployersPersistence&) = delete;
-    EmployersPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    EmployersPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~EmployersPersistence();
 
     EmployersPersistence& operator=(const EmployersPersistence&) = delete;

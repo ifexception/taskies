@@ -30,7 +30,6 @@ struct ProjectModel {
 
     std::int64_t ProjectId;
     std::string Name;
-    std::string DisplayName;
     bool IsDefault;
     std::optional<std::string> Description;
     std::int32_t DateCreated;

@@ -124,90 +124,6 @@ std::string GetLicense()
            "along with this program.  If not, see <https://www.gnu.org/licenses/>.";
 }
 
-std::vector<TasksViewColumn> DefaultTasksViewColumnList()
-{
-    int orderIndex = 1;
-    return std::vector<TasksViewColumn>{
-        { "Date",
-            orderIndex++,
-            TasksViewColumnModelIndex::ColumnModelIndexDate,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String },
-        { "Project",
-            orderIndex++,
-            TasksViewColumnModelIndex::ColumnModelIndexProject,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String },
-        { "Category",
-            orderIndex++,
-            TasksViewColumnModelIndex::ColumnModelIndexCategory,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String },
-        { "Duration",
-            orderIndex++,
-            TasksViewColumnModelIndex::ColumnModelIndexDuration,
-            TasksViewColumnTextAlignment::AlignCenter,
-            TasksViewColumnType::String },
-        { "Description",
-            orderIndex++,
-            TasksViewColumnModelIndex::ColumnModelIndexDescription,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String }
-    };
-}
-
-std::vector<TasksViewColumn> AvailableTasksViewColumnList()
-{
-    int orderIndex = -1;
-    return std::vector<TasksViewColumn>{
-        { "Date",
-            1,
-            TasksViewColumnModelIndex::ColumnModelIndexDate,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String },
-        { "Employer",
-            orderIndex,
-            TasksViewColumnModelIndex::ColumnModelIndexEmployer,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String },
-        { "Client",
-            orderIndex,
-            TasksViewColumnModelIndex::ColumnModelIndexClient,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String },
-        { "Project",
-            orderIndex,
-            TasksViewColumnModelIndex::ColumnModelIndexProject,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String },
-        { "Category",
-            orderIndex,
-            TasksViewColumnModelIndex::ColumnModelIndexCategory,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String },
-        { "Duration",
-            orderIndex,
-            TasksViewColumnModelIndex::ColumnModelIndexDuration,
-            TasksViewColumnTextAlignment::AlignCenter,
-            TasksViewColumnType::String },
-        { "Billable",
-            orderIndex,
-            TasksViewColumnModelIndex::ColumnModelIndexBillable,
-            TasksViewColumnTextAlignment::AlignCenter,
-            TasksViewColumnType::Boolean },
-        { "Unique ID",
-            orderIndex,
-            TasksViewColumnModelIndex::ColumnModelIndexUniqueId,
-            TasksViewColumnTextAlignment::AlignCenter,
-            TasksViewColumnType::String },
-        { "Description",
-            orderIndex,
-            TasksViewColumnModelIndex::ColumnModelIndexDescription,
-            TasksViewColumnTextAlignment::AlignLeft,
-            TasksViewColumnType::String },
-    };
-}
-
 namespace Resources
 {
 std::string Wizard()
@@ -264,6 +180,24 @@ std::vector<EnumClientData<BooleanHandler>> BooleanHandlerList()
     EnumClientData<BooleanHandler> o5("Yes|No", BooleanHandler::YesNoTitleCase);
 
     return std::vector<EnumClientData<BooleanHandler>>{ o1, o2, o3, o4, o5 };
+}
+
+std::vector<EnumClientData<TasksViewColumnTextAlignment>> TasksViewColumnTextAlignmentChoices()
+{
+    EnumClientData<TasksViewColumnTextAlignment> o1("Left", TasksViewColumnTextAlignment::Left);
+    EnumClientData<TasksViewColumnTextAlignment> o2("Right", TasksViewColumnTextAlignment::Right);
+    EnumClientData<TasksViewColumnTextAlignment> o3("Center", TasksViewColumnTextAlignment::Center);
+
+    return std::vector<EnumClientData<TasksViewColumnTextAlignment>>{ o1, o2, o3 };
+}
+
+std::vector<EnumClientData<TasksViewColumnEllipsisMode>> TasksViewColumnEllipsizeModeChoices()
+{
+    EnumClientData<TasksViewColumnEllipsisMode> o1("Start", TasksViewColumnEllipsisMode::Start);
+    EnumClientData<TasksViewColumnEllipsisMode> o2("Middle", TasksViewColumnEllipsisMode::Middle);
+    EnumClientData<TasksViewColumnEllipsisMode> o3("End", TasksViewColumnEllipsisMode::End);
+
+    return std::vector<EnumClientData<TasksViewColumnEllipsisMode>>{ o1, o2, o3 };
 }
 } // namespace Static
 } // namespace tks::Common

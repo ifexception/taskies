@@ -35,7 +35,8 @@ namespace tks::Persistence
 struct ProjectsPersistence final : public PersistenceBase {
     ProjectsPersistence() = delete;
     ProjectsPersistence(const ProjectsPersistence&) = delete;
-    ProjectsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    ProjectsPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~ProjectsPersistence();
 
     ProjectsPersistence& operator=(const ProjectsPersistence&) = delete;

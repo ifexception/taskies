@@ -24,6 +24,7 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
+#include "../utils/sqlite_helpers.h"
 
 namespace tks::Persistence
 {
@@ -82,22 +83,12 @@ SqliteResult TasksPersistence::GetById(const std::int64_t taskId, Model::TaskMod
 
     taskModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        taskModel.UniqueIdentifier = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        taskModel.UniqueIdentifier = std::make_optional(std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-    }
-
-    columnIndex++;
+    taskModel.UniqueIdentifier = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
     taskModel.Hours = sqlite3_column_int(stmt, columnIndex++);
     taskModel.Minutes = sqlite3_column_int(stmt, columnIndex++);
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    taskModel.Description =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    taskModel.Description = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
     taskModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     taskModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -107,23 +98,9 @@ SqliteResult TasksPersistence::GetById(const std::int64_t taskId, Model::TaskMod
     taskModel.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
     taskModel.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        taskModel.AttributeGroupId = std::nullopt;
-    } else {
-        taskModel.AttributeGroupId =
-            std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
-    }
+    taskModel.AttributeGroupId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
-    columnIndex++;
-
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        taskModel.AttendedMeetingId = std::nullopt;
-    } else {
-        taskModel.AttendedMeetingId =
-            std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
-    }
-
-    columnIndex++;
+    taskModel.AttendedMeetingId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
     rc = sqlite3_step(stmt);
 
@@ -635,9 +612,7 @@ SqliteResult TasksPersistence::GetDescriptionById(const std::int64_t taskId,
 
     int columnIndex = 0;
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    description =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    description = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
     rc = sqlite3_step(stmt);
 

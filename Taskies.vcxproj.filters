@@ -93,6 +93,9 @@
     <Filter Include="Source\services\filterentity">
       <UniqueIdentifier>{dab9d520-b1fb-46e0-bd41-bff72092e1cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\core\settings">
+      <UniqueIdentifier>{ab3493aa-ef92-41ac-9a93-51232cc461ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -296,12 +299,6 @@
     <ClCompile Include="src\ui\dataview\columnlistmodel.cpp">
       <Filter>Source\ui\dataview</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\dataview\tasktreemodel.cpp">
-      <Filter>Source\ui\dataview</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ui\dataview\tasktreemodelnode.cpp">
-      <Filter>Source\ui\dataview</Filter>
-    </ClCompile>
     <ClCompile Include="src\services\export\columnexportmodel.cpp">
       <Filter>Source\services\export</Filter>
     </ClCompile>
@@ -448,6 +445,21 @@
     </ClCompile>
     <ClCompile Include="src\core\zip_database_backup.cpp">
       <Filter>Source\core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp">
+      <Filter>Source\core\settings</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\settings\settings.cpp">
+      <Filter>Source\core\settings</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\settings\presetcolumnsetting.cpp">
+      <Filter>Source\core\settings</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\settings\presetsetting.cpp">
+      <Filter>Source\core\settings</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\sqlite_helpers.cpp">
+      <Filter>Source\utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -658,12 +670,6 @@
     <ClInclude Include="src\ui\dataview\columnlistmodel.h">
       <Filter>Source\ui\dataview</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\dataview\tasktreemodel.h">
-      <Filter>Source\ui\dataview</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\dataview\tasktreemodelnode.h">
-      <Filter>Source\ui\dataview</Filter>
-    </ClInclude>
     <ClInclude Include="src\ui\wizards\setupwizard.h">
       <Filter>Source\ui\wizard</Filter>
     </ClInclude>
@@ -805,6 +811,21 @@
     <ClInclude Include="src\core\zip_database_backup.h">
       <Filter>Source\core</Filter>
     </ClInclude>
+    <ClInclude Include="src\core\settings\tasksviewcolumnsetting.h">
+      <Filter>Source\core\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\settings\settings.h">
+      <Filter>Source\core\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\settings\presetcolumnsetting.h">
+      <Filter>Source\core\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\settings\presetsetting.h">
+      <Filter>Source\core\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\sqlite_helpers.h">
+      <Filter>Source\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc">
@@ -874,6 +895,9 @@
     <None Include="conanfile.py" />
     <None Include="res\install-wizard.svg">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="res\migrations\20260823103130_drop_display_name_column.sql">
+      <Filter>Resource Files\migrations</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

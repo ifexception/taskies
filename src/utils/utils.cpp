@@ -113,7 +113,7 @@ std::string TrimWhitespace(const std::string& value)
 
     std::string trimmedText = value;
     const size_t start = trimmedText.find_first_not_of(whitespace);
-    if (start == std::wstring::npos) {
+    if (start == std::string::npos) {
         return "";
     }
 
@@ -156,6 +156,12 @@ std::string ReplaceAll(std::string value, const std::string& src, const std::str
 
     replacedValue = value;
     return replacedValue;
+}
+
+std::string RightTrim(std::string value)
+{
+    size_t end = value.find_last_not_of(" \t\n\r\f\v");
+    return (end == std::string::npos) ? "" : value.substr(0, end + 1);
 }
 
 std::string Uuid()

@@ -24,9 +24,15 @@
 #include <wx/wx.h>
 #endif
 
+#include "enums.h"
+
 namespace tks::Common
 {
 wxDateTime MakeMaximumFromDate();
 
 bool IsDarkColour(const wxColor& color);
+
+wxAlignment MapTasksViewColumnTextAlignment(TasksViewColumnTextAlignment textAlignment);
+
+wxEllipsizeMode MapTasksViewColumnEllipsisMode(TasksViewColumnEllipsisMode ellipsisMode);
 } // namespace tks::Common

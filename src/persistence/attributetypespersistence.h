@@ -35,7 +35,8 @@ namespace tks::Persistence
 struct AttributeTypesPersistence final : public PersistenceBase {
     AttributeTypesPersistence() = delete;
     AttributeTypesPersistence(const AttributeTypesPersistence&) = delete;
-    AttributeTypesPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    AttributeTypesPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~AttributeTypesPersistence();
 
     AttributeTypesPersistence& operator=(const AttributeTypesPersistence&) = delete;

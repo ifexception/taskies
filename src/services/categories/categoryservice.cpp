@@ -24,6 +24,7 @@
 #include "../../common/messages/sqlitemessages.h"
 
 #include "../../utils/utils.h"
+#include "../../utils/sqlite_helpers.h"
 
 namespace tks::Services
 {
@@ -60,50 +61,28 @@ SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& categories)
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
 
-            CategoryViewModel model;
+            CategoryViewModel categoryModel;
 
             int columnIndex = 0;
 
-            model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+            categoryModel.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            model.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            categoryModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            model.Color = sqlite3_column_int(stmt, columnIndex++);
-            model.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.Color = sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.Description = std::nullopt;
-            } else {
-                res = sqlite3_column_text(stmt, columnIndex);
-                model.Description = std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-            }
-            columnIndex++;
+            categoryModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
-            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
-            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.ProjectId = std::nullopt;
-            } else {
-                model.ProjectId =
-                    std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
-            }
-            columnIndex++;
+            categoryModel.ProjectId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.ProjectDisplayName = std::nullopt;
-            } else {
-                res = sqlite3_column_text(stmt, columnIndex);
-                model.ProjectDisplayName = std::make_optional<std::string>(std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-            }
-            columnIndex++;
+            categoryModel.ProjectName = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
-            categories.push_back(model);
+            categories.push_back(categoryModel);
             break;
         }
         case SQLITE_DONE:
@@ -168,45 +147,28 @@ SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
 
-            CategoryViewModel model;
+            CategoryViewModel categoryModel;
 
             int columnIndex = 0;
 
-            model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+            categoryModel.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            model.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            categoryModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            model.Color = sqlite3_column_int(stmt, columnIndex++);
-            model.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.Color = sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.Description = std::nullopt;
-            } else {
-                res = sqlite3_column_text(stmt, columnIndex);
-                model.Description = std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-            }
-            columnIndex++;
+            categoryModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
-            model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-            model.DateModified = sqlite3_column_int(stmt, columnIndex++);
-            model.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+            categoryModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.ProjectId = std::nullopt;
-            } else {
-                model.ProjectId =
-                    std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
-            }
-            columnIndex++;
+            categoryModel.ProjectId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            model.ProjectDisplayName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            categoryModel.ProjectName = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
-            categories.push_back(model);
+            categories.push_back(categoryModel);
             break;
         }
         case SQLITE_DONE:
@@ -233,7 +195,7 @@ SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
 }
 
 SqliteResult CategoryService::GetById(const std::int64_t categoryId,
-    CategoryViewModel& category) const
+    CategoryViewModel& categoryModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -276,44 +238,22 @@ SqliteResult CategoryService::GetById(const std::int64_t categoryId,
 
     int columnIndex = 0;
 
-    category.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
+    categoryModel.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    category.Name =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    categoryModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-    category.Color = sqlite3_column_int(stmt, columnIndex++);
-    category.Billable = !!sqlite3_column_int(stmt, columnIndex++);
+    categoryModel.Color = sqlite3_column_int(stmt, columnIndex++);
+    categoryModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        category.Description = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        category.Description = std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-    }
-    columnIndex++;
+    categoryModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
-    category.DateCreated = sqlite3_column_int(stmt, columnIndex++);
-    category.DateModified = sqlite3_column_int(stmt, columnIndex++);
-    category.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
+    categoryModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
+    categoryModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
+    categoryModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        category.ProjectId = std::nullopt;
-    } else {
-        category.ProjectId =
-            std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
-    }
-    columnIndex++;
+    categoryModel.ProjectId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        category.ProjectDisplayName = std::nullopt;
-    } else {
-        res = sqlite3_column_text(stmt, columnIndex);
-        category.ProjectDisplayName = std::make_optional<std::string>(std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-    }
-    columnIndex++;
+    categoryModel.ProjectName = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
     rc = sqlite3_step(stmt);
 
@@ -342,7 +282,7 @@ std::string CategoryService::filter = "SELECT "
                                       "categories.date_modified, "
                                       "categories.is_active, "
                                       "categories.project_id, "
-                                      "projects.display_name "
+                                      "projects.name "
                                       "FROM categories "
                                       "LEFT JOIN projects "
                                       "ON categories.project_id = projects.project_id "
@@ -358,7 +298,7 @@ std::string CategoryService::filterByProjectId = "SELECT "
                                                  "categories.date_modified, "
                                                  "categories.is_active, "
                                                  "categories.project_id, "
-                                                 "projects.display_name "
+                                                 "projects.name "
                                                  "FROM categories "
                                                  "INNER JOIN projects "
                                                  "ON categories.project_id = projects.project_id "
@@ -375,7 +315,7 @@ std::string CategoryService::getById = "SELECT "
                                        "categories.date_modified, "
                                        "categories.is_active, "
                                        "categories.project_id, "
-                                       "projects.display_name "
+                                       "projects.name "
                                        "FROM categories "
                                        "LEFT JOIN projects "
                                        "ON categories.project_id = projects.project_id "

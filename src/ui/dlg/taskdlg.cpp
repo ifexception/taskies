@@ -119,7 +119,6 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , bHasTaskAttributeValues(false)
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
-    , bSetFromAttendedMeeting(false)
     , mProjectIdFromAttendedMeeting(-1)
     , mCategoryIdFromAttendedMeeting(-1)
 {
@@ -184,145 +183,6 @@ void TaskDialog::SetAttendedMeetingDataEx(const std::string& entryId,
     mAttendedMeetingModel.Location = location;
 }
 
-void TaskDialog::UpdateChoicesFromAttendedMeeting(const std::int64_t employerId,
-    const std::int64_t projectId,
-    const std::int64_t categoryId)
-{
-    bSetFromAttendedMeeting = true;
-    mEmployerId = employerId;
-    mProjectIdFromAttendedMeeting = projectId;
-    mCategoryIdFromAttendedMeeting = categoryId;
-
-    // `UpdateChoicesFromAttendedMeeting` only gets called _after_ the `Create` method gets called
-    // Need to find a better to set data rather than resetting it like below
-    if (!bIsEdit && bSetFromAttendedMeeting) {
-        ResetProjectChoiceControl();
-        ResetCategoryChoiceControl();
-
-        // select an employer from attended meetings frame
-        Model::EmployerModel employerModel;
-        Persistence::EmployersPersistence employerPersistence(pLogger, mDatabaseFilePath);
-
-        auto sqliteResult = employerPersistence.GetById(mEmployerId, employerModel);
-        if (!sqliteResult.Success) {
-            wxRichMessageDialog dialog(this,
-                Messages::FilterEmployersMessage,
-                tks::Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-            dialog.ShowModal();
-        } else {
-            pEmployerChoiceCtrl->SetStringSelection(employerModel.Name);
-        }
-
-        // set a client (if applicable)
-        std::vector<Model::ClientModel> clients;
-        Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
-
-        auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
-        if (!result.Success) {
-            wxRichMessageDialog dialog(this,
-                Messages::FilterClientsByEmployerMessage,
-                tks::Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
-            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
-
-            dialog.ShowModal();
-        } else {
-            if (!clients.empty()) {
-                if (!pClientChoiceCtrl->IsEnabled()) {
-                    pClientChoiceCtrl->Enable();
-                }
-
-                for (auto& client : clients) {
-                    pClientChoiceCtrl->Append(
-                        client.Name, new ClientData<std::int64_t>(client.ClientId));
-                }
-            } else {
-                pClientChoiceCtrl->Disable();
-            }
-        }
-
-        // populate project choice control and set selected project
-        std::vector<Model::ProjectModel> projects;
-        Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
-
-        sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projects);
-        if (!sqliteResult.Success) {
-            wxRichMessageDialog dialog(this,
-                Messages::FilterProjectsMessage,
-                tks::Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-            dialog.ShowModal();
-        }
-
-        if (!projects.empty()) {
-            for (auto& project : projects) {
-                pProjectChoiceCtrl->Append(
-                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
-
-                if (project.ProjectId == mProjectIdFromAttendedMeeting) {
-                    pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
-                }
-            }
-
-            // populate category choice control and select category
-            std::vector<Services::CategoryViewModel> categories;
-            Services::CategoryService categoryService(pLogger, mDatabaseFilePath);
-
-            tks::SqliteResult sqliteResult;
-            std::string operationMessage;
-
-            if (pCfg->ShowProjectAssociatedCategories()) {
-                sqliteResult =
-                    categoryService.FilterByProjectId(mProjectIdFromAttendedMeeting, categories);
-                operationMessage = Messages::FilterCategoriesByProjectMessage;
-            } else {
-                sqliteResult = categoryService.Filter(categories);
-                operationMessage = Messages::FilterCategoriesMessage;
-            }
-
-            if (!sqliteResult.Success) {
-                wxRichMessageDialog dialog(this,
-                    operationMessage,
-                    tks::Common::GetProgramName(),
-                    wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-                dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-                dialog.ShowModal();
-
-                return;
-            }
-
-            if (!categories.empty()) {
-                int i = 1;
-                for (auto& category : categories) {
-                    pCategoryChoiceCtrl->Append(category.GetFormattedName(),
-                        new ClientData<std::int64_t>(category.CategoryId));
-                    if (category.CategoryId == mCategoryIdFromAttendedMeeting) {
-                        pCategoryChoiceCtrl->SetSelection(i);
-                        if (category.Billable) {
-                            pBillableCheckBoxCtrl->SetValue(true);
-                        }
-                    }
-                    i++;
-                }
-            } else {
-                pCategoryChoiceCtrl->Disable();
-            }
-        } else {
-            pProjectChoiceCtrl->Disable();
-        }
-    }
-}
-
 // PRIVATE methods
 
 void TaskDialog::Create()
@@ -336,7 +196,7 @@ void TaskDialog::Create()
     }
 
     if (bIsClone) {
-        SetDataWhenTaskCloned();
+        ClonedDataToControls();
     }
 }
 
@@ -812,12 +672,12 @@ void TaskDialog::FillControls()
 
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(
-                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                    project.Name, new ClientData<std::int64_t>(project.ProjectId));
 
                 if (project.IsDefault) {
                     hasDefaultProject = true;
                     defaultProjectId = project.ProjectId;
-                    pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+                    pProjectChoiceCtrl->SetStringSelection(project.Name);
                 }
             }
 
@@ -1031,13 +891,13 @@ void TaskDialog::DataToControls()
 
                 for (auto& project : projects) {
                     pProjectChoiceCtrl->Append(
-                        project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                        project.Name, new ClientData<std::int64_t>(project.ProjectId));
                 }
             }
         }
     }
 
-    pProjectChoiceCtrl->SetStringSelection(projectModel.DisplayName);
+    pProjectChoiceCtrl->SetStringSelection(projectModel.Name);
 
     // load clients
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
@@ -1724,7 +1584,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         return;
     }
     if (!bIsEdit) {
-        wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKDATEADDED);
+        wxCommandEvent* taskAddedEvent = new wxCommandEvent(tksEVT_TASKINSERTED);
         taskAddedEvent->SetString(mDate);
         taskAddedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
@@ -1736,28 +1596,26 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         // CONT: probably should use date::date types and "escape" to std::string at the last
         // possible moment
         if (mOldDate != mDate) {
-            // notify frame control of task date changed TO
-            wxCommandEvent* taskDateChangedToEvent = new wxCommandEvent(tksEVT_TASKDATEDCHANGEDTO);
+            // notify frame control of task date changed
+            wxCommandEvent* taskDateChangedFromEvent = new wxCommandEvent(tksEVT_TASKDATECHANGED);
 
-            taskDateChangedToEvent->SetString(mDate);
-            taskDateChangedToEvent->SetExtraLong(static_cast<long>(mTaskId));
-
-            wxQueueEvent(pParent, taskDateChangedToEvent);
-
-            // notify frame control of task date changed FROM
-            wxCommandEvent* taskDateChangedFromEvent =
-                new wxCommandEvent(tksEVT_TASKDATEDCHANGEDFROM);
-
-            taskDateChangedFromEvent->SetString(mOldDate);
+            taskDateChangedFromEvent->SetString(mDate);
             taskDateChangedFromEvent->SetExtraLong(static_cast<long>(mTaskId));
 
             wxQueueEvent(pParent, taskDateChangedFromEvent);
+        } else {
+            // notify frame control of task update
+            wxCommandEvent* taskUpdatedEvent = new wxCommandEvent(tksEVT_TASKUPDATED);
+
+            taskUpdatedEvent->SetExtraLong(static_cast<long>(mTaskId));
+
+            wxQueueEvent(pParent, taskUpdatedEvent);
         }
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
-        wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDATEDELETED);
-        taskDeletedEvent->SetString(mDate);
+        wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDELETED);
+
         taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
         wxQueueEvent(pParent, taskDeletedEvent);
@@ -1995,12 +1853,12 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
 
         for (auto& project : projects) {
             pProjectChoiceCtrl->Append(
-                project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                project.Name, new ClientData<std::int64_t>(project.ProjectId));
 
             if (project.IsDefault) {
                 hasDefaultProject = true;
                 defaultProjectId = project.ProjectId;
-                pProjectChoiceCtrl->SetStringSelection(project.DisplayName);
+                pProjectChoiceCtrl->SetStringSelection(project.Name);
             }
         }
 
@@ -2059,7 +1917,7 @@ void TaskDialog::FetchCategoryEntities(const std::optional<std::int64_t> project
     }
 }
 
-void TaskDialog::SetDataWhenTaskCloned()
+void TaskDialog::ClonedDataToControls()
 {
     // set task description to indicate task was cloned
     std::string clonedTaskDescription =

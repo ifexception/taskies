@@ -39,6 +39,8 @@
 #include "../../dataview/columnlistmodel.h"
 
 #include "../../../core/configuration.h"
+#include "../../../core/settings/presetsetting.h"
+#include "../../../core/settings/presetcolumnsetting.h"
 
 #include "../../../utils/datestore.h"
 
@@ -97,7 +99,7 @@ private:
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
 
-    void ApplyPreset(const Core::Configuration::PresetSetting& presetSettings);
+    void ApplyPreset(const Core::Settings::PresetSetting& presetSettings);
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;

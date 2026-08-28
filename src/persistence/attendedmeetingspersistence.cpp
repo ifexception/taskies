@@ -24,6 +24,7 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
+#include "../utils/sqlite_helpers.h"
 
 namespace tks::Persistence
 {
@@ -87,27 +88,17 @@ SqliteResult AttendedMeetingsPersistence::GetByEntryId(const std::string& entryI
             int columnIndex = 0;
             attendedMeetingModel.AttendedMeetingId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.EntryId = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.EntryId = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.Subject = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.Subject = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.Start = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.Start = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.End = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.End = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             attendedMeetingModel.Duration = sqlite3_column_int(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.Location = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.Location = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             attendedMeetingModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             attendedMeetingModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -214,27 +205,17 @@ SqliteResult AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t uni
             int columnIndex = 0;
             attendedMeetingModel.AttendedMeetingId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.EntryId = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.EntryId = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.Subject = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.Subject = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.Start = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.Start = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.End = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.End = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             attendedMeetingModel.Duration = sqlite3_column_int(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            attendedMeetingModel.Location = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attendedMeetingModel.Location = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             attendedMeetingModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             attendedMeetingModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -267,7 +248,7 @@ SqliteResult AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t uni
     sqlite3_finalize(stmt);
 
     std::string searchFmt = "date_created >= " + std::to_string(unixFromDateTime) +
-                            "date_created <= " + std::to_string(unixToDateTime);
+                            " date_created <= " + std::to_string(unixToDateTime);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, "attended_meetings", searchFmt);
 
     return SqliteResult::OK();

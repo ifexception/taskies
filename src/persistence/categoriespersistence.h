@@ -35,7 +35,8 @@ namespace tks::Persistence
 struct CategoriesPersistence final : public PersistenceBase {
     CategoriesPersistence() = delete;
     CategoriesPersistence(const CategoriesPersistence&) = delete;
-    CategoriesPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    CategoriesPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~CategoriesPersistence();
 
     CategoriesPersistence& operator=(const CategoriesPersistence&) = delete;
@@ -44,8 +45,7 @@ struct CategoriesPersistence final : public PersistenceBase {
         /*out*/ std::vector<Model::CategoryModel>& categoryModels) const;
     SqliteResult GetById(const std::int64_t categoryId,
         /*out*/ Model::CategoryModel& categoryModel) const;
-    SqliteResult Create(std::int64_t& categoryId,
-        const Model::CategoryModel& categoryModel) const;
+    SqliteResult Create(std::int64_t& categoryId, const Model::CategoryModel& categoryModel) const;
     SqliteResult Update(const Model::CategoryModel& categoryModel) const;
     SqliteResult Delete(const std::int64_t categoryId) const;
 

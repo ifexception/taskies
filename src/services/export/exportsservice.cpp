@@ -24,6 +24,7 @@
 #include "../../common/messages/sqlitemessages.h"
 
 #include "../../utils/utils.h"
+#include "../../utils/sqlite_helpers.h"
 
 constexpr int ATTRIBUTE_PROP_INDEX_TASKID = 0;
 constexpr int ATTRIBUTE_PROP_INDEX_NAME = 1;
@@ -78,14 +79,10 @@ SqliteResult ExportsService::FilterExportDataFromGeneratedSql(const std::string&
                 int index = static_cast<int>(i);
                 index++;
 
-                const unsigned char* res = sqlite3_column_text(stmt, index);
-                const auto& value = std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, index));
-
-                /* append the value to our row */
-                row.Values.push_back(value);
+                // Safely read text column (handles NULL)
+                row.Values.push_back(tks::Utils::Sqlite::GetTextOrEmpty(stmt, index));
             }
-            /* set the row and our `taskId` key */
+            /* set the row and associate to our `taskId` key */
             rows[taskId] = row;
 
             break;
@@ -143,14 +140,12 @@ SqliteResult ExportsService::FilterExportCsvAttributesData(const std::string& sq
 
             /* the query always will return three columns */
             /* we get the attribute name (header) at ATTRIBUTE_PROP_INDEX_NAME index */
-            const unsigned char* resName = sqlite3_column_text(stmt, ATTRIBUTE_PROP_INDEX_NAME);
-            const auto& valueName = std::string(reinterpret_cast<const char*>(resName),
-                sqlite3_column_bytes(stmt, ATTRIBUTE_PROP_INDEX_NAME));
+            auto optName = tks::Utils::Sqlite::GetOptionalText(stmt, ATTRIBUTE_PROP_INDEX_NAME);
+            const auto& valueName = optName.value_or(std::string());
 
             /* we get the attribute value at ATTRIBUTE_PROP_INDEX_VALUE index */
-            const unsigned char* resValue = sqlite3_column_text(stmt, ATTRIBUTE_PROP_INDEX_VALUE);
-            const auto& valueValue = std::string(reinterpret_cast<const char*>(resValue),
-                sqlite3_column_bytes(stmt, ATTRIBUTE_PROP_INDEX_VALUE));
+            auto optValue = tks::Utils::Sqlite::GetOptionalText(stmt, ATTRIBUTE_PROP_INDEX_VALUE);
+            const auto& valueValue = optValue.value_or(std::string());
 
             /* build up the header value pair struct */
             headerValuePair.Header = valueName;

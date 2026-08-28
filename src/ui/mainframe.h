@@ -30,10 +30,10 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/dataview.h>
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
-#include <wx/dataview.h>
-#include <wx/infobar.h>
+#include <wx/listctrl.h>
 #include <wx/notifmsg.h>
 #include <wx/taskbarbutton.h>
 #include <wx/power.h>
@@ -43,10 +43,12 @@
 
 #include "../common/enums.h"
 
-#include "../ui/dataview/tasktreemodel.h"
+#include "../core/configuration.h"
+#include "../core/settings/tasksviewcolumnsetting.h"
+
 #include "../ui/frames/outlookmeetingsviewframe.h"
 
-#include "../models/taskmodel.h"
+#include "../services/tasks/taskviewmodel.h"
 
 #include "../utils/datestore.h"
 
@@ -76,7 +78,6 @@ enum class MenuIds : int {
     Edit_Attribute,
     Edit_StaticAttributeValues,
     View_Reset,
-    View_Expand,
     View_Outlook,
     // View_Day,
     View_Preferences,
@@ -85,9 +86,9 @@ enum class MenuIds : int {
     /* Popup Menu Ids */
     Pop_CloneTask,
     Pop_NewTask,
-    Pop_ContainerCopyTasks,
-    Pop_ContainerCopyTasksWithHeaders,
-    Pop_ContainerCopyTasksPreset,
+    Pop_ColumnCopyTasks,
+    Pop_ColumnCopyTasksWithHeaders,
+    Pop_ColumnCopyTasksPreset,
     Pop_CopyRowTask,
     Pop_CopyRowTaskPreset
 };
@@ -119,7 +120,6 @@ static const int ID_EDIT_STATIC_ATTRIBUTE_VALUES =
 
 /* View */
 static const int ID_VIEW_RESET = static_cast<int>(MenuIds::View_Reset);
-static const int ID_VIEW_EXPAND = static_cast<int>(MenuIds::View_Expand);
 static const int ID_VIEW_OUTLOOK = static_cast<int>(MenuIds::View_Outlook);
 static const int ID_VIEW_PREFERENCES = static_cast<int>(MenuIds::View_Preferences);
 
@@ -130,11 +130,11 @@ static const int ID_HELP_ABOUT = static_cast<int>(MenuIds::Help_About);
 static const int ID_POP_CLONE_TASK = static_cast<int>(MenuIds::Pop_CloneTask);
 static const int ID_POP_NEW_TASK = static_cast<int>(MenuIds::Pop_NewTask);
 
-static const int ID_POP_CONTAINER_COPY_TASKS = static_cast<int>(MenuIds::Pop_ContainerCopyTasks);
-static const int ID_POP_CONTAINER_COPY_TASKS_WITH_HEADERS =
-    static_cast<int>(MenuIds::Pop_ContainerCopyTasksWithHeaders);
-static const int ID_POP_CONTAINER_COPY_TASKS_PRESET =
-    static_cast<int>(MenuIds::Pop_ContainerCopyTasksPreset);
+static const int ID_POP_COLUMN_COPY_TASKS = static_cast<int>(MenuIds::Pop_ColumnCopyTasks);
+static const int ID_POP_COLUMN_COPY_TASKS_WITH_HEADERS =
+    static_cast<int>(MenuIds::Pop_ColumnCopyTasksWithHeaders);
+static const int ID_POP_COLUMN_COPY_TASKS_PRESET =
+    static_cast<int>(MenuIds::Pop_ColumnCopyTasksPreset);
 static const int ID_POP_COPY_ROW_TASK = static_cast<int>(MenuIds::Pop_CopyRowTask);
 static const int ID_POP_COPY_ROW_TASK_PRESET = static_cast<int>(MenuIds::Pop_CopyRowTaskPreset);
 
@@ -143,7 +143,6 @@ static const int MAX_EXPAND_COUNT = 3;
 namespace Core
 {
 class Environment;
-class Configuration;
 } // namespace Core
 
 namespace UI
@@ -168,6 +167,7 @@ private:
 
     void CreateControls();
     void FillControls();
+    void ConfigureEventBindings();
     void DataToControls();
 
     /* Event Table Handlers */
@@ -202,15 +202,14 @@ private:
     void OnEditAttribute(wxCommandEvent& event);
     void OnEditStaticAttributeValues(wxCommandEvent& event);
     void OnViewReset(wxCommandEvent& event);
-    void OnViewExpand(wxCommandEvent& event);
     void OnViewOutlook(wxCommandEvent& event);
     void OnViewPreferences(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     /* Popup Menu Event Handlers */
     void OnPopupNewTask(wxCommandEvent& event);
-    void OnContainerCopyTasksToClipboard(wxCommandEvent& event);
-    void OnContainerCopyTasksWithHeadersToClipboard(wxCommandEvent& event);
-    void OnContainerCopyTasksUsingPreset(wxCommandEvent& event);
+    void OnColumnCopyTasksToClipboard(wxCommandEvent& event);
+    void OnColumnCopyTasksWithHeadersToClipboard(wxCommandEvent& event);
+    void OnColumnCopyTasksUsingPreset(wxCommandEvent& event);
     void OnCopyTaskDescriptionToClipboard(wxCommandEvent& event);
     void OnCopyRowTaskToClipboard(wxCommandEvent& event);
     void OnCopyRowTaskToClipboardWithPreset(wxCommandEvent& event);
@@ -220,28 +219,24 @@ private:
     void OnAddMinutes(wxCommandEvent& event);
     void OnMenuHighlight(wxMenuEvent& event);
     /* Custom Event Handlers */
-    void OnTaskAddedOnDate(wxCommandEvent& event);
-    void OnTaskDeletedOnDate(wxCommandEvent& event);
-    void OnTaskDateChangedFrom(wxCommandEvent& event);
-    void OnTaskDateChangedTo(wxCommandEvent& event);
+    void OnTaskInserted(wxCommandEvent& event);
+    void OnTaskDateChanged(wxCommandEvent& event);
+    void OnTaskUpdated(wxCommandEvent& event);
+    void OnTaskDeleted(wxCommandEvent& event);
     void OnOutlookMeetingViewClose(wxCommandEvent& event);
     /* Control Event Handlers */
-    void OnFromDateSelection(wxDateEvent& event);
-    void OnToDateSelection(wxDateEvent& event);
-    /* DataViewCtrl Event Handlers */
-    void OnContextMenu(wxDataViewEvent& event);
-    void OnDataViewSelectionChanged(wxDataViewEvent& event);
-    void OnDataViewSelectionActivate(wxDataViewEvent& event);
+    void OnPreviousDayButtonClick(wxCommandEvent& event);
+    void OnDateChanged(wxDateEvent& event);
+    void OnNextDayButtonClick(wxCommandEvent& event);
+    /* ListCtrl Event Handlers */
+    void OnItemContextMenu(wxDataViewEvent& event);
+    void OnItemActivated(wxDataViewEvent& event);
+    void OnColumnHeaderRightClick(wxDataViewEvent& event);
+    void OnDataViewListCtrlResize(wxSizeEvent& event);
     /* Notification Event Handlers */
     void OnReminderNotificationClicked(wxCommandEvent& event);
     /* Power Event Handlers */
     void OnPowerResume(wxPowerEvent& event);
-
-    void DoResetToCurrentWeekAndOrToday();
-    void ResetDateRange();
-    void ResetDatePickerValues();
-    void RefetchTasksForDateRange();
-    void RefetchTasksForDate(const std::string& date, const std::int64_t taskId);
 
     void CalculateStatusBarTaskDurations();
     void CalculateDefaultTaskDurations();
@@ -250,17 +245,24 @@ private:
     void UpdateDefaultWeekMonthTaskDurations();
     void UpdateBillableWeekMonthTaskDurations();
 
-    void UpdateDefaultRangeTaskDurations();
-    void UpdateBillableRangeTaskDurations();
-
     void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
-    void SetFromAndToDatePickerRanges();
-    void SetFromDateAndDatePicker();
-    void SetToDateAndDatePicker();
+    void DateChangedProcedure(const wxDateTime& dateTime);
+    void SetDatePickerDate(const wxDateTime& dateTime);
+    void RefreshDataViewListControl();
+
+    void ParseWXDateTimeToDate(const wxDateTime& dateTime);
 
     void ResetTaskContextMenuVariables();
+
+    void ResizeColumns();
+    void ResizeLastColumn();
+
+    SqliteResult FetchTaskAndTaskAttributeValues(const std::int64_t taskId,
+        Services::TaskViewModel& taskViewModel);
+    SqliteResult FetchTasksAndTaskAttributeValues(const std::string& date,
+        std::vector<Services::TaskViewModel>& taskViewModels);
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
@@ -272,47 +274,44 @@ private:
     wxThumbBarButton* pThumbBarNewTaskButton;
     wxThumbBarButton* pThumbBarQuickExportButton;
 
-    wxInfoBar* pInfoBar;
     TaskBarIcon* pTaskBarIcon;
     StatusBar* pStatusBar;
 
-    wxDatePickerCtrl* pFromDatePickerCtrl;
-    wxDatePickerCtrl* pToDatePickerCtrl;
+    wxButton* pPreviousDayButton;
+    wxDatePickerCtrl* pDatePickerCtrl;
+    wxButton* pNextDayButton;
+    wxDataViewListCtrl* pDataViewListCtrl;
 
     std::unique_ptr<DateStore> pDateStore;
 
+    std::chrono::time_point<std::chrono::system_clock, date::days> mTodayDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
     std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
 
-    wxDataViewCtrl* pDataViewCtrl;
-    wxObjectDataPtr<TaskTreeModel> pTaskTreeModel;
-
-    wxDateTime mFromCtrlDate;
-    wxDateTime mToCtrlDate;
-    wxDateTime mToLatestPossibleDate;
-
-    std::int64_t mTaskIdToModify;
-    std::string mTaskDate;
-    int mExpandCounter;
-    bool bDateRangeChanged;
+    std::int64_t mTaskIdToEdit;
+    std::string mTaskDateString;
+    unsigned int mDataViewListCtrlRow;
 
     /*
      * this variable ensures that only one dialog is opened at a time from the thumb bar actions
      * the thumb bar allows a user to open an as many dialogs as they want so we cap at 1
      */
     int mThumbBarDialogOpenCounter;
+
     int mOutlookMeetingViewFrameOpenCounter;
 
     std::unique_ptr<wxTimer> pTaskReminderTimer;
     std::shared_ptr<wxNotificationMessage> pTaskReminderNotification;
 
+    std::vector<Core::Settings::TasksViewColumnSetting> mTasksViewColumns;
+
     enum {
         tksIDC_THUMBBAR_NEWTASK = wxID_HIGHEST + 1000,
         tksIDC_THUMBBAR_QUICKEXPORT,
-        tksIDC_FROMDATE,
-        tksIDC_TODATE,
-        tksIDC_TASKDATAVIEWCTRL,
-        tksIDC_DAY_TASKDATAVIEW,
+        tksIDC_PREVIOUSDAYBUTTON,
+        tksIDC_DATEPICKERCTRL,
+        tksIDC_NEXTDAYBUTTON,
+        tksIDC_DATAVIEWLISTCTRL,
         tksIDC_TASKREMINDERTIMER
     };
 };

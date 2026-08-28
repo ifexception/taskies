@@ -34,11 +34,12 @@
 #include "../../../common/common.h"
 #include "../../../common/enums.h"
 
+#include "../../../core/settings/tasksviewcolumnsetting.h"
+
 namespace tks
 {
 namespace Core
 {
-class TasksViewColumnSetting;
 class Configuration;
 } // namespace Core
 namespace UI::dlg
@@ -71,35 +72,49 @@ private:
     void OnLeftChevronButtonClick(wxCommandEvent& event);
     void OnAscButtonClick(wxCommandEvent& event);
     void OnDescButtonClick(wxCommandEvent& event);
+    void OnTextAlignmentChoice(wxCommandEvent& event);
+    void OnEllipsisModeChoice(wxCommandEvent& event);
+    void OnApplyButtonClick(wxCommandEvent& event);
+
+    void SetColumnPropertiesControlsData(Core::Settings::TasksViewColumnSetting& columnSetting);
+    void ResetColumnPropertiesControls();
 
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
 
-    wxCheckBox* pTodayAlwaysExpanded;
-    wxCheckBox* pUseProjectDisplayName;
-
-    wxCheckListBox* pAvailableTasksViewColumns;
+    wxCheckListBox* pAvailableTasksViewColumnsListBox;
     wxButton* pRightChevronButton;
     wxButton* pLeftChevronButton;
-    wxCheckListBox* pSelectedTasksViewColumns;
+    wxCheckListBox* pSelectedTasksViewColumnsListBox;
     wxButton* pAscSortButton;
     wxButton* pDescSortButton;
-    //wxButton* pClearButton;
 
-    std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedAvailableColumns;
-    std::vector<std::pair<int, TasksViewColumnModelIndex>> mCheckedSelectedColumns;
+    wxTextCtrl* pSelectedColumnNameReadonlyTextCtrl;
+    wxChoice* pSelectedColumnTextAlignmentChoiceCtrl;
+    wxChoice* pSelectedColumnTextEllipsisModeChoiceCtrl;
+    wxButton* pApplyButton;
 
-    std::vector<Common::TasksViewColumn> mAllTasksViewColumns;
+    std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedAvailableColumns;
+    std::vector<std::pair<int, Core::Settings::TasksViewColumnSetting>> mCheckedSelectedColumns;
+
+    std::vector<Core::Settings::TasksViewColumnSetting> mCfgTasksViewColumns;
+
+    Core::Settings::TasksViewColumnSetting mDefaultTasksViewColumnSettingProperties;
+    Core::Settings::TasksViewColumnSetting mTasksViewColumnSettingProperties;
 
     enum {
-        tksIDC_TODAYALWAYSEXPANDED = wxID_HIGHEST + 100,
+        tksIDC_BASE = wxID_HIGHEST + 1001,
         tksIDC_USEPROJECTDISPLAYNAME,
         tksIDC_AVAILABLETASKSVIEWCOLUMNS,
         tksIDC_RIGHTCHEVRONBUTTON,
         tksIDC_LEFTCHEVRONBUTTON,
         tksIDC_SELECTEDTASKSVIEWCOLUMNS,
         tksIDC_ASCSORTBUTTON,
-        tksIDC_DESCSORTBUTTON
+        tksIDC_DESCSORTBUTTON,
+        tksIDC_SELECTEDCOLUMNNAMEREADONLYTEXTCTRL,
+        tksIDC_SELECTEDCOLUMNTEXTALIGNMENTCHOICE,
+        tksIDC_SELECTEDCOLUMNTEXTELLIPSISMODECHOICECTRL,
+        tksIDC_APPLYBUTTON
     };
 };
 } // namespace UI::dlg

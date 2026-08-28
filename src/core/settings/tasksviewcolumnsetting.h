@@ -1,0 +1,68 @@
+// Productivity tool to help you track the time you spend on tasks
+// Copyright (C) 2026 Szymon Welgus
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+// Contact:
+//     szymonwelgus at gmail dot com
+
+#pragma once
+
+#include <vector>
+
+#include "../../common/enums.h"
+
+namespace tks::Core::Settings
+{
+struct TasksViewColumnSetting {
+    static int ColumnDefaultWidth;
+    static int ColumnAutoWidth;
+
+    static int DefaultOrderIndex;
+
+    TasksViewColumnSetting();
+    TasksViewColumnSetting(const std::string& name,
+        const std::string& displayName,
+        int order,
+        TasksViewColumnTextAlignment textAlignment,
+        TasksViewColumnType type,
+        TasksViewColumnEllipsisMode ellipsizeMode,
+        int width,
+        bool selected,
+        TasksViewColumnIdentifier columnId);
+    ~TasksViewColumnSetting() = default;
+
+    std::string Name;
+    std::string DisplayName;
+    int Order;
+    TasksViewColumnTextAlignment TextAlignment;
+    TasksViewColumnType Type;
+    TasksViewColumnEllipsisMode EllipsisMode;
+    int Width;
+    bool Selected;
+
+    TasksViewColumnIdentifier TaskViewColumnId;
+
+    bool operator==(const TasksViewColumnSetting& other) const;
+    bool operator!=(const TasksViewColumnSetting& other) const;
+
+    bool IsValid() const;
+};
+
+TasksViewColumnSetting MakeDescriptionTasksViewColumn();
+
+const std::vector<TasksViewColumnSetting>& MakeDefaultTasksViewColumnList();
+
+const std::vector<TasksViewColumnSetting>& MakeAllTasksViewColumnList();
+} // namespace tks::Core::Settings

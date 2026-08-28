@@ -264,6 +264,8 @@ void ClientDialog::DataToControls()
 
         pIsActiveCheckBoxCtrl->Enable();
     }
+
+    Fit();
 }
 
 void ClientDialog::OnOK(wxCommandEvent& event)

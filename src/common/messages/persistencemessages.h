@@ -164,8 +164,6 @@ const std::string UpdateTaskMessage =
     "Something went wrong while trying to update the task";
 const std::string DeleteTaskMessage =
     "Something went wrong while trying to delete the task";
-const std::string FilterByDateRangeTaskMessage =
-    "Something went wrong while to get tasks for selected date range";
 const std::string FilterByDateTaskMessage =
     "Something went wrong while to get tasks for selected date";
 #pragma endregion

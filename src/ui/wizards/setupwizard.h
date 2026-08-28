@@ -240,7 +240,6 @@ private:
     void CreateControls();
     void ConfigureEventBindings();
 
-    void OnProjectNameChange(wxCommandEvent& event);
     void OnWizardCancel(wxWizardEvent& event);
     void OnWizardPageShown(wxWizardEvent& event);
 
@@ -250,7 +249,6 @@ private:
     std::string mDatabasePath;
 
     wxTextCtrl* pProjectNameTextCtrl;
-    wxTextCtrl* pProjectDisplayNameCtrl;
     wxCheckBox* pProjectIsDefaultCtrl;
     wxTextCtrl* pCategoryNameTextCtrl;
     wxColourPickerCtrl* pCategoryColorPickerCtrl;
@@ -258,7 +256,6 @@ private:
 
     enum {
         tksIDC_PROJECTNAME = wxID_HIGHEST + 100,
-        tksIDC_PROJECTDISPLAYNAME,
         tksIDC_PROJECTISDEFAULT,
         tksIDC_CATEGORYNAME,
         tksIDC_CATEGORYCOLORPICKER,

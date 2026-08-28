@@ -26,8 +26,6 @@ openTaskDialogOnReminderClick=false
 openTaskDialogOnOutlookMeetingAttendanceCheck=true
 
 [tasksView]
-todayAlwaysExpanded=false
-useProjectDisplayName=false
 tasksViewColumns=[]
 
 [export]

@@ -211,7 +211,7 @@ void CategoryDialog::FillControls()
 
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(
-                    project.DisplayName, new ClientData<std::int64_t>(project.ProjectId));
+                    project.Name, new ClientData<std::int64_t>(project.ProjectId));
             }
         }
     }
@@ -280,6 +280,8 @@ void CategoryDialog::DataToControls()
             }
         }
     }
+
+    Fit();
 }
 
 void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)

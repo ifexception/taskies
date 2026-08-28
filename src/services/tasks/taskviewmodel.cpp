@@ -43,8 +43,10 @@ TaskViewModel::TaskViewModel()
     , EmployerName()
     , ClientName()
     , ProjectName()
-    , ProjectDisplayName()
     , CategoryName()
+    , CategoryColor(-1)
+    , IsMeeting(false)
+    , TaskAttributeValueModels()
 {
 }
 
@@ -58,9 +60,34 @@ const std::string TaskViewModel::TryGetUniqueIdentifier() const
     return UniqueIdentifier.has_value() ? UniqueIdentifier.value() : "";
 }
 
-const std::string TaskViewModel::GetTrimmedDescription()
+const std::string TaskViewModel::GetTrimmedDescription() const
 {
     return Utils::ReplaceNewlineWithEllipses(Description);
+}
+
+const std::string TaskViewModel::TryGetTaskAttributeValues()
+{
+    if (TaskAttributeValueModels.size() != 0) {
+        std::string value = "";
+
+        for (size_t i = 0; i < TaskAttributeValueModels.size(); i++) {
+            if (TaskAttributeValueModels[i].BooleanValue.has_value()) {
+                value += std::to_string(TaskAttributeValueModels[i].BooleanValue.value());
+            } else if (TaskAttributeValueModels[i].NumericValue.has_value()) {
+                value += std::to_string(TaskAttributeValueModels[i].NumericValue.value());
+            } else if (TaskAttributeValueModels[i].TextValue.has_value()) {
+                value += TaskAttributeValueModels[i].TextValue.value();
+            } else {
+                value = "<unknown>";
+            }
+
+            if (i != TaskAttributeValueModels.size() - 1) {
+                value += " | ";
+            }
+        }
+        return value;
+    }
+    return std::string();
 }
 
 const std::string TaskViewModel::GetDateCreatedString() const
