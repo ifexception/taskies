@@ -24,6 +24,7 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
+#include "../utils/sqlite_helpers.h"
 
 namespace tks::Persistence
 {
@@ -103,33 +104,18 @@ SqliteResult CategoriesPersistence::Filter(const std::string& searchTerm,
 
             categoryModel.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            categoryModel.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            categoryModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             categoryModel.Color = sqlite3_column_int(stmt, columnIndex++);
             categoryModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                categoryModel.Description = std::nullopt;
-            } else {
-                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                categoryModel.Description = std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-            }
-
-            columnIndex++;
+            categoryModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
             categoryModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             categoryModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
             categoryModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                categoryModel.ProjectId = std::nullopt;
-            } else {
-                categoryModel.ProjectId =
-                    std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
-            }
+            categoryModel.ProjectId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
             categoryModels.push_back(categoryModel);
             break;
@@ -205,33 +191,18 @@ SqliteResult CategoriesPersistence::GetById(const std::int64_t categoryId,
 
     categoryModel.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    categoryModel.Name =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    categoryModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
     categoryModel.Color = sqlite3_column_int(stmt, columnIndex++);
     categoryModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        categoryModel.Description = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        categoryModel.Description = std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-    }
-
-    columnIndex++;
+    categoryModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
     categoryModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     categoryModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
     categoryModel.IsActive = !!sqlite3_column_int(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        categoryModel.ProjectId = std::nullopt;
-    } else {
-        categoryModel.ProjectId =
-            std::make_optional<std::int64_t>(sqlite3_column_int64(stmt, columnIndex));
-    }
+    categoryModel.ProjectId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
     rc = sqlite3_step(stmt);
 

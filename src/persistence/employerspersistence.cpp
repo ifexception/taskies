@@ -24,6 +24,7 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
+#include "../utils/sqlite_helpers.h"
 
 namespace tks::Persistence
 {
@@ -103,21 +104,11 @@ SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
 
             employerModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            employerModel.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            employerModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             employerModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                employerModel.Description = std::nullopt;
-            } else {
-                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                employerModel.Description = std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-            }
-
-            columnIndex++;
+            employerModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
             employerModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             employerModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -200,21 +191,11 @@ SqliteResult EmployersPersistence::GetById(const std::int64_t employerId,
 
     employerModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    employerModel.Name =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    employerModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
     employerModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        employerModel.Description = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        employerModel.Description = std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-    }
-
-    columnIndex++;
+    employerModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
     employerModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     employerModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -588,21 +569,11 @@ SqliteResult EmployersPersistence::SelectDefault(Model::EmployerModel& employerM
 
     employerModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    employerModel.Name =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    employerModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
     employerModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        employerModel.Description = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        employerModel.Description = std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-    }
-
-    columnIndex++;
+    employerModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
     employerModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     employerModel.DateModified = sqlite3_column_int(stmt, columnIndex++);

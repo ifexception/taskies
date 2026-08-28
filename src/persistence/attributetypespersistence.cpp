@@ -24,6 +24,7 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
+#include "../utils/sqlite_helpers.h"
 
 namespace tks::Persistence
 {
@@ -79,16 +80,14 @@ SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
         switch (sqlite3_step(stmt)) {
         case SQLITE_ROW: {
             rc = SQLITE_ROW;
-            Model::AttributeTypeModel model;
+            Model::AttributeTypeModel attributeTypeModel;
 
             int columnIndex = 0;
-            model.AttributeTypeId = sqlite3_column_int64(stmt, columnIndex++);
+            attributeTypeModel.AttributeTypeId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            model.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attributeTypeModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            attributeTypeModels.push_back(model);
+            attributeTypeModels.push_back(attributeTypeModel);
             break;
         }
         case SQLITE_DONE:

@@ -82,7 +82,7 @@ SqliteResult ExportsService::FilterExportDataFromGeneratedSql(const std::string&
                 // Safely read text column (handles NULL)
                 row.Values.push_back(tks::Utils::Sqlite::GetTextOrEmpty(stmt, index));
             }
-            /* set the row and our `taskId` key */
+            /* set the row and associate to our `taskId` key */
             rows[taskId] = row;
 
             break;

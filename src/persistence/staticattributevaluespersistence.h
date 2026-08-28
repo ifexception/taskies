@@ -35,7 +35,8 @@ namespace tks::Persistence
 struct StaticAttributeValuesPersistence final : public PersistenceBase {
     StaticAttributeValuesPersistence() = delete;
     StaticAttributeValuesPersistence(const StaticAttributeValuesPersistence&) = delete;
-    StaticAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    StaticAttributeValuesPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~StaticAttributeValuesPersistence();
 
     StaticAttributeValuesPersistence& operator=(const StaticAttributeValuesPersistence&) = delete;
@@ -46,13 +47,11 @@ struct StaticAttributeValuesPersistence final : public PersistenceBase {
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
     SqliteResult FilterByAttributeGroupId(const std::int64_t attributeGroupId,
         /*out*/ std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
-    SqliteResult Update(
-        const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
+    SqliteResult Update(const Model::StaticAttributeValueModel& staticAttributeValueModel) const;
     SqliteResult UpdateMultiple(
         const std::vector<Model::StaticAttributeValueModel>& staticAttributeValueModels) const;
     SqliteResult Delete(const std::vector<std::int64_t>& staticAttributeValueIds) const;
-    SqliteResult CheckUsage(const std::vector<std::int64_t>& attributeIds,
-        bool& value) const;
+    SqliteResult CheckUsage(const std::vector<std::int64_t>& attributeIds, bool& value) const;
 
     static std::string create;
     static std::string filterByAttributeGroupId;

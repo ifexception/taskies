@@ -24,6 +24,7 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
+#include "../utils/sqlite_helpers.h"
 
 namespace tks::Persistence
 {
@@ -138,21 +139,11 @@ SqliteResult ProjectsPersistence::Filter(const std::string& searchTerm,
 
             projectModel.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            projectModel.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            projectModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                projectModel.Description = std::nullopt;
-            } else {
-                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                projectModel.Description = std::make_optional(std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-            }
-
-            columnIndex++;
+            projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
             projectModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             projectModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -160,11 +151,7 @@ SqliteResult ProjectsPersistence::Filter(const std::string& searchTerm,
 
             projectModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                projectModel.ClientId = std::nullopt;
-            } else {
-                projectModel.ClientId = std::make_optional(sqlite3_column_int64(stmt, columnIndex));
-            }
+            projectModel.ClientId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
             projectModels.push_back(projectModel);
             break;
@@ -262,21 +249,11 @@ SqliteResult ProjectsPersistence::FilterByEmployerIdOrClientId(
 
             projectModel.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            projectModel.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            projectModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                projectModel.Description = std::nullopt;
-            } else {
-                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                projectModel.Description = std::make_optional(std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-            }
-
-            columnIndex++;
+            projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
             projectModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             projectModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -284,11 +261,7 @@ SqliteResult ProjectsPersistence::FilterByEmployerIdOrClientId(
 
             projectModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                projectModel.ClientId = std::nullopt;
-            } else {
-                projectModel.ClientId = std::make_optional(sqlite3_column_int64(stmt, columnIndex));
-            }
+            projectModel.ClientId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
             projectModels.push_back(projectModel);
             break;
@@ -371,21 +344,11 @@ SqliteResult ProjectsPersistence::FilterByEmployerId(std::optional<std::int64_t>
 
             projectModel.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            projectModel.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            projectModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                projectModel.Description = std::nullopt;
-            } else {
-                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                projectModel.Description = std::make_optional(std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-            }
-
-            columnIndex++;
+            projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
             projectModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             projectModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -393,11 +356,7 @@ SqliteResult ProjectsPersistence::FilterByEmployerId(std::optional<std::int64_t>
 
             projectModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                projectModel.ClientId = std::nullopt;
-            } else {
-                projectModel.ClientId = std::make_optional(sqlite3_column_int64(stmt, columnIndex));
-            }
+            projectModel.ClientId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
             projectModels.push_back(projectModel);
             break;
@@ -478,21 +437,11 @@ SqliteResult ProjectsPersistence::GetById(const std::int64_t projectId,
 
     projectModel.ProjectId = sqlite3_column_int64(stmt, columnIndex++);
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    projectModel.Name =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    projectModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
     projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        projectModel.Description = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        projectModel.Description = std::make_optional(std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-    }
-
-    columnIndex++;
+    projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
     projectModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     projectModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -500,11 +449,7 @@ SqliteResult ProjectsPersistence::GetById(const std::int64_t projectId,
 
     projectModel.EmployerId = sqlite3_column_int64(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        projectModel.ClientId = std::nullopt;
-    } else {
-        projectModel.ClientId = std::make_optional(sqlite3_column_int64(stmt, columnIndex));
-    }
+    projectModel.ClientId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
     rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE) {

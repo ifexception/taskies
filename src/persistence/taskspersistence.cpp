@@ -85,8 +85,6 @@ SqliteResult TasksPersistence::GetById(const std::int64_t taskId, Model::TaskMod
 
     taskModel.UniqueIdentifier = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
-    columnIndex++;
-
     taskModel.Hours = sqlite3_column_int(stmt, columnIndex++);
     taskModel.Minutes = sqlite3_column_int(stmt, columnIndex++);
 
@@ -102,11 +100,7 @@ SqliteResult TasksPersistence::GetById(const std::int64_t taskId, Model::TaskMod
 
     taskModel.AttributeGroupId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
 
-    columnIndex++;
-
     taskModel.AttendedMeetingId = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
-
-    columnIndex++;
 
     rc = sqlite3_step(stmt);
 
@@ -618,9 +612,7 @@ SqliteResult TasksPersistence::GetDescriptionById(const std::int64_t taskId,
 
     int columnIndex = 0;
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    description =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    description = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
     rc = sqlite3_step(stmt);
 

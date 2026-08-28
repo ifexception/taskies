@@ -24,6 +24,7 @@
 #include "../../common/messages/sqlitemessages.h"
 
 #include "../../utils/utils.h"
+#include "../../utils/sqlite_helpers.h"
 
 namespace tks::Services
 {
@@ -123,20 +124,19 @@ SqliteResult FilterEntityService::FilterClients(const std::string& searchTerm,
 
             FilterEntityModel clientModel(EditListEntityType::Clients);
             std::vector<std::string> metadata;
+
             int columnIndex = 0;
 
             clientModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            clientModel.EntityName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            clientModel.EntityName = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             clientModel.EntityDateModified = sqlite3_column_int(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            std::string value = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            std::string value = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
+
             metadata.push_back(value);
+
             clientModel.Metadata = metadata;
 
             models.push_back(clientModel);
@@ -236,9 +236,7 @@ SqliteResult FilterEntityService::FilterProjects(const std::string& searchTerm,
 
             projectModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            projectModel.EntityName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            projectModel.EntityName = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             // is default
             bool bvalue = !!sqlite3_column_int(stmt, columnIndex++);
@@ -248,18 +246,15 @@ SqliteResult FilterEntityService::FilterProjects(const std::string& searchTerm,
             projectModel.EntityDateModified = sqlite3_column_int(stmt, columnIndex++);
 
             // employer name
-            res = sqlite3_column_text(stmt, columnIndex);
-            value = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            value = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
             metadata.push_back(value);
 
             // client name
-            res = sqlite3_column_text(stmt, columnIndex);
-            value = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            value = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
             if (value.empty()) {
                 value = "(n/a)";
             }
+
             metadata.push_back(value);
             projectModel.Metadata = metadata;
 
@@ -361,15 +356,11 @@ SqliteResult FilterEntityService::FilterCategories(const std::string& searchTerm
 
             categoryModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            categoryModel.EntityName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            categoryModel.EntityName = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             categoryModel.EntityDateModified = sqlite3_column_int(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            std::string value = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            std::string value = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
             metadata.push_back(value);
             categoryModel.Metadata = metadata;
 
@@ -472,12 +463,11 @@ SqliteResult FilterEntityService::FilterAttributeGroups(const std::string& searc
             int columnIndex = 0;
             attributeGroupModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            attributeGroupModel.EntityName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attributeGroupModel.EntityName = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             bool value = !!sqlite3_column_int(stmt, columnIndex++);
             metadata.push_back(value ? "Yes" : "No");
+
             value = !!sqlite3_column_int(stmt, columnIndex++);
             metadata.push_back(value ? "Yes" : "No");
 
@@ -582,21 +572,15 @@ SqliteResult FilterEntityService::FilterAttributes(const std::string& searchTerm
 
             attributeModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            attributeModel.EntityName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            attributeModel.EntityName = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             bool value = sqlite3_column_int(stmt, columnIndex++);
             metadata.push_back(value ? "Yes" : "No");
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            std::string svalue = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            std::string svalue = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
             metadata.push_back(svalue);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            svalue = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            svalue = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
             metadata.push_back(svalue);
 
             attributeModel.EntityDateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -664,12 +648,9 @@ SqliteResult FilterEntityService::FilterStaticAttributes(const std::string& sear
 
             staticAttributeModel.EntityId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            staticAttributeModel.EntityName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            staticAttributeModel.EntityName = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            int staticAttributeValueCount =
-                sqlite3_column_int(stmt, columnIndex++);
+            int staticAttributeValueCount = sqlite3_column_int(stmt, columnIndex++);
             metadata.push_back(std::to_string(staticAttributeValueCount));
 
             staticAttributeModel.EntityDateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -689,17 +670,15 @@ SqliteResult FilterEntityService::FilterStaticAttributes(const std::string& sear
 
     if (rc != SQLITE_DONE) {
         const char* error = sqlite3_errmsg(pDb);
-        pLogger->error(LogMessages::ExecStepTemplate, FilterEntityService::filterStaticAttributes,
-            rc,
-            error);
+        pLogger->error(
+            LogMessages::ExecStepTemplate, FilterEntityService::filterStaticAttributes, rc, error);
 
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
-    SPDLOG_LOGGER_TRACE(
-        pLogger, LogMessages::FilterEntities, models.size(), "");
+    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, models.size(), "");
 
     return SqliteResult::OK();
 }
@@ -778,7 +757,8 @@ std::string FilterEntityService::filterAttributes =
     "AND (attributes.name LIKE ? "
     "OR attributes.description LIKE ?)";
 
-std::string FilterEntityService::filterStaticAttributes = "SELECT "
+std::string FilterEntityService::filterStaticAttributes =
+    "SELECT "
     "attribute_groups.attribute_group_id, "
     "attribute_groups.name, "
     "COUNT(static_attribute_values.static_attribute_value_id) AS static_attribute_value_count, "

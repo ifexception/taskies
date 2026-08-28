@@ -1,3 +1,22 @@
+// Productivity tool to help you track the time you spend on tasks
+// Copyright (C) 2026 Szymon Welgus
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//
+// Contact:
+//     szymonwelgus at gmail dot com
+
 #include "sqlite_helpers.h"
 
 namespace tks::Utils::Sqlite
@@ -8,14 +27,12 @@ std::optional<std::string> GetOptionalText(sqlite3_stmt* stmt, int columnIndex) 
         return std::nullopt;
     }
 
-    // If the column is explicitly NULL, return nullopt.
     if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
         return std::nullopt;
     }
 
     const unsigned char* text = sqlite3_column_text(stmt, columnIndex);
     if (text == nullptr) {
-        // Handle unexpected NULL pointer (shouldn't happen if column_type != NULL)
         return std::nullopt;
     }
 
