@@ -165,6 +165,8 @@ void EditListDialog::CreateControls()
         wxART_FIND, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
     pSearchButton = new wxBitmapButton(searchBox, tksIDC_SEARCHBUTTON, providedFindBitmap);
     pSearchButton->SetToolTip("Search for an entity");
+    pSearchButton->SetDefault();
+    pSearchButton->SetFocus();
     searchBoxSizer->Add(pSearchButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Reset Button */
@@ -193,10 +195,7 @@ void EditListDialog::CreateControls()
     buttonsSizer->AddStretchSpacer();
 
     pOkButton = new wxButton(this, wxID_OK, "OK");
-    pOkButton->SetDefault();
     pCancelButton = new wxButton(this, wxID_CANCEL, "Cancel");
-
-    pOkButton->Disable();
 
     buttonsSizer->Add(pOkButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -281,9 +280,12 @@ void EditListDialog::DataToControls()
         break;
     }
 
+    ResizeColumns();
     SetSizerAndFit(pMainSizer);
 
-    pOkButton->Enable();
+    wxSize size = GetSize();
+    size.SetWidth(size.GetWidth() + 20);
+    SetSize(size);
 }
 
 void EditListDialog::EmployerDataToControls()
@@ -1008,5 +1010,12 @@ void EditListDialog::AppendColumnsToListControl()
     dateModifiedColumn.SetText("Date Modified");
     dateModifiedColumn.SetWidth(wxLIST_AUTOSIZE_USEHEADER);
     pListCtrl->InsertColumn(columnIndex++, dateModifiedColumn);
+}
+
+void EditListDialog::ResizeColumns()
+{
+    for (size_t i = 0; i < pListCtrl->GetColumnCount(); i++) {
+        pListCtrl->SetColumnWidth(i, wxLIST_AUTOSIZE);
+    }
 }
 } // namespace tks::UI::dlg

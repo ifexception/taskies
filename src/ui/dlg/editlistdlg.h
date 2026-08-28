@@ -101,6 +101,8 @@ private:
 
     void AppendColumnsToListControl();
 
+    void ResizeColumns();
+
     wxWindow* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
 

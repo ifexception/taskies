@@ -37,8 +37,7 @@ namespace tks::Persistence
 struct TasksPersistence final : public PersistenceBase {
     TasksPersistence() = delete;
     TasksPersistence(const TasksPersistence&) = delete;
-    TasksPersistence(std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath);
+    TasksPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
     virtual ~TasksPersistence();
 
     TasksPersistence& operator=(const TasksPersistence&) = delete;
@@ -48,8 +47,7 @@ struct TasksPersistence final : public PersistenceBase {
     SqliteResult Create(std::int64_t& taskId, Model::TaskModel& taskModel) const;
     SqliteResult Update(Model::TaskModel& taskModel) const;
     SqliteResult Delete(const std::int64_t taskId);
-    SqliteResult GetDescriptionById(const std::int64_t taskId,
-        std::string& description) const;
+    SqliteResult GetDescriptionById(const std::int64_t taskId, std::string& description) const;
     SqliteResult IsDeleted(const std::int64_t taskId, bool& value);
 
     static std::string getById;

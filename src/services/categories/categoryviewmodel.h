@@ -38,7 +38,7 @@ struct CategoryViewModel {
     bool IsActive;
     std::optional<std::int64_t> ProjectId;
 
-    std::optional<std::string> ProjectDisplayName;
+    std::optional<std::string> ProjectName;
 
     std::string GetFormattedName();
 

@@ -37,70 +37,10 @@ const std::string Sections::TasksViewSection = "tasksView";
 const std::string Sections::ExportSection = "export";
 const std::string Sections::PresetsSection = "presets";
 
-Configuration::TasksViewColumnSetting::TasksViewColumnSetting()
-    : Name("")
-    , Order(-1)
-    , ColumnModelIndex(TasksViewColumnModelIndex::Unknown)
-    , TextAlignment(TasksViewColumnTextAlignment::AlignLeft)
-    , Type(TasksViewColumnType::String)
-{
-}
-
-Configuration::TasksViewColumnSetting::TasksViewColumnSetting(
-    Common::TasksViewColumn tasksViewColumn)
-{
-    Name = tasksViewColumn.Name;
-    Order = tasksViewColumn.Order;
-    ColumnModelIndex = tasksViewColumn.ColumnModelIndex;
-    TextAlignment = tasksViewColumn.TextAlignment;
-    Type = tasksViewColumn.Type;
-}
-
-bool Configuration::TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other) const
-{
-    return Name == other.Name && ColumnModelIndex == other.ColumnModelIndex && Type == other.Type;
-}
-
-bool Configuration::TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const
-{
-    return Name != other.Name && ColumnModelIndex != other.ColumnModelIndex && Type != other.Type;
-}
-
-bool Configuration::TasksViewColumnSetting::IsDescriptionColumn() const
-{
-    return Name == "Description" &&
-           ColumnModelIndex == TasksViewColumnModelIndex::ColumnModelIndexDescription;
-}
-
-Configuration::PresetColumnSetting::PresetColumnSetting(Common::PresetColumn presetColumn)
-{
-    Column = presetColumn.Column;
-    OriginalColumn = presetColumn.OriginalColumn;
-    Order = presetColumn.Order;
-}
-
-Configuration::PresetSetting::PresetSetting(Common::Preset preset)
-{
-    Uuid = preset.Uuid;
-    Name = preset.Name;
-    IsDefault = preset.IsDefault;
-    Delimiter = preset.Delimiter;
-    TextQualifier = preset.TextQualifier;
-    EmptyValuesHandler = preset.EmptyValuesHandler;
-    NewLinesHandler = preset.NewLinesHandler;
-    BooleanHandler = preset.BooleanHandler;
-    ExcludeHeaders = preset.ExcludeHeaders;
-    IncludeAttributes = preset.IncludeAttributes;
-
-    for (auto& presetColumn : preset.Columns) {
-        PresetColumnSetting presetColumnSettings(presetColumn);
-        Columns.push_back(presetColumnSettings);
-    }
-}
-
 Configuration::Configuration(std::shared_ptr<Environment> env,
     std::shared_ptr<spdlog::logger> logger)
-    : pEnv(env)
+    : pSettings(std::make_unique<Settings::Settings>())
+    , pEnv(env)
     , pLogger(logger)
 {
 }
@@ -198,41 +138,40 @@ ConfigResult Configuration::Save()
 
     // General section
     root.at(Sections::GeneralSection).as_table_fmt().fmt = toml::table_format::multiline;
-    root.at(Sections::GeneralSection)["lang"] = mSettings.UserInterfaceLanguage;
-    root.at(Sections::GeneralSection)["startOnBoot"] = mSettings.StartOnBoot;
-    root.at(Sections::GeneralSection)["startPosition"] = static_cast<int>(mSettings.StartPosition);
-    root.at(Sections::GeneralSection)["showInTray"] = mSettings.ShowInTray;
-    root.at(Sections::GeneralSection)["minimizeToTray"] = mSettings.MinimizeToTray;
-    root.at(Sections::GeneralSection)["closeToTray"] = mSettings.CloseToTray;
+    root.at(Sections::GeneralSection)["lang"] = pSettings->UserInterfaceLanguage;
+    root.at(Sections::GeneralSection)["startOnBoot"] = pSettings->StartOnBoot;
+    root.at(Sections::GeneralSection)["startPosition"] = static_cast<int>(pSettings->StartPosition);
+    root.at(Sections::GeneralSection)["showInTray"] = pSettings->ShowInTray;
+    root.at(Sections::GeneralSection)["minimizeToTray"] = pSettings->MinimizeToTray;
+    root.at(Sections::GeneralSection)["closeToTray"] = pSettings->CloseToTray;
 
     // Database section
     root.at(Sections::DatabaseSection).as_table_fmt().fmt = toml::table_format::multiline;
-    root.at(Sections::DatabaseSection)["databaseFileName"] = mSettings.DatabaseFileName;
-    root.at(Sections::DatabaseSection)["databasePath"] = mSettings.DatabasePath;
-    root.at(Sections::DatabaseSection)["backupDatabase"] = mSettings.BackupDatabase;
-    root.at(Sections::DatabaseSection)["backupPath"] = mSettings.BackupPath;
-    root.at(Sections::DatabaseSection)["backupOnProgramClose"] = mSettings.BackupOnProgramClose;
-    root.at(Sections::DatabaseSection)["zipBackupFile"] = mSettings.ZipBackupFile;
+    root.at(Sections::DatabaseSection)["databaseFileName"] = pSettings->DatabaseFileName;
+    root.at(Sections::DatabaseSection)["databasePath"] = pSettings->DatabasePath;
+    root.at(Sections::DatabaseSection)["backupDatabase"] = pSettings->BackupDatabase;
+    root.at(Sections::DatabaseSection)["backupPath"] = pSettings->BackupPath;
+    root.at(Sections::DatabaseSection)["backupOnProgramClose"] = pSettings->BackupOnProgramClose;
+    root.at(Sections::DatabaseSection)["zipBackupFile"] = pSettings->ZipBackupFile;
 
     // Task section
     root.at(Sections::TaskSection).as_table_fmt().fmt = toml::table_format::multiline;
-    root.at(Sections::TaskSection)["minutesIncrement"] = mSettings.TaskMinutesIncrement;
-    root.at(Sections::TaskSection)["maximumDescriptionLength"] = mSettings.MaximumDescriptionLength;
+    root.at(Sections::TaskSection)["minutesIncrement"] = pSettings->TaskMinutesIncrement;
+    root.at(Sections::TaskSection)["maximumDescriptionLength"] =
+        pSettings->MaximumDescriptionLength;
     root.at(Sections::TaskSection)["showProjectAssociatedCategories"] =
-        mSettings.ShowProjectAssociatedCategories;
-    root.at(Sections::TaskSection)["useReminders"] = mSettings.UseReminders;
-    root.at(Sections::TaskSection)["useNotificationBanners"] = mSettings.UseNotificationBanners;
+        pSettings->ShowProjectAssociatedCategories;
+    root.at(Sections::TaskSection)["useReminders"] = pSettings->UseReminders;
+    root.at(Sections::TaskSection)["useNotificationBanners"] = pSettings->UseNotificationBanners;
     root.at(Sections::TaskSection)["openTaskDialogOnReminderClick"] =
-        mSettings.OpenTaskDialogOnReminderClick;
-    root.at(Sections::TaskSection)["useTaskbarFlashing"] = mSettings.UseTaskbarFlashing;
-    root.at(Sections::TaskSection)["reminderInterval"] = mSettings.ReminderInterval;
+        pSettings->OpenTaskDialogOnReminderClick;
+    root.at(Sections::TaskSection)["useTaskbarFlashing"] = pSettings->UseTaskbarFlashing;
+    root.at(Sections::TaskSection)["reminderInterval"] = pSettings->ReminderInterval;
     root.at(Sections::TaskSection)["openTaskDialogOnOutlookMeetingAttendanceCheck"] =
-        mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck;
+        pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
-    root.at(Sections::TasksViewSection)["todayAlwaysExpanded"] = mSettings.TodayAlwaysExpanded;
-    root.at(Sections::TasksViewSection)["useProjectDisplayName"] = mSettings.UseProjectDisplayName;
 
     // Tasks View Columns (sub)section
     toml::value tasksViewColumnArray(toml::array{});
@@ -240,26 +179,23 @@ ConfigResult Configuration::Save()
     tasksViewColumnArray.as_array_fmt().body_indent = 4;
     tasksViewColumnArray.as_array_fmt().closing_indent = 0;
 
-    if (mSettings.TasksViewColumnSettings.size() == 0) {
-        auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
-        std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
-        for (const auto& tasksViewColumn : defaultTasksViewColumns) {
-            TasksViewColumnSetting setting(tasksViewColumn);
-            tasksViewColumnSettings.push_back(setting);
-        }
-
-        mSettings.TasksViewColumnSettings = tasksViewColumnSettings;
+    if (pSettings->TasksViewColumnSettings.size() == 0) {
+        pSettings->TasksViewColumnSettings = Settings::MakeDefaultTasksViewColumnList();
     }
 
-    for (const auto& tasksViewColumn : mSettings.TasksViewColumnSettings) {
+    for (const auto& tasksViewColumn : pSettings->TasksViewColumnSettings) {
         // clang-format off
         toml::value value(
             toml::table {
                 { "name", tasksViewColumn.Name },
+                { "displayName", tasksViewColumn.DisplayName },
                 { "order", tasksViewColumn.Order },
-                { "columnModelIndex", static_cast<unsigned int>(tasksViewColumn.ColumnModelIndex) },
                 { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
-                { "type", static_cast<int>(tasksViewColumn.Type) }
+                { "type", static_cast<int>(tasksViewColumn.Type) },
+                { "ellipsisMode", static_cast<int>(tasksViewColumn.EllipsisMode) },
+                { "width", tasksViewColumn.Width },
+                { "selected", tasksViewColumn.Selected },
+                { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
             }
         );
         // clang-format on
@@ -271,14 +207,14 @@ ConfigResult Configuration::Save()
 
     // Export section
     root.at(Sections::ExportSection).as_table_fmt().fmt = toml::table_format::multiline;
-    root.at(Sections::ExportSection)["exportPath"] = mSettings.ExportPath;
+    root.at(Sections::ExportSection)["exportPath"] = pSettings->ExportPath;
     root.at(Sections::ExportSection)["closeExportDialogAfterExporting"] =
-        mSettings.CloseExportDialogAfterExporting;
-    root.at(Sections::ExportSection)["presetCount"] = mSettings.PresetCount;
+        pSettings->CloseExportDialogAfterExporting;
+    root.at(Sections::ExportSection)["presetCount"] = pSettings->PresetCount;
 
     // Presets section
-    if (mSettings.PresetSettings.size() > 0) {
-        for (const auto& preset : mSettings.PresetSettings) {
+    if (pSettings->PresetSettings.size() > 0) {
+        for (const auto& preset : pSettings->PresetSettings) {
             // clang-format off
             toml::value presetValue(
                 toml::table {
@@ -357,16 +293,7 @@ ConfigResult Configuration::RestoreDefaults()
     OpenTaskDialogOnReminderClick(false);
     OpenTaskDialogOnOutlookMeetingAttendanceCheck(false);
 
-    TodayAlwaysExpanded(false);
-    UseProjectDisplayName(false);
-
-    auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
-    std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
-    for (const auto& tasksViewColumn : defaultTasksViewColumns) {
-        TasksViewColumnSetting setting(tasksViewColumn);
-        tasksViewColumnSettings.push_back(setting);
-    }
-    SetTasksViewColumns(tasksViewColumnSettings);
+    SetTasksViewColumns(Settings::MakeDefaultTasksViewColumnList());
 
     SetExportPath(pEnv->GetExportPath().string());
     CloseExportDialogAfterExporting(false);
@@ -415,8 +342,6 @@ ConfigResult Configuration::RestoreDefaults()
             {
                 Sections::TasksViewSection,
                 toml::table {
-                    { "todayAlwaysExpanded", false },
-                    { "useProjectDisplayName", false },
                     { "tasksViewColumns", toml::array {} }
                 }
             },
@@ -438,15 +363,19 @@ ConfigResult Configuration::RestoreDefaults()
     tasksViewColumnArray.as_array_fmt().body_indent = 4;
     tasksViewColumnArray.as_array_fmt().closing_indent = 0;
 
-    for (const auto& tasksViewColumn : mSettings.TasksViewColumnSettings) {
+    for (const auto& tasksViewColumn : pSettings->TasksViewColumnSettings) {
         // clang-format off
         toml::value value(
             toml::table {
                 { "name", tasksViewColumn.Name },
+                { "displayName", tasksViewColumn.Name },
                 { "order", tasksViewColumn.Order },
-                { "columnModelIndex", static_cast<unsigned int>(tasksViewColumn.ColumnModelIndex) },
                 { "textAlignment", static_cast<int>(tasksViewColumn.TextAlignment) },
-                { "type", static_cast<int>(tasksViewColumn.Type) }
+                { "type", static_cast<int>(tasksViewColumn.Type) },
+                { "ellipsisMode", static_cast<int>(tasksViewColumn.EllipsisMode) },
+                { "width", tasksViewColumn.Width },
+                { "selected", tasksViewColumn.Selected },
+                { "id", static_cast<int>(tasksViewColumn.TaskViewColumnId) },
             }
         );
         // clang-format on
@@ -462,7 +391,7 @@ ConfigResult Configuration::RestoreDefaults()
     return result;
 }
 
-ConfigResult Configuration::SaveExportPreset(const Common::Preset& presetToSave)
+ConfigResult Configuration::SaveExportPreset(const Settings::PresetSetting& presetToSave)
 {
     toml::value root;
     try {
@@ -522,7 +451,7 @@ ConfigResult Configuration::SaveExportPreset(const Common::Preset& presetToSave)
         presets.push_back(std::move(presetValue));
     }
 
-    PresetSetting newPreset(presetToSave);
+    Settings::PresetSetting newPreset(presetToSave);
     AddPreset(newPreset);
 
     const std::string tomlContentsString = toml::format(root);
@@ -531,7 +460,7 @@ ConfigResult Configuration::SaveExportPreset(const Common::Preset& presetToSave)
     return result;
 }
 
-ConfigResult Configuration::UpdateExportPreset(const Common::Preset& presetToUpdate)
+ConfigResult Configuration::UpdateExportPreset(const Settings::PresetSetting& presetToUpdate)
 {
     toml::value root;
     try {
@@ -580,7 +509,7 @@ ConfigResult Configuration::UpdateExportPreset(const Common::Preset& presetToUpd
         }
     }
 
-    PresetSetting updatedPresetSettings(presetToUpdate);
+    Settings::PresetSetting updatedPresetSettings(presetToUpdate);
     EmplacePreset(updatedPresetSettings);
 
     const std::string tomlContentsString = toml::format(root);
@@ -621,310 +550,289 @@ ConfigResult Configuration::TryUnsetDefaultPreset()
 
 std::string Configuration::GetUserInterfaceLanguage() const
 {
-    return mSettings.UserInterfaceLanguage;
+    return pSettings->UserInterfaceLanguage;
 }
 
 void Configuration::SetUserInterfaceLanguage(const std::string& value)
 {
-    mSettings.UserInterfaceLanguage = value;
+    pSettings->UserInterfaceLanguage = value;
 }
 
 bool Configuration::StartOnBoot() const
 {
-    return mSettings.StartOnBoot;
+    return pSettings->StartOnBoot;
 }
 
 void Configuration::StartOnBoot(const bool value)
 {
-    mSettings.StartOnBoot = value;
+    pSettings->StartOnBoot = value;
 }
 
 WindowState Configuration::GetWindowState() const
 {
-    return mSettings.StartPosition;
+    return pSettings->StartPosition;
 }
 
 void Configuration::SetWindowState(const WindowState value)
 {
-    mSettings.StartPosition = value;
+    pSettings->StartPosition = value;
 }
 
 bool Configuration::ShowInTray() const
 {
-    return mSettings.ShowInTray;
+    return pSettings->ShowInTray;
 }
 
 void Configuration::ShowInTray(const bool value)
 {
-    mSettings.ShowInTray = value;
+    pSettings->ShowInTray = value;
 }
 
 bool Configuration::MinimizeToTray() const
 {
-    return mSettings.MinimizeToTray;
+    return pSettings->MinimizeToTray;
 }
 
 void Configuration::MinimizeToTray(const bool value)
 {
-    mSettings.MinimizeToTray = value;
+    pSettings->MinimizeToTray = value;
 }
 
 bool Configuration::CloseToTray() const
 {
-    return mSettings.CloseToTray;
+    return pSettings->CloseToTray;
 }
 
 void Configuration::CloseToTray(const bool value)
 {
-    mSettings.CloseToTray = value;
+    pSettings->CloseToTray = value;
 }
 
 std::string Configuration::GetDatabaseFileName() const
 {
-    return mSettings.DatabaseFileName;
+    return pSettings->DatabaseFileName;
 }
 
 void Configuration::SetDatabaseFileName(const std::string& value)
 {
-    mSettings.DatabaseFileName = value;
+    pSettings->DatabaseFileName = value;
 }
 
 std::string Configuration::GetDatabasePath() const
 {
-    return mSettings.DatabasePath;
+    return pSettings->DatabasePath;
 }
 
 void Configuration::SetDatabasePath(const std::string& value)
 {
-    mSettings.DatabasePath = value;
+    pSettings->DatabasePath = value;
 }
 
 bool Configuration::BackupDatabase() const
 {
-    return mSettings.BackupDatabase;
+    return pSettings->BackupDatabase;
 }
 
 void Configuration::BackupDatabase(const bool value)
 {
-    mSettings.BackupDatabase = value;
+    pSettings->BackupDatabase = value;
 }
 
 std::string Configuration::GetBackupPath() const
 {
-    return mSettings.BackupPath;
+    return pSettings->BackupPath;
 }
 
 void Configuration::SetBackupPath(const std::string& value)
 {
-    mSettings.BackupPath = value;
+    pSettings->BackupPath = value;
 }
 
 bool Configuration::BackupOnProgramClose() const
 {
-    return mSettings.BackupOnProgramClose;
+    return pSettings->BackupOnProgramClose;
 }
 
 void Configuration::BackupOnProgramClose(const bool value)
 {
-    mSettings.BackupOnProgramClose = value;
+    pSettings->BackupOnProgramClose = value;
 }
 
 bool Configuration::ZipBackupFile() const
 {
-    return mSettings.ZipBackupFile;
+    return pSettings->ZipBackupFile;
 }
 
 void Configuration::ZipBackupFile(const bool value)
 {
-    mSettings.ZipBackupFile = value;
+    pSettings->ZipBackupFile = value;
 }
 
 int Configuration::GetMinutesIncrement() const
 {
-    return mSettings.TaskMinutesIncrement;
+    return pSettings->TaskMinutesIncrement;
 }
 
 void Configuration::SetMinutesIncrement(const int value)
 {
-    mSettings.TaskMinutesIncrement = value;
+    pSettings->TaskMinutesIncrement = value;
 }
 
 int Configuration::GetMaximumDescriptionLength() const
 {
-    return mSettings.MaximumDescriptionLength;
+    return pSettings->MaximumDescriptionLength;
 }
 
 void Configuration::SetMaximumDescriptionLength(const int value)
 {
-    mSettings.MaximumDescriptionLength = value;
+    pSettings->MaximumDescriptionLength = value;
 }
 
 bool Configuration::ShowProjectAssociatedCategories() const
 {
-    return mSettings.ShowProjectAssociatedCategories;
+    return pSettings->ShowProjectAssociatedCategories;
 }
 
 void Configuration::ShowProjectAssociatedCategories(const bool value)
 {
-    mSettings.ShowProjectAssociatedCategories = value;
+    pSettings->ShowProjectAssociatedCategories = value;
 }
 
 bool Configuration::UseReminders() const
 {
-    return mSettings.UseReminders;
+    return pSettings->UseReminders;
 }
 
 void Configuration::UseReminders(const bool value)
 {
-    mSettings.UseReminders = value;
+    pSettings->UseReminders = value;
 }
 
 bool Configuration::UseNotificationBanners() const
 {
-    return mSettings.UseNotificationBanners;
+    return pSettings->UseNotificationBanners;
 }
 
 void Configuration::UseNotificationBanners(const bool value)
 {
-    mSettings.UseNotificationBanners = value;
+    pSettings->UseNotificationBanners = value;
 }
 
 bool Configuration::UseTaskbarFlashing() const
 {
-    return mSettings.UseTaskbarFlashing;
+    return pSettings->UseTaskbarFlashing;
 }
 
 void Configuration::UseTaskbarFlashing(const bool value)
 {
-    mSettings.UseTaskbarFlashing = value;
+    pSettings->UseTaskbarFlashing = value;
 }
 
 int Configuration::ReminderInterval() const
 {
-    return mSettings.ReminderInterval;
+    return pSettings->ReminderInterval;
 }
 
 void Configuration::SetReminderInterval(const int value)
 {
-    mSettings.ReminderInterval = value;
+    pSettings->ReminderInterval = value;
 }
 
 bool Configuration::OpenTaskDialogOnReminderClick() const
 {
-    return mSettings.OpenTaskDialogOnReminderClick;
+    return pSettings->OpenTaskDialogOnReminderClick;
 }
 
 void Configuration::OpenTaskDialogOnReminderClick(const bool value)
 {
-    mSettings.OpenTaskDialogOnReminderClick = value;
+    pSettings->OpenTaskDialogOnReminderClick = value;
 }
 
 bool Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck() const
 {
-    return mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck;
+    return pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 }
 
 void Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value)
 {
-    mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck = value;
+    pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck = value;
 }
 
-bool Configuration::TodayAlwaysExpanded() const
+std::vector<Settings::TasksViewColumnSetting> Configuration::GetTasksViewColumns() const
 {
-    return mSettings.TodayAlwaysExpanded;
+    return pSettings->TasksViewColumnSettings;
 }
 
-void Configuration::TodayAlwaysExpanded(const bool value)
+void Configuration::SetTasksViewColumns(const std::vector<Settings::TasksViewColumnSetting> values)
 {
-    mSettings.TodayAlwaysExpanded = value;
-}
-
-bool Configuration::UseProjectDisplayName() const
-{
-    return mSettings.UseProjectDisplayName;
-}
-
-void Configuration::UseProjectDisplayName(const bool value)
-{
-    mSettings.UseProjectDisplayName = value;
-}
-
-std::vector<Configuration::TasksViewColumnSetting> Configuration::GetTasksViewColumns() const
-{
-    return mSettings.TasksViewColumnSettings;
-}
-
-void Configuration::SetTasksViewColumns(
-    const std::vector<Configuration::TasksViewColumnSetting> values)
-{
-    mSettings.TasksViewColumnSettings = values;
+    pSettings->TasksViewColumnSettings = values;
 }
 
 std::string Configuration::GetExportPath() const
 {
-    return mSettings.ExportPath;
+    return pSettings->ExportPath;
 }
 
 void Configuration::SetExportPath(const std::string& value)
 {
-    mSettings.ExportPath = value;
+    pSettings->ExportPath = value;
 }
 
 bool Configuration::CloseExportDialogAfterExporting() const
 {
-    return mSettings.CloseExportDialogAfterExporting;
+    return pSettings->CloseExportDialogAfterExporting;
 }
 
 void Configuration::CloseExportDialogAfterExporting(const bool value)
 {
-    mSettings.CloseExportDialogAfterExporting = value;
+    pSettings->CloseExportDialogAfterExporting = value;
 }
 
 int Configuration::GetPresetCount() const
 {
-    return mSettings.PresetCount;
+    return pSettings->PresetCount;
 }
 
 void Configuration::SetPresetCount(const int value)
 {
-    mSettings.PresetCount = value;
+    pSettings->PresetCount = value;
 }
 
-std::vector<Configuration::PresetSetting> Configuration::GetPresets() const
+std::vector<Settings::PresetSetting> Configuration::GetPresets() const
 {
-    return mSettings.PresetSettings;
+    return pSettings->PresetSettings;
 }
 
-void Configuration::SetPresets(const std::vector<PresetSetting>& values)
+void Configuration::SetPresets(const std::vector<Settings::PresetSetting>& values)
 {
-    mSettings.PresetSettings = values;
+    pSettings->PresetSettings = values;
 }
 
-void Configuration::AddPreset(const PresetSetting& value)
+void Configuration::AddPreset(const Settings::PresetSetting& value)
 {
-    mSettings.PresetSettings.push_back(value);
+    pSettings->PresetSettings.push_back(value);
 }
 
-void Configuration::EmplacePreset(const PresetSetting& value)
+void Configuration::EmplacePreset(const Settings::PresetSetting& value)
 {
     // clang-format off
-    mSettings.PresetSettings.erase(
+    pSettings->PresetSettings.erase(
         std::remove_if(
-            mSettings.PresetSettings.begin(),
-            mSettings.PresetSettings.end(),
-            [&](const PresetSetting& preset) {
+            pSettings->PresetSettings.begin(),
+            pSettings->PresetSettings.end(),
+            [&](const Settings::PresetSetting& preset) {
                 return preset.Uuid == value.Uuid;
             }),
-        mSettings.PresetSettings.end()
+        pSettings->PresetSettings.end()
     );
     // clang-format on
 
-    mSettings.PresetSettings.push_back(value);
+    pSettings->PresetSettings.push_back(value);
 }
 
 void Configuration::ClearPresets()
 {
-    mSettings.PresetSettings.clear();
+    pSettings->PresetSettings.clear();
 }
 
 std::string Configuration::BuildFullDatabaseFilePath() const
@@ -963,6 +871,7 @@ ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileConte
             Messages::ConfigurationFileOpenUserMessage,
             fmt::format(Messages::ConfigurationFileOpenErrorMessage, e.code().message()));
     }
+
     if (!configFileStream.is_open()) {
         pLogger->error("Should not get to this point when opening configuration file: \"{0}\"",
             configFilePath);
@@ -982,19 +891,19 @@ void Configuration::GetGeneralConfig(const toml::value& root)
 
     const auto& generalSection = toml::find(root, Sections::GeneralSection);
 
-    mSettings.UserInterfaceLanguage = toml::find_or<std::string>(generalSection, "lang", "en-US");
+    pSettings->UserInterfaceLanguage = toml::find_or<std::string>(generalSection, "lang", "en-US");
 
-    mSettings.StartOnBoot = toml::find_or<bool>(generalSection, "startOnBoot", false);
+    pSettings->StartOnBoot = toml::find_or<bool>(generalSection, "startOnBoot", false);
 
     auto tomlStartPosition =
         toml::find_or<int>(generalSection, "startPosition", static_cast<int>(WindowState::Normal));
-    mSettings.StartPosition = static_cast<WindowState>(tomlStartPosition);
+    pSettings->StartPosition = static_cast<WindowState>(tomlStartPosition);
 
-    mSettings.ShowInTray = toml::find_or<bool>(generalSection, "showInTray", false);
+    pSettings->ShowInTray = toml::find_or<bool>(generalSection, "showInTray", false);
 
-    mSettings.MinimizeToTray = toml::find_or<bool>(generalSection, "minimizeToTray", false);
+    pSettings->MinimizeToTray = toml::find_or<bool>(generalSection, "minimizeToTray", false);
 
-    mSettings.CloseToTray = toml::find_or<bool>(generalSection, "closeToTray", false);
+    pSettings->CloseToTray = toml::find_or<bool>(generalSection, "closeToTray", false);
 }
 
 void Configuration::GetDatabaseConfig(const toml::value& root)
@@ -1005,23 +914,23 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
 
     const auto& databaseSection = toml::find(root, Sections::DatabaseSection);
 
-    mSettings.DatabaseFileName = toml::find_or<std::string>(
+    pSettings->DatabaseFileName = toml::find_or<std::string>(
         databaseSection, "databaseFileName", pEnv->GetDatabaseFileName());
-    if (mSettings.DatabaseFileName.empty()) {
-        mSettings.DatabaseFileName = pEnv->GetDatabaseFileName();
+    if (pSettings->DatabaseFileName.empty()) {
+        pSettings->DatabaseFileName = pEnv->GetDatabaseFileName();
     }
 
-    mSettings.DatabasePath = toml::find_or<std::string>(
+    pSettings->DatabasePath = toml::find_or<std::string>(
         databaseSection, "databasePath", pEnv->GetDatabasePath().string());
 
-    mSettings.BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
+    pSettings->BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
 
-    mSettings.BackupPath = toml::find_or<std::string>(databaseSection, "backupPath", "");
+    pSettings->BackupPath = toml::find_or<std::string>(databaseSection, "backupPath", "");
 
-    mSettings.BackupOnProgramClose =
+    pSettings->BackupOnProgramClose =
         toml::find_or<bool>(databaseSection, "backupOnProgramClose", false);
 
-    mSettings.ZipBackupFile = toml::find_or<bool>(databaseSection, "zipBackupFile", false);
+    pSettings->ZipBackupFile = toml::find_or<bool>(databaseSection, "zipBackupFile", false);
 }
 
 void Configuration::GetTasksConfig(const toml::value& root)
@@ -1032,27 +941,27 @@ void Configuration::GetTasksConfig(const toml::value& root)
 
     const auto& taskSection = toml::find(root, Sections::TaskSection);
 
-    mSettings.TaskMinutesIncrement = toml::find_or<int>(taskSection, "minutesIncrement", 15);
+    pSettings->TaskMinutesIncrement = toml::find_or<int>(taskSection, "minutesIncrement", 15);
 
-    mSettings.MaximumDescriptionLength =
+    pSettings->MaximumDescriptionLength =
         toml::find_or<int>(taskSection, "maximumDescriptionLength", 3000);
 
-    mSettings.ShowProjectAssociatedCategories =
+    pSettings->ShowProjectAssociatedCategories =
         toml::find_or<bool>(taskSection, "showProjectAssociatedCategories", false);
 
-    mSettings.UseReminders = toml::find_or<bool>(taskSection, "useReminders", false);
+    pSettings->UseReminders = toml::find_or<bool>(taskSection, "useReminders", false);
 
-    mSettings.UseNotificationBanners =
+    pSettings->UseNotificationBanners =
         toml::find_or<bool>(taskSection, "useNotificationBanners", false);
 
-    mSettings.OpenTaskDialogOnReminderClick =
+    pSettings->OpenTaskDialogOnReminderClick =
         toml::find_or<bool>(taskSection, "openTaskDialogOnReminderClick", false);
 
-    mSettings.UseTaskbarFlashing = toml::find_or<bool>(taskSection, "useTaskbarFlashing", false);
+    pSettings->UseTaskbarFlashing = toml::find_or<bool>(taskSection, "useTaskbarFlashing", false);
 
-    mSettings.ReminderInterval = toml::find_or<int>(taskSection, "reminderInterval", 0);
+    pSettings->ReminderInterval = toml::find_or<int>(taskSection, "reminderInterval", 0);
 
-    mSettings.OpenTaskDialogOnOutlookMeetingAttendanceCheck =
+    pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck =
         toml::find_or<bool>(taskSection, "openTaskDialogOnOutlookMeetingAttendanceCheck", true);
 }
 
@@ -1064,54 +973,51 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
 
     const auto& tasksViewSection = toml::find(root, Sections::TasksViewSection);
 
-    mSettings.TodayAlwaysExpanded =
-        toml::find_or<bool>(tasksViewSection, "todayAlwaysExpanded", false);
-
-    mSettings.UseProjectDisplayName =
-        toml::find_or<bool>(tasksViewSection, "useProjectDisplayName", false);
-
     bool tasksViewColumnParsingFailed = false;
     if (tasksViewSection.contains("tasksViewColumns")) {
         const auto& tasksViewArrayTable = toml::find(tasksViewSection, "tasksViewColumns");
         try {
             if (tasksViewArrayTable.is_array()) {
                 if (tasksViewArrayTable.size() == 0) {
-                    auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
-                    std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
-                    for (const auto& tasksViewColumn : defaultTasksViewColumns) {
-                        TasksViewColumnSetting setting(tasksViewColumn);
-                        tasksViewColumnSettings.push_back(setting);
-                    }
+                    std::vector<Settings::TasksViewColumnSetting> tasksViewColumnSettings =
+                        Settings::MakeDefaultTasksViewColumnList();
                 } else {
-                    std::vector<Configuration::TasksViewColumnSetting> columns;
+                    std::vector<Settings::TasksViewColumnSetting> columns;
                     for (size_t i = 0; i < tasksViewArrayTable.size(); i++) {
-                        Configuration::TasksViewColumnSetting column;
+                        Settings::TasksViewColumnSetting column;
+
                         column.Name = toml::find<std::string>(tasksViewArrayTable[i], "name");
+                        column.DisplayName =
+                            toml::find<std::string>(tasksViewArrayTable[i], "displayName");
                         column.Order = toml::find<int>(tasksViewArrayTable[i], "order");
-                        column.ColumnModelIndex = static_cast<TasksViewColumnModelIndex>(
-                            toml::find<unsigned int>(tasksViewArrayTable[i], "columnModelIndex"));
                         column.TextAlignment = static_cast<TasksViewColumnTextAlignment>(
                             toml::find<int>(tasksViewArrayTable[i], "textAlignment"));
+                        column.EllipsisMode = static_cast<TasksViewColumnEllipsisMode>(
+                            toml::find<int>(tasksViewArrayTable[i], "ellipsisMode"));
                         column.Type = static_cast<TasksViewColumnType>(
                             toml::find<int>(tasksViewArrayTable[i], "type"));
+                        column.Width = toml::find<int>(tasksViewArrayTable[i], "width");
+                        column.Selected = toml::find<bool>(tasksViewArrayTable[i], "selected");
+                        column.TaskViewColumnId = static_cast<TasksViewColumnIdentifier>(
+                            toml::find<int>(tasksViewArrayTable[i], "id"));
 
                         columns.push_back(column);
                     }
 
                     // clang-format off
-                std::sort(
-                    columns.begin(),
-                    columns.end(),
-                    [](
-                        const Configuration::TasksViewColumnSetting& lhs,
-                        const Configuration::TasksViewColumnSetting& rhs
-                    ) {
-                        return lhs.Order < rhs.Order;
-                    }
-                );
+                    std::sort(
+                        columns.begin(),
+                        columns.end(),
+                        [](
+                            const Settings::TasksViewColumnSetting& lhs,
+                            const Settings::TasksViewColumnSetting& rhs
+                        ) {
+                            return lhs.Order < rhs.Order;
+                        }
+                    );
                     // clang-format on
 
-                    mSettings.TasksViewColumnSettings = columns;
+                    pSettings->TasksViewColumnSettings = columns;
                 }
             } else {
                 tasksViewColumnParsingFailed = true;
@@ -1129,15 +1035,7 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
 
     if (tasksViewColumnParsingFailed) {
         pLogger->warn("Tasks view column parsing failed, reset to default columns");
-
-        auto defaultTasksViewColumns = Common::DefaultTasksViewColumnList();
-        std::vector<TasksViewColumnSetting> tasksViewColumnSettings;
-        for (const auto& tasksViewColumn : defaultTasksViewColumns) {
-            TasksViewColumnSetting setting(tasksViewColumn);
-            tasksViewColumnSettings.push_back(setting);
-        }
-
-        mSettings.TasksViewColumnSettings = tasksViewColumnSettings;
+        pSettings->TasksViewColumnSettings = Settings::MakeDefaultTasksViewColumnList();
     }
 }
 
@@ -1149,12 +1047,12 @@ void Configuration::GetExportConfig(const toml::value& root)
 
     const auto& exportSection = toml::find(root, Sections::ExportSection);
 
-    mSettings.ExportPath =
+    pSettings->ExportPath =
         toml::find_or<std::string>(exportSection, "exportPath", pEnv->GetExportPath().string());
 
-    mSettings.CloseExportDialogAfterExporting =
+    pSettings->CloseExportDialogAfterExporting =
         toml::find_or<bool>(exportSection, "closeExportDialogAfterExporting", false);
-    mSettings.PresetCount = toml::find_or<int>(exportSection, "presetCount", 0);
+    pSettings->PresetCount = toml::find_or<int>(exportSection, "presetCount", 0);
 }
 
 void Configuration::GetPresetsConfig(const toml::value& root)
@@ -1170,7 +1068,7 @@ void Configuration::GetPresetsConfig(const toml::value& root)
     }
 
     for (size_t i = 0; i < presetSection.size(); i++) {
-        PresetSetting preset;
+        Settings::PresetSetting preset;
 
         preset.Uuid = toml::find_or<std::string>(presetSection[i], "uuid", Utils::Uuid());
         preset.Name = toml::find_or<std::string>(presetSection[i], "name", "<MissingName>");
@@ -1195,7 +1093,7 @@ void Configuration::GetPresetsConfig(const toml::value& root)
         try {
             if (columnsArrayTable.is_array()) {
                 for (size_t j = 0; j < columnsArrayTable.size(); j++) {
-                    PresetColumnSetting presetColumn;
+                    Settings::PresetColumnSetting presetColumn;
                     presetColumn.Column = toml::find<std::string>(columnsArrayTable[j], "column");
                     presetColumn.OriginalColumn =
                         toml::find<std::string>(columnsArrayTable[j], "originalColumn");
@@ -1217,20 +1115,23 @@ void Configuration::GetPresetsConfig(const toml::value& root)
         }
 
         // clang-format off
-            std::sort(
-                preset.Columns.begin(),
-                preset.Columns.end(),
-                [](const PresetColumnSetting& lhs, const PresetColumnSetting& rhs) {
-                    return lhs.Order < rhs.Order;
-                }
-            );
+        std::sort(
+            preset.Columns.begin(),
+            preset.Columns.end(),
+            [](
+                const Settings::PresetColumnSetting& lhs,
+                const Settings::PresetColumnSetting& rhs
+            ) {
+                return lhs.Order < rhs.Order;
+            }
+        );
         // clang-format on
 
-        mSettings.PresetSettings.push_back(preset);
+        pSettings->PresetSettings.push_back(preset);
     }
 
-    if (mSettings.PresetCount == 0 && mSettings.PresetSettings.size() > 0) {
-        mSettings.PresetCount = static_cast<int>(mSettings.PresetSettings.size());
+    if (pSettings->PresetCount == 0 && pSettings->PresetSettings.size() > 0) {
+        pSettings->PresetCount = static_cast<int>(pSettings->PresetSettings.size());
     }
 }
 } // namespace tks::Core

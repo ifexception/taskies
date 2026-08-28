@@ -24,6 +24,7 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
+#include "../utils/sqlite_helpers.h"
 
 namespace tks::Persistence
 {
@@ -93,8 +94,7 @@ SqliteResult WorkdaysPersistence::FilterByDate(const std::string& date,
     model.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
     const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    model.Date =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    model.Date = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
     model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
 

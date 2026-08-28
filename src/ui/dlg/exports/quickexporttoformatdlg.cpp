@@ -511,7 +511,7 @@ void QuickExportToFormatDialog::OnPresetChoiceSelection(wxCommandEvent& event)
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetToApplyIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting& preset) {
+        presets.begin(), presets.end(), [&](const Core::Settings::PresetSetting& preset) {
             return preset.Uuid == presetUuid;
         });
 
@@ -543,7 +543,7 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
 
     auto presets = pCfg->GetPresets();
     const auto& selectedPresetIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Configuration::PresetSetting& preset) {
+        presets.begin(), presets.end(), [&](const Core::Settings::PresetSetting& preset) {
             return preset.Uuid == presetUuid;
         });
 
@@ -668,7 +668,7 @@ void QuickExportToFormatDialog::SetToDateAndDatePicker()
 }
 
 void QuickExportToFormatDialog::ApplyPreset(
-    const Core::Configuration::PresetSetting& presetSetting)
+    const Core::Settings::PresetSetting& presetSetting)
 {
     mExportOptions.Delimiter = presetSetting.Delimiter;
     mExportOptions.TextQualifier = presetSetting.TextQualifier;

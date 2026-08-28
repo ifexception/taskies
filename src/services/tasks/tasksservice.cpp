@@ -24,6 +24,7 @@
 #include "../../common/messages/sqlitemessages.h"
 
 #include "../../utils/utils.h"
+#include "../../utils/sqlite_helpers.h"
 
 namespace tks::Services
 {
@@ -34,25 +35,6 @@ TasksService::TasksService(const std::shared_ptr<spdlog::logger> logger,
 }
 
 TasksService::~TasksService() {}
-
-SqliteResult TasksService::FilterByDateRange(std::vector<std::string> dates,
-    std::map<std::string, std::vector<TaskViewModel>>& taskViewModels)
-{
-    for (const auto& date : dates) {
-        std::vector<TaskViewModel> tasks;
-        auto sqliteResult = FilterByDate(date, tasks);
-        if (!sqliteResult.Success) {
-            return sqliteResult;
-        }
-
-        taskViewModels[date] = tasks;
-    }
-
-    auto datesAsCsvFmt = Utils::ConvertListStringToCommaDelimitedString(dates);
-    SPDLOG_LOGGER_TRACE(pLogger, LogMessages::FilterEntities, taskViewModels.size(), datesAsCsvFmt);
-
-    return SqliteResult::OK();
-}
 
 SqliteResult TasksService::FilterByDate(const std::string& date,
     std::vector<TaskViewModel>& taskViewModels) const
@@ -99,21 +81,12 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
 
             model.Billable = !!sqlite3_column_int(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.UniqueIdentifier = std::nullopt;
-            } else {
-                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                model.UniqueIdentifier = std::make_optional(std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-            }
-            columnIndex++;
+            model.UniqueIdentifier = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
             model.Hours = sqlite3_column_int(stmt, columnIndex++);
             model.Minutes = sqlite3_column_int(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            model.Description = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            model.Description = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
             model.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             model.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -123,33 +96,21 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
             model.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
             model.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            model.WorkdayDate = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            model.WorkdayDate = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            model.ProjectName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            model.ProjectName = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            model.ProjectDisplayName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            model.CategoryName = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            model.CategoryName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            model.CategoryColor =
+                static_cast<unsigned int>(sqlite3_column_int(stmt, columnIndex++));
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                model.ClientName = "";
-            } else {
-                res = sqlite3_column_text(stmt, columnIndex);
-                model.ClientName = std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
-            }
+            model.ClientName = tks::Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            res = sqlite3_column_text(stmt, columnIndex);
-            model.EmployerName = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            model.EmployerName = tks::Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
+
+            auto optIsMeeting = Utils::Sqlite::GetOptionalInt64(stmt, columnIndex++);
+            model.IsMeeting = optIsMeeting.has_value() ? (optIsMeeting.value() > 0) : false;
 
             taskViewModels.push_back(model);
             break;
@@ -221,21 +182,13 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     taskModel.TaskId = sqlite3_column_int64(stmt, columnIndex++);
 
     taskModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        taskModel.UniqueIdentifier = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        taskModel.UniqueIdentifier = std::make_optional(std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex)));
-    }
-    columnIndex++;
+
+    taskModel.UniqueIdentifier = tks::Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
     taskModel.Hours = sqlite3_column_int(stmt, columnIndex++);
     taskModel.Minutes = sqlite3_column_int(stmt, columnIndex++);
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    taskModel.Description =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    taskModel.Description = tks::Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
     taskModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     taskModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -245,33 +198,20 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     taskModel.CategoryId = sqlite3_column_int64(stmt, columnIndex++);
     taskModel.WorkdayId = sqlite3_column_int64(stmt, columnIndex++);
 
-    res = sqlite3_column_text(stmt, columnIndex);
-    taskModel.WorkdayDate =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    taskModel.WorkdayDate = tks::Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-    res = sqlite3_column_text(stmt, columnIndex);
-    taskModel.ProjectName =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    taskModel.ProjectName = tks::Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-    res = sqlite3_column_text(stmt, columnIndex);
-    taskModel.ProjectDisplayName =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    taskModel.CategoryName = tks::Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-    res = sqlite3_column_text(stmt, columnIndex);
-    taskModel.CategoryName =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    taskModel.CategoryColor = static_cast<unsigned int>(sqlite3_column_int(stmt, columnIndex++));
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        taskModel.ClientName = "";
-    } else {
-        res = sqlite3_column_text(stmt, columnIndex);
-        taskModel.ClientName = std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
-    }
+    taskModel.ClientName = tks::Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-    res = sqlite3_column_text(stmt, columnIndex);
-    taskModel.EmployerName =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    taskModel.EmployerName = tks::Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
+
+    auto optIsMeeting = tks::Utils::Sqlite::GetOptionalInt(stmt, columnIndex++);
+    taskModel.IsMeeting = optIsMeeting.has_value() ? (optIsMeeting.value() > 0) : false;
 
     rc = sqlite3_step(stmt);
 
@@ -290,69 +230,77 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     return SqliteResult::OK();
 }
 
-std::string TasksService::filterByDate = "SELECT "
-                                         "tasks.task_id, "
-                                         "tasks.billable, "
-                                         "tasks.unique_identifier, "
-                                         "tasks.hours, "
-                                         "tasks.minutes, "
-                                         "tasks.description, "
-                                         "tasks.date_created, "
-                                         "tasks.date_modified, "
-                                         "tasks.is_active, "
-                                         "tasks.project_id, "
-                                         "tasks.category_id, "
-                                         "tasks.workday_id, "
-                                         "workdays.date, "
-                                         "projects.name,"
-                                         "projects.display_name,"
-                                         "categories.name, "
-                                         "clients.name, "
-                                         "employers.name "
-                                         "FROM tasks "
-                                         "INNER JOIN workdays "
-                                         "ON tasks.workday_id = workdays.workday_id "
-                                         "INNER JOIN projects "
-                                         "ON tasks.project_id = projects.project_id "
-                                         "INNER JOIN categories "
-                                         "ON tasks.category_id = categories.category_id "
-                                         "LEFT JOIN clients "
-                                         "ON projects.client_id = clients.client_id "
-                                         "INNER JOIN employers "
-                                         "ON projects.employer_id = employers.employer_id "
-                                         "WHERE workdays.date = ? "
-                                         "AND tasks.is_active = 1;";
+std::string TasksService::filterByDate =
+    "SELECT "
+    "tasks.task_id, "
+    "tasks.billable, "
+    "tasks.unique_identifier, "
+    "tasks.hours, "
+    "tasks.minutes, "
+    "tasks.description, "
+    "tasks.date_created, "
+    "tasks.date_modified, "
+    "tasks.is_active, "
+    "tasks.project_id, "
+    "tasks.category_id, "
+    "tasks.workday_id, "
+    "workdays.date, "
+    "projects.name,"
+    "categories.name, "
+    "categories.color, "
+    "clients.name, "
+    "employers.name, "
+    "attended_meetings.attended_meeting_id "
+    "FROM tasks "
+    "INNER JOIN workdays "
+    "ON tasks.workday_id = workdays.workday_id "
+    "INNER JOIN projects "
+    "ON tasks.project_id = projects.project_id "
+    "INNER JOIN categories "
+    "ON tasks.category_id = categories.category_id "
+    "LEFT JOIN clients "
+    "ON projects.client_id = clients.client_id "
+    "INNER JOIN employers "
+    "ON projects.employer_id = employers.employer_id "
+    "LEFT JOIN attended_meetings "
+    "ON tasks.attended_meeting_id = attended_meetings.attended_meeting_id "
+    "WHERE workdays.date = ? "
+    "AND tasks.is_active = 1;";
 
-std::string TasksService::getById = "SELECT "
-                                    "tasks.task_id, "
-                                    "tasks.billable, "
-                                    "tasks.unique_identifier, "
-                                    "tasks.hours, "
-                                    "tasks.minutes, "
-                                    "tasks.description, "
-                                    "tasks.date_created, "
-                                    "tasks.date_modified, "
-                                    "tasks.is_active, "
-                                    "tasks.project_id, "
-                                    "tasks.category_id, "
-                                    "tasks.workday_id, "
-                                    "workdays.date, "
-                                    "projects.name,"
-                                    "projects.display_name,"
-                                    "categories.name, "
-                                    "clients.name, "
-                                    "employers.name "
-                                    "FROM tasks "
-                                    "INNER JOIN workdays "
-                                    "ON tasks.workday_id = workdays.workday_id "
-                                    "INNER JOIN projects "
-                                    "ON tasks.project_id = projects.project_id "
-                                    "INNER JOIN categories "
-                                    "ON tasks.category_id = categories.category_id "
-                                    "LEFT JOIN clients "
-                                    "ON projects.client_id = clients.client_id "
-                                    "INNER JOIN employers "
-                                    "ON projects.employer_id = employers.employer_id "
-                                    "WHERE tasks.task_id = ? "
-                                    "AND tasks.is_active = 1;";
+std::string TasksService::getById =
+    "SELECT "
+    "tasks.task_id, "
+    "tasks.billable, "
+    "tasks.unique_identifier, "
+    "tasks.hours, "
+    "tasks.minutes, "
+    "tasks.description, "
+    "tasks.date_created, "
+    "tasks.date_modified, "
+    "tasks.is_active, "
+    "tasks.project_id, "
+    "tasks.category_id, "
+    "tasks.workday_id, "
+    "workdays.date, "
+    "projects.name,"
+    "categories.name, "
+    "categories.color, "
+    "clients.name, "
+    "employers.name, "
+    "attended_meetings.attended_meeting_id "
+    "FROM tasks "
+    "INNER JOIN workdays "
+    "ON tasks.workday_id = workdays.workday_id "
+    "INNER JOIN projects "
+    "ON tasks.project_id = projects.project_id "
+    "INNER JOIN categories "
+    "ON tasks.category_id = categories.category_id "
+    "LEFT JOIN clients "
+    "ON projects.client_id = clients.client_id "
+    "INNER JOIN employers "
+    "ON projects.employer_id = employers.employer_id "
+    "LEFT JOIN attended_meetings "
+    "ON tasks.attended_meeting_id = attended_meetings.attended_meeting_id "
+    "WHERE tasks.task_id = ? "
+    "AND tasks.is_active = 1;";
 } // namespace tks::Services

@@ -53,6 +53,8 @@ std::string ReplaceNewlineWithEllipses(const std::string& value);
 
 std::string ReplaceAll(std::string value, const std::string& src, const std::string& dest);
 
+std::string RightTrim(std::string value);
+
 std::string Uuid();
 
 std::vector<std::string> Split(std::string s, std::string delimiter);

@@ -45,8 +45,7 @@ struct ClientsPersistence final : public PersistenceBase {
         /*out*/ std::vector<Model::ClientModel>& clientModels) const;
     SqliteResult GetById(const std::int64_t clientId,
         /*out*/ Model::ClientModel& clientModel) const;
-    SqliteResult Create(std::int64_t& clientId,
-        const Model::ClientModel& clientModel) const;
+    SqliteResult Create(std::int64_t& clientId, const Model::ClientModel& clientModel) const;
     SqliteResult Update(const Model::ClientModel& clientModel) const;
     SqliteResult Delete(const std::int64_t clientId) const;
 

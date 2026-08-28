@@ -24,6 +24,7 @@
 #include "../common/messages/sqlitemessages.h"
 
 #include "../utils/utils.h"
+#include "../utils/sqlite_helpers.h"
 
 namespace tks::Persistence
 {
@@ -72,8 +73,7 @@ SqliteResult ClientsPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -90,8 +90,7 @@ SqliteResult ClientsPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -109,8 +108,7 @@ SqliteResult ClientsPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::BindParameterTemplate, "employer_name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -124,19 +122,9 @@ SqliteResult ClientsPersistence::Filter(const std::string& searchTerm,
 
             clientModel.ClientId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            clientModel.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            clientModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                clientModel.Description = std::nullopt;
-            } else {
-                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                clientModel.Description = std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-            }
-
-            columnIndex++;
+            clientModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
             clientModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             clientModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -161,8 +149,7 @@ SqliteResult ClientsPersistence::Filter(const std::string& searchTerm,
         pLogger->error(LogMessages::ExecStepTemplate, ClientsPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -205,8 +192,7 @@ SqliteResult ClientsPersistence::FilterByEmployerId(const std::int64_t employerI
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bool done = false;
@@ -220,19 +206,9 @@ SqliteResult ClientsPersistence::FilterByEmployerId(const std::int64_t employerI
 
             clientModel.ClientId = sqlite3_column_int64(stmt, columnIndex++);
 
-            const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-            clientModel.Name = std::string(
-                reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+            clientModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-            if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-                clientModel.Description = std::nullopt;
-            } else {
-                const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-                clientModel.Description = std::string(
-                    reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-            }
-
-            columnIndex++;
+            clientModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
             clientModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
             clientModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -259,8 +235,7 @@ SqliteResult ClientsPersistence::FilterByEmployerId(const std::int64_t employerI
             LogMessages::ExecStepTemplate, ClientsPersistence::filterByEmployerId, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -300,8 +275,7 @@ SqliteResult ClientsPersistence::GetById(const std::int64_t clientId,
         pLogger->error(LogMessages::BindParameterTemplate, "client_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -311,27 +285,16 @@ SqliteResult ClientsPersistence::GetById(const std::int64_t clientId,
         pLogger->error(LogMessages::ExecStepTemplate, ClientsPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     int columnIndex = 0;
 
     clientModel.ClientId = sqlite3_column_int64(stmt, columnIndex++);
 
-    const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-    clientModel.Name =
-        std::string(reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex++));
+    clientModel.Name = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex++);
 
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        clientModel.Description = std::nullopt;
-    } else {
-        const unsigned char* res = sqlite3_column_text(stmt, columnIndex);
-        clientModel.Description = std::string(
-            reinterpret_cast<const char*>(res), sqlite3_column_bytes(stmt, columnIndex));
-    }
-
-    columnIndex++;
+    clientModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
     clientModel.DateCreated = sqlite3_column_int(stmt, columnIndex++);
     clientModel.DateModified = sqlite3_column_int(stmt, columnIndex++);
@@ -390,8 +353,7 @@ SqliteResult ClientsPersistence::Create(std::int64_t& clientId,
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -411,8 +373,7 @@ SqliteResult ClientsPersistence::Create(std::int64_t& clientId,
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -424,8 +385,7 @@ SqliteResult ClientsPersistence::Create(std::int64_t& clientId,
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -435,8 +395,7 @@ SqliteResult ClientsPersistence::Create(std::int64_t& clientId,
         pLogger->error(LogMessages::ExecStepTemplate, ClientsPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -480,8 +439,7 @@ SqliteResult ClientsPersistence::Update(const Model::ClientModel& clientModel) c
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     if (clientModel.Description.has_value()) {
@@ -499,8 +457,7 @@ SqliteResult ClientsPersistence::Update(const Model::ClientModel& clientModel) c
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -512,8 +469,7 @@ SqliteResult ClientsPersistence::Update(const Model::ClientModel& clientModel) c
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -525,8 +481,7 @@ SqliteResult ClientsPersistence::Update(const Model::ClientModel& clientModel) c
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -538,8 +493,7 @@ SqliteResult ClientsPersistence::Update(const Model::ClientModel& clientModel) c
         pLogger->error(LogMessages::BindParameterTemplate, "client_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -548,8 +502,7 @@ SqliteResult ClientsPersistence::Update(const Model::ClientModel& clientModel) c
         pLogger->error(LogMessages::ExecStepTemplate, ClientsPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);
@@ -588,8 +541,7 @@ SqliteResult ClientsPersistence::Delete(const std::int64_t clientId) const
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     bindIndex++;
@@ -601,8 +553,7 @@ SqliteResult ClientsPersistence::Delete(const std::int64_t clientId) const
         pLogger->error(LogMessages::BindParameterTemplate, "client_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::BindStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
     rc = sqlite3_step(stmt);
@@ -613,8 +564,7 @@ SqliteResult ClientsPersistence::Delete(const std::int64_t clientId) const
 
         sqlite3_finalize(stmt);
 
-        return SqliteResult::FailDetailed(
-            Messages::StepStatementMessage, rc, std::string(error));
+        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
     sqlite3_finalize(stmt);

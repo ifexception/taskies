@@ -38,5 +38,5 @@ struct ColumnExportModel {
 std::vector<ColumnExportModel> BuildFromList(const std::vector<UI::ColumnListItemModel>& columns);
 
 std::vector<ColumnExportModel> BuildFromPreset(
-    const std::vector<Core::Configuration::PresetColumnSetting>& columns);
+    const std::vector<Core::Settings::PresetColumnSetting>& columns);
 } // namespace tks::Services::Export

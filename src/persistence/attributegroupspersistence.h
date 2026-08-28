@@ -35,7 +35,8 @@ namespace tks::Persistence
 struct AttributeGroupsPersistence final : public PersistenceBase {
     AttributeGroupsPersistence() = delete;
     AttributeGroupsPersistence(const AttributeGroupsPersistence&) = delete;
-    AttributeGroupsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    AttributeGroupsPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~AttributeGroupsPersistence();
 
     AttributeGroupsPersistence& operator=(const AttributeGroupsPersistence&) = delete;
@@ -50,13 +51,11 @@ struct AttributeGroupsPersistence final : public PersistenceBase {
         const Model::AttributeGroupModel& attributeGroupModel) const;
     SqliteResult Update(Model::AttributeGroupModel& attributeGroupModel) const;
     SqliteResult Delete(const std::int64_t attributeGroupId) const;
-    SqliteResult CheckAttributeGroupAttributeValuesUsage(
-        const std::int64_t attributeGroupId,
+    SqliteResult CheckAttributeGroupAttributeValuesUsage(const std::int64_t attributeGroupId,
         bool& value) const;
     SqliteResult CheckAttributeGroupAttributesUsage(const std::int64_t attributeGroupId,
         bool& value) const;
-    SqliteResult CheckAttributeGroupStaticAttributesUsage(
-        const std::int64_t attributeGroupId,
+    SqliteResult CheckAttributeGroupStaticAttributesUsage(const std::int64_t attributeGroupId,
         bool& value) const;
     SqliteResult UnsetDefault() const;
     SqliteResult SelectDefault(Model::AttributeGroupModel& attributeGroupModel) const;

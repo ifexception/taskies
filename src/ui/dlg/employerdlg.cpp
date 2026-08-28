@@ -216,6 +216,8 @@ void EmployerDialog::DataToControls()
 
         pIsActiveCheckBoxCtrl->Enable();
     }
+
+    Fit();
 }
 
 void EmployerDialog::OnOK(wxCommandEvent& event)

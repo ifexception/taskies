@@ -28,6 +28,10 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
+#include "settings/tasksviewcolumnsetting.h"
+#include "settings/presetsetting.h"
+#include "settings/settings.h"
+
 #include "../common/common.h"
 #include "../common/enums.h"
 
@@ -49,70 +53,6 @@ struct Sections {
 class Configuration
 {
 public:
-    struct TasksViewColumnSetting {
-        std::string Name;
-        int Order;
-        TasksViewColumnModelIndex ColumnModelIndex;
-        TasksViewColumnTextAlignment TextAlignment;
-        TasksViewColumnType Type;
-
-        TasksViewColumnSetting();
-        TasksViewColumnSetting(Common::TasksViewColumn tasksViewColumn);
-        ~TasksViewColumnSetting() = default;
-
-        bool operator==(const TasksViewColumnSetting& other) const;
-        bool operator!=(const TasksViewColumnSetting& other) const;
-
-        // Special method that returns true on "Description" column due to its unique attributes
-        bool IsDescriptionColumn() const;
-    };
-
-    struct PresetColumnSetting {
-        std::string Column;
-        std::string OriginalColumn;
-        int Order;
-
-        PresetColumnSetting()
-            : Column()
-            , OriginalColumn()
-            , Order(-1)
-        {
-        }
-        PresetColumnSetting(Common::PresetColumn presetColumn);
-        ~PresetColumnSetting() = default;
-    };
-
-    struct PresetSetting {
-        std::string Uuid;
-        std::string Name;
-        bool IsDefault;
-        DelimiterType Delimiter;
-        TextQualifierType TextQualifier;
-        EmptyValues EmptyValuesHandler;
-        NewLines NewLinesHandler;
-        BooleanHandler BooleanHandler;
-        bool ExcludeHeaders;
-        bool IncludeAttributes;
-        std::vector<PresetColumnSetting> Columns;
-
-        PresetSetting()
-            : Uuid()
-            , Name()
-            , IsDefault(false)
-            , Delimiter(DelimiterType::None)
-            , TextQualifier(TextQualifierType::None)
-            , EmptyValuesHandler(EmptyValues::None)
-            , NewLinesHandler(NewLines::None)
-            , BooleanHandler(BooleanHandler::None)
-            , ExcludeHeaders(false)
-            , IncludeAttributes(false)
-            , Columns()
-        {
-        }
-        PresetSetting(Common::Preset preset);
-        ~PresetSetting() = default;
-    };
-
     Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
     ~Configuration() = default;
 
@@ -121,8 +61,8 @@ public:
     ConfigResult Save();
     ConfigResult RestoreDefaults();
 
-    ConfigResult SaveExportPreset(const Common::Preset& presetToSave);
-    ConfigResult UpdateExportPreset(const Common::Preset& presetToUpdate);
+    ConfigResult SaveExportPreset(const Settings::PresetSetting& presetToSave);
+    ConfigResult UpdateExportPreset(const Settings::PresetSetting& presetToUpdate);
     ConfigResult TryUnsetDefaultPreset();
 
     std::string GetUserInterfaceLanguage() const;
@@ -188,14 +128,8 @@ public:
     bool OpenTaskDialogOnOutlookMeetingAttendanceCheck() const;
     void OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value);
 
-    bool TodayAlwaysExpanded() const;
-    void TodayAlwaysExpanded(const bool value);
-
-    bool UseProjectDisplayName() const;
-    void UseProjectDisplayName(const bool value);
-
-    std::vector<Configuration::TasksViewColumnSetting> GetTasksViewColumns() const;
-    void SetTasksViewColumns(const std::vector<Configuration::TasksViewColumnSetting> values);
+    std::vector<Settings::TasksViewColumnSetting> GetTasksViewColumns() const;
+    void SetTasksViewColumns(const std::vector<Settings::TasksViewColumnSetting> values);
 
     std::string GetExportPath() const;
     void SetExportPath(const std::string& value);
@@ -206,10 +140,10 @@ public:
     int GetPresetCount() const;
     void SetPresetCount(const int value);
 
-    std::vector<PresetSetting> GetPresets() const;
-    void SetPresets(const std::vector<PresetSetting>& values);
-    void AddPreset(const PresetSetting& value);
-    void EmplacePreset(const PresetSetting& value);
+    std::vector<Settings::PresetSetting> GetPresets() const;
+    void SetPresets(const std::vector<Settings::PresetSetting>& values);
+    void AddPreset(const Settings::PresetSetting& value);
+    void EmplacePreset(const Settings::PresetSetting& value);
     void ClearPresets();
 
     std::string BuildFullDatabaseFilePath() const;
@@ -225,43 +159,7 @@ private:
     void GetExportConfig(const toml::value& root);
     void GetPresetsConfig(const toml::value& root);
 
-    struct Settings {
-        std::string UserInterfaceLanguage;
-        bool StartOnBoot;
-        WindowState StartPosition;
-        bool ShowInTray;
-        bool MinimizeToTray;
-        bool CloseToTray;
-
-        std::string DatabaseFileName;
-        std::string DatabasePath;
-        bool BackupDatabase;
-        std::string BackupPath;
-        bool BackupOnProgramClose;
-        bool ZipBackupFile;
-
-        int TaskMinutesIncrement;
-        int MaximumDescriptionLength;
-        bool ShowProjectAssociatedCategories;
-        bool UseReminders;
-        bool UseNotificationBanners;
-        bool UseTaskbarFlashing;
-        int ReminderInterval;
-        bool OpenTaskDialogOnReminderClick;
-        bool OpenTaskDialogOnOutlookMeetingAttendanceCheck;
-
-        bool TodayAlwaysExpanded;
-        bool UseProjectDisplayName;
-        std::vector<Configuration::TasksViewColumnSetting> TasksViewColumnSettings;
-
-        std::string ExportPath;
-        bool CloseExportDialogAfterExporting;
-        int PresetCount;
-
-        std::vector<PresetSetting> PresetSettings;
-    };
-
-    Settings mSettings;
+    std::unique_ptr<Settings::Settings> pSettings;
 
     std::shared_ptr<Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;

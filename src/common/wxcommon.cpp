@@ -49,4 +49,30 @@ bool IsDarkColour(const wxColor& color)
     double brightness = 0.299 * r + 0.587 * g + 0.114 * b;
     return brightness < 128.0; // Threshold for "dark"
 }
+
+wxAlignment MapTasksViewColumnTextAlignment(TasksViewColumnTextAlignment textAlignment)
+{
+    switch (textAlignment) {
+    case TasksViewColumnTextAlignment::Left:
+        return wxALIGN_LEFT;
+    case TasksViewColumnTextAlignment::Right:
+        return wxALIGN_RIGHT;
+    case TasksViewColumnTextAlignment::Center:
+    default:
+        return wxALIGN_CENTER;
+    }
+}
+
+wxEllipsizeMode MapTasksViewColumnEllipsisMode(TasksViewColumnEllipsisMode ellipsisMode)
+{
+    switch (ellipsisMode) {
+    case TasksViewColumnEllipsisMode::Start:
+        return wxELLIPSIZE_START;
+    case TasksViewColumnEllipsisMode::Middle:
+        return wxELLIPSIZE_MIDDLE;
+    case TasksViewColumnEllipsisMode::End:
+    default:
+        return wxELLIPSIZE_END;
+    }
+}
 } // namespace tks::Common
