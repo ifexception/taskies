@@ -143,6 +143,7 @@ private:
     wxTextCtrl* pTaskDescriptionTextCtrl;
     wxStaticText* pTaskDescriptionCharCountStaticText;
 
+    wxCheckBox* pAddAnotherTaskChoiceCtrl;
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
@@ -180,9 +181,10 @@ private:
         tksIDC_MANAGEATTRIBUTESBUTTON,
         tksIDC_TIMEHOURSSPINCTRL,
         tksIDC_TIMEMINUTESSPINCTRL,
+        tksIDC_ISACTIVECHECKBOXCTRL,
         tksIDC_TASKDESCRIPTIONTEXTCTRL,
         tksIDC_TASKDESCRIPTIONCHARCOUNTSTATICTEXT,
-        tksIDC_ISACTIVECHECKBOXCTRL
+        tksIDC_ADDANOTHERTASKCHOICECTRL,
     };
 };
 } // namespace UI::dlg

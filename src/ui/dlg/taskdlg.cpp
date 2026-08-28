@@ -106,9 +106,10 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pProjectChoiceCtrl(nullptr)
     , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
     , pCategoryChoiceCtrl(nullptr)
-    , pIsActiveCheckBoxCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
     , pTaskDescriptionCharCountStaticText(nullptr)
+    , pIsActiveCheckBoxCtrl(nullptr)
+    , pAddAnotherTaskChoiceCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mDate()
@@ -465,6 +466,12 @@ void TaskDialog::CreateControls()
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    /* Add another task checkbox ctrl */
+    pAddAnotherTaskChoiceCtrl =
+        new wxCheckBox(this, tksIDC_ADDANOTHERTASKCHOICECTRL, "Add Another");
+    pAddAnotherTaskChoiceCtrl->SetToolTip("Capture another task and do not close dialog");
+    buttonsSizer->Add(pAddAnotherTaskChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     buttonsSizer->AddStretchSpacer();
 
