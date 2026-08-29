@@ -41,17 +41,18 @@ std::optional<int> GetOptionalInt(sqlite3_stmt* stmt, int columnIndex) noexcept;
 // Returns std::nullopt when the column is NULL, otherwise the int64 value
 std::optional<std::int64_t> GetOptionalInt64(sqlite3_stmt* stmt, int columnIndex) noexcept;
 
-// Convenience wrappers returning zero when NULL
 inline int GetIntOrZero(sqlite3_stmt* stmt, int columnIndex) noexcept
 {
     auto optionalValue = GetOptionalInt(stmt, columnIndex);
     return optionalValue.has_value() ? optionalValue.value() : 0;
 }
 
-// Convenience wrappers returning zero when NULL
 inline std::int64_t GetInt64OrZero(sqlite3_stmt* stmt, int columnIndex) noexcept
 {
     auto optionalValue = GetOptionalInt64(stmt, columnIndex);
     return optionalValue.has_value() ? optionalValue.value() : 0;
 }
+
+// Returns std::nullopt when the column is NULL, otherwise the double value
+std::optional<double> GetOptionalDouble(sqlite3_stmt* stmt, int columnIndex) noexcept;
 } // namespace tks::Utils::Sqlite

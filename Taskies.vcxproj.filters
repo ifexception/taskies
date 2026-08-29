@@ -899,6 +899,9 @@
     <None Include="res\migrations\20260823103130_drop_display_name_column.sql">
       <Filter>Resource Files\migrations</Filter>
     </None>
+    <None Include="res\migrations\20260829173240_add_billable_hours_to_projects_table.sql">
+      <Filter>Resource Files\migrations</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\about.ico">

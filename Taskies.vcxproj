@@ -592,6 +592,7 @@
     <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql" />
     <None Include="res\migrations\20260210185522_add_attended_meeting_id_column_to_tasks_table.sql" />
     <None Include="res\migrations\20260823103130_drop_display_name_column.sql" />
+    <None Include="res\migrations\20260829173240_add_billable_hours_to_projects_table.sql" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="taskies.toml">

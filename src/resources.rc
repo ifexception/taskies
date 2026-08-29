@@ -41,19 +41,21 @@ DELETE_TASK_ICO ICON "..\\res\\delete_task.ico"
 20250427164010_create_static_attribute_values_table MIGRATION "..\\res\\migrations\\20250427164010_create_static_attribute_values_table.sql"
 20260208152025_create_attended_meetings_table MIGRATION "..\\res\\migrations\\20260208152025_create_attended_meetings_table.sql"
 20260210185522_add_attended_meeting_id_column_to_tasks_table MIGRATION "..\\res\\migrations\\20260210185522_add_attended_meeting_id_column_to_tasks_table.sql"
+20260823103130_drop_display_name_column MIGRATION "..\\res\\migrations\\20260823103130_drop_display_name_column.sql"
+20260829173240_add_billable_hours_to_projects_table MIGRATION "..\\res\\migrations\\20260829173240_add_billable_hours_to_projects_table.sql"
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION        TASKIES_FILE_VERSION
- PRODUCTVERSION     PRODUCT_VERSION
- FILEFLAGSMASK      VS_FFI_FILEFLAGSMASK
+FILEVERSION        TASKIES_FILE_VERSION
+PRODUCTVERSION     PRODUCT_VERSION
+FILEFLAGSMASK      VS_FFI_FILEFLAGSMASK
 #ifdef TKS_DEBUG
- FILEFLAGS VS_FF_DEBUG
+FILEFLAGS VS_FF_DEBUG
 #else
- FILEFLAGS 0
+FILEFLAGS 0
 #endif
- FILEOS             VOS_NT_WINDOWS32
- FILETYPE           VFT_APP
- FILESUBTYPE        0x0L
+FILEOS             VOS_NT_WINDOWS32
+FILETYPE           VFT_APP
+FILESUBTYPE        0x0L
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
@@ -74,4 +76,3 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
-
