@@ -1642,8 +1642,91 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     if (!bAddAnotherTask) {
         EndModal(wxID_OK);
     } else {
-        pDateContextDatePickerCtrl->SetValue(wxDefaultDateTime);
+        pDateContextDatePickerCtrl->SetValue(wxDateTime::Now());
+
+        ResetClientChoiceControl(true);
+
+        ResetProjectChoiceControl(true);
+
+        ResetCategoryChoiceControl();
+
+        std::vector<Model::ClientModel> clients;
+        Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
+
+        auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
+        if (!result.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterClientsByEmployerMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        } else {
+            if (!clients.empty()) {
+                if (!pClientChoiceCtrl->IsEnabled()) {
+                    pClientChoiceCtrl->Enable();
+                }
+
+                for (auto& client : clients) {
+                    pClientChoiceCtrl->Append(
+                        client.Name, new ClientData<std::int64_t>(client.ClientId));
+                }
+            } else {
+                pClientChoiceCtrl->Disable();
+            }
+        }
+
+        std::vector<Model::ProjectModel> projects;
+        Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+
+        sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projects);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterProjectsMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        }
+
+        if (!projects.empty()) {
+            if (!pProjectChoiceCtrl->IsEnabled()) {
+                pProjectChoiceCtrl->Enable();
+            }
+
+            bool hasDefaultProject = false;
+            std::int64_t defaultProjectId = -1;
+
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(
+                    project.Name, new ClientData<std::int64_t>(project.ProjectId));
+
+                if (project.IsDefault) {
+                    hasDefaultProject = true;
+                    defaultProjectId = project.ProjectId;
+                    pProjectChoiceCtrl->SetStringSelection(project.Name);
+                }
+            }
+
+            if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+                FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
+            } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+                pCategoryChoiceCtrl->Disable();
+            } else {
+                FetchCategoryEntities(std::nullopt);
+            }
+        } else {
+            pProjectChoiceCtrl->Disable();
+        }
     }
+
+    pBillableCheckBoxCtrl->SetValue(false);
+    pUniqueIdentiferTextCtrl->SetValue("");
+    pTaskDescriptionTextCtrl->SetValue("");
 }
 
 void TaskDialog::OnCancel(wxCommandEvent& event)
