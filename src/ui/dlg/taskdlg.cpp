@@ -109,7 +109,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pTaskDescriptionTextCtrl(nullptr)
     , pTaskDescriptionCharCountStaticText(nullptr)
     , pIsActiveCheckBoxCtrl(nullptr)
-    , pAddAnotherTaskChoiceCtrl(nullptr)
+    , pAddAnotherCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mDate()
@@ -120,8 +120,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , bHasTaskAttributeValues(false)
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
-    , mProjectIdFromAttendedMeeting(-1)
-    , mCategoryIdFromAttendedMeeting(-1)
+    , bAddAnotherTask(false)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -194,6 +193,8 @@ void TaskDialog::Create()
 
     if (bIsEdit) {
         DataToControls();
+
+        pAddAnotherCheckBoxCtrl->Disable();
     }
 
     if (bIsClone) {
@@ -468,10 +469,9 @@ void TaskDialog::CreateControls()
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
 
     /* Add another task checkbox ctrl */
-    pAddAnotherTaskChoiceCtrl =
-        new wxCheckBox(this, tksIDC_ADDANOTHERTASKCHOICECTRL, "Add Another");
-    pAddAnotherTaskChoiceCtrl->SetToolTip("Capture another task and do not close dialog");
-    buttonsSizer->Add(pAddAnotherTaskChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    pAddAnotherCheckBoxCtrl = new wxCheckBox(this, tksIDC_ADDANOTHERCHOICECTRL, "Add Another");
+    pAddAnotherCheckBoxCtrl->SetToolTip("Capture another task");
+    buttonsSizer->Add(pAddAnotherCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     buttonsSizer->AddStretchSpacer();
 
@@ -769,6 +769,12 @@ void TaskDialog::ConfigureEventBindings()
     pIsActiveCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &TaskDialog::OnIsActiveCheck,
+        this
+    );
+
+    pAddAnotherCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &TaskDialog::OnAddAnotherCheck,
         this
     );
 
@@ -1405,6 +1411,11 @@ void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)
     }
 }
 
+void TaskDialog::OnAddAnotherCheck(wxCommandEvent& event)
+{
+    bAddAnotherTask = event.IsChecked();
+}
+
 void TaskDialog::OnOK(wxCommandEvent& event)
 {
     if (!Validate()) {
@@ -1628,7 +1639,11 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         wxQueueEvent(pParent, taskDeletedEvent);
     }
 
-    EndModal(wxID_OK);
+    if (!bAddAnotherTask) {
+        EndModal(wxID_OK);
+    } else {
+        pDateContextDatePickerCtrl->SetValue(wxDefaultDateTime);
+    }
 }
 
 void TaskDialog::OnCancel(wxCommandEvent& event)
