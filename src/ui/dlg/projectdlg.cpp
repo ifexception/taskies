@@ -304,6 +304,10 @@ void ProjectDialog::DataToControls()
         pIsActiveCheckBoxCtrl->SetValue(mProjectModel.IsActive);
         pIsActiveCheckBoxCtrl->Enable();
 
+        if (mProjectModel.BillableHours.has_value()) {
+            pBillableHoursSpinCtrl->SetValue(mProjectModel.BillableHours.value());
+        }
+
         for (unsigned int i = 0; i < pEmployerChoiceCtrl->GetCount(); i++) {
             auto* data = reinterpret_cast<ClientData<std::int64_t>*>(
                 pEmployerChoiceCtrl->GetClientObject(i));
@@ -363,7 +367,6 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
 
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int ret = 0;
     bool canContinue = true;
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
@@ -476,6 +479,15 @@ bool ProjectDialog::Validate()
         return false;
     }
 
+    auto billableHoursLength = pBillableHoursSpinCtrl->GetValue();
+    if (billableHoursLength < 0) {
+        auto valMsg = "Billable hours must have value greater than zero (0)";
+        wxRichToolTip toolTip("Validation", valMsg);
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pNameTextCtrl);
+        return false;
+    }
+
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
                                     description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
@@ -511,6 +523,10 @@ void ProjectDialog::TransferDataFromControls()
     mProjectModel.Name = Utils::TrimWhitespace(name);
 
     mProjectModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
+
+    mProjectModel.BillableHours = pBillableHoursSpinCtrl->GetValue() > 0
+                                      ? std::make_optional(pBillableHoursSpinCtrl->GetValue())
+                                      : std::nullopt;
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mProjectModel.Description =
