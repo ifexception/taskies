@@ -65,17 +65,4 @@ std::optional<std::int64_t> GetOptionalInt64(sqlite3_stmt* stmt, int columnIndex
 
     return std::make_optional(static_cast<std::int64_t>(sqlite3_column_int64(stmt, columnIndex)));
 }
-
-std::optional<double> GetOptionalDouble(sqlite3_stmt* stmt, int columnIndex) noexcept
-{
-    if (!stmt) {
-        return std::nullopt;
-    }
-
-    if (sqlite3_column_type(stmt, columnIndex) == SQLITE_NULL) {
-        return std::nullopt;
-    }
-
-    return std::make_optional(static_cast<double>(sqlite3_column_double(stmt, columnIndex)));
-}
 } // namespace tks::Utils::Sqlite

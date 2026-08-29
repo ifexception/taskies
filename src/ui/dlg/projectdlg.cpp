@@ -64,6 +64,7 @@ ProjectDialog::ProjectDialog(wxWindow* parent,
     , pLogger(logger)
     , pNameTextCtrl(nullptr)
     , pIsDefaultCheckBoxCtrl(nullptr)
+    , pBillableHoursSpinCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pEmployerChoiceCtrl(nullptr)
     , pClientChoiceCtrl(nullptr)
@@ -116,6 +117,13 @@ void ProjectDialog::CreateControls()
     pIsDefaultCheckBoxCtrl->SetToolTip(
         "Enabling this option for a project will auto-select it on a task entry");
 
+    /* Billable Hours Spin Ctrl */
+    auto billableHoursLabel = new wxStaticText(detailsBox, wxID_ANY, "Billable Hours");
+
+    pBillableHoursSpinCtrl = new wxSpinCtrl(detailsBox, tksIDC_BILLABLEHOURSSPINCTRL);
+    pBillableHoursSpinCtrl->SetToolTip(
+        "Set the total (billable) hours that can be logged against this project");
+
     /* Details Grid Sizer */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     detailsGridSizer->AddGrowableCol(1, 1);
@@ -126,6 +134,10 @@ void ProjectDialog::CreateControls()
 
     detailsGridSizer->Add(0, 0);
     detailsGridSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    detailsGridSizer->Add(
+        billableHoursLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    detailsGridSizer->Add(pBillableHoursSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 

@@ -143,7 +143,7 @@ SqliteResult ProjectsPersistence::Filter(const std::string& searchTerm,
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-            projectModel.BillableHours = Utils::Sqlite::GetOptionalDouble(stmt, columnIndex++);
+            projectModel.BillableHours = Utils::Sqlite::GetOptionalInt(stmt, columnIndex++);
 
             projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
@@ -255,7 +255,7 @@ SqliteResult ProjectsPersistence::FilterByEmployerIdOrClientId(
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-            projectModel.BillableHours = Utils::Sqlite::GetOptionalDouble(stmt, columnIndex++);
+            projectModel.BillableHours = Utils::Sqlite::GetOptionalInt(stmt, columnIndex++);
 
             projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
@@ -352,7 +352,7 @@ SqliteResult ProjectsPersistence::FilterByEmployerId(std::optional<std::int64_t>
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-            projectModel.BillableHours = Utils::Sqlite::GetOptionalDouble(stmt, columnIndex++);
+            projectModel.BillableHours = Utils::Sqlite::GetOptionalInt(stmt, columnIndex++);
 
             projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
@@ -447,7 +447,7 @@ SqliteResult ProjectsPersistence::GetById(const std::int64_t projectId,
 
     projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
-    projectModel.BillableHours = Utils::Sqlite::GetOptionalDouble(stmt, columnIndex++);
+    projectModel.BillableHours = Utils::Sqlite::GetOptionalInt(stmt, columnIndex++);
 
     projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
 
@@ -531,7 +531,7 @@ SqliteResult ProjectsPersistence::Create(std::int64_t& projectId,
 
     // billable hours
     if (projectModel.BillableHours.has_value()) {
-        rc = sqlite3_bind_double(stmt, bindIndex, projectModel.BillableHours.value());
+        rc = sqlite3_bind_int(stmt, bindIndex, projectModel.BillableHours.value());
     } else {
         rc = sqlite3_bind_null(stmt, bindIndex);
     }
@@ -668,7 +668,7 @@ SqliteResult ProjectsPersistence::Update(const Model::ProjectModel& projectModel
 
     // billable hours
     if (projectModel.BillableHours.has_value()) {
-        rc = sqlite3_bind_double(stmt, bindIndex, projectModel.BillableHours.value());
+        rc = sqlite3_bind_int(stmt, bindIndex, projectModel.BillableHours.value());
     } else {
         rc = sqlite3_bind_null(stmt, bindIndex);
     }

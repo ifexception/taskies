@@ -52,7 +52,4 @@ inline std::int64_t GetInt64OrZero(sqlite3_stmt* stmt, int columnIndex) noexcept
     auto optionalValue = GetOptionalInt64(stmt, columnIndex);
     return optionalValue.has_value() ? optionalValue.value() : 0;
 }
-
-// Returns std::nullopt when the column is NULL, otherwise the double value
-std::optional<double> GetOptionalDouble(sqlite3_stmt* stmt, int columnIndex) noexcept;
 } // namespace tks::Utils::Sqlite
