@@ -1691,6 +1691,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
             dialog.ShowModal();
+            return;
         }
 
         if (!projects.empty()) {
@@ -1724,9 +1725,18 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         }
     }
 
+    pTimeHoursSpinCtrl->SetValue(0);
+    pTimeMinutesSpinCtrl->SetValue(pCfg->GetMinutesIncrement());
+
     pBillableCheckBoxCtrl->SetValue(false);
     pUniqueIdentiferTextCtrl->SetValue("");
     pTaskDescriptionTextCtrl->SetValue("");
+
+    bIsMeeting = false;
+    mAttendedMeetingModel = Model::AttendedMeetingModel();
+
+    mTaskId = -1;
+    mTaskModel = Model::TaskModel();
 }
 
 void TaskDialog::OnCancel(wxCommandEvent& event)
