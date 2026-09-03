@@ -99,6 +99,8 @@ private:
 
     void OnIsActiveCheck(wxCommandEvent& event);
 
+    void OnAddAnotherCheck(wxCommandEvent& event);
+
     void OnOK(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
 
@@ -143,6 +145,7 @@ private:
     wxTextCtrl* pTaskDescriptionTextCtrl;
     wxStaticText* pTaskDescriptionCharCountStaticText;
 
+    wxCheckBox* pAddAnotherCheckBoxCtrl;
     wxButton* pOkButton;
     wxButton* pCancelButton;
 
@@ -161,8 +164,7 @@ private:
     bool bHasTaskAttributeValues;
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
-    std::int64_t mProjectIdFromAttendedMeeting;
-    std::int64_t mCategoryIdFromAttendedMeeting;
+    bool bAddAnotherTask;
 
     static std::string AttributeValuesCapturedLabel;
 
@@ -180,9 +182,10 @@ private:
         tksIDC_MANAGEATTRIBUTESBUTTON,
         tksIDC_TIMEHOURSSPINCTRL,
         tksIDC_TIMEMINUTESSPINCTRL,
+        tksIDC_ISACTIVECHECKBOXCTRL,
         tksIDC_TASKDESCRIPTIONTEXTCTRL,
         tksIDC_TASKDESCRIPTIONCHARCOUNTSTATICTEXT,
-        tksIDC_ISACTIVECHECKBOXCTRL
+        tksIDC_ADDANOTHERCHOICECTRL,
     };
 };
 } // namespace UI::dlg
