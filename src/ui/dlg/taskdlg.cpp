@@ -470,7 +470,7 @@ void TaskDialog::CreateControls()
 
     /* Add another task checkbox ctrl */
     pAddAnotherCheckBoxCtrl = new wxCheckBox(this, tksIDC_ADDANOTHERCHOICECTRL, "Add Another");
-    pAddAnotherCheckBoxCtrl->SetToolTip("Capture another task");
+    pAddAnotherCheckBoxCtrl->SetToolTip("Keep dialog open to create another task");
     buttonsSizer->Add(pAddAnotherCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     buttonsSizer->AddStretchSpacer();
