@@ -228,6 +228,8 @@ private:
     void OnPreviousDayButtonClick(wxCommandEvent& event);
     void OnDateChanged(wxDateEvent& event);
     void OnNextDayButtonClick(wxCommandEvent& event);
+    /* Button Event Handlers */
+    void OnNewTaskButtonClick(wxCommandEvent& event);
     /* ListCtrl Event Handlers */
     void OnItemContextMenu(wxDataViewEvent& event);
     void OnItemActivated(wxDataViewEvent& event);
@@ -280,6 +282,8 @@ private:
     wxButton* pPreviousDayButton;
     wxDatePickerCtrl* pDatePickerCtrl;
     wxButton* pNextDayButton;
+    wxButton* pNewTaskButton;
+
     wxDataViewListCtrl* pDataViewListCtrl;
 
     std::unique_ptr<DateStore> pDateStore;
@@ -311,6 +315,7 @@ private:
         tksIDC_PREVIOUSDAYBUTTON,
         tksIDC_DATEPICKERCTRL,
         tksIDC_NEXTDAYBUTTON,
+        tksIDC_NEWTASKBUTTON,
         tksIDC_DATAVIEWLISTCTRL,
         tksIDC_TASKREMINDERTIMER
     };

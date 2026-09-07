@@ -106,9 +106,10 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pProjectChoiceCtrl(nullptr)
     , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
     , pCategoryChoiceCtrl(nullptr)
-    , pIsActiveCheckBoxCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
     , pTaskDescriptionCharCountStaticText(nullptr)
+    , pIsActiveCheckBoxCtrl(nullptr)
+    , pAddAnotherCheckBoxCtrl(nullptr)
     , pOkButton(nullptr)
     , pCancelButton(nullptr)
     , mDate()
@@ -119,8 +120,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , bHasTaskAttributeValues(false)
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
-    , mProjectIdFromAttendedMeeting(-1)
-    , mCategoryIdFromAttendedMeeting(-1)
+    , bAddAnotherTask(false)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -193,6 +193,8 @@ void TaskDialog::Create()
 
     if (bIsEdit) {
         DataToControls();
+
+        pAddAnotherCheckBoxCtrl->Disable();
     }
 
     if (bIsClone) {
@@ -465,6 +467,11 @@ void TaskDialog::CreateControls()
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    /* Add another task checkbox ctrl */
+    pAddAnotherCheckBoxCtrl = new wxCheckBox(this, tksIDC_ADDANOTHERCHOICECTRL, "Add Another");
+    pAddAnotherCheckBoxCtrl->SetToolTip("Keep dialog open to create another task");
+    buttonsSizer->Add(pAddAnotherCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     buttonsSizer->AddStretchSpacer();
 
@@ -762,6 +769,12 @@ void TaskDialog::ConfigureEventBindings()
     pIsActiveCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &TaskDialog::OnIsActiveCheck,
+        this
+    );
+
+    pAddAnotherCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &TaskDialog::OnAddAnotherCheck,
         this
     );
 
@@ -1398,6 +1411,11 @@ void TaskDialog::OnIsActiveCheck(wxCommandEvent& event)
     }
 }
 
+void TaskDialog::OnAddAnotherCheck(wxCommandEvent& event)
+{
+    bAddAnotherTask = event.IsChecked();
+}
+
 void TaskDialog::OnOK(wxCommandEvent& event)
 {
     if (!Validate()) {
@@ -1621,7 +1639,104 @@ void TaskDialog::OnOK(wxCommandEvent& event)
         wxQueueEvent(pParent, taskDeletedEvent);
     }
 
-    EndModal(wxID_OK);
+    if (!bAddAnotherTask) {
+        EndModal(wxID_OK);
+    } else {
+        pDateContextDatePickerCtrl->SetValue(wxDateTime::Now());
+
+        ResetClientChoiceControl(true);
+
+        ResetProjectChoiceControl(true);
+
+        ResetCategoryChoiceControl();
+
+        std::vector<Model::ClientModel> clients;
+        Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
+
+        auto result = clientsPersistence.FilterByEmployerId(mEmployerId, clients);
+        if (!result.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterClientsByEmployerMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.FriendlyErrorMessage);
+            dialog.ShowDetailedText(result.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        } else {
+            if (!clients.empty()) {
+                if (!pClientChoiceCtrl->IsEnabled()) {
+                    pClientChoiceCtrl->Enable();
+                }
+
+                for (auto& client : clients) {
+                    pClientChoiceCtrl->Append(
+                        client.Name, new ClientData<std::int64_t>(client.ClientId));
+                }
+            } else {
+                pClientChoiceCtrl->Disable();
+            }
+        }
+
+        std::vector<Model::ProjectModel> projects;
+        Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
+
+        sqliteResult = projectPersistence.FilterByEmployerId(mEmployerId, projects);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::FilterProjectsMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+            return;
+        }
+
+        if (!projects.empty()) {
+            if (!pProjectChoiceCtrl->IsEnabled()) {
+                pProjectChoiceCtrl->Enable();
+            }
+
+            bool hasDefaultProject = false;
+            std::int64_t defaultProjectId = -1;
+
+            for (auto& project : projects) {
+                pProjectChoiceCtrl->Append(
+                    project.Name, new ClientData<std::int64_t>(project.ProjectId));
+
+                if (project.IsDefault) {
+                    hasDefaultProject = true;
+                    defaultProjectId = project.ProjectId;
+                    pProjectChoiceCtrl->SetStringSelection(project.Name);
+                }
+            }
+
+            if (hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+                FetchCategoryEntities(std::make_optional<std::int64_t>(defaultProjectId));
+            } else if (!hasDefaultProject && pCfg->ShowProjectAssociatedCategories()) {
+                pCategoryChoiceCtrl->Disable();
+            } else {
+                FetchCategoryEntities(std::nullopt);
+            }
+        } else {
+            pProjectChoiceCtrl->Disable();
+        }
+    }
+
+    pTimeHoursSpinCtrl->SetValue(0);
+    pTimeMinutesSpinCtrl->SetValue(pCfg->GetMinutesIncrement());
+
+    pBillableCheckBoxCtrl->SetValue(false);
+    pUniqueIdentiferTextCtrl->SetValue("");
+    pTaskDescriptionTextCtrl->SetValue("");
+
+    bIsMeeting = false;
+    mAttendedMeetingModel = Model::AttendedMeetingModel();
+
+    mTaskId = -1;
+    mTaskModel = Model::TaskModel();
 }
 
 void TaskDialog::OnCancel(wxCommandEvent& event)

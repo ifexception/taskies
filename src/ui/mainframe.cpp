@@ -147,6 +147,7 @@ EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeeti
 EVT_BUTTON(tksIDC_PREVIOUSDAYBUTTON, MainFrame::OnPreviousDayButtonClick)
 EVT_DATE_CHANGED(tksIDC_DATEPICKERCTRL, MainFrame::OnDateChanged)
 EVT_BUTTON(tksIDC_NEXTDAYBUTTON, MainFrame::OnNextDayButtonClick)
+EVT_BUTTON(tksIDC_NEWTASKBUTTON, MainFrame::OnNewTaskButtonClick)
 /* Data View List Ctrl Event Handlers */
 EVT_DATAVIEW_ITEM_CONTEXT_MENU(tksIDC_DATAVIEWLISTCTRL, MainFrame::OnItemContextMenu)
 EVT_DATAVIEW_ITEM_ACTIVATED(tksIDC_DATAVIEWLISTCTRL, MainFrame::OnItemActivated)
@@ -307,7 +308,8 @@ void MainFrame::CreateControls()
     fileNewMenu->Append(ID_NEW_PROJECT, "New &Project", "Create new project");
     fileNewMenu->Append(ID_NEW_CATEGORY, "New Ca&tegory", "Create new category");
     fileNewMenu->AppendSeparator();
-    fileNewMenu->Append(ID_NEW_ATTRIBUTEGROUP, "New A&ttribute Group", "Create new attribute group");
+    fileNewMenu->Append(
+        ID_NEW_ATTRIBUTEGROUP, "New A&ttribute Group", "Create new attribute group");
     fileNewMenu->Append(ID_NEW_ATTRIBUTE, "New &Attribute", "Create new attribute");
     fileNewMenu->Append(
         ID_NEW_STATIC_ATTRIBUTES, "New &Static Attributes", "Create new static attribute values");
@@ -402,17 +404,37 @@ void MainFrame::CreateControls()
     /* Sizer for top controls */
     auto topSizer = new wxBoxSizer(wxHORIZONTAL);
 
+    /* Previous day chevron button */
     pPreviousDayButton = new wxButton(
         framePanel, tksIDC_PREVIOUSDAYBUTTON, "<", wxDefaultPosition, FromDIP(wxSize(32, -1)));
     pPreviousDayButton->SetToolTip("Navigate to the previous date");
+
+    /* Date picket ctrl */
     pDatePickerCtrl = new wxDatePickerCtrl(framePanel, tksIDC_DATEPICKERCTRL);
+    pDatePickerCtrl->SetToolTip("Select date for tasks view");
+
+    /* Next day chevron button */
     pNextDayButton = new wxButton(
         framePanel, tksIDC_NEXTDAYBUTTON, ">", wxDefaultPosition, FromDIP(wxSize(32, -1)));
     pNextDayButton->SetToolTip("Navigate to the next date");
 
+    /* New task button */
+    pNewTaskButton = new wxButton(framePanel, tksIDC_NEWTASKBUTTON, "New Task");
+    pNewTaskButton->SetToolTip("Create new task");
+
+    wxIconBundle newTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
+    wxBitmapBundle newTaskBmpBundle = wxBitmapBundle::FromIconBundle(newTaskIconBundle);
+    wxBitmap newTaskBitmap = newTaskBmpBundle.GetBitmap(wxSize(16, 16));
+
+    pNewTaskButton->SetBitmap(newTaskBitmap);
+    pNewTaskButton->SetBitmapPosition(wxLEFT);
+    pNewTaskButton->SetBitmapMargins(2, 2);
+
     topSizer->Add(pPreviousDayButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    topSizer->Add(pDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    topSizer->Add(pDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     topSizer->Add(pNextDayButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    topSizer->AddStretchSpacer(1);
+    topSizer->Add(pNewTaskButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
@@ -1983,6 +2005,12 @@ void MainFrame::OnNextDayButtonClick(wxCommandEvent& event)
     wxDateTime nextDayDateUtc = eventDateUtc.Add(wxDateSpan::Days(1));
 
     DateChangedProcedure(nextDayDateUtc);
+}
+
+void MainFrame::OnNewTaskButtonClick(wxCommandEvent& WXUNUSED(event))
+{
+    dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.ShowModal();
 }
 
 void MainFrame::OnItemContextMenu(wxDataViewEvent& event)
