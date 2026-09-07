@@ -2069,6 +2069,8 @@ void MainFrame::OnItemContextMenu(wxDataViewEvent& event)
     menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
 
     PopupMenu(&menu);
+
+    pStatusBar->SetStatusText("Ready");
 }
 
 void MainFrame::OnItemActivated(wxDataViewEvent& event)
@@ -2211,6 +2213,8 @@ void MainFrame::OnColumnHeaderRightClick(wxDataViewEvent& event)
     menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
 
     PopupMenu(&menu);
+
+    pStatusBar->SetStatusText("Ready");
 }
 
 void MainFrame::OnDataViewListCtrlResize(wxSizeEvent& event)
