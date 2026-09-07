@@ -42,6 +42,7 @@ DELETE_TASK_ICO ICON "..\\res\\delete_task.ico"
 20260208152025_create_attended_meetings_table MIGRATION "..\\res\\migrations\\20260208152025_create_attended_meetings_table.sql"
 20260210185522_add_attended_meeting_id_column_to_tasks_table MIGRATION "..\\res\\migrations\\20260210185522_add_attended_meeting_id_column_to_tasks_table.sql"
 20260823103130_drop_projects_table_display_name_column MIGRATION "..\\res\\migrations\\20260823103130_drop_projects_table_display_name_column.sql"
+20260829173240_add_billable_hours_column_to_projects_table MIGRATION "..\\res\\migrations\\20260829173240_add_billable_hours_column_to_projects_table.sql"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION        TASKIES_FILE_VERSION
@@ -75,4 +76,3 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
-

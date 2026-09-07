@@ -27,6 +27,7 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
+#include <wx/spinctrl.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
@@ -76,6 +77,8 @@ private:
     wxTextCtrl* pNameTextCtrl;
     wxCheckBox* pIsDefaultCheckBoxCtrl;
 
+    wxSpinCtrl* pBillableHoursSpinCtrl;
+
     wxTextCtrl* pDescriptionTextCtrl;
 
     wxChoice* pEmployerChoiceCtrl;
@@ -95,6 +98,7 @@ private:
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
         tksIDC_ISDEFAULTCHECKBOXCTRL,
+        tksIDC_BILLABLEHOURSSPINCTRL,
         tksIDC_DESCRIPTIONTEXTCTRL,
         tksIDC_EMPLOYERCHOICECTRL,
         tksIDC_CLIENTCHOICECTRL,
