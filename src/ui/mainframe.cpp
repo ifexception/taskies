@@ -1651,7 +1651,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnMenuHighlight(wxMenuEvent& event)
+void MainFrame::OnPopupMenuHighlight(wxMenuEvent& event)
 {
     wxMenuItem* item = nullptr;
 
@@ -2066,7 +2066,7 @@ void MainFrame::OnItemContextMenu(wxDataViewEvent& event)
     std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
     menu.Append(wxID_ADD, addMenuLabel);
 
-    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnPopupMenuHighlight, this);
 
     PopupMenu(&menu);
 
@@ -2210,7 +2210,7 @@ void MainFrame::OnColumnHeaderRightClick(wxDataViewEvent& event)
     wxIconBundle copyWithPresetIconBundle(Common::GetCopyWithPresetIconBundleName(), 0);
     copyWithPresetMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyWithPresetIconBundle));
 
-    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnPopupMenuHighlight, this);
 
     PopupMenu(&menu);
 
