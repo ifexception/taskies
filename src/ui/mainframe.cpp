@@ -194,7 +194,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 // clang-format on
 {
     // Initialization setup
-    SetMinSize(wxSize(FromDIP(320), FromDIP(320)));
+    SetMinSize(wxSize(FromDIP(620), FromDIP(410)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
         pLogger->info(
             "No persistence information found for MainFrame. Use default size \"{0}\"x\"{1}\"",
