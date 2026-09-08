@@ -244,11 +244,11 @@ private:
     void CalculateDefaultTaskDurations();
     void CalculateBillableTaskDurations();
 
-    void UpdateDefaultWeekMonthTaskDurations();
-    void UpdateBillableWeekMonthTaskDurations();
+    // void UpdateDefaultWeekMonthTaskDurations();
+    // void UpdateBillableWeekMonthTaskDurations();
 
-    void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
-    void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
+    // void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
+    // void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
     void DateChangedProcedure(const wxDateTime& dateTime);
     void SetDatePickerDate(const wxDateTime& dateTime);

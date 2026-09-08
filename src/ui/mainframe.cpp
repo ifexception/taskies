@@ -1543,7 +1543,7 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
         ResetTaskContextMenuVariables();
         return;
     } else {
-        TryUpdateSelectedDateAndAllTaskDurations(mTaskDateString);
+        // TryUpdateSelectedDateAndAllTaskDurations(mTaskDateString);
 
         pDataViewListCtrl->DeleteItem(mDataViewListCtrlRow);
         ResizeColumns();
@@ -1585,7 +1585,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
-    UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
+    // UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
 
     Services::TaskViewModel taskViewModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
@@ -1682,7 +1682,7 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
     std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskAdded;
     ssTaskDateAdded >> date::parse("%F", dateTaskAdded);
 
-    TryUpdateSelectedDateAndAllTaskDurations(pDateStore->FormatDate(dateTaskAdded));
+    // TryUpdateSelectedDateAndAllTaskDurations(pDateStore->FormatDate(dateTaskAdded));
 
     if (dateTaskAdded != pDateStore->TodayDate) {
         return;
@@ -1963,7 +1963,7 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
             mTodayDate = pDateStore->TodayDate;
         }
 
-        CalculateStatusBarTaskDurations();
+        // CalculateStatusBarTaskDurations();
     }
 }
 
@@ -2233,7 +2233,7 @@ void MainFrame::CalculateStatusBarTaskDurations()
 
 void MainFrame::CalculateDefaultTaskDurations()
 {
-    pStatusBar->UpdateDefaultHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
+    pStatusBar->UpdateDefaultHoursDay(pDateStore->PrintTodayDate);
     pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
     pStatusBar->UpdateDefaultHoursMonth(
         pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
@@ -2241,47 +2241,47 @@ void MainFrame::CalculateDefaultTaskDurations()
 
 void MainFrame::CalculateBillableTaskDurations()
 {
-    pStatusBar->UpdateBillableHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
+    pStatusBar->UpdateBillableHoursDay(pDateStore->PrintTodayDate);
     pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
     pStatusBar->UpdateBillableHoursMonth(
         pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
 }
 
-void MainFrame::UpdateDefaultWeekMonthTaskDurations()
-{
-    pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateDefaultHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
-}
-
-void MainFrame::UpdateBillableWeekMonthTaskDurations()
-{
-    pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateBillableHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
-}
-
-void MainFrame::TryUpdateSelectedDateAndAllTaskDurations(const std::string& date)
-{
-    pStatusBar->UpdateDefaultHoursDay(date, date);
-    pStatusBar->UpdateBillableHoursDay(date, date);
-
-    UpdateDefaultWeekMonthTaskDurations();
-    UpdateBillableWeekMonthTaskDurations();
-}
-
-void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
-{
-    pStatusBar->UpdateDefaultHoursDay(date, date);
-    pStatusBar->UpdateBillableHoursDay(date, date);
-}
+// void MainFrame::UpdateDefaultWeekMonthTaskDurations()
+//{
+//     pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
+//     pStatusBar->UpdateDefaultHoursMonth(
+//         pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+// }
+//
+// void MainFrame::UpdateBillableWeekMonthTaskDurations()
+//{
+//     pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate,
+//     pDateStore->PrintSundayDate); pStatusBar->UpdateBillableHoursMonth(
+//         pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+// }
+//
+// void MainFrame::TryUpdateSelectedDateAndAllTaskDurations(const std::string& date)
+//{
+//     pStatusBar->UpdateDefaultHoursDay(date, date);
+//     pStatusBar->UpdateBillableHoursDay(date, date);
+//
+//     UpdateDefaultWeekMonthTaskDurations();
+//     UpdateBillableWeekMonthTaskDurations();
+// }
+//
+// void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
+//{
+//     pStatusBar->UpdateDefaultHoursDay(date, date);
+//     pStatusBar->UpdateBillableHoursDay(date, date);
+// }
 
 void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
 {
     SetDatePickerDate(dateTime);
     RefreshDataViewListControl();
 
-    UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
+    // UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
 }
 
 void MainFrame::SetDatePickerDate(const wxDateTime& dateTime)
