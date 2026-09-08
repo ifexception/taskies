@@ -42,33 +42,28 @@ public:
         const std::string& databaseFilePath);
     virtual ~StatusBar() = default;
 
-    void UpdateDefaultHoursDay(const std::string& fromDate, const std::string& toDate);
+    void UpdateDefaultHoursDay(const std::string& todayDate);
     void UpdateDefaultHoursWeek(const std::string& fromDate, const std::string& toDate);
     void UpdateDefaultHoursMonth(const std::string& fromDate, const std::string& toDate);
 
-    void UpdateDefaultHoursRange(const std::string& fromDate, const std::string& toDate);
-
-    void UpdateBillableHoursDay(const std::string& fromDate, const std::string& toDate);
+    void UpdateBillableHoursDay(const std::string& todayDate);
     void UpdateBillableHoursWeek(const std::string& fromDate, const std::string& toDate);
     void UpdateBillableHoursMonth(const std::string& fromDate, const std::string& toDate);
 
-    void UpdateBillableHoursRange(const std::string& fromDate, const std::string& toDate);
-
     enum Fields {
         Default = 0,
-        HoursText = 1,
+        HoursText,
         HoursDay,
-        HoursWeekMonthOrRange,
+        HoursWeek,
+        HoursMonth,
         BillableText,
         BillableDay,
-        BillableWeekMonthOrRange,
+        BillableWeek,
+        BillableMonth,
         Count
     };
 
 private:
-    void UpdateDefaultHoursWeekMonth();
-    void UpdateBillableHoursWeekMonth();
-
     wxWindow* pParent;
 
     std::shared_ptr<spdlog::logger> pLogger;
@@ -76,17 +71,12 @@ private:
 
     Services::TaskDurationService mTaskDurationService;
 
-    std::string mDefaultHoursWeek;
-    std::string mDefaultHoursMonth;
-    std::string mBillableHoursWeek;
-    std::string mBillableHoursMonth;
-
     static std::string HoursDayFormat;
-    static std::string HoursWeekMonthFormat;
-    static std::string HoursRangeFormat;
+    static std::string HoursWeekFormat;
+    static std::string HoursMonthFormat;
 
     static std::string BillableDayFormat;
-    static std::string BillableWeekMonthFormat;
-    static std::string BillableRangeFormat;
+    static std::string BillableWeekFormat;
+    static std::string BillableMonthFormat;
 };
 } // namespace tks::UI
