@@ -240,15 +240,15 @@ private:
     /* Power Event Handlers */
     void OnPowerResume(wxPowerEvent& event);
 
+    /* Status Bar operations */
     void CalculateStatusBarTaskDurations();
     void CalculateDefaultTaskDurations();
     void CalculateBillableTaskDurations();
 
-    // void UpdateDefaultWeekMonthTaskDurations();
-    // void UpdateBillableWeekMonthTaskDurations();
-
-    // void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
-    // void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
+    void UpdateStatusBarTaskDurations(const std::string& date);
+    void UpdateDefaultStatusBarTaskDurations(const std::string& date);
+    void UpdateBillableStatusBarTaskDurations(const std::string& date);
+    void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
     void DateChangedProcedure(const wxDateTime& dateTime);
     void SetDatePickerDate(const wxDateTime& dateTime);

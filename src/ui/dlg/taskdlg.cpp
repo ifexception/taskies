@@ -1634,6 +1634,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     if (bIsEdit && !mTaskModel.IsActive) {
         wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDELETED);
 
+        taskDeletedEvent->SetString(mDate);
         taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
         wxQueueEvent(pParent, taskDeletedEvent);

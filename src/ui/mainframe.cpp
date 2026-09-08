@@ -1542,12 +1542,12 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 
         ResetTaskContextMenuVariables();
         return;
-    } else {
-        // TryUpdateSelectedDateAndAllTaskDurations(mTaskDateString);
-
-        pDataViewListCtrl->DeleteItem(mDataViewListCtrlRow);
-        ResizeColumns();
     }
+
+    UpdateStatusBarTaskDurations(mTaskDateString);
+
+    pDataViewListCtrl->DeleteItem(mDataViewListCtrlRow);
+    ResizeColumns();
 
     ResetTaskContextMenuVariables();
 }
@@ -1585,7 +1585,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
         return;
     }
 
-    // UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
+    UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
 
     Services::TaskViewModel taskViewModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
@@ -1682,7 +1682,7 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
     std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskAdded;
     ssTaskDateAdded >> date::parse("%F", dateTaskAdded);
 
-    // TryUpdateSelectedDateAndAllTaskDurations(pDateStore->FormatDate(dateTaskAdded));
+    UpdateStatusBarTaskDurations(pDateStore->FormatDate(dateTaskAdded));
 
     if (dateTaskAdded != pDateStore->TodayDate) {
         return;
@@ -1776,6 +1776,12 @@ void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
             break;
         }
     }
+
+    std::istringstream ssTaskDate{ eventTaskDateChanged };
+    std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
+    ssTaskDate >> date::parse("%F", taskDate);
+
+    UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
 }
 
 void MainFrame::OnTaskUpdated(wxCommandEvent& event)
@@ -1852,12 +1858,19 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
             }
         }
 
+        std::istringstream ssTaskDate{ taskViewModel.WorkdayDate };
+        std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
+        ssTaskDate >> date::parse("%F", taskDate);
+
+        UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
+
         ResizeColumns();
     }
 }
 
 void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 {
+    auto eventTaskDate = event.GetString().ToStdString();
     auto taskDeletedId = static_cast<std::int64_t>(event.GetExtraLong());
 
     SPDLOG_LOGGER_TRACE(pLogger, "Received task delete event with ID \"{0}\"", taskDeletedId);
@@ -1872,6 +1885,13 @@ void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 
         if (taskDeletedId == dataViewListCtrlTaskId) {
             pDataViewListCtrl->DeleteItem(row);
+
+            std::istringstream ssTaskDate{ eventTaskDate };
+            std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
+            ssTaskDate >> date::parse("%F", taskDate);
+
+            UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
+
             ResizeColumns();
 
             break;
@@ -1963,7 +1983,7 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
             mTodayDate = pDateStore->TodayDate;
         }
 
-        // CalculateStatusBarTaskDurations();
+        CalculateStatusBarTaskDurations();
     }
 }
 
@@ -2247,41 +2267,41 @@ void MainFrame::CalculateBillableTaskDurations()
         pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
 }
 
-// void MainFrame::UpdateDefaultWeekMonthTaskDurations()
-//{
-//     pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-//     pStatusBar->UpdateDefaultHoursMonth(
-//         pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
-// }
-//
-// void MainFrame::UpdateBillableWeekMonthTaskDurations()
-//{
-//     pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate,
-//     pDateStore->PrintSundayDate); pStatusBar->UpdateBillableHoursMonth(
-//         pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
-// }
-//
-// void MainFrame::TryUpdateSelectedDateAndAllTaskDurations(const std::string& date)
-//{
-//     pStatusBar->UpdateDefaultHoursDay(date, date);
-//     pStatusBar->UpdateBillableHoursDay(date, date);
-//
-//     UpdateDefaultWeekMonthTaskDurations();
-//     UpdateBillableWeekMonthTaskDurations();
-// }
-//
-// void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
-//{
-//     pStatusBar->UpdateDefaultHoursDay(date, date);
-//     pStatusBar->UpdateBillableHoursDay(date, date);
-// }
+void MainFrame::UpdateStatusBarTaskDurations(const std::string& date)
+{
+    UpdateDefaultStatusBarTaskDurations(date);
+
+    UpdateBillableStatusBarTaskDurations(date);
+}
+
+void MainFrame::UpdateDefaultStatusBarTaskDurations(const std::string& date)
+{
+    pStatusBar->UpdateDefaultHoursDay(date);
+    pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
+    pStatusBar->UpdateDefaultHoursMonth(
+        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+}
+
+void MainFrame::UpdateBillableStatusBarTaskDurations(const std::string& date)
+{
+    pStatusBar->UpdateBillableHoursDay(date);
+    pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
+    pStatusBar->UpdateBillableHoursMonth(
+        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+}
+
+void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
+{
+    pStatusBar->UpdateDefaultHoursDay(date);
+    pStatusBar->UpdateBillableHoursDay(date);
+}
 
 void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
 {
     SetDatePickerDate(dateTime);
     RefreshDataViewListControl();
 
-    // UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
+    UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
 }
 
 void MainFrame::SetDatePickerDate(const wxDateTime& dateTime)
