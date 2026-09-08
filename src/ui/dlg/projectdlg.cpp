@@ -176,12 +176,17 @@ void ProjectDialog::CreateControls()
     sizer->Add(clientLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     sizer->Add(pClientChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+    /* Is Active static box control */
+    auto isActiveStaticBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    auto isActiveStaticBoxSizer = new wxStaticBoxSizer(isActiveStaticBox, wxHORIZONTAL);
+    sizer->Add(isActiveStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
     /* Is Active checkbox control */
     pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
-    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
+    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this project is active");
     pIsActiveCheckBoxCtrl->Disable();
 
-    sizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    isActiveStaticBoxSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
