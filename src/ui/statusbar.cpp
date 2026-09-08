@@ -52,13 +52,13 @@ StatusBar::StatusBar(wxWindow* parent,
 {
     int widths[] = { -1,
         FromDIP(56),
-        FromDIP(64),
-        FromDIP(64),
-        FromDIP(64),
         FromDIP(56),
-        FromDIP(64),
-        FromDIP(64),
-        FromDIP(64) };
+        FromDIP(56),
+        FromDIP(56),
+        FromDIP(56),
+        FromDIP(56),
+        FromDIP(56),
+        FromDIP(56) };
 
     // clang-format off
     // TODO(SW): calling SetFieldsCount *without* the width parameters logs the following error(?) messages:
