@@ -137,6 +137,7 @@ private:
 
     wxChoice* pClientChoiceCtrl;
     wxChoice* pProjectChoiceCtrl;
+    wxTextCtrl* pProjectCalculatedBillableHoursTextCtrl;
     wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
     wxChoice* pCategoryChoiceCtrl;
 
@@ -173,6 +174,7 @@ private:
         tksIDC_EMPLOYERCHOICECTRL,
         tksIDC_CLIENTCHOICECTRL,
         tksIDC_PROJECTCHOICECTRL,
+        tksIDC_PROJECTCALCULATEDBILLABLEHOURSTEXTCTRL,
         tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
         tksIDC_CATEGORYCHOICECTRL,
         tksIDC_BILLABLECHECKBOXCTRL,

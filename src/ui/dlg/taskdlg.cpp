@@ -104,6 +104,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pEmployerChoiceCtrl(nullptr)
     , pClientChoiceCtrl(nullptr)
     , pProjectChoiceCtrl(nullptr)
+    , pProjectCalculatedBillableHoursTextCtrl(nullptr)
     , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
     , pCategoryChoiceCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
@@ -375,6 +376,18 @@ void TaskDialog::CreateControls()
     pProjectChoiceCtrl = new wxChoice(this, tksIDC_PROJECTCHOICECTRL);
     pProjectChoiceCtrl->SetToolTip("Select project to associate task with");
 
+    /* Project billable hours calculation text ctrl */
+    auto projectBillableHoursLabel = new wxStaticText(this, wxID_ANY, "Billable Hours Calculation");
+
+    pProjectCalculatedBillableHoursTextCtrl = new wxTextCtrl(this,
+        tksIDC_PROJECTCALCULATEDBILLABLEHOURSTEXTCTRL,
+        "0",
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_READONLY);
+    pProjectCalculatedBillableHoursTextCtrl->SetToolTip(
+        "Shows how much time has been logged against a billable project");
+
     /* Associated categories control */
     pShowProjectAssociatedCategoriesCheckBoxCtrl = new wxCheckBox(this,
         tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
@@ -393,7 +406,14 @@ void TaskDialog::CreateControls()
     leftSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     leftSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    leftSizer->Add(0, 0);
+    auto projectBillableHoursHSizer = new wxBoxSizer(wxHORIZONTAL);
+    leftSizer->Add(projectBillableHoursHSizer, wxSizerFlags().Expand());
+
+    projectBillableHoursHSizer->Add(
+        projectBillableHoursLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    projectBillableHoursHSizer->Add(
+        pProjectCalculatedBillableHoursTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
     leftSizer->Add(
         pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
