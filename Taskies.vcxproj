@@ -316,6 +316,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\services\projectbillablehours\projectbillablehourscalculator.cpp" />
     <ClCompile Include="src\core\settings\presetcolumnsetting.cpp" />
     <ClCompile Include="src\core\settings\presetsetting.cpp" />
     <ClCompile Include="src\core\settings\settings.cpp" />
@@ -439,6 +440,7 @@
     <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\services\projectbillablehours\projectbillablehourscalculator.h" />
     <ClInclude Include="src\core\settings\presetcolumnsetting.h" />
     <ClInclude Include="src\core\settings\presetsetting.h" />
     <ClInclude Include="src\core\settings\settings.h" />
