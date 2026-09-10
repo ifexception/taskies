@@ -65,6 +65,7 @@
 
 #include "../../services/categories/categoryviewmodel.h"
 #include "../../services/categories/categoryservice.h"
+#include "../../services/projectbillablehours/projectbillablehourscalculator.h"
 
 #include "../../utils/utils.h"
 
@@ -122,6 +123,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
     , bAddAnotherTask(false)
+    , mMonthStartDate()
+    , mMonthEndDate()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -133,6 +136,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
     }
 
     mOldDate = mDate;
+
+    CalculateMonthStartAndMonthEndDates();
 
     Create();
 
@@ -377,11 +382,11 @@ void TaskDialog::CreateControls()
     pProjectChoiceCtrl->SetToolTip("Select project to associate task with");
 
     /* Project billable hours calculation text ctrl */
-    auto projectBillableHoursLabel = new wxStaticText(this, wxID_ANY, "Billable Hours Calculation");
+    auto projectBillableHoursLabel = new wxStaticText(this, wxID_ANY, "Billable Hours Usage");
 
     pProjectCalculatedBillableHoursTextCtrl = new wxTextCtrl(this,
         tksIDC_PROJECTCALCULATEDBILLABLEHOURSTEXTCTRL,
-        "0",
+        "(n/a)",
         wxDefaultPosition,
         wxDefaultSize,
         wxTE_READONLY);
@@ -411,8 +416,9 @@ void TaskDialog::CreateControls()
 
     projectBillableHoursHSizer->Add(
         projectBillableHoursLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    projectBillableHoursHSizer->AddStretchSpacer(1);
     projectBillableHoursHSizer->Add(
-        pProjectCalculatedBillableHoursTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+        pProjectCalculatedBillableHoursTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     leftSizer->Add(
         pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
@@ -696,6 +702,7 @@ void TaskDialog::FillControls()
 
             bool hasDefaultProject = false;
             std::int64_t defaultProjectId = -1;
+            Model::ProjectModel defaultProjectModel;
 
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(
@@ -704,6 +711,7 @@ void TaskDialog::FillControls()
                 if (project.IsDefault) {
                     hasDefaultProject = true;
                     defaultProjectId = project.ProjectId;
+                    defaultProjectModel = project;
                     pProjectChoiceCtrl->SetStringSelection(project.Name);
                 }
             }
@@ -714,6 +722,30 @@ void TaskDialog::FillControls()
                 pCategoryChoiceCtrl->Disable();
             } else {
                 FetchCategoryEntities(std::nullopt);
+            }
+
+            if (defaultProjectId != -1 && defaultProjectModel.BillableHours.has_value()) {
+                Services::ProjectBillableHoursCalculatorService projectCalcService(
+                    pLogger, mDatabaseFilePath);
+                double totalHours = 0.0;
+
+                sqliteResult = projectCalcService.CalculateTotalBillableHoursByProjectId(
+                    mMonthStartDate, mMonthEndDate, defaultProjectId, totalHours);
+                if (!sqliteResult.Success) {
+                    wxRichMessageDialog dialog(this,
+                        Messages::ProjectBillableHoursCalculationMessage,
+                        tks::Common::GetProgramName(),
+                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+                    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+                    dialog.ShowModal();
+                    return;
+                }
+
+                std::string remainingBillableHoursText = fmt::format(
+                    "{0:.2f} of {1}", totalHours, defaultProjectModel.BillableHours.value());
+                pProjectCalculatedBillableHoursTextCtrl->ChangeValue(remainingBillableHoursText);
             }
         } else {
             pProjectChoiceCtrl->Disable();
@@ -2079,6 +2111,18 @@ void TaskDialog::ClonedDataToControls()
 
     pIsActiveCheckBoxCtrl->SetValue(false);
     pIsActiveCheckBoxCtrl->Disable();
+}
+
+void TaskDialog::CalculateMonthStartAndMonthEndDates()
+{
+    auto todayDate = date::floor<date::days>(std::chrono::system_clock::now());
+    auto todayYearMonthDayDate = date::year_month_day{ todayDate };
+    auto firstDayOfCurrentMonth = todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / 1;
+    auto lastDayOfCurrentMonth =
+        todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / date::last;
+
+    mMonthStartDate = date::format("%F", firstDayOfCurrentMonth);
+    mMonthEndDate = date::format("%F", lastDayOfCurrentMonth);
 }
 
 std::string TaskDialog::AttributeValuesCapturedLabel = "\"{0}\" attribute values captured";

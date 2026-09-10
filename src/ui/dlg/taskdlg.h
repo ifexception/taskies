@@ -118,6 +118,8 @@ private:
 
     void ClonedDataToControls();
 
+    void CalculateMonthStartAndMonthEndDates();
+
     wxWindow* pParent;
 
     std::shared_ptr<Core::Configuration> pCfg;
@@ -166,6 +168,9 @@ private:
     std::vector<Model::TaskAttributeValueModel> mTaskAttributeValueModels;
 
     bool bAddAnotherTask;
+
+    std::string mMonthStartDate;
+    std::string mMonthEndDate;
 
     static std::string AttributeValuesCapturedLabel;
 
