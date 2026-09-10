@@ -56,7 +56,9 @@ const std::string GetByIdProjectMessage = "Something went wrong while trying get
 const std::string FilterProjectsByEmployerMessage =
     "Something went wrong while trying get projects by employer";
 const std::string UnsetDefaultProjectMessage =
-    "Something went wrong while trying to unset default employer";
+    "Something went wrong while trying to unset default project";
+const std::string ProjectBillableHoursCalculationMessage =
+    "Something went wrong while trying to calculate selected project billable hours";
 #pragma endregion
 
 #pragma region Category
