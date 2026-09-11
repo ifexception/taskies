@@ -2137,6 +2137,7 @@ void TaskDialog::FetchAndSetBillableHoursUsageControl(const Model::ProjectModel&
 
         auto sqliteResult = projectCalcService.CalculateTotalBillableHoursByProjectId(
             mMonthStartDate, mMonthEndDate, projectModel.ProjectId, totalHours);
+
         if (!sqliteResult.Success) {
             wxRichMessageDialog dialog(this,
                 Messages::ProjectBillableHoursCalculationMessage,
