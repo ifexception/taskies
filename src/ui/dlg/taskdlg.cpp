@@ -2016,6 +2016,7 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
 
         bool hasDefaultProject = false;
         std::int64_t defaultProjectId = -1;
+        Model::ProjectModel projectModel;
 
         for (auto& project : projects) {
             pProjectChoiceCtrl->Append(
@@ -2024,7 +2025,11 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
             if (project.IsDefault) {
                 hasDefaultProject = true;
                 defaultProjectId = project.ProjectId;
+                projectModel = project;
+
                 pProjectChoiceCtrl->SetStringSelection(project.Name);
+
+                FetchAndSetBillableHoursUsageControl(projectModel);
             }
         }
 
