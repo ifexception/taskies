@@ -38,6 +38,7 @@
 #include "../../models/taskmodel.h"
 #include "../../models/taskattributevaluemodel.h"
 #include "../../models/attendedmeetingmodel.h"
+#include "../../models/projectmodel.h"
 
 namespace tks
 {
@@ -119,6 +120,9 @@ private:
     void ClonedDataToControls();
 
     void CalculateMonthStartAndMonthEndDates();
+
+    void FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel);
+    void ResetBillableHoursUsageControl();
 
     wxWindow* pParent;
 

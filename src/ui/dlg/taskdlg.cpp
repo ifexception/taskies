@@ -45,7 +45,6 @@
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
-#include "../../models/projectmodel.h"
 #include "../../models/categorymodel.h"
 #include "../../models/attributegroupmodel.h"
 #include "../../models/attributemodel.h"
@@ -724,28 +723,8 @@ void TaskDialog::FillControls()
                 FetchCategoryEntities(std::nullopt);
             }
 
-            if (defaultProjectId != -1 && defaultProjectModel.BillableHours.has_value()) {
-                Services::ProjectBillableHoursCalculatorService projectCalcService(
-                    pLogger, mDatabaseFilePath);
-                double totalHours = 0.0;
-
-                sqliteResult = projectCalcService.CalculateTotalBillableHoursByProjectId(
-                    mMonthStartDate, mMonthEndDate, defaultProjectId, totalHours);
-                if (!sqliteResult.Success) {
-                    wxRichMessageDialog dialog(this,
-                        Messages::ProjectBillableHoursCalculationMessage,
-                        tks::Common::GetProgramName(),
-                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-                    dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
-                    dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
-
-                    dialog.ShowModal();
-                    return;
-                }
-
-                std::string remainingBillableHoursText = fmt::format(
-                    "{0:.2f} of {1}", totalHours, defaultProjectModel.BillableHours.value());
-                pProjectCalculatedBillableHoursTextCtrl->ChangeValue(remainingBillableHoursText);
+            if (defaultProjectId != -1) {
+                FetchAndSetBillableHoursUsageControl(defaultProjectModel);
             }
         } else {
             pProjectChoiceCtrl->Disable();
@@ -963,6 +942,7 @@ void TaskDialog::DataToControls()
     }
 
     pProjectChoiceCtrl->SetStringSelection(projectModel.Name);
+    FetchAndSetBillableHoursUsageControl(projectModel);
 
     // load clients
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
@@ -1157,6 +1137,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
     ResetClientChoiceControl();
     ResetProjectChoiceControl();
+    ResetBillableHoursUsageControl();
     ResetCategoryChoiceControl();
 
     int employerIndex = event.GetSelection();
@@ -1351,6 +1332,23 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
         return;
     }
 
+    Model::ProjectModel projectModel;
+    Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
+    auto sqliteResult = projectsPersistence.GetById(projectId, projectModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdProjectMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+
+        return;
+    }
+
+    FetchAndSetBillableHoursUsageControl(projectModel);
     FetchCategoryEntities(std::make_optional<std::int64_t>(projectId));
 }
 
@@ -2123,6 +2121,40 @@ void TaskDialog::CalculateMonthStartAndMonthEndDates()
 
     mMonthStartDate = date::format("%F", firstDayOfCurrentMonth);
     mMonthEndDate = date::format("%F", lastDayOfCurrentMonth);
+}
+
+void TaskDialog::FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel)
+{
+    if (projectModel.BillableHours.has_value()) {
+        Services::ProjectBillableHoursCalculatorService projectCalcService(
+            pLogger, mDatabaseFilePath);
+        double totalHours = 0.0;
+
+        auto sqliteResult = projectCalcService.CalculateTotalBillableHoursByProjectId(
+            mMonthStartDate, mMonthEndDate, projectModel.ProjectId, totalHours);
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::ProjectBillableHoursCalculationMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        } else {
+            std::string remainingBillableHoursText =
+                fmt::format("{0:.2f} of {1}", totalHours, projectModel.BillableHours.value());
+            pProjectCalculatedBillableHoursTextCtrl->ChangeValue(remainingBillableHoursText);
+            return;
+        }
+    }
+
+    ResetBillableHoursUsageControl();
+}
+
+void TaskDialog::ResetBillableHoursUsageControl()
+{
+    pProjectCalculatedBillableHoursTextCtrl->ChangeValue("n/a");
 }
 
 std::string TaskDialog::AttributeValuesCapturedLabel = "\"{0}\" attribute values captured";
