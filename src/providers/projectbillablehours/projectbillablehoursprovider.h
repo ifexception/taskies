@@ -26,7 +26,7 @@
 
 #include "../../persistence/base/persistencebase.h"
 
-namespace tks::Services
+namespace tks::Providers
 {
 struct ProjectBillableHoursProvider : public Persistence::PersistenceBase {
     ProjectBillableHoursProvider() = delete;

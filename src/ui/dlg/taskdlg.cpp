@@ -2131,11 +2131,10 @@ void TaskDialog::CalculateMonthStartAndMonthEndDates()
 void TaskDialog::FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel)
 {
     if (projectModel.BillableHours.has_value()) {
-        Services::ProjectBillableHoursProvider projectCalcService(
-            pLogger, mDatabaseFilePath);
+        Providers::ProjectBillableHoursProvider billableHoursProvider(pLogger, mDatabaseFilePath);
         double totalHours = 0.0;
 
-        auto sqliteResult = projectCalcService.CalculateTotalBillableHoursByProjectId(
+        auto sqliteResult = billableHoursProvider.CalculateTotalBillableHoursByProjectId(
             mMonthStartDate, mMonthEndDate, projectModel.ProjectId, totalHours);
 
         if (!sqliteResult.Success) {

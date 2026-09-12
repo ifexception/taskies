@@ -23,7 +23,7 @@
 
 #include "../../common/messages/sqlitemessages.h"
 
-namespace tks::Services
+namespace tks::Providers
 {
 ProjectBillableHoursProvider::ProjectBillableHoursProvider(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
