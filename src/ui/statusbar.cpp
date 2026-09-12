@@ -48,8 +48,11 @@ StatusBar::StatusBar(wxWindow* parent,
     , pParent(parent)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
-    , mTaskDurationService(pLogger, mDatabaseFilePath)
+    , pTaskHoursProvider(nullptr)
 {
+    // Allocate TaskHoursProvider
+    pTaskHoursProvider = std::make_unique<Providers::TaskHoursProvider>(pLogger, mDatabaseFilePath);
+
     int widths[] = { -1,
         FromDIP(56),
         FromDIP(56),
@@ -81,12 +84,9 @@ StatusBar::StatusBar(wxWindow* parent,
     SetStatusText("[M] 00:00", Fields::BillableMonth);
 }
 
-void StatusBar::UpdateDefaultHoursDay(const std::string& todayDate)
+void StatusBar::UpdateDefaultHoursDay(const std::string& date)
 {
-    std::string duration = "";
-
-    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
-        todayDate, todayDate, TaskDurationType::Default, duration);
+    auto [sqliteResult, totalHours] = pTaskHoursProvider->GetTaskHoursByDate(date);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::DurationCalculationMessage,
@@ -97,17 +97,14 @@ void StatusBar::UpdateDefaultHoursDay(const std::string& todayDate)
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::HoursDayFormat, duration);
+        auto formattedText = fmt::format(StatusBar::HoursDayFormat, totalHours);
         SetStatusText(formattedText, Fields::HoursDay);
     }
 }
 
 void StatusBar::UpdateDefaultHoursWeek(const std::string& fromDate, const std::string& toDate)
 {
-    std::string duration = "";
-
-    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
-        fromDate, toDate, TaskDurationType::Default, duration);
+    auto [sqliteResult, totalHours] = pTaskHoursProvider->GetTaskHoursByWeek(fromDate, toDate);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::DurationCalculationMessage,
@@ -118,17 +115,14 @@ void StatusBar::UpdateDefaultHoursWeek(const std::string& fromDate, const std::s
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::HoursWeekFormat, duration);
+        auto formattedText = fmt::format(StatusBar::HoursWeekFormat, totalHours);
         SetStatusText(formattedText, Fields::HoursWeek);
     }
 }
 
 void StatusBar::UpdateDefaultHoursMonth(const std::string& fromDate, const std::string& toDate)
 {
-    std::string duration = "";
-
-    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
-        fromDate, toDate, TaskDurationType::Default, duration);
+    auto [sqliteResult, totalHours] = pTaskHoursProvider->GetTaskHoursByMonth(fromDate, toDate);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::DurationCalculationMessage,
@@ -139,17 +133,14 @@ void StatusBar::UpdateDefaultHoursMonth(const std::string& fromDate, const std::
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::HoursMonthFormat, duration);
+        auto formattedText = fmt::format(StatusBar::HoursMonthFormat, totalHours);
         SetStatusText(formattedText, Fields::HoursMonth);
     }
 }
 
-void StatusBar::UpdateBillableHoursDay(const std::string& todayDate)
+void StatusBar::UpdateBillableHoursDay(const std::string& date)
 {
-    std::string duration = "";
-
-    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
-        todayDate, todayDate, TaskDurationType::Billable, duration);
+    auto [sqliteResult, totalHours] = pTaskHoursProvider->GetBillableTaskHoursByDate(date);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::DurationCalculationMessage,
@@ -160,17 +151,15 @@ void StatusBar::UpdateBillableHoursDay(const std::string& todayDate)
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::BillableDayFormat, duration);
+        auto formattedText = fmt::format(StatusBar::HoursDayFormat, totalHours);
         SetStatusText(formattedText, Fields::BillableDay);
     }
 }
 
 void StatusBar::UpdateBillableHoursWeek(const std::string& fromDate, const std::string& toDate)
 {
-    std::string duration = "";
-
-    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
-        fromDate, toDate, TaskDurationType::Billable, duration);
+    auto [sqliteResult, totalHours] =
+        pTaskHoursProvider->GetBillableTaskHoursByWeek(fromDate, toDate);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::DurationCalculationMessage,
@@ -181,17 +170,15 @@ void StatusBar::UpdateBillableHoursWeek(const std::string& fromDate, const std::
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::BillableWeekFormat, duration);
+        auto formattedText = fmt::format(StatusBar::BillableWeekFormat, totalHours);
         SetStatusText(formattedText, Fields::BillableWeek);
     }
 }
 
 void StatusBar::UpdateBillableHoursMonth(const std::string& fromDate, const std::string& toDate)
 {
-    std::string duration = "";
-
-    auto sqliteResult = mTaskDurationService.CalculateAndFormatDuration(
-        fromDate, toDate, TaskDurationType::Billable, duration);
+    auto [sqliteResult, totalHours] =
+        pTaskHoursProvider->GetBillableTaskHoursByMonth(fromDate, toDate);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
             Messages::DurationCalculationMessage,
@@ -202,7 +189,7 @@ void StatusBar::UpdateBillableHoursMonth(const std::string& fromDate, const std:
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::BillableMonthFormat, duration);
+        auto formattedText = fmt::format(StatusBar::BillableMonthFormat, totalHours);
         SetStatusText(formattedText, Fields::BillableMonth);
     }
 }

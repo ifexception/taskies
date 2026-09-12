@@ -32,67 +32,47 @@ TaskHoursProvider::TaskHoursProvider(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
     : PersistenceBase(logger, databaseFilePath)
 {
-    pTaskHoursSummary = std::make_unique<TaskHoursSummary>();
 }
 
 TaskHoursProvider::~TaskHoursProvider() {}
 
-SqliteResult TaskHoursProvider::GetTaskHoursByDate(const std::string& date)
+TaskHoursProviderResult TaskHoursProvider::GetTaskHoursByDate(const std::string& date)
 {
-    auto result = InternalTaskHoursByDateRange(
-        getTasksHoursByDateRange, date, date, pTaskHoursSummary->DayTaskHours);
-    return result;
+    return InternalTaskHoursQuery(sqlTaskHoursDateRange, date, date);
 }
 
-SqliteResult TaskHoursProvider::GetBillableTaskHoursByDate(const std::string& date)
+TaskHoursProviderResult TaskHoursProvider::GetBillableTaskHoursByDate(const std::string& date)
 {
-    auto result = InternalTaskHoursByDateRange(
-        getBillableTasksHoursByDateRange, date, date, pTaskHoursSummary->DayBillableTaskHours);
-    return result;
+    return InternalTaskHoursQuery(sqlBillableTaskHoursDateRange, date, date);
 }
 
-SqliteResult TaskHoursProvider::GetTaskHoursByWeek(const std::string& fromDate,
-    const std::string& toDate,
-    std::string value)
-{
-    auto result = InternalTaskHoursByDateRange(
-        getTasksHoursByDateRange, fromDate, toDate, pTaskHoursSummary->WeekTaskHours);
-    return result;
-}
-
-SqliteResult TaskHoursProvider::GetBillableTaskHoursByWeek(const std::string& fromDate,
-    const std::string& toDate,
-    std::string value)
-{
-    auto result = InternalTaskHoursByDateRange(getBillableTasksHoursByDateRange,
-        fromDate,
-        toDate,
-        pTaskHoursSummary->WeekBillableTaskHours);
-    return result;
-}
-
-SqliteResult TaskHoursProvider::GetTaskHoursByMonth(const std::string& fromDate,
+TaskHoursProviderResult TaskHoursProvider::GetTaskHoursByWeek(const std::string& fromDate,
     const std::string& toDate)
 {
-    auto result = InternalTaskHoursByDateRange(
-        getTasksHoursByDateRange, fromDate, toDate, pTaskHoursSummary->MonthTaskHours);
-    return result;
+    return InternalTaskHoursQuery(sqlTaskHoursDateRange, fromDate, toDate);
 }
 
-SqliteResult TaskHoursProvider::GetBillableTaskHoursByMonth(const std::string& fromDate,
+TaskHoursProviderResult TaskHoursProvider::GetBillableTaskHoursByWeek(const std::string& fromDate,
     const std::string& toDate)
 {
-    auto result = InternalTaskHoursByDateRange(getBillableTasksHoursByDateRange,
-        fromDate,
-        toDate,
-        pTaskHoursSummary->MonthBillableTaskHours);
-    return result;
+    return InternalTaskHoursQuery(sqlBillableTaskHoursDateRange, fromDate, toDate);
 }
 
-SqliteResult TaskHoursProvider::InternalTaskHoursByDateRange(const std::string& sql,
+TaskHoursProviderResult TaskHoursProvider::GetTaskHoursByMonth(const std::string& fromDate,
+    const std::string& toDate)
+{
+    return InternalTaskHoursQuery(sqlTaskHoursDateRange, fromDate, toDate);
+}
+
+TaskHoursProviderResult TaskHoursProvider::GetBillableTaskHoursByMonth(const std::string& fromDate,
+    const std::string& toDate)
+{
+    return InternalTaskHoursQuery(sqlBillableTaskHoursDateRange, fromDate, toDate);
+}
+
+TaskHoursProviderResult TaskHoursProvider::InternalTaskHoursQuery(const std::string& sql,
     const std::string& fromDate,
-    const std::string& toDate,
-    std::string& value)
+    const std::string& toDate)
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -103,9 +83,11 @@ SqliteResult TaskHoursProvider::InternalTaskHoursByDateRange(const std::string& 
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(
-            Messages::PrepareStatementMessage, rc, std::string(error));
+        return { SqliteResult::FailDetailed(Messages::PrepareStatementMessage, rc, error), "" };
     }
+
+    auto stmt_deleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
+    std::unique_ptr<sqlite3_stmt, decltype(stmt_deleter)> stmtGuard(stmt, stmt_deleter);
 
     int bindIndex = 1;
 
@@ -116,8 +98,7 @@ SqliteResult TaskHoursProvider::InternalTaskHoursByDateRange(const std::string& 
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
-        sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+        return { SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, error), "" };
     }
 
     bindIndex++;
@@ -129,8 +110,7 @@ SqliteResult TaskHoursProvider::InternalTaskHoursByDateRange(const std::string& 
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
-        sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+        return { SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, error), "" };
     }
 
     rc = sqlite3_step(stmt);
@@ -139,21 +119,20 @@ SqliteResult TaskHoursProvider::InternalTaskHoursByDateRange(const std::string& 
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
-        sqlite3_finalize(stmt);
-        return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
+        return { SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, error), "" };
     }
 
     int columnIndex = 0;
-    value = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex);
+    std::string outValue = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex);
 
     sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(
-        pLogger, "Task hours total \"{0}\" from \"{1}\" to \"{2}\"", value, fromDate, toDate);
+        pLogger, "Task hours total \"{0}\" from \"{1}\" to \"{2}\"", outValue, fromDate, toDate);
 
-    return SqliteResult::OK();
+    return { SqliteResult::OK(), outValue };
 }
 
-std::string TaskHoursProvider::getTasksHoursByDateRange =
+const std::string TaskHoursProvider::sqlTaskHoursDateRange =
     "SELECT "
     "printf('%02d:%02d',"
     "(SUM(CAST(tasks.hours AS INTEGER)) * 60 + SUM(CAST(tasks.minutes AS INTEGER))) / 60,"
@@ -162,10 +141,11 @@ std::string TaskHoursProvider::getTasksHoursByDateRange =
     "FROM tasks "
     "INNER JOIN workdays "
     "ON tasks.workday_id = workdays.workday_id "
-    "WHERE workdays.date = ? "
+    "WHERE workdays.date >= ? "
+    "AND workdays.date <= ? "
     "AND tasks.is_active = 1;";
 
-std::string TaskHoursProvider::getBillableTasksHoursByDateRange =
+const std::string TaskHoursProvider::sqlBillableTaskHoursDateRange =
     "SELECT "
     "printf('%02d:%02d',"
     "(SUM(CAST(tasks.hours AS INTEGER)) * 60 + SUM(CAST(tasks.minutes AS INTEGER))) / 60,"

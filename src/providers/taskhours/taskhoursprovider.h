@@ -30,13 +30,9 @@
 
 namespace tks::Providers
 {
-struct TaskHoursSummary {
-    std::string DayTaskHours;
-    std::string DayBillableTaskHours;
-    std::string WeekTaskHours;
-    std::string WeekBillableTaskHours;
-    std::string MonthTaskHours;
-    std::string MonthBillableTaskHours;
+struct TaskHoursProviderResult {
+    SqliteResult status;
+    std::string value;
 };
 
 class TaskHoursProvider : public Persistence::PersistenceBase
@@ -49,30 +45,25 @@ public:
 
     TaskHoursProvider& operator=(const TaskHoursProvider&) = delete;
 
-    SqliteResult GetTaskHoursByDate(const std::string& date);
-    SqliteResult GetBillableTaskHoursByDate(const std::string& date);
+    TaskHoursProviderResult GetTaskHoursByDate(const std::string& date);
+    TaskHoursProviderResult GetBillableTaskHoursByDate(const std::string& date);
 
-    SqliteResult GetTaskHoursByWeek(const std::string& fromDate,
-        const std::string& toDate,
-        /*out*/ std::string value);
-    SqliteResult GetBillableTaskHoursByWeek(const std::string& fromDate,
-        const std::string& toDate,
-        /*out*/ std::string value);
-
-    SqliteResult GetTaskHoursByMonth(const std::string& fromDate,
+    TaskHoursProviderResult GetTaskHoursByWeek(const std::string& fromDate,
         const std::string& toDate);
-    SqliteResult GetBillableTaskHoursByMonth(const std::string& fromDate,
+    TaskHoursProviderResult GetBillableTaskHoursByWeek(const std::string& fromDate,
+        const std::string& toDate);
+
+    TaskHoursProviderResult GetTaskHoursByMonth(const std::string& fromDate,
+        const std::string& toDate);
+    TaskHoursProviderResult GetBillableTaskHoursByMonth(const std::string& fromDate,
         const std::string& toDate);
 
 private:
-    SqliteResult InternalTaskHoursByDateRange(const std::string& sql,
+    TaskHoursProviderResult InternalTaskHoursQuery(const std::string& sql,
         const std::string& fromDate,
-        const std::string& toDate,
-        /*out*/ std::string& value);
+        const std::string& toDate);
 
-    std::unique_ptr<TaskHoursSummary> pTaskHoursSummary;
-
-    static std::string getTasksHoursByDateRange;
-    static std::string getBillableTasksHoursByDateRange;
+    static const std::string sqlTaskHoursDateRange;
+    static const std::string sqlBillableTaskHoursDateRange;
 };
 } // namespace tks::Providers

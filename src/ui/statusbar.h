@@ -29,7 +29,7 @@
 #include <wx/wx.h>
 #endif
 
-#include "../services/taskduration/taskdurationservice.h"
+#include "../providers/taskhours/taskhoursprovider.h"
 
 namespace tks::UI
 {
@@ -42,11 +42,11 @@ public:
         const std::string& databaseFilePath);
     virtual ~StatusBar() = default;
 
-    void UpdateDefaultHoursDay(const std::string& todayDate);
+    void UpdateDefaultHoursDay(const std::string& date);
     void UpdateDefaultHoursWeek(const std::string& fromDate, const std::string& toDate);
     void UpdateDefaultHoursMonth(const std::string& fromDate, const std::string& toDate);
 
-    void UpdateBillableHoursDay(const std::string& todayDate);
+    void UpdateBillableHoursDay(const std::string& date);
     void UpdateBillableHoursWeek(const std::string& fromDate, const std::string& toDate);
     void UpdateBillableHoursMonth(const std::string& fromDate, const std::string& toDate);
 
@@ -69,7 +69,7 @@ private:
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 
-    Services::TaskDurationService mTaskDurationService;
+    std::unique_ptr<Providers::TaskHoursProvider> pTaskHoursProvider;
 
     static std::string HoursDayFormat;
     static std::string HoursWeekFormat;
