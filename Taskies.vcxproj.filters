@@ -96,7 +96,10 @@
     <Filter Include="Source\core\settings">
       <UniqueIdentifier>{ab3493aa-ef92-41ac-9a93-51232cc461ce}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\services\projectbillablehours">
+    <Filter Include="Source\providers">
+      <UniqueIdentifier>{76bf0aa1-29a5-4e13-abac-ea96add4fc6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\providers\projectbillablehours">
       <UniqueIdentifier>{a08808cc-af97-4168-a6b3-1b6a09cc3ba4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -464,8 +467,8 @@
     <ClCompile Include="src\utils\sqlite_helpers.cpp">
       <Filter>Source\utils</Filter>
     </ClCompile>
-    <ClCompile Include="src\services\projectbillablehours\projectbillablehourscalculator.cpp">
-      <Filter>Source\services\projectbillablehours</Filter>
+    <ClCompile Include="src\providers\projectbillablehours\projectbillablehoursprovider.cpp">
+      <Filter>Source\providers\projectbillablehours</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -832,8 +835,8 @@
     <ClInclude Include="src\utils\sqlite_helpers.h">
       <Filter>Source\utils</Filter>
     </ClInclude>
-    <ClInclude Include="src\services\projectbillablehours\projectbillablehourscalculator.h">
-      <Filter>Source\services\projectbillablehours</Filter>
+    <ClInclude Include="src\providers\projectbillablehours\projectbillablehoursprovider.h">
+      <Filter>Source\providers\projectbillablehours</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

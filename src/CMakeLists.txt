@@ -16,6 +16,9 @@ message (STATUS "add subdirectory ui")
 add_subdirectory("models")
 message (STATUS "add subdirectory models")
 
+add_subdirectory("providers")
+message (STATUS "add subdirectory providers")
+
 add_subdirectory("persistence")
 message (STATUS "add subdirectory persistence")
 
@@ -34,6 +37,7 @@ set (SRC
     ${SRC_CORE}
     ${SRC_IPC}
     ${SRC_MODELS}
+    ${SRC_PROVIDERS}
     ${SRC_PERSISTENCE}
     ${SRC_DIALOGS}
     ${SRC_EXPORTS}

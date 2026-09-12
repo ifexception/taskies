@@ -17,7 +17,7 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "projectbillablehourscalculator.h"
+#include "projectbillablehoursprovider.h"
 
 #include "../../common/logmessages.h"
 
@@ -25,16 +25,15 @@
 
 namespace tks::Services
 {
-ProjectBillableHoursCalculatorService::ProjectBillableHoursCalculatorService(
-    std::shared_ptr<spdlog::logger> logger,
+ProjectBillableHoursProvider::ProjectBillableHoursProvider(std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
     : PersistenceBase(logger, databaseFilePath)
 {
 }
 
-ProjectBillableHoursCalculatorService::~ProjectBillableHoursCalculatorService() {}
+ProjectBillableHoursProvider::~ProjectBillableHoursProvider() {}
 
-SqliteResult ProjectBillableHoursCalculatorService::CalculateTotalBillableHoursByProjectId(
+SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectId(
     const std::string& monthStart,
     const std::string& monthEnd,
     const std::int64_t projectId,
@@ -43,16 +42,15 @@ SqliteResult ProjectBillableHoursCalculatorService::CalculateTotalBillableHoursB
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
-        ProjectBillableHoursCalculatorService::getTotalBillableHoursByProjectId.c_str(),
-        static_cast<int>(
-            ProjectBillableHoursCalculatorService::getTotalBillableHoursByProjectId.size()),
+        ProjectBillableHoursProvider::getTotalBillableHoursByProjectId.c_str(),
+        static_cast<int>(ProjectBillableHoursProvider::getTotalBillableHoursByProjectId.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::PrepareStatementTemplate,
-            ProjectBillableHoursCalculatorService::getTotalBillableHoursByProjectId,
+            ProjectBillableHoursProvider::getTotalBillableHoursByProjectId,
             rc,
             error);
 
@@ -104,7 +102,7 @@ SqliteResult ProjectBillableHoursCalculatorService::CalculateTotalBillableHoursB
     if (rc != SQLITE_ROW) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::ExecStepTemplate,
-            ProjectBillableHoursCalculatorService::getTotalBillableHoursByProjectId,
+            ProjectBillableHoursProvider::getTotalBillableHoursByProjectId,
             rc,
             error);
 
@@ -134,14 +132,19 @@ SqliteResult ProjectBillableHoursCalculatorService::CalculateTotalBillableHoursB
     return SqliteResult::OK();
 }
 
-std::string ProjectBillableHoursCalculatorService::getTotalBillableHoursByProjectId =
+std::string ProjectBillableHoursProvider::getTotalBillableHoursByProjectId =
     "SELECT "
-    "ROUND(SUM(tasks.hours + (tasks.minutes / 60.0)),2) AS TotalBillableHours "
+    "ROUND( "
+    "SUM(CAST(tasks.hours AS INTEGER)) + "
+    "SUM(CAST(tasks.minutes AS INTEGER)) / "
+    "60.0 "
+    ", 2 "
+    ") AS total_billable_hours "
     "FROM tasks "
     "INNER JOIN projects "
     "ON tasks.project_id = projects.project_id "
     "INNER JOIN categories "
-    "ON projects.project_id = categories.project_id "
+    "ON tasks.category_id = categories.category_id "
     "INNER JOIN workdays "
     "ON tasks.workday_id = workdays.workday_id "
     "WHERE projects.billable_hours > 0 "

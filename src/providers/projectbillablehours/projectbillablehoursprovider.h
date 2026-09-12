@@ -28,15 +28,14 @@
 
 namespace tks::Services
 {
-struct ProjectBillableHoursCalculatorService : public Persistence::PersistenceBase {
-    ProjectBillableHoursCalculatorService() = delete;
-    ProjectBillableHoursCalculatorService(const ProjectBillableHoursCalculatorService&) = delete;
-    ProjectBillableHoursCalculatorService(std::shared_ptr<spdlog::logger> logger,
+struct ProjectBillableHoursProvider : public Persistence::PersistenceBase {
+    ProjectBillableHoursProvider() = delete;
+    ProjectBillableHoursProvider(const ProjectBillableHoursProvider&) = delete;
+    ProjectBillableHoursProvider(std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
-    virtual ~ProjectBillableHoursCalculatorService();
+    virtual ~ProjectBillableHoursProvider();
 
-    ProjectBillableHoursCalculatorService& operator=(
-        const ProjectBillableHoursCalculatorService&) = delete;
+    ProjectBillableHoursProvider& operator=(const ProjectBillableHoursProvider&) = delete;
 
     SqliteResult CalculateTotalBillableHoursByProjectId(const std::string& monthStart,
         const std::string& monthEnd,
