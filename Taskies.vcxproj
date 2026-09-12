@@ -438,6 +438,7 @@
     <ClCompile Include="src\utils\utils.cpp" />
     <ClCompile Include="src\common\wxcommon.cpp" />
     <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp" />
+    <ClCompile Include="src\providers\taskhours\taskhoursprovider.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\providers\projectbillablehours\projectbillablehoursprovider.h" />
@@ -562,6 +563,7 @@
     <ClInclude Include="src\utils\utils.h" />
     <ClInclude Include="src\common\wxcommon.h" />
     <ClInclude Include="src\core\settings\tasksviewcolumnsetting.h" />
+    <ClInclude Include="src\providers\taskhours\taskhoursprovider.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc" />

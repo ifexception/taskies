@@ -102,6 +102,9 @@
     <Filter Include="Source\providers\projectbillablehours">
       <UniqueIdentifier>{a08808cc-af97-4168-a6b3-1b6a09cc3ba4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\providers\taskhours">
+      <UniqueIdentifier>{44b53d06-7712-4594-85e8-6a11e6fda840}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -470,6 +473,9 @@
     <ClCompile Include="src\providers\projectbillablehours\projectbillablehoursprovider.cpp">
       <Filter>Source\providers\projectbillablehours</Filter>
     </ClCompile>
+    <ClCompile Include="src\providers\taskhours\taskhoursprovider.cpp">
+      <Filter>Source\providers\taskhours</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -837,6 +843,9 @@
     </ClInclude>
     <ClInclude Include="src\providers\projectbillablehours\projectbillablehoursprovider.h">
       <Filter>Source\providers\projectbillablehours</Filter>
+    </ClInclude>
+    <ClInclude Include="src\providers\taskhours\taskhoursprovider.h">
+      <Filter>Source\providers\taskhours</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
