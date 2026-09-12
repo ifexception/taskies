@@ -2383,9 +2383,11 @@ void MainFrame::RefreshDataViewListControl()
 
 void MainFrame::ParseWXDateTimeToDate(const wxDateTime& dateTime)
 {
-    time_t eventDateUtcTicks = dateTime.GetTicks();
+    wxDateTime dateTimeCopy = dateTime;
+    wxDateTime utcDateTime = dateTimeCopy.MakeFromTimezone(wxDateTime::UTC);
+    time_t dateUtcTicks = utcDateTime.GetTicks();
     auto newSelectedDate =
-        date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+        date::floor<date::days>(std::chrono::system_clock::from_time_t(dateUtcTicks));
 
     std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
 
