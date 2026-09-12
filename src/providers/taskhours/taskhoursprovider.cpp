@@ -125,7 +125,6 @@ TaskHoursProviderResult TaskHoursProvider::InternalTaskHoursQuery(const std::str
     int columnIndex = 0;
     std::string outValue = Utils::Sqlite::GetTextOrEmpty(stmt, columnIndex);
 
-    sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(
         pLogger, "Task hours total \"{0}\" from \"{1}\" to \"{2}\"", outValue, fromDate, toDate);
 
