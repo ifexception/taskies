@@ -64,7 +64,7 @@
 
 #include "../../services/categories/categoryviewmodel.h"
 #include "../../services/categories/categoryservice.h"
-#include "../../services/projectbillablehours/projectbillablehourscalculator.h"
+#include "../../providers/projectbillablehours/projectbillablehoursprovider.h"
 
 #include "../../utils/utils.h"
 
@@ -2131,7 +2131,7 @@ void TaskDialog::CalculateMonthStartAndMonthEndDates()
 void TaskDialog::FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel)
 {
     if (projectModel.BillableHours.has_value()) {
-        Services::ProjectBillableHoursCalculatorService projectCalcService(
+        Services::ProjectBillableHoursProvider projectCalcService(
             pLogger, mDatabaseFilePath);
         double totalHours = 0.0;
 
