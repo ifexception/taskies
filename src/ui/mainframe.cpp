@@ -67,6 +67,7 @@
 #include "../services/export/csvexporterservice.h"
 #include "../services/export/projectionbuilder.h"
 #include "../services/tasks/tasksservice.h"
+#include "../services/taskduration/taskdurationservice.h"
 
 #include "../utils/mswutils.h"
 #include "../utils/utils.h"
