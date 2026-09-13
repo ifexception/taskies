@@ -251,10 +251,9 @@ private:
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
     void DateChangedProcedure(const wxDateTime& dateTime);
-    void SetDatePickerDate(const wxDateTime& dateTime);
     void RefreshDataViewListControl();
 
-    void ParseWXDateTimeToDate(const wxDateTime& dateTime);
+    void ConvertToStdDate(const wxDateTime& dateTime);
 
     void ResetTaskContextMenuVariables();
 

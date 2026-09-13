@@ -924,19 +924,24 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     }
 
     auto todayDate = pDateStore->TodayDate;
-    date::year_month_day todayDateYmd = date::year_month_day{ todayDate };
+    date::year_month_day ymd{ todayDate };
 
-    int year = static_cast<int>(todayDateYmd.year());
-    unsigned month = static_cast<unsigned>(todayDateYmd.month());
-    unsigned day = static_cast<unsigned>(todayDateYmd.day());
+    // Subtract 1 from the month because wxDateTime expects 0-11 (Jan-Dec)
+    // clang-format off
+    wxDateTime dateTimeValue(
+        static_cast<unsigned int>(ymd.day()),
+        static_cast<wxDateTime::Month>(static_cast<unsigned int>(ymd.month()) - 1),
+        static_cast<int>(ymd.year())
+    );
+    // clang-format on
 
-    // wxDateTime months are 0-based (Jan = 0)
-    wxDateTime dateTimeValue(day, static_cast<wxDateTime::Month>(month - 1), year);
     if (!dateTimeValue.IsValid()) {
         pLogger->error("Invalid value(s) passed to wxDateTime, reset to current date");
 
         dateTimeValue = wxDateTime::Now();
     }
+
+    pDatePickerCtrl->SetValue(dateTimeValue);
 
     DateChangedProcedure(dateTimeValue);
 }
@@ -2005,6 +2010,8 @@ void MainFrame::OnPreviousDayButtonClick(wxCommandEvent& event)
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     wxDateTime previousDayDateUtc = eventDateUtc.Add(wxDateSpan::Days(-1));
 
+    pDatePickerCtrl->SetValue(previousDayDateUtc);
+
     DateChangedProcedure(previousDayDateUtc);
 }
 
@@ -2021,6 +2028,8 @@ void MainFrame::OnNextDayButtonClick(wxCommandEvent& event)
     wxDateTime eventDate = pDatePickerCtrl->GetValue();
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     wxDateTime nextDayDateUtc = eventDateUtc.Add(wxDateSpan::Days(1));
+
+    pDatePickerCtrl->SetValue(nextDayDateUtc);
 
     DateChangedProcedure(nextDayDateUtc);
 }
@@ -2306,13 +2315,6 @@ void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
     UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
 }
 
-void MainFrame::SetDatePickerDate(const wxDateTime& dateTime)
-{
-    pDatePickerCtrl->SetValue(dateTime);
-
-    ConvertToStdDate(dateTime);
-}
-
 void MainFrame::RefreshDataViewListControl()
 {
     pDataViewListCtrl->DeleteAllItems();
@@ -2391,9 +2393,7 @@ void MainFrame::ConvertToStdDate(const wxDateTime& dateTime)
     auto newSelectedDate =
         date::floor<date::days>(std::chrono::system_clock::from_time_t(dateUtcTicks));
 
-    std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
-
-    mTaskDateString = dateStringFormat;
+    mTaskDateString = pDateStore->FormatDate(newSelectedDate);
 
     if (pDateStore->IsWeekDifferent(newSelectedDate)) {
         pDateStore->OnWeekChange(newSelectedDate);
