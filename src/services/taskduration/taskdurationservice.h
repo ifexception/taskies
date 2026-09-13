@@ -32,7 +32,8 @@
 
 namespace tks::Services
 {
-struct TaskDurationService final : public Persistence::PersistenceBase {
+class TaskDurationService final : public Persistence::PersistenceBase {
+public:
     TaskDurationService() = delete;
     TaskDurationService(const TaskDurationService&) = delete;
     TaskDurationService(std::shared_ptr<spdlog::logger> logger,
@@ -41,29 +42,16 @@ struct TaskDurationService final : public Persistence::PersistenceBase {
 
     TaskDurationService& operator=(const TaskDurationService&) = delete;
 
-    SqliteResult GetTaskDurationsForDateRange(const std::string& startDate,
-        const std::string& endDate,
-        TaskDurationType type,
-        /*out*/ std::vector<TaskDurationViewModel>& taskDurationViewModels) const;
+    SqliteResult GetTaskTimeByIdAndIncrementByValue(const std::int64_t taskId, const int value);
 
-    SqliteResult CalculateAndFormatDuration(const std::string& fromDate,
-        const std::string& toDate,
-        TaskDurationType type,
-        /*out*/ std::string& formatDuration);
-
-    std::string CalculateTaskDurationTime(const std::vector<TaskDurationViewModel>& taskDurations);
-
-    SqliteResult GetTaskTimeByIdAndIncrementByValue(const std::int64_t taskId,
-        const int value);
+private:
     SqliteResult GetTaskTimeById(const std::int64_t taskId,
         /*out*/ TaskDurationViewModel& taskDurationViewModel) const;
-    void IncrementTimeByValue(const int value,
+    static void IncrementTimeByValue(const int value,
         /*out*/ TaskDurationViewModel& taskDurationViewModel);
     SqliteResult UpdateTaskTime(const std::int64_t taskId,
         TaskDurationViewModel& taskDurationViewModel) const;
 
-    static std::string getAllHoursForDateRange;
-    static std::string getBillableHoursForDateRange;
     static std::string getTaskTimeById;
     static std::string updateTaskTime;
 };
