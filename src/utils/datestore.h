@@ -59,6 +59,7 @@ public:
 
 private:
     void Initialize();
+
     date::sys_days GetStartOfWeek(date::sys_days selectedDate);
 
     std::shared_ptr<spdlog::logger> pLogger;

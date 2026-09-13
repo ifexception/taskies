@@ -927,6 +927,7 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     date::year_month_day ymd{ todayDate };
 
     // Subtract 1 from the month because wxDateTime expects 0-11 (Jan-Dec)
+
     // clang-format off
     wxDateTime dateTimeValue(
         static_cast<unsigned int>(ymd.day()),
@@ -936,7 +937,8 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     // clang-format on
 
     if (!dateTimeValue.IsValid()) {
-        pLogger->error("Invalid value(s) passed to wxDateTime, reset to current date");
+        pLogger->error(
+            "Invalid value(s) passed to wxDateTime to build valid object, reset to current date");
 
         dateTimeValue = wxDateTime::Now();
     }
