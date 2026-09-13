@@ -35,34 +35,22 @@ struct DateStore {
     DateStore(std::shared_ptr<spdlog::logger> logger);
     ~DateStore() = default;
 
-    std::chrono::time_point<std::chrono::system_clock, date::days> TodayDate;
-    std::chrono::time_point<std::chrono::system_clock, date::days> CurrentWeekMondayDate;
-    std::chrono::time_point<std::chrono::system_clock, date::days> MondayDate;
-    std::chrono::time_point<std::chrono::system_clock, date::days> SundayDate;
+    date::sys_days TodayDate;
+    date::sys_days CurrentWeekMondayDate;
+    date::sys_days MondayDate;
+    date::sys_days SundayDate;
+    date::sys_days FirstOfMonth;
+    date::sys_days LastOfMonth;
 
     long long TodayDateSeconds;
     long long MondayDateSeconds;
     long long SundayDateSeconds;
 
-    std::string PrintTodayDate;
-    std::string PrintMondayDate;
-    std::string PrintSundayDate;
-    std::string PrintFirstDayOfMonth;
-    std::string PrintLastDayOfMonth;
-
-    std::vector<std::string> MondayToSundayDateRangeList;
-
     void Reset();
 
-    std::vector<std::string> CalculateDatesInRange(
-        std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate,
-        std::chrono::time_point<std::chrono::system_clock, date::days> mToDate);
+    void OnWeekChange(date::sys_days newMondayDate);
 
-    void ReinitializeFromWeekChange(
-        std::chrono::time_point<std::chrono::system_clock, date::days> newMondayDate);
-
-    std::string FormatDate(
-        std::chrono::time_point<std::chrono::system_clock, date::days> dateToFormat);
+    std::string FormatDate(date::sys_days dateToFormat);
 
     // -private
     void Initialize();

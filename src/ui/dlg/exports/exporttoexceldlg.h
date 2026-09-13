@@ -146,8 +146,8 @@ private:
     wxButton* pExportButton;
     wxButton* pCancelButton;
 
-    std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
-    std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
+    date::sys_days mFromDate;
+    date::sys_days mToDate;
 
     std::vector<long> mSelectedItemIndexes;
     wxDataViewItem mItemToSort;

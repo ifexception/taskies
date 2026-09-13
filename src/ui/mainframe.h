@@ -288,9 +288,7 @@ private:
 
     std::unique_ptr<DateStore> pDateStore;
 
-    std::chrono::time_point<std::chrono::system_clock, date::days> mTodayDate;
-    std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
-    std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
+    date::sys_days mTodayDate;
 
     std::int64_t mTaskIdToEdit;
     std::string mTaskDateString;

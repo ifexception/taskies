@@ -262,8 +262,9 @@ void QuickExportToFormatDialog::FillControls()
     }
 
     /* Export File Controls */
-    auto saveToFile = fmt::format(
-        "{0}\\taskies-export-{1}.csv", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
+    auto saveToFile = fmt::format("{0}\\taskies-export-{1}.csv",
+        pCfg->GetExportPath(),
+        pDateStore->FormatDate(pDateStore->TodayDate));
     pSaveToFileTextCtrl->ChangeValue(saveToFile);
     pSaveToFileTextCtrl->SetToolTip(saveToFile);
 
@@ -364,7 +365,7 @@ void QuickExportToFormatDialog::OnExportFormatRadioButtonClick(wxCommandEvent& e
     std::string fileExtension = mExportFormat == ExportFormat::Csv ? "csv" : "xlsx";
     auto saveToFile = fmt::format("{0}\\taskies-export-{1}.{2}",
         pCfg->GetExportPath(),
-        pDateStore->PrintTodayDate,
+        pDateStore->FormatDate(pDateStore->TodayDate),
         fileExtension);
     pSaveToFileTextCtrl->ChangeValue(saveToFile);
     pSaveToFileTextCtrl->SetToolTip(saveToFile);
@@ -404,7 +405,7 @@ void QuickExportToFormatDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEv
         std::string selectedExportPath = openDirDialog->GetPath().ToStdString();
         std::string saveToFile = fmt::format("{0}\\taskies-export-{1}.{2}",
             selectedExportPath,
-            pDateStore->PrintTodayDate,
+            pDateStore->FormatDate(pDateStore->TodayDate),
             fileExtension);
 
         pSaveToFileTextCtrl->SetValue(saveToFile);
@@ -510,10 +511,9 @@ void QuickExportToFormatDialog::OnPresetChoiceSelection(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Applying selected preset uuid \"{0}\"", presetUuid);
 
     auto presets = pCfg->GetPresets();
-    const auto& selectedPresetToApplyIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Settings::PresetSetting& preset) {
-            return preset.Uuid == presetUuid;
-        });
+    const auto& selectedPresetToApplyIterator = std::find_if(presets.begin(),
+        presets.end(),
+        [&](const Core::Settings::PresetSetting& preset) { return preset.Uuid == presetUuid; });
 
     if (selectedPresetToApplyIterator == presets.end()) {
         pLogger->warn("Could not find preset uuid \"{0}\" in config", presetUuid);
@@ -542,10 +542,9 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
     SPDLOG_LOGGER_TRACE(pLogger, "Get selected preset uuid \"{0}\"", presetUuid);
 
     auto presets = pCfg->GetPresets();
-    const auto& selectedPresetIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Settings::PresetSetting& preset) {
-            return preset.Uuid == presetUuid;
-        });
+    const auto& selectedPresetIterator = std::find_if(presets.begin(),
+        presets.end(),
+        [&](const Core::Settings::PresetSetting& preset) { return preset.Uuid == presetUuid; });
 
     auto& selectedPreset = *selectedPresetIterator;
 
@@ -567,10 +566,12 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
-    const std::string fromDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
-    const std::string toDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
+    const std::string fromDate = bExportTodaysTasksOnly
+                                     ? pDateStore->FormatDate(pDateStore->TodayDate)
+                                     : pDateStore->FormatDate(mFromDate);
+    const std::string toDate = bExportTodaysTasksOnly
+                                   ? pDateStore->FormatDate(pDateStore->TodayDate)
+                                   : pDateStore->FormatDate(mToDate);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
@@ -667,8 +668,7 @@ void QuickExportToFormatDialog::SetToDateAndDatePicker()
     mToCtrlDate = pDateStore->SundayDateSeconds;
 }
 
-void QuickExportToFormatDialog::ApplyPreset(
-    const Core::Settings::PresetSetting& presetSetting)
+void QuickExportToFormatDialog::ApplyPreset(const Core::Settings::PresetSetting& presetSetting)
 {
     mExportOptions.Delimiter = presetSetting.Delimiter;
     mExportOptions.TextQualifier = presetSetting.TextQualifier;

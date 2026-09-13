@@ -183,8 +183,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pDataViewListCtrl(nullptr)
     , pDateStore(nullptr)
     , mTodayDate()
-    , mFromDate()
-    , mToDate()
     , mTaskIdToEdit(-1)
     , mTaskDateString()
     , mThumbBarDialogOpenCounter(0)
@@ -235,9 +233,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     pDateStore = std::make_unique<DateStore>(pLogger);
 
     mTodayDate = pDateStore->TodayDate;
-    mFromDate = pDateStore->MondayDate;
-    mToDate = pDateStore->SundayDate;
-    mTaskDateString = pDateStore->PrintTodayDate;
+    mTaskDateString = pDateStore->FormatDate(pDateStore->TodayDate);
 
     // Setup reminders (if enabled)
     if (pCfg->UseReminders()) {
@@ -516,8 +512,9 @@ void MainFrame::DataToControls()
 {
     std::vector<Services::TaskViewModel> taskViewModels;
 
-    auto sqliteResult =
-        FetchTasksAndTaskAttributeValues(pDateStore->PrintTodayDate, taskViewModels);
+    auto sqliteResult = FetchTasksAndTaskAttributeValues(
+        pDateStore->FormatDate(pDateStore->TodayDate), taskViewModels);
+
     if (!sqliteResult.Success) {
         // handling sqlite result non-success case is done in FetchTasksAndTaskAttributeValues
         return;
@@ -2254,18 +2251,20 @@ void MainFrame::CalculateStatusBarTaskDurations()
 
 void MainFrame::CalculateDefaultTaskDurations()
 {
-    pStatusBar->UpdateDefaultHoursDay(pDateStore->PrintTodayDate);
-    pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateDefaultHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateDefaultHoursDay(pDateStore->FormatDate(pDateStore->TodayDate));
+    pStatusBar->UpdateDefaultHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
+        pDateStore->FormatDate(pDateStore->SundayDate));
+    pStatusBar->UpdateDefaultHoursMonth(pDateStore->FormatDate(pDateStore->FirstOfMonth),
+        pDateStore->FormatDate(pDateStore->LastOfMonth));
 }
 
 void MainFrame::CalculateBillableTaskDurations()
 {
-    pStatusBar->UpdateBillableHoursDay(pDateStore->PrintTodayDate);
-    pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateBillableHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateBillableHoursDay(pDateStore->FormatDate(pDateStore->TodayDate));
+    pStatusBar->UpdateBillableHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
+        pDateStore->FormatDate(pDateStore->SundayDate));
+    pStatusBar->UpdateBillableHoursMonth(pDateStore->FormatDate(pDateStore->FirstOfMonth),
+        pDateStore->FormatDate(pDateStore->LastOfMonth));
 }
 
 void MainFrame::UpdateStatusBarTaskDurations(const std::string& date)
@@ -2278,17 +2277,19 @@ void MainFrame::UpdateStatusBarTaskDurations(const std::string& date)
 void MainFrame::UpdateDefaultStatusBarTaskDurations(const std::string& date)
 {
     pStatusBar->UpdateDefaultHoursDay(date);
-    pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateDefaultHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateDefaultHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
+        pDateStore->FormatDate(pDateStore->SundayDate));
+    pStatusBar->UpdateDefaultHoursMonth(pDateStore->FormatDate(pDateStore->FirstOfMonth),
+        pDateStore->FormatDate(pDateStore->LastOfMonth));
 }
 
 void MainFrame::UpdateBillableStatusBarTaskDurations(const std::string& date)
 {
     pStatusBar->UpdateBillableHoursDay(date);
-    pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateBillableHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateBillableHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
+        pDateStore->FormatDate(pDateStore->SundayDate));
+    pStatusBar->UpdateBillableHoursMonth(pDateStore->FormatDate(pDateStore->FirstOfMonth),
+        pDateStore->FormatDate(pDateStore->LastOfMonth));
 }
 
 void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
