@@ -20,6 +20,7 @@
 #pragma once
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -31,29 +32,34 @@
 
 namespace tks
 {
-struct DateStore {
-    DateStore(std::shared_ptr<spdlog::logger> logger);
+class DateStore
+{
+public:
+    explicit DateStore(std::shared_ptr<spdlog::logger> logger);
     ~DateStore() = default;
 
     date::sys_days TodayDate;
     date::sys_days CurrentWeekMondayDate;
+
     date::sys_days MondayDate;
     date::sys_days SundayDate;
     date::sys_days FirstOfMonth;
     date::sys_days LastOfMonth;
 
-    long long TodayDateSeconds;
-    long long MondayDateSeconds;
-    long long SundayDateSeconds;
+    std::int64_t TodayDateSeconds;
+    std::int64_t MondayDateSeconds;
+    std::int64_t SundayDateSeconds;
 
     void Reset();
 
-    void OnWeekChange(date::sys_days newMondayDate);
+    bool IsWeekDifferent(date::sys_days newDate);
+    void OnWeekChange(date::sys_days newDate);
 
-    std::string FormatDate(date::sys_days dateToFormat);
+    std::string FormatDate(date::sys_days dateToFormat) const;
 
-    // -private
+private:
     void Initialize();
+    date::sys_days GetStartOfWeek(date::sys_days selectedDate);
 
     std::shared_ptr<spdlog::logger> pLogger;
 };
