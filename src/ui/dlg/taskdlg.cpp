@@ -2150,6 +2150,7 @@ void TaskDialog::FetchAndSetBillableHoursUsageControl(const Model::ProjectModel&
             std::string remainingBillableHoursText =
                 fmt::format("{0:.2f} of {1}", totalHours, projectModel.BillableHours.value());
             pProjectCalculatedBillableHoursTextCtrl->ChangeValue(remainingBillableHoursText);
+
             return;
         }
     }
