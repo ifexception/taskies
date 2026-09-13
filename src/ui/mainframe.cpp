@@ -2300,7 +2300,7 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 
 void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
 {
-    SetDatePickerDate(dateTime);
+    ConvertToStdDate(dateTime);
     RefreshDataViewListControl();
 
     UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
@@ -2310,7 +2310,7 @@ void MainFrame::SetDatePickerDate(const wxDateTime& dateTime)
 {
     pDatePickerCtrl->SetValue(dateTime);
 
-    ParseWXDateTimeToDate(dateTime);
+    ConvertToStdDate(dateTime);
 }
 
 void MainFrame::RefreshDataViewListControl()
@@ -2382,17 +2382,22 @@ void MainFrame::RefreshDataViewListControl()
     }
 }
 
-void MainFrame::ParseWXDateTimeToDate(const wxDateTime& dateTime)
+void MainFrame::ConvertToStdDate(const wxDateTime& dateTime)
 {
     wxDateTime dateTimeCopy = dateTime;
     wxDateTime utcDateTime = dateTimeCopy.MakeFromTimezone(wxDateTime::UTC);
     time_t dateUtcTicks = utcDateTime.GetTicks();
+
     auto newSelectedDate =
         date::floor<date::days>(std::chrono::system_clock::from_time_t(dateUtcTicks));
 
     std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
 
     mTaskDateString = dateStringFormat;
+
+    if (pDateStore->IsWeekDifferent(newSelectedDate)) {
+        pDateStore->OnWeekChange(newSelectedDate);
+    }
 }
 
 void MainFrame::ResetTaskContextMenuVariables()
