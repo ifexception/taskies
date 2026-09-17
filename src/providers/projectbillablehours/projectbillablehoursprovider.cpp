@@ -132,7 +132,7 @@ const std::string ProjectBillableHoursProvider::getTotalBillableHoursByProjectId
     "ROUND("
     "COALESCE(SUM(CAST(tasks.hours AS INTEGER)), 0) + "
     "COALESCE(SUM(CAST(tasks.minutes AS INTEGER)), 0) / 60.0, "
-    "2) AS total_billable_hours"
+    "2) AS total_billable_hours "
     "FROM tasks "
     "INNER JOIN projects "
     "ON tasks.project_id = projects.project_id "
