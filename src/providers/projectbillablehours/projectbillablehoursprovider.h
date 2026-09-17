@@ -42,6 +42,6 @@ struct ProjectBillableHoursProvider : public Persistence::PersistenceBase {
         const std::int64_t projectId,
         /*out*/ double& total);
 
-    static std::string getTotalBillableHoursByProjectId;
+    static const std::string getTotalBillableHoursByProjectId;
 };
-} // namespace tks::Services
+} // namespace tks::Providers

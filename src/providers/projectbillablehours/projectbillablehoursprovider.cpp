@@ -47,6 +47,9 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
         &stmt,
         nullptr);
 
+    auto stmt_deleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
+    std::unique_ptr<sqlite3_stmt, decltype(stmt_deleter)> stmtGuard(stmt, stmt_deleter);
+
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::PrepareStatementTemplate,
@@ -54,7 +57,6 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
             rc,
             error);
 
-        sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(
             Messages::PrepareStatementMessage, rc, std::string(error));
     }
@@ -68,7 +70,6 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
-        sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
@@ -81,7 +82,6 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
-        sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
@@ -93,7 +93,6 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
-        sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
     }
 
@@ -106,7 +105,6 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
             rc,
             error);
 
-        sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::StepStatementMessage, rc, std::string(error));
     }
 
@@ -120,26 +118,21 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
         const char* error = sqlite3_errmsg(pDb);
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
-        sqlite3_finalize(stmt);
-
         return SqliteResult::FailDetailed(
             Messages::StepStatementReturnedMultipleRowsMessage, rc, std::string(error));
     }
 
-    sqlite3_finalize(stmt);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityGetById, "projects", projectId);
 
     return SqliteResult::OK();
 }
 
-std::string ProjectBillableHoursProvider::getTotalBillableHoursByProjectId =
+const std::string ProjectBillableHoursProvider::getTotalBillableHoursByProjectId =
     "SELECT "
-    "ROUND( "
-    "SUM(CAST(tasks.hours AS INTEGER)) + "
-    "SUM(CAST(tasks.minutes AS INTEGER)) / "
-    "60.0 "
-    ", 2 "
-    ") AS total_billable_hours "
+    "ROUND("
+    "COALESCE(SUM(CAST(tasks.hours AS INTEGER)), 0) + "
+    "COALESCE(SUM(CAST(tasks.minutes AS INTEGER)), 0) / 60.0, "
+    "2) AS total_billable_hours"
     "FROM tasks "
     "INNER JOIN projects "
     "ON tasks.project_id = projects.project_id "
