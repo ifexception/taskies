@@ -65,6 +65,8 @@ void DateStore::OnWeekChange(date::sys_days newDate)
     MondayDate = newMondayDate;
     SPDLOG_LOGGER_TRACE(pLogger, "Monday date: {0}", FormatDate(MondayDate));
 
+    CurrentWeekMondayDate = newMondayDate;
+
     SundayDate = MondayDate + date::days{ 6 };
     SPDLOG_LOGGER_TRACE(pLogger, "Sunday date: {0}", FormatDate(SundayDate));
 
