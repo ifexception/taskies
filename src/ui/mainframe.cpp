@@ -2265,8 +2265,8 @@ void MainFrame::CalculateDefaultTaskDurations()
     pStatusBar->UpdateDefaultHoursDay(pDateStore->FormatDate(pDateStore->TodayDate));
     pStatusBar->UpdateDefaultHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
         pDateStore->FormatDate(pDateStore->SundayDate));
-    pStatusBar->UpdateDefaultHoursMonth(pDateStore->FormatDate(pDateStore->FirstOfMonth),
-        pDateStore->FormatDate(pDateStore->LastOfMonth));
+    pStatusBar->UpdateDefaultHoursMonth(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
 }
 
 void MainFrame::CalculateBillableTaskDurations()
@@ -2274,8 +2274,8 @@ void MainFrame::CalculateBillableTaskDurations()
     pStatusBar->UpdateBillableHoursDay(pDateStore->FormatDate(pDateStore->TodayDate));
     pStatusBar->UpdateBillableHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
         pDateStore->FormatDate(pDateStore->SundayDate));
-    pStatusBar->UpdateBillableHoursMonth(pDateStore->FormatDate(pDateStore->FirstOfMonth),
-        pDateStore->FormatDate(pDateStore->LastOfMonth));
+    pStatusBar->UpdateBillableHoursMonth(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
 }
 
 void MainFrame::UpdateStatusBarTaskDurations(const std::string& date)
@@ -2290,8 +2290,8 @@ void MainFrame::UpdateDefaultStatusBarTaskDurations(const std::string& date)
     pStatusBar->UpdateDefaultHoursDay(date);
     pStatusBar->UpdateDefaultHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
         pDateStore->FormatDate(pDateStore->SundayDate));
-    pStatusBar->UpdateDefaultHoursMonth(pDateStore->FormatDate(pDateStore->FirstOfMonth),
-        pDateStore->FormatDate(pDateStore->LastOfMonth));
+    pStatusBar->UpdateDefaultHoursMonth(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
 }
 
 void MainFrame::UpdateBillableStatusBarTaskDurations(const std::string& date)
@@ -2299,8 +2299,8 @@ void MainFrame::UpdateBillableStatusBarTaskDurations(const std::string& date)
     pStatusBar->UpdateBillableHoursDay(date);
     pStatusBar->UpdateBillableHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
         pDateStore->FormatDate(pDateStore->SundayDate));
-    pStatusBar->UpdateBillableHoursMonth(pDateStore->FormatDate(pDateStore->FirstOfMonth),
-        pDateStore->FormatDate(pDateStore->LastOfMonth));
+    pStatusBar->UpdateBillableHoursMonth(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
 }
 
 void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
@@ -2311,10 +2311,28 @@ void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 
 void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
 {
-    ConvertToStdDate(dateTime);
+    bool dateChanged = false;
+
+    date::sys_days convertedDate = ConvertToStdDate(dateTime);
+    SPDLOG_LOGGER_TRACE(pLogger, "Converted date: {0}", pDateStore->FormatDate(convertedDate));
+
     RefreshDataViewListControl();
 
-    UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
+    if (pDateStore->IsWeekDifferent(convertedDate)) {
+        pDateStore->OnWeekChange(convertedDate);
+    }
+    if (pDateStore->IsMonthDifferent(convertedDate)) {
+        pDateStore->OnMonthChange(convertedDate);
+        dateChanged = true;
+    }
+
+    pDateStore->TodayDate = convertedDate;
+
+    if (dateChanged) {
+        UpdateStatusBarTaskDurations(pDateStore->FormatDate(convertedDate));
+    } else {
+        UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
+    }
 }
 
 void MainFrame::RefreshDataViewListControl()
@@ -2386,7 +2404,7 @@ void MainFrame::RefreshDataViewListControl()
     }
 }
 
-void MainFrame::ConvertToStdDate(const wxDateTime& dateTime)
+date::sys_days MainFrame::ConvertToStdDate(const wxDateTime& dateTime)
 {
     wxDateTime dateTimeCopy = dateTime;
     wxDateTime utcDateTime = dateTimeCopy.MakeFromTimezone(wxDateTime::UTC);
@@ -2397,9 +2415,7 @@ void MainFrame::ConvertToStdDate(const wxDateTime& dateTime)
 
     mTaskDateString = pDateStore->FormatDate(newSelectedDate);
 
-    if (pDateStore->IsWeekDifferent(newSelectedDate)) {
-        pDateStore->OnWeekChange(newSelectedDate);
-    }
+    return date::sys_days{ newSelectedDate };
 }
 
 void MainFrame::ResetTaskContextMenuVariables()

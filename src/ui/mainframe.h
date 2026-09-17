@@ -253,7 +253,7 @@ private:
     void DateChangedProcedure(const wxDateTime& dateTime);
     void RefreshDataViewListControl();
 
-    void ConvertToStdDate(const wxDateTime& dateTime);
+    date::sys_days ConvertToStdDate(const wxDateTime& dateTime);
 
     void ResetTaskContextMenuVariables();
 
