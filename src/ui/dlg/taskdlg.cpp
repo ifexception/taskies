@@ -136,8 +136,6 @@ TaskDialog::TaskDialog(wxWindow* parent,
 
     mOldDate = mDate;
 
-    CalculateMonthStartAndMonthEndDates();
-
     Create();
 
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
@@ -146,6 +144,12 @@ TaskDialog::TaskDialog(wxWindow* parent,
 
     wxIconBundle iconBundle(tks::Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
+}
+
+void TaskDialog::SetMonthDates(const std::string& monthStart, const std::string& monthEnd)
+{
+    mMonthStartDate = monthStart;
+    mMonthEndDate = monthEnd;
 }
 
 void TaskDialog::SetAttendedMeetingData(const std::string& subject,
@@ -2114,18 +2118,6 @@ void TaskDialog::ClonedDataToControls()
 
     pIsActiveCheckBoxCtrl->SetValue(false);
     pIsActiveCheckBoxCtrl->Disable();
-}
-
-void TaskDialog::CalculateMonthStartAndMonthEndDates()
-{
-    auto todayDate = date::floor<date::days>(std::chrono::system_clock::now());
-    auto todayYearMonthDayDate = date::year_month_day{ todayDate };
-    auto firstDayOfCurrentMonth = todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / 1;
-    auto lastDayOfCurrentMonth =
-        todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / date::last;
-
-    mMonthStartDate = date::format("%F", firstDayOfCurrentMonth);
-    mMonthEndDate = date::format("%F", lastDayOfCurrentMonth);
 }
 
 void TaskDialog::FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel)

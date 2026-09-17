@@ -66,6 +66,8 @@ public:
 
     TaskDialog& operator=(const TaskDialog&) = delete;
 
+    void SetMonthDates(const std::string& monthStart, const std::string& monthEnd);
+
     void SetAttendedMeetingData(const std::string& subject,
         const int duration,
         const std::string& additionalData = "");
@@ -118,8 +120,6 @@ private:
     void FetchCategoryEntities(const std::optional<std::int64_t> projectId);
 
     void ClonedDataToControls();
-
-    void CalculateMonthStartAndMonthEndDates();
 
     void FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel);
     void ResetBillableHoursUsageControl();
