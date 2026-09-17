@@ -2130,7 +2130,7 @@ void TaskDialog::CalculateMonthStartAndMonthEndDates()
 
 void TaskDialog::FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel)
 {
-    if (projectModel.BillableHours.has_value()) {
+    if (projectModel.Billable) {
         Providers::ProjectBillableHoursProvider billableHoursProvider(pLogger, mDatabaseFilePath);
         double totalHours = 0.0;
 
