@@ -31,6 +31,7 @@ struct ProjectModel {
     std::int64_t ProjectId;
     std::string Name;
     bool IsDefault;
+    bool Billable;
     std::optional<int> BillableHours;
     std::optional<std::string> Description;
     std::int32_t DateCreated;
