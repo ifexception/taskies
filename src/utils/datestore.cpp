@@ -38,7 +38,24 @@ void DateStore::Reset()
 
 bool DateStore::IsWeekDifferent(date::sys_days newDate)
 {
+    SPDLOG_LOGGER_TRACE(pLogger, "CurrentWeekMondayDate = {}", FormatDate(CurrentWeekMondayDate));
+    SPDLOG_LOGGER_TRACE(pLogger, "newDate = {}", FormatDate(newDate));
+
     return GetStartOfWeek(CurrentWeekMondayDate) != GetStartOfWeek(newDate);
+}
+
+bool DateStore::IsMonthDifferent(date::sys_days newDate)
+{
+    // Convert time points to year_month_day components
+    date::year_month_day currentDate{ TodayDate };
+    date::year_month_day futureDate{ newDate };
+
+    SPDLOG_LOGGER_TRACE(pLogger, "TodayDate = {}", FormatDate(currentDate));
+    SPDLOG_LOGGER_TRACE(pLogger, "newDate = {}", FormatDate(futureDate));
+
+    // Compare only the year and month components
+    return date::year_month{ currentDate.year(), currentDate.month() } !=
+           date::year_month{ futureDate.year(), futureDate.month() };
 }
 
 void DateStore::OnWeekChange(date::sys_days newDate)
@@ -55,6 +72,16 @@ void DateStore::OnWeekChange(date::sys_days newDate)
         std::chrono::duration_cast<std::chrono::seconds>(MondayDate.time_since_epoch()).count();
     SundayDateSeconds =
         std::chrono::duration_cast<std::chrono::seconds>(SundayDate.time_since_epoch()).count();
+}
+
+void DateStore::OnMonthChange(date::sys_days newDate)
+{
+    auto todayYearMonthDayDate = date::year_month_day{ newDate };
+    FirstDayOfMonth = todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / 1;
+    LastDayOfMonth = todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / date::last;
+
+    SPDLOG_LOGGER_TRACE(pLogger, "First day of the month: {0}", FormatDate(FirstDayOfMonth));
+    SPDLOG_LOGGER_TRACE(pLogger, "Last day of the month: {0}", FormatDate(LastDayOfMonth));
 }
 
 std::string DateStore::FormatDate(date::sys_days dateToFormat) const
@@ -75,11 +102,11 @@ void DateStore::Initialize()
     SPDLOG_LOGGER_TRACE(pLogger, "Sunday date: {0}", FormatDate(SundayDate));
 
     date::year_month_day todayYearMonthDay = date::year_month_day{ TodayDate };
-    FirstOfMonth = todayYearMonthDay.year() / todayYearMonthDay.month() / 1;
-    LastOfMonth = todayYearMonthDay.year() / todayYearMonthDay.month() / date::last;
+    FirstDayOfMonth = todayYearMonthDay.year() / todayYearMonthDay.month() / 1;
+    LastDayOfMonth = todayYearMonthDay.year() / todayYearMonthDay.month() / date::last;
 
-    SPDLOG_LOGGER_TRACE(pLogger, "First day of the month: {0}", FormatDate(FirstOfMonth));
-    SPDLOG_LOGGER_TRACE(pLogger, "Last day of the month: {0}", FormatDate(LastOfMonth));
+    SPDLOG_LOGGER_TRACE(pLogger, "First day of the month: {0}", FormatDate(FirstDayOfMonth));
+    SPDLOG_LOGGER_TRACE(pLogger, "Last day of the month: {0}", FormatDate(LastDayOfMonth));
 
     TodayDateSeconds =
         std::chrono::duration_cast<std::chrono::seconds>(TodayDate.time_since_epoch()).count();

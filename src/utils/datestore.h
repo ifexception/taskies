@@ -43,8 +43,9 @@ public:
 
     date::sys_days MondayDate;
     date::sys_days SundayDate;
-    date::sys_days FirstOfMonth;
-    date::sys_days LastOfMonth;
+
+    date::sys_days FirstDayOfMonth;
+    date::sys_days LastDayOfMonth;
 
     std::int64_t TodayDateSeconds;
     std::int64_t MondayDateSeconds;
@@ -53,7 +54,10 @@ public:
     void Reset();
 
     bool IsWeekDifferent(date::sys_days newDate);
+    bool IsMonthDifferent(date::sys_days newDate);
+
     void OnWeekChange(date::sys_days newDate);
+    void OnMonthChange(date::sys_days newDate);
 
     std::string FormatDate(date::sys_days dateToFormat) const;
 
