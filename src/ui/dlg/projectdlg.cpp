@@ -516,7 +516,7 @@ bool ProjectDialog::Validate()
     if (pBillableCheckBoxCtrl->GetValue()) {
         auto billableHoursLength = pBillableHoursSpinCtrl->GetValue();
         if (billableHoursLength < 5) {
-            auto valMsg = "Billable hours must have value greater than five (5) hours";
+            auto valMsg = "Billable hours must be at least five (5) hours";
             wxRichToolTip toolTip("Validation", valMsg);
             toolTip.SetIcon(wxICON_WARNING);
             toolTip.ShowFor(pNameTextCtrl);

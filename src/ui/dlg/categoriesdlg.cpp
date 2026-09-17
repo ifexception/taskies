@@ -395,6 +395,11 @@ void CategoriesDialog::UpdateCategory(Model::CategoryModel category)
 void CategoriesDialog::OnProjectChoice(wxCommandEvent& event)
 {
     int selection = event.GetSelection();
+    if (selection == wxNOT_FOUND) {
+        pBillableCheckBoxCtrl->SetValue(false);
+        return;
+    }
+
     ClientData<std::int64_t>* projectIdData =
         reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(selection));
 

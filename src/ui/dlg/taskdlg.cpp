@@ -381,7 +381,7 @@ void TaskDialog::CreateControls()
     pProjectChoiceCtrl->SetToolTip("Select project to associate task with");
 
     /* Project billable hours calculation text ctrl */
-    auto projectBillableHoursLabel = new wxStaticText(this, wxID_ANY, "Billable Hours Usage");
+    auto projectBillableHoursLabel = new wxStaticText(this, wxID_ANY, "Billable Hours Logged");
 
     pProjectCalculatedBillableHoursTextCtrl = new wxTextCtrl(this,
         tksIDC_PROJECTCALCULATEDBILLABLEHOURSTEXTCTRL,
@@ -2130,7 +2130,7 @@ void TaskDialog::CalculateMonthStartAndMonthEndDates()
 
 void TaskDialog::FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel)
 {
-    if (projectModel.Billable) {
+    if (projectModel.Billable && projectModel.BillableHours.has_value()) {
         Providers::ProjectBillableHoursProvider billableHoursProvider(pLogger, mDatabaseFilePath);
         double totalHours = 0.0;
 
