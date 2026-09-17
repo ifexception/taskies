@@ -60,7 +60,7 @@ private:
     void DataToControls();
 
     void OnEmployerChoiceSelection(wxCommandEvent& event);
-
+    void OnBillableCheck(wxCommandEvent& event);
     void OnIsActiveCheck(wxCommandEvent& event);
 
     void OnOK(wxCommandEvent& event);
@@ -77,6 +77,7 @@ private:
     wxTextCtrl* pNameTextCtrl;
     wxCheckBox* pIsDefaultCheckBoxCtrl;
 
+    wxCheckBox* pBillableCheckBoxCtrl;
     wxSpinCtrl* pBillableHoursSpinCtrl;
 
     wxTextCtrl* pDescriptionTextCtrl;
@@ -98,6 +99,7 @@ private:
     enum {
         tksIDC_NAMETEXTCTRL = wxID_HIGHEST + 1001,
         tksIDC_ISDEFAULTCHECKBOXCTRL,
+        tksIDC_BILLABLECHECKBOXCTRL,
         tksIDC_BILLABLEHOURSSPINCTRL,
         tksIDC_DESCRIPTIONTEXTCTRL,
         tksIDC_EMPLOYERCHOICECTRL,

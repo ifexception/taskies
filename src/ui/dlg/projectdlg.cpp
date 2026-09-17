@@ -64,6 +64,7 @@ ProjectDialog::ProjectDialog(wxWindow* parent,
     , pLogger(logger)
     , pNameTextCtrl(nullptr)
     , pIsDefaultCheckBoxCtrl(nullptr)
+    , pBillableCheckBoxCtrl(nullptr)
     , pBillableHoursSpinCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pEmployerChoiceCtrl(nullptr)
@@ -117,6 +118,10 @@ void ProjectDialog::CreateControls()
     pIsDefaultCheckBoxCtrl->SetToolTip(
         "Enabling this option for a project will auto-select it on a task entry");
 
+    /* Billable Checkbox Ctrl */
+    pBillableCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_BILLABLECHECKBOXCTRL, "Billable");
+    pBillableCheckBoxCtrl->SetToolTip("Set the project to be billable");
+
     /* Billable Hours Spin Ctrl */
     auto billableHoursLabel = new wxStaticText(detailsBox, wxID_ANY, "Billable Hours");
 
@@ -134,6 +139,9 @@ void ProjectDialog::CreateControls()
 
     detailsGridSizer->Add(0, 0);
     detailsGridSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    detailsGridSizer->Add(0, 0);
+    detailsGridSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsGridSizer->Add(
         billableHoursLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
@@ -251,6 +259,8 @@ void ProjectDialog::FillControls()
             FillClientChoiceControl(defaultEmployerId);
         }
     }
+
+    pBillableHoursSpinCtrl->Disable();
 }
 
 // clang-format off
@@ -259,6 +269,12 @@ void ProjectDialog::ConfigureEventBindings()
     pEmployerChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ProjectDialog::OnEmployerChoiceSelection,
+        this
+    );
+
+    pBillableCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &ProjectDialog::OnBillableCheck,
         this
     );
 
@@ -309,7 +325,10 @@ void ProjectDialog::DataToControls()
         pIsActiveCheckBoxCtrl->SetValue(mProjectModel.IsActive);
         pIsActiveCheckBoxCtrl->Enable();
 
-        if (mProjectModel.BillableHours.has_value()) {
+        pBillableCheckBoxCtrl->SetValue(mProjectModel.Billable);
+
+        if (mProjectModel.Billable && mProjectModel.BillableHours.has_value()) {
+            pBillableHoursSpinCtrl->Enable();
             pBillableHoursSpinCtrl->SetValue(mProjectModel.BillableHours.value());
         }
 
@@ -360,6 +379,16 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     std::int64_t employerId = employerIdData->GetValue();
 
     FillClientChoiceControl(employerId);
+}
+
+void ProjectDialog::OnBillableCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pBillableHoursSpinCtrl->Enable();
+    } else {
+        pBillableHoursSpinCtrl->SetValue(0);
+        pBillableHoursSpinCtrl->Disable();
+    }
 }
 
 void ProjectDialog::OnOK(wxCommandEvent& event)
@@ -484,13 +513,15 @@ bool ProjectDialog::Validate()
         return false;
     }
 
-    auto billableHoursLength = pBillableHoursSpinCtrl->GetValue();
-    if (billableHoursLength < 0) {
-        auto valMsg = "Billable hours must have value greater than zero (0)";
-        wxRichToolTip toolTip("Validation", valMsg);
-        toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pNameTextCtrl);
-        return false;
+    if (pBillableCheckBoxCtrl->GetValue()) {
+        auto billableHoursLength = pBillableHoursSpinCtrl->GetValue();
+        if (billableHoursLength < 5) {
+            auto valMsg = "Billable hours must have value greater than five (5) hours";
+            wxRichToolTip toolTip("Validation", valMsg);
+            toolTip.SetIcon(wxICON_WARNING);
+            toolTip.ShowFor(pNameTextCtrl);
+            return false;
+        }
     }
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
@@ -529,6 +560,7 @@ void ProjectDialog::TransferDataFromControls()
 
     mProjectModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
 
+    mProjectModel.Billable = pBillableCheckBoxCtrl->GetValue();
     mProjectModel.BillableHours = pBillableHoursSpinCtrl->GetValue() > 0
                                       ? std::make_optional(pBillableHoursSpinCtrl->GetValue())
                                       : std::nullopt;
