@@ -147,10 +147,11 @@ std::string ProjectBillableHoursProvider::getTotalBillableHoursByProjectId =
     "ON tasks.category_id = categories.category_id "
     "INNER JOIN workdays "
     "ON tasks.workday_id = workdays.workday_id "
-    "WHERE projects.billable_hours > 0 "
+    "WHERE projects.billable = 1 "
     "AND categories.billable = 1 "
     "AND workdays.date >= ? "
     "AND workdays.date <= ? "
     "AND projects.project_id = ? "
+    "AND projects.is_active = 1 "
     "AND tasks.is_active = 1;";
-} // namespace tks::Services
+} // namespace tks::Providers
