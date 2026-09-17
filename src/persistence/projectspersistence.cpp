@@ -143,6 +143,7 @@ SqliteResult ProjectsPersistence::Filter(const std::string& searchTerm,
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
+            projectModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
             projectModel.BillableHours = Utils::Sqlite::GetOptionalInt(stmt, columnIndex++);
 
             projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
@@ -255,6 +256,7 @@ SqliteResult ProjectsPersistence::FilterByEmployerIdOrClientId(
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
+            projectModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
             projectModel.BillableHours = Utils::Sqlite::GetOptionalInt(stmt, columnIndex++);
 
             projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
@@ -352,6 +354,7 @@ SqliteResult ProjectsPersistence::FilterByEmployerId(std::optional<std::int64_t>
 
             projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
+            projectModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
             projectModel.BillableHours = Utils::Sqlite::GetOptionalInt(stmt, columnIndex++);
 
             projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
@@ -447,6 +450,7 @@ SqliteResult ProjectsPersistence::GetById(const std::int64_t projectId,
 
     projectModel.IsDefault = !!sqlite3_column_int(stmt, columnIndex++);
 
+    projectModel.Billable = !!sqlite3_column_int(stmt, columnIndex++);
     projectModel.BillableHours = Utils::Sqlite::GetOptionalInt(stmt, columnIndex++);
 
     projectModel.Description = Utils::Sqlite::GetOptionalText(stmt, columnIndex++);
@@ -522,6 +526,19 @@ SqliteResult ProjectsPersistence::Create(std::int64_t& projectId,
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+    }
+
+    bindIndex++;
+
+    // billable
+    rc = sqlite3_bind_int(stmt, bindIndex, projectModel.Billable);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -659,6 +676,19 @@ SqliteResult ProjectsPersistence::Update(const Model::ProjectModel& projectModel
     if (rc != SQLITE_OK) {
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
+
+        sqlite3_finalize(stmt);
+        return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
+    }
+
+    bindIndex++;
+
+    // billable
+    rc = sqlite3_bind_int(stmt, bindIndex, projectModel.Billable);
+
+    if (rc != SQLITE_OK) {
+        const char* error = sqlite3_errmsg(pDb);
+        pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -892,6 +922,7 @@ std::string ProjectsPersistence::filter =
     "projects.project_id, "
     "projects.name AS project_name, "
     "projects.is_default, "
+    "projects.billable, "
     "projects.billable_hours, "
     "projects.description AS project_description, "
     "projects.date_created, "
@@ -914,6 +945,7 @@ std::string ProjectsPersistence::getById = "SELECT "
                                            "projects.project_id, "
                                            "projects.name, "
                                            "projects.is_default, "
+                                           "projects.billable, "
                                            "projects.billable_hours, "
                                            "projects.description, "
                                            "projects.date_created, "
@@ -929,6 +961,7 @@ std::string ProjectsPersistence::create = "INSERT INTO "
                                           "("
                                           "name, "
                                           "is_default, "
+                                          "billable, "
                                           "billable_hours, "
                                           "description, "
                                           "employer_id, "
@@ -940,6 +973,7 @@ std::string ProjectsPersistence::update = "UPDATE projects "
                                           "SET "
                                           "name = ?,"
                                           "is_default = ?,"
+                                          "projects.billable = ?,"
                                           "billable_hours = ?,"
                                           "description = ?,"
                                           "date_modified = ?,"
@@ -963,6 +997,7 @@ std::string ProjectsPersistence::filterByEmployerId =
     "projects.project_id, "
     "projects.name, "
     "projects.is_default, "
+    "projects.billable, "
     "projects.billable_hours, "
     "projects.description, "
     "projects.date_created, "
@@ -981,6 +1016,7 @@ std::string ProjectsPersistence::filterByEmployerIdAndOrClientId =
     "projects.project_id, "
     "projects.name, "
     "projects.is_default, "
+    "projects.billable, "
     "projects.billable_hours, "
     "projects.description, "
     "projects.date_created, "
