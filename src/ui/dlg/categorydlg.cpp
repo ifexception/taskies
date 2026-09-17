@@ -220,6 +220,12 @@ void CategoryDialog::FillControls()
 // clang-format off
 void CategoryDialog::ConfigureEventBindings()
 {
+    pProjectChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &CategoryDialog::OnProjectChoice,
+        this
+    );
+
     pIsActiveCheckBoxCtrl->Bind(
             wxEVT_CHECKBOX,
             &CategoryDialog::OnIsActiveCheck,
@@ -271,7 +277,7 @@ void CategoryDialog::DataToControls()
 
         if (mCategoryModel.ProjectId.has_value()) {
             for (unsigned int i = 0; i < pProjectChoiceCtrl->GetCount(); i++) {
-                auto* data = reinterpret_cast<ClientData<std::int64_t>*>(
+                ClientData<std::int64_t>* data = reinterpret_cast<ClientData<std::int64_t>*>(
                     pProjectChoiceCtrl->GetClientObject(i));
                 if (mCategoryModel.ProjectId.value() == data->GetValue()) {
                     pProjectChoiceCtrl->SetSelection(i);
@@ -282,6 +288,39 @@ void CategoryDialog::DataToControls()
     }
 
     Fit();
+}
+
+void CategoryDialog::OnProjectChoice(wxCommandEvent& event)
+{
+    int selection = event.GetSelection();
+    ClientData<std::int64_t>* projectIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(selection));
+
+    if (projectIdData->GetValue() < 1) {
+        pBillableCheckBoxCtrl->SetValue(false);
+        return;
+    }
+
+    std::int64_t projectId = projectIdData->GetValue();
+
+    Model::ProjectModel projectModel;
+    Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = projectsPersistence.GetById(projectId, projectModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdProjectMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+
+        return;
+    }
+
+    pBillableCheckBoxCtrl->SetValue(projectModel.Billable);
 }
 
 void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)

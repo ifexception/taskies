@@ -273,6 +273,12 @@ void CategoriesDialog::FillControls()
 // clang-format off
 void CategoriesDialog::ConfigureEventBindings()
 {
+    pProjectChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &CategoriesDialog::OnProjectChoice,
+        this
+    );
+
     pAddButton->Bind(
         wxEVT_BUTTON,
         &CategoriesDialog::OnAdd,
@@ -384,6 +390,39 @@ void CategoriesDialog::UpdateCategory(Model::CategoryModel category)
     }
 
     mListItemIndex = -1;
+}
+
+void CategoriesDialog::OnProjectChoice(wxCommandEvent& event)
+{
+    int selection = event.GetSelection();
+    ClientData<std::int64_t>* projectIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(selection));
+
+    if (projectIdData->GetValue() < 1) {
+        pBillableCheckBoxCtrl->SetValue(false);
+        return;
+    }
+
+    std::int64_t projectId = projectIdData->GetValue();
+
+    Model::ProjectModel projectModel;
+    Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = projectsPersistence.GetById(projectId, projectModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdProjectMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+
+        return;
+    }
+
+    pBillableCheckBoxCtrl->SetValue(projectModel.Billable);
 }
 
 void CategoriesDialog::OnAdd(wxCommandEvent& event)

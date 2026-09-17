@@ -917,7 +917,7 @@
     <None Include="res\install-wizard.svg">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\migrations\20260907194111_add_billable_hours_column_to_projects_table.sql">
+    <None Include="res\migrations\20260907194111_add_billable_and_billable_hours_column_to_projects_table.sql">
       <Filter>Resource Files\migrations</Filter>
     </None>
     <None Include="res\migrations\20260823103130_drop_projects_table_display_name_column.sql">
