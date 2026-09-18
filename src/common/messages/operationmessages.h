@@ -43,5 +43,4 @@ const std::string CannotOpenFileMessage = "Cannot open file for exporting";
 #pragma region Zip
 const std::string ZipHeaderMessage = "An error occurred during database backup file zip operation";
 #pragma endregion
-
 } // namespace tks::Messages
