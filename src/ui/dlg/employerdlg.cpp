@@ -30,6 +30,7 @@
 #include "../../common/validator.h"
 
 #include "../../common/results/sqliteresult.h"
+#include "../../common/messages/deleteoperationmessages.h"
 #include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/employerspersistence.h"
@@ -290,6 +291,15 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
         }
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        wxMessageDialog confirmationDialog(this,
+            fmt::format(Messages::DeleteEmployerMessage, employerModel.Name),
+            "Confirm Deletion",
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+        if (confirmationDialog.ShowModal() != wxID_YES) {
+            return;
+        }
+
         auto result = employerPersistence.Delete(mEmployerId);
 
         if (!result.Success) {

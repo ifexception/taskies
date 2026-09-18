@@ -39,6 +39,7 @@
 #include "../../common/validator.h"
 
 #include "../../common/results/sqliteresult.h"
+#include "../../common/messages/deleteoperationmessages.h"
 #include "../../common/messages/persistencemessages.h"
 
 #include "../../core/configuration.h"
@@ -1613,6 +1614,16 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
+        wxMessageDialog confirmationDialog(this,
+            fmt::format(
+                Messages::DeleteTaskMessage, Utils::TrimToLength(mTaskModel.Description, 0)),
+            "Confirm Deletion",
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+        if (confirmationDialog.ShowModal() != wxID_YES) {
+            return;
+        }
+
         if (mTaskModel.AttendedMeetingId.has_value()) {
             sqliteResult = attendedMeetingsPersistence.Delete(mTaskModel.AttendedMeetingId.value());
             if (!sqliteResult.Success) {

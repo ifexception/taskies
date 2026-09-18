@@ -476,7 +476,7 @@
     <ClCompile Include="src\providers\taskhours\taskhoursprovider.cpp">
       <Filter>Source\providers\taskhours</Filter>
     </ClCompile>
-    <ClCompile Include="deleteoperationmessages.cpp">
+    <ClCompile Include="src\common\messages\deleteoperationmessages.cpp">
       <Filter>Source\common\messages</Filter>
     </ClCompile>
   </ItemGroup>
@@ -850,7 +850,7 @@
     <ClInclude Include="src\providers\taskhours\taskhoursprovider.h">
       <Filter>Source\providers\taskhours</Filter>
     </ClInclude>
-    <ClInclude Include="deleteoperationmessages.h">
+    <ClInclude Include="src\common\messages\deleteoperationmessages.h">
       <Filter>Source\common\messages</Filter>
     </ClInclude>
   </ItemGroup>

@@ -316,7 +316,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="deleteoperationmessages.cpp" />
+    <ClCompile Include="src\common\messages\deleteoperationmessages.cpp" />
     <ClCompile Include="src\providers\projectbillablehours\projectbillablehoursprovider.cpp" />
     <ClCompile Include="src\core\settings\presetcolumnsetting.cpp" />
     <ClCompile Include="src\core\settings\presetsetting.cpp" />
@@ -442,7 +442,7 @@
     <ClCompile Include="src\providers\taskhours\taskhoursprovider.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="deleteoperationmessages.h" />
+    <ClInclude Include="src\common\messages\deleteoperationmessages.h" />
     <ClInclude Include="src\providers\projectbillablehours\projectbillablehoursprovider.h" />
     <ClInclude Include="src\core\settings\presetcolumnsetting.h" />
     <ClInclude Include="src\core\settings\presetsetting.h" />

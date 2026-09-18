@@ -17,17 +17,4 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#pragma once
-
-#include <string>
-
-namespace tks::Messages
-{
-#pragma region DeleteEntity
-const std::string DeleteEmployerMessage = "Are you sure you want to delete the employer \"{0}\"?";
-const std::string DeleteClientMessage = "Are you sure you want to delete the client \"{0}\"?";
-const std::string DeleteProjectMessage = "Are you sure you want to delete the project \"{0}\"?";
-const std::string DeleteCategoryMessage = "Are you sure you want to delete the category \"{0}\"?";
-const std::string DeleteTaskMessage = "Are you sure you want to delete the task \"{0}\"?";
-#pragma endregion
-}
+#include "deleteoperationmessages.h"

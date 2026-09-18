@@ -23,6 +23,8 @@
 #include <string>
 #include <vector>
 
+constexpr int MAX_CHARACTER_TRIM_COUNT = 56;
+
 namespace tks::Utils
 {
 #ifdef _WIN32
@@ -48,6 +50,8 @@ std::int64_t VoidPointerToInt64(void* value);
 void* Int64ToVoidPointer(std::int64_t value);
 
 std::string TrimWhitespace(const std::string& value);
+
+std::string TrimToLength(const std::string& value, std::size_t length = 0);
 
 std::string ReplaceNewlineWithEllipses(const std::string& value);
 

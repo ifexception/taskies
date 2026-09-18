@@ -34,6 +34,7 @@
 #include "../../../common/constants.h"
 #include "../../../common/validator.h"
 
+#include "../../../common/messages/deleteoperationmessages.h"
 #include "../../../common/messages/persistencemessages.h"
 
 #include "../../../persistence/attributegroupspersistence.h"
@@ -629,6 +630,15 @@ void StaticAttributeValuesDialog::OnOK(wxCommandEvent& event)
                 dialog.ShowModal();
             }
         } else if (bIsEdit && !pIsActiveCheckBoxCtrl->GetValue()) {
+            wxMessageDialog confirmationDialog(this,
+                Messages::DeleteConfirmationStaticTaskAttributeValuesMessage,
+                "Confirm Deletion",
+                wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+            if (confirmationDialog.ShowModal() != wxID_YES) {
+                return;
+            }
+
             bool areStaticAttributeValuesUsed = false;
             std::vector<std::int64_t> attributeIds;
 
