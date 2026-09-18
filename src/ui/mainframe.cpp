@@ -715,6 +715,8 @@ void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
         mThumbBarDialogOpenCounter++;
 
         dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+            pDateStore->FormatDate(pDateStore->LastDayOfMonth));
         newTaskDialog.ShowModal();
 
         mThumbBarDialogOpenCounter--;
@@ -742,6 +744,8 @@ void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     newTaskDialog.ShowModal();
 }
 
@@ -1002,6 +1006,8 @@ void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog popupNewTask(
         this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDateString);
+    popupNewTask.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     popupNewTask.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -1461,6 +1467,8 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 
     dlg::TaskDialog editTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDateString);
+    editTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     editTaskDialog.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -1563,6 +1571,8 @@ void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
 
     dlg::TaskDialog cloneTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, "", true);
+    cloneTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     cloneTaskDialog.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -1907,6 +1917,8 @@ void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     newTaskDialog.ShowModal();
 }
 
@@ -2039,6 +2051,8 @@ void MainFrame::OnNextDayButtonClick(wxCommandEvent& event)
 void MainFrame::OnNewTaskButtonClick(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     newTaskDialog.ShowModal();
 }
 
@@ -2123,6 +2137,8 @@ void MainFrame::OnItemActivated(wxDataViewEvent& event)
 
     dlg::TaskDialog editTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDateString);
+    editTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {
