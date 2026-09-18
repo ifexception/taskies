@@ -33,13 +33,9 @@
 
 namespace tks::UI
 {
-std::string StatusBar::HoursDayFormat = "[D] {0}";
-std::string StatusBar::HoursWeekFormat = "[W] {0}";
-std::string StatusBar::HoursMonthFormat = "[M] {0}";
-
-std::string StatusBar::BillableDayFormat = "[D] {0}";
-std::string StatusBar::BillableWeekFormat = "[W] {0}";
-std::string StatusBar::BillableMonthFormat = "[M] {0}";
+std::string StatusBar::DayFormat = "[D] {0}";
+std::string StatusBar::WeekFormat = "[W] {0}";
+std::string StatusBar::MonthFormat = "[M] {0}";
 
 StatusBar::StatusBar(wxWindow* parent,
     std::shared_ptr<spdlog::logger> logger,
@@ -97,7 +93,7 @@ void StatusBar::UpdateDefaultHoursDay(const std::string& date)
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::HoursDayFormat, totalHours);
+        auto formattedText = fmt::format(StatusBar::DayFormat, totalHours);
         SetStatusText(formattedText, Fields::HoursDay);
     }
 }
@@ -115,7 +111,7 @@ void StatusBar::UpdateDefaultHoursWeek(const std::string& fromDate, const std::s
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::HoursWeekFormat, totalHours);
+        auto formattedText = fmt::format(StatusBar::WeekFormat, totalHours);
         SetStatusText(formattedText, Fields::HoursWeek);
     }
 }
@@ -133,7 +129,7 @@ void StatusBar::UpdateDefaultHoursMonth(const std::string& fromDate, const std::
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::HoursMonthFormat, totalHours);
+        auto formattedText = fmt::format(StatusBar::MonthFormat, totalHours);
         SetStatusText(formattedText, Fields::HoursMonth);
     }
 }
@@ -151,7 +147,7 @@ void StatusBar::UpdateBillableHoursDay(const std::string& date)
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::HoursDayFormat, totalHours);
+        auto formattedText = fmt::format(StatusBar::DayFormat, totalHours);
         SetStatusText(formattedText, Fields::BillableDay);
     }
 }
@@ -170,7 +166,7 @@ void StatusBar::UpdateBillableHoursWeek(const std::string& fromDate, const std::
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::BillableWeekFormat, totalHours);
+        auto formattedText = fmt::format(StatusBar::WeekFormat, totalHours);
         SetStatusText(formattedText, Fields::BillableWeek);
     }
 }
@@ -189,7 +185,7 @@ void StatusBar::UpdateBillableHoursMonth(const std::string& fromDate, const std:
 
         dialog.ShowModal();
     } else {
-        auto formattedText = fmt::format(StatusBar::BillableMonthFormat, totalHours);
+        auto formattedText = fmt::format(StatusBar::MonthFormat, totalHours);
         SetStatusText(formattedText, Fields::BillableMonth);
     }
 }

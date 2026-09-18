@@ -71,12 +71,8 @@ private:
 
     std::unique_ptr<Providers::TaskHoursProvider> pTaskHoursProvider;
 
-    static std::string HoursDayFormat;
-    static std::string HoursWeekFormat;
-    static std::string HoursMonthFormat;
-
-    static std::string BillableDayFormat;
-    static std::string BillableWeekFormat;
-    static std::string BillableMonthFormat;
+    static std::string DayFormat;
+    static std::string WeekFormat;
+    static std::string MonthFormat;
 };
 } // namespace tks::UI
