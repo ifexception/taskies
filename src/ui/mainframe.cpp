@@ -2336,13 +2336,14 @@ void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
 
     if (pDateStore->IsWeekDifferent(convertedDate)) {
         pDateStore->OnWeekChange(convertedDate);
+        dateChanged = true;
     }
     if (pDateStore->IsMonthDifferent(convertedDate)) {
         pDateStore->OnMonthChange(convertedDate);
         dateChanged = true;
     }
 
-    pDateStore->TodayDate = convertedDate;
+    pDateStore->SelectedDate = convertedDate;
 
     if (dateChanged) {
         UpdateStatusBarTaskDurations(pDateStore->FormatDate(convertedDate));

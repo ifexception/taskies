@@ -39,6 +39,7 @@ public:
     ~DateStore() = default;
 
     date::sys_days TodayDate;
+    date::sys_days SelectedDate;
     date::sys_days CurrentWeekMondayDate;
 
     date::sys_days MondayDate;

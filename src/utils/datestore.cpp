@@ -32,7 +32,6 @@ DateStore::DateStore(std::shared_ptr<spdlog::logger> logger)
 
 void DateStore::Reset()
 {
-    SPDLOG_LOGGER_TRACE(pLogger, "Reset dates");
     Initialize();
 }
 
@@ -46,14 +45,21 @@ bool DateStore::IsWeekDifferent(date::sys_days newDate)
 
 bool DateStore::IsMonthDifferent(date::sys_days newDate)
 {
-    // Convert time points to year_month_day components
-    date::year_month_day currentDate{ TodayDate };
+    date::year_month_day currentDate{ SelectedDate };
     date::year_month_day futureDate{ newDate };
 
-    SPDLOG_LOGGER_TRACE(pLogger, "TodayDate = {}", FormatDate(currentDate));
+    SPDLOG_LOGGER_TRACE(pLogger, "SelectedDate = {}", FormatDate(currentDate));
     SPDLOG_LOGGER_TRACE(pLogger, "newDate = {}", FormatDate(futureDate));
 
-    // Compare only the year and month components
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "currentDate.year(), currentDate.month() = {},{}",
+        static_cast<int>(currentDate.year()),
+        static_cast<unsigned int>(currentDate.month()));
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "futureDate.year(), futureDate.month() = {},{}",
+        static_cast<int>(futureDate.year()),
+        static_cast<unsigned int>(futureDate.month()));
+
     return date::year_month{ currentDate.year(), currentDate.month() } !=
            date::year_month{ futureDate.year(), futureDate.month() };
 }
@@ -94,6 +100,7 @@ std::string DateStore::FormatDate(date::sys_days dateToFormat) const
 void DateStore::Initialize()
 {
     TodayDate = date::floor<date::days>(std::chrono::system_clock::now());
+    SelectedDate = TodayDate;
     SPDLOG_LOGGER_TRACE(pLogger, "Todays date: {0}", FormatDate(TodayDate));
 
     MondayDate = TodayDate - (date::weekday{ TodayDate } - date::Monday);
