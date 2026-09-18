@@ -255,7 +255,7 @@ void CategoryDialog::DataToControls()
     auto sqliteResult = categoryPersistence.GetById(mCategoryId, mCategoryModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::CreateEmployerMessage,
+            Messages::GetByIdCategoryMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -377,6 +377,16 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
         }
     }
     if (!pIsActiveCheckBoxCtrl->IsChecked()) {
+        wxMessageDialog confirmationDialog(this,
+            fmt::format(
+                "Are you sure you want to delete the category \"{0}\"?", mCategoryModel.Name),
+            "Confirm Deletion",
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+        if (confirmationDialog.ShowModal() != wxID_YES) {
+            return;
+        }
+
         auto result = categoryPersistence.Delete(mCategoryId);
 
         if (!result.Success) {
@@ -406,7 +416,7 @@ void CategoryDialog::OnCancel(wxCommandEvent& event)
 
 bool CategoryDialog::Validate()
 {
-    auto name = pNameTextCtrl->GetValue().ToStdString();
+    auto name = Utils::TrimWhitespace(pNameTextCtrl->GetValue().ToStdString());
     if (name.empty()) {
         auto valMsg = "Name is required";
         wxRichToolTip toolTip("Validation", valMsg);
@@ -425,7 +435,7 @@ bool CategoryDialog::Validate()
         return false;
     }
 
-    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    auto description = Utils::TrimWhitespace(pDescriptionTextCtrl->GetValue().ToStdString());
     if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
                                     description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
         auto valMsg =
