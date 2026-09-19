@@ -1615,8 +1615,8 @@ void TaskDialog::OnOK(wxCommandEvent& event)
 
     if (bIsEdit && !mTaskModel.IsActive) {
         wxMessageDialog confirmationDialog(this,
-            fmt::format(
-                Messages::DeleteTaskMessage, Utils::TrimToLength(mTaskModel.Description, 0)),
+            fmt::format(Messages::DeleteConfirmationTaskMessage,
+                Utils::TrimToLengthAndAddEllipses(mTaskModel.Description)),
             "Confirm Deletion",
             wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
 
