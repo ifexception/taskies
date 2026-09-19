@@ -320,7 +320,7 @@ void ClientDialog::OnOK(wxCommandEvent& event)
 
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
         wxMessageDialog confirmationDialog(this,
-            fmt::format(Messages::DeleteClientMessage, mClientModel.Name),
+            fmt::format(Messages::DeleteConfirmationClientMessage, mClientModel.Name),
             "Confirm Deletion",
             wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
 

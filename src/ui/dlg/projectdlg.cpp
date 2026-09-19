@@ -451,7 +451,7 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
         wxMessageDialog confirmationDialog(this,
-            fmt::format(Messages::DeleteProjectMessage, mProjectModel.Name),
+            fmt::format(Messages::DeleteConfirmationProjectMessage, mProjectModel.Name),
             "Confirm Deletion",
             wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
 

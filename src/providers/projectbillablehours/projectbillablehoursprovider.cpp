@@ -142,6 +142,7 @@ const std::string ProjectBillableHoursProvider::getTotalBillableHoursByProjectId
     "ON tasks.workday_id = workdays.workday_id "
     "WHERE projects.billable = 1 "
     "AND categories.billable = 1 "
+    "AND tasks.billable = 1 "
     "AND workdays.date >= ? "
     "AND workdays.date <= ? "
     "AND projects.project_id = ? "

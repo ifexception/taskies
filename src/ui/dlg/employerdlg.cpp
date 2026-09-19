@@ -292,7 +292,7 @@ void EmployerDialog::OnOK(wxCommandEvent& event)
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
         wxMessageDialog confirmationDialog(this,
-            fmt::format(Messages::DeleteEmployerMessage, employerModel.Name),
+            fmt::format(Messages::DeleteConfirmationEmployerMessage, employerModel.Name),
             "Confirm Deletion",
             wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
 
