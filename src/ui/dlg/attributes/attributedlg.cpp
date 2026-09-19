@@ -32,6 +32,7 @@
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
 
+#include "../../../common/messages/deleteoperationmessages.h"
 #include "../../../common/messages/persistencemessages.h"
 
 #include "../../../persistence/attributespersistence.h"
@@ -524,6 +525,15 @@ void AttributeDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        wxMessageDialog confirmationDialog(this,
+            Messages::DeleteConfirmationAttributesMessage,
+            "Confirm Deletion",
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+        if (confirmationDialog.ShowModal() != wxID_YES) {
+            return;
+        }
+
         bool isAttributeUsed = CheckAttributeUsage(attributesPersistence);
         if (isAttributeUsed) {
             wxMessageBox("Unable to delete attribute as it is in use",

@@ -38,6 +38,7 @@
 #include "../../models/taskmodel.h"
 #include "../../models/taskattributevaluemodel.h"
 #include "../../models/attendedmeetingmodel.h"
+#include "../../models/projectmodel.h"
 
 namespace tks
 {
@@ -64,6 +65,8 @@ public:
     virtual ~TaskDialog() = default;
 
     TaskDialog& operator=(const TaskDialog&) = delete;
+
+    void SetMonthDates(const std::string& monthStart, const std::string& monthEnd);
 
     void SetAttendedMeetingData(const std::string& subject,
         const int duration,
@@ -118,6 +121,9 @@ private:
 
     void ClonedDataToControls();
 
+    void FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel);
+    void ResetBillableHoursUsageControl();
+
     wxWindow* pParent;
 
     std::shared_ptr<Core::Configuration> pCfg;
@@ -137,6 +143,7 @@ private:
 
     wxChoice* pClientChoiceCtrl;
     wxChoice* pProjectChoiceCtrl;
+    wxTextCtrl* pProjectCalculatedBillableHoursTextCtrl;
     wxCheckBox* pShowProjectAssociatedCategoriesCheckBoxCtrl;
     wxChoice* pCategoryChoiceCtrl;
 
@@ -166,6 +173,9 @@ private:
 
     bool bAddAnotherTask;
 
+    std::string mMonthStartDate;
+    std::string mMonthEndDate;
+
     static std::string AttributeValuesCapturedLabel;
 
     enum {
@@ -173,6 +183,7 @@ private:
         tksIDC_EMPLOYERCHOICECTRL,
         tksIDC_CLIENTCHOICECTRL,
         tksIDC_PROJECTCHOICECTRL,
+        tksIDC_PROJECTCALCULATEDBILLABLEHOURSTEXTCTRL,
         tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
         tksIDC_CATEGORYCHOICECTRL,
         tksIDC_BILLABLECHECKBOXCTRL,

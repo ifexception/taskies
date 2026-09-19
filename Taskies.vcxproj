@@ -316,6 +316,8 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\common\messages\deleteoperationmessages.cpp" />
+    <ClCompile Include="src\providers\projectbillablehours\projectbillablehoursprovider.cpp" />
     <ClCompile Include="src\core\settings\presetcolumnsetting.cpp" />
     <ClCompile Include="src\core\settings\presetsetting.cpp" />
     <ClCompile Include="src\core\settings\settings.cpp" />
@@ -437,8 +439,11 @@
     <ClCompile Include="src\utils\utils.cpp" />
     <ClCompile Include="src\common\wxcommon.cpp" />
     <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp" />
+    <ClCompile Include="src\providers\taskhours\taskhoursprovider.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\common\messages\deleteoperationmessages.h" />
+    <ClInclude Include="src\providers\projectbillablehours\projectbillablehoursprovider.h" />
     <ClInclude Include="src\core\settings\presetcolumnsetting.h" />
     <ClInclude Include="src\core\settings\presetsetting.h" />
     <ClInclude Include="src\core\settings\settings.h" />
@@ -560,6 +565,7 @@
     <ClInclude Include="src\utils\utils.h" />
     <ClInclude Include="src\common\wxcommon.h" />
     <ClInclude Include="src\core\settings\tasksviewcolumnsetting.h" />
+    <ClInclude Include="src\providers\taskhours\taskhoursprovider.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc" />
@@ -592,6 +598,7 @@
     <None Include="res\migrations\20260208152025_create_attended_meetings_table.sql" />
     <None Include="res\migrations\20260210185522_add_attended_meeting_id_column_to_tasks_table.sql" />
     <None Include="res\migrations\20260823103130_drop_projects_table_display_name_column.sql" />
+    <None Include="res\migrations\20260907194111_add_billable_and_billable_hours_column_to_projects_table.sql" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="taskies.toml">

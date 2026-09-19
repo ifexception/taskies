@@ -96,6 +96,15 @@
     <Filter Include="Source\core\settings">
       <UniqueIdentifier>{ab3493aa-ef92-41ac-9a93-51232cc461ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\providers">
+      <UniqueIdentifier>{76bf0aa1-29a5-4e13-abac-ea96add4fc6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\providers\projectbillablehours">
+      <UniqueIdentifier>{a08808cc-af97-4168-a6b3-1b6a09cc3ba4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\providers\taskhours">
+      <UniqueIdentifier>{44b53d06-7712-4594-85e8-6a11e6fda840}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -460,6 +469,15 @@
     </ClCompile>
     <ClCompile Include="src\utils\sqlite_helpers.cpp">
       <Filter>Source\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\providers\projectbillablehours\projectbillablehoursprovider.cpp">
+      <Filter>Source\providers\projectbillablehours</Filter>
+    </ClCompile>
+    <ClCompile Include="src\providers\taskhours\taskhoursprovider.cpp">
+      <Filter>Source\providers\taskhours</Filter>
+    </ClCompile>
+    <ClCompile Include="src\common\messages\deleteoperationmessages.cpp">
+      <Filter>Source\common\messages</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -826,6 +844,15 @@
     <ClInclude Include="src\utils\sqlite_helpers.h">
       <Filter>Source\utils</Filter>
     </ClInclude>
+    <ClInclude Include="src\providers\projectbillablehours\projectbillablehoursprovider.h">
+      <Filter>Source\providers\projectbillablehours</Filter>
+    </ClInclude>
+    <ClInclude Include="src\providers\taskhours\taskhoursprovider.h">
+      <Filter>Source\providers\taskhours</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\messages\deleteoperationmessages.h">
+      <Filter>Source\common\messages</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc">
@@ -896,7 +923,10 @@
     <None Include="res\install-wizard.svg">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="res\migrations\20260823103130_drop_display_name_column.sql">
+    <None Include="res\migrations\20260907194111_add_billable_and_billable_hours_column_to_projects_table.sql">
+      <Filter>Resource Files\migrations</Filter>
+    </None>
+    <None Include="res\migrations\20260823103130_drop_projects_table_display_name_column.sql">
       <Filter>Resource Files\migrations</Filter>
     </None>
   </ItemGroup>

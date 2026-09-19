@@ -6,6 +6,7 @@ set(
     "${CMAKE_CURRENT_SOURCE_DIR}/configmessages.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/operationmessages.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/persistencemessages.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/deleteoperationmessages.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/sqlitemessages.cpp"
     PARENT_SCOPE
 )

@@ -62,6 +62,7 @@ private:
     void AppendCategory(Model::CategoryModel category);
     void UpdateCategory(Model::CategoryModel category);
 
+    void OnProjectChoice(wxCommandEvent& event);
     void OnAdd(wxCommandEvent& event);
     void OnEdit(wxCommandEvent& event);
     void OnRemove(wxCommandEvent& event);

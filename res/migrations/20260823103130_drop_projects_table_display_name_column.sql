@@ -1,1 +1,2 @@
-ALTER TABLE projects DROP COLUMN display_name;
+ALTER TABLE projects
+    DROP COLUMN display_name;

@@ -17,30 +17,4 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#pragma once
-
-#include <cstdint>
-#include <optional>
-#include <string>
-
-namespace tks::Model
-{
-struct ProjectModel {
-    ProjectModel();
-
-    std::int64_t ProjectId;
-    std::string Name;
-    bool IsDefault;
-    bool Billable;
-    std::optional<int> BillableHours;
-    std::optional<std::string> Description;
-    std::int32_t DateCreated;
-    std::int32_t DateModified;
-    bool IsActive;
-    std::int64_t EmployerId;
-    std::optional<std::int64_t> ClientId;
-
-    const std::string GetDateCreatedString() const;
-    const std::string GetDateModifiedString() const;
-};
-} // namespace tks::Model
+#include "deleteoperationmessages.h"

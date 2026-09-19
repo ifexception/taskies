@@ -217,7 +217,7 @@ private:
     void OnDeleteTask(wxCommandEvent& event);
     void OnCloneTask(wxCommandEvent& event);
     void OnAddMinutes(wxCommandEvent& event);
-    void OnMenuHighlight(wxMenuEvent& event);
+    void OnPopupMenuHighlight(wxMenuEvent& event);
     /* Custom Event Handlers */
     void OnTaskInserted(wxCommandEvent& event);
     void OnTaskDateChanged(wxCommandEvent& event);
@@ -240,21 +240,20 @@ private:
     /* Power Event Handlers */
     void OnPowerResume(wxPowerEvent& event);
 
+    /* Status Bar operations */
     void CalculateStatusBarTaskDurations();
     void CalculateDefaultTaskDurations();
     void CalculateBillableTaskDurations();
 
-    void UpdateDefaultWeekMonthTaskDurations();
-    void UpdateBillableWeekMonthTaskDurations();
-
-    void TryUpdateSelectedDateAndAllTaskDurations(const std::string& date);
+    void UpdateStatusBarTaskDurations(const std::string& date);
+    void UpdateDefaultStatusBarTaskDurations(const std::string& date);
+    void UpdateBillableStatusBarTaskDurations(const std::string& date);
     void UpdateSelectedDayStatusBarTaskDurations(const std::string& date);
 
     void DateChangedProcedure(const wxDateTime& dateTime);
-    void SetDatePickerDate(const wxDateTime& dateTime);
     void RefreshDataViewListControl();
 
-    void ParseWXDateTimeToDate(const wxDateTime& dateTime);
+    date::sys_days ConvertToStdDate(const wxDateTime& dateTime);
 
     void ResetTaskContextMenuVariables();
 
@@ -288,9 +287,7 @@ private:
 
     std::unique_ptr<DateStore> pDateStore;
 
-    std::chrono::time_point<std::chrono::system_clock, date::days> mTodayDate;
-    std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate;
-    std::chrono::time_point<std::chrono::system_clock, date::days> mToDate;
+    date::sys_days mTodayDate;
 
     std::int64_t mTaskIdToEdit;
     std::string mTaskDateString;

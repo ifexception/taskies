@@ -67,6 +67,7 @@
 #include "../services/export/csvexporterservice.h"
 #include "../services/export/projectionbuilder.h"
 #include "../services/tasks/tasksservice.h"
+#include "../services/taskduration/taskdurationservice.h"
 
 #include "../utils/mswutils.h"
 #include "../utils/utils.h"
@@ -182,8 +183,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pDataViewListCtrl(nullptr)
     , pDateStore(nullptr)
     , mTodayDate()
-    , mFromDate()
-    , mToDate()
     , mTaskIdToEdit(-1)
     , mTaskDateString()
     , mThumbBarDialogOpenCounter(0)
@@ -194,7 +193,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
 // clang-format on
 {
     // Initialization setup
-    SetMinSize(wxSize(FromDIP(320), FromDIP(320)));
+    SetMinSize(wxSize(FromDIP(620), FromDIP(410)));
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
         pLogger->info(
             "No persistence information found for MainFrame. Use default size \"{0}\"x\"{1}\"",
@@ -234,9 +233,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     pDateStore = std::make_unique<DateStore>(pLogger);
 
     mTodayDate = pDateStore->TodayDate;
-    mFromDate = pDateStore->MondayDate;
-    mToDate = pDateStore->SundayDate;
-    mTaskDateString = pDateStore->PrintTodayDate;
+    mTaskDateString = pDateStore->FormatDate(pDateStore->TodayDate);
 
     // Setup reminders (if enabled)
     if (pCfg->UseReminders()) {
@@ -515,8 +512,9 @@ void MainFrame::DataToControls()
 {
     std::vector<Services::TaskViewModel> taskViewModels;
 
-    auto sqliteResult =
-        FetchTasksAndTaskAttributeValues(pDateStore->PrintTodayDate, taskViewModels);
+    auto sqliteResult = FetchTasksAndTaskAttributeValues(
+        pDateStore->FormatDate(pDateStore->TodayDate), taskViewModels);
+
     if (!sqliteResult.Success) {
         // handling sqlite result non-success case is done in FetchTasksAndTaskAttributeValues
         return;
@@ -717,6 +715,8 @@ void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
         mThumbBarDialogOpenCounter++;
 
         dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+        newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+            pDateStore->FormatDate(pDateStore->LastDayOfMonth));
         newTaskDialog.ShowModal();
 
         mThumbBarDialogOpenCounter--;
@@ -744,6 +744,8 @@ void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     newTaskDialog.ShowModal();
 }
 
@@ -926,19 +928,26 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     }
 
     auto todayDate = pDateStore->TodayDate;
-    date::year_month_day todayDateYmd = date::year_month_day{ todayDate };
+    date::year_month_day ymd{ todayDate };
 
-    int year = static_cast<int>(todayDateYmd.year());
-    unsigned month = static_cast<unsigned>(todayDateYmd.month());
-    unsigned day = static_cast<unsigned>(todayDateYmd.day());
+    // Subtract 1 from the month because wxDateTime expects 0-11 (Jan-Dec)
 
-    // wxDateTime months are 0-based (Jan = 0)
-    wxDateTime dateTimeValue(day, static_cast<wxDateTime::Month>(month - 1), year);
+    // clang-format off
+    wxDateTime dateTimeValue(
+        static_cast<unsigned int>(ymd.day()),
+        static_cast<wxDateTime::Month>(static_cast<unsigned int>(ymd.month()) - 1),
+        static_cast<int>(ymd.year())
+    );
+    // clang-format on
+
     if (!dateTimeValue.IsValid()) {
-        pLogger->error("Invalid value(s) passed to wxDateTime, reset to current date");
+        pLogger->error(
+            "Invalid value(s) passed to wxDateTime to build valid object, reset to current date");
 
         dateTimeValue = wxDateTime::Now();
     }
+
+    pDatePickerCtrl->SetValue(dateTimeValue);
 
     DateChangedProcedure(dateTimeValue);
 }
@@ -997,6 +1006,8 @@ void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog popupNewTask(
         this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDateString);
+    popupNewTask.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     popupNewTask.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -1456,6 +1467,8 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
 
     dlg::TaskDialog editTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDateString);
+    editTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     editTaskDialog.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -1542,12 +1555,12 @@ void MainFrame::OnDeleteTask(wxCommandEvent& WXUNUSED(event))
 
         ResetTaskContextMenuVariables();
         return;
-    } else {
-        TryUpdateSelectedDateAndAllTaskDurations(mTaskDateString);
-
-        pDataViewListCtrl->DeleteItem(mDataViewListCtrlRow);
-        ResizeColumns();
     }
+
+    UpdateStatusBarTaskDurations(mTaskDateString);
+
+    pDataViewListCtrl->DeleteItem(mDataViewListCtrlRow);
+    ResizeColumns();
 
     ResetTaskContextMenuVariables();
 }
@@ -1558,6 +1571,8 @@ void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
 
     dlg::TaskDialog cloneTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, "", true);
+    cloneTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     cloneTaskDialog.ShowModal();
 
     ResetTaskContextMenuVariables();
@@ -1651,7 +1666,7 @@ void MainFrame::OnAddMinutes(wxCommandEvent& WXUNUSED(event))
     ResetTaskContextMenuVariables();
 }
 
-void MainFrame::OnMenuHighlight(wxMenuEvent& event)
+void MainFrame::OnPopupMenuHighlight(wxMenuEvent& event)
 {
     wxMenuItem* item = nullptr;
 
@@ -1682,7 +1697,7 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
     std::chrono::time_point<std::chrono::system_clock, date::days> dateTaskAdded;
     ssTaskDateAdded >> date::parse("%F", dateTaskAdded);
 
-    TryUpdateSelectedDateAndAllTaskDurations(pDateStore->FormatDate(dateTaskAdded));
+    UpdateStatusBarTaskDurations(pDateStore->FormatDate(dateTaskAdded));
 
     if (dateTaskAdded != pDateStore->TodayDate) {
         return;
@@ -1776,6 +1791,12 @@ void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
             break;
         }
     }
+
+    std::istringstream ssTaskDate{ eventTaskDateChanged };
+    std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
+    ssTaskDate >> date::parse("%F", taskDate);
+
+    UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
 }
 
 void MainFrame::OnTaskUpdated(wxCommandEvent& event)
@@ -1852,12 +1873,19 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
             }
         }
 
+        std::istringstream ssTaskDate{ taskViewModel.WorkdayDate };
+        std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
+        ssTaskDate >> date::parse("%F", taskDate);
+
+        UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
+
         ResizeColumns();
     }
 }
 
 void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 {
+    auto eventTaskDate = event.GetString().ToStdString();
     auto taskDeletedId = static_cast<std::int64_t>(event.GetExtraLong());
 
     SPDLOG_LOGGER_TRACE(pLogger, "Received task delete event with ID \"{0}\"", taskDeletedId);
@@ -1872,6 +1900,13 @@ void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 
         if (taskDeletedId == dataViewListCtrlTaskId) {
             pDataViewListCtrl->DeleteItem(row);
+
+            std::istringstream ssTaskDate{ eventTaskDate };
+            std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
+            ssTaskDate >> date::parse("%F", taskDate);
+
+            UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
+
             ResizeColumns();
 
             break;
@@ -1882,6 +1917,8 @@ void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     newTaskDialog.ShowModal();
 }
 
@@ -1987,6 +2024,8 @@ void MainFrame::OnPreviousDayButtonClick(wxCommandEvent& event)
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     wxDateTime previousDayDateUtc = eventDateUtc.Add(wxDateSpan::Days(-1));
 
+    pDatePickerCtrl->SetValue(previousDayDateUtc);
+
     DateChangedProcedure(previousDayDateUtc);
 }
 
@@ -2004,12 +2043,16 @@ void MainFrame::OnNextDayButtonClick(wxCommandEvent& event)
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
     wxDateTime nextDayDateUtc = eventDateUtc.Add(wxDateSpan::Days(1));
 
+    pDatePickerCtrl->SetValue(nextDayDateUtc);
+
     DateChangedProcedure(nextDayDateUtc);
 }
 
 void MainFrame::OnNewTaskButtonClick(wxCommandEvent& WXUNUSED(event))
 {
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
+    newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     newTaskDialog.ShowModal();
 }
 
@@ -2066,9 +2109,11 @@ void MainFrame::OnItemContextMenu(wxDataViewEvent& event)
     std::string addMenuLabel = fmt::format("&Add {0} Minutes", pCfg->GetMinutesIncrement());
     menu.Append(wxID_ADD, addMenuLabel);
 
-    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnPopupMenuHighlight, this);
 
     PopupMenu(&menu);
+
+    pStatusBar->SetStatusText("Ready");
 }
 
 void MainFrame::OnItemActivated(wxDataViewEvent& event)
@@ -2092,6 +2137,8 @@ void MainFrame::OnItemActivated(wxDataViewEvent& event)
 
     dlg::TaskDialog editTaskDialog(
         this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDateString);
+    editTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     ret = editTaskDialog.ShowModal();
 
     if (ret == wxID_OK) {
@@ -2208,9 +2255,11 @@ void MainFrame::OnColumnHeaderRightClick(wxDataViewEvent& event)
     wxIconBundle copyWithPresetIconBundle(Common::GetCopyWithPresetIconBundleName(), 0);
     copyWithPresetMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(copyWithPresetIconBundle));
 
-    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnMenuHighlight, this);
+    menu.Bind(wxEVT_MENU_HIGHLIGHT, &MainFrame::OnPopupMenuHighlight, this);
 
     PopupMenu(&menu);
+
+    pStatusBar->SetStatusText("Ready");
 }
 
 void MainFrame::OnDataViewListCtrlResize(wxSizeEvent& event)
@@ -2229,62 +2278,78 @@ void MainFrame::CalculateStatusBarTaskDurations()
 
 void MainFrame::CalculateDefaultTaskDurations()
 {
-    pStatusBar->UpdateDefaultHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
-    pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateDefaultHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateDefaultHoursDay(pDateStore->FormatDate(pDateStore->TodayDate));
+    pStatusBar->UpdateDefaultHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
+        pDateStore->FormatDate(pDateStore->SundayDate));
+    pStatusBar->UpdateDefaultHoursMonth(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
 }
 
 void MainFrame::CalculateBillableTaskDurations()
 {
-    pStatusBar->UpdateBillableHoursDay(pDateStore->PrintTodayDate, pDateStore->PrintTodayDate);
-    pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateBillableHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateBillableHoursDay(pDateStore->FormatDate(pDateStore->TodayDate));
+    pStatusBar->UpdateBillableHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
+        pDateStore->FormatDate(pDateStore->SundayDate));
+    pStatusBar->UpdateBillableHoursMonth(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
 }
 
-void MainFrame::UpdateDefaultWeekMonthTaskDurations()
+void MainFrame::UpdateStatusBarTaskDurations(const std::string& date)
 {
-    pStatusBar->UpdateDefaultHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateDefaultHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    UpdateDefaultStatusBarTaskDurations(date);
+
+    UpdateBillableStatusBarTaskDurations(date);
 }
 
-void MainFrame::UpdateBillableWeekMonthTaskDurations()
+void MainFrame::UpdateDefaultStatusBarTaskDurations(const std::string& date)
 {
-    pStatusBar->UpdateBillableHoursWeek(pDateStore->PrintMondayDate, pDateStore->PrintSundayDate);
-    pStatusBar->UpdateBillableHoursMonth(
-        pDateStore->PrintFirstDayOfMonth, pDateStore->PrintLastDayOfMonth);
+    pStatusBar->UpdateDefaultHoursDay(date);
+    pStatusBar->UpdateDefaultHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
+        pDateStore->FormatDate(pDateStore->SundayDate));
+    pStatusBar->UpdateDefaultHoursMonth(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
 }
 
-void MainFrame::TryUpdateSelectedDateAndAllTaskDurations(const std::string& date)
+void MainFrame::UpdateBillableStatusBarTaskDurations(const std::string& date)
 {
-    pStatusBar->UpdateDefaultHoursDay(date, date);
-    pStatusBar->UpdateBillableHoursDay(date, date);
-
-    UpdateDefaultWeekMonthTaskDurations();
-    UpdateBillableWeekMonthTaskDurations();
+    pStatusBar->UpdateBillableHoursDay(date);
+    pStatusBar->UpdateBillableHoursWeek(pDateStore->FormatDate(pDateStore->MondayDate),
+        pDateStore->FormatDate(pDateStore->SundayDate));
+    pStatusBar->UpdateBillableHoursMonth(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        pDateStore->FormatDate(pDateStore->LastDayOfMonth));
 }
 
 void MainFrame::UpdateSelectedDayStatusBarTaskDurations(const std::string& date)
 {
-    pStatusBar->UpdateDefaultHoursDay(date, date);
-    pStatusBar->UpdateBillableHoursDay(date, date);
+    pStatusBar->UpdateDefaultHoursDay(date);
+    pStatusBar->UpdateBillableHoursDay(date);
 }
 
 void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
 {
-    SetDatePickerDate(dateTime);
+    bool dateChanged = false;
+
+    date::sys_days convertedDate = ConvertToStdDate(dateTime);
+    SPDLOG_LOGGER_TRACE(pLogger, "Converted date: {0}", pDateStore->FormatDate(convertedDate));
+
     RefreshDataViewListControl();
 
-    UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
-}
+    if (pDateStore->IsWeekDifferent(convertedDate)) {
+        pDateStore->OnWeekChange(convertedDate);
+        dateChanged = true;
+    }
+    if (pDateStore->IsMonthDifferent(convertedDate)) {
+        pDateStore->OnMonthChange(convertedDate);
+        dateChanged = true;
+    }
 
-void MainFrame::SetDatePickerDate(const wxDateTime& dateTime)
-{
-    pDatePickerCtrl->SetValue(dateTime);
+    pDateStore->SelectedDate = convertedDate;
 
-    ParseWXDateTimeToDate(dateTime);
+    if (dateChanged) {
+        UpdateStatusBarTaskDurations(pDateStore->FormatDate(convertedDate));
+    } else {
+        UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
+    }
 }
 
 void MainFrame::RefreshDataViewListControl()
@@ -2356,15 +2421,18 @@ void MainFrame::RefreshDataViewListControl()
     }
 }
 
-void MainFrame::ParseWXDateTimeToDate(const wxDateTime& dateTime)
+date::sys_days MainFrame::ConvertToStdDate(const wxDateTime& dateTime)
 {
-    time_t eventDateUtcTicks = dateTime.GetTicks();
+    wxDateTime dateTimeCopy = dateTime;
+    wxDateTime utcDateTime = dateTimeCopy.MakeFromTimezone(wxDateTime::UTC);
+    time_t dateUtcTicks = utcDateTime.GetTicks();
+
     auto newSelectedDate =
-        date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
+        date::floor<date::days>(std::chrono::system_clock::from_time_t(dateUtcTicks));
 
-    std::string dateStringFormat = pDateStore->FormatDate(newSelectedDate);
+    mTaskDateString = pDateStore->FormatDate(newSelectedDate);
 
-    mTaskDateString = dateStringFormat;
+    return date::sys_days{ newSelectedDate };
 }
 
 void MainFrame::ResetTaskContextMenuVariables()

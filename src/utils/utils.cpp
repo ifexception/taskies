@@ -123,6 +123,20 @@ std::string TrimWhitespace(const std::string& value)
     return trimmedText;
 }
 
+std::string TrimToLengthAndAddEllipses(const std::string& value, std::size_t length)
+{
+    const std::string ellipses = "...";
+
+    if (length == 0) {
+        length = MAX_CHARACTER_TRIM_COUNT;
+    }
+    if (value.size() <= length) {
+        return value;
+    }
+
+    return value.substr(0, length) + ellipses;
+}
+
 std::string ReplaceNewlineWithEllipses(const std::string& value)
 {
     std::string replacedString = "";

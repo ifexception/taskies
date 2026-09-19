@@ -29,4 +29,4 @@ constexpr int MAX_PRESET_COUNT = 5;
 
 constexpr int MAX_TASK_HOUR_LIMIT = 16;
 
-constexpr int MAX_TASK_MINUTE_LIMIT = 59;
+constexpr int MAX_TASK_MINUTE_LIMIT = 55;

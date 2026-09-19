@@ -39,13 +39,13 @@
 #include "../../common/validator.h"
 
 #include "../../common/results/sqliteresult.h"
+#include "../../common/messages/deleteoperationmessages.h"
 #include "../../common/messages/persistencemessages.h"
 
 #include "../../core/configuration.h"
 
 #include "../../models/employermodel.h"
 #include "../../models/clientmodel.h"
-#include "../../models/projectmodel.h"
 #include "../../models/categorymodel.h"
 #include "../../models/attributegroupmodel.h"
 #include "../../models/attributemodel.h"
@@ -65,6 +65,7 @@
 
 #include "../../services/categories/categoryviewmodel.h"
 #include "../../services/categories/categoryservice.h"
+#include "../../providers/projectbillablehours/projectbillablehoursprovider.h"
 
 #include "../../utils/utils.h"
 
@@ -104,6 +105,7 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , pEmployerChoiceCtrl(nullptr)
     , pClientChoiceCtrl(nullptr)
     , pProjectChoiceCtrl(nullptr)
+    , pProjectCalculatedBillableHoursTextCtrl(nullptr)
     , pShowProjectAssociatedCategoriesCheckBoxCtrl(nullptr)
     , pCategoryChoiceCtrl(nullptr)
     , pTaskDescriptionTextCtrl(nullptr)
@@ -121,6 +123,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
     , bAddAnotherTask(false)
+    , mMonthStartDate()
+    , mMonthEndDate()
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -141,6 +145,12 @@ TaskDialog::TaskDialog(wxWindow* parent,
 
     wxIconBundle iconBundle(tks::Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
+}
+
+void TaskDialog::SetMonthDates(const std::string& monthStart, const std::string& monthEnd)
+{
+    mMonthStartDate = monthStart;
+    mMonthEndDate = monthEnd;
 }
 
 void TaskDialog::SetAttendedMeetingData(const std::string& subject,
@@ -375,6 +385,18 @@ void TaskDialog::CreateControls()
     pProjectChoiceCtrl = new wxChoice(this, tksIDC_PROJECTCHOICECTRL);
     pProjectChoiceCtrl->SetToolTip("Select project to associate task with");
 
+    /* Project billable hours calculation text ctrl */
+    auto projectBillableHoursLabel = new wxStaticText(this, wxID_ANY, "Billable Hours Logged");
+
+    pProjectCalculatedBillableHoursTextCtrl = new wxTextCtrl(this,
+        tksIDC_PROJECTCALCULATEDBILLABLEHOURSTEXTCTRL,
+        "(n/a)",
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_READONLY);
+    pProjectCalculatedBillableHoursTextCtrl->SetToolTip(
+        "Shows how much time has been logged against a billable project");
+
     /* Associated categories control */
     pShowProjectAssociatedCategoriesCheckBoxCtrl = new wxCheckBox(this,
         tksIDC_SHOWPROJECTASSOCIATEDCATEGORIESCHECKBOXCTRL,
@@ -393,7 +415,15 @@ void TaskDialog::CreateControls()
     leftSizer->Add(projectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     leftSizer->Add(pProjectChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    leftSizer->Add(0, 0);
+    auto projectBillableHoursHSizer = new wxBoxSizer(wxHORIZONTAL);
+    leftSizer->Add(projectBillableHoursHSizer, wxSizerFlags().Expand());
+
+    projectBillableHoursHSizer->Add(
+        projectBillableHoursLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    projectBillableHoursHSizer->AddStretchSpacer(1);
+    projectBillableHoursHSizer->Add(
+        pProjectCalculatedBillableHoursTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
     leftSizer->Add(
         pShowProjectAssociatedCategoriesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
@@ -676,6 +706,7 @@ void TaskDialog::FillControls()
 
             bool hasDefaultProject = false;
             std::int64_t defaultProjectId = -1;
+            Model::ProjectModel defaultProjectModel;
 
             for (auto& project : projects) {
                 pProjectChoiceCtrl->Append(
@@ -684,6 +715,7 @@ void TaskDialog::FillControls()
                 if (project.IsDefault) {
                     hasDefaultProject = true;
                     defaultProjectId = project.ProjectId;
+                    defaultProjectModel = project;
                     pProjectChoiceCtrl->SetStringSelection(project.Name);
                 }
             }
@@ -694,6 +726,10 @@ void TaskDialog::FillControls()
                 pCategoryChoiceCtrl->Disable();
             } else {
                 FetchCategoryEntities(std::nullopt);
+            }
+
+            if (defaultProjectId != -1) {
+                FetchAndSetBillableHoursUsageControl(defaultProjectModel);
             }
         } else {
             pProjectChoiceCtrl->Disable();
@@ -911,6 +947,7 @@ void TaskDialog::DataToControls()
     }
 
     pProjectChoiceCtrl->SetStringSelection(projectModel.Name);
+    FetchAndSetBillableHoursUsageControl(projectModel);
 
     // load clients
     Persistence::ClientsPersistence clientsPersistence(pLogger, mDatabaseFilePath);
@@ -1105,6 +1142,7 @@ void TaskDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
 {
     ResetClientChoiceControl();
     ResetProjectChoiceControl();
+    ResetBillableHoursUsageControl();
     ResetCategoryChoiceControl();
 
     int employerIndex = event.GetSelection();
@@ -1299,6 +1337,23 @@ void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
         return;
     }
 
+    Model::ProjectModel projectModel;
+    Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
+    auto sqliteResult = projectsPersistence.GetById(projectId, projectModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdProjectMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+
+        return;
+    }
+
+    FetchAndSetBillableHoursUsageControl(projectModel);
     FetchCategoryEntities(std::make_optional<std::int64_t>(projectId));
 }
 
@@ -1559,6 +1614,16 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && !mTaskModel.IsActive) {
+        wxMessageDialog confirmationDialog(this,
+            fmt::format(Messages::DeleteConfirmationTaskMessage,
+                Utils::TrimToLengthAndAddEllipses(mTaskModel.Description)),
+            "Confirm Deletion",
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+        if (confirmationDialog.ShowModal() != wxID_YES) {
+            return;
+        }
+
         if (mTaskModel.AttendedMeetingId.has_value()) {
             sqliteResult = attendedMeetingsPersistence.Delete(mTaskModel.AttendedMeetingId.value());
             if (!sqliteResult.Success) {
@@ -1634,6 +1699,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
     if (bIsEdit && !mTaskModel.IsActive) {
         wxCommandEvent* taskDeletedEvent = new wxCommandEvent(tksEVT_TASKDELETED);
 
+        taskDeletedEvent->SetString(mDate);
         taskDeletedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
         wxQueueEvent(pParent, taskDeletedEvent);
@@ -1965,6 +2031,7 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
 
         bool hasDefaultProject = false;
         std::int64_t defaultProjectId = -1;
+        Model::ProjectModel projectModel;
 
         for (auto& project : projects) {
             pProjectChoiceCtrl->Append(
@@ -1973,7 +2040,11 @@ void TaskDialog::FetchProjectEntitiesByEmployerOrClient(
             if (project.IsDefault) {
                 hasDefaultProject = true;
                 defaultProjectId = project.ProjectId;
+                projectModel = project;
+
                 pProjectChoiceCtrl->SetStringSelection(project.Name);
+
+                FetchAndSetBillableHoursUsageControl(projectModel);
             }
         }
 
@@ -2058,6 +2129,41 @@ void TaskDialog::ClonedDataToControls()
 
     pIsActiveCheckBoxCtrl->SetValue(false);
     pIsActiveCheckBoxCtrl->Disable();
+}
+
+void TaskDialog::FetchAndSetBillableHoursUsageControl(const Model::ProjectModel& projectModel)
+{
+    if (projectModel.Billable && projectModel.BillableHours.has_value()) {
+        Providers::ProjectBillableHoursProvider billableHoursProvider(pLogger, mDatabaseFilePath);
+        double totalHours = 0.0;
+
+        auto sqliteResult = billableHoursProvider.CalculateTotalBillableHoursByProjectId(
+            mMonthStartDate, mMonthEndDate, projectModel.ProjectId, totalHours);
+
+        if (!sqliteResult.Success) {
+            wxRichMessageDialog dialog(this,
+                Messages::ProjectBillableHoursCalculationMessage,
+                tks::Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+            dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+            dialog.ShowModal();
+        } else {
+            std::string remainingBillableHoursText =
+                fmt::format("{0:.2f} of {1}", totalHours, projectModel.BillableHours.value());
+            pProjectCalculatedBillableHoursTextCtrl->ChangeValue(remainingBillableHoursText);
+
+            return;
+        }
+    }
+
+    ResetBillableHoursUsageControl();
+}
+
+void TaskDialog::ResetBillableHoursUsageControl()
+{
+    pProjectCalculatedBillableHoursTextCtrl->ChangeValue("n/a");
 }
 
 std::string TaskDialog::AttributeValuesCapturedLabel = "\"{0}\" attribute values captured";

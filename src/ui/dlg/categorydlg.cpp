@@ -220,6 +220,12 @@ void CategoryDialog::FillControls()
 // clang-format off
 void CategoryDialog::ConfigureEventBindings()
 {
+    pProjectChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &CategoryDialog::OnProjectChoice,
+        this
+    );
+
     pIsActiveCheckBoxCtrl->Bind(
             wxEVT_CHECKBOX,
             &CategoryDialog::OnIsActiveCheck,
@@ -249,7 +255,7 @@ void CategoryDialog::DataToControls()
     auto sqliteResult = categoryPersistence.GetById(mCategoryId, mCategoryModel);
     if (!sqliteResult.Success) {
         wxRichMessageDialog dialog(this,
-            Messages::CreateEmployerMessage,
+            Messages::GetByIdCategoryMessage,
             Common::GetProgramName(),
             wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
         dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
@@ -271,7 +277,7 @@ void CategoryDialog::DataToControls()
 
         if (mCategoryModel.ProjectId.has_value()) {
             for (unsigned int i = 0; i < pProjectChoiceCtrl->GetCount(); i++) {
-                auto* data = reinterpret_cast<ClientData<std::int64_t>*>(
+                ClientData<std::int64_t>* data = reinterpret_cast<ClientData<std::int64_t>*>(
                     pProjectChoiceCtrl->GetClientObject(i));
                 if (mCategoryModel.ProjectId.value() == data->GetValue()) {
                     pProjectChoiceCtrl->SetSelection(i);
@@ -282,6 +288,44 @@ void CategoryDialog::DataToControls()
     }
 
     Fit();
+}
+
+void CategoryDialog::OnProjectChoice(wxCommandEvent& event)
+{
+    int selection = event.GetSelection();
+    if (selection == wxNOT_FOUND) {
+        pBillableCheckBoxCtrl->SetValue(false);
+        return;
+    }
+
+    ClientData<std::int64_t>* projectIdData =
+        reinterpret_cast<ClientData<std::int64_t>*>(pProjectChoiceCtrl->GetClientObject(selection));
+
+    if (projectIdData->GetValue() < 1) {
+        pBillableCheckBoxCtrl->SetValue(false);
+        return;
+    }
+
+    std::int64_t projectId = projectIdData->GetValue();
+
+    Model::ProjectModel projectModel;
+    Persistence::ProjectsPersistence projectsPersistence(pLogger, mDatabaseFilePath);
+
+    auto sqliteResult = projectsPersistence.GetById(projectId, projectModel);
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::GetByIdProjectMessage,
+            tks::Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+
+        return;
+    }
+
+    pBillableCheckBoxCtrl->SetValue(projectModel.Billable);
 }
 
 void CategoryDialog::OnIsActiveCheck(wxCommandEvent& event)
@@ -333,6 +377,16 @@ void CategoryDialog::OnOK(wxCommandEvent& event)
         }
     }
     if (!pIsActiveCheckBoxCtrl->IsChecked()) {
+        wxMessageDialog confirmationDialog(this,
+            fmt::format(
+                "Are you sure you want to delete the category \"{0}\"?", mCategoryModel.Name),
+            "Confirm Deletion",
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+        if (confirmationDialog.ShowModal() != wxID_YES) {
+            return;
+        }
+
         auto result = categoryPersistence.Delete(mCategoryId);
 
         if (!result.Success) {
@@ -362,7 +416,7 @@ void CategoryDialog::OnCancel(wxCommandEvent& event)
 
 bool CategoryDialog::Validate()
 {
-    auto name = pNameTextCtrl->GetValue().ToStdString();
+    auto name = Utils::TrimWhitespace(pNameTextCtrl->GetValue().ToStdString());
     if (name.empty()) {
         auto valMsg = "Name is required";
         wxRichToolTip toolTip("Validation", valMsg);
@@ -381,7 +435,7 @@ bool CategoryDialog::Validate()
         return false;
     }
 
-    auto description = pDescriptionTextCtrl->GetValue().ToStdString();
+    auto description = Utils::TrimWhitespace(pDescriptionTextCtrl->GetValue().ToStdString());
     if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
                                     description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
         auto valMsg =

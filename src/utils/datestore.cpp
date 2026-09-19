@@ -23,68 +23,76 @@ namespace tks
 {
 DateStore::DateStore(std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
+    , TodayDateSeconds(0)
+    , MondayDateSeconds(0)
+    , SundayDateSeconds(0)
 {
     Initialize();
 }
 
 void DateStore::Reset()
 {
-    SPDLOG_LOGGER_TRACE(pLogger, "Reset dates");
     Initialize();
 }
 
-std::vector<std::string> DateStore::CalculateDatesInRange(
-    std::chrono::time_point<std::chrono::system_clock, date::days> mFromDate,
-    std::chrono::time_point<std::chrono::system_clock, date::days> mToDate)
+bool DateStore::IsWeekDifferent(date::sys_days newDate)
 {
-    std::vector<std::string> dates;
-    auto dateIterator = mFromDate;
+    SPDLOG_LOGGER_TRACE(pLogger, "CurrentWeekMondayDate = {}", FormatDate(CurrentWeekMondayDate));
+    SPDLOG_LOGGER_TRACE(pLogger, "newDate = {}", FormatDate(newDate));
 
-    do {
-        dates.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-    } while (dateIterator != mToDate);
-
-    dates.push_back(date::format("%F", dateIterator));
-
-    return dates;
+    return GetStartOfWeek(CurrentWeekMondayDate) != GetStartOfWeek(newDate);
 }
 
-void DateStore::ReinitializeFromWeekChange(
-    std::chrono::time_point<std::chrono::system_clock, date::days> newMondayDate)
+bool DateStore::IsMonthDifferent(date::sys_days newDate)
 {
+    date::year_month_day currentDate{ SelectedDate };
+    date::year_month_day futureDate{ newDate };
+
+    SPDLOG_LOGGER_TRACE(pLogger, "SelectedDate = {}", FormatDate(currentDate));
+    SPDLOG_LOGGER_TRACE(pLogger, "newDate = {}", FormatDate(futureDate));
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "currentDate.year(), currentDate.month() = {},{}",
+        static_cast<int>(currentDate.year()),
+        static_cast<unsigned int>(currentDate.month()));
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "futureDate.year(), futureDate.month() = {},{}",
+        static_cast<int>(futureDate.year()),
+        static_cast<unsigned int>(futureDate.month()));
+
+    return date::year_month{ currentDate.year(), currentDate.month() } !=
+           date::year_month{ futureDate.year(), futureDate.month() };
+}
+
+void DateStore::OnWeekChange(date::sys_days newDate)
+{
+    auto newMondayDate = GetStartOfWeek(newDate);
+
     MondayDate = newMondayDate;
-    PrintMondayDate = date::format("%F", MondayDate);
-    SPDLOG_LOGGER_TRACE(pLogger, "Monday date: {0}", PrintMondayDate);
+    SPDLOG_LOGGER_TRACE(pLogger, "Monday date: {0}", FormatDate(MondayDate));
 
-    SundayDate = MondayDate + (date::Sunday - date::Monday);
-    PrintSundayDate = date::format("%F", SundayDate);
-    SPDLOG_LOGGER_TRACE(pLogger, "Sunday date: {0}", PrintSundayDate);
+    CurrentWeekMondayDate = newMondayDate;
 
-    auto mondayTimestamp = MondayDate.time_since_epoch();
-    MondayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
+    SundayDate = MondayDate + date::days{ 6 };
+    SPDLOG_LOGGER_TRACE(pLogger, "Sunday date: {0}", FormatDate(SundayDate));
 
-    auto sundayTimestamp = SundayDate.time_since_epoch();
-    SundayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
-
-    MondayToSundayDateRangeList.clear();
-
-    auto dateIterator = MondayDate;
-    int index = 0;
-
-    do {
-        MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-        index++;
-    } while (dateIterator != SundayDate);
-
-    MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
+    MondayDateSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(MondayDate.time_since_epoch()).count();
+    SundayDateSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(SundayDate.time_since_epoch()).count();
 }
 
-std::string DateStore::FormatDate(
-    std::chrono::time_point<std::chrono::system_clock, date::days> dateToFormat)
+void DateStore::OnMonthChange(date::sys_days newDate)
+{
+    auto todayYearMonthDayDate = date::year_month_day{ newDate };
+    FirstDayOfMonth = todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / 1;
+    LastDayOfMonth = todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / date::last;
+
+    SPDLOG_LOGGER_TRACE(pLogger, "First day of the month: {0}", FormatDate(FirstDayOfMonth));
+    SPDLOG_LOGGER_TRACE(pLogger, "Last day of the month: {0}", FormatDate(LastDayOfMonth));
+}
+
+std::string DateStore::FormatDate(date::sys_days dateToFormat) const
 {
     return date::format("%F", dateToFormat);
 }
@@ -92,49 +100,41 @@ std::string DateStore::FormatDate(
 void DateStore::Initialize()
 {
     TodayDate = date::floor<date::days>(std::chrono::system_clock::now());
-    PrintTodayDate = date::format("%F", TodayDate);
-    SPDLOG_LOGGER_TRACE(pLogger, "Todays date: {0}", PrintTodayDate);
+    SelectedDate = TodayDate;
+    SPDLOG_LOGGER_TRACE(pLogger, "Todays date: {0}", FormatDate(TodayDate));
 
     MondayDate = TodayDate - (date::weekday{ TodayDate } - date::Monday);
-    PrintMondayDate = date::format("%F", MondayDate);
-    SPDLOG_LOGGER_TRACE(pLogger, "Monday date: {0}", PrintMondayDate);
+    SPDLOG_LOGGER_TRACE(pLogger, "Monday date: {0}", FormatDate(MondayDate));
 
     CurrentWeekMondayDate = MondayDate;
+    SundayDate = MondayDate + date::days{ 6 };
+    SPDLOG_LOGGER_TRACE(pLogger, "Sunday date: {0}", FormatDate(SundayDate));
 
-    SundayDate = MondayDate + (date::Sunday - date::Monday);
-    PrintSundayDate = date::format("%F", SundayDate);
-    SPDLOG_LOGGER_TRACE(pLogger, "Sunday date: {0}", PrintSundayDate);
+    date::year_month_day todayYearMonthDay = date::year_month_day{ TodayDate };
+    FirstDayOfMonth = todayYearMonthDay.year() / todayYearMonthDay.month() / 1;
+    LastDayOfMonth = todayYearMonthDay.year() / todayYearMonthDay.month() / date::last;
 
-    auto todayYearMonthDayDate = date::year_month_day{ TodayDate };
-    auto firstDayOfCurrentMonth = todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / 1;
-    auto lastDayOfCurrentMonth =
-        todayYearMonthDayDate.year() / todayYearMonthDayDate.month() / date::last;
+    SPDLOG_LOGGER_TRACE(pLogger, "First day of the month: {0}", FormatDate(FirstDayOfMonth));
+    SPDLOG_LOGGER_TRACE(pLogger, "Last day of the month: {0}", FormatDate(LastDayOfMonth));
 
-    PrintFirstDayOfMonth = date::format("%F", firstDayOfCurrentMonth);
-    SPDLOG_LOGGER_TRACE(pLogger, "First day of the month: {0}", PrintFirstDayOfMonth);
+    TodayDateSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(TodayDate.time_since_epoch()).count();
+    MondayDateSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(MondayDate.time_since_epoch()).count();
+    SundayDateSeconds =
+        std::chrono::duration_cast<std::chrono::seconds>(SundayDate.time_since_epoch()).count();
+}
 
-    PrintLastDayOfMonth = date::format("%F", lastDayOfCurrentMonth);
-    SPDLOG_LOGGER_TRACE(pLogger, "Last day of the month: {0}", PrintLastDayOfMonth);
+date::sys_days DateStore::GetStartOfWeek(date::sys_days selectedDate)
+{
+    // weekday{0} is Sunday, weekday{1} is Monday
+    date::weekday weekDay = date::weekday{ selectedDate };
+    // Shift so that Monday is the start of the week
+    auto daysFromMonday = (weekDay - date::Monday).count();
+    if (daysFromMonday < 0) {
+        daysFromMonday += 7;
+    }
 
-    auto todayTimestamp = TodayDate.time_since_epoch();
-    TodayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(todayTimestamp).count();
-
-    auto mondayTimestamp = MondayDate.time_since_epoch();
-    MondayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(mondayTimestamp).count();
-
-    auto sundayTimestamp = SundayDate.time_since_epoch();
-    SundayDateSeconds = std::chrono::duration_cast<std::chrono::seconds>(sundayTimestamp).count();
-
-    MondayToSundayDateRangeList.clear();
-
-    auto dateIterator = MondayDate;
-
-    do {
-        MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
-
-        dateIterator += date::days{ 1 };
-    } while (dateIterator != SundayDate);
-
-    MondayToSundayDateRangeList.push_back(date::format("%F", dateIterator));
+    return selectedDate - date::days{ daysFromMonday };
 }
 } // namespace tks

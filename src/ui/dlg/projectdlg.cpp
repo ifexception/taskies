@@ -34,6 +34,7 @@
 #include "../../common/validator.h"
 
 #include "../../common/results/sqliteresult.h"
+#include "../../common/messages/deleteoperationmessages.h"
 #include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/employerspersistence.h"
@@ -64,6 +65,8 @@ ProjectDialog::ProjectDialog(wxWindow* parent,
     , pLogger(logger)
     , pNameTextCtrl(nullptr)
     , pIsDefaultCheckBoxCtrl(nullptr)
+    , pBillableCheckBoxCtrl(nullptr)
+    , pBillableHoursSpinCtrl(nullptr)
     , pDescriptionTextCtrl(nullptr)
     , pEmployerChoiceCtrl(nullptr)
     , pClientChoiceCtrl(nullptr)
@@ -116,6 +119,17 @@ void ProjectDialog::CreateControls()
     pIsDefaultCheckBoxCtrl->SetToolTip(
         "Enabling this option for a project will auto-select it on a task entry");
 
+    /* Billable Checkbox Ctrl */
+    pBillableCheckBoxCtrl = new wxCheckBox(detailsBox, tksIDC_BILLABLECHECKBOXCTRL, "Billable");
+    pBillableCheckBoxCtrl->SetToolTip("Set the project to be billable");
+
+    /* Billable Hours Spin Ctrl */
+    auto billableHoursLabel = new wxStaticText(detailsBox, wxID_ANY, "Billable Hours");
+
+    pBillableHoursSpinCtrl = new wxSpinCtrl(detailsBox, tksIDC_BILLABLEHOURSSPINCTRL);
+    pBillableHoursSpinCtrl->SetToolTip(
+        "Set the total (billable) hours that can be logged against this project");
+
     /* Details Grid Sizer */
     auto detailsGridSizer = new wxFlexGridSizer(2, FromDIP(7), FromDIP(25));
     detailsGridSizer->AddGrowableCol(1, 1);
@@ -126,6 +140,13 @@ void ProjectDialog::CreateControls()
 
     detailsGridSizer->Add(0, 0);
     detailsGridSizer->Add(pIsDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    detailsGridSizer->Add(0, 0);
+    detailsGridSizer->Add(pBillableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    detailsGridSizer->Add(
+        billableHoursLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    detailsGridSizer->Add(pBillableHoursSpinCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     detailsBoxSizer->Add(detailsGridSizer, wxSizerFlags().Expand().Proportion(1));
 
@@ -164,12 +185,17 @@ void ProjectDialog::CreateControls()
     sizer->Add(clientLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
     sizer->Add(pClientChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
+    /* Is Active static box control */
+    auto isActiveStaticBox = new wxStaticBox(this, wxID_ANY, wxEmptyString);
+    auto isActiveStaticBoxSizer = new wxStaticBoxSizer(isActiveStaticBox, wxHORIZONTAL);
+    sizer->Add(isActiveStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
     /* Is Active checkbox control */
     pIsActiveCheckBoxCtrl = new wxCheckBox(this, tksIDC_ISACTIVECHECKBOXCTRL, "Is Active");
-    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this task is actively used/still applicable");
+    pIsActiveCheckBoxCtrl->SetToolTip("Indicates if this project is active");
     pIsActiveCheckBoxCtrl->Disable();
 
-    sizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    isActiveStaticBoxSizer->Add(pIsActiveCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line2 = new wxStaticLine(this, wxID_ANY);
@@ -234,6 +260,8 @@ void ProjectDialog::FillControls()
             FillClientChoiceControl(defaultEmployerId);
         }
     }
+
+    pBillableHoursSpinCtrl->Disable();
 }
 
 // clang-format off
@@ -242,6 +270,12 @@ void ProjectDialog::ConfigureEventBindings()
     pEmployerChoiceCtrl->Bind(
         wxEVT_CHOICE,
         &ProjectDialog::OnEmployerChoiceSelection,
+        this
+    );
+
+    pBillableCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX,
+        &ProjectDialog::OnBillableCheck,
         this
     );
 
@@ -292,6 +326,13 @@ void ProjectDialog::DataToControls()
         pIsActiveCheckBoxCtrl->SetValue(mProjectModel.IsActive);
         pIsActiveCheckBoxCtrl->Enable();
 
+        pBillableCheckBoxCtrl->SetValue(mProjectModel.Billable);
+
+        if (mProjectModel.Billable && mProjectModel.BillableHours.has_value()) {
+            pBillableHoursSpinCtrl->Enable();
+            pBillableHoursSpinCtrl->SetValue(mProjectModel.BillableHours.value());
+        }
+
         for (unsigned int i = 0; i < pEmployerChoiceCtrl->GetCount(); i++) {
             auto* data = reinterpret_cast<ClientData<std::int64_t>*>(
                 pEmployerChoiceCtrl->GetClientObject(i));
@@ -341,6 +382,16 @@ void ProjectDialog::OnEmployerChoiceSelection(wxCommandEvent& event)
     FillClientChoiceControl(employerId);
 }
 
+void ProjectDialog::OnBillableCheck(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        pBillableHoursSpinCtrl->Enable();
+    } else {
+        pBillableHoursSpinCtrl->SetValue(0);
+        pBillableHoursSpinCtrl->Disable();
+    }
+}
+
 void ProjectDialog::OnOK(wxCommandEvent& event)
 {
     if (!Validate()) {
@@ -351,7 +402,6 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
 
     Persistence::ProjectsPersistence projectPersistence(pLogger, mDatabaseFilePath);
 
-    int ret = 0;
     bool canContinue = true;
 
     if (pIsDefaultCheckBoxCtrl->IsChecked()) {
@@ -400,6 +450,15 @@ void ProjectDialog::OnOK(wxCommandEvent& event)
         }
     }
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked() && canContinue) {
+        wxMessageDialog confirmationDialog(this,
+            fmt::format(Messages::DeleteConfirmationProjectMessage, mProjectModel.Name),
+            "Confirm Deletion",
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+        if (confirmationDialog.ShowModal() != wxID_YES) {
+            return;
+        }
+
         auto sqliteResult = projectPersistence.Delete(mProjectId);
 
         if (!sqliteResult.Success) {
@@ -464,6 +523,17 @@ bool ProjectDialog::Validate()
         return false;
     }
 
+    if (pBillableCheckBoxCtrl->GetValue()) {
+        auto billableHoursLength = pBillableHoursSpinCtrl->GetValue();
+        if (billableHoursLength < 5) {
+            auto valMsg = "Billable hours must be at least five (5) hours";
+            wxRichToolTip toolTip("Validation", valMsg);
+            toolTip.SetIcon(wxICON_WARNING);
+            toolTip.ShowFor(pNameTextCtrl);
+            return false;
+        }
+    }
+
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     if (!description.empty() && (description.length() < MIN_CHARACTER_COUNT ||
                                     description.length() > MAX_CHARACTER_COUNT_DESCRIPTIONS)) {
@@ -499,6 +569,11 @@ void ProjectDialog::TransferDataFromControls()
     mProjectModel.Name = Utils::TrimWhitespace(name);
 
     mProjectModel.IsDefault = pIsDefaultCheckBoxCtrl->GetValue();
+
+    mProjectModel.Billable = pBillableCheckBoxCtrl->GetValue();
+    mProjectModel.BillableHours = pBillableHoursSpinCtrl->GetValue() > 0
+                                      ? std::make_optional(pBillableHoursSpinCtrl->GetValue())
+                                      : std::nullopt;
 
     auto description = pDescriptionTextCtrl->GetValue().ToStdString();
     mProjectModel.Description =

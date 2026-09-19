@@ -459,8 +459,9 @@ void ExportToExcelDialog::CreateControls()
 void ExportToExcelDialog::FillControls()
 {
     /* Export File Controls */
-    auto saveToFile = fmt::format(
-        "{0}\\taskies-export-{1}.xlsx", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
+    auto saveToFile = fmt::format("{0}\\taskies-export-{1}.xlsx",
+        pCfg->GetExportPath(),
+        pDateStore->FormatDate(pDateStore->TodayDate));
     pSaveToFileTextCtrl->ChangeValue(saveToFile);
     pSaveToFileTextCtrl->SetToolTip(saveToFile);
 
@@ -682,8 +683,9 @@ void ExportToExcelDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& e
 
     if (res == wxID_OK) {
         auto selectedExportPath = openDirDialog->GetPath().ToStdString();
-        auto saveToFile = fmt::format(
-            "{0}\\taskies-export-{1}.csv", selectedExportPath, pDateStore->PrintTodayDate);
+        auto saveToFile = fmt::format("{0}\\taskies-export-{1}.csv",
+            selectedExportPath,
+            pDateStore->FormatDate(pDateStore->TodayDate));
 
         pSaveToFileTextCtrl->SetValue(saveToFile);
         pSaveToFileTextCtrl->SetToolTip(saveToFile);
@@ -1149,10 +1151,12 @@ void ExportToExcelDialog::OnExport(wxCommandEvent& event)
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
-    const std::string fromDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
-    const std::string toDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
+    const std::string fromDate = bExportTodaysTasksOnly
+                                     ? pDateStore->FormatDate(pDateStore->TodayDate)
+                                     : pDateStore->FormatDate(mFromDate);
+    const std::string toDate = bExportTodaysTasksOnly
+                                   ? pDateStore->FormatDate(pDateStore->TodayDate)
+                                   : pDateStore->FormatDate(mToDate);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 

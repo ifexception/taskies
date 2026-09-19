@@ -33,6 +33,7 @@
 #include "../../common/validator.h"
 
 #include "../../common/results/sqliteresult.h"
+#include "../../common/messages/deleteoperationmessages.h"
 #include "../../common/messages/persistencemessages.h"
 
 #include "../../persistence/employerspersistence.h"
@@ -318,6 +319,15 @@ void ClientDialog::OnOK(wxCommandEvent& event)
     }
 
     if (bIsEdit && !pIsActiveCheckBoxCtrl->IsChecked()) {
+        wxMessageDialog confirmationDialog(this,
+            fmt::format(Messages::DeleteConfirmationClientMessage, mClientModel.Name),
+            "Confirm Deletion",
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+        if (confirmationDialog.ShowModal() != wxID_YES) {
+            return;
+        }
+
         auto result = clientsPersistence.Delete(mClientId);
 
         if (!result.Success) {

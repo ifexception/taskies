@@ -532,8 +532,9 @@ void ExportToCsvDialog::CreateControls()
 void ExportToCsvDialog::FillControls()
 {
     /* Export File Controls */
-    auto saveToFile = fmt::format(
-        "{0}\\taskies-export-{1}.csv", pCfg->GetExportPath(), pDateStore->PrintTodayDate);
+    auto saveToFile = fmt::format("{0}\\taskies-export-{1}.csv",
+        pCfg->GetExportPath(),
+        pDateStore->FormatDate(pDateStore->TodayDate));
     pSaveToFileTextCtrl->ChangeValue(saveToFile);
     pSaveToFileTextCtrl->SetToolTip(saveToFile);
 
@@ -890,8 +891,9 @@ void ExportToCsvDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& eve
 
     if (res == wxID_OK) {
         auto selectedExportPath = openDirDialog->GetPath().ToStdString();
-        auto saveToFile = fmt::format(
-            "{0}\\taskies-export-{1}.csv", selectedExportPath, pDateStore->PrintTodayDate);
+        auto saveToFile = fmt::format("{0}\\taskies-export-{1}.csv",
+            selectedExportPath,
+            pDateStore->FormatDate(pDateStore->TodayDate));
 
         pSaveToFileTextCtrl->SetValue(saveToFile);
         pSaveToFileTextCtrl->SetToolTip(saveToFile);
@@ -1117,10 +1119,9 @@ void ExportToCsvDialog::OnPresetChoice(wxCommandEvent& event)
     auto presetUuid = presetData->GetValue();
 
     auto presets = pCfg->GetPresets();
-    const auto& selectedPresetToApplyIterator = std::find_if(
-        presets.begin(), presets.end(), [&](const Core::Settings::PresetSetting& preset) {
-            return preset.Uuid == presetUuid;
-        });
+    const auto& selectedPresetToApplyIterator = std::find_if(presets.begin(),
+        presets.end(),
+        [&](const Core::Settings::PresetSetting& preset) { return preset.Uuid == presetUuid; });
 
     if (selectedPresetToApplyIterator == presets.end()) {
         pLogger->warn("Could not find preset with uuid \"{1}\" in config", presetUuid);
@@ -1322,10 +1323,12 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
-    const std::string fromDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
-    const std::string toDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
+    const std::string fromDate = bExportTodaysTasksOnly
+                                     ? pDateStore->FormatDate(pDateStore->TodayDate)
+                                     : pDateStore->FormatDate(mFromDate);
+    const std::string toDate = bExportTodaysTasksOnly
+                                   ? pDateStore->FormatDate(pDateStore->TodayDate)
+                                   : pDateStore->FormatDate(mToDate);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
@@ -1372,10 +1375,12 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
-    const std::string fromDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mFromDate);
-    const std::string toDate =
-        bExportTodaysTasksOnly ? pDateStore->PrintTodayDate : date::format("%F", mToDate);
+    const std::string fromDate = bExportTodaysTasksOnly
+                                     ? pDateStore->FormatDate(pDateStore->TodayDate)
+                                     : pDateStore->FormatDate(mFromDate);
+    const std::string toDate = bExportTodaysTasksOnly
+                                   ? pDateStore->FormatDate(pDateStore->TodayDate)
+                                   : pDateStore->FormatDate(mToDate);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 

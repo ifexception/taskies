@@ -31,6 +31,7 @@
 #include "../../../common/constants.h"
 #include "../../../common/validator.h"
 
+#include "../../../common/messages/deleteoperationmessages.h"
 #include "../../../common/messages/persistencemessages.h"
 
 #include "../../../persistence/attributegroupspersistence.h"
@@ -346,6 +347,15 @@ void AttributeGroupDialog::OnOK(wxCommandEvent& event)
         }
     }
     if (bIsEdit && pIsActiveCheckBoxCtrl->IsChecked()) {
+        wxMessageDialog confirmationDialog(this,
+            Messages::DeleteConfirmationAttributeGroupMessage,
+            "Confirm Deletion",
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+
+        if (confirmationDialog.ShowModal() != wxID_YES) {
+            return;
+        }
+
         auto result = attributeGroupsPersistence.Update(mAttributeGroupModel);
         // if (ret == -19) { // SQLITE_CONSTRAINT * -1
         //     wxMessageBox("Attribute group with specified name already exists",

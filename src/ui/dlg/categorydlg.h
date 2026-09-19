@@ -58,6 +58,7 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
+    void OnProjectChoice(wxCommandEvent& event);
     void OnIsActiveCheck(wxCommandEvent& event);
 
     void OnOK(wxCommandEvent& event);
