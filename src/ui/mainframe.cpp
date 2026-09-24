@@ -362,8 +362,7 @@ void MainFrame::CreateControls()
 
     MswUtils::OutlookInstanceCheck isOutlookInstalled;
     if (isOutlookInstalled()) {
-        auto outlookViewMenuItem =
-            viewMenu->Append(ID_VIEW_OUTLOOK, "&Outlook\tAlt-O", "View Outlook meetings");
+        viewMenu->Append(ID_VIEW_OUTLOOK, "&Outlook\tAlt-O", "View Outlook meetings");
     }
 
     viewMenu->AppendSeparator();
