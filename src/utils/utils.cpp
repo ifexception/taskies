@@ -35,10 +35,28 @@ namespace tks::Utils
 #ifdef _WIN32
 std::string ToStdString(const std::wstring& input)
 {
-    int size = WideCharToMultiByte(
-        CP_UTF8, 0, input.data(), static_cast<int>(input.size()), NULL, 0, NULL, NULL);
-    std::string result(size, 0);
-    WideCharToMultiByte(CP_UTF8, 0, &input[0], (int) input.size(), &result[0], size, NULL, NULL);
+    if (input.empty()) {
+        return std::string();
+    }
+
+    int sizeNeeded = WideCharToMultiByte(
+        CP_UTF8, 0, input.data(), static_cast<int>(input.size()), nullptr, 0, nullptr, nullptr);
+
+    if (sizeNeeded <= 0) {
+        return std::string();
+    }
+
+    std::string result(static_cast<size_t>(sizeNeeded), '\0');
+
+    WideCharToMultiByte(CP_UTF8,
+        0,
+        input.data(),
+        static_cast<int>(input.size()),
+        result.data(),
+        sizeNeeded,
+        nullptr,
+        nullptr);
+
     return result;
 }
 #endif // _WIN32
@@ -269,66 +287,55 @@ std::string ConvertListStringToCommaDelimitedString(const std::vector<std::strin
 }
 // clang-format on
 
-// This method and the subsequent one below was generated using CoPilot
-// https://github.com/copilot/c/f8e039ed-8725-4130-a8c2-830c2c5e020a
-static bool IsEmoji(wchar_t ch)
+static bool IsEmoji(unsigned int codepoint)
 {
-    unsigned int codepoint = static_cast<unsigned int>(ch);
-
-    // Common emoji Unicode ranges:
-    // Emoticons: U+1F600 to U+1F64F
-    // Symbols: U+1F300 to U+1F5FF
-    // Pictographs: U+1F900 to U+1F9FF
-    // Miscellaneous Symbols and Pictographs: U+1F300 to U+1F6FF
-
-    if ((codepoint >= 0x1F300 && codepoint <= 0x1F6FF) || // Misc Symbols & Pictographs
+    // Comprehensive common emoji Unicode ranges
+    if ((codepoint >= 0x1F300 && codepoint <= 0x1F6FF) || // Misc Symbols & Pictographs / Emoticons
         (codepoint >= 0x1F900 && codepoint <= 0x1F9FF) || // Supplemental Symbols & Pictographs
-        (codepoint >= 0x1FA00 && codepoint <= 0x1FA6F)) { // Chess Symbols & Emoji
+        (codepoint >= 0x1FA00 && codepoint <= 0x1FA6F) || // Symbols and Pictographs Extended-A
+        (codepoint >= 0x2600 && codepoint <= 0x27BF)) // Miscellaneous Symbols & Dingbats
+    {
         return true;
     }
-
     return false;
 }
 
-// Remove all emoji from a std::wstring
+// Remove all emoji from a std::wstring and return narrow string safely
 std::string RemoveEmoticons(const std::wstring& input)
 {
     std::wstring result;
+    result.reserve(input.length()); // Performance optimization to minimize allocations
 
-    for (size_t i = 0; i < input.length(); ++i) {
+    for (size_t i = 0; i < input.length(); /* increment handled manually */) {
         wchar_t ch = input[i];
 
-        // Skip surrogate pairs (used for characters outside BMP)
-        if (ch >= 0xD800 && ch <= 0xDBFF && i + 1 < input.length()) {
+        // Safe Surrogate pair parsing for 32-bit codepoints on Windows
+        if (ch >= 0xD800 && ch <= 0xDBFF && (i + 1) < input.length()) {
             wchar_t next = input[i + 1];
             if (next >= 0xDC00 && next <= 0xDFFF) {
-                // Calculate the actual codepoint
+                // Calculate the true UTF-32 codepoint value
                 unsigned int codepoint = 0x10000 + ((static_cast<unsigned int>(ch) & 0x3FF) << 10) +
                                          (static_cast<unsigned int>(next) & 0x3FF);
 
-                // Check if it's an emoji
-                if ((codepoint >= 0x1F300 && codepoint <= 0x1F6FF) ||
-                    (codepoint >= 0x1F900 && codepoint <= 0x1F9FF) ||
-                    (codepoint >= 0x1FA00 && codepoint <= 0x1FA6F)) {
-                    ++i; // Skip the next character (surrogate pair)
+                if (IsEmoji(codepoint)) {
+                    i += 2; // Skip both surrogate units safely without trailing skips
                     continue;
                 }
 
                 result += ch;
                 result += next;
-                ++i;
+                i += 2; // dvance past both parts of the accepted surrogate pair
                 continue;
             }
         }
 
-        // Check single characters
-        if (!IsEmoji(ch)) {
+        if (!IsEmoji(static_cast<unsigned int>(ch))) {
             result += ch;
         }
+        i++;
     }
 
-    std::string convertedResult = ToStdString(result);
-    return convertedResult;
+    return ToStdString(result);
 }
 
 int RoundUpToMultiple(int number, int multiple)
