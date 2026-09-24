@@ -402,7 +402,7 @@ void MainFrame::CreateControls()
         framePanel, tksIDC_PREVIOUSDAYBUTTON, "<", wxDefaultPosition, FromDIP(wxSize(32, -1)));
     pPreviousDayButton->SetToolTip("Navigate to the previous date");
 
-    /* Date picket ctrl */
+    /* Date picker ctrl */
     pDatePickerCtrl = new wxDatePickerCtrl(framePanel, tksIDC_DATEPICKERCTRL);
     pDatePickerCtrl->SetToolTip("Select date for tasks view");
 
@@ -431,6 +431,16 @@ void MainFrame::CreateControls()
 
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
+    /* Tasks View and Outlook Meeting Panel sizer */
+    auto mainViewSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(mainViewSizer, wxSizerFlags().Expand().Proportion(1));
+
+    /*Data View List Ctrl static box*/
+    auto dvlcStaticBox = new wxStaticBox(framePanel, wxID_ANY, "Tasks View");
+    auto dvlcStaticBoxSizer = new wxStaticBoxSizer(dvlcStaticBox, wxVERTICAL);
+    mainViewSizer->Add(
+        dvlcStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(7));
+
     /* Data View List Ctrl */
     pDataViewListCtrl = new wxDataViewListCtrl(framePanel,
         tksIDC_DATAVIEWLISTCTRL,
@@ -438,7 +448,9 @@ void MainFrame::CreateControls()
         wxDefaultSize,
         wxDV_SINGLE | wxDV_ROW_LINES | wxDV_HORIZ_RULES | wxDV_VERT_RULES);
     pDataViewListCtrl->SetFocus();
-    sizer->Add(pDataViewListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    dvlcStaticBoxSizer->Add(
+        pDataViewListCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     for (size_t i = 0; i < mTasksViewColumns.size(); i++) {
         wxDataViewColumn* column = nullptr;
@@ -477,6 +489,42 @@ void MainFrame::CreateControls()
 
     pDataViewListCtrl->AppendTextColumn(
         "ID", wxDATAVIEW_CELL_INERT, wxSIZE_AUTO_WIDTH, wxALIGN_LEFT, wxDATAVIEW_COL_HIDDEN);
+
+    /* Outlook Meetings */
+    /* Outlook Meetings Box Sizer */
+    auto meetingStaticBox = new wxStaticBox(framePanel, wxID_ANY, "Outlook");
+    auto meetingStaticBoxSizer = new wxStaticBoxSizer(meetingStaticBox, wxVERTICAL);
+    mainViewSizer->Add(
+        meetingStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
+
+    /* Outlook Meetings Panel */
+    /*auto meetingPanel = new wxPanel(this, wxID_ANY);
+    meetingPanel->SetSizer(meetingStaticBoxSizer);*/
+
+    /* Account label and choice control */
+    auto accountLabel = new wxStaticText(meetingStaticBox, wxID_ANY, "Account");
+
+    pAccountsChoiceCtrl = new wxChoice(meetingStaticBox, tksIDC_ACCOUNT_CHOICE_CTRL);
+    pAccountsChoiceCtrl->SetToolTip("Select an account to display meetings for");
+
+    meetingStaticBoxSizer->Add(accountLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    meetingStaticBoxSizer->Add(
+        pAccountsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Feedback label */
+    pFeedbackLabel =
+        new wxStaticText(meetingStaticBox, tksIDC_FEEDBACKLABEL, "No account selected");
+    meetingStaticBoxSizer->Add(
+        pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
+
+    /* Main Scrolled Window */
+    pScrolledWindow = new wxScrolledWindow(meetingStaticBox, wxID_ANY);
+    pScrolledWindowSizer = new wxBoxSizer(wxVERTICAL);
+    pScrolledWindow->SetSizer(pScrolledWindowSizer);
+    pScrolledWindow->SetScrollRate(0, 20);
+    pScrolledWindowSizer->FitInside(pScrolledWindow);
+
+    meetingStaticBoxSizer->Add(pScrolledWindow, wxSizerFlags(1).Expand());
 
     /* Accelerator Table */
     wxAcceleratorEntry entries[6];

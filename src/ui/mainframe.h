@@ -285,6 +285,14 @@ private:
 
     wxDataViewListCtrl* pDataViewListCtrl;
 
+    /* Outlook Controls */
+    wxChoice* pAccountsChoiceCtrl;
+
+    wxStaticText* pFeedbackLabel;
+
+    wxScrolledWindow* pScrolledWindow;
+    wxSizer* pScrolledWindowSizer;
+
     std::unique_ptr<DateStore> pDateStore;
 
     date::sys_days mTodayDate;
@@ -314,6 +322,8 @@ private:
         tksIDC_NEXTDAYBUTTON,
         tksIDC_NEWTASKBUTTON,
         tksIDC_DATAVIEWLISTCTRL,
+        tksIDC_ACCOUNT_CHOICE_CTRL,
+        tksIDC_FEEDBACKLABEL,
         tksIDC_TASKREMINDERTIMER
     };
 };
