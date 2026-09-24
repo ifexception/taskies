@@ -46,13 +46,8 @@ OutlookClassicService::OutlookClassicService(std::shared_ptr<spdlog::logger> log
 
 OutlookResult OutlookClassicService::FetchAccountNames(std::vector<std::string>& accountNames)
 {
-    OutlookResult result = GetOutlookInstance();
-    if (!result.Success) {
-        return result;
-    }
-
     wxAutomationObject accountsObject;
-    result = GetAccountsObject(accountsObject);
+    OutlookResult result = GetAccountsObject(accountsObject);
     if (!result.Success) {
         return result;
     }
@@ -103,13 +98,8 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
     const std::string& date,
     std::vector<OutlookMeetingModel>& meetingModels)
 {
-    OutlookResult result = GetOutlookInstance();
-    if (!result.Success) {
-        return result;
-    }
-
     wxAutomationObject accountsObject;
-    result = GetAccountsObject(accountsObject);
+    OutlookResult result = GetAccountsObject(accountsObject);
     if (!result.Success) {
         return result;
     }
@@ -235,23 +225,19 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
             return OutlookResult::Fail("Failed to convert to \"Namespace\" object");
         }
 
-        do {
-            if (!itemObject.IsOk()) {
-                pLogger->info(
-                    "Retrieved all meetings for \"{0}\"", displayName.GetString().ToStdString());
-                break;
-            }
-
+        while (itemObject.IsOk()) {
             ReadMeetings(itemObject, meetingModels);
 
             itemObjectDispatchPtr = filteredItemsObject.CallMethod("GetNext");
             if (itemObjectDispatchPtr.IsNull()) {
                 pLogger->error("Failed to call \"GetNext\" method");
-                return OutlookResult::Fail("Failed to call method \"Items.GetNext\"");
+                break;
             }
+            itemObject.SetDispatchPtr(itemObjectDispatchPtr.GetVoidPtr());
+        }
 
-            itemObject.SetDispatchPtr(itemObjectDispatchPtr);
-        } while (true);
+        pLogger->info("Retrieved all meetings for \"{0}\"", displayName.GetString().ToStdString());
+        break;
     }
 
     return OutlookResult::OK();
@@ -269,9 +255,13 @@ OutlookResult OutlookClassicService::GetOutlookInstance()
 
 OutlookResult OutlookClassicService::GetAccountsObject(wxAutomationObject& accountsObject)
 {
+    OutlookResult result = GetOutlookInstance();
+    if (!result.Success) {
+        return result;
+    }
+
     wxVariant mapiVariant("MAPI");
     const wxVariant namespaceDispatchPtr = mOutlookInstance.CallMethod("GetNamespace", mapiVariant);
-
     if (namespaceDispatchPtr.IsNull()) {
         pLogger->error("Failed to call \"GetNamespace\" method");
         return OutlookResult::Fail("Failed to get Outlook namespace");
@@ -286,7 +276,7 @@ OutlookResult OutlookClassicService::GetAccountsObject(wxAutomationObject& accou
     const wxVariant accountsDispatchPtr = namespaceObject.GetProperty("Accounts");
     if (accountsDispatchPtr.IsNull()) {
         pLogger->error("Failed to get \"Accounts\" property");
-        return OutlookResult::Fail("Failed to get to Outlook \"Namespace.Accounts\" property");
+        return OutlookResult::Fail("Failed to get Outlook \"Namespace.Accounts\" property");
     }
 
     if (!VariantToObject(accountsDispatchPtr, accountsObject)) {
