@@ -103,8 +103,7 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
 {
     auto menu = new wxMenu();
 
-    auto newTaskMenuItem =
-        menu->Append(tksIDC_MENU_NEWTASK, "&New Task\tCtrl-N", "Create new task");
+    auto newTaskMenuItem = menu->Append(tksIDC_MENU_NEWTASK, "&New Task", "Create new task");
 
     wxIconBundle addTaskIconBundle(Common::GetAddTaskIconBundleName(), 0);
     newTaskMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(addTaskIconBundle));
@@ -120,13 +119,13 @@ wxMenu* TaskBarIcon::CreatePopupMenu()
     menu->AppendSeparator();
 
     auto preferencesMenuItem =
-        menu->Append(tksIDC_MENU_PREFERENCES, "&Preferences\tCtrl-,", "View and adjust program options");
+        menu->Append(tksIDC_MENU_PREFERENCES, "&Preferences", "View and adjust program options");
 
     wxIconBundle preferencesIconBundle(Common::GetSettingsIconBundleName(), 0);
     preferencesMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(preferencesIconBundle));
 
     menu->AppendSeparator();
-    auto exitMenuItem = menu->Append(wxID_EXIT, "E&xit\tAlt-F4", "Exit the program");
+    auto exitMenuItem = menu->Append(wxID_EXIT, "E&xit", "Exit the program");
 
     wxIconBundle exitIconBundle(Common::GetExitIconBundleName(), 0);
     exitMenuItem->SetBitmap(wxBitmapBundle::FromIconBundle(exitIconBundle));
