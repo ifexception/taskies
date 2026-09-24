@@ -234,9 +234,6 @@ void OutlookMeetingsViewFrame::ConfigureEventBindings()
 
 void OutlookMeetingsViewFrame::DataToControls()
 {
-    pFeedbackLabel->SetLabel(
-        "Fetching Outlook (classic) meetings may invoke additional auto-closing dialogs");
-
     std::vector<std::string> accountNames;
 
     Services::Outlook::OutlookClassicService service(pLogger);
@@ -492,7 +489,11 @@ void OutlookMeetingsViewFrame::FetchOutlookMeetingsAndUpdateFeedbackLabel()
 
         dialog.ShowModal();
 
-        pFeedbackLabel->SetLabel(result.Message);
+        if (pFeedbackLabel) {
+            pFeedbackLabel->SetLabel(result.Message);
+            pFeedbackLabel->Show();
+            pMainSizer->Layout();
+        }
 
         return;
     } else if (result.Success && !result.Message.empty()) {
@@ -505,12 +506,10 @@ void OutlookMeetingsViewFrame::FetchOutlookMeetingsAndUpdateFeedbackLabel()
         }
     }
 
-    if (pFeedbackLabel != nullptr) {
-        pMainSizer->Detach(pFeedbackLabel);
-        pFeedbackLabel->Destroy();
-        pFeedbackLabel = nullptr;
+    if (pFeedbackLabel && pFeedbackLabel->IsShown()) {
+        pFeedbackLabel->Hide();
         pMainSizer->Layout();
-        SPDLOG_LOGGER_TRACE(pLogger, "Removed feedback static text from main sizer");
+        SPDLOG_LOGGER_TRACE(pLogger, "Hidden feedback static text from layout");
     }
 }
 
@@ -610,24 +609,30 @@ void OutlookMeetingsViewFrame::RemoveActiveMeetingsPanel()
 
 void OutlookMeetingsViewFrame::ResetFeedbackLabelOnNoData(const std::string& message)
 {
+    const std::string feedbackMessage = message.empty() ? "No account selected" : message;
+
     if (pFeedbackLabel == nullptr) {
-        pFeedbackLabel = new wxStaticText(
-            pThisPanel, tksIDC_FEEDBACKLABEL, message.empty() ? "No account selected" : message);
+        pFeedbackLabel = new wxStaticText(pThisPanel, tksIDC_FEEDBACKLABEL, feedbackMessage);
 
-        // insert the feedback label above the scrolled window
         const int FeedbackLabelSizerIndex = 4;
-        pMainSizer->Insert(FeedbackLabelSizerIndex,
-            pFeedbackLabel,
-            wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
-
-        pMainSizer->Layout();
+        if (pMainSizer->GetItemCount() >= FeedbackLabelSizerIndex) {
+            pMainSizer->Insert(FeedbackLabelSizerIndex,
+                pFeedbackLabel,
+                wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
+        } else {
+            pMainSizer->Add(
+                pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
+        }
     } else {
-        pFeedbackLabel->SetLabel(message.empty() ? "No account selected" : message);
+        pFeedbackLabel->SetLabel(feedbackMessage);
+        pFeedbackLabel->Show();
     }
 
     if (pRefreshButton->IsEnabled()) {
         pRefreshButton->Disable();
     }
+
+    pMainSizer->Layout();
 }
 
 void OutlookMeetingsViewFrame::AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
