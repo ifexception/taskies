@@ -364,9 +364,6 @@ void MainFrame::CreateControls()
     if (isOutlookInstalled()) {
         auto outlookViewMenuItem =
             viewMenu->Append(ID_VIEW_OUTLOOK, "&Outlook\tAlt-O", "View Outlook meetings");
-        if (!MswUtils::IsOutlookRunning()) {
-            outlookViewMenuItem->Enable(false);
-        }
     }
 
     viewMenu->AppendSeparator();
@@ -489,7 +486,7 @@ void MainFrame::CreateControls()
     entries[2].Set(wxACCEL_CTRL, (int) ',', ID_VIEW_PREFERENCES);
     entries[3].Set(wxACCEL_CTRL, WXK_LEFT, tksIDC_PREVIOUSDAYBUTTON);
     entries[4].Set(wxACCEL_CTRL, WXK_RIGHT, tksIDC_NEXTDAYBUTTON);
-    if (isOutlookInstalled() && !MswUtils::IsOutlookRunning()) {
+    if (isOutlookInstalled()) {
         entries[5].Set(wxACCEL_ALT, (int) 'O', ID_VIEW_OUTLOOK);
     }
 
