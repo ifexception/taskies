@@ -38,6 +38,8 @@ OutlookResult OutlookResult::Fail(const std::string& errorMessage)
     return OutlookResult{ false, errorMessage };
 }
 
+const std::string OutlookClassicService::OutlookName = "Outlook.Application";
+
 OutlookClassicService::OutlookClassicService(std::shared_ptr<spdlog::logger> logger)
     : pLogger(logger)
     , mOutlookInstance()
@@ -245,7 +247,7 @@ OutlookResult OutlookClassicService::FetchCalendarMeetings(const std::string& ac
 
 OutlookResult OutlookClassicService::GetOutlookInstance()
 {
-    if (!mOutlookInstance.GetInstance("Outlook.Application")) {
+    if (!mOutlookInstance.GetInstance(OutlookName)) {
         pLogger->error("Could not create Outlook instance");
         return OutlookResult::Fail("Failed to open Outlook application");
     }
