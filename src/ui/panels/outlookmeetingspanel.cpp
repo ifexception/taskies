@@ -37,6 +37,7 @@ OutlookMeetingsPanel::OutlookMeetingsPanel(wxWindow* parent,
     , pFeedbackLabel(nullptr)
     , pScrolledWindow(nullptr)
     , pScrolledWindowSizer(nullptr)
+    , pActiveMeetingsPanel(nullptr)
     , mTodaysDate()
 {
     mTodaysDate = date::floor<date::days>(std::chrono::system_clock::now());
@@ -70,8 +71,8 @@ void OutlookMeetingsPanel::CreateControls()
     pMeetingStaticBoxSizer->Add(pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
 
     /* Horizontal Line */
-    auto line0 = new wxStaticLine(meetingStaticBox, wxID_ANY);
-    pMeetingStaticBoxSizer->Add(line0, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
+    auto line = new wxStaticLine(meetingStaticBox, wxID_ANY);
+    pMeetingStaticBoxSizer->Add(line, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
 
     /* Account label and choice control */
     auto accountLabel = new wxStaticText(meetingStaticBox, wxID_ANY, "Account");
@@ -105,5 +106,25 @@ void OutlookMeetingsPanel::FillControls()
     pAccountsChoiceCtrl->SetSelection(0);
 }
 
-void OutlookMeetingsPanel::ConfigureEventBindings() {}
+// clang-format off
+void OutlookMeetingsPanel::ConfigureEventBindings()
+{
+    pRefreshButton->Bind(
+        wxEVT_BUTTON,
+        &OutlookMeetingsPanel::OnRefresh,
+        this,
+        tksIDC_REFRESH_BUTTON
+    );
+
+    pAccountsChoiceCtrl->Bind(
+        wxEVT_CHOICE,
+        &OutlookMeetingsPanel::OnAccountChoice,
+        this
+    );
+}
+// clang-format on
+
+void OutlookMeetingsPanel::OnRefresh(wxCommandEvent& event) {}
+
+void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event) {}
 } // namespace tks::UI::Panel

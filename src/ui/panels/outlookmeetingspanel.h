@@ -67,6 +67,8 @@ private:
     wxScrolledWindow* pScrolledWindow;
     wxSizer* pScrolledWindowSizer;
 
+    wxPanel* pActiveMeetingsPanel;
+
     date::sys_days mTodaysDate;
 
     enum {
