@@ -286,6 +286,8 @@ private:
     wxDataViewListCtrl* pDataViewListCtrl;
 
     /* Outlook Controls */
+    wxStaticBoxSizer* pMeetingStaticBoxSizer;
+    wxBitmapButton* pRefreshButton;
     wxChoice* pAccountsChoiceCtrl;
 
     wxStaticText* pFeedbackLabel;
@@ -322,6 +324,7 @@ private:
         tksIDC_NEXTDAYBUTTON,
         tksIDC_NEWTASKBUTTON,
         tksIDC_DATAVIEWLISTCTRL,
+        tksIDC_REFRESH_BUTTON,
         tksIDC_ACCOUNT_CHOICE_CTRL,
         tksIDC_FEEDBACKLABEL,
         tksIDC_TASKREMINDERTIMER
