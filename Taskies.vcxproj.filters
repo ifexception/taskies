@@ -105,6 +105,9 @@
     <Filter Include="Source\providers\taskhours">
       <UniqueIdentifier>{44b53d06-7712-4594-85e8-6a11e6fda840}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\ui\panels">
+      <UniqueIdentifier>{3eb8f159-2f3f-4d18-855a-41f9dff87568}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\application.cpp">
@@ -479,6 +482,9 @@
     <ClCompile Include="src\common\messages\deleteoperationmessages.cpp">
       <Filter>Source\common\messages</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\panels\outlookmeetingspanel.cpp">
+      <Filter>Source\ui\panels</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -852,6 +858,9 @@
     </ClInclude>
     <ClInclude Include="src\common\messages\deleteoperationmessages.h">
       <Filter>Source\common\messages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\panels\outlookmeetingspanel.h">
+      <Filter>Source\ui\panels</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

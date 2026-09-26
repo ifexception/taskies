@@ -182,6 +182,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pDatePickerCtrl(nullptr)
     , pNextDayButton(nullptr)
     , pDataViewListCtrl(nullptr)
+    , pOutlookMeetingsPanel(nullptr)
     , pDateStore(nullptr)
     , mTodayDate()
     , mTaskIdToEdit(-1)
@@ -492,53 +493,10 @@ void MainFrame::CreateControls()
         "ID", wxDATAVIEW_CELL_INERT, wxSIZE_AUTO_WIDTH, wxALIGN_LEFT, wxDATAVIEW_COL_HIDDEN);
 
     /* Outlook Meetings */
-    /* Outlook Meetings Box Sizer */
-    auto meetingStaticBox = new wxStaticBox(framePanel, wxID_ANY, "Outlook");
-    pMeetingStaticBoxSizer = new wxStaticBoxSizer(meetingStaticBox, wxVERTICAL);
+    pOutlookMeetingsPanel =
+        new Panel::OutlookMeetingsPanel(framePanel, tksIDC_OUTLOOKMEETINGSPANEL, pLogger);
     mainViewSizer->Add(
-        pMeetingStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
-
-    /* Outlook Meetings Panel */
-    /*auto meetingPanel = new wxPanel(this, wxID_ANY);
-    meetingPanel->SetSizer(pMeetingStaticBoxSizer);*/
-
-    /* Refresh button */
-    auto providedRefreshBitmap = wxArtProvider::GetBitmapBundle(
-        wxART_REFRESH, "wxART_OTHER_C", wxSize(FromDIP(16), FromDIP(16)));
-    pRefreshButton =
-        new wxBitmapButton(meetingStaticBox, tksIDC_REFRESH_BUTTON, providedRefreshBitmap);
-    pRefreshButton->SetToolTip("Refresh meetings of selected account");
-    pRefreshButton->Disable();
-    pMeetingStaticBoxSizer->Add(pRefreshButton, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
-
-    /* Horizontal Line */
-    auto line0 = new wxStaticLine(meetingStaticBox, wxID_ANY);
-    pMeetingStaticBoxSizer->Add(line0, wxSizerFlags().Border(wxALL, FromDIP(2)).Expand());
-
-    /* Account label and choice control */
-    auto accountLabel = new wxStaticText(meetingStaticBox, wxID_ANY, "Account");
-
-    pAccountsChoiceCtrl = new wxChoice(meetingStaticBox, tksIDC_ACCOUNT_CHOICE_CTRL);
-    pAccountsChoiceCtrl->SetToolTip("Select an account to fetch meetings");
-
-    pMeetingStaticBoxSizer->Add(accountLabel, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    pMeetingStaticBoxSizer->Add(
-        pAccountsChoiceCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    /* Feedback label */
-    pFeedbackLabel =
-        new wxStaticText(meetingStaticBox, tksIDC_FEEDBACKLABEL, "No account selected");
-    pMeetingStaticBoxSizer->Add(
-        pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
-
-    /* Main Scrolled Window */
-    pScrolledWindow = new wxScrolledWindow(meetingStaticBox, wxID_ANY);
-    pScrolledWindowSizer = new wxBoxSizer(wxVERTICAL);
-    pScrolledWindow->SetSizer(pScrolledWindowSizer);
-    pScrolledWindow->SetScrollRate(0, 20);
-    pScrolledWindowSizer->FitInside(pScrolledWindow);
-
-    pMeetingStaticBoxSizer->Add(pScrolledWindow, wxSizerFlags(1).Expand());
+        pOutlookMeetingsPanel, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
 
     /* Accelerator Table */
     wxAcceleratorEntry entries[6];
@@ -558,11 +516,7 @@ void MainFrame::CreateControls()
     SetStatusBar(pStatusBar);
 }
 
-void MainFrame::FillControls()
-{
-    pAccountsChoiceCtrl->Append("Select account");
-    pAccountsChoiceCtrl->SetSelection(0);
-}
+void MainFrame::FillControls() {}
 
 void MainFrame::ConfigureEventBindings()
 {

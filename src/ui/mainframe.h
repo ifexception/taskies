@@ -47,6 +47,7 @@
 #include "../core/settings/tasksviewcolumnsetting.h"
 
 #include "../ui/frames/outlookmeetingsviewframe.h"
+#include "../ui/panels/outlookmeetingspanel.h"
 
 #include "../services/tasks/taskviewmodel.h"
 
@@ -285,15 +286,8 @@ private:
 
     wxDataViewListCtrl* pDataViewListCtrl;
 
-    /* Outlook Controls */
-    wxStaticBoxSizer* pMeetingStaticBoxSizer;
-    wxBitmapButton* pRefreshButton;
-    wxChoice* pAccountsChoiceCtrl;
-
-    wxStaticText* pFeedbackLabel;
-
-    wxScrolledWindow* pScrolledWindow;
-    wxSizer* pScrolledWindowSizer;
+    /* Outlook Meetings Panel */
+    Panel::OutlookMeetingsPanel* pOutlookMeetingsPanel;
 
     std::unique_ptr<DateStore> pDateStore;
 
@@ -324,9 +318,7 @@ private:
         tksIDC_NEXTDAYBUTTON,
         tksIDC_NEWTASKBUTTON,
         tksIDC_DATAVIEWLISTCTRL,
-        tksIDC_REFRESH_BUTTON,
-        tksIDC_ACCOUNT_CHOICE_CTRL,
-        tksIDC_FEEDBACKLABEL,
+        tksIDC_OUTLOOKMEETINGSPANEL,
         tksIDC_TASKREMINDERTIMER
     };
 };
