@@ -24,6 +24,13 @@
 #include <wx/artprov.h>
 #include <wx/statline.h>
 
+#include "../../common/common.h"
+#include "../../common/enums.h"
+
+#include "../../common/messages/persistencemessages.h"
+
+#include "../../services/outlook/outlookclassicservice.h"
+
 namespace tks::UI::Panel
 {
 OutlookMeetingsPanel::OutlookMeetingsPanel(wxWindow* parent,
@@ -39,6 +46,8 @@ OutlookMeetingsPanel::OutlookMeetingsPanel(wxWindow* parent,
     , pScrolledWindowSizer(nullptr)
     , pActiveMeetingsPanel(nullptr)
     , mTodaysDate()
+    , mSelectedAccount()
+    , mMeetingModels()
 {
     mTodaysDate = date::floor<date::days>(std::chrono::system_clock::now());
 
@@ -126,5 +135,70 @@ void OutlookMeetingsPanel::ConfigureEventBindings()
 
 void OutlookMeetingsPanel::OnRefresh(wxCommandEvent& event) {}
 
-void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event) {}
+void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
+{
+    wxBusyCursor cursor;
+
+    mMeetingModels.clear();
+
+    if (pActiveMeetingsPanel != nullptr) {
+        RemoveActiveMeetingsPanel();
+    }
+
+    int selection = event.GetSelection();
+    if (selection == 0) {
+        ResetFeedbackLabelOnNoData();
+        mSelectedAccount.clear();
+
+        return;
+    } else {
+        mSelectedAccount = pAccountsChoiceCtrl->GetString(selection).ToStdString();
+        if (!pRefreshButton->IsEnabled()) {
+            pRefreshButton->Enable();
+        }
+    }
+}
+
+void OutlookMeetingsPanel::RemoveActiveMeetingsPanel()
+{
+    pScrolledWindowSizer->Detach(pActiveMeetingsPanel);
+    bool windowDelete = pActiveMeetingsPanel->Destroy();
+    if (!windowDelete) {
+        pLogger->warn("Failed to delete active meetings panel and its child controls");
+    }
+    pActiveMeetingsPanel = nullptr;
+
+    pScrolledWindowSizer->Layout();
+    pMeetingStaticBoxSizer->Layout();
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Removed active meetings panel from scrolled window");
+}
+
+void OutlookMeetingsPanel::ResetFeedbackLabelOnNoData(const std::string& message)
+{
+    const std::string feedbackMessage = message.empty() ? "No account selected" : message;
+
+    if (pFeedbackLabel == nullptr) {
+        pFeedbackLabel = new wxStaticText(this, tksIDC_FEEDBACKLABEL, feedbackMessage);
+
+        const int FeedbackLabelSizerIndex = 4;
+        if (pMeetingStaticBoxSizer->GetItemCount() >= FeedbackLabelSizerIndex) {
+            pMeetingStaticBoxSizer->Insert(FeedbackLabelSizerIndex,
+                pFeedbackLabel,
+                wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
+        } else {
+            pMeetingStaticBoxSizer->Add(
+                pFeedbackLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterHorizontal().Top());
+        }
+    } else {
+        pFeedbackLabel->SetLabel(feedbackMessage);
+        pFeedbackLabel->Show();
+    }
+
+    if (pRefreshButton->IsEnabled()) {
+        pRefreshButton->Disable();
+    }
+
+    pMeetingStaticBoxSizer->Layout();
+}
 } // namespace tks::UI::Panel

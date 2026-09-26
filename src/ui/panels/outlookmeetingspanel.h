@@ -20,6 +20,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -30,6 +31,11 @@
 
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
+
+namespace tks::Services::Outlook
+{
+struct OutlookMeetingModel;
+}
 
 namespace tks::UI::Panel
 {
@@ -56,6 +62,9 @@ private:
     void OnRefresh(wxCommandEvent& event);
     void OnAccountChoice(wxCommandEvent& event);
 
+    void RemoveActiveMeetingsPanel();
+    void ResetFeedbackLabelOnNoData(const std::string& message = "");
+
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxStaticBoxSizer* pMeetingStaticBoxSizer;
@@ -70,6 +79,9 @@ private:
     wxPanel* pActiveMeetingsPanel;
 
     date::sys_days mTodaysDate;
+    std::string mSelectedAccount;
+
+    std::vector<Services::Outlook::OutlookMeetingModel> mMeetingModels;
 
     enum {
         tksIDC_OUTLOOKMEETINGSPANELBASE = wxID_HIGHEST + 1001,
