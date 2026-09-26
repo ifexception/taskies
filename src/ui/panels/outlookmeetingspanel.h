@@ -57,7 +57,7 @@ private:
     void CreateControls();
     void FillControls();
     void ConfigureEventBindings();
-    // void DataToControls();
+    void DataToControls();
 
     void OnRefresh(wxCommandEvent& event);
     void OnAccountChoice(wxCommandEvent& event);

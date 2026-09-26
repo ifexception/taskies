@@ -22,6 +22,7 @@
 #include <chrono>
 
 #include <wx/artprov.h>
+#include <wx/msgdlg.h>
 #include <wx/statline.h>
 
 #include "../../common/common.h"
@@ -61,6 +62,7 @@ void OutlookMeetingsPanel::Create()
     CreateControls();
     FillControls();
     ConfigureEventBindings();
+    DataToControls();
 }
 
 void OutlookMeetingsPanel::CreateControls()
@@ -113,6 +115,38 @@ void OutlookMeetingsPanel::FillControls()
 {
     pAccountsChoiceCtrl->Append("Select account");
     pAccountsChoiceCtrl->SetSelection(0);
+}
+
+void OutlookMeetingsPanel::DataToControls()
+{
+    std::vector<std::string> accountNames;
+
+    Services::Outlook::OutlookClassicService outlookClassicService(pLogger);
+    Services::Outlook::OutlookResult result;
+    {
+        wxBusyCursor cursor;
+
+        result = outlookClassicService.FetchAccountNames(accountNames);
+    }
+
+    if (!result.Success) {
+        std::string message = "Failed to fetch Outlook accounts";
+        pFeedbackLabel->SetLabel(message);
+
+        wxMessageDialog dialog(this,
+            message,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.Message);
+
+        dialog.ShowModal();
+
+        return;
+    }
+
+    for (const std::string& accountName : accountNames) {
+        pAccountsChoiceCtrl->Append(accountName);
+    }
 }
 
 // clang-format off
