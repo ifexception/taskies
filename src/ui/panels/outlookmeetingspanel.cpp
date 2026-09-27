@@ -19,12 +19,15 @@
 
 #include "outlookmeetingspanel.h"
 
+#include <algorithm>
 #include <chrono>
 
 #include <wx/artprov.h>
 #include <wx/msgdlg.h>
 #include <wx/richmsgdlg.h>
 #include <wx/statline.h>
+
+#include "../dlg/taskdlg.h"
 
 #include "../../common/common.h"
 #include "../../common/enums.h"
@@ -43,9 +46,12 @@ namespace tks::UI::Panel
 {
 OutlookMeetingsPanel::OutlookMeetingsPanel(wxWindow* parent,
     wxWindowID windowPanelId,
+    std::shared_ptr<Core::Configuration> cfg,
     std::shared_ptr<spdlog::logger> logger,
     const std::string& databaseFilePath)
     : wxPanel(parent, windowPanelId)
+    , pParent(parent)
+    , pCfg(cfg)
     , pLogger(logger)
     , mDatabaseFilePath(databaseFilePath)
     , pMeetingStaticBoxSizer(nullptr)
@@ -181,6 +187,8 @@ void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
 {
     wxBusyCursor cursor;
 
+    mOutlookMeetings.clear();
+
     if (pActiveMeetingsPanel != nullptr) {
         RemoveActiveMeetingsPanel();
     }
@@ -198,8 +206,8 @@ void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
         }
     }
 
-    auto outlookMeetings = FetchOutlookMeetingsByAccountName(mSelectedAccount);
-    if (outlookMeetings.size() == 0) {
+    mOutlookMeetings = FetchOutlookMeetingsByAccountName(mSelectedAccount);
+    if (mOutlookMeetings.size() == 0) {
         ResetFeedbackLabelOnNoData("No meetings found");
 
         return;
@@ -212,10 +220,76 @@ void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
 
     auto attendedMeetings = FetchAttendedMeetingsByDate();
 
-    AddMeetingsToPanel(outlookMeetings, attendedMeetings);
+    AddMeetingsToPanel(mOutlookMeetings, attendedMeetings);
 }
 
-void OutlookMeetingsPanel::OnAttendedCheckBoxCheck(wxCommandEvent& event) {}
+void OutlookMeetingsPanel::OnAttendedCheckBoxCheck(wxCommandEvent& event)
+{
+    if (!event.IsChecked()) {
+        SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID \"{0}\" unchecked", event.GetId());
+        return;
+    }
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Checkbox with ID: \"{0}\" checked", event.GetId());
+    wxWindow* windowPtr = dynamic_cast<wxWindow*>(event.GetEventObject());
+    wxStringClientData* windowStringClientDataPtr =
+        dynamic_cast<wxStringClientData*>(windowPtr->GetClientObject());
+
+    if (!windowStringClientDataPtr) {
+        return;
+    }
+
+    wxWindowID checkboxId = event.GetId();
+    SPDLOG_LOGGER_TRACE(pLogger, "Window ID \"{0}\"", checkboxId);
+
+    auto& stringData = windowStringClientDataPtr->GetData();
+    auto eventMeetingEntryId = stringData.ToStdString();
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Checkbox with ID: \"{0}\" and ENTRY_ID -> \n{1}",
+        checkboxId,
+        eventMeetingEntryId);
+
+    const auto& foundMeetingIterator = std::find_if(mOutlookMeetings.begin(),
+        mOutlookMeetings.end(),
+        [=](const Services::Outlook::OutlookMeetingModel& model) {
+            return model.EntryId == eventMeetingEntryId;
+        });
+
+    if (foundMeetingIterator == mOutlookMeetings.end()) {
+        pLogger->warn("Could not find matching Outlook meeting with entry id from event \"{0}\"",
+            eventMeetingEntryId);
+        return;
+    }
+
+    auto& meetingModel = *foundMeetingIterator;
+    SPDLOG_LOGGER_TRACE(pLogger, "Meeting found with detail: \n{0}", meetingModel.DebugPrint());
+
+    dlg::TaskDialog meetingTaskDialog(pParent, pCfg, pLogger, mDatabaseFilePath);
+
+    meetingTaskDialog.SetAttendedMeetingData(
+        meetingModel.TrimmedSubject(), meetingModel.Duration, meetingModel.Location);
+
+    meetingTaskDialog.SetAttendedMeetingDataEx(meetingModel.EntryId,
+        meetingModel.TrimmedSubject(),
+        meetingModel.Start,
+        meetingModel.End,
+        meetingModel.Duration,
+        meetingModel.Location);
+
+    int ret = meetingTaskDialog.ShowModal();
+
+    wxCheckBox* attendedCheckBoxCtrl = dynamic_cast<wxCheckBox*>(windowPtr);
+    if (attendedCheckBoxCtrl) {
+        if (ret != wxID_OK) {
+            attendedCheckBoxCtrl->SetValue(false);
+        } else {
+            attendedCheckBoxCtrl->Disable();
+        }
+    } else {
+        pLogger->warn("CheckBox control is NULL. Failed to perform dynamic cast to get attended "
+                      "check box control");
+    }
+}
 
 void OutlookMeetingsPanel::RemoveActiveMeetingsPanel()
 {

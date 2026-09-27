@@ -494,7 +494,7 @@ void MainFrame::CreateControls()
 
     /* Outlook Meetings */
     pOutlookMeetingsPanel = new Panel::OutlookMeetingsPanel(
-        framePanel, tksIDC_OUTLOOKMEETINGSPANEL, pLogger, mDatabaseFilePath);
+        framePanel, tksIDC_OUTLOOKMEETINGSPANEL, pCfg, pLogger, mDatabaseFilePath);
     mainViewSizer->Add(
         pOutlookMeetingsPanel, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
 

@@ -33,6 +33,11 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
+namespace tks::Core
+{
+class Configuration;
+} // namespace tks::Core
+
 namespace tks::Model
 {
 struct AttendedMeetingModel;
@@ -52,6 +57,7 @@ public:
     OutlookMeetingsPanel(const OutlookMeetingsPanel&) = delete;
     OutlookMeetingsPanel(wxWindow* parent,
         wxWindowID windowPanelId,
+        std::shared_ptr<Core::Configuration> cfg,
         std::shared_ptr<spdlog::logger> logger,
         const std::string& databaseFilePath);
     virtual ~OutlookMeetingsPanel();
@@ -87,6 +93,8 @@ private:
         const Services::Outlook::OutlookMeetingModel& meetingModel,
         bool meetingAttended);
 
+    wxWindow* pParent;
+    std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 
@@ -103,6 +111,8 @@ private:
 
     date::sys_days mSelectedDate;
     std::string mSelectedAccount;
+
+    std::vector<Services::Outlook::OutlookMeetingModel> mOutlookMeetings;
 
     enum {
         tksIDC_OUTLOOKMEETINGSPANELBASE = wxID_HIGHEST + 1001,
