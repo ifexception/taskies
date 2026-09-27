@@ -21,6 +21,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <wx/wxprec.h>
 #ifndef WX_PRECOMP
@@ -31,6 +32,11 @@
 
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
+
+namespace tks::Model
+{
+struct AttendedMeetingModel;
+}
 
 namespace tks::Services::Outlook
 {
@@ -46,7 +52,8 @@ public:
     OutlookMeetingsPanel(const OutlookMeetingsPanel&) = delete;
     OutlookMeetingsPanel(wxWindow* parent,
         wxWindowID windowPanelId,
-        std::shared_ptr<spdlog::logger> logger);
+        std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~OutlookMeetingsPanel();
 
     OutlookMeetingsPanel& operator=(const OutlookMeetingsPanel&) = delete;
@@ -67,8 +74,10 @@ private:
 
     std::vector<Services::Outlook::OutlookMeetingModel> FetchOutlookMeetingsByAccountName(
         const std::string& accountName);
+    std::vector<Model::AttendedMeetingModel> FetchAttendedMeetingsByDate();
 
     std::shared_ptr<spdlog::logger> pLogger;
+    std::string mDatabaseFilePath;
 
     wxStaticBoxSizer* pMeetingStaticBoxSizer;
     wxBitmapButton* pRefreshButton;

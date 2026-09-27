@@ -493,8 +493,8 @@ void MainFrame::CreateControls()
         "ID", wxDATAVIEW_CELL_INERT, wxSIZE_AUTO_WIDTH, wxALIGN_LEFT, wxDATAVIEW_COL_HIDDEN);
 
     /* Outlook Meetings */
-    pOutlookMeetingsPanel =
-        new Panel::OutlookMeetingsPanel(framePanel, tksIDC_OUTLOOKMEETINGSPANEL, pLogger);
+    pOutlookMeetingsPanel = new Panel::OutlookMeetingsPanel(
+        framePanel, tksIDC_OUTLOOKMEETINGSPANEL, pLogger, mDatabaseFilePath);
     mainViewSizer->Add(
         pOutlookMeetingsPanel, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
 

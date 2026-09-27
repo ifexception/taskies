@@ -23,6 +23,7 @@
 
 #include <wx/artprov.h>
 #include <wx/msgdlg.h>
+#include <wx/richmsgdlg.h>
 #include <wx/statline.h>
 
 #include "../../common/common.h"
@@ -30,15 +31,23 @@
 
 #include "../../common/messages/persistencemessages.h"
 
+#include "../../models/attendedmeetingmodel.h"
+
+#include "../../persistence/attendedmeetingspersistence.h"
+
 #include "../../services/outlook/outlookclassicservice.h"
+
+#include "../../utils/dateutils.h"
 
 namespace tks::UI::Panel
 {
 OutlookMeetingsPanel::OutlookMeetingsPanel(wxWindow* parent,
     wxWindowID windowPanelId,
-    std::shared_ptr<spdlog::logger> logger)
+    std::shared_ptr<spdlog::logger> logger,
+    const std::string& databaseFilePath)
     : wxPanel(parent, windowPanelId)
     , pLogger(logger)
+    , mDatabaseFilePath(databaseFilePath)
     , pMeetingStaticBoxSizer(nullptr)
     , pRefreshButton(nullptr)
     , pAccountsChoiceCtrl(nullptr)
@@ -270,5 +279,30 @@ std::vector<Services::Outlook::OutlookMeetingModel>
     }
 
     return meetingModels;
+}
+
+std::vector<Model::AttendedMeetingModel> OutlookMeetingsPanel::FetchAttendedMeetingsByDate()
+{
+    Persistence::AttendedMeetingsPersistence attendedMeetingsPersistence(
+        pLogger, mDatabaseFilePath);
+
+    std::vector<Model::AttendedMeetingModel> attendedMeetingModels;
+    auto sqliteResult =
+        attendedMeetingsPersistence.GetByDate(Utils::UnixTimestampMidnight(mSelectedDate),
+            Utils::UnixTimestampNextDayMidnight(mSelectedDate),
+            attendedMeetingModels);
+
+    if (!sqliteResult.Success) {
+        wxRichMessageDialog dialog(this,
+            Messages::FilterAttendedMeetingsByTodayDateMessage,
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(sqliteResult.FriendlyErrorMessage);
+        dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
+
+        dialog.ShowModal();
+    }
+
+    return attendedMeetingModels;
 }
 } // namespace tks::UI::Panel
