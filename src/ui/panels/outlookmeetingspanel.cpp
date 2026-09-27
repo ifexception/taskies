@@ -215,6 +215,8 @@ void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
     AddMeetingsToPanel(outlookMeetings, attendedMeetings);
 }
 
+void OutlookMeetingsPanel::OnAttendedCheckBoxCheck(wxCommandEvent& event) {}
+
 void OutlookMeetingsPanel::RemoveActiveMeetingsPanel()
 {
     pScrolledWindowSizer->Detach(pActiveMeetingsPanel);
@@ -322,5 +324,95 @@ void OutlookMeetingsPanel::AddMeetingsToPanel(
     pActiveMeetingsPanel->SetSizer(panelSizer);
 
     int attendedCheckBoxControlId = tksIDC_ATTENDEDCHECKBOX_BASE;
+
+    for (const auto& outlookMeeting : outlookMeetings) {
+        bool outlookMeetingAttended = false;
+
+        auto attendedMeetingFoundIterator = std::find_if(attendedMeetings.begin(),
+            attendedMeetings.end(),
+            [&](const Model::AttendedMeetingModel& attendedMeeting) {
+                return attendedMeeting.EntryId == outlookMeeting.EntryId;
+            });
+
+        if (attendedMeetingFoundIterator != attendedMeetings.end()) {
+            outlookMeetingAttended = true;
+        }
+
+        BuildMeetingControlsToPanel(
+            panelSizer, attendedCheckBoxControlId, outlookMeeting, outlookMeetingAttended);
+
+        ++attendedCheckBoxControlId;
+    }
+
+    pScrolledWindowSizer->Add(pActiveMeetingsPanel, wxSizerFlags().Expand());
+    pScrolledWindowSizer->SetSizeHints(pActiveMeetingsPanel);
+    pScrolledWindowSizer->Layout();
+
+    pMeetingStaticBoxSizer->Layout();
+}
+
+void OutlookMeetingsPanel::BuildMeetingControlsToPanel(wxBoxSizer* panelSizer,
+    int attendedCheckBoxControlId,
+    const Services::Outlook::OutlookMeetingModel& meetingModel,
+    bool meetingAttended)
+{
+    auto staticBox = new wxStaticBox(pActiveMeetingsPanel, wxID_ANY, "");
+    auto staticBoxSizer = new wxStaticBoxSizer(staticBox, wxVERTICAL);
+    panelSizer->Add(staticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    auto flexGridSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
+    flexGridSizer->AddGrowableCol(1, 1);
+    staticBoxSizer->Add(flexGridSizer, wxSizerFlags().Expand().Proportion(1));
+
+    auto subjectLabel = new wxStaticText(staticBox, wxID_ANY, "Subject");
+    auto subjectText = new wxTextCtrl(
+        staticBox, wxID_ANY, meetingModel.Subject, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+
+    auto durationWithTimeLabel = new wxStaticText(staticBox, wxID_ANY, "Duration");
+    auto formattedValue = fmt::format(
+        "{0} ({1} -- {2})", meetingModel.Duration, meetingModel.Start, meetingModel.End);
+    auto durationWithTimeLabelValue = new wxTextCtrl(
+        staticBox, wxID_ANY, formattedValue, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+
+    auto locationLabel = new wxStaticText(staticBox, wxID_ANY, "Location");
+    auto locationLabelValue = new wxTextCtrl(staticBox,
+        wxID_ANY,
+        meetingModel.Location,
+        wxDefaultPosition,
+        wxDefaultSize,
+        wxTE_READONLY);
+
+    flexGridSizer->Add(subjectLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridSizer->Add(subjectText, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    flexGridSizer->Add(
+        durationWithTimeLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridSizer->Add(
+        durationWithTimeLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    flexGridSizer->Add(locationLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    flexGridSizer->Add(locationLabelValue, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Horizontal line */
+    auto line2 = new wxStaticLine(staticBox, wxID_ANY);
+    staticBoxSizer->Add(line2, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Attended checkbox */
+    auto attendedCheckBox = new wxCheckBox(staticBox, attendedCheckBoxControlId, "Attended");
+
+    wxStringClientData* meetingEntryIdData = new wxStringClientData(meetingModel.EntryId);
+    attendedCheckBox->SetClientObject(meetingEntryIdData);
+
+    attendedCheckBox->Bind(wxEVT_CHECKBOX,
+        &OutlookMeetingsPanel::OnAttendedCheckBoxCheck,
+        this,
+        attendedCheckBoxControlId);
+
+    staticBoxSizer->Add(attendedCheckBox, wxSizerFlags().Border(wxALL, FromDIP(4)).Right());
+
+    if (meetingAttended) {
+        attendedCheckBox->SetValue(true);
+        attendedCheckBox->Disable();
+    }
 }
 } // namespace tks::UI::Panel

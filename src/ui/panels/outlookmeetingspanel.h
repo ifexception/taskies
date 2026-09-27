@@ -69,6 +69,8 @@ private:
     void OnRefresh(wxCommandEvent& event);
     void OnAccountChoice(wxCommandEvent& event);
 
+    void OnAttendedCheckBoxCheck(wxCommandEvent& event);
+
     void RemoveActiveMeetingsPanel();
     void ResetFeedbackLabelOnNoData(const std::string& message = "");
 
@@ -79,6 +81,11 @@ private:
     void AddMeetingsToPanel(
         const std::vector<Services::Outlook::OutlookMeetingModel>& outlookMeetings,
         const std::vector<Model::AttendedMeetingModel>& attendedMeetings);
+
+    void BuildMeetingControlsToPanel(wxBoxSizer* panelSizer,
+        int attendedCheckBoxControlId,
+        const Services::Outlook::OutlookMeetingModel& meetingModel,
+        bool meetingAttended);
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
