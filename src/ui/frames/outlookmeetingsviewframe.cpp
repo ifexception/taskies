@@ -519,7 +519,7 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsViewFrame::FetchAttended
         pLogger, mDatabaseFilePath);
 
     std::vector<Model::AttendedMeetingModel> attendedMeetingModels;
-    auto sqliteResult =
+    /*auto sqliteResult =
         attendedMeetingsPersistence.GetByDate(Utils::UnixTimestampTodayMidnight(),
             Utils::UnixTimestampTomorrowMidnight(),
             attendedMeetingModels);
@@ -533,7 +533,7 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsViewFrame::FetchAttended
         dialog.ShowDetailedText(sqliteResult.GetReturnCodeAndMessage());
 
         dialog.ShowModal();
-    }
+    }*/
 
     return attendedMeetingModels;
 }
