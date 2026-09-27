@@ -76,6 +76,10 @@ private:
         const std::string& accountName);
     std::vector<Model::AttendedMeetingModel> FetchAttendedMeetingsByDate();
 
+    void AddMeetingsToPanel(
+        const std::vector<Services::Outlook::OutlookMeetingModel>& outlookMeetings,
+        const std::vector<Model::AttendedMeetingModel>& attendedMeetings);
+
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 

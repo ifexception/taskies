@@ -198,8 +198,8 @@ void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
         }
     }
 
-    auto meetingModels = FetchOutlookMeetingsByAccountName(mSelectedAccount);
-    if (meetingModels.size() == 0) {
+    auto outlookMeetings = FetchOutlookMeetingsByAccountName(mSelectedAccount);
+    if (outlookMeetings.size() == 0) {
         ResetFeedbackLabelOnNoData("No meetings found");
 
         return;
@@ -209,6 +209,10 @@ void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
         pFeedbackLabel->Hide();
         pMeetingStaticBoxSizer->Layout();
     }
+
+    auto attendedMeetings = FetchAttendedMeetingsByDate();
+
+    AddMeetingsToPanel(outlookMeetings, attendedMeetings);
 }
 
 void OutlookMeetingsPanel::RemoveActiveMeetingsPanel()
@@ -304,5 +308,19 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsPanel::FetchAttendedMeet
     }
 
     return attendedMeetingModels;
+}
+
+void OutlookMeetingsPanel::AddMeetingsToPanel(
+    const std::vector<Services::Outlook::OutlookMeetingModel>& outlookMeetings,
+    const std::vector<Model::AttendedMeetingModel>& attendedMeetings)
+{
+    /* Panel Sizer */
+    auto panelSizer = new wxBoxSizer(wxVERTICAL);
+
+    /* Panel */
+    pActiveMeetingsPanel = new wxPanel(pScrolledWindow, wxID_ANY);
+    pActiveMeetingsPanel->SetSizer(panelSizer);
+
+    int attendedCheckBoxControlId = tksIDC_ATTENDEDCHECKBOX_BASE;
 }
 } // namespace tks::UI::Panel
