@@ -134,15 +134,15 @@ SqliteResult AttendedMeetingsPersistence::GetByEntryId(const std::string& entryI
     return SqliteResult::OK();
 }
 
-SqliteResult AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t unixFromDateTime,
+SqliteResult AttendedMeetingsPersistence::GetByDate(const std::int32_t unixFromDateTime,
     const std::int32_t unixToDateTime,
     std::vector<Model::AttendedMeetingModel>& attendedMeetingModels) const
 {
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(pDb,
-        AttendedMeetingsPersistence::getByTodaysDate.c_str(),
-        static_cast<int>(AttendedMeetingsPersistence::getByTodaysDate.size()),
+        AttendedMeetingsPersistence::getByDate.c_str(),
+        static_cast<int>(AttendedMeetingsPersistence::getByDate.size()),
         &stmt,
         nullptr);
 
@@ -150,7 +150,7 @@ SqliteResult AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t uni
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::PrepareStatementTemplate,
             "AttendedMeetingsPersistence",
-            AttendedMeetingsPersistence::getByTodaysDate,
+            AttendedMeetingsPersistence::getByDate,
             rc,
             error);
 
@@ -237,7 +237,7 @@ SqliteResult AttendedMeetingsPersistence::GetByTodaysDate(const std::int32_t uni
         const char* error = sqlite3_errmsg(pDb);
         pLogger->error(LogMessages::ExecStepTemplate,
             "AttendedMeetingsPersistence",
-            AttendedMeetingsPersistence::getByTodaysDate,
+            AttendedMeetingsPersistence::getByDate,
             rc,
             error);
 
@@ -482,21 +482,21 @@ std::string AttendedMeetingsPersistence::getByEntryId = "SELECT "
                                                         "WHERE entry_id = ? "
                                                         "AND is_active = 1;";
 
-std::string AttendedMeetingsPersistence::getByTodaysDate = "SELECT "
-                                                           "attended_meeting_id, "
-                                                           "entry_id, "
-                                                           "subject, "
-                                                           "start, "
-                                                           "end, "
-                                                           "duration, "
-                                                           "location, "
-                                                           "date_created, "
-                                                           "date_modified, "
-                                                           "is_active "
-                                                           "FROM attended_meetings "
-                                                           "WHERE date_created >= ? "
-                                                           "AND date_created <= ? "
-                                                           "AND is_active = 1;";
+std::string AttendedMeetingsPersistence::getByDate = "SELECT "
+                                                     "attended_meeting_id, "
+                                                     "entry_id, "
+                                                     "subject, "
+                                                     "start, "
+                                                     "end, "
+                                                     "duration, "
+                                                     "location, "
+                                                     "date_created, "
+                                                     "date_modified, "
+                                                     "is_active "
+                                                     "FROM attended_meetings "
+                                                     "WHERE date_created >= ? "
+                                                     "AND date_created <= ? "
+                                                     "AND is_active = 1;";
 
 std::string AttendedMeetingsPersistence::create = "INSERT INTO "
                                                   "attended_meetings "

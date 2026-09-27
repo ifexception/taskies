@@ -520,7 +520,7 @@ std::vector<Model::AttendedMeetingModel> OutlookMeetingsViewFrame::FetchAttended
 
     std::vector<Model::AttendedMeetingModel> attendedMeetingModels;
     auto sqliteResult =
-        attendedMeetingsPersistence.GetByTodaysDate(Utils::UnixTimestampTodayMidnight(),
+        attendedMeetingsPersistence.GetByDate(Utils::UnixTimestampTodayMidnight(),
             Utils::UnixTimestampTomorrowMidnight(),
             attendedMeetingModels);
 
