@@ -46,11 +46,10 @@ OutlookMeetingsPanel::OutlookMeetingsPanel(wxWindow* parent,
     , pScrolledWindow(nullptr)
     , pScrolledWindowSizer(nullptr)
     , pActiveMeetingsPanel(nullptr)
-    , mTodaysDate()
+    , mSelectedDate()
     , mSelectedAccount()
-    , mMeetingModels()
 {
-    mTodaysDate = date::floor<date::days>(std::chrono::system_clock::now());
+    mSelectedDate = date::floor<date::days>(std::chrono::system_clock::now());
 
     Create();
 }
@@ -173,8 +172,6 @@ void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
 {
     wxBusyCursor cursor;
 
-    mMeetingModels.clear();
-
     if (pActiveMeetingsPanel != nullptr) {
         RemoveActiveMeetingsPanel();
     }
@@ -190,6 +187,18 @@ void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
         if (!pRefreshButton->IsEnabled()) {
             pRefreshButton->Enable();
         }
+    }
+
+    auto meetingModels = FetchOutlookMeetingsByAccountName(mSelectedAccount);
+    if (meetingModels.size() == 0) {
+        ResetFeedbackLabelOnNoData("No meetings found");
+
+        return;
+    }
+
+    if (pFeedbackLabel && pFeedbackLabel->IsShown()) {
+        pFeedbackLabel->Hide();
+        pMeetingStaticBoxSizer->Layout();
     }
 }
 
@@ -234,5 +243,32 @@ void OutlookMeetingsPanel::ResetFeedbackLabelOnNoData(const std::string& message
     }
 
     pMeetingStaticBoxSizer->Layout();
+}
+
+std::vector<Services::Outlook::OutlookMeetingModel>
+    OutlookMeetingsPanel::FetchOutlookMeetingsByAccountName(const std::string& accountName)
+{
+    std::vector<Services::Outlook::OutlookMeetingModel> meetingModels;
+
+    SPDLOG_LOGGER_TRACE(pLogger,
+        "Outlook account name selected \"{0}\"",
+        accountName.empty() ? "(none)" : accountName);
+
+    Services::Outlook::OutlookClassicService service(pLogger);
+    Services::Outlook::OutlookResult result = service.FetchCalendarMeetings(
+        accountName, date::format("%F", mSelectedDate), meetingModels);
+
+    if (!result.Success) {
+        wxMessageDialog dialog(this,
+            "Failed to fetch Outlook meetings for selected account",
+            Common::GetProgramName(),
+            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+        dialog.SetExtendedMessage(result.Message);
+
+        dialog.ShowModal();
+        std::vector<Services::Outlook::OutlookMeetingModel>();
+    }
+
+    return meetingModels;
 }
 } // namespace tks::UI::Panel

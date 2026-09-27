@@ -65,6 +65,9 @@ private:
     void RemoveActiveMeetingsPanel();
     void ResetFeedbackLabelOnNoData(const std::string& message = "");
 
+    std::vector<Services::Outlook::OutlookMeetingModel> FetchOutlookMeetingsByAccountName(
+        const std::string& accountName);
+
     std::shared_ptr<spdlog::logger> pLogger;
 
     wxStaticBoxSizer* pMeetingStaticBoxSizer;
@@ -78,10 +81,8 @@ private:
 
     wxPanel* pActiveMeetingsPanel;
 
-    date::sys_days mTodaysDate;
+    date::sys_days mSelectedDate;
     std::string mSelectedAccount;
-
-    std::vector<Services::Outlook::OutlookMeetingModel> mMeetingModels;
 
     enum {
         tksIDC_OUTLOOKMEETINGSPANELBASE = wxID_HIGHEST + 1001,
