@@ -19,11 +19,8 @@
 
 #include "utils.h"
 
-#include <chrono>
 #include <numeric>
 #include <random>
-
-#include <date/date.h>
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -60,46 +57,6 @@ std::string ToStdString(const std::wstring& input)
     return result;
 }
 #endif // _WIN32
-
-std::int64_t UnixTimestamp()
-{
-    auto now = std::chrono::system_clock::now();
-    auto duration = now.time_since_epoch();
-    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-    return seconds;
-}
-
-std::int64_t UnixTimestampTodayMidnight()
-{
-    auto midnight = std::chrono::time_point_cast<date::days>(std::chrono::system_clock::now());
-    auto duration = midnight.time_since_epoch();
-    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-    return seconds;
-}
-
-std::int64_t UnixTimestampTomorrowMidnight()
-{
-    auto midnight = std::chrono::time_point_cast<date::days>(std::chrono::system_clock::now());
-    auto tomorrowMidnight = midnight + date::days{ 1 };
-    auto duration = tomorrowMidnight.time_since_epoch();
-    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(duration).count();
-    return seconds;
-}
-
-std::string ToISODateTime(std::int64_t unixTimestamp)
-{
-    date::sys_seconds tp{ std::chrono::seconds{ unixTimestamp } };
-    std::string date = date::format("%F %T", tp);
-    return date;
-}
-
-std::string Timestamp()
-{
-    auto now = std::chrono::system_clock::now();
-    std::string date = date::format("%F-%T", now);
-    date = ReplaceAll(date, ":", "-");
-    return date;
-}
 
 int VoidPointerToInt(void* value)
 {

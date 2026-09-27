@@ -316,6 +316,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\utils\dateutils.cpp" />
     <ClCompile Include="src\ui\panels\outlookmeetingspanel.cpp" />
     <ClCompile Include="src\common\messages\deleteoperationmessages.cpp" />
     <ClCompile Include="src\providers\projectbillablehours\projectbillablehoursprovider.cpp" />
@@ -443,6 +444,7 @@
     <ClCompile Include="src\providers\taskhours\taskhoursprovider.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\utils\dateutils.h" />
     <ClInclude Include="src\ui\panels\outlookmeetingspanel.h" />
     <ClInclude Include="src\common\messages\deleteoperationmessages.h" />
     <ClInclude Include="src\providers\projectbillablehours\projectbillablehoursprovider.h" />

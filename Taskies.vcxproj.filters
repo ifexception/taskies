@@ -485,6 +485,9 @@
     <ClCompile Include="src\ui\panels\outlookmeetingspanel.cpp">
       <Filter>Source\ui\panels</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\dateutils.cpp">
+      <Filter>Source\utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -861,6 +864,9 @@
     </ClInclude>
     <ClInclude Include="src\ui\panels\outlookmeetingspanel.h">
       <Filter>Source\ui\panels</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\dateutils.h">
+      <Filter>Source\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
