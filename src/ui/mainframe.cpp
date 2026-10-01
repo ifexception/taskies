@@ -915,8 +915,6 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     auto todayDate = pDateStore->TodayDate;
     date::year_month_day ymd{ todayDate };
 
-    // Subtract 1 from the month because wxDateTime expects 0-11 (Jan-Dec)
-
     // clang-format off
     wxDateTime dateTimeValue(
         static_cast<unsigned int>(ymd.day()),
