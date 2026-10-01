@@ -97,9 +97,7 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
 /* General Event Handlers */
 EVT_CLOSE(MainFrame::OnClose)
 EVT_ICONIZE(MainFrame::OnIconize)
-EVT_SIZE(MainFrame::OnResize)
 EVT_TIMER(tksIDC_TASKREMINDERTIMER, MainFrame::OnTaskReminder)
-EVT_MOVE(MainFrame::OnMove)
 /* Taskbar Button (thumbbar) Event Handlers */
 EVT_BUTTON(tksIDC_THUMBBAR_NEWTASK, MainFrame::OnThumbBarNewTask)
 EVT_BUTTON(tksIDC_THUMBBAR_QUICKEXPORT, MainFrame::OnThumbBarQuickExport)
@@ -144,7 +142,6 @@ EVT_COMMAND(wxID_ANY, tksEVT_TASKINSERTED, MainFrame::OnTaskInserted)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDATECHANGED, MainFrame::OnTaskDateChanged)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKUPDATED, MainFrame::OnTaskUpdated)
 EVT_COMMAND(wxID_ANY, tksEVT_TASKDELETED, MainFrame::OnTaskDeleted)
-EVT_COMMAND(wxID_ANY, tksEVT_OUTLOOKMEETINGSFRMCLOSED, MainFrame::OnOutlookMeetingViewClose)
 /* Ctrl Event Handlers */
 EVT_BUTTON(tksIDC_PREVIOUSDAYBUTTON, MainFrame::OnPreviousDayButtonClick)
 EVT_DATE_CHANGED(tksIDC_DATEPICKERCTRL, MainFrame::OnDateChanged)
@@ -173,7 +170,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pEnv(env)
     , pCfg(cfg)
     , mDatabaseFilePath()
-    , pMeetingsViewFrame(nullptr)
     , pThumbBarNewTaskButton(nullptr)
     , pThumbBarQuickExportButton(nullptr)
     , pTaskBarIcon(nullptr)
@@ -493,10 +489,12 @@ void MainFrame::CreateControls()
         "ID", wxDATAVIEW_CELL_INERT, wxSIZE_AUTO_WIDTH, wxALIGN_LEFT, wxDATAVIEW_COL_HIDDEN);
 
     /* Outlook Meetings */
-    pOutlookMeetingsPanel = new Panel::OutlookMeetingsPanel(
-        framePanel, tksIDC_OUTLOOKMEETINGSPANEL, pCfg, pLogger, mDatabaseFilePath);
-    mainViewSizer->Add(
-        pOutlookMeetingsPanel, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
+    if (isOutlookInstalled()) {
+        pOutlookMeetingsPanel = new Panel::OutlookMeetingsPanel(
+            framePanel, tksIDC_OUTLOOKMEETINGSPANEL, pCfg, pLogger, mDatabaseFilePath);
+        mainViewSizer->Add(
+            pOutlookMeetingsPanel, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
+    }
 
     /* Accelerator Table */
     wxAcceleratorEntry entries[6];
@@ -604,10 +602,6 @@ void MainFrame::OnClose(wxCloseEvent& event)
         Hide();
         MSWGetTaskBarButton()->Hide();
 
-        if (pMeetingsViewFrame) {
-            pMeetingsViewFrame->Hide();
-        }
-
         return;
     }
     // Call Hide() in case closing of program takes longer than expected and causes
@@ -662,20 +656,7 @@ void MainFrame::OnIconize(wxIconizeEvent& event)
 {
     if (event.IsIconized() && pCfg->ShowInTray() && pCfg->MinimizeToTray()) {
         MSWGetTaskBarButton()->Hide();
-
-        if (pMeetingsViewFrame) {
-            pMeetingsViewFrame->Hide();
-        }
     }
-}
-
-void MainFrame::OnResize(wxSizeEvent& event)
-{
-    if (pMeetingsViewFrame) {
-        pMeetingsViewFrame->OnParentFrameResize();
-    }
-
-    event.Skip();
 }
 
 void MainFrame::OnTaskReminder(wxTimerEvent& event)
@@ -704,19 +685,6 @@ void MainFrame::OnTaskReminder(wxTimerEvent& event)
         }
     }
     pLogger->info("{0} - Task reminder notification finished", TAG);
-}
-
-void MainFrame::OnMove(wxMoveEvent& event)
-{
-    if (pMeetingsViewFrame) {
-        SPDLOG_LOGGER_TRACE(pLogger,
-            "Main frame move event and Outlook frame is open!\nNew position => ({0},{1})",
-            event.GetPosition().x,
-            event.GetPosition().y);
-        pMeetingsViewFrame->OnParentFrameMove();
-    }
-
-    event.Skip();
 }
 
 void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
@@ -968,18 +936,7 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     DateChangedProcedure(dateTimeValue);
 }
 
-void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event))
-{
-    if (mOutlookMeetingViewFrameOpenCounter == 0) {
-        mOutlookMeetingViewFrameOpenCounter++;
-        pMeetingsViewFrame = new frames::OutlookMeetingsViewFrame(
-            this, pCfg, pEnv, pLogger, mDatabaseFilePath, IsMaximized());
-        pMeetingsViewFrame->Show();
-    } else {
-        SPDLOG_LOGGER_TRACE(pLogger, "Outlook meetings frame already open and call Raise() method");
-        pMeetingsViewFrame->Raise();
-    }
-}
+void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event)) {}
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
@@ -2018,20 +1975,6 @@ void MainFrame::OnPowerResume(wxPowerEvent& WXUNUSED(event))
 
         CalculateStatusBarTaskDurations();
     }
-}
-
-void MainFrame::OnOutlookMeetingViewClose(wxCommandEvent& event)
-{
-    mOutlookMeetingViewFrameOpenCounter--;
-    SPDLOG_LOGGER_TRACE(pLogger,
-        "Outlook meetings frame closed, frame counter = {0}",
-        mOutlookMeetingViewFrameOpenCounter);
-
-    bool destroyStatus = pMeetingsViewFrame->Destroy();
-    if (!destroyStatus) {
-        pLogger->error("Unsuccessful destroy of meeting view frame");
-    }
-    pMeetingsViewFrame = nullptr;
 }
 
 void MainFrame::OnPreviousDayButtonClick(wxCommandEvent& event)

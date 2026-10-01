@@ -401,8 +401,8 @@ void OutlookMeetingsViewFrame::OnAccountChoice(wxCommandEvent& event)
 
 void OutlookMeetingsViewFrame::OnClose(wxCloseEvent& event)
 {
-    wxCommandEvent cmdEvent(tksEVT_OUTLOOKMEETINGSFRMCLOSED);
-    wxPostEvent(pParent, cmdEvent);
+    /*wxCommandEvent cmdEvent(tksEVT_OUTLOOKMEETINGSFRMCLOSED);
+    wxPostEvent(pParent, cmdEvent);*/
 
     event.Skip();
 }
