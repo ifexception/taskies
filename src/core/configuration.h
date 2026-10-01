@@ -32,7 +32,6 @@
 #include "settings/presetsetting.h"
 #include "settings/settings.h"
 
-#include "../common/common.h"
 #include "../common/enums.h"
 
 #include "../common/results/configresult.h"
