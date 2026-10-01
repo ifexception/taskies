@@ -278,6 +278,8 @@ private:
     wxButton* pNextDayButton;
     wxButton* pNewTaskButton;
 
+    wxBoxSizer* pMainViewSizer;
+
     wxDataViewListCtrl* pDataViewListCtrl;
 
     /* Outlook Meetings Panel */

@@ -177,6 +177,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pPreviousDayButton(nullptr)
     , pDatePickerCtrl(nullptr)
     , pNextDayButton(nullptr)
+    , pMainViewSizer(nullptr)
     , pDataViewListCtrl(nullptr)
     , pOutlookMeetingsPanel(nullptr)
     , pDateStore(nullptr)
@@ -430,13 +431,13 @@ void MainFrame::CreateControls()
     sizer->Add(topSizer, wxSizerFlags().Expand());
 
     /* Tasks View and Outlook Meeting Panel sizer */
-    auto mainViewSizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(mainViewSizer, wxSizerFlags().Expand().Proportion(1));
+    pMainViewSizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(pMainViewSizer, wxSizerFlags().Expand().Proportion(1));
 
     /*Data View List Ctrl static box*/
     auto dvlcStaticBox = new wxStaticBox(framePanel, wxID_ANY, "Tasks View");
     auto dvlcStaticBoxSizer = new wxStaticBoxSizer(dvlcStaticBox, wxVERTICAL);
-    mainViewSizer->Add(
+    pMainViewSizer->Add(
         dvlcStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(7));
 
     /* Data View List Ctrl */
@@ -492,7 +493,7 @@ void MainFrame::CreateControls()
     if (isOutlookInstalled()) {
         pOutlookMeetingsPanel = new Panel::OutlookMeetingsPanel(
             framePanel, tksIDC_OUTLOOKMEETINGSPANEL, pCfg, pLogger, mDatabaseFilePath);
-        mainViewSizer->Add(
+        pMainViewSizer->Add(
             pOutlookMeetingsPanel, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
     }
 
@@ -936,7 +937,16 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
     DateChangedProcedure(dateTimeValue);
 }
 
-void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event)) {}
+void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event))
+{
+    if (pOutlookMeetingsPanel->IsShown()) {
+        pOutlookMeetingsPanel->Hide();
+    } else {
+        pOutlookMeetingsPanel->Show();
+    }
+
+    pMainViewSizer->Layout();
+}
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
 {
