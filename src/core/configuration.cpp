@@ -144,6 +144,8 @@ ConfigResult Configuration::Save()
     root.at(Sections::GeneralSection)["showInTray"] = pSettings->ShowInTray;
     root.at(Sections::GeneralSection)["minimizeToTray"] = pSettings->MinimizeToTray;
     root.at(Sections::GeneralSection)["closeToTray"] = pSettings->CloseToTray;
+    root.at(Sections::GeneralSection)["showOutlookMeetingsPanel"] =
+        pSettings->ShowOutlookMeetingsPanel;
 
     // Database section
     root.at(Sections::DatabaseSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -276,6 +278,7 @@ ConfigResult Configuration::RestoreDefaults()
     ShowInTray(false);
     MinimizeToTray(false);
     CloseToTray(false);
+    ShowOutlookMeetingsPanel(false);
 
     SetDatabasePath(pEnv->GetDatabasePath().string());
     BackupDatabase(false);
@@ -311,6 +314,7 @@ ConfigResult Configuration::RestoreDefaults()
                     { "showInTray", false },
                     { "minimizeToTray", false },
                     { "closeToTray", false },
+                    { "showOutlookMeetingsPanel", false },
                 }
             },
             {
@@ -608,6 +612,16 @@ void Configuration::CloseToTray(const bool value)
     pSettings->CloseToTray = value;
 }
 
+bool Configuration::ShowOutlookMeetingsPanel() const
+{
+    return pSettings->ShowOutlookMeetingsPanel;
+}
+
+void Configuration::ShowOutlookMeetingsPanel(const bool value)
+{
+    pSettings->ShowOutlookMeetingsPanel = value;
+}
+
 std::string Configuration::GetDatabaseFileName() const
 {
     return pSettings->DatabaseFileName;
@@ -900,10 +914,11 @@ void Configuration::GetGeneralConfig(const toml::value& root)
     pSettings->StartPosition = static_cast<WindowState>(tomlStartPosition);
 
     pSettings->ShowInTray = toml::find_or<bool>(generalSection, "showInTray", false);
-
     pSettings->MinimizeToTray = toml::find_or<bool>(generalSection, "minimizeToTray", false);
-
     pSettings->CloseToTray = toml::find_or<bool>(generalSection, "closeToTray", false);
+
+    pSettings->ShowOutlookMeetingsPanel =
+        toml::find_or<bool>(generalSection, "showOutlookMeetingsPanel", false);
 }
 
 void Configuration::GetDatabaseConfig(const toml::value& root)

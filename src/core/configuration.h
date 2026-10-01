@@ -82,6 +82,9 @@ public:
     bool CloseToTray() const;
     void CloseToTray(const bool value);
 
+    bool ShowOutlookMeetingsPanel() const;
+    void ShowOutlookMeetingsPanel(const bool value);
+
     std::string GetDatabaseFileName() const;
     void SetDatabaseFileName(const std::string& value);
 
