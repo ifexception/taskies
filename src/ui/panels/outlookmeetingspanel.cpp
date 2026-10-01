@@ -181,7 +181,38 @@ void OutlookMeetingsPanel::ConfigureEventBindings()
 }
 // clang-format on
 
-void OutlookMeetingsPanel::OnRefresh(wxCommandEvent& event) {}
+void OutlookMeetingsPanel::OnRefresh(wxCommandEvent& event)
+{
+    wxBusyCursor cursor;
+
+    if (mSelectedAccount.empty()) {
+        ResetFeedbackLabelOnNoData();
+
+        return;
+    }
+
+    mOutlookMeetings.clear();
+
+    if (pActiveMeetingsPanel != nullptr) {
+        RemoveActiveMeetingsPanel();
+    }
+
+    mOutlookMeetings = FetchOutlookMeetingsByAccountName(mSelectedAccount);
+    if (mOutlookMeetings.size() == 0) {
+        ResetFeedbackLabelOnNoData("No meetings found");
+
+        return;
+    }
+
+    if (pFeedbackLabel && pFeedbackLabel->IsShown()) {
+        pFeedbackLabel->Hide();
+        pMeetingStaticBoxSizer->Layout();
+    }
+
+    auto attendedMeetings = FetchAttendedMeetingsByDate();
+
+    AddMeetingsToPanel(mOutlookMeetings, attendedMeetings);
+}
 
 void OutlookMeetingsPanel::OnAccountChoice(wxCommandEvent& event)
 {
