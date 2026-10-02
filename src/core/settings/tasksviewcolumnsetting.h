@@ -26,10 +26,9 @@
 namespace tks::Core::Settings
 {
 struct TasksViewColumnSetting {
-    static int ColumnDefaultWidth;
-    static int ColumnAutoWidth;
-
-    static int DefaultOrderIndex;
+    inline static constexpr int ColumnDefaultWidth = 80;
+    inline static constexpr int ColumnAutoWidth = -1;
+    inline static constexpr int DefaultOrderIndex = -1;
 
     TasksViewColumnSetting();
     TasksViewColumnSetting(const std::string& name,

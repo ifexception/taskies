@@ -21,11 +21,6 @@
 
 namespace tks::Core::Settings
 {
-int TasksViewColumnSetting::ColumnDefaultWidth = 80;
-int TasksViewColumnSetting::ColumnAutoWidth = -1;
-
-int TasksViewColumnSetting::DefaultOrderIndex = -1;
-
 TasksViewColumnSetting::TasksViewColumnSetting()
     : Name("")
     , DisplayName("")
