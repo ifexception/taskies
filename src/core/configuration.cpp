@@ -395,7 +395,7 @@ ConfigResult Configuration::RestoreDefaults()
     return result;
 }
 
-ConfigResult Configuration::SaveExportPreset(const Settings::PresetSetting& presetToSave)
+ConfigResult Configuration::SaveExportPreset(Settings::PresetSetting presetToSave)
 {
     toml::value root;
     try {
@@ -464,7 +464,7 @@ ConfigResult Configuration::SaveExportPreset(const Settings::PresetSetting& pres
     return result;
 }
 
-ConfigResult Configuration::UpdateExportPreset(const Settings::PresetSetting& presetToUpdate)
+ConfigResult Configuration::UpdateExportPreset(Settings::PresetSetting presetToUpdate)
 {
     toml::value root;
     try {

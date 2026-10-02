@@ -60,8 +60,8 @@ public:
     ConfigResult Save();
     ConfigResult RestoreDefaults();
 
-    ConfigResult SaveExportPreset(const Settings::PresetSetting& presetToSave);
-    ConfigResult UpdateExportPreset(const Settings::PresetSetting& presetToUpdate);
+    ConfigResult SaveExportPreset(Settings::PresetSetting presetToSave);
+    ConfigResult UpdateExportPreset(Settings::PresetSetting presetToUpdate);
     ConfigResult TryUnsetDefaultPreset();
 
     std::string GetUserInterfaceLanguage() const;
