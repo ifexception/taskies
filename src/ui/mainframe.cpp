@@ -489,12 +489,16 @@ void MainFrame::CreateControls()
     pDataViewListCtrl->AppendTextColumn(
         "ID", wxDATAVIEW_CELL_INERT, wxSIZE_AUTO_WIDTH, wxALIGN_LEFT, wxDATAVIEW_COL_HIDDEN);
 
-    /* Outlook Meetings */
+    /* Outlook Meetings Panel */
     if (isOutlookInstalled()) {
         pOutlookMeetingsPanel = new Panel::OutlookMeetingsPanel(
             framePanel, tksIDC_OUTLOOKMEETINGSPANEL, pCfg, pLogger, mDatabaseFilePath);
         pMainViewSizer->Add(
             pOutlookMeetingsPanel, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
+
+        if (!pCfg->ShowOutlookMeetingsPanel()) {
+            pOutlookMeetingsPanel->Hide();
+        }
     }
 
     /* Accelerator Table */
