@@ -962,6 +962,15 @@ void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
         if (!pCfg->ShowInTray() && pTaskBarIcon->IsIconInstalled()) {
             pTaskBarIcon->RemoveIcon();
         }
+
+        if (pCfg->ShowOutlookMeetingsPanel()) {
+            pOutlookMeetingsPanel->Show();
+        } else {
+            pOutlookMeetingsPanel->Hide();
+        }
+
+        pMainViewSizer->Layout();
+
         if (pCfg->BackupDatabase()) {
             GetMenuBar()->Enable(ID_TASKS_BACKUPDATABASE, true);
         } else {
