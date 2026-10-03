@@ -54,10 +54,13 @@ PreferencesTasksViewPage::PreferencesTasksViewPage(wxWindow* parent,
     , pSelectedColumnTextEllipsisModeChoiceCtrl(nullptr)
     , mCheckedAvailableColumns()
     , mCheckedSelectedColumns()
+    , mCfgOriginalTasksViewColumns()
     , mCfgTasksViewColumns()
     , mDefaultTasksViewColumnSettingProperties()
     , mTasksViewColumnSettingProperties()
 {
+    mCfgOriginalTasksViewColumns = pCfg->GetTasksViewColumns();
+
     mCfgTasksViewColumns = pCfg->GetTasksViewColumns();
     mCfgTasksViewColumns.pop_back();
 
@@ -127,15 +130,21 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
 
         if (iterator != selectedTasksViewColumnsFromCheckListBox.end()) {
             Core::Settings::TasksViewColumnSetting setting = *iterator;
-            bool isDifferent = tasksViewColumns[i] == setting;
+            bool isChanged = tasksViewColumns[i] != setting;
             tasksViewColumns[i] = setting;
 
-            if (!isDifferent) {
+            if (isChanged) {
                 *restartRequired = true;
             }
         } else {
             tasksViewColumns[i].Selected = false;
         }
+    }
+
+    assert(tasksViewColumns.size() == mCfgOriginalTasksViewColumns.size());
+    bool isDifferent = tasksViewColumns != mCfgOriginalTasksViewColumns;
+    if (isDifferent) {
+        *restartRequired = true;
     }
 
     // clang-format off
