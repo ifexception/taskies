@@ -29,6 +29,8 @@
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
 
+#include "../../../utils/mswutils.h"
+
 #ifdef _WIN32
 namespace
 {
@@ -320,7 +322,13 @@ void PreferencesGeneralPage::DataToControls()
         pCloseToTrayCtrl->Disable();
     }
 
-    pShowOutlookMeetingsPanelCheckBoxCtrl->SetValue(pCfg->ShowOutlookMeetingsPanel());
+    MswUtils::OutlookInstanceCheck isOutlookInstalled;
+    if (!isOutlookInstalled()) {
+        pShowOutlookMeetingsPanelCheckBoxCtrl->Hide();
+        pShowOutlookMeetingsPanelCheckBoxCtrl->SetValue(false);
+    } else {
+        pShowOutlookMeetingsPanelCheckBoxCtrl->SetValue(pCfg->ShowOutlookMeetingsPanel());
+    }
 }
 
 void PreferencesGeneralPage::OnShowInTrayCheck(wxCommandEvent& event)
