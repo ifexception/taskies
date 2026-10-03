@@ -429,7 +429,6 @@
     <ClCompile Include="src\ui\dlg\taskdlg.cpp" />
     <ClCompile Include="src\ui\dlg\taskmanageattributesdlg.cpp" />
     <ClCompile Include="src\ui\events.cpp" />
-    <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp" />
     <ClCompile Include="src\ui\mainframe.cpp" />
     <ClCompile Include="src\ui\persistencemanager.cpp" />
     <ClCompile Include="src\ui\statusbar.cpp" />
@@ -557,7 +556,6 @@
     <ClInclude Include="src\ui\dlg\taskdlg.h" />
     <ClInclude Include="src\ui\dlg\taskmanageattributesdlg.h" />
     <ClInclude Include="src\ui\events.h" />
-    <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h" />
     <ClInclude Include="src\ui\mainframe.h" />
     <ClInclude Include="src\ui\persistencemanager.h" />
     <ClInclude Include="src\ui\statusbar.h" />

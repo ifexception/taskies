@@ -72,9 +72,6 @@
     <Filter Include="Source\ui\dialogs\preferences">
       <UniqueIdentifier>{5fafd90a-4837-4d78-b4e5-e8902ef9eb29}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\ui\frames">
-      <UniqueIdentifier>{b8f17078-4f2a-4b44-b9a1-cf4af50f0340}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\utils">
       <UniqueIdentifier>{43d0389a-71a5-4c18-adcc-c1a2ed2883db}</UniqueIdentifier>
     </Filter>
@@ -412,9 +409,6 @@
     </ClCompile>
     <ClCompile Include="src\persistence\attendedmeetingspersistence.cpp">
       <Filter>Source\persistence</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp">
-      <Filter>Source\ui\frames</Filter>
     </ClCompile>
     <ClCompile Include="src\utils\mswutils.cpp">
       <Filter>Source\utils</Filter>
@@ -792,9 +786,6 @@
     </ClInclude>
     <ClInclude Include="src\persistence\attendedmeetingspersistence.h">
       <Filter>Source\persistence</Filter>
-    </ClInclude>
-    <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h">
-      <Filter>Source\ui\frames</Filter>
     </ClInclude>
     <ClInclude Include="src\utils\mswutils.h">
       <Filter>Source\utils</Filter>
