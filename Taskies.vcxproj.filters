@@ -72,9 +72,6 @@
     <Filter Include="Source\ui\dialogs\preferences">
       <UniqueIdentifier>{5fafd90a-4837-4d78-b4e5-e8902ef9eb29}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\ui\frames">
-      <UniqueIdentifier>{b8f17078-4f2a-4b44-b9a1-cf4af50f0340}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\utils">
       <UniqueIdentifier>{43d0389a-71a5-4c18-adcc-c1a2ed2883db}</UniqueIdentifier>
     </Filter>
@@ -104,6 +101,9 @@
     </Filter>
     <Filter Include="Source\providers\taskhours">
       <UniqueIdentifier>{44b53d06-7712-4594-85e8-6a11e6fda840}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ui\panels">
+      <UniqueIdentifier>{3eb8f159-2f3f-4d18-855a-41f9dff87568}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -410,9 +410,6 @@
     <ClCompile Include="src\persistence\attendedmeetingspersistence.cpp">
       <Filter>Source\persistence</Filter>
     </ClCompile>
-    <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp">
-      <Filter>Source\ui\frames</Filter>
-    </ClCompile>
     <ClCompile Include="src\utils\mswutils.cpp">
       <Filter>Source\utils</Filter>
     </ClCompile>
@@ -478,6 +475,12 @@
     </ClCompile>
     <ClCompile Include="src\common\messages\deleteoperationmessages.cpp">
       <Filter>Source\common\messages</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ui\panels\outlookmeetingspanel.cpp">
+      <Filter>Source\ui\panels</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\dateutils.cpp">
+      <Filter>Source\utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -784,9 +787,6 @@
     <ClInclude Include="src\persistence\attendedmeetingspersistence.h">
       <Filter>Source\persistence</Filter>
     </ClInclude>
-    <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h">
-      <Filter>Source\ui\frames</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils\mswutils.h">
       <Filter>Source\utils</Filter>
     </ClInclude>
@@ -852,6 +852,12 @@
     </ClInclude>
     <ClInclude Include="src\common\messages\deleteoperationmessages.h">
       <Filter>Source\common\messages</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\panels\outlookmeetingspanel.h">
+      <Filter>Source\ui\panels</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\dateutils.h">
+      <Filter>Source\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

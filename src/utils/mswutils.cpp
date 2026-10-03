@@ -65,45 +65,6 @@ bool OutlookInstanceCheck::operator()() const
     return false;
 }
 
-// https://learn.microsoft.com/en-us/windows/win32/psapi/enumerating-all-processes?redirectedfrom=MSDN
-bool IsOutlookRunning()
-{
-    DWORD aProcesses[1024], cbNeeded, cProcesses;
-    TCHAR tOutlookName[] = TEXT("OUTLOOK");
-    unsigned int i = 0;
-
-    if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded)) {
-        return FALSE;
-    }
-
-    cProcesses = cbNeeded / sizeof(DWORD);
-
-    for (i = 0; i < cProcesses; i++) {
-        if (aProcesses[i] != 0) {
-            TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
-
-            // Get a handle to the process.
-            HANDLE hProcess =
-                OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, aProcesses[i]);
-            if (hProcess != NULL) {
-                HMODULE hMod;
-                DWORD cbNeeded;
-
-                if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded)) {
-                    GetModuleBaseName(
-                        hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
-                }
-                CloseHandle(hProcess);
-
-                if (wcsstr(szProcessName, tOutlookName)) {
-                    return TRUE;
-                }
-            }
-        }
-    }
-    return FALSE;
-}
-
 std::string ConvertAppointmentItemDateTimeToISODateTime(std::string appointmentItemDateTime)
 {
     std::tm tm = {};

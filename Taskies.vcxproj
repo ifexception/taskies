@@ -316,6 +316,8 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\utils\dateutils.cpp" />
+    <ClCompile Include="src\ui\panels\outlookmeetingspanel.cpp" />
     <ClCompile Include="src\common\messages\deleteoperationmessages.cpp" />
     <ClCompile Include="src\providers\projectbillablehours\projectbillablehoursprovider.cpp" />
     <ClCompile Include="src\core\settings\presetcolumnsetting.cpp" />
@@ -427,7 +429,6 @@
     <ClCompile Include="src\ui\dlg\taskdlg.cpp" />
     <ClCompile Include="src\ui\dlg\taskmanageattributesdlg.cpp" />
     <ClCompile Include="src\ui\events.cpp" />
-    <ClCompile Include="src\ui\frames\outlookmeetingsviewframe.cpp" />
     <ClCompile Include="src\ui\mainframe.cpp" />
     <ClCompile Include="src\ui\persistencemanager.cpp" />
     <ClCompile Include="src\ui\statusbar.cpp" />
@@ -442,6 +443,8 @@
     <ClCompile Include="src\providers\taskhours\taskhoursprovider.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\utils\dateutils.h" />
+    <ClInclude Include="src\ui\panels\outlookmeetingspanel.h" />
     <ClInclude Include="src\common\messages\deleteoperationmessages.h" />
     <ClInclude Include="src\providers\projectbillablehours\projectbillablehoursprovider.h" />
     <ClInclude Include="src\core\settings\presetcolumnsetting.h" />
@@ -553,7 +556,6 @@
     <ClInclude Include="src\ui\dlg\taskdlg.h" />
     <ClInclude Include="src\ui\dlg\taskmanageattributesdlg.h" />
     <ClInclude Include="src\ui\events.h" />
-    <ClInclude Include="src\ui\frames\outlookmeetingsviewframe.h" />
     <ClInclude Include="src\ui\mainframe.h" />
     <ClInclude Include="src\ui\persistencemanager.h" />
     <ClInclude Include="src\ui\statusbar.h" />

@@ -23,6 +23,7 @@
 
 #include "../common/messages/sqlitemessages.h"
 
+#include "../utils/dateutils.h"
 #include "../utils/utils.h"
 
 namespace tks::Persistence

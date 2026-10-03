@@ -32,7 +32,6 @@
 #include "settings/presetsetting.h"
 #include "settings/settings.h"
 
-#include "../common/common.h"
 #include "../common/enums.h"
 
 #include "../common/results/configresult.h"
@@ -61,8 +60,8 @@ public:
     ConfigResult Save();
     ConfigResult RestoreDefaults();
 
-    ConfigResult SaveExportPreset(const Settings::PresetSetting& presetToSave);
-    ConfigResult UpdateExportPreset(const Settings::PresetSetting& presetToUpdate);
+    ConfigResult SaveExportPreset(Settings::PresetSetting presetToSave);
+    ConfigResult UpdateExportPreset(Settings::PresetSetting presetToUpdate);
     ConfigResult TryUnsetDefaultPreset();
 
     std::string GetUserInterfaceLanguage() const;
@@ -82,6 +81,9 @@ public:
 
     bool CloseToTray() const;
     void CloseToTray(const bool value);
+
+    bool ShowOutlookMeetingsPanel() const;
+    void ShowOutlookMeetingsPanel(const bool value);
 
     std::string GetDatabaseFileName() const;
     void SetDatabaseFileName(const std::string& value);

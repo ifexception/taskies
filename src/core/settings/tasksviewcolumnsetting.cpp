@@ -21,11 +21,6 @@
 
 namespace tks::Core::Settings
 {
-int TasksViewColumnSetting::ColumnDefaultWidth = 80;
-int TasksViewColumnSetting::ColumnAutoWidth = -1;
-
-int TasksViewColumnSetting::DefaultOrderIndex = -1;
-
 TasksViewColumnSetting::TasksViewColumnSetting()
     : Name("")
     , DisplayName("")
@@ -62,7 +57,8 @@ TasksViewColumnSetting::TasksViewColumnSetting(const std::string& name,
 
 bool TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other) const
 {
-    return Order == other.Order;
+    return Order == other.Order && TextAlignment == other.TextAlignment &&
+           EllipsisMode == other.EllipsisMode;
 }
 
 bool TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const

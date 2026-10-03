@@ -35,14 +35,15 @@ namespace tks::Persistence
 struct AttendedMeetingsPersistence final : public PersistenceBase {
     AttendedMeetingsPersistence() = delete;
     AttendedMeetingsPersistence(const AttendedMeetingsPersistence&) = delete;
-    AttendedMeetingsPersistence(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    AttendedMeetingsPersistence(std::shared_ptr<spdlog::logger> logger,
+        const std::string& databaseFilePath);
     virtual ~AttendedMeetingsPersistence();
 
     AttendedMeetingsPersistence& operator=(const AttendedMeetingsPersistence&) = delete;
 
     SqliteResult GetByEntryId(const std::string& entryId,
         /*out*/ Model::AttendedMeetingModel& attendedMeetingModel) const;
-    SqliteResult GetByTodaysDate(const std::int32_t unixFromDateTime,
+    SqliteResult GetByDate(const std::int32_t unixFromDateTime,
         const std::int32_t unixToDateTime,
         /*out*/ std::vector<Model::AttendedMeetingModel>& attendedMeetingModels) const;
     SqliteResult Create(std::int64_t& attendedMeetingId,
@@ -50,7 +51,7 @@ struct AttendedMeetingsPersistence final : public PersistenceBase {
     SqliteResult Delete(const std::int64_t attendedMeetingId) const;
 
     static std::string getByEntryId;
-    static std::string getByTodaysDate;
+    static std::string getByDate;
     static std::string create;
     static std::string isActive;
 };

@@ -5,6 +5,7 @@ startPosition=1
 showInTray=false
 minimizeToTray=false
 closeToTray=false
+showOutlookMeetingsPanel=false
 
 [database]
 databaseFileName="taskies.db"
