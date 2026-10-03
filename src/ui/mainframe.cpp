@@ -2330,6 +2330,10 @@ void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
     } else {
         UpdateSelectedDayStatusBarTaskDurations(mTaskDateString);
     }
+
+    if (pOutlookMeetingsPanel) {
+        pOutlookMeetingsPanel->OnDateChanged(convertedDate);
+    }
 }
 
 void MainFrame::RefreshDataViewListControl()

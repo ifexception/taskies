@@ -64,6 +64,8 @@ public:
 
     OutlookMeetingsPanel& operator=(const OutlookMeetingsPanel&) = delete;
 
+    void OnDateChanged(date::sys_days newDate);
+
 private:
     void Create();
 

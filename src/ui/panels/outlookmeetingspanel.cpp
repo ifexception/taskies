@@ -71,6 +71,41 @@ OutlookMeetingsPanel::OutlookMeetingsPanel(wxWindow* parent,
 
 OutlookMeetingsPanel::~OutlookMeetingsPanel() {}
 
+void OutlookMeetingsPanel::OnDateChanged(date::sys_days newDate)
+{
+    mSelectedDate = newDate;
+
+    wxBusyCursor cursor;
+
+    if (mSelectedAccount.empty()) {
+        ResetFeedbackLabelOnNoData();
+
+        return;
+    }
+
+    mOutlookMeetings.clear();
+
+    if (pActiveMeetingsPanel != nullptr) {
+        RemoveActiveMeetingsPanel();
+    }
+
+    mOutlookMeetings = FetchOutlookMeetingsByAccountName(mSelectedAccount);
+    if (mOutlookMeetings.size() == 0) {
+        ResetFeedbackLabelOnNoData("No meetings found");
+
+        return;
+    }
+
+    if (pFeedbackLabel && pFeedbackLabel->IsShown()) {
+        pFeedbackLabel->Hide();
+        pMeetingStaticBoxSizer->Layout();
+    }
+
+    auto attendedMeetings = FetchAttendedMeetingsByDate();
+
+    AddMeetingsToPanel(mOutlookMeetings, attendedMeetings);
+}
+
 void OutlookMeetingsPanel::Create()
 {
     CreateControls();
@@ -386,7 +421,6 @@ std::vector<Services::Outlook::OutlookMeetingModel>
         dialog.SetExtendedMessage(result.Message);
 
         dialog.ShowModal();
-        std::vector<Services::Outlook::OutlookMeetingModel>();
     }
 
     return meetingModels;
