@@ -127,9 +127,12 @@ void PreferencesTasksViewPage::Save(bool* restartRequired)
 
         if (iterator != selectedTasksViewColumnsFromCheckListBox.end()) {
             Core::Settings::TasksViewColumnSetting setting = *iterator;
+            bool isDifferent = tasksViewColumns[i] == setting;
             tasksViewColumns[i] = setting;
 
-            *restartRequired = true;
+            if (!isDifferent) {
+                *restartRequired = true;
+            }
         } else {
             tasksViewColumns[i].Selected = false;
         }

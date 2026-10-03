@@ -57,7 +57,8 @@ TasksViewColumnSetting::TasksViewColumnSetting(const std::string& name,
 
 bool TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other) const
 {
-    return Order == other.Order;
+    return Order == other.Order && TextAlignment == other.TextAlignment &&
+           EllipsisMode == other.EllipsisMode;
 }
 
 bool TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const
