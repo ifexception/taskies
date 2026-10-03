@@ -63,7 +63,8 @@ bool TasksViewColumnSetting::operator==(const TasksViewColumnSetting& other) con
 
 bool TasksViewColumnSetting::operator!=(const TasksViewColumnSetting& other) const
 {
-    return Order != other.Order;
+    return Order != other.Order && TextAlignment != other.TextAlignment &&
+           EllipsisMode != other.EllipsisMode;
 }
 
 bool TasksViewColumnSetting::IsValid() const
