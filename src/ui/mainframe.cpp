@@ -496,7 +496,7 @@ void MainFrame::CreateControls()
         pMainViewSizer->Add(
             pOutlookMeetingsPanel, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(3));
 
-        if (!pCfg->ShowOutlookMeetingsPanel()) {
+        if (pOutlookMeetingsPanel && !pCfg->ShowOutlookMeetingsPanel()) {
             pOutlookMeetingsPanel->Hide();
         }
     }
@@ -941,13 +941,15 @@ void MainFrame::OnViewReset(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnViewOutlook(wxCommandEvent& WXUNUSED(event))
 {
-    if (pOutlookMeetingsPanel->IsShown()) {
-        pOutlookMeetingsPanel->Hide();
-    } else {
-        pOutlookMeetingsPanel->Show();
-    }
+    if (pOutlookMeetingsPanel) {
+        if (pOutlookMeetingsPanel->IsShown()) {
+            pOutlookMeetingsPanel->Hide();
+        } else {
+            pOutlookMeetingsPanel->Show();
+        }
 
-    pMainViewSizer->Layout();
+        pMainViewSizer->Layout();
+    }
 }
 
 void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
@@ -963,13 +965,15 @@ void MainFrame::OnViewPreferences(wxCommandEvent& WXUNUSED(event))
             pTaskBarIcon->RemoveIcon();
         }
 
-        if (pCfg->ShowOutlookMeetingsPanel()) {
-            pOutlookMeetingsPanel->Show();
-        } else {
-            pOutlookMeetingsPanel->Hide();
-        }
+        if (pOutlookMeetingsPanel) {
+            if (pCfg->ShowOutlookMeetingsPanel()) {
+                pOutlookMeetingsPanel->Show();
+            } else {
+                pOutlookMeetingsPanel->Hide();
+            }
 
-        pMainViewSizer->Layout();
+            pMainViewSizer->Layout();
+        }
 
         if (pCfg->BackupDatabase()) {
             GetMenuBar()->Enable(ID_TASKS_BACKUPDATABASE, true);
