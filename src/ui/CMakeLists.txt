@@ -4,6 +4,7 @@ project ("Taskies")
 add_subdirectory("common")
 add_subdirectory("dataview")
 add_subdirectory("dlg")
+add_subdirectory("panels")
 add_subdirectory("wizards")
 
 set(
@@ -17,6 +18,7 @@ set(
     ${SRC_UI_COMMON}
     ${SRC_UI_DATAVIEW}
     ${SRC_DLG}
+    ${SRC_PANELS}
     ${SRC_WIZARDS}
     PARENT_SCOPE
 )
