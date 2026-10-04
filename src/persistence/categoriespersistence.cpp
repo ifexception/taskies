@@ -44,14 +44,14 @@ SqliteResult CategoriesPersistence::Filter(const std::string& searchTerm,
 
     auto formattedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         CategoriesPersistence::filter.c_str(),
         static_cast<int>(CategoriesPersistence::filter.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, CategoriesPersistence::filter, rc, error);
 
@@ -70,7 +70,7 @@ SqliteResult CategoriesPersistence::Filter(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -87,7 +87,7 @@ SqliteResult CategoriesPersistence::Filter(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -131,7 +131,7 @@ SqliteResult CategoriesPersistence::Filter(const std::string& searchTerm,
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);
@@ -150,14 +150,14 @@ SqliteResult CategoriesPersistence::GetById(const std::int64_t categoryId,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         CategoriesPersistence::getById.c_str(),
         static_cast<int>(CategoriesPersistence::getById.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, CategoriesPersistence::getById, rc, error);
 
@@ -171,7 +171,7 @@ SqliteResult CategoriesPersistence::GetById(const std::int64_t categoryId,
     rc = sqlite3_bind_int64(stmt, bindIndex, categoryId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -181,7 +181,7 @@ SqliteResult CategoriesPersistence::GetById(const std::int64_t categoryId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
@@ -208,7 +208,7 @@ SqliteResult CategoriesPersistence::GetById(const std::int64_t categoryId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
@@ -227,14 +227,14 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         CategoriesPersistence::create.c_str(),
         static_cast<int>(CategoriesPersistence::create.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, CategoriesPersistence::create, rc, error);
 
@@ -252,7 +252,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -264,7 +264,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
     rc = sqlite3_bind_int(stmt, bindIndex, static_cast<int>(category.Color));
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "color", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -276,7 +276,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
     rc = sqlite3_bind_int(stmt, bindIndex, category.Billable);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -296,7 +296,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -312,7 +312,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -322,7 +322,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
@@ -330,7 +330,7 @@ SqliteResult CategoriesPersistence::Create(std::int64_t& categoryId,
     }
 
     sqlite3_finalize(stmt);
-    auto rowId = sqlite3_last_insert_rowid(pDb);
+    auto rowId = sqlite3_last_insert_rowid(pDb.get());
     categoryId = rowId;
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "category", rowId);
 
@@ -341,14 +341,14 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         CategoriesPersistence::update.c_str(),
         static_cast<int>(CategoriesPersistence::update.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, CategoriesPersistence::update, rc, error);
 
@@ -367,7 +367,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -380,7 +380,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
     rc = sqlite3_bind_int(stmt, bindIndex, categoryModel.Color);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "color", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -393,7 +393,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
     rc = sqlite3_bind_int(stmt, bindIndex, categoryModel.Billable);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -414,7 +414,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -427,7 +427,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -444,7 +444,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -457,7 +457,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
     rc = sqlite3_bind_int64(stmt, bindIndex, categoryModel.CategoryId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -467,7 +467,7 @@ SqliteResult CategoriesPersistence::Update(const Model::CategoryModel& categoryM
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
@@ -484,14 +484,14 @@ SqliteResult CategoriesPersistence::Delete(const std::int64_t categoryId) const
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         CategoriesPersistence::isActive.c_str(),
         static_cast<int>(CategoriesPersistence::isActive.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, CategoriesPersistence::isActive, rc, error);
 
@@ -505,7 +505,7 @@ SqliteResult CategoriesPersistence::Delete(const std::int64_t categoryId) const
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -517,7 +517,7 @@ SqliteResult CategoriesPersistence::Delete(const std::int64_t categoryId) const
     rc = sqlite3_bind_int64(stmt, bindIndex, categoryId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -527,7 +527,7 @@ SqliteResult CategoriesPersistence::Delete(const std::int64_t categoryId) const
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, CategoriesPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);

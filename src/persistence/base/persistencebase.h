@@ -39,14 +39,21 @@ struct PersistenceResult {
     ~PersistenceResult() = default;
 };
 
+struct SqliteDbDeleterFn {
+    void operator()(sqlite3* db) const
+    {
+        if (db) {
+            sqlite3_close(db);
+        }
+    }
+};
+
 struct PersistenceBase {
-    PersistenceBase(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    PersistenceBase(std::shared_ptr<spdlog::logger> logger, std::string databaseFilePath);
     virtual ~PersistenceBase();
 
-    PersistenceResult IsInitialized() const;
-
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    std::unique_ptr<sqlite3, SqliteDbDeleterFn> pDb;
     PersistenceResult result;
 };
 } // namespace tks::Persistence

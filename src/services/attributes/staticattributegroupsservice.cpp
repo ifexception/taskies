@@ -38,14 +38,14 @@ SqliteResult StaticAttributeGroupsService::FilterByStaticFlagAndWithValueCounts(
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         StaticAttributeGroupsService::filterStaticWithValueCounts.c_str(),
         static_cast<int>(StaticAttributeGroupsService::filterStaticWithValueCounts.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             StaticAttributeGroupsService::filterStaticWithValueCounts,
             rc,
@@ -87,7 +87,7 @@ SqliteResult StaticAttributeGroupsService::FilterByStaticFlagAndWithValueCounts(
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate,
             StaticAttributeGroupsService::filterStaticWithValueCounts,
             rc,

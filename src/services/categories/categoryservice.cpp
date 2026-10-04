@@ -40,14 +40,14 @@ SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& categories)
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         CategoryService::filter.c_str(),
         static_cast<int>(CategoryService::filter.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, CategoryService::filter, rc, error);
 
         sqlite3_finalize(stmt);
@@ -94,7 +94,7 @@ SqliteResult CategoryService::Filter(std::vector<CategoryViewModel>& categories)
         }
     }
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, CategoryService::filter, rc, error);
 
         sqlite3_finalize(stmt);
@@ -112,14 +112,14 @@ SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         CategoryService::filterByProjectId.c_str(),
         static_cast<int>(CategoryService::filterByProjectId.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, CategoryService::filterByProjectId, rc, error);
 
@@ -134,7 +134,7 @@ SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
     rc = sqlite3_bind_int64(stmt, bindIndex, projectId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
@@ -180,7 +180,7 @@ SqliteResult CategoryService::FilterByProjectId(const std::int64_t projectId,
         }
     }
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, CategoryService::filterByProjectId, rc, error);
 
@@ -199,14 +199,14 @@ SqliteResult CategoryService::GetById(const std::int64_t categoryId,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         CategoryService::getById.c_str(),
         static_cast<int>(CategoryService::getById.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, CategoryService::getById, rc, error);
 
         sqlite3_finalize(stmt);
@@ -219,7 +219,7 @@ SqliteResult CategoryService::GetById(const std::int64_t categoryId,
     rc = sqlite3_bind_int64(stmt, bindIndex, categoryId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
@@ -229,7 +229,7 @@ SqliteResult CategoryService::GetById(const std::int64_t categoryId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, CategoryService::getById, rc, error);
 
         sqlite3_finalize(stmt);
@@ -258,7 +258,7 @@ SqliteResult CategoryService::GetById(const std::int64_t categoryId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);

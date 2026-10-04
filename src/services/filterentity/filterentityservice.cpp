@@ -65,14 +65,14 @@ SqliteResult FilterEntityService::FilterClients(const std::string& searchTerm,
 
     auto formattedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         FilterEntityService::filterClients.c_str(),
         static_cast<int>(FilterEntityService::filterClients.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, FilterEntityService::filterClients, rc, error);
 
@@ -91,7 +91,7 @@ SqliteResult FilterEntityService::FilterClients(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -108,7 +108,7 @@ SqliteResult FilterEntityService::FilterClients(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
 
         pLogger->error(LogMessages::BindParameterTemplate, "employer_name", bindIndex, rc, error);
 
@@ -152,7 +152,7 @@ SqliteResult FilterEntityService::FilterClients(const std::string& searchTerm,
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, FilterEntityService::filterClients, rc, error);
 
@@ -174,14 +174,14 @@ SqliteResult FilterEntityService::FilterProjects(const std::string& searchTerm,
 
     auto formattedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         FilterEntityService::filterProjects.c_str(),
         static_cast<int>(FilterEntityService::filterProjects.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, FilterEntityService::filterProjects, rc, error);
 
@@ -200,7 +200,7 @@ SqliteResult FilterEntityService::FilterProjects(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -217,7 +217,7 @@ SqliteResult FilterEntityService::FilterProjects(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -271,7 +271,7 @@ SqliteResult FilterEntityService::FilterProjects(const std::string& searchTerm,
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, FilterEntityService::filterProjects, rc, error);
 
@@ -292,14 +292,14 @@ SqliteResult FilterEntityService::FilterCategories(const std::string& searchTerm
 
     auto formattedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         FilterEntityService::filterCategories.c_str(),
         static_cast<int>(FilterEntityService::filterCategories.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             FilterEntityService::filterCategories,
             rc,
@@ -320,7 +320,7 @@ SqliteResult FilterEntityService::FilterCategories(const std::string& searchTerm
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -337,7 +337,7 @@ SqliteResult FilterEntityService::FilterCategories(const std::string& searchTerm
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "project_name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -377,7 +377,7 @@ SqliteResult FilterEntityService::FilterCategories(const std::string& searchTerm
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, FilterEntityService::filterCategories, rc, error);
 
@@ -399,14 +399,14 @@ SqliteResult FilterEntityService::FilterAttributeGroups(const std::string& searc
 
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         FilterEntityService::filterAttributeGroups.c_str(),
         static_cast<int>(FilterEntityService::filterAttributeGroups.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             FilterEntityService::filterAttributeGroups,
             rc,
@@ -427,7 +427,7 @@ SqliteResult FilterEntityService::FilterAttributeGroups(const std::string& searc
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -444,7 +444,7 @@ SqliteResult FilterEntityService::FilterAttributeGroups(const std::string& searc
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -487,7 +487,7 @@ SqliteResult FilterEntityService::FilterAttributeGroups(const std::string& searc
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, FilterEntityService::filterAttributeGroups, rc, error);
 
@@ -508,14 +508,14 @@ SqliteResult FilterEntityService::FilterAttributes(const std::string& searchTerm
     auto formatedSearchTerm = Utils::FormatSqlSearchTerm(searchTerm);
 
     sqlite3_stmt* stmt = nullptr;
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         FilterEntityService::filterAttributes.c_str(),
         static_cast<int>(FilterEntityService::filterAttributes.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             FilterEntityService::filterAttributes,
             rc,
@@ -536,7 +536,7 @@ SqliteResult FilterEntityService::FilterAttributes(const std::string& searchTerm
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -553,7 +553,7 @@ SqliteResult FilterEntityService::FilterAttributes(const std::string& searchTerm
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -599,7 +599,7 @@ SqliteResult FilterEntityService::FilterAttributes(const std::string& searchTerm
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, FilterEntityService::filterAttributes, rc, error);
 
@@ -618,14 +618,14 @@ SqliteResult FilterEntityService::FilterStaticAttributes(const std::string& sear
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         FilterEntityService::filterStaticAttributes.c_str(),
         static_cast<int>(FilterEntityService::filterStaticAttributes.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             FilterEntityService::filterStaticAttributes,
             rc,
@@ -669,7 +669,7 @@ SqliteResult FilterEntityService::FilterStaticAttributes(const std::string& sear
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, FilterEntityService::filterStaticAttributes, rc, error);
 

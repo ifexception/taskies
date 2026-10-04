@@ -41,14 +41,14 @@ SqliteResult TasksPersistence::GetById(const std::int64_t taskId, Model::TaskMod
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TasksPersistence::getById.c_str(),
         static_cast<int>(TasksPersistence::getById.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, TasksPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
@@ -61,7 +61,7 @@ SqliteResult TasksPersistence::GetById(const std::int64_t taskId, Model::TaskMod
     rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -71,7 +71,7 @@ SqliteResult TasksPersistence::GetById(const std::int64_t taskId, Model::TaskMod
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
@@ -106,7 +106,7 @@ SqliteResult TasksPersistence::GetById(const std::int64_t taskId, Model::TaskMod
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
@@ -123,14 +123,14 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TasksPersistence::create.c_str(),
         static_cast<int>(TasksPersistence::create.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, TasksPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
@@ -144,7 +144,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     rc = sqlite3_bind_int(stmt, bindIndex, taskModel.Billable);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
         sqlite3_finalize(stmt);
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -164,7 +164,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::BindParameterTemplate, "unique_identifier", bindIndex, rc, error);
 
@@ -178,7 +178,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.Hours);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "hours", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -191,7 +191,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.Minutes);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "minutes", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -208,7 +208,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -221,7 +221,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.ProjectId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -234,7 +234,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.CategoryId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -247,7 +247,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.WorkdayId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "workday_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -264,7 +264,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
 
@@ -282,7 +282,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::BindParameterTemplate, "attended_meeting_id", bindIndex, rc, error);
 
@@ -293,7 +293,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::create, rc, error);
 
         sqlite3_finalize(stmt);
@@ -301,7 +301,7 @@ SqliteResult TasksPersistence::Create(std::int64_t& taskId, Model::TaskModel& ta
     }
 
     sqlite3_finalize(stmt);
-    taskId = sqlite3_last_insert_rowid(pDb);
+    taskId = sqlite3_last_insert_rowid(pDb.get());
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "task", taskId);
 
     return SqliteResult::OK();
@@ -311,14 +311,14 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TasksPersistence::update.c_str(),
         static_cast<int>(TasksPersistence::update.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, TasksPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
@@ -331,7 +331,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     // billable
     rc = sqlite3_bind_int(stmt, bindIndex, taskModel.Billable);
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "billable", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -352,7 +352,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::BindParameterTemplate, "unique_identifier", bindIndex, rc, error);
 
@@ -366,7 +366,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     rc = sqlite3_bind_int(stmt, bindIndex, taskModel.Hours);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "hours", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -379,7 +379,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     rc = sqlite3_bind_int(stmt, bindIndex, taskModel.Minutes);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "minutes", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -396,7 +396,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -409,7 +409,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.ProjectId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -422,7 +422,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.CategoryId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "category_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -435,7 +435,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.WorkdayId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "workday_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -452,7 +452,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::BindParameterTemplate, "attribute_group_id", bindIndex, rc, error);
 
@@ -466,7 +466,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -479,7 +479,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     rc = sqlite3_bind_int64(stmt, bindIndex, taskModel.TaskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -491,7 +491,7 @@ SqliteResult TasksPersistence::Update(Model::TaskModel& taskModel) const
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
@@ -508,14 +508,14 @@ SqliteResult TasksPersistence::Delete(const std::int64_t taskId)
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TasksPersistence::isActive.c_str(),
         static_cast<int>(TasksPersistence::isActive.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, TasksPersistence::isActive, rc, error);
 
@@ -529,7 +529,7 @@ SqliteResult TasksPersistence::Delete(const std::int64_t taskId)
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -541,7 +541,7 @@ SqliteResult TasksPersistence::Delete(const std::int64_t taskId)
     rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -551,7 +551,7 @@ SqliteResult TasksPersistence::Delete(const std::int64_t taskId)
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
@@ -569,14 +569,14 @@ SqliteResult TasksPersistence::GetDescriptionById(const std::int64_t taskId,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TasksPersistence::getDescriptionById.c_str(),
         static_cast<int>(TasksPersistence::getDescriptionById.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             "TasksPersistence",
             TasksPersistence::getDescriptionById,
@@ -593,7 +593,7 @@ SqliteResult TasksPersistence::GetDescriptionById(const std::int64_t taskId,
     rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -603,7 +603,7 @@ SqliteResult TasksPersistence::GetDescriptionById(const std::int64_t taskId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, TasksPersistence::getDescriptionById, rc, error);
 
@@ -618,7 +618,7 @@ SqliteResult TasksPersistence::GetDescriptionById(const std::int64_t taskId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
@@ -636,14 +636,14 @@ SqliteResult TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TasksPersistence::isDeleted.c_str(),
         static_cast<int>(TasksPersistence::isDeleted.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, TasksPersistence::isDeleted, rc, error);
 
@@ -656,7 +656,7 @@ SqliteResult TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
 
     rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -666,7 +666,7 @@ SqliteResult TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, TasksPersistence::isDeleted, rc, error);
 
         sqlite3_finalize(stmt);
@@ -680,7 +680,7 @@ SqliteResult TasksPersistence::IsDeleted(const std::int64_t taskId, bool& value)
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
