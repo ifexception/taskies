@@ -482,6 +482,12 @@
     <ClCompile Include="src\utils\dateutils.cpp">
       <Filter>Source\utils</Filter>
     </ClCompile>
+    <ClCompile Include="src\persistence\base\db_deleter.cpp">
+      <Filter>Source\persistence\base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\persistence\base\stmt_deleter.cpp">
+      <Filter>Source\persistence\base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -858,6 +864,12 @@
     </ClInclude>
     <ClInclude Include="src\utils\dateutils.h">
       <Filter>Source\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\persistence\base\db_deleter.h">
+      <Filter>Source\persistence\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\persistence\base\stmt_deleter.h">
+      <Filter>Source\persistence\base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

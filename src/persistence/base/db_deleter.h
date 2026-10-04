@@ -19,34 +19,16 @@
 
 #pragma once
 
-#include <string>
-#include <memory>
-
-#include <spdlog/spdlog.h>
-#include <spdlog/logger.h>
-
 #include <sqlite3.h>
-
-#include "db_deleter.h"
 
 namespace tks::Persistence
 {
-struct PersistenceResult {
-    bool Success;
-    int ReturnCode;
-    std::string Error;
-
-    PersistenceResult();
-    PersistenceResult(int returnCode, const std::string& error);
-    ~PersistenceResult() = default;
-};
-
-struct PersistenceBase {
-    PersistenceBase(std::shared_ptr<spdlog::logger> logger, std::string databaseFilePath);
-    virtual ~PersistenceBase();
-
-    std::shared_ptr<spdlog::logger> pLogger;
-    std::unique_ptr<sqlite3, SqliteDbDeleterFn> pDb;
-    PersistenceResult result;
+struct SqliteDbDeleterFn {
+    void operator()(sqlite3* db) const
+    {
+        if (db) {
+            sqlite3_close(db);
+        }
+    }
 };
 } // namespace tks::Persistence
