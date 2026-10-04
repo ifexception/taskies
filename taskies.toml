@@ -24,7 +24,6 @@ useNotificationBanners=false
 useTaskbarFlashing=false
 reminderInterval=0
 openTaskDialogOnReminderClick=false
-openTaskDialogOnOutlookMeetingAttendanceCheck=true
 
 [tasksView]
 tasksViewColumns=[]

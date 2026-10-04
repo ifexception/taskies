@@ -127,9 +127,6 @@ public:
     bool OpenTaskDialogOnReminderClick() const;
     void OpenTaskDialogOnReminderClick(const bool value);
 
-    bool OpenTaskDialogOnOutlookMeetingAttendanceCheck() const;
-    void OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value);
-
     std::vector<Settings::TasksViewColumnSetting> GetTasksViewColumns() const;
     void SetTasksViewColumns(const std::vector<Settings::TasksViewColumnSetting> values);
 

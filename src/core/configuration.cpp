@@ -169,8 +169,6 @@ ConfigResult Configuration::Save()
         pSettings->OpenTaskDialogOnReminderClick;
     root.at(Sections::TaskSection)["useTaskbarFlashing"] = pSettings->UseTaskbarFlashing;
     root.at(Sections::TaskSection)["reminderInterval"] = pSettings->ReminderInterval;
-    root.at(Sections::TaskSection)["openTaskDialogOnOutlookMeetingAttendanceCheck"] =
-        pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -294,7 +292,6 @@ ConfigResult Configuration::RestoreDefaults()
     UseTaskbarFlashing(false);
     SetReminderInterval(0);
     OpenTaskDialogOnReminderClick(false);
-    OpenTaskDialogOnOutlookMeetingAttendanceCheck(false);
 
     SetTasksViewColumns(Settings::MakeDefaultTasksViewColumnList());
 
@@ -762,16 +759,6 @@ void Configuration::OpenTaskDialogOnReminderClick(const bool value)
     pSettings->OpenTaskDialogOnReminderClick = value;
 }
 
-bool Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck() const
-{
-    return pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck;
-}
-
-void Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value)
-{
-    pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck = value;
-}
-
 std::vector<Settings::TasksViewColumnSetting> Configuration::GetTasksViewColumns() const
 {
     return pSettings->TasksViewColumnSettings;
@@ -975,9 +962,6 @@ void Configuration::GetTasksConfig(const toml::value& root)
     pSettings->UseTaskbarFlashing = toml::find_or<bool>(taskSection, "useTaskbarFlashing", false);
 
     pSettings->ReminderInterval = toml::find_or<int>(taskSection, "reminderInterval", 0);
-
-    pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck =
-        toml::find_or<bool>(taskSection, "openTaskDialogOnOutlookMeetingAttendanceCheck", true);
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)

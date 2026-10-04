@@ -80,7 +80,6 @@ private:
     wxCheckBox* pUseTaskbarFlashing;
     wxChoice* pReminderIntervalChoiceCtrl;
     wxCheckBox* pOpenTaskDialogOnReminderClickCheckBoxCtrl;
-    wxCheckBox* pOpenTaskDialogOnOutlookMeetingAttendanceCheckBoxCtrl;
 
     enum {
         tksIDC_MINUTES_INCREMENT = wxID_HIGHEST + 100,
@@ -91,7 +90,6 @@ private:
         tksIDC_USETASKBARFLASHING,
         tksIDC_REMINDERINTERVALCHOICECTRL,
         tksIDC_OPENTASKDIALOGONREMINDERCLICKCHECKBOXCTRL,
-        tksIDC_OPENTASKDIALOGONOUTLOOKMEETINGATTENDANCECHECKBOXCTRL
     };
 };
 } // namespace dlg

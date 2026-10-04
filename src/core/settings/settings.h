@@ -53,7 +53,6 @@ struct Settings {
     bool UseTaskbarFlashing;
     int ReminderInterval;
     bool OpenTaskDialogOnReminderClick;
-    bool OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
     std::vector<TasksViewColumnSetting> TasksViewColumnSettings;
 

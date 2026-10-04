@@ -41,7 +41,6 @@ PreferencesTasksPage::PreferencesTasksPage(wxWindow* parent,
     , pUseRemindersCheckBoxCtrl(nullptr)
     , pReminderIntervalChoiceCtrl(nullptr)
     , pOpenTaskDialogOnReminderClickCheckBoxCtrl(nullptr)
-    , pOpenTaskDialogOnOutlookMeetingAttendanceCheckBoxCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -122,9 +121,6 @@ void PreferencesTasksPage::Save()
     } else {
         pCfg->SetReminderInterval(intervalData->GetValue());
     }
-
-    pCfg->OpenTaskDialogOnOutlookMeetingAttendanceCheck(
-        pOpenTaskDialogOnOutlookMeetingAttendanceCheckBoxCtrl->GetValue());
 }
 
 void PreferencesTasksPage::Reset()
@@ -143,9 +139,6 @@ void PreferencesTasksPage::Reset()
     pReminderIntervalChoiceCtrl->Disable();
 
     pOpenTaskDialogOnReminderClickCheckBoxCtrl->SetValue(pCfg->OpenTaskDialogOnReminderClick());
-
-    pOpenTaskDialogOnOutlookMeetingAttendanceCheckBoxCtrl->SetValue(
-        pCfg->OpenTaskDialogOnOutlookMeetingAttendanceCheck());
 }
 
 void PreferencesTasksPage::CreateControls()
@@ -258,15 +251,6 @@ void PreferencesTasksPage::CreateControls()
     reminderIntervalHorizontalSizer->Add(
         pReminderIntervalChoiceCtrl, wxSizerFlags().Border(wxRIGHT | wxLEFT, FromDIP(4)).Expand());
 
-    /* Open task dialog on meeting attendance check box ctrl */
-    pOpenTaskDialogOnOutlookMeetingAttendanceCheckBoxCtrl = new wxCheckBox(this,
-        tksIDC_OPENTASKDIALOGONOUTLOOKMEETINGATTENDANCECHECKBOXCTRL,
-        "Open task dialog on meeting attended check");
-    pOpenTaskDialogOnOutlookMeetingAttendanceCheckBoxCtrl->SetToolTip(
-        "Opens the task dialog when an Outlook meeting attended check is clicked");
-    sizer->Add(pOpenTaskDialogOnOutlookMeetingAttendanceCheckBoxCtrl,
-        wxSizerFlags().Border(wxALL, FromDIP(4)));
-
     SetSizerAndFit(sizer);
 }
 
@@ -344,9 +328,6 @@ void PreferencesTasksPage::DataToControls()
         pUseTaskbarFlashing->Disable();
         pReminderIntervalChoiceCtrl->Disable();
     }
-
-    pOpenTaskDialogOnOutlookMeetingAttendanceCheckBoxCtrl->SetValue(
-        pCfg->OpenTaskDialogOnOutlookMeetingAttendanceCheck());
 }
 
 void PreferencesTasksPage::OnUseRemindersCheck(wxCommandEvent& event)
