@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
@@ -28,43 +27,44 @@
 #ifndef WX_PRECOMP
 #include <wx/wx.h>
 #endif
-#include <wx/datectrl.h>
-#include <wx/dateevt.h>
+
+#include <date/date.h>
 
 #include <spdlog/spdlog.h>
 #include <spdlog/logger.h>
 
-#include "../../models/attendedmeetingmodel.h"
-
 namespace tks::Core
 {
 class Configuration;
-class Environment;
 } // namespace tks::Core
+
+namespace tks::Model
+{
+struct AttendedMeetingModel;
+}
 
 namespace tks::Services::Outlook
 {
 struct OutlookMeetingModel;
 }
 
-namespace tks::UI::frames
+namespace tks::UI::Panel
 {
-class OutlookMeetingsViewFrame final : public wxFrame
+class OutlookMeetingsPanel : public wxPanel
 {
 public:
-    OutlookMeetingsViewFrame() = delete;
-    OutlookMeetingsViewFrame(const OutlookMeetingsViewFrame&) = delete;
-    OutlookMeetingsViewFrame(wxWindow* parent,
+    OutlookMeetingsPanel() = delete;
+    OutlookMeetingsPanel(const OutlookMeetingsPanel&) = delete;
+    OutlookMeetingsPanel(wxWindow* parent,
+        wxWindowID windowPanelId,
         std::shared_ptr<Core::Configuration> cfg,
-        std::shared_ptr<Core::Environment> env,
         std::shared_ptr<spdlog::logger> logger,
-        const std::string& databaseFilePath,
-        bool isMainFrameMaximized,
-        const wxString& name = "outlookmeetingsviewdlg");
-    virtual ~OutlookMeetingsViewFrame();
+        const std::string& databaseFilePath);
+    virtual ~OutlookMeetingsPanel();
 
-    void OnParentFrameMove();
-    void OnParentFrameResize();
+    OutlookMeetingsPanel& operator=(const OutlookMeetingsPanel&) = delete;
+
+    void OnDateChanged(date::sys_days newDate);
 
 private:
     void Create();
@@ -74,59 +74,54 @@ private:
     void ConfigureEventBindings();
     void DataToControls();
 
-    void OnDateSelection(wxDateEvent& event);
     void OnRefresh(wxCommandEvent& event);
     void OnAccountChoice(wxCommandEvent& event);
-    void OnClose(wxCloseEvent& event);
-    void OnProjectChoice(wxCommandEvent& event);
-    void OnCategoryChoice(wxCommandEvent& event);
-    void OnAttendedCheckBoxCheck(wxCommandEvent& event);
 
-    void FetchOutlookMeetingsAndUpdateFeedbackLabel();
-    std::vector<Model::AttendedMeetingModel> FetchAttendedMeetings();
-    void AddMeetingsToPanel(const std::vector<Model::AttendedMeetingModel>& attendedMeetingModels);
-    void SetDialogSizeFromParent();
+    void OnAttendedCheckBoxCheck(wxCommandEvent& event);
 
     void RemoveActiveMeetingsPanel();
     void ResetFeedbackLabelOnNoData(const std::string& message = "");
 
-    void AddMeetingControlsToPanel(wxBoxSizer* panelSizer,
-        int* attendedCheckBoxControlId,
+    std::vector<Services::Outlook::OutlookMeetingModel> FetchOutlookMeetingsByAccountName(
+        const std::string& accountName);
+    std::vector<Model::AttendedMeetingModel> FetchAttendedMeetingsByDate();
+
+    void AddMeetingsToPanel(
+        const std::vector<Services::Outlook::OutlookMeetingModel>& outlookMeetings,
+        const std::vector<Model::AttendedMeetingModel>& attendedMeetings);
+
+    void BuildMeetingControlsToPanel(wxBoxSizer* panelSizer,
+        int attendedCheckBoxControlId,
         const Services::Outlook::OutlookMeetingModel& meetingModel,
         bool meetingAttended);
 
+    wxWindow* pParent;
     std::shared_ptr<Core::Configuration> pCfg;
-    std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<spdlog::logger> pLogger;
     std::string mDatabaseFilePath;
 
-    wxWindow* pParent;
-    wxPanel* pThisPanel;
-
-    wxBoxSizer* pMainSizer;
-
-    wxDatePickerCtrl* pDatePickerCtrl;
+    wxStaticBoxSizer* pMeetingStaticBoxSizer;
     wxBitmapButton* pRefreshButton;
-
     wxChoice* pAccountsChoiceCtrl;
 
     wxStaticText* pFeedbackLabel;
 
     wxScrolledWindow* pScrolledWindow;
     wxSizer* pScrolledWindowSizer;
+
     wxPanel* pActiveMeetingsPanel;
 
+    date::sys_days mSelectedDate;
     std::string mSelectedAccount;
-    std::string mSelectedDate;
-    std::vector<Services::Outlook::OutlookMeetingModel> mMeetingModels;
-    bool bIsMainFrameMaximized;
+
+    std::vector<Services::Outlook::OutlookMeetingModel> mOutlookMeetings;
 
     enum {
-        tksIDC_DATEPICKERCTRL = wxID_HIGHEST + 1001,
+        tksIDC_OUTLOOKMEETINGSPANELBASE = wxID_HIGHEST + 1001,
         tksIDC_REFRESH_BUTTON,
         tksIDC_ACCOUNT_CHOICE_CTRL,
         tksIDC_FEEDBACKLABEL,
         tksIDC_ATTENDEDCHECKBOX_BASE,
     };
 };
-} // namespace tks::UI::frames
+} // namespace tks::UI::Panel

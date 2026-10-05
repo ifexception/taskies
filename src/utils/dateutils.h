@@ -19,26 +19,20 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <chrono>
+#include <cstdint>
 
-#include "presetcolumnsetting.h"
+#include <date/date.h>
 
-#include "../../common/enums.h"
-
-namespace tks::Core::Settings
+namespace tks::Utils
 {
-struct PresetSetting {
-    std::string Uuid;
-    std::string Name;
-    bool IsDefault = false;
-    DelimiterType Delimiter = DelimiterType::None;
-    TextQualifierType TextQualifier = TextQualifierType::None;
-    EmptyValues EmptyValuesHandler = EmptyValues::None;
-    NewLines NewLinesHandler = NewLines::None;
-    BooleanHandler BooleanHandler = BooleanHandler::None;
-    bool ExcludeHeaders = false;
-    bool IncludeAttributes = false;
-    std::vector<PresetColumnSetting> Columns;
-};
-} // namespace tks::Core::Settings
+std::int64_t UnixTimestamp();
+
+std::int64_t UnixTimestampMidnight(date::sys_days date);
+
+std::int64_t UnixTimestampNextDayMidnight(date::sys_days date);
+
+std::string ToISODateTime(std::int64_t unixTimestamp);
+
+std::string Timestamp();
+}

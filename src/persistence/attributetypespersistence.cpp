@@ -43,14 +43,14 @@ SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
 
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         AttributeTypesPersistence::filter.c_str(),
         static_cast<int>(AttributeTypesPersistence::filter.length()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, AttributeTypesPersistence::filter, rc, error);
 
@@ -68,7 +68,7 @@ SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -100,7 +100,7 @@ SqliteResult AttributeTypesPersistence::Filter(const std::string& searchTerm,
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, AttributeTypesPersistence::filter, rc, error);
 
         sqlite3_finalize(stmt);

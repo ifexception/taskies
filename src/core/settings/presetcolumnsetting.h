@@ -26,9 +26,6 @@ namespace tks::Core::Settings
 struct PresetColumnSetting {
     std::string Column;
     std::string OriginalColumn;
-    int Order;
-
-    PresetColumnSetting();
-    ~PresetColumnSetting() = default;
+    int Order = -1;
 };
 } // namespace tks::Core::Settings

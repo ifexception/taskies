@@ -41,14 +41,14 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TasksService::filterByDate.c_str(),
         static_cast<int>(TasksService::filterByDate.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, TasksService::filterByDate, rc, error);
 
@@ -60,7 +60,7 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
     rc = sqlite3_bind_text(stmt, 1, date.c_str(), static_cast<int>(date.size()), SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date", 1, rc, error);
 
         sqlite3_finalize(stmt);
@@ -125,7 +125,7 @@ SqliteResult TasksService::FilterByDate(const std::string& date,
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, TasksService::filterByDate, rc, error);
 
         sqlite3_finalize(stmt);
@@ -142,14 +142,14 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TasksService::getById.c_str(),
         static_cast<int>(TasksService::getById.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, TasksService::getById, rc, error);
 
         sqlite3_finalize(stmt);
@@ -160,7 +160,7 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     rc = sqlite3_bind_int64(stmt, 1, taskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", 1, rc, error);
 
         sqlite3_finalize(stmt);
@@ -170,7 +170,7 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, TasksService::getById, rc, error);
 
         sqlite3_finalize(stmt);
@@ -216,7 +216,7 @@ SqliteResult TasksService::GetById(const std::int64_t taskId, TaskViewModel& tas
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);

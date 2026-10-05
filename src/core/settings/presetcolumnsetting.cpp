@@ -18,13 +18,3 @@
 //     szymonwelgus at gmail dot com
 
 #include "presetcolumnsetting.h"
-
-namespace tks::Core::Settings
-{
-PresetColumnSetting::PresetColumnSetting()
-    : Column()
-    , OriginalColumn()
-    , Order(-1)
-{
-}
-} // namespace tks::Core::Settings

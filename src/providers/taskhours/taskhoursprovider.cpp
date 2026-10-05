@@ -76,18 +76,19 @@ TaskHoursProviderResult TaskHoursProvider::InternalTaskHoursQuery(const std::str
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
+    int rc =
+        sqlite3_prepare_v2(pDb.get(), sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
         return { SqliteResult::FailDetailed(Messages::PrepareStatementMessage, rc, error), "" };
     }
 
-    auto stmt_deleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
-    std::unique_ptr<sqlite3_stmt, decltype(stmt_deleter)> stmtGuard(stmt, stmt_deleter);
+    auto stmtDeleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
+    std::unique_ptr<sqlite3_stmt, decltype(stmtDeleter)> stmtGuard(stmt, stmtDeleter);
 
     int bindIndex = 1;
 
@@ -95,7 +96,7 @@ TaskHoursProviderResult TaskHoursProvider::InternalTaskHoursQuery(const std::str
         stmt, bindIndex, fromDate.c_str(), static_cast<int>(fromDate.size()), SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         return { SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, error), "" };
@@ -107,7 +108,7 @@ TaskHoursProviderResult TaskHoursProvider::InternalTaskHoursQuery(const std::str
         stmt, bindIndex, toDate.c_str(), static_cast<int>(toDate.size()), SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         return { SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, error), "" };
@@ -116,7 +117,7 @@ TaskHoursProviderResult TaskHoursProvider::InternalTaskHoursQuery(const std::str
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         return { SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, error), "" };

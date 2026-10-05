@@ -813,7 +813,10 @@ void ExportToCsvDialog::ConfigureEventBindings()
 
 void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
 {
-    auto choice = event.GetString();
+    if (event.GetSelection() < 1) {
+        return;
+    }
+
     int delimiterIndex = pDelimiterChoiceCtrl->GetSelection();
     ClientData<Common::EnumClientData<DelimiterType>>* delimiterData =
         reinterpret_cast<ClientData<Common::EnumClientData<DelimiterType>>*>(
@@ -824,7 +827,10 @@ void ExportToCsvDialog::OnDelimiterChoiceSelection(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
 {
-    auto choice = event.GetString();
+    if (event.GetSelection() < 1) {
+        return;
+    }
+
     int textQualifierIndex = pTextQualifierChoiceCtrl->GetSelection();
     ClientData<Common::EnumClientData<TextQualifierType>>* textQualifierData =
         reinterpret_cast<ClientData<Common::EnumClientData<TextQualifierType>>*>(
@@ -835,7 +841,9 @@ void ExportToCsvDialog::OnTextQualifierChoiceSelection(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event)
 {
-    auto choice = event.GetString();
+    if (event.GetSelection() < 1) {
+        return;
+    }
 
     int emptyValueIndex = pEmptyValueHandlerChoiceCtrl->GetSelection();
     ClientData<Common::EnumClientData<EmptyValues>>* emptyValueData =
@@ -847,7 +855,10 @@ void ExportToCsvDialog::OnEmptyValueHandlerChoiceSelection(wxCommandEvent& event
 
 void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
 {
-    auto choice = event.GetString();
+    if (event.GetSelection() < 1) {
+        return;
+    }
+
     int newLinesIndex = pNewLinesHandlerChoiceCtrl->GetSelection();
     ClientData<Common::EnumClientData<NewLines>>* newLinesData =
         reinterpret_cast<ClientData<Common::EnumClientData<NewLines>>*>(
@@ -858,7 +869,10 @@ void ExportToCsvDialog::OnNewLinesHandlerChoiceSelection(wxCommandEvent& event)
 
 void ExportToCsvDialog::OnBooleanHandlerChoiceSelection(wxCommandEvent& event)
 {
-    auto choice = event.GetString();
+    if (event.GetSelection() < 1) {
+        return;
+    }
+
     int booleanHandlerIndex = pBooleanHanderChoiceCtrl->GetSelection();
     ClientData<Common::EnumClientData<BooleanHandler>>* booleanHandlerData =
         reinterpret_cast<ClientData<Common::EnumClientData<BooleanHandler>>*>(
@@ -1096,13 +1110,13 @@ void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
     }
 
     if (presetData->GetValue().empty()) {
-        pCfg->SaveExportPreset(preset);
-
         int selection =
             pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
         pPresetsChoiceCtrl->SetSelection(selection);
+
+        pCfg->SaveExportPreset(std::move(preset));
     } else {
-        pCfg->UpdateExportPreset(preset);
+        pCfg->UpdateExportPreset(std::move(preset));
     }
 }
 

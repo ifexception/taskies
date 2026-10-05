@@ -144,6 +144,8 @@ ConfigResult Configuration::Save()
     root.at(Sections::GeneralSection)["showInTray"] = pSettings->ShowInTray;
     root.at(Sections::GeneralSection)["minimizeToTray"] = pSettings->MinimizeToTray;
     root.at(Sections::GeneralSection)["closeToTray"] = pSettings->CloseToTray;
+    root.at(Sections::GeneralSection)["showOutlookMeetingsPanel"] =
+        pSettings->ShowOutlookMeetingsPanel;
 
     // Database section
     root.at(Sections::DatabaseSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -167,8 +169,6 @@ ConfigResult Configuration::Save()
         pSettings->OpenTaskDialogOnReminderClick;
     root.at(Sections::TaskSection)["useTaskbarFlashing"] = pSettings->UseTaskbarFlashing;
     root.at(Sections::TaskSection)["reminderInterval"] = pSettings->ReminderInterval;
-    root.at(Sections::TaskSection)["openTaskDialogOnOutlookMeetingAttendanceCheck"] =
-        pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
     // Tasks View section
     root.at(Sections::TasksViewSection).as_table_fmt().fmt = toml::table_format::multiline;
@@ -276,6 +276,7 @@ ConfigResult Configuration::RestoreDefaults()
     ShowInTray(false);
     MinimizeToTray(false);
     CloseToTray(false);
+    ShowOutlookMeetingsPanel(false);
 
     SetDatabasePath(pEnv->GetDatabasePath().string());
     BackupDatabase(false);
@@ -291,7 +292,6 @@ ConfigResult Configuration::RestoreDefaults()
     UseTaskbarFlashing(false);
     SetReminderInterval(0);
     OpenTaskDialogOnReminderClick(false);
-    OpenTaskDialogOnOutlookMeetingAttendanceCheck(false);
 
     SetTasksViewColumns(Settings::MakeDefaultTasksViewColumnList());
 
@@ -311,6 +311,7 @@ ConfigResult Configuration::RestoreDefaults()
                     { "showInTray", false },
                     { "minimizeToTray", false },
                     { "closeToTray", false },
+                    { "showOutlookMeetingsPanel", false },
                 }
             },
             {
@@ -391,7 +392,7 @@ ConfigResult Configuration::RestoreDefaults()
     return result;
 }
 
-ConfigResult Configuration::SaveExportPreset(const Settings::PresetSetting& presetToSave)
+ConfigResult Configuration::SaveExportPreset(Settings::PresetSetting presetToSave)
 {
     toml::value root;
     try {
@@ -460,7 +461,7 @@ ConfigResult Configuration::SaveExportPreset(const Settings::PresetSetting& pres
     return result;
 }
 
-ConfigResult Configuration::UpdateExportPreset(const Settings::PresetSetting& presetToUpdate)
+ConfigResult Configuration::UpdateExportPreset(Settings::PresetSetting presetToUpdate)
 {
     toml::value root;
     try {
@@ -608,6 +609,16 @@ void Configuration::CloseToTray(const bool value)
     pSettings->CloseToTray = value;
 }
 
+bool Configuration::ShowOutlookMeetingsPanel() const
+{
+    return pSettings->ShowOutlookMeetingsPanel;
+}
+
+void Configuration::ShowOutlookMeetingsPanel(const bool value)
+{
+    pSettings->ShowOutlookMeetingsPanel = value;
+}
+
 std::string Configuration::GetDatabaseFileName() const
 {
     return pSettings->DatabaseFileName;
@@ -746,16 +757,6 @@ bool Configuration::OpenTaskDialogOnReminderClick() const
 void Configuration::OpenTaskDialogOnReminderClick(const bool value)
 {
     pSettings->OpenTaskDialogOnReminderClick = value;
-}
-
-bool Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck() const
-{
-    return pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck;
-}
-
-void Configuration::OpenTaskDialogOnOutlookMeetingAttendanceCheck(const bool value)
-{
-    pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck = value;
 }
 
 std::vector<Settings::TasksViewColumnSetting> Configuration::GetTasksViewColumns() const
@@ -900,10 +901,11 @@ void Configuration::GetGeneralConfig(const toml::value& root)
     pSettings->StartPosition = static_cast<WindowState>(tomlStartPosition);
 
     pSettings->ShowInTray = toml::find_or<bool>(generalSection, "showInTray", false);
-
     pSettings->MinimizeToTray = toml::find_or<bool>(generalSection, "minimizeToTray", false);
-
     pSettings->CloseToTray = toml::find_or<bool>(generalSection, "closeToTray", false);
+
+    pSettings->ShowOutlookMeetingsPanel =
+        toml::find_or<bool>(generalSection, "showOutlookMeetingsPanel", false);
 }
 
 void Configuration::GetDatabaseConfig(const toml::value& root)
@@ -960,9 +962,6 @@ void Configuration::GetTasksConfig(const toml::value& root)
     pSettings->UseTaskbarFlashing = toml::find_or<bool>(taskSection, "useTaskbarFlashing", false);
 
     pSettings->ReminderInterval = toml::find_or<int>(taskSection, "reminderInterval", 0);
-
-    pSettings->OpenTaskDialogOnOutlookMeetingAttendanceCheck =
-        toml::find_or<bool>(taskSection, "openTaskDialogOnOutlookMeetingAttendanceCheck", true);
 }
 
 void Configuration::GetTasksViewConfig(const toml::value& root)

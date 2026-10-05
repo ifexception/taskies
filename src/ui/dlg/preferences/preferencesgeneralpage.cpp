@@ -29,6 +29,8 @@
 #include "../../../common/common.h"
 #include "../../../core/configuration.h"
 
+#include "../../../utils/mswutils.h"
+
 #ifdef _WIN32
 namespace
 {
@@ -81,8 +83,8 @@ struct StartWithWindowsRegKey {
     {
         UINT res = RegDeleteValue(mKey, TEXT("Taskies"));
         if (res != ERROR_SUCCESS) {
-            pLogger->error("Failed to delete Registry entry for Taskies. Error: \"{0}\"",
-                GetLastError());
+            pLogger->error(
+                "Failed to delete Registry entry for Taskies. Error: \"{0}\"", GetLastError());
         }
     }
 
@@ -112,6 +114,7 @@ PreferencesGeneralPage::PreferencesGeneralPage(wxWindow* parent,
     , pShowInTrayCtrl(nullptr)
     , pMinimizeToTrayCtrl(nullptr)
     , pCloseToTrayCtrl(nullptr)
+    , pShowOutlookMeetingsPanelCheckBoxCtrl(nullptr)
 {
     CreateControls();
     ConfigureEventBindings();
@@ -127,6 +130,7 @@ bool PreferencesGeneralPage::IsValid()
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pUserInterfaceLanguageCtrl);
+
         return false;
     }
 
@@ -136,8 +140,10 @@ bool PreferencesGeneralPage::IsValid()
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pWindowStartPositionCtrl);
+
         return false;
     }
+
     return true;
 }
 
@@ -172,6 +178,8 @@ void PreferencesGeneralPage::Save()
     pCfg->ShowInTray(pShowInTrayCtrl->GetValue());
     pCfg->MinimizeToTray(pMinimizeToTrayCtrl->GetValue());
     pCfg->CloseToTray(pCloseToTrayCtrl->GetValue());
+
+    pCfg->ShowOutlookMeetingsPanel(pShowOutlookMeetingsPanelCheckBoxCtrl->GetValue());
 }
 
 void PreferencesGeneralPage::Reset()
@@ -190,6 +198,8 @@ void PreferencesGeneralPage::Reset()
         pMinimizeToTrayCtrl->Disable();
         pCloseToTrayCtrl->Disable();
     }
+
+    pShowOutlookMeetingsPanelCheckBoxCtrl->SetValue(false);
 }
 
 void PreferencesGeneralPage::CreateControls()
@@ -209,6 +219,7 @@ void PreferencesGeneralPage::CreateControls()
 
     pUserInterfaceLanguageCtrl = new wxChoice(uiBox, tksIDC_LANG);
     pUserInterfaceLanguageCtrl->SetToolTip("Set the language for the program to use");
+    pUserInterfaceLanguageCtrl->Disable(); // temporary until translations get added again
 
     uiGridSizer->Add(languageLabel, wxSizerFlags().CenterVertical());
     uiGridSizer->Add(pUserInterfaceLanguageCtrl, wxSizerFlags().Right().Expand().Proportion(1));
@@ -237,7 +248,7 @@ void PreferencesGeneralPage::CreateControls()
     miscGridSizer->Add(
         pWindowStartPositionCtrl, wxSizerFlags().Right().CenterVertical().Proportion(1));
     miscBoxSizer->Add(
-        miscGridSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+        miscGridSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     /* System Tray */
     auto systemTrayBox = new wxStaticBox(this, wxID_ANY, "System Tray");
@@ -257,7 +268,13 @@ void PreferencesGeneralPage::CreateControls()
     systemTrayFlexSizer->Add(pMinimizeToTrayCtrl, wxSizerFlags().Border(wxLEFT, FromDIP(15)));
     systemTrayFlexSizer->Add(pCloseToTrayCtrl, wxSizerFlags().Border(wxLEFT, FromDIP(15)));
     systemTrayBoxSizer->Add(
-        systemTrayFlexSizer, wxSizerFlags().Border(wxALL, FromDIP(5)).Expand().Proportion(1));
+        systemTrayFlexSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
+
+    pShowOutlookMeetingsPanelCheckBoxCtrl =
+        new wxCheckBox(this, tksIDC_SHOWOUTLOOKMEETINGSPANELCHECKBOXCTRL, "Show Outlook meetings");
+    pShowOutlookMeetingsPanelCheckBoxCtrl->SetToolTip(
+        "Toggle if the Outlook meetings panel is shown");
+    sizer->Add(pShowOutlookMeetingsPanelCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     SetSizerAndFit(sizer);
 }
@@ -303,6 +320,14 @@ void PreferencesGeneralPage::DataToControls()
     if (!pCfg->ShowInTray()) {
         pMinimizeToTrayCtrl->Disable();
         pCloseToTrayCtrl->Disable();
+    }
+
+    MswUtils::OutlookInstanceCheck isOutlookInstalled;
+    if (!isOutlookInstalled()) {
+        pShowOutlookMeetingsPanelCheckBoxCtrl->Hide();
+        pShowOutlookMeetingsPanelCheckBoxCtrl->SetValue(false);
+    } else {
+        pShowOutlookMeetingsPanelCheckBoxCtrl->SetValue(pCfg->ShowOutlookMeetingsPanel());
     }
 }
 

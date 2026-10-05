@@ -249,7 +249,6 @@ void PreferencesDialog::OnOK(wxCommandEvent& event)
     pTasksViewPage->Save(&restartRequired);
     pExportPage->Save();
 
-    // Save changes to disk
     pCfg->Save();
 
     if (restartRequired) {

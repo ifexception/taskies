@@ -36,6 +36,7 @@ struct Settings {
     bool ShowInTray;
     bool MinimizeToTray;
     bool CloseToTray;
+    bool ShowOutlookMeetingsPanel;
 
     std::string DatabaseFileName;
     std::string DatabasePath;
@@ -52,7 +53,6 @@ struct Settings {
     bool UseTaskbarFlashing;
     int ReminderInterval;
     bool OpenTaskDialogOnReminderClick;
-    bool OpenTaskDialogOnOutlookMeetingAttendanceCheck;
 
     std::vector<TasksViewColumnSetting> TasksViewColumnSettings;
 

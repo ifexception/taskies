@@ -31,16 +31,6 @@ namespace tks::Utils
 std::string ToStdString(const std::wstring& input);
 #endif // _WIN32
 
-std::int64_t UnixTimestamp();
-
-std::int64_t UnixTimestampTodayMidnight();
-
-std::int64_t UnixTimestampTomorrowMidnight();
-
-std::string ToISODateTime(std::int64_t unixTimestamp);
-
-std::string Timestamp();
-
 int VoidPointerToInt(void* value);
 
 void* IntToVoidPointer(int value);

@@ -19,26 +19,16 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <sqlite3.h>
 
-#include "presetcolumnsetting.h"
-
-#include "../../common/enums.h"
-
-namespace tks::Core::Settings
+namespace tks::Persistence
 {
-struct PresetSetting {
-    std::string Uuid;
-    std::string Name;
-    bool IsDefault = false;
-    DelimiterType Delimiter = DelimiterType::None;
-    TextQualifierType TextQualifier = TextQualifierType::None;
-    EmptyValues EmptyValuesHandler = EmptyValues::None;
-    NewLines NewLinesHandler = NewLines::None;
-    BooleanHandler BooleanHandler = BooleanHandler::None;
-    bool ExcludeHeaders = false;
-    bool IncludeAttributes = false;
-    std::vector<PresetColumnSetting> Columns;
+struct SqliteStmtDeleterFn {
+    void operator()(sqlite3_stmt* stmt) const
+    {
+        if (stmt) {
+            sqlite3_finalize(stmt);
+        }
+    }
 };
-} // namespace tks::Core::Settings
+} // namespace tks::Persistence

@@ -97,6 +97,7 @@ private:
     std::vector<std::pair<int, TasksViewColumnIdentifier>> mCheckedAvailableColumns;
     std::vector<std::pair<int, Core::Settings::TasksViewColumnSetting>> mCheckedSelectedColumns;
 
+    std::vector<Core::Settings::TasksViewColumnSetting> mCfgOriginalTasksViewColumns;
     std::vector<Core::Settings::TasksViewColumnSetting> mCfgTasksViewColumns;
 
     Core::Settings::TasksViewColumnSetting mDefaultTasksViewColumnSettingProperties;
