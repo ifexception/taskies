@@ -65,5 +65,7 @@ private:
         std::vector<OutlookMeetingModel>& meetingModels);
 
     bool VariantToObject(const wxVariant& v, wxAutomationObject& o) const;
+
+    static const std::string OutlookName;
 };
 } // namespace tks::Services::Outlook

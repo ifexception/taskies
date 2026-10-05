@@ -39,67 +39,70 @@ PersistenceResult::PersistenceResult(int returnCode, const std::string& error)
 }
 
 PersistenceBase::PersistenceBase(std::shared_ptr<spdlog::logger> logger,
-    const std::string& databaseFilePath)
-    : pLogger(logger)
+    std::string databaseFilePath)
+    : pLogger(std::move(logger))
     , pDb(nullptr)
     , result()
 {
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::OpenDatabaseConnection, databaseFilePath);
 
-    int rc = sqlite3_open(databaseFilePath.c_str(), &pDb);
+    sqlite3* db = nullptr;
+    int rc = sqlite3_open(databaseFilePath.c_str(), &db);
+
+    pDb.reset(db);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::OpenDatabaseTemplate, databaseFilePath, rc, error);
 
         result = PersistenceResult(rc, std::string(error));
         return;
     }
 
-    rc = sqlite3_exec(pDb, QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb.get(), QueryHelper::ForeignKeys, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::ForeignKeys, rc, error);
 
         result = PersistenceResult(rc, std::string(error));
         return;
     }
 
-    rc = sqlite3_exec(pDb, QueryHelper::JournalMode, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb.get(), QueryHelper::JournalMode, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::JournalMode, rc, error);
 
         result = PersistenceResult(rc, std::string(error));
         return;
     }
 
-    rc = sqlite3_exec(pDb, QueryHelper::Synchronous, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb.get(), QueryHelper::Synchronous, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::Synchronous, rc, error);
 
         result = PersistenceResult(rc, std::string(error));
         return;
     }
 
-    rc = sqlite3_exec(pDb, QueryHelper::TempStore, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb.get(), QueryHelper::TempStore, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::TempStore, rc, error);
 
         result = PersistenceResult(rc, std::string(error));
         return;
     }
 
-    rc = sqlite3_exec(pDb, QueryHelper::MmapSize, nullptr, nullptr, nullptr);
+    rc = sqlite3_exec(pDb.get(), QueryHelper::MmapSize, nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecQueryTemplate, QueryHelper::MmapSize, rc, error);
 
         result = PersistenceResult(rc, std::string(error));
@@ -109,12 +112,6 @@ PersistenceBase::PersistenceBase(std::shared_ptr<spdlog::logger> logger,
 
 PersistenceBase::~PersistenceBase()
 {
-    sqlite3_close(pDb);
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::CloseDatabaseConnection);
-}
-
-PersistenceResult PersistenceBase::IsInitialized() const
-{
-    return result;
 }
 } // namespace tks::Persistence

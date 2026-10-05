@@ -46,7 +46,7 @@
 #include "../core/configuration.h"
 #include "../core/settings/tasksviewcolumnsetting.h"
 
-#include "../ui/frames/outlookmeetingsviewframe.h"
+#include "../ui/panels/outlookmeetingspanel.h"
 
 #include "../services/tasks/taskviewmodel.h"
 
@@ -174,9 +174,7 @@ private:
     /* General Event Handlers */
     void OnClose(wxCloseEvent& event);
     void OnIconize(wxIconizeEvent& event);
-    void OnResize(wxSizeEvent& event);
     void OnTaskReminder(wxTimerEvent& event);
-    void OnMove(wxMoveEvent& event);
     /* Taskbar Button Event Handlers */
     void OnThumbBarNewTask(wxCommandEvent& event);
     void OnThumbBarQuickExport(wxCommandEvent& event);
@@ -223,7 +221,6 @@ private:
     void OnTaskDateChanged(wxCommandEvent& event);
     void OnTaskUpdated(wxCommandEvent& event);
     void OnTaskDeleted(wxCommandEvent& event);
-    void OnOutlookMeetingViewClose(wxCommandEvent& event);
     /* Control Event Handlers */
     void OnPreviousDayButtonClick(wxCommandEvent& event);
     void OnDateChanged(wxDateEvent& event);
@@ -270,8 +267,6 @@ private:
     std::shared_ptr<Core::Configuration> pCfg;
     std::string mDatabaseFilePath;
 
-    frames::OutlookMeetingsViewFrame* pMeetingsViewFrame;
-
     wxThumbBarButton* pThumbBarNewTaskButton;
     wxThumbBarButton* pThumbBarQuickExportButton;
 
@@ -283,7 +278,12 @@ private:
     wxButton* pNextDayButton;
     wxButton* pNewTaskButton;
 
+    wxBoxSizer* pMainViewSizer;
+
     wxDataViewListCtrl* pDataViewListCtrl;
+
+    /* Outlook Meetings Panel */
+    Panel::OutlookMeetingsPanel* pOutlookMeetingsPanel;
 
     std::unique_ptr<DateStore> pDateStore;
 
@@ -314,6 +314,7 @@ private:
         tksIDC_NEXTDAYBUTTON,
         tksIDC_NEWTASKBUTTON,
         tksIDC_DATAVIEWLISTCTRL,
+        tksIDC_OUTLOOKMEETINGSPANEL,
         tksIDC_TASKREMINDERTIMER
     };
 };

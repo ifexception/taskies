@@ -17,28 +17,4 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#pragma once
-
-#include <string>
-#include <vector>
-
-#include "presetcolumnsetting.h"
-
-#include "../../common/enums.h"
-
-namespace tks::Core::Settings
-{
-struct PresetSetting {
-    std::string Uuid;
-    std::string Name;
-    bool IsDefault = false;
-    DelimiterType Delimiter = DelimiterType::None;
-    TextQualifierType TextQualifier = TextQualifierType::None;
-    EmptyValues EmptyValuesHandler = EmptyValues::None;
-    NewLines NewLinesHandler = NewLines::None;
-    BooleanHandler BooleanHandler = BooleanHandler::None;
-    bool ExcludeHeaders = false;
-    bool IncludeAttributes = false;
-    std::vector<PresetColumnSetting> Columns;
-};
-} // namespace tks::Core::Settings
+#include "db_deleter.h"

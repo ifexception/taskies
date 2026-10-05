@@ -46,10 +46,11 @@ SqliteResult ExportsService::FilterExportDataFromGeneratedSql(const std::string&
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
+    int rc =
+        sqlite3_prepare_v2(pDb.get(), sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
@@ -97,7 +98,7 @@ SqliteResult ExportsService::FilterExportDataFromGeneratedSql(const std::string&
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
@@ -116,10 +117,11 @@ SqliteResult ExportsService::FilterExportCsvAttributesData(const std::string& sq
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
+    int rc =
+        sqlite3_prepare_v2(pDb.get(), sql.c_str(), static_cast<int>(sql.size()), &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
@@ -165,7 +167,7 @@ SqliteResult ExportsService::FilterExportCsvAttributesData(const std::string& sq
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
@@ -193,10 +195,10 @@ SqliteResult ExportsService::GetAttributeNames(const std::string& fromDate,
 
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb, sql.c_str(), static_cast<int>(sqlSize), &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(pDb.get(), sql.c_str(), static_cast<int>(sqlSize), &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate, sql, rc, error);
 
         sqlite3_finalize(stmt);
@@ -211,7 +213,7 @@ SqliteResult ExportsService::GetAttributeNames(const std::string& fromDate,
         stmt, bindIndex, fromDate.c_str(), static_cast<int>(fromDate.size()), SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "from_date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -225,7 +227,7 @@ SqliteResult ExportsService::GetAttributeNames(const std::string& fromDate,
         stmt, bindIndex, toDate.c_str(), static_cast<int>(toDate.size()), SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "to_date", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -239,7 +241,7 @@ SqliteResult ExportsService::GetAttributeNames(const std::string& fromDate,
         rc = sqlite3_bind_int64(stmt, bindIndex, taskId.value());
 
         if (rc != SQLITE_OK) {
-            const char* error = sqlite3_errmsg(pDb);
+            const char* error = sqlite3_errmsg(pDb.get());
             pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
             sqlite3_finalize(stmt);
@@ -272,7 +274,7 @@ SqliteResult ExportsService::GetAttributeNames(const std::string& fromDate,
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, "ExportsService", sql, rc, error);
 
         sqlite3_finalize(stmt);

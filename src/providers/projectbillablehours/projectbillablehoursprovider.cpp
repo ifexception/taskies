@@ -41,17 +41,17 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         ProjectBillableHoursProvider::getTotalBillableHoursByProjectId.c_str(),
         static_cast<int>(ProjectBillableHoursProvider::getTotalBillableHoursByProjectId.size()),
         &stmt,
         nullptr);
 
-    auto stmt_deleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
-    std::unique_ptr<sqlite3_stmt, decltype(stmt_deleter)> stmtGuard(stmt, stmt_deleter);
+    auto stmtDeleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
+    std::unique_ptr<sqlite3_stmt, decltype(stmtDeleter)> stmtGuard(stmt, stmtDeleter);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             ProjectBillableHoursProvider::getTotalBillableHoursByProjectId,
             rc,
@@ -67,7 +67,7 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
         stmt, bindIndex, monthStart.c_str(), static_cast<int>(monthStart.size()), SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -79,7 +79,7 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
         stmt, bindIndex, monthEnd.c_str(), static_cast<int>(monthEnd.size()), SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date", bindIndex, rc, error);
 
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -90,7 +90,7 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
     rc = sqlite3_bind_int64(stmt, bindIndex, projectId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "project_id", bindIndex, rc, error);
 
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -99,7 +99,7 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate,
             ProjectBillableHoursProvider::getTotalBillableHoursByProjectId,
             rc,
@@ -115,7 +115,7 @@ SqliteResult ProjectBillableHoursProvider::CalculateTotalBillableHoursByProjectI
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         return SqliteResult::FailDetailed(

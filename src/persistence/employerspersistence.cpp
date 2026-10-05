@@ -23,6 +23,7 @@
 
 #include "../common/messages/sqlitemessages.h"
 
+#include "../utils/dateutils.h"
 #include "../utils/utils.h"
 #include "../utils/sqlite_helpers.h"
 
@@ -43,14 +44,14 @@ SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
 
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         EmployersPersistence::filter.c_str(),
         static_cast<int>(EmployersPersistence::filter.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::filter, rc, error);
 
@@ -69,7 +70,7 @@ SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -86,7 +87,7 @@ SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -127,7 +128,7 @@ SqliteResult EmployersPersistence::Filter(const std::string& searchTerm,
     }
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate,
             "EmployersPersistence",
             EmployersPersistence::filter,
@@ -149,14 +150,14 @@ SqliteResult EmployersPersistence::GetById(const std::int64_t employerId,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         EmployersPersistence::getById.c_str(),
         static_cast<int>(EmployersPersistence::getById.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::getById, rc, error);
 
@@ -170,7 +171,7 @@ SqliteResult EmployersPersistence::GetById(const std::int64_t employerId,
     rc = sqlite3_bind_int64(stmt, bindIndex, employerId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -180,7 +181,7 @@ SqliteResult EmployersPersistence::GetById(const std::int64_t employerId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, EmployersPersistence::getById, rc, error);
 
         sqlite3_finalize(stmt);
@@ -204,7 +205,7 @@ SqliteResult EmployersPersistence::GetById(const std::int64_t employerId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         sqlite3_finalize(stmt);
@@ -223,14 +224,14 @@ SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         EmployersPersistence::create.c_str(),
         static_cast<int>(EmployersPersistence::create.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::create, rc, error);
 
@@ -249,7 +250,7 @@ SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -261,7 +262,7 @@ SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
     // is default
     rc = sqlite3_bind_int(stmt, bindIndex, employerModel.IsDefault);
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -281,7 +282,7 @@ SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -291,7 +292,7 @@ SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate,
             "EmployersPersistence",
             EmployersPersistence::create,
@@ -304,7 +305,7 @@ SqliteResult EmployersPersistence::Create(std::int64_t& employerId,
 
     sqlite3_finalize(stmt);
 
-    employerId = sqlite3_last_insert_rowid(pDb);
+    employerId = sqlite3_last_insert_rowid(pDb.get());
     SPDLOG_LOGGER_TRACE(pLogger, LogMessages::EntityCreated, "employer", employerId);
 
     return SqliteResult::OK();
@@ -314,14 +315,14 @@ SqliteResult EmployersPersistence::Update(const Model::EmployerModel& employerMo
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         EmployersPersistence::update.c_str(),
         static_cast<int>(EmployersPersistence::update.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::update, rc, error);
 
@@ -339,7 +340,7 @@ SqliteResult EmployersPersistence::Update(const Model::EmployerModel& employerMo
         SQLITE_TRANSIENT);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "name", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -351,7 +352,7 @@ SqliteResult EmployersPersistence::Update(const Model::EmployerModel& employerMo
     // is default
     rc = sqlite3_bind_int(stmt, bindIndex, employerModel.IsDefault);
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "is_default", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -371,7 +372,7 @@ SqliteResult EmployersPersistence::Update(const Model::EmployerModel& employerMo
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "description", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -383,7 +384,7 @@ SqliteResult EmployersPersistence::Update(const Model::EmployerModel& employerMo
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -395,7 +396,7 @@ SqliteResult EmployersPersistence::Update(const Model::EmployerModel& employerMo
     rc = sqlite3_bind_int64(stmt, bindIndex, employerModel.EmployerId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -405,7 +406,7 @@ SqliteResult EmployersPersistence::Update(const Model::EmployerModel& employerMo
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, EmployersPersistence::update, rc, error);
 
         sqlite3_finalize(stmt);
@@ -422,14 +423,14 @@ SqliteResult EmployersPersistence::Delete(const std::int64_t employerId) const
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         EmployersPersistence::isActive.c_str(),
         static_cast<int>(EmployersPersistence::isActive.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::isActive, rc, error);
 
@@ -443,7 +444,7 @@ SqliteResult EmployersPersistence::Delete(const std::int64_t employerId) const
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -455,7 +456,7 @@ SqliteResult EmployersPersistence::Delete(const std::int64_t employerId) const
     rc = sqlite3_bind_int64(stmt, bindIndex, employerId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "employer_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -465,7 +466,7 @@ SqliteResult EmployersPersistence::Delete(const std::int64_t employerId) const
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate, EmployersPersistence::isActive, rc, error);
 
         sqlite3_finalize(stmt);
@@ -482,14 +483,14 @@ SqliteResult EmployersPersistence::UnsetDefault() const
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         EmployersPersistence::unsetDefault.c_str(),
         static_cast<int>(EmployersPersistence::unsetDefault.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::unsetDefault, rc, error);
 
@@ -502,7 +503,7 @@ SqliteResult EmployersPersistence::UnsetDefault() const
 
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -512,7 +513,7 @@ SqliteResult EmployersPersistence::UnsetDefault() const
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, EmployersPersistence::unsetDefault, rc, error);
 
@@ -531,14 +532,14 @@ SqliteResult EmployersPersistence::SelectDefault(Model::EmployerModel& employerM
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         EmployersPersistence::selectDefault.c_str(),
         static_cast<int>(EmployersPersistence::selectDefault.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, EmployersPersistence::selectDefault, rc, error);
 
@@ -556,7 +557,7 @@ SqliteResult EmployersPersistence::SelectDefault(Model::EmployerModel& employerM
         sqlite3_finalize(stmt);
         return SqliteResult::OK();
     } else if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
 
         pLogger->error(
             LogMessages::ExecStepTemplate, EmployersPersistence::selectDefault, rc, error);
@@ -582,7 +583,7 @@ SqliteResult EmployersPersistence::SelectDefault(Model::EmployerModel& employerM
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
 
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 

@@ -23,6 +23,7 @@
 
 #include "../common/messages/sqlitemessages.h"
 
+#include "../utils/dateutils.h"
 #include "../utils/utils.h"
 
 namespace tks::Persistence
@@ -41,14 +42,14 @@ SqliteResult TaskAttributeValuesPersistence::Create(std::int64_t& taskAttributeV
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TaskAttributeValuesPersistence::create.c_str(),
         static_cast<int>(TaskAttributeValuesPersistence::create.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             TaskAttributeValuesPersistence::create,
             rc,
@@ -72,7 +73,7 @@ SqliteResult TaskAttributeValuesPersistence::Create(std::int64_t& taskAttributeV
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "text_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -88,7 +89,7 @@ SqliteResult TaskAttributeValuesPersistence::Create(std::int64_t& taskAttributeV
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "boolean_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -104,7 +105,7 @@ SqliteResult TaskAttributeValuesPersistence::Create(std::int64_t& taskAttributeV
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "numeric_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -116,7 +117,7 @@ SqliteResult TaskAttributeValuesPersistence::Create(std::int64_t& taskAttributeV
     rc = sqlite3_bind_int64(stmt, bindIndex, taskAttributeValueModel.TaskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -128,7 +129,7 @@ SqliteResult TaskAttributeValuesPersistence::Create(std::int64_t& taskAttributeV
     rc = sqlite3_bind_int64(stmt, bindIndex, taskAttributeValueModel.AttributeId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -140,7 +141,7 @@ SqliteResult TaskAttributeValuesPersistence::Create(std::int64_t& taskAttributeV
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, TaskAttributeValuesPersistence::create, rc, error);
 
@@ -150,7 +151,7 @@ SqliteResult TaskAttributeValuesPersistence::Create(std::int64_t& taskAttributeV
 
     sqlite3_finalize(stmt);
 
-    taskAttributeValueId = sqlite3_last_insert_rowid(pDb);
+    taskAttributeValueId = sqlite3_last_insert_rowid(pDb.get());
     SPDLOG_LOGGER_TRACE(
         pLogger, LogMessages::EntityCreated, "task_attribute_value", taskAttributeValueId);
 
@@ -178,14 +179,14 @@ SqliteResult TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t task
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TaskAttributeValuesPersistence::getByTaskId.c_str(),
         static_cast<int>(TaskAttributeValuesPersistence::getByTaskId.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             TaskAttributeValuesPersistence::getByTaskId,
             rc,
@@ -201,7 +202,7 @@ SqliteResult TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t task
     rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -269,7 +270,7 @@ SqliteResult TaskAttributeValuesPersistence::GetByTaskId(const std::int64_t task
         }
     }
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, TaskAttributeValuesPersistence::getByTaskId, rc, error);
 
@@ -287,14 +288,14 @@ SqliteResult TaskAttributeValuesPersistence::DeleteByTaskId(const std::int64_t t
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TaskAttributeValuesPersistence::deleteByTaskId.c_str(),
         static_cast<int>(TaskAttributeValuesPersistence::deleteByTaskId.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             TaskAttributeValuesPersistence::deleteByTaskId,
             rc,
@@ -310,7 +311,7 @@ SqliteResult TaskAttributeValuesPersistence::DeleteByTaskId(const std::int64_t t
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -322,7 +323,7 @@ SqliteResult TaskAttributeValuesPersistence::DeleteByTaskId(const std::int64_t t
     rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -332,7 +333,7 @@ SqliteResult TaskAttributeValuesPersistence::DeleteByTaskId(const std::int64_t t
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecStepTemplate,
             TaskAttributeValuesPersistence::deleteByTaskId,
             rc,
@@ -354,14 +355,14 @@ SqliteResult TaskAttributeValuesPersistence::Update(
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TaskAttributeValuesPersistence::update.c_str(),
         static_cast<int>(TaskAttributeValuesPersistence::update.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::PrepareStatementTemplate,
             TaskAttributeValuesPersistence::update,
             rc,
@@ -385,7 +386,7 @@ SqliteResult TaskAttributeValuesPersistence::Update(
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "text_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -401,7 +402,7 @@ SqliteResult TaskAttributeValuesPersistence::Update(
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "boolean_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -417,7 +418,7 @@ SqliteResult TaskAttributeValuesPersistence::Update(
     }
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "numeric_value", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -429,7 +430,7 @@ SqliteResult TaskAttributeValuesPersistence::Update(
     rc = sqlite3_bind_int64(stmt, bindIndex, taskAttributeValueModel.AttributeId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "attribute_id", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -441,7 +442,7 @@ SqliteResult TaskAttributeValuesPersistence::Update(
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modifed", bindIndex, rc, error);
 
         sqlite3_finalize(stmt);
@@ -453,7 +454,7 @@ SqliteResult TaskAttributeValuesPersistence::Update(
     rc = sqlite3_bind_int64(stmt, bindIndex, taskAttributeValueModel.TaskAttributeValueId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::BindParameterTemplate, "task_attribute_value_id", bindIndex, rc, error);
 
@@ -466,7 +467,7 @@ SqliteResult TaskAttributeValuesPersistence::Update(
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, TaskAttributeValuesPersistence::update, rc, error);
 

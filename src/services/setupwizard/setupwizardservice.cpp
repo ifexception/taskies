@@ -55,11 +55,11 @@ int SetupWizardService::BeginTransaction()
      */
     assert(mTransactionCounter == 1);
 
-    int rc =
-        sqlite3_exec(pDb, SetupWizardService::beginTransaction.c_str(), nullptr, nullptr, nullptr);
+    int rc = sqlite3_exec(
+        pDb.get(), SetupWizardService::beginTransaction.c_str(), nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* err = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecQueryTemplate, SetupWizardService::beginTransaction, rc, err);
     }
@@ -72,11 +72,11 @@ int SetupWizardService::CommitTransaction()
 
     assert(mTransactionCounter == 0);
 
-    int rc =
-        sqlite3_exec(pDb, SetupWizardService::commitTransaction.c_str(), nullptr, nullptr, nullptr);
+    int rc = sqlite3_exec(
+        pDb.get(), SetupWizardService::commitTransaction.c_str(), nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* err = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecQueryTemplate,
             "SetupWizardRepository",
             SetupWizardService::commitTransaction,
@@ -93,10 +93,10 @@ int SetupWizardService::RollbackTransaction()
     assert(mTransactionCounter == 0);
 
     int rc = sqlite3_exec(
-        pDb, SetupWizardService::rollbackTransaction.c_str(), nullptr, nullptr, nullptr);
+        pDb.get(), SetupWizardService::rollbackTransaction.c_str(), nullptr, nullptr, nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* err = sqlite3_errmsg(pDb);
+        const char* err = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::ExecQueryTemplate,
             "SetupWizardRepository",
             SetupWizardService::rollbackTransaction,

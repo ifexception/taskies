@@ -24,6 +24,7 @@
 
 #include "../../common/messages/sqlitemessages.h"
 
+#include "../../utils/dateutils.h"
 #include "../../utils/utils.h"
 
 namespace tks::Services
@@ -65,14 +66,14 @@ SqliteResult TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TaskDurationService::getTaskTimeById.c_str(),
         static_cast<int>(TaskDurationService::getTaskTimeById.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, TaskDurationService::getTaskTimeById, rc, error);
 
@@ -80,15 +81,15 @@ SqliteResult TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
             Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
-    auto stmt_deleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
-    std::unique_ptr<sqlite3_stmt, decltype(stmt_deleter)> stmtGuard(stmt, stmt_deleter);
+    auto stmtDeleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
+    std::unique_ptr<sqlite3_stmt, decltype(stmtDeleter)> stmtGuard(stmt, stmtDeleter);
 
     int bindIndex = 1;
 
     rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -97,7 +98,7 @@ SqliteResult TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_ROW) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, TaskDurationService::getTaskTimeById, rc, error);
 
@@ -112,7 +113,7 @@ SqliteResult TaskDurationService::GetTaskTimeById(const std::int64_t taskId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->warn(LogMessages::ExecQueryDidNotReturnOneResultTemplate, rc, error);
 
         return SqliteResult::FailDetailed(
@@ -149,14 +150,14 @@ SqliteResult TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
 {
     sqlite3_stmt* stmt = nullptr;
 
-    int rc = sqlite3_prepare_v2(pDb,
+    int rc = sqlite3_prepare_v2(pDb.get(),
         TaskDurationService::updateTaskTime.c_str(),
         static_cast<int>(TaskDurationService::updateTaskTime.size()),
         &stmt,
         nullptr);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::PrepareStatementTemplate, TaskDurationService::updateTaskTime, rc, error);
 
@@ -164,8 +165,8 @@ SqliteResult TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
             Messages::PrepareStatementMessage, rc, std::string(error));
     }
 
-    auto stmt_deleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
-    std::unique_ptr<sqlite3_stmt, decltype(stmt_deleter)> stmtGuard(stmt, stmt_deleter);
+    auto stmtDeleter = [](sqlite3_stmt* s) { sqlite3_finalize(s); };
+    std::unique_ptr<sqlite3_stmt, decltype(stmtDeleter)> stmtGuard(stmt, stmtDeleter);
 
     int bindIndex = 1;
 
@@ -173,7 +174,7 @@ SqliteResult TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
     rc = sqlite3_bind_int(stmt, bindIndex, taskDurationViewModel.Hours);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "hours", bindIndex, rc, error);
 
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -185,7 +186,7 @@ SqliteResult TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
     rc = sqlite3_bind_int(stmt, bindIndex, taskDurationViewModel.Minutes);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "minutes", bindIndex, rc, error);
 
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -197,7 +198,7 @@ SqliteResult TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
     rc = sqlite3_bind_int64(stmt, bindIndex, Utils::UnixTimestamp());
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "date_modified", bindIndex, rc, error);
 
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -209,7 +210,7 @@ SqliteResult TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
     rc = sqlite3_bind_int64(stmt, bindIndex, taskId);
 
     if (rc != SQLITE_OK) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(LogMessages::BindParameterTemplate, "task_id", bindIndex, rc, error);
 
         return SqliteResult::FailDetailed(Messages::BindStatementMessage, rc, std::string(error));
@@ -218,7 +219,7 @@ SqliteResult TaskDurationService::UpdateTaskTime(const std::int64_t taskId,
     rc = sqlite3_step(stmt);
 
     if (rc != SQLITE_DONE) {
-        const char* error = sqlite3_errmsg(pDb);
+        const char* error = sqlite3_errmsg(pDb.get());
         pLogger->error(
             LogMessages::ExecStepTemplate, TaskDurationService::updateTaskTime, rc, error);
 

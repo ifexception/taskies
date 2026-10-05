@@ -928,13 +928,13 @@ void ExportToExcelDialog::OnSavePreset(wxCommandEvent& event)
     }
 
     if (presetData->GetValue().empty()) {
-        pCfg->SaveExportPreset(preset);
+        pCfg->SaveExportPreset(std::move(preset));
 
         int selection =
             pPresetsChoiceCtrl->Append(preset.Name, new ClientData<std::string>(preset.Uuid));
         pPresetsChoiceCtrl->SetSelection(selection);
     } else {
-        pCfg->UpdateExportPreset(preset);
+        pCfg->UpdateExportPreset(std::move(preset));
     }
 }
 

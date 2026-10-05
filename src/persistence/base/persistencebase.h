@@ -27,6 +27,8 @@
 
 #include <sqlite3.h>
 
+#include "db_deleter.h"
+
 namespace tks::Persistence
 {
 struct PersistenceResult {
@@ -40,13 +42,11 @@ struct PersistenceResult {
 };
 
 struct PersistenceBase {
-    PersistenceBase(std::shared_ptr<spdlog::logger> logger, const std::string& databaseFilePath);
+    PersistenceBase(std::shared_ptr<spdlog::logger> logger, std::string databaseFilePath);
     virtual ~PersistenceBase();
 
-    PersistenceResult IsInitialized() const;
-
     std::shared_ptr<spdlog::logger> pLogger;
-    sqlite3* pDb;
+    std::unique_ptr<sqlite3, SqliteDbDeleterFn> pDb;
     PersistenceResult result;
 };
 } // namespace tks::Persistence

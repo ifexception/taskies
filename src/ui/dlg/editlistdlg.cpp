@@ -55,6 +55,7 @@
 #include "../../services/attributes/staticattributegroupviewmodel.h"
 #include "../../services/attributes/staticattributegroupsservice.h"
 
+#include "../../utils/dateutils.h"
 #include "../../utils/utils.h"
 
 namespace tks::UI::dlg

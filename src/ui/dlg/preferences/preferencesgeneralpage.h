@@ -73,6 +73,8 @@ private:
     wxCheckBox* pMinimizeToTrayCtrl;
     wxCheckBox* pCloseToTrayCtrl;
 
+    wxCheckBox* pShowOutlookMeetingsPanelCheckBoxCtrl;
+
     enum {
         tksIDC_LANG = wxID_HIGHEST + 1,
         tksIDC_START_WITH_WINDOWS,
@@ -80,6 +82,7 @@ private:
         tksIDC_SHOW_IN_TRAY,
         tksIDC_MINIMIZE_TO_TRAY,
         tksIDC_CLOSE_TO_TRAY,
+        tksIDC_SHOWOUTLOOKMEETINGSPANELCHECKBOXCTRL,
     };
 };
 } // namespace dlg
