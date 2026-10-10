@@ -376,7 +376,9 @@ void ExportToCsvDialog::CreateControls()
         "Date Range",
         wxDefaultPosition,
         wxDefaultSize,
-        mDateRangeSelectionRadioBoxOptions);
+        mDateRangeSelectionRadioBoxOptions,
+        0,
+        wxRA_SPECIFY_ROWS);
     pDateRangeSelectionRadioBoxCtrl->SetToolTip("Select an export date range selection");
 
     /* Date from and to controls horizontal sizer */
