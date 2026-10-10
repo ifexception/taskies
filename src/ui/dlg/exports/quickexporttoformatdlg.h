@@ -125,7 +125,7 @@ private:
 
     enum {
         tksIDC_EXPORTFORMATRADIOBOXCTRL = wxID_HIGHEST + 101,
-        tksIDC_COPY_TO_CLIPBOARD_CTRL ,
+        tksIDC_COPY_TO_CLIPBOARD_CTRL,
         tksIDC_SAVE_TO_FILE_CTRL,
         tksIDC_BROWSE_EXPORT_PATH_CTRL,
         tksIDC_DATE_FROM_CTRL,

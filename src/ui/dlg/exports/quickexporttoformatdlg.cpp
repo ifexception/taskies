@@ -143,7 +143,7 @@ void QuickExportToFormatDialog::CreateControls()
         mRadioExportOptions,
         1,
         wxRA_SPECIFY_ROWS);
-    pExportFormatRadioBoxCtrl->SetToolTip("Select an export formation option");
+    pExportFormatRadioBoxCtrl->SetToolTip("Select an export format option");
     mainSizer->Add(pExportFormatRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Output static box (top) */
