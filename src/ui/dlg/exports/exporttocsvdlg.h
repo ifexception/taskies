@@ -104,8 +104,8 @@ private:
     void OnExport(wxCommandEvent& event);
 
     void SetDateControlsValue();
-    void SetFromDateControlValue();
-    void SetToDateControlValue();
+    void SetFromDateControlValue(bool disable = true);
+    void SetToDateControlValue(bool disable = true);
 
     void SetDateControlsValue(const date::sys_days& newDate);
     void SetFromDateControlValue(const date::sys_days& newDate);

@@ -943,7 +943,7 @@ void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
     if (eventDateUtc > pToDatePickerCtrl->GetValue()) {
-        SetFromDateControlValue();
+        SetFromDateControlValue(true);
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"to\" date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pFromDatePickerCtrl);
@@ -968,7 +968,7 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
     if (eventDateUtc < pFromDatePickerCtrl->GetValue()) {
-        SetToDateControlValue();
+        SetToDateControlValue(true);
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"from\" date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDatePickerCtrl);
@@ -1486,20 +1486,24 @@ void ExportToCsvDialog::SetDateControlsValue()
     SetToDateControlValue();
 }
 
-void ExportToCsvDialog::SetFromDateControlValue()
+void ExportToCsvDialog::SetFromDateControlValue(bool disable)
 {
     mFromDate = pDateStore->TodayDate;
 
     pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-    pFromDatePickerCtrl->Disable();
+    if (disable) {
+        pFromDatePickerCtrl->Disable();
+    }
 }
 
-void ExportToCsvDialog::SetToDateControlValue()
+void ExportToCsvDialog::SetToDateControlValue(bool disable)
 {
     mToDate = pDateStore->TodayDate;
 
     pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-    pToDatePickerCtrl->Disable();
+    if (disable) {
+        pToDatePickerCtrl->Disable();
+    }
 }
 
 void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& newDate)
