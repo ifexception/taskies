@@ -82,6 +82,8 @@ private:
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
     void OnExportTodaysTasksOnlyCheck(wxCommandEvent& event);
+    void OnExportCurrentWeekTasksOnlyCheck(wxCommandEvent& event);
+    void OnExportCurrentMonthTasksOnlyCheck(wxCommandEvent& event);
 
     void OnSavePreset(wxCommandEvent& event);
     void OnResetPreset(wxCommandEvent& event);
@@ -127,9 +129,14 @@ private:
     wxChoice* pNewLinesHandlerChoiceCtrl;
     wxChoice* pBooleanHanderChoiceCtrl;
 
+    wxButton* pLeftDateButton;
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
-    wxCheckBox* pExportTodaysTasksCheckBoxCtrl;
+    wxButton* pRightDateButton;
+
+    wxCheckBox* pExportTodayTasksCheckBoxCtrl;
+    wxCheckBox* pExportCurrentWeekTasksCheckBoxCtrl;
+    wxCheckBox* pExportCurrentMonthTasksCheckBoxCtrl;
 
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
@@ -185,9 +192,13 @@ private:
         tksIDC_EMPTY_VALUE_HANDLER_CTRL,
         tksIDC_NEW_LINES_HANDLER_CTRL,
         tksIDC_BOOLEAN_HANDLER_CTRL,
+        tksIDC_LEFTDATEBUTTON,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
+        tksIDC_RIGHTDATEBUTTON,
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
+        tksIDC_EXPORTCURRENTWEEKTASKSCHECKBOXCTRL,
+        tksIDC_EXPORTCURRENTMONTHTASKSCHECKBOXCTRL,
         tksIDC_PRESET_RESET_BUTTON,
         tksIDC_PRESET_NAME_TEXT_CTRL,
         tksIDC_PRESET_SAVE_BUTTON,

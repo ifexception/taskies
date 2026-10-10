@@ -89,16 +89,21 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pCfg(cfg)
     , pLogger(logger)
     , pDateStore(nullptr)
+    , pExportToClipboardCheckBoxCtrl(nullptr)
+    , pSaveToFileTextCtrl(nullptr)
+    , pBrowseExportPathButton(nullptr)
     , pDelimiterChoiceCtrl(nullptr)
     , pTextQualifierChoiceCtrl(nullptr)
     , pEmptyValueHandlerChoiceCtrl(nullptr)
     , pNewLinesHandlerChoiceCtrl(nullptr)
     , pBooleanHanderChoiceCtrl(nullptr)
-    , pExportToClipboardCheckBoxCtrl(nullptr)
-    , pSaveToFileTextCtrl(nullptr)
-    , pBrowseExportPathButton(nullptr)
+    , pLeftDateButton(nullptr)
     , pFromDatePickerCtrl(nullptr)
     , pToDatePickerCtrl(nullptr)
+    , pRightDateButton(nullptr)
+    , pExportTodayTasksCheckBoxCtrl(nullptr)
+    , pExportCurrentWeekTasksCheckBoxCtrl(nullptr)
+    , pExportCurrentMonthTasksCheckBoxCtrl(nullptr)
     , pPresetNameTextCtrl(nullptr)
     , pPresetIsDefaultCheckBoxCtrl(nullptr)
     , pPresetSaveButton(nullptr)
@@ -341,36 +346,64 @@ void ExportToCsvDialog::CreateControls()
     optionsAndDateRangeHorizontalSizer->Add(
         dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    /* From date control */
-    auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From: ");
+    /* From date controls */
+    pLeftDateButton = new wxButton(
+        dateRangeStaticBox, tksIDC_LEFTDATEBUTTON, "<", wxDefaultPosition, FromDIP(wxSize(32, -1)));
+    pLeftDateButton->SetToolTip("Go backwards based on date selection option");
     pFromDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_FROM_CTRL);
     pFromDatePickerCtrl->SetToolTip("Set the earliest inclusive date to export the data from");
 
+    /* Date static seperator control */
+    auto dateStaticSeperator = new wxStaticText(dateRangeStaticBox, wxID_ANY, "-");
+
     /* To date control */
-    auto toDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "To: ");
     pToDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
     pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data from");
+    pRightDateButton = new wxButton(dateRangeStaticBox,
+        tksIDC_RIGHTDATEBUTTON,
+        ">",
+        wxDefaultPosition,
+        FromDIP(wxSize(32, -1)));
+    pRightDateButton->SetToolTip("Go forwards based on date selection option");
 
     /* Export todays tasks check box control */
-    pExportTodaysTasksCheckBoxCtrl = new wxCheckBox(
+    pExportTodayTasksCheckBoxCtrl = new wxCheckBox(
         dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks");
-    pExportTodaysTasksCheckBoxCtrl->SetToolTip("Export tasks logged during today's date");
+    pExportTodayTasksCheckBoxCtrl->SetToolTip("Export tasks logged during today's date");
+
+    /* Export current week tasks check box control */
+    pExportCurrentWeekTasksCheckBoxCtrl = new wxCheckBox(
+        dateRangeStaticBox, tksIDC_EXPORTCURRENTWEEKTASKSCHECKBOXCTRL, "Export current week tasks");
+    pExportCurrentWeekTasksCheckBoxCtrl->SetToolTip("Export tasks logged during the current week");
+
+    /* Export current month tasks check box control */
+    pExportCurrentMonthTasksCheckBoxCtrl = new wxCheckBox(dateRangeStaticBox,
+        tksIDC_EXPORTCURRENTMONTHTASKSCHECKBOXCTRL,
+        "Export current month tasks");
+    pExportCurrentMonthTasksCheckBoxCtrl->SetToolTip(
+        "Export tasks logged during the current month");
 
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     dateRangeStaticBoxSizer->Add(dateControlsHorizontalSizer, wxSizerFlags().Expand());
 
     dateControlsHorizontalSizer->Add(
-        fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        pLeftDateButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateControlsHorizontalSizer->Add(
-        pFromDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+        pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateControlsHorizontalSizer->Add(
-        toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        dateStaticSeperator, wxSizerFlags().CenterVertical());
     dateControlsHorizontalSizer->Add(
-        pToDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+        pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    dateControlsHorizontalSizer->Add(
+        pRightDateButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
     dateRangeStaticBoxSizer->Add(
-        pExportTodaysTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+        pExportTodayTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateRangeStaticBoxSizer->Add(
+        pExportCurrentWeekTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    dateRangeStaticBoxSizer->Add(
+        pExportCurrentMonthTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line1 = new wxStaticLine(this, wxID_ANY);
@@ -690,7 +723,7 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_DATE_TO_CTRL
     );
 
-    pExportTodaysTasksCheckBoxCtrl->Bind(
+    pExportTodayTasksCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX,
         &ExportToCsvDialog::OnExportTodaysTasksOnlyCheck,
         this,
@@ -1007,6 +1040,11 @@ void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
         pToDatePickerCtrl->Enable();
     }
 }
+
+void ExportToCsvDialog::OnExportCurrentWeekTasksOnlyCheck(wxCommandEvent& event) {}
+
+void ExportToCsvDialog::OnExportCurrentMonthTasksOnlyCheck(wxCommandEvent& event) {}
+
 void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 {
     mExportOptions.Reset();
