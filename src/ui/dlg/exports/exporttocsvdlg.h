@@ -82,6 +82,8 @@ private:
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
 
+    void OnDateRangeRadioBoxSelection(wxCommandEvent& event);
+
     void OnSavePreset(wxCommandEvent& event);
     void OnResetPreset(wxCommandEvent& event);
     void OnPresetChoice(wxCommandEvent& event);
@@ -102,8 +104,12 @@ private:
     void OnExport(wxCommandEvent& event);
 
     void SetDateControlsValue();
+    void SetDateControlsValue(const date::sys_days& newDate);
+    void SetDateControlsValue(const date::sys_days& fromDate, const date::sys_days& toDate);
     void SetFromDateControlValue();
+    void SetFromDateControlValue(const date::sys_days& newDate);
     void SetToDateControlValue();
+    void SetToDateControlValue(const date::sys_days& newDate);
 
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();

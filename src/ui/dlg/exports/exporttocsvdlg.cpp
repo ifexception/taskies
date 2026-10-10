@@ -389,8 +389,7 @@ void ExportToCsvDialog::CreateControls()
         pLeftDateButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateControlsHorizontalSizer->Add(
         pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
-    dateControlsHorizontalSizer->Add(
-        dateStaticSeperator, wxSizerFlags().CenterVertical());
+    dateControlsHorizontalSizer->Add(dateStaticSeperator, wxSizerFlags().CenterVertical());
     dateControlsHorizontalSizer->Add(
         pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateControlsHorizontalSizer->Add(
@@ -616,6 +615,8 @@ void ExportToCsvDialog::FillControls()
     /* Date Controls */
     SetDateControlsValue();
 
+    pDateRangeSelectionRadioBoxCtrl->SetSelection(0);
+
     /*SetFromDateAndDatePicker();
     SetToDateAndDatePicker();*/
 
@@ -715,6 +716,12 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnToDateSelection,
         this,
         tksIDC_DATE_TO_CTRL
+    );
+
+    pDateRangeSelectionRadioBoxCtrl->Bind(
+        wxEVT_RADIOBOX,
+        &ExportToCsvDialog::OnDateRangeRadioBoxSelection,
+        this
     );
 
     pPresetSaveButton->Bind(
@@ -1004,29 +1011,56 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     mToDate = newToDate;
 }
 
-//void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
+void ExportToCsvDialog::OnDateRangeRadioBoxSelection(wxCommandEvent& event)
+{
+    ExportDateRangeOption dateRangeOption =
+        static_cast<ExportDateRangeOption>(event.GetSelection() + 1);
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Radio box selection changed \"{0}\"", event.GetSelection());
+
+    switch (dateRangeOption) {
+    case ExportDateRangeOption::Day: {
+        SetDateControlsValue(pDateStore->TodayDate);
+        break;
+    }
+    case ExportDateRangeOption::Week: {
+        SetDateControlsValue(pDateStore->MondayDate, pDateStore->SundayDate);
+        break;
+    }
+    case ExportDateRangeOption::Month: {
+        SetDateControlsValue(pDateStore->FirstDayOfMonth, pDateStore->LastDayOfMonth);
+        break;
+    }
+    case ExportDateRangeOption::Custom:
+        break;
+    default:
+        break;
+    }
+}
+
+// void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
 //{
-//    bExportTodaysTasksOnly = event.IsChecked();
+//     bExportTodaysTasksOnly = event.IsChecked();
 //
-//    if (bExportTodaysTasksOnly) {
-//        pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-//        mFromCtrlDate = pDateStore->TodayDateSeconds;
+//     if (bExportTodaysTasksOnly) {
+//         pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+//         mFromCtrlDate = pDateStore->TodayDateSeconds;
 //
-//        pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-//        mToCtrlDate = pDateStore->TodayDateSeconds;
+//         pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+//         mToCtrlDate = pDateStore->TodayDateSeconds;
 //
-//        pFromDatePickerCtrl->Disable();
-//        pToDatePickerCtrl->Disable();
-//    } else {
-//        SetFromAndToDatePickerRanges();
+//         pFromDatePickerCtrl->Disable();
+//         pToDatePickerCtrl->Disable();
+//     } else {
+//         SetFromAndToDatePickerRanges();
 //
-//        SetFromDateAndDatePicker();
-//        SetToDateAndDatePicker();
+//         SetFromDateAndDatePicker();
+//         SetToDateAndDatePicker();
 //
-//        pFromDatePickerCtrl->Enable();
-//        pToDatePickerCtrl->Enable();
-//    }
-//}
+//         pFromDatePickerCtrl->Enable();
+//         pToDatePickerCtrl->Enable();
+//     }
+// }
 
 void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 {
@@ -1510,16 +1544,49 @@ void ExportToCsvDialog::SetDateControlsValue()
     SetToDateControlValue();
 }
 
+void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& newDate)
+{
+    SetFromDateControlValue(newDate);
+    SetToDateControlValue(newDate);
+}
+
+void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& fromDate,
+    const date::sys_days& toDate)
+{
+    SetFromDateControlValue(fromDate);
+    SetToDateControlValue(toDate);
+}
+
 void ExportToCsvDialog::SetFromDateControlValue()
 {
     pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
     pFromDatePickerCtrl->Disable();
 }
 
+void ExportToCsvDialog::SetFromDateControlValue(const date::sys_days& newDate)
+{
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
+    pFromDatePickerCtrl->SetValue(seconds);
+    if (pFromDatePickerCtrl->IsEnabled()) {
+        pFromDatePickerCtrl->Disable();
+    }
+}
+
 void ExportToCsvDialog::SetToDateControlValue()
 {
     pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
     pToDatePickerCtrl->Disable();
+}
+
+void ExportToCsvDialog::SetToDateControlValue(const date::sys_days& newDate)
+{
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
+    pToDatePickerCtrl->SetValue(seconds);
+    if (pToDatePickerCtrl->IsEnabled()) {
+        pToDatePickerCtrl->Disable();
+    }
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()

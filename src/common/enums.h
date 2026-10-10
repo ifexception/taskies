@@ -70,6 +70,8 @@ enum class AttributeTypes { Text = 1, Numeric, Boolean };
 
 enum class ExportFormat { Csv = 1, Excel };
 
+enum class ExportDateRangeOption { Day = 1, Week, Month, Custom };
+
 enum class TasksViewColumnTextAlignment : int { Left = 1, Right, Center };
 
 enum class TasksViewColumnIdentifier : int {
