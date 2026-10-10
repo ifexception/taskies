@@ -35,7 +35,6 @@
 
 #include "../../../common/common.h"
 #include "../../../common/constants.h"
-#include "../../../common/enums.h"
 #include "../../../common/enumclientdata.h"
 
 #include "../../../common/messages/operationmessages.h"
@@ -109,6 +108,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , bExportToClipboard(false)
     , bOpenExplorerInExportDirectory(false)
     , mDateRangeSelectionRadioBoxOptions()
+    , mDateRangeOption()
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
@@ -595,9 +595,8 @@ void ExportToCsvDialog::FillControls()
     SetDateControlsValue();
 
     pDateRangeSelectionRadioBoxCtrl->SetSelection(0);
-
-    /*SetFromDateAndDatePicker();
-    SetToDateAndDatePicker();*/
+    mDateRangeOption =
+        static_cast<ExportDateRangeOption>(pDateRangeSelectionRadioBoxCtrl->GetSelection() + 1);
 
     /* Available Columns */
     for (auto& column : Services::Export::MakeAvailableColumns()) {
@@ -683,6 +682,12 @@ void ExportToCsvDialog::ConfigureEventBindings()
         this
     );
 
+    pLeftDateButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnLeftDateButtonClick,
+        this
+    );
+
     pFromDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
         &ExportToCsvDialog::OnFromDateSelection,
@@ -695,6 +700,12 @@ void ExportToCsvDialog::ConfigureEventBindings()
         &ExportToCsvDialog::OnToDateSelection,
         this,
         tksIDC_DATE_TO_CTRL
+    );
+
+    pRightDateButton->Bind(
+        wxEVT_BUTTON,
+        &ExportToCsvDialog::OnRightDateButtonClick,
+        this
     );
 
     pDateRangeSelectionRadioBoxCtrl->Bind(
@@ -933,6 +944,25 @@ void ExportToCsvDialog::OnOpenExplorerInExportDirectoryCheck(wxCommandEvent& eve
     bOpenExplorerInExportDirectory = event.IsChecked();
 }
 
+void ExportToCsvDialog::OnLeftDateButtonClick(wxCommandEvent& event)
+{
+    switch (mDateRangeOption) {
+    case ExportDateRangeOption::Day: {
+        auto newDate = pDateStore->TodayDate + date::days{ -1 };
+        SetDateControlsValue(newDate);
+        break;
+    }
+    case ExportDateRangeOption::Week:
+        break;
+    case ExportDateRangeOption::Month:
+        break;
+    case ExportDateRangeOption::Custom:
+        break;
+    default:
+        break;
+    }
+}
+
 void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
 {
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -983,14 +1013,15 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     mToDate = newToDate;
 }
 
+void ExportToCsvDialog::OnRightDateButtonClick(wxCommandEvent& event) {}
+
 void ExportToCsvDialog::OnDateRangeRadioBoxSelection(wxCommandEvent& event)
 {
-    ExportDateRangeOption dateRangeOption =
-        static_cast<ExportDateRangeOption>(event.GetSelection() + 1);
+    mDateRangeOption = static_cast<ExportDateRangeOption>(event.GetSelection() + 1);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Radio box selection changed \"{0}\"", event.GetSelection());
 
-    switch (dateRangeOption) {
+    switch (mDateRangeOption) {
     case ExportDateRangeOption::Day: {
         SetDateControlsValue(pDateStore->TodayDate);
         break;
@@ -1041,7 +1072,7 @@ void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 void ExportToCsvDialog::OnSavePreset(wxCommandEvent& event)
 {
     if (pCfg->GetPresetCount() == MAX_PRESET_COUNT) {
-        auto valMsg = "Limit of 5 presets has been exceeded";
+        auto valMsg = "Maxiumn of \"5\" presets has been exceeded";
         wxRichToolTip tooltip("Validation", valMsg);
         tooltip.SetIcon(wxICON_WARNING);
         tooltip.ShowFor(pPresetSaveButton);

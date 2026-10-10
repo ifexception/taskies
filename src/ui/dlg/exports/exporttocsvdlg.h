@@ -38,6 +38,8 @@
 
 #include "../../dataview/columnlistmodel.h"
 
+#include "../../../common/enums.h"
+
 #include "../../../core/configuration.h"
 #include "../../../core/settings/presetsetting.h"
 #include "../../../core/settings/presetcolumnsetting.h"
@@ -79,8 +81,10 @@ private:
     void OnNewLinesHandlerChoiceSelection(wxCommandEvent& event);
     void OnBooleanHandlerChoiceSelection(wxCommandEvent& event);
 
+    void OnLeftDateButtonClick(wxCommandEvent& event);
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
+    void OnRightDateButtonClick(wxCommandEvent& event);
 
     void OnDateRangeRadioBoxSelection(wxCommandEvent& event);
 
@@ -183,6 +187,8 @@ private:
     bool bOpenExplorerInExportDirectory;
 
     wxArrayString mDateRangeSelectionRadioBoxOptions;
+
+    ExportDateRangeOption mDateRangeOption;
 
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
