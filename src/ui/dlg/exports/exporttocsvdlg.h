@@ -183,7 +183,6 @@ private:
 
     bool bExportToClipboard;
     bool bOpenExplorerInExportDirectory;
-    bool bExportTodaysTasksOnly;
 
     wxArrayString mDateRangeSelectionRadioBoxOptions;
 

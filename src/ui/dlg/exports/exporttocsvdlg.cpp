@@ -125,13 +125,9 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , mExportOptions()
     , bExportToClipboard(false)
     , bOpenExplorerInExportDirectory(false)
-    , bExportTodaysTasksOnly(false)
     , mDateRangeSelectionRadioBoxOptions()
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
-
-    mFromDate = pDateStore->MondayDate;
-    mToDate = pDateStore->SundayDate;
 
     mDateRangeSelectionRadioBoxOptions.Add("Day");
     mDateRangeSelectionRadioBoxOptions.Add("Week");
@@ -1038,30 +1034,6 @@ void ExportToCsvDialog::OnDateRangeRadioBoxSelection(wxCommandEvent& event)
     }
 }
 
-// void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
-//{
-//     bExportTodaysTasksOnly = event.IsChecked();
-//
-//     if (bExportTodaysTasksOnly) {
-//         pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-//         mFromCtrlDate = pDateStore->TodayDateSeconds;
-//
-//         pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-//         mToCtrlDate = pDateStore->TodayDateSeconds;
-//
-//         pFromDatePickerCtrl->Disable();
-//         pToDatePickerCtrl->Disable();
-//     } else {
-//         SetFromAndToDatePickerRanges();
-//
-//         SetFromDateAndDatePicker();
-//         SetToDateAndDatePicker();
-//
-//         pFromDatePickerCtrl->Enable();
-//         pToDatePickerCtrl->Enable();
-//     }
-// }
-
 void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 {
     mExportOptions.Reset();
@@ -1392,12 +1364,8 @@ void ExportToCsvDialog::OnShowPreview(wxCommandEvent& WXUNUSED(event))
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
-    const std::string fromDate = bExportTodaysTasksOnly
-                                     ? pDateStore->FormatDate(pDateStore->TodayDate)
-                                     : pDateStore->FormatDate(mFromDate);
-    const std::string toDate = bExportTodaysTasksOnly
-                                   ? pDateStore->FormatDate(pDateStore->TodayDate)
-                                   : pDateStore->FormatDate(mToDate);
+    const std::string fromDate = pDateStore->FormatDate(mFromDate);
+    const std::string toDate = pDateStore->FormatDate(mToDate);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
@@ -1444,12 +1412,8 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
-    const std::string fromDate = bExportTodaysTasksOnly
-                                     ? pDateStore->FormatDate(pDateStore->TodayDate)
-                                     : pDateStore->FormatDate(mFromDate);
-    const std::string toDate = bExportTodaysTasksOnly
-                                   ? pDateStore->FormatDate(pDateStore->TodayDate)
-                                   : pDateStore->FormatDate(mToDate);
+    const std::string fromDate = pDateStore->FormatDate(mFromDate);
+    const std::string toDate = pDateStore->FormatDate(mToDate);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
@@ -1559,12 +1523,16 @@ void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& fromDate,
 
 void ExportToCsvDialog::SetFromDateControlValue()
 {
+    mFromDate = pDateStore->TodayDate;
+
     pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
     pFromDatePickerCtrl->Disable();
 }
 
 void ExportToCsvDialog::SetFromDateControlValue(const date::sys_days& newDate)
 {
+    mFromDate = newDate;
+
     auto seconds =
         std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
     pFromDatePickerCtrl->SetValue(seconds);
@@ -1575,12 +1543,16 @@ void ExportToCsvDialog::SetFromDateControlValue(const date::sys_days& newDate)
 
 void ExportToCsvDialog::SetToDateControlValue()
 {
+    mToDate = pDateStore->TodayDate;
+
     pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
     pToDatePickerCtrl->Disable();
 }
 
 void ExportToCsvDialog::SetToDateControlValue(const date::sys_days& newDate)
 {
+    mToDate = newDate;
+
     auto seconds =
         std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
     pToDatePickerCtrl->SetValue(seconds);
