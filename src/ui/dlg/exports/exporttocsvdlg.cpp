@@ -101,6 +101,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pFromDatePickerCtrl(nullptr)
     , pToDatePickerCtrl(nullptr)
     , pRightDateButton(nullptr)
+    , pDateRangeSelectionRadioBoxCtrl(nullptr)
     , pExportTodayTasksCheckBoxCtrl(nullptr)
     , pExportCurrentWeekTasksCheckBoxCtrl(nullptr)
     , pExportCurrentMonthTasksCheckBoxCtrl(nullptr)
@@ -128,11 +129,16 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , bExportToClipboard(false)
     , bOpenExplorerInExportDirectory(false)
     , bExportTodaysTasksOnly(false)
+    , mDateRangeSelectionRadioBoxOptions()
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
 
     mFromDate = pDateStore->MondayDate;
     mToDate = pDateStore->SundayDate;
+
+    mDateRangeSelectionRadioBoxOptions.Add("Day");
+    mDateRangeSelectionRadioBoxOptions.Add("Week");
+    mDateRangeSelectionRadioBoxOptions.Add("Month");
 
     Create();
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
@@ -366,6 +372,15 @@ void ExportToCsvDialog::CreateControls()
         FromDIP(wxSize(32, -1)));
     pRightDateButton->SetToolTip("Go forwards based on date selection option");
 
+    /* Radio Box date range selections */
+    pDateRangeSelectionRadioBoxCtrl = new wxRadioBox(dateRangeStaticBox,
+        tksIDC_DATERANGESELECTIONRADIOBOXCTRL,
+        "Date Range",
+        wxDefaultPosition,
+        wxDefaultSize,
+        mDateRangeSelectionRadioBoxOptions);
+    pDateRangeSelectionRadioBoxCtrl->SetToolTip("Select an export date range selection");
+
     /* Export todays tasks check box control */
     pExportTodayTasksCheckBoxCtrl = new wxCheckBox(
         dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks");
@@ -397,6 +412,9 @@ void ExportToCsvDialog::CreateControls()
         pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateControlsHorizontalSizer->Add(
         pRightDateButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+
+    dateRangeStaticBoxSizer->Add(
+        pDateRangeSelectionRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     dateRangeStaticBoxSizer->Add(
         pExportTodayTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));

@@ -134,6 +134,8 @@ private:
     wxDatePickerCtrl* pToDatePickerCtrl;
     wxButton* pRightDateButton;
 
+    wxRadioBox* pDateRangeSelectionRadioBoxCtrl;
+
     wxCheckBox* pExportTodayTasksCheckBoxCtrl;
     wxCheckBox* pExportCurrentWeekTasksCheckBoxCtrl;
     wxCheckBox* pExportCurrentMonthTasksCheckBoxCtrl;
@@ -180,6 +182,8 @@ private:
     bool bOpenExplorerInExportDirectory;
     bool bExportTodaysTasksOnly;
 
+    wxArrayString mDateRangeSelectionRadioBoxOptions;
+
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
         tksIDC_SAVE_TO_FILE_CTRL,
@@ -196,6 +200,7 @@ private:
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
         tksIDC_RIGHTDATEBUTTON,
+        tksIDC_DATERANGESELECTIONRADIOBOXCTRL,
         tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
         tksIDC_EXPORTCURRENTWEEKTASKSCHECKBOXCTRL,
         tksIDC_EXPORTCURRENTMONTHTASKSCHECKBOXCTRL,
