@@ -104,12 +104,18 @@ private:
     void OnExport(wxCommandEvent& event);
 
     void SetDateControlsValue();
-    void SetDateControlsValue(const date::sys_days& newDate);
-    void SetDateControlsValue(const date::sys_days& fromDate, const date::sys_days& toDate);
     void SetFromDateControlValue();
-    void SetFromDateControlValue(const date::sys_days& newDate);
     void SetToDateControlValue();
+
+    void SetDateControlsValue(const date::sys_days& newDate);
+    void SetFromDateControlValue(const date::sys_days& newDate);
     void SetToDateControlValue(const date::sys_days& newDate);
+
+    void SetDateControlsValue(const date::sys_days& fromDate, const date::sys_days& toDate);
+
+    void SetDateControlsCustomValue(const date::sys_days& fromDate, const date::sys_days& toDate);
+    void SetFromDateControlCustomValue(const date::sys_days& newDate);
+    void SetToDateControlCustomValue(const date::sys_days& newDate);
 
     void ApplyPreset(const Core::Settings::PresetSetting& presetSettings);
 

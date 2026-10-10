@@ -942,6 +942,14 @@ void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
     wxDateTime eventDate = wxDateTime(event.GetDate());
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
+    if (eventDateUtc > pToDatePickerCtrl->GetValue()) {
+        SetFromDateControlValue();
+        wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"to\" date");
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pFromDatePickerCtrl);
+        return;
+    }
+
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
     auto newFromDate =
         date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
@@ -958,6 +966,14 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
 
     wxDateTime eventDate = wxDateTime(event.GetDate());
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
+
+    if (eventDateUtc < pFromDatePickerCtrl->GetValue()) {
+        SetToDateControlValue();
+        wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"from\" date");
+        toolTip.SetIcon(wxICON_WARNING);
+        toolTip.ShowFor(pToDatePickerCtrl);
+        return;
+    }
 
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
     auto newToDate =
@@ -987,8 +1003,10 @@ void ExportToCsvDialog::OnDateRangeRadioBoxSelection(wxCommandEvent& event)
         SetDateControlsValue(pDateStore->FirstDayOfMonth, pDateStore->LastDayOfMonth);
         break;
     }
-    case ExportDateRangeOption::Custom:
+    case ExportDateRangeOption::Custom: {
+        SetDateControlsCustomValue(pDateStore->TodayDate, pDateStore->TodayDate);
         break;
+    }
     default:
         break;
     }
@@ -1468,37 +1486,12 @@ void ExportToCsvDialog::SetDateControlsValue()
     SetToDateControlValue();
 }
 
-void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& newDate)
-{
-    SetFromDateControlValue(newDate);
-    SetToDateControlValue(newDate);
-}
-
-void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& fromDate,
-    const date::sys_days& toDate)
-{
-    SetFromDateControlValue(fromDate);
-    SetToDateControlValue(toDate);
-}
-
 void ExportToCsvDialog::SetFromDateControlValue()
 {
     mFromDate = pDateStore->TodayDate;
 
     pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
     pFromDatePickerCtrl->Disable();
-}
-
-void ExportToCsvDialog::SetFromDateControlValue(const date::sys_days& newDate)
-{
-    mFromDate = newDate;
-
-    auto seconds =
-        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
-    pFromDatePickerCtrl->SetValue(seconds);
-    if (pFromDatePickerCtrl->IsEnabled()) {
-        pFromDatePickerCtrl->Disable();
-    }
 }
 
 void ExportToCsvDialog::SetToDateControlValue()
@@ -1509,6 +1502,32 @@ void ExportToCsvDialog::SetToDateControlValue()
     pToDatePickerCtrl->Disable();
 }
 
+void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& newDate)
+{
+    SetFromDateControlValue(newDate);
+    SetToDateControlValue(newDate);
+}
+
+void ExportToCsvDialog::SetFromDateControlValue(const date::sys_days& newDate)
+{
+    mFromDate = newDate;
+
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
+    pFromDatePickerCtrl->SetValue(seconds);
+
+    if (pFromDatePickerCtrl->IsEnabled()) {
+        pFromDatePickerCtrl->Disable();
+    }
+}
+
+void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& fromDate,
+    const date::sys_days& toDate)
+{
+    SetFromDateControlValue(fromDate);
+    SetToDateControlValue(toDate);
+}
+
 void ExportToCsvDialog::SetToDateControlValue(const date::sys_days& newDate)
 {
     mToDate = newDate;
@@ -1516,8 +1535,42 @@ void ExportToCsvDialog::SetToDateControlValue(const date::sys_days& newDate)
     auto seconds =
         std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
     pToDatePickerCtrl->SetValue(seconds);
+
     if (pToDatePickerCtrl->IsEnabled()) {
         pToDatePickerCtrl->Disable();
+    }
+}
+
+void ExportToCsvDialog::SetDateControlsCustomValue(const date::sys_days& fromDate,
+    const date::sys_days& toDate)
+{
+    SetFromDateControlCustomValue(fromDate);
+    SetToDateControlCustomValue(toDate);
+}
+
+void ExportToCsvDialog::SetFromDateControlCustomValue(const date::sys_days& newDate)
+{
+    mFromDate = newDate;
+
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
+    pFromDatePickerCtrl->SetValue(seconds);
+
+    if (!pFromDatePickerCtrl->IsEnabled()) {
+        pFromDatePickerCtrl->Enable();
+    }
+}
+
+void ExportToCsvDialog::SetToDateControlCustomValue(const date::sys_days& newDate)
+{
+    mToDate = newDate;
+
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
+    pToDatePickerCtrl->SetValue(seconds);
+
+    if (!pToDatePickerCtrl->IsEnabled()) {
+        pToDatePickerCtrl->Enable();
     }
 }
 
