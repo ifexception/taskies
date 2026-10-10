@@ -136,6 +136,7 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     mDateRangeSelectionRadioBoxOptions.Add("Day");
     mDateRangeSelectionRadioBoxOptions.Add("Week");
     mDateRangeSelectionRadioBoxOptions.Add("Month");
+    mDateRangeSelectionRadioBoxOptions.Add("Custom");
 
     Create();
     if (!wxPersistenceManager::Get().RegisterAndRestore(this)) {
@@ -611,10 +612,10 @@ void ExportToCsvDialog::FillControls()
     pCloseDialogAfterExportingCheckBoxCtrl->SetValue(pCfg->CloseExportDialogAfterExporting());
 
     /* Date Controls */
-    SetFromAndToDatePickerRanges();
+    SetDateControlsValue();
 
-    SetFromDateAndDatePicker();
-    SetToDateAndDatePicker();
+    /*SetFromDateAndDatePicker();
+    SetToDateAndDatePicker();*/
 
     /* Available Columns */
     for (auto& column : Services::Export::MakeAvailableColumns()) {
@@ -1499,6 +1500,24 @@ void ExportToCsvDialog::OnExport(wxCommandEvent& event)
     if (pCfg->CloseExportDialogAfterExporting()) {
         EndDialog(wxID_OK);
     }
+}
+
+void ExportToCsvDialog::SetDateControlsValue()
+{
+    SetFromDateControlValue();
+    SetToDateControlValue();
+}
+
+void ExportToCsvDialog::SetFromDateControlValue()
+{
+    pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+    pFromDatePickerCtrl->Disable();
+}
+
+void ExportToCsvDialog::SetToDateControlValue()
+{
+    pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+    pToDatePickerCtrl->Disable();
 }
 
 void ExportToCsvDialog::SetFromAndToDatePickerRanges()

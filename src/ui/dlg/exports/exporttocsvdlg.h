@@ -101,6 +101,10 @@ private:
     void OnShowPreview(wxCommandEvent& event);
     void OnExport(wxCommandEvent& event);
 
+    void SetDateControlsValue();
+    void SetFromDateControlValue();
+    void SetToDateControlValue();
+
     void SetFromAndToDatePickerRanges();
     void SetFromDateAndDatePicker();
     void SetToDateAndDatePicker();
