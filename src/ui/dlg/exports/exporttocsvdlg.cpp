@@ -102,9 +102,6 @@ ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
     , pToDatePickerCtrl(nullptr)
     , pRightDateButton(nullptr)
     , pDateRangeSelectionRadioBoxCtrl(nullptr)
-    , pExportTodayTasksCheckBoxCtrl(nullptr)
-    , pExportCurrentWeekTasksCheckBoxCtrl(nullptr)
-    , pExportCurrentMonthTasksCheckBoxCtrl(nullptr)
     , pPresetNameTextCtrl(nullptr)
     , pPresetIsDefaultCheckBoxCtrl(nullptr)
     , pPresetSaveButton(nullptr)
@@ -381,23 +378,6 @@ void ExportToCsvDialog::CreateControls()
         mDateRangeSelectionRadioBoxOptions);
     pDateRangeSelectionRadioBoxCtrl->SetToolTip("Select an export date range selection");
 
-    /* Export todays tasks check box control */
-    pExportTodayTasksCheckBoxCtrl = new wxCheckBox(
-        dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks");
-    pExportTodayTasksCheckBoxCtrl->SetToolTip("Export tasks logged during today's date");
-
-    /* Export current week tasks check box control */
-    pExportCurrentWeekTasksCheckBoxCtrl = new wxCheckBox(
-        dateRangeStaticBox, tksIDC_EXPORTCURRENTWEEKTASKSCHECKBOXCTRL, "Export current week tasks");
-    pExportCurrentWeekTasksCheckBoxCtrl->SetToolTip("Export tasks logged during the current week");
-
-    /* Export current month tasks check box control */
-    pExportCurrentMonthTasksCheckBoxCtrl = new wxCheckBox(dateRangeStaticBox,
-        tksIDC_EXPORTCURRENTMONTHTASKSCHECKBOXCTRL,
-        "Export current month tasks");
-    pExportCurrentMonthTasksCheckBoxCtrl->SetToolTip(
-        "Export tasks logged during the current month");
-
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     dateRangeStaticBoxSizer->Add(dateControlsHorizontalSizer, wxSizerFlags().Expand());
@@ -415,13 +395,6 @@ void ExportToCsvDialog::CreateControls()
 
     dateRangeStaticBoxSizer->Add(
         pDateRangeSelectionRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    dateRangeStaticBoxSizer->Add(
-        pExportTodayTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    dateRangeStaticBoxSizer->Add(
-        pExportCurrentWeekTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-    dateRangeStaticBoxSizer->Add(
-        pExportCurrentMonthTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Horizontal Line */
     auto line1 = new wxStaticLine(this, wxID_ANY);
@@ -741,13 +714,6 @@ void ExportToCsvDialog::ConfigureEventBindings()
         tksIDC_DATE_TO_CTRL
     );
 
-    pExportTodayTasksCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX,
-        &ExportToCsvDialog::OnExportTodaysTasksOnlyCheck,
-        this,
-        tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL
-    );
-
     pPresetSaveButton->Bind(
         wxEVT_BUTTON,
         &ExportToCsvDialog::OnSavePreset,
@@ -1035,33 +1001,29 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     mToDate = newToDate;
 }
 
-void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
-{
-    bExportTodaysTasksOnly = event.IsChecked();
-
-    if (bExportTodaysTasksOnly) {
-        pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-        mFromCtrlDate = pDateStore->TodayDateSeconds;
-
-        pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-        mToCtrlDate = pDateStore->TodayDateSeconds;
-
-        pFromDatePickerCtrl->Disable();
-        pToDatePickerCtrl->Disable();
-    } else {
-        SetFromAndToDatePickerRanges();
-
-        SetFromDateAndDatePicker();
-        SetToDateAndDatePicker();
-
-        pFromDatePickerCtrl->Enable();
-        pToDatePickerCtrl->Enable();
-    }
-}
-
-void ExportToCsvDialog::OnExportCurrentWeekTasksOnlyCheck(wxCommandEvent& event) {}
-
-void ExportToCsvDialog::OnExportCurrentMonthTasksOnlyCheck(wxCommandEvent& event) {}
+//void ExportToCsvDialog::OnExportTodaysTasksOnlyCheck(wxCommandEvent& event)
+//{
+//    bExportTodaysTasksOnly = event.IsChecked();
+//
+//    if (bExportTodaysTasksOnly) {
+//        pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+//        mFromCtrlDate = pDateStore->TodayDateSeconds;
+//
+//        pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+//        mToCtrlDate = pDateStore->TodayDateSeconds;
+//
+//        pFromDatePickerCtrl->Disable();
+//        pToDatePickerCtrl->Disable();
+//    } else {
+//        SetFromAndToDatePickerRanges();
+//
+//        SetFromDateAndDatePicker();
+//        SetToDateAndDatePicker();
+//
+//        pFromDatePickerCtrl->Enable();
+//        pToDatePickerCtrl->Enable();
+//    }
+//}
 
 void ExportToCsvDialog::OnResetPreset(wxCommandEvent& event)
 {

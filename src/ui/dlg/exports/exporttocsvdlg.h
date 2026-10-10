@@ -81,9 +81,6 @@ private:
 
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
-    void OnExportTodaysTasksOnlyCheck(wxCommandEvent& event);
-    void OnExportCurrentWeekTasksOnlyCheck(wxCommandEvent& event);
-    void OnExportCurrentMonthTasksOnlyCheck(wxCommandEvent& event);
 
     void OnSavePreset(wxCommandEvent& event);
     void OnResetPreset(wxCommandEvent& event);
@@ -135,10 +132,6 @@ private:
     wxButton* pRightDateButton;
 
     wxRadioBox* pDateRangeSelectionRadioBoxCtrl;
-
-    wxCheckBox* pExportTodayTasksCheckBoxCtrl;
-    wxCheckBox* pExportCurrentWeekTasksCheckBoxCtrl;
-    wxCheckBox* pExportCurrentMonthTasksCheckBoxCtrl;
 
     wxDateTime mFromCtrlDate;
     wxDateTime mToCtrlDate;
@@ -201,9 +194,6 @@ private:
         tksIDC_DATE_TO_CTRL,
         tksIDC_RIGHTDATEBUTTON,
         tksIDC_DATERANGESELECTIONRADIOBOXCTRL,
-        tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
-        tksIDC_EXPORTCURRENTWEEKTASKSCHECKBOXCTRL,
-        tksIDC_EXPORTCURRENTMONTHTASKSCHECKBOXCTRL,
         tksIDC_PRESET_RESET_BUTTON,
         tksIDC_PRESET_NAME_TEXT_CTRL,
         tksIDC_PRESET_SAVE_BUTTON,
