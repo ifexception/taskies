@@ -54,23 +54,6 @@
 #include "../../events.h"
 #include "../../common/clientdata.h"
 
-namespace
-{
-// This date was selected arbitrarily
-// wxDatePickerCtrl needs a from and to date for the range
-// So we pick 2020-01-01 as that date
-// Conceivably, a user shouldn't go that far back
-wxDateTime MakeMaximumFromDate()
-{
-    wxDateTime maxFromDate = wxDateTime::Now();
-    maxFromDate.SetYear(2020);
-    maxFromDate.SetMonth(wxDateTime::Jan);
-    maxFromDate.SetDay(1);
-
-    return maxFromDate;
-}
-} // namespace
-
 namespace tks::UI::dlg
 {
 ExportToCsvDialog::ExportToCsvDialog(wxWindow* parent,
@@ -959,20 +942,11 @@ void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
     wxDateTime eventDate = wxDateTime(event.GetDate());
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
-    if (eventDateUtc > mToCtrlDate) {
-        SetFromDateAndDatePicker();
-        wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed \"to\" date");
-        toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pFromDatePickerCtrl);
-        return;
-    }
-
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
     auto newFromDate =
         date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
     SPDLOG_LOGGER_TRACE(pLogger, "New from date value \"{0}\"", date::format("%F", newFromDate));
 
-    mFromCtrlDate = eventDateUtc;
     mFromDate = newFromDate;
 }
 
@@ -985,25 +959,11 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     wxDateTime eventDate = wxDateTime(event.GetDate());
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
-    if (eventDateUtc > mToLatestPossibleDate) {
-        SetToDateAndDatePicker();
-        return;
-    }
-
-    if (eventDateUtc < mFromCtrlDate) {
-        SetToDateAndDatePicker();
-        wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"from\" date");
-        toolTip.SetIcon(wxICON_WARNING);
-        toolTip.ShowFor(pToDatePickerCtrl);
-        return;
-    }
-
     auto eventDateUtcTicks = eventDateUtc.GetTicks();
     auto newToDate =
         date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
     SPDLOG_LOGGER_TRACE(pLogger, "New to date value \"{0}\"", date::format("%F", newToDate));
 
-    mToCtrlDate = eventDateUtc;
     mToDate = newToDate;
 }
 
@@ -1559,31 +1519,6 @@ void ExportToCsvDialog::SetToDateControlValue(const date::sys_days& newDate)
     if (pToDatePickerCtrl->IsEnabled()) {
         pToDatePickerCtrl->Disable();
     }
-}
-
-void ExportToCsvDialog::SetFromAndToDatePickerRanges()
-{
-    pFromDatePickerCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
-
-    wxDateSpan oneDay(0, 0, 0, 1);
-    auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
-    pToDatePickerCtrl->SetRange(MakeMaximumFromDate(), latestPossibleDatePlusOneDay);
-
-    mToLatestPossibleDate = wxDateTime(pDateStore->SundayDateSeconds);
-}
-
-void ExportToCsvDialog::SetFromDateAndDatePicker()
-{
-    pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
-
-    mFromCtrlDate = pDateStore->MondayDateSeconds;
-}
-
-void ExportToCsvDialog::SetToDateAndDatePicker()
-{
-    pToDatePickerCtrl->SetValue(pDateStore->SundayDateSeconds);
-
-    mToCtrlDate = pDateStore->SundayDateSeconds;
 }
 
 void ExportToCsvDialog::ApplyPreset(const Core::Settings::PresetSetting& presetSettings)

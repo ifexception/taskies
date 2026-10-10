@@ -111,10 +111,6 @@ private:
     void SetToDateControlValue();
     void SetToDateControlValue(const date::sys_days& newDate);
 
-    void SetFromAndToDatePickerRanges();
-    void SetFromDateAndDatePicker();
-    void SetToDateAndDatePicker();
-
     void ApplyPreset(const Core::Settings::PresetSetting& presetSettings);
 
     wxWindow* pParent;
@@ -142,10 +138,6 @@ private:
     wxButton* pRightDateButton;
 
     wxRadioBox* pDateRangeSelectionRadioBoxCtrl;
-
-    wxDateTime mFromCtrlDate;
-    wxDateTime mToCtrlDate;
-    wxDateTime mToLatestPossibleDate;
 
     wxTextCtrl* pPresetNameTextCtrl;
     wxCheckBox* pPresetIsDefaultCheckBoxCtrl;
