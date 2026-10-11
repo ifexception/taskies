@@ -948,14 +948,29 @@ void ExportToCsvDialog::OnLeftDateButtonClick(wxCommandEvent& event)
 {
     switch (mDateRangeOption) {
     case ExportDateRangeOption::Day: {
-        auto newDate = pDateStore->TodayDate + date::days{ -1 };
+        auto newDate = mFromDate - date::days{ 1 };
         SetDateControlsValue(newDate);
+
         break;
     }
-    case ExportDateRangeOption::Week:
+    case ExportDateRangeOption::Week: {
+        auto newFromDate = mFromDate - date::weeks{ 1 };
+        auto newToDate = mToDate - date::weeks{ 1 };
+        SetDateControlsValue(newFromDate, newToDate);
+
         break;
-    case ExportDateRangeOption::Month:
+    }
+    case ExportDateRangeOption::Month: {
+        date::year_month_day ymdFromDate = mFromDate;
+        date::year_month_day ymdToDate = mToDate;
+
+        auto newFromDate = ymdFromDate - date::months{ 1 };
+        auto newToDate = ymdToDate - date::months{ 1 };
+
+        SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
+
         break;
+    }
     case ExportDateRangeOption::Custom:
         break;
     default:
@@ -1013,7 +1028,37 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     mToDate = newToDate;
 }
 
-void ExportToCsvDialog::OnRightDateButtonClick(wxCommandEvent& event) {}
+void ExportToCsvDialog::OnRightDateButtonClick(wxCommandEvent& event)
+{
+    switch (mDateRangeOption) {
+    case ExportDateRangeOption::Day: {
+        auto newDate = mToDate + date::days{ 1 };
+        SetDateControlsValue(newDate);
+        break;
+    }
+    case ExportDateRangeOption::Week: {
+        auto newFromDate = mFromDate + date::weeks{ 1 };
+        auto newToDate = mToDate + date::weeks{ 1 };
+        SetDateControlsValue(newFromDate, newToDate);
+        break;
+    }
+    case ExportDateRangeOption::Month: {
+        date::year_month_day ymdFromDate = mFromDate;
+        date::year_month_day ymdToDate = mToDate;
+
+        auto newFromDate = ymdFromDate + date::months{ 1 };
+        auto newToDate = ymdToDate + date::months{ 1 };
+
+        SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
+
+        break;
+    }
+    case ExportDateRangeOption::Custom:
+        break;
+    default:
+        break;
+    }
+}
 
 void ExportToCsvDialog::OnDateRangeRadioBoxSelection(wxCommandEvent& event)
 {
