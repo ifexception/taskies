@@ -71,17 +71,30 @@ private:
     void OnExportToClipboardCheck(wxCommandEvent& event);
     void OnOpenDirectoryForSaveToFileLocation(wxCommandEvent& event);
 
+    void OnLeftDateButtonClick(wxCommandEvent& event);
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
-    void OnExportTodaysTasksCheck(wxCommandEvent& event);
+    void OnRightDateButtonClick(wxCommandEvent& event);
+
+    void OnDateRangeRadioBoxSelection(wxCommandEvent& event);
 
     void OnPresetChoiceSelection(wxCommandEvent& event);
 
     void OnOK(wxCommandEvent& event);
 
-    void SetFromAndToDatePickerRanges();
-    void SetFromDateAndDatePicker();
-    void SetToDateAndDatePicker();
+    void SetDateControlsValue();
+    void SetFromDateControlValue(bool disable = true);
+    void SetToDateControlValue(bool disable = true);
+
+    void SetDateControlsValue(const date::sys_days& newDate);
+    void SetFromDateControlValue(const date::sys_days& newDate);
+    void SetToDateControlValue(const date::sys_days& newDate);
+
+    void SetDateControlsValue(const date::sys_days& fromDate, const date::sys_days& toDate);
+
+    void SetDateControlsCustomValue(const date::sys_days& fromDate, const date::sys_days& toDate);
+    void SetFromDateControlCustomValue(const date::sys_days& newDate);
+    void SetToDateControlCustomValue(const date::sys_days& newDate);
 
     void ApplyPreset(const Core::Settings::PresetSetting& presetSettings);
 
@@ -99,13 +112,12 @@ private:
     wxTextCtrl* pSaveToFileTextCtrl;
     wxButton* pBrowseExportPathButton;
 
+    wxButton* pLeftDateButton;
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
-    wxCheckBox* pExportTodaysTasksCheckBoxCtrl;
+    wxButton* pRightDateButton;
 
-    wxDateTime mFromCtrlDate;
-    wxDateTime mToCtrlDate;
-    wxDateTime mToLatestPossibleDate;
+    wxRadioBox* pDateRangeSelectionRadioBoxCtrl;
 
     wxChoice* pPresetsChoiceCtrl;
 
@@ -116,21 +128,26 @@ private:
     date::sys_days mToDate;
 
     bool bExportToClipboard;
-    bool bExportTodaysTasksOnly;
 
     MswUtils::ExcelInstanceCheck mIsExcelInstalled;
     Services::Export::ExportOptions mExportOptions;
     ExportFormat mExportFormat;
     wxArrayString mRadioExportOptions;
 
+    wxArrayString mDateRangeSelectionRadioBoxOptions;
+
+    ExportDateRangeOption mDateRangeOption;
+
     enum {
         tksIDC_EXPORTFORMATRADIOBOXCTRL = wxID_HIGHEST + 101,
         tksIDC_COPY_TO_CLIPBOARD_CTRL,
         tksIDC_SAVE_TO_FILE_CTRL,
         tksIDC_BROWSE_EXPORT_PATH_CTRL,
+        tksIDC_LEFTDATEBUTTON,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
-        tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
+        tksIDC_RIGHTDATEBUTTON,
+        tksIDC_DATERANGESELECTIONRADIOBOXCTRL,
         tksIDC_PRESET_CHOICE_CTRL,
     };
 };
