@@ -967,6 +967,9 @@ void ExportToCsvDialog::OnLeftDateButtonClick(wxCommandEvent& event)
         auto newFromDate = ymdFromDate - date::months{ 1 };
         auto newToDate = ymdToDate - date::months{ 1 };
 
+        newFromDate = newFromDate.year() / newFromDate.month() / 1;
+        newToDate = newToDate.year() / newToDate.month() / date::last;
+
         SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
 
         break;
@@ -1048,6 +1051,9 @@ void ExportToCsvDialog::OnRightDateButtonClick(wxCommandEvent& event)
 
         auto newFromDate = ymdFromDate + date::months{ 1 };
         auto newToDate = ymdToDate + date::months{ 1 };
+
+        newFromDate = newFromDate.year() / newFromDate.month() / 1;
+        newToDate = newToDate.year() / newToDate.month() / date::last;
 
         SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
 
@@ -1586,6 +1592,9 @@ void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& newDate)
 {
     SetFromDateControlValue(newDate);
     SetToDateControlValue(newDate);
+
+    pLeftDateButton->Enable();
+    pRightDateButton->Enable();
 }
 
 void ExportToCsvDialog::SetFromDateControlValue(const date::sys_days& newDate)
@@ -1606,6 +1615,9 @@ void ExportToCsvDialog::SetDateControlsValue(const date::sys_days& fromDate,
 {
     SetFromDateControlValue(fromDate);
     SetToDateControlValue(toDate);
+
+    pLeftDateButton->Enable();
+    pRightDateButton->Enable();
 }
 
 void ExportToCsvDialog::SetToDateControlValue(const date::sys_days& newDate)
@@ -1626,6 +1638,9 @@ void ExportToCsvDialog::SetDateControlsCustomValue(const date::sys_days& fromDat
 {
     SetFromDateControlCustomValue(fromDate);
     SetToDateControlCustomValue(toDate);
+
+    pLeftDateButton->Disable();
+    pRightDateButton->Disable();
 }
 
 void ExportToCsvDialog::SetFromDateControlCustomValue(const date::sys_days& newDate)
