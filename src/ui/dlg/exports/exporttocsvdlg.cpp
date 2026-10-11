@@ -352,7 +352,7 @@ void ExportToCsvDialog::CreateControls()
     /* Radio Box date range selections */
     pDateRangeSelectionRadioBoxCtrl = new wxRadioBox(dateRangeStaticBox,
         tksIDC_DATERANGESELECTIONRADIOBOXCTRL,
-        "Date Range",
+        "Date Selection",
         wxDefaultPosition,
         wxDefaultSize,
         mDateRangeSelectionRadioBoxOptions,
