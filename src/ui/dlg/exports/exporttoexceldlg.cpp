@@ -747,15 +747,15 @@ void ExportToExcelDialog::OnLeftDateButtonClick(wxCommandEvent& event)
     switch (mDateRangeOption) {
     case ExportDateRangeOption::Day: {
         auto newDate = mFromDate - date::days{ 1 };
-        SetDateControlsValue(newDate);
 
+        SetDateControlsValue(newDate);
         break;
     }
     case ExportDateRangeOption::Week: {
         auto newFromDate = mFromDate - date::weeks{ 1 };
         auto newToDate = mToDate - date::weeks{ 1 };
-        SetDateControlsValue(newFromDate, newToDate);
 
+        SetDateControlsValue(newFromDate, newToDate);
         break;
     }
     case ExportDateRangeOption::Month: {
@@ -769,11 +769,9 @@ void ExportToExcelDialog::OnLeftDateButtonClick(wxCommandEvent& event)
         newToDate = newToDate.year() / newToDate.month() / date::last;
 
         SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
-
         break;
     }
     case ExportDateRangeOption::Custom:
-        break;
     default:
         break;
     }
@@ -834,12 +832,14 @@ void ExportToExcelDialog::OnRightDateButtonClick(wxCommandEvent& event)
     switch (mDateRangeOption) {
     case ExportDateRangeOption::Day: {
         auto newDate = mToDate + date::days{ 1 };
+
         SetDateControlsValue(newDate);
         break;
     }
     case ExportDateRangeOption::Week: {
         auto newFromDate = mFromDate + date::weeks{ 1 };
         auto newToDate = mToDate + date::weeks{ 1 };
+
         SetDateControlsValue(newFromDate, newToDate);
         break;
     }
@@ -854,11 +854,9 @@ void ExportToExcelDialog::OnRightDateButtonClick(wxCommandEvent& event)
         newToDate = newToDate.year() / newToDate.month() / date::last;
 
         SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
-
         break;
     }
     case ExportDateRangeOption::Custom:
-        break;
     default:
         break;
     }

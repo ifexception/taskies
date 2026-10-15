@@ -318,7 +318,7 @@ void QuickExportToFormatDialog::ConfigureEventBindings()
         tksIDC_BROWSE_EXPORT_PATH_CTRL
     );
 
-     pLeftDateButton->Bind(
+    pLeftDateButton->Bind(
         wxEVT_BUTTON,
         &QuickExportToFormatDialog::OnLeftDateButtonClick,
         this
@@ -433,15 +433,15 @@ void QuickExportToFormatDialog::OnLeftDateButtonClick(wxCommandEvent& event)
     switch (mDateRangeOption) {
     case ExportDateRangeOption::Day: {
         auto newDate = mFromDate - date::days{ 1 };
-        SetDateControlsValue(newDate);
 
+        SetDateControlsValue(newDate);
         break;
     }
     case ExportDateRangeOption::Week: {
         auto newFromDate = mFromDate - date::weeks{ 1 };
         auto newToDate = mToDate - date::weeks{ 1 };
-        SetDateControlsValue(newFromDate, newToDate);
 
+        SetDateControlsValue(newFromDate, newToDate);
         break;
     }
     case ExportDateRangeOption::Month: {
@@ -455,11 +455,9 @@ void QuickExportToFormatDialog::OnLeftDateButtonClick(wxCommandEvent& event)
         newToDate = newToDate.year() / newToDate.month() / date::last;
 
         SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
-
         break;
     }
     case ExportDateRangeOption::Custom:
-        break;
     default:
         break;
     }
@@ -520,12 +518,14 @@ void QuickExportToFormatDialog::OnRightDateButtonClick(wxCommandEvent& event)
     switch (mDateRangeOption) {
     case ExportDateRangeOption::Day: {
         auto newDate = mToDate + date::days{ 1 };
+
         SetDateControlsValue(newDate);
         break;
     }
     case ExportDateRangeOption::Week: {
         auto newFromDate = mFromDate + date::weeks{ 1 };
         auto newToDate = mToDate + date::weeks{ 1 };
+
         SetDateControlsValue(newFromDate, newToDate);
         break;
     }
@@ -540,11 +540,9 @@ void QuickExportToFormatDialog::OnRightDateButtonClick(wxCommandEvent& event)
         newToDate = newToDate.year() / newToDate.month() / date::last;
 
         SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
-
         break;
     }
     case ExportDateRangeOption::Custom:
-        break;
     default:
         break;
     }
