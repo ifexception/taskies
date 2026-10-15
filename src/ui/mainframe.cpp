@@ -1802,8 +1802,20 @@ void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
 void MainFrame::OnTaskUpdated(wxCommandEvent& event)
 {
     auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
-
+    auto eventTaskDateUpdated = event.GetString().ToStdString();
     SPDLOG_LOGGER_TRACE(pLogger, "Received task update event for ID: \"{0}\"", taskChangedId);
+
+    std::istringstream ssTaskDate{ eventTaskDateUpdated };
+    std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
+    ssTaskDate >> date::parse("%F", taskDate);
+
+    UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
+
+    if (taskDate != mSelectedDate) {
+        return;
+    }
+
+    ResizeColumns();
 
     Services::TaskViewModel taskViewModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
@@ -1872,14 +1884,6 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
                 break;
             }
         }
-
-        std::istringstream ssTaskDate{ taskViewModel.WorkdayDate };
-        std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
-        ssTaskDate >> date::parse("%F", taskDate);
-
-        UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
-
-        ResizeColumns();
     }
 }
 

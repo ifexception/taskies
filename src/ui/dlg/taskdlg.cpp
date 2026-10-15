@@ -1690,6 +1690,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             // notify frame control of task update
             wxCommandEvent* taskUpdatedEvent = new wxCommandEvent(tksEVT_TASKUPDATED);
 
+            taskUpdatedEvent->SetString(mDate);
             taskUpdatedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
             wxQueueEvent(pParent, taskUpdatedEvent);
