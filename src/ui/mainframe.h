@@ -288,6 +288,7 @@ private:
     std::unique_ptr<DateStore> pDateStore;
 
     date::sys_days mTodayDate;
+    date::sys_days mSelectedDate;
 
     std::int64_t mTaskIdToEdit;
     std::string mTaskDateString;

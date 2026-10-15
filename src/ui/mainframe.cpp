@@ -182,6 +182,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pOutlookMeetingsPanel(nullptr)
     , pDateStore(nullptr)
     , mTodayDate()
+    , mSelectedDate()
     , mTaskIdToEdit(-1)
     , mTaskDateString()
     , mThumbBarDialogOpenCounter(0)
@@ -232,6 +233,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     pDateStore = std::make_unique<DateStore>(pLogger);
 
     mTodayDate = pDateStore->TodayDate;
+    mSelectedDate = pDateStore->TodayDate;
     mTaskDateString = pDateStore->FormatDate(pDateStore->TodayDate);
 
     // Setup reminders (if enabled)
@@ -1697,7 +1699,7 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
 
     UpdateStatusBarTaskDurations(pDateStore->FormatDate(dateTaskAdded));
 
-    if (dateTaskAdded != pDateStore->TodayDate) {
+    if (dateTaskAdded != mSelectedDate) {
         return;
     }
 
@@ -2315,6 +2317,8 @@ void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
 
     date::sys_days convertedDate = ConvertToStdDate(dateTime);
     SPDLOG_LOGGER_TRACE(pLogger, "Converted date: {0}", pDateStore->FormatDate(convertedDate));
+
+    mSelectedDate = convertedDate;
 
     RefreshDataViewListControl();
 
