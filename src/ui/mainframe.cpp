@@ -1923,6 +1923,7 @@ void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
         pDateStore->FormatDate(pDateStore->LastDayOfMonth));
+
     newTaskDialog.ShowModal();
 }
 
@@ -2043,6 +2044,7 @@ void MainFrame::OnNewTaskButtonClick(wxCommandEvent& WXUNUSED(event))
     dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
     newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
         pDateStore->FormatDate(pDateStore->LastDayOfMonth));
+
     newTaskDialog.ShowModal();
 }
 
