@@ -38,27 +38,27 @@ const std::string Sections::ExportSection = "export";
 const std::string Sections::PresetsSection = "presets";
 
 Configuration::Configuration(std::shared_ptr<Environment> env,
-    std::shared_ptr<spdlog::logger> logger)
+    std::reference_wrapper<std::shared_ptr<spdlog::logger>> logger)
     : pSettings(std::make_unique<Settings::Settings>())
     , pEnv(env)
-    , pLogger(logger)
+    , pLoggerRef(logger)
 {
 }
 
 ConfigResult Configuration::LoadAndOrRecreate()
 {
-    SPDLOG_LOGGER_TRACE(pLogger,
+    SPDLOG_LOGGER_TRACE(pLoggerRef.get(),
         "Looking for configuration file at path \"{0}\"",
         pEnv->GetConfigurationFilePath().string());
 
     if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
-        pLogger->warn(
+        pLoggerRef.get()->warn(
             "Failed to find configuration file at \"{0}\". Creating new one from defaults",
             pEnv->GetConfigurationFilePath().string());
 
         auto result = RestoreDefaults();
         if (!result.Success) {
-            pLogger->error(
+            pLoggerRef.get()->error(
                 "Failed to recreate configuration file. See earlier logs for more detail");
             return result;
         }
@@ -75,7 +75,7 @@ ConfigResult Configuration::LoadAndOrRecreate()
         GetExportConfig(root);
         GetPresetsConfig(root);
     } catch (const toml::syntax_error& error) {
-        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
+        pLoggerRef.get()->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
 
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
@@ -84,7 +84,7 @@ ConfigResult Configuration::LoadAndOrRecreate()
                 pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     } catch (const toml::type_error& error) {
-        pLogger->error(
+        pLoggerRef.get()->error(
             "A TOML type error occurred when reading configuration values - {0}", error.what());
 
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
@@ -93,7 +93,7 @@ ConfigResult Configuration::LoadAndOrRecreate()
                 pEnv->GetConfigurationFilePath().string(),
                 error.what()));
     } catch (const std::out_of_range& error) {
-        pLogger->error(
+        pLoggerRef.get()->error(
             "A (TOML) out-of-range error occurred when reading configuration values - {0}",
             error.what());
 
@@ -398,7 +398,7 @@ ConfigResult Configuration::SaveExportPreset(Settings::PresetSetting presetToSav
     try {
         root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
-        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
+        pLoggerRef.get()->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
@@ -467,7 +467,7 @@ ConfigResult Configuration::UpdateExportPreset(Settings::PresetSetting presetToU
     try {
         root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
-        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
+        pLoggerRef.get()->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
@@ -525,7 +525,7 @@ ConfigResult Configuration::TryUnsetDefaultPreset()
     try {
         root = toml::parse(pEnv->GetConfigurationFilePath().string());
     } catch (const toml::syntax_error& error) {
-        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
+        pLoggerRef.get()->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
@@ -852,7 +852,7 @@ ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileConte
 {
     const std::string configFilePath = pEnv->GetConfigurationFilePath().string();
 
-    SPDLOG_LOGGER_TRACE(pLogger, "Looking for configuration file at path \"{0}\"", configFilePath);
+    SPDLOG_LOGGER_TRACE(pLoggerRef.get(), "Looking for configuration file at path \"{0}\"", configFilePath);
 
     if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
         return ConfigResult::Fail(Messages::ConfigurationFileNotFoundHeaderMessage,
@@ -867,14 +867,14 @@ ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileConte
     try {
         configFileStream.open(configFilePath, std::ios::out);
     } catch (const std::system_error& e) {
-        pLogger->error("Failed to open configuration file at path \"{0}\"", configFilePath);
+        pLoggerRef.get()->error("Failed to open configuration file at path \"{0}\"", configFilePath);
         return ConfigResult::Fail(Messages::ConfigurationFileOpenHeaderMessage,
             Messages::ConfigurationFileOpenUserMessage,
             fmt::format(Messages::ConfigurationFileOpenErrorMessage, e.code().message()));
     }
 
     if (!configFileStream.is_open()) {
-        pLogger->error("Should not get to this point when opening configuration file: \"{0}\"",
+        pLoggerRef.get()->error("Should not get to this point when opening configuration file: \"{0}\"",
             configFilePath);
     }
 
@@ -1022,10 +1022,10 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
                 tasksViewColumnParsingFailed = true;
             }
         } catch (const std::out_of_range& error) {
-            pLogger->error("Error - {0}", error.what());
+            pLoggerRef.get()->error("Error - {0}", error.what());
             tasksViewColumnParsingFailed = true;
         } catch (const toml::type_error& error) {
-            pLogger->error("Error - {0}", error.what());
+            pLoggerRef.get()->error("Error - {0}", error.what());
             tasksViewColumnParsingFailed = true;
         }
     } else {
@@ -1033,7 +1033,7 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
     }
 
     if (tasksViewColumnParsingFailed) {
-        pLogger->warn("Tasks view column parsing failed, reset to default columns");
+        pLoggerRef.get()->warn("Tasks view column parsing failed, reset to default columns");
         pSettings->TasksViewColumnSettings = Settings::MakeDefaultTasksViewColumnList();
     }
 }
@@ -1102,10 +1102,10 @@ void Configuration::GetPresetsConfig(const toml::value& root)
                 }
             }
         } catch (const std::out_of_range& error) {
-            pLogger->error("Error - {0}", error.what());
+            pLoggerRef.get()->error("Error - {0}", error.what());
             failedToFindPresetColumns = true;
         } catch (const toml::type_error& error) {
-            pLogger->error("Error - {0}", error.what());
+            pLoggerRef.get()->error("Error - {0}", error.what());
             failedToFindPresetColumns = true;
         }
 

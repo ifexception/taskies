@@ -20,6 +20,7 @@
 #include "application.h"
 
 #include <filesystem>
+#include <functional>
 
 #include <wx/ipc.h>
 #include <wx/richmsgdlg.h>
@@ -76,7 +77,7 @@ bool Application::OnInit()
     auto env = pEnv->GetBuildConfiguration();
     SPDLOG_LOGGER_TRACE(pLogger, "Running in \"{0}\" environment", BuildConfigurationToString(env));
 
-    pCfg = std::make_shared<Core::Configuration>(pEnv, pLogger);
+    pCfg = std::make_shared<Core::Configuration>(pEnv, std::ref(pLogger));
     if (!InitializeConfiguration()) {
         return false;
     }

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -52,7 +53,8 @@ struct Sections {
 class Configuration
 {
 public:
-    Configuration(std::shared_ptr<Environment> env, std::shared_ptr<spdlog::logger> logger);
+    Configuration(std::shared_ptr<Environment> env,
+        std::reference_wrapper<std::shared_ptr<spdlog::logger>> logger);
     ~Configuration() = default;
 
     ConfigResult LoadAndOrRecreate();
@@ -161,6 +163,6 @@ private:
     std::unique_ptr<Settings::Settings> pSettings;
 
     std::shared_ptr<Environment> pEnv;
-    std::shared_ptr<spdlog::logger> pLogger;
+    std::reference_wrapper<std::shared_ptr<spdlog::logger>> pLoggerRef;
 };
 } // namespace tks::Core
