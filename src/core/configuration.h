@@ -22,6 +22,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <toml.hpp>
@@ -42,19 +43,20 @@ namespace tks::Core
 class Environment;
 
 struct Sections {
-    static const std::string GeneralSection;
-    static const std::string DatabaseSection;
-    static const std::string TaskSection;
-    static const std::string TasksViewSection;
-    static const std::string ExportSection;
-    static const std::string PresetsSection;
+    static constexpr std::string_view GeneralSection = "general";
+    static constexpr std::string_view DatabaseSection = "database";
+    static constexpr std::string_view TaskSection = "tasks";
+    static constexpr std::string_view TasksViewSection = "tasksView";
+    static constexpr std::string_view ExportSection = "export";
+    static constexpr std::string_view PresetsSection = "presets";
 };
 
 class Configuration
 {
 public:
-    Configuration(std::shared_ptr<Environment> env,
-        std::reference_wrapper<std::shared_ptr<spdlog::logger>> logger);
+    Configuration(
+        std::reference_wrapper<std::shared_ptr<spdlog::logger>> logger,
+        std::reference_wrapper<std::shared_ptr<Environment>> env);
     ~Configuration() = default;
 
     ConfigResult LoadAndOrRecreate();
@@ -67,7 +69,7 @@ public:
     ConfigResult TryUnsetDefaultPreset();
 
     std::string GetUserInterfaceLanguage() const;
-    void SetUserInterfaceLanguage(const std::string& value);
+    void SetUserInterfaceLanguage(std::string_view value);
 
     bool StartOnBoot() const;
     void StartOnBoot(const bool value);
@@ -88,16 +90,16 @@ public:
     void ShowOutlookMeetingsPanel(const bool value);
 
     std::string GetDatabaseFileName() const;
-    void SetDatabaseFileName(const std::string& value);
+    void SetDatabaseFileName(std::string_view value);
 
     std::string GetDatabasePath() const;
-    void SetDatabasePath(const std::string& value);
+    void SetDatabasePath(std::string_view value);
 
     bool BackupDatabase() const;
     void BackupDatabase(const bool value);
 
     std::string GetBackupPath() const;
-    void SetBackupPath(const std::string& value);
+    void SetBackupPath(std::string_view value);
 
     bool BackupOnProgramClose() const;
     void BackupOnProgramClose(const bool value);
@@ -133,7 +135,7 @@ public:
     void SetTasksViewColumns(const std::vector<Settings::TasksViewColumnSetting> values);
 
     std::string GetExportPath() const;
-    void SetExportPath(const std::string& value);
+    void SetExportPath(std::string_view value);
 
     bool CloseExportDialogAfterExporting() const;
     void CloseExportDialogAfterExporting(const bool value);
@@ -146,6 +148,7 @@ public:
     void AddPreset(const Settings::PresetSetting& value);
     void EmplacePreset(const Settings::PresetSetting& value);
     void ClearPresets();
+
 
     std::string BuildFullDatabaseFilePath() const;
     std::string BuildFullBackupFilePath() const;
@@ -162,7 +165,7 @@ private:
 
     std::unique_ptr<Settings::Settings> pSettings;
 
-    std::shared_ptr<Environment> pEnv;
     std::reference_wrapper<std::shared_ptr<spdlog::logger>> pLoggerRef;
+    std::reference_wrapper<std::shared_ptr<Environment>> pEnvRef;
 };
 } // namespace tks::Core

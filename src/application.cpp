@@ -77,7 +77,7 @@ bool Application::OnInit()
     auto env = pEnv->GetBuildConfiguration();
     SPDLOG_LOGGER_TRACE(pLogger, "Running in \"{0}\" environment", BuildConfigurationToString(env));
 
-    pCfg = std::make_shared<Core::Configuration>(pEnv, std::ref(pLogger));
+    pCfg = std::make_shared<Core::Configuration>(std::ref(pLogger), std::ref(pEnv));
     if (!InitializeConfiguration()) {
         return false;
     }
