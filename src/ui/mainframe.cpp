@@ -186,7 +186,6 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , mTaskIdToEdit(-1)
     , mTaskDateString()
     , mThumbBarDialogOpenCounter(0)
-    , mOutlookMeetingViewFrameOpenCounter(0)
     , pTaskReminderTimer(std::make_unique<wxTimer>(this, tksIDC_TASKREMINDERTIMER))
     , pTaskReminderNotification()
     , mTasksViewColumns()
@@ -203,7 +202,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     }
 
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        auto debugTitle = fmt::format("{0} {1} - v{2}.{3}.{4}",
+        auto debugTitle = fmt::format("{0} ({1} - v{2}.{3}.{4})",
             Common::GetProgramName(),
             BuildConfigurationToString(pEnv->GetBuildConfiguration()),
             TASKIES_MAJOR,

@@ -300,8 +300,6 @@ private:
      */
     int mThumbBarDialogOpenCounter;
 
-    int mOutlookMeetingViewFrameOpenCounter;
-
     std::unique_ptr<wxTimer> pTaskReminderTimer;
     std::shared_ptr<wxNotificationMessage> pTaskReminderNotification;
 
