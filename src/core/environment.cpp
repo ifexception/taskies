@@ -40,6 +40,7 @@ Environment::Environment() noexcept
 {
 #ifdef TKS_DEBUG
     mBuildConfig = BuildConfiguration::Debug;
+    mInstallLocation = InstallLocation::Debug;
 #else
     mBuildConfig = BuildConfiguration::Release;
 #ifdef TKS_PORTABLEREL
@@ -60,40 +61,40 @@ InstallLocation Environment::GetInstallLocation() const noexcept
     return mInstallLocation;
 }
 
-std::string Environment::GetLogFilePath()
+std::string Environment::GetLogFilePath() const
 {
     auto path = GetApplicationLogPath() / LOG_FILENAME;
     return path.string();
 }
 
-std::string Environment::GetLanguagesPath()
+std::string Environment::GetLanguagesPath() const
 {
     return GetApplicationLanguagesPath().string();
 }
 
-std::string Environment::GetConfigurationFilePath()
+std::string Environment::GetConfigurationFilePath() const
 {
-    auto path =  GetApplicationConfigurationPath() / CFG_FILENAME;
+    auto path = GetApplicationConfigurationPath() / CFG_FILENAME;
     return path.string();
 }
 
-std::string Environment::GetDatabaseFilePath()
+std::string Environment::GetDatabaseFilePath() const
 {
-    auto path =  GetApplicationDatabasePath() / DATABASE_FILENAME;
+    auto path = GetApplicationDatabasePath() / DATABASE_FILENAME;
     return path.string();
 }
 
-std::string Environment::GetDatabasePath()
+std::string Environment::GetDatabasePath() const
 {
     return GetApplicationDatabasePath().string();
 }
 
-std::string Environment::GetResourcesPath()
+std::string Environment::GetResourcesPath() const
 {
     return GetApplicationResourcesPath().string();
 }
 
-std::string Environment::GetExportPath()
+std::string Environment::GetExportPath() const
 {
     return GetApplicationExportPath().string();
 }
@@ -111,6 +112,7 @@ std::string Environment::GetCurrentLocale()
     return Utils::ToStdString(std::wstring(name));
 #else
     // Safe fallback prevents UB on non-Windows platforms
+    // Not a concern for now
     if (const char* envLang = std::getenv("LANG")) {
         return std::string(envLang);
     }
@@ -170,47 +172,13 @@ bool Environment::SetIsSetup()
     }
 }
 
-// -private
-
-std::filesystem::path Environment::GetApplicationPath()
+// Private methods from here
+std::filesystem::path Environment::GetApplicationPath() const
 {
     return wxPathOnly(wxStandardPaths::Get().GetExecutablePath()).ToStdString();
 }
 
-std::filesystem::path Environment::GetApplicationDatabasePath()
-{
-    std::filesystem::path appDataPath;
-    const std::string data = "data";
-
-    switch (mBuildConfig) {
-    case BuildConfiguration::Debug:
-        appDataPath = GetApplicationPath() / data;
-        break;
-    case BuildConfiguration::Release: {
-        switch (mInstallLocation) {
-        case InstallLocation::Undefined:
-            [[fallthrough]];
-        case InstallLocation::Portable:
-            appDataPath = std::filesystem::path(GetApplicationPath()) / data;
-            break;
-        case InstallLocation::ProgramFiles:
-            appDataPath =
-                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / data;
-            break;
-        default:
-            break;
-        }
-        break;
-    }
-    default:
-        break;
-    }
-
-    std::filesystem::create_directories(appDataPath);
-    return appDataPath;
-}
-
-std::filesystem::path Environment::GetApplicationLogPath()
+std::filesystem::path Environment::GetApplicationLogPath() const
 {
     std::filesystem::path appLogPath;
     const std::string logs = "logs";
@@ -246,7 +214,40 @@ std::filesystem::path Environment::GetApplicationLogPath()
     return appLogPath;
 }
 
-std::filesystem::path Environment::GetApplicationLanguagesPath()
+std::filesystem::path Environment::GetApplicationDatabasePath() const
+{
+    std::filesystem::path appDataPath;
+    const std::string data = "data";
+
+    switch (mBuildConfig) {
+    case BuildConfiguration::Debug:
+        appDataPath = GetApplicationPath() / data;
+        break;
+    case BuildConfiguration::Release: {
+        switch (mInstallLocation) {
+        case InstallLocation::Undefined:
+            [[fallthrough]];
+        case InstallLocation::Portable:
+            appDataPath = std::filesystem::path(GetApplicationPath()) / data;
+            break;
+        case InstallLocation::ProgramFiles:
+            appDataPath =
+                std::filesystem::path(wxStandardPaths::Get().GetUserDataDir().ToStdString()) / data;
+            break;
+        default:
+            break;
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
+    std::filesystem::create_directories(appDataPath);
+    return appDataPath;
+}
+
+std::filesystem::path Environment::GetApplicationLanguagesPath() const
 {
     std::filesystem::path appLangPath;
     const std::string lang = "lang";
@@ -278,7 +279,7 @@ std::filesystem::path Environment::GetApplicationLanguagesPath()
     return appLangPath;
 }
 
-std::filesystem::path Environment::GetApplicationConfigurationPath()
+std::filesystem::path Environment::GetApplicationConfigurationPath() const
 {
     std::filesystem::path appConfigPath;
 
@@ -308,7 +309,7 @@ std::filesystem::path Environment::GetApplicationConfigurationPath()
     return appConfigPath;
 }
 
-std::filesystem::path Environment::GetApplicationResourcesPath()
+std::filesystem::path Environment::GetApplicationResourcesPath() const
 {
     std::filesystem::path appResPath;
     const std::string res = "res";
@@ -339,7 +340,7 @@ std::filesystem::path Environment::GetApplicationResourcesPath()
     return appResPath;
 }
 
-std::filesystem::path Environment::GetApplicationExportPath()
+std::filesystem::path Environment::GetApplicationExportPath() const
 {
     std::filesystem::path exportPath;
     const std::string defaultExportPath = "exports";

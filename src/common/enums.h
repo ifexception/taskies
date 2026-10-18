@@ -37,7 +37,7 @@ enum class WindowState : int { Normal = 1, Minimized = 2, Hidden = 3, Maximized 
 
 enum class BuildConfiguration { Undefined, Debug, Release };
 
-enum class InstallLocation { Undefined, Portable, ProgramFiles };
+enum class InstallLocation { Undefined, Debug, Portable, ProgramFiles };
 
 enum class NotificationType { Information = 1, Error };
 

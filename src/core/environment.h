@@ -46,13 +46,13 @@ public:
     BuildConfiguration GetBuildConfiguration() const noexcept;
     InstallLocation GetInstallLocation() const noexcept;
 
-    std::string GetLogFilePath();
-    std::string GetLanguagesPath();
-    std::string GetConfigurationFilePath();
-    std::string GetDatabaseFilePath();
-    std::string GetDatabasePath();
-    std::string GetResourcesPath();
-    std::string GetExportPath();
+    std::string GetLogFilePath() const;
+    std::string GetLanguagesPath() const;
+    std::string GetConfigurationFilePath() const;
+    std::string GetDatabaseFilePath() const;
+    std::string GetDatabasePath() const;
+    std::string GetResourcesPath() const;
+    std::string GetExportPath() const;
 
     static std::string GetCurrentLocale();
 
@@ -60,13 +60,13 @@ public:
     bool SetIsSetup();
 
 private:
-    std::filesystem::path GetApplicationPath();
-    std::filesystem::path GetApplicationDatabasePath();
-    std::filesystem::path GetApplicationLogPath();
-    std::filesystem::path GetApplicationLanguagesPath();
-    std::filesystem::path GetApplicationConfigurationPath();
-    std::filesystem::path GetApplicationResourcesPath();
-    std::filesystem::path GetApplicationExportPath();
+    std::filesystem::path GetApplicationPath() const ;
+    std::filesystem::path GetApplicationLogPath() const;
+    std::filesystem::path GetApplicationDatabasePath() const;
+    std::filesystem::path GetApplicationLanguagesPath() const;
+    std::filesystem::path GetApplicationConfigurationPath() const;
+    std::filesystem::path GetApplicationResourcesPath() const;
+    std::filesystem::path GetApplicationExportPath() const;
 
     std::string GetRegistryKey();
 
