@@ -34,7 +34,7 @@
 
 namespace tks::Core
 {
-Environment::Environment()
+Environment::Environment() noexcept
     : mBuildConfig(BuildConfiguration::Undefined)
     , mInstallLocation(InstallLocation::Undefined)
 {
@@ -50,19 +50,20 @@ Environment::Environment()
 #endif // TKS_DEBUG
 }
 
-BuildConfiguration Environment::GetBuildConfiguration() const
+BuildConfiguration Environment::GetBuildConfiguration() const noexcept
 {
     return mBuildConfig;
 }
 
-InstallLocation Environment::GetInstallLocation() const
+InstallLocation Environment::GetInstallLocation() const noexcept
 {
     return mInstallLocation;
 }
 
-std::filesystem::path Environment::GetLogFilePath()
+std::string Environment::GetLogFilePath()
 {
-    return GetApplicationLogPath() / GetLogFileName();
+    auto path = GetApplicationLogPath() / LOG_FILENAME;
+    return path.string();
 }
 
 std::filesystem::path Environment::GetLanguagesPath()
@@ -72,12 +73,12 @@ std::filesystem::path Environment::GetLanguagesPath()
 
 std::filesystem::path Environment::GetConfigurationFilePath()
 {
-    return GetApplicationConfigurationPath() / GetConfigurationFileName();
+    return GetApplicationConfigurationPath() / CFG_FILENAME;
 }
 
 std::filesystem::path Environment::GetDatabaseFilePath()
 {
-    return GetApplicationDatabasePath() / GetDatabaseFileName();
+    return GetApplicationDatabasePath() / DATABASE_FILENAME;
 }
 
 std::filesystem::path Environment::GetDatabasePath()
@@ -95,11 +96,6 @@ std::filesystem::path Environment::GetExportPath()
     return GetApplicationExportPath();
 }
 
-std::string Environment::GetDatabaseFileName()
-{
-    return std::string(DATABASE_FILENAME);
-}
-
 std::string Environment::GetCurrentLocale()
 {
 #ifdef _WIN32
@@ -111,23 +107,20 @@ std::string Environment::GetCurrentLocale()
     }
 
     return Utils::ToStdString(std::wstring(name));
-#endif // _WIN32
-
-    // #ifdef __linux__
-    //     setlocale(LC_ALL, NULL);
-    //     return std::string(std::locale().name());
-    // #endif // __linux__
+#else
+    // Safe fallback prevents UB on non-Windows platforms
+    if (const char* envLang = std::getenv("LANG")) {
+        return std::string(envLang);
+    }
+    return "en-US";
+#endif
 }
 
 bool Environment::IsSetup()
 {
     if (mBuildConfig == BuildConfiguration::Release &&
         mInstallLocation == InstallLocation::Portable) {
-        if (std::filesystem::exists(SETUP_FILENAME)) {
-            return true;
-        } else {
-            return false;
-        }
+        return std::filesystem::exists(std::string(SETUP_FILENAME));
     } else {
         std::string registryKey = GetRegistryKey();
         if (registryKey.empty()) {
@@ -376,16 +369,6 @@ std::filesystem::path Environment::GetApplicationExportPath()
     std::filesystem::create_directories(exportPath);
 
     return exportPath;
-}
-
-std::string Environment::GetLogFileName()
-{
-    return "taskies.log";
-}
-
-std::string Environment::GetConfigurationFileName()
-{
-    return "taskies.toml";
 }
 
 std::string Environment::GetRegistryKey()

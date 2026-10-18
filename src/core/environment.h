@@ -29,20 +29,24 @@
 namespace tks::Core
 {
 inline constexpr std::string_view DATABASE_FILENAME = "taskies.db";
+inline constexpr std::string_view SETUP_FILENAME = "taskies.setup";
+inline constexpr std::string_view LOG_FILENAME = "taskies.log";
+inline constexpr std::string_view CFG_FILENAME = "taskies.toml";
 
 class Environment final
 {
 public:
-    Environment();
+    explicit Environment() noexcept;
     Environment(const Environment&) = delete;
+    Environment& operator=(const Environment&) = delete;
+    Environment(Environment&&) noexcept = default;
+    Environment& operator=(Environment&&) noexcept = default;
     ~Environment() = default;
 
-    Environment& operator=(const Environment&) = delete;
+    BuildConfiguration GetBuildConfiguration() const noexcept;
+    InstallLocation GetInstallLocation() const noexcept;
 
-    BuildConfiguration GetBuildConfiguration() const;
-    InstallLocation GetInstallLocation() const;
-
-    std::filesystem::path GetLogFilePath();
+    std::string GetLogFilePath();
     std::filesystem::path GetLanguagesPath();
     std::filesystem::path GetConfigurationFilePath();
     std::filesystem::path GetDatabaseFilePath();
@@ -50,8 +54,7 @@ public:
     std::filesystem::path GetResourcesPath();
     std::filesystem::path GetExportPath();
 
-    std::string GetDatabaseFileName();
-    std::string GetCurrentLocale();
+    static std::string GetCurrentLocale();
 
     bool IsSetup();
     bool SetIsSetup();
@@ -64,9 +67,6 @@ private:
     std::filesystem::path GetApplicationConfigurationPath();
     std::filesystem::path GetApplicationResourcesPath();
     std::filesystem::path GetApplicationExportPath();
-
-    std::string GetLogFileName();
-    std::string GetConfigurationFileName();
 
     std::string GetRegistryKey();
 

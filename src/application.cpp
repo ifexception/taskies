@@ -163,7 +163,7 @@ int Application::OnExit()
 
 void Application::InitializeLogger()
 {
-    auto logDirectory = pEnv->GetLogFilePath().string();
+    auto logDirectory = pEnv->GetLogFilePath();
 
 #ifdef TKS_DEBUG
     auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_st>();
