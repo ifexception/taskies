@@ -97,7 +97,7 @@ std::filesystem::path Environment::GetExportPath()
 
 std::string Environment::GetDatabaseFileName()
 {
-    return DATABASE_FILENAME;
+    return std::string(DATABASE_FILENAME);
 }
 
 std::string Environment::GetCurrentLocale()

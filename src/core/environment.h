@@ -22,13 +22,13 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "../common/enums.h"
 
 namespace tks::Core
 {
-static std::string DATABASE_FILENAME = "taskies.db";
-static std::string SETUP_FILENAME = "taskies.setup";
+inline constexpr std::string_view DATABASE_FILENAME = "taskies.db";
 
 class Environment final
 {
