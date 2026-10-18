@@ -42,12 +42,12 @@ ConfigResult Configuration::LoadAndOrRecreate()
 {
     SPDLOG_LOGGER_TRACE(pLoggerRef.get(),
         "Looking for configuration file at path \"{0}\"",
-        pEnvRef.get()->GetConfigurationFilePath().string());
+        pEnvRef.get()->GetConfigurationFilePath());
 
     if (!std::filesystem::exists(pEnvRef.get()->GetConfigurationFilePath())) {
         pLoggerRef.get()->warn(
             "Failed to find configuration file at \"{0}\". Creating new one from defaults",
-            pEnvRef.get()->GetConfigurationFilePath().string());
+            pEnvRef.get()->GetConfigurationFilePath());
 
         auto result = RestoreDefaults();
         if (!result.Success) {
@@ -59,7 +59,7 @@ ConfigResult Configuration::LoadAndOrRecreate()
 
     toml::value root;
     try {
-        root = toml::parse(pEnvRef.get()->GetConfigurationFilePath().string());
+        root = toml::parse(pEnvRef.get()->GetConfigurationFilePath());
 
         GetGeneralConfig(root);
         GetDatabaseConfig(root);
@@ -75,7 +75,7 @@ ConfigResult Configuration::LoadAndOrRecreate()
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnvRef.get()->GetConfigurationFilePath().string(),
+                pEnvRef.get()->GetConfigurationFilePath(),
                 error.what()));
     } catch (const toml::type_error& error) {
         pLoggerRef.get()->error(
@@ -84,7 +84,7 @@ ConfigResult Configuration::LoadAndOrRecreate()
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnvRef.get()->GetConfigurationFilePath().string(),
+                pEnvRef.get()->GetConfigurationFilePath(),
                 error.what()));
     } catch (const std::out_of_range& error) {
         pLoggerRef.get()->error(
@@ -94,7 +94,7 @@ ConfigResult Configuration::LoadAndOrRecreate()
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnvRef.get()->GetConfigurationFilePath().string(),
+                pEnvRef.get()->GetConfigurationFilePath(),
                 error.what()));
     }
 
@@ -283,7 +283,7 @@ ConfigResult Configuration::RestoreDefaults()
     CloseToTray(false);
     ShowOutlookMeetingsPanel(false);
 
-    SetDatabasePath(pEnvRef.get()->GetDatabasePath().string());
+    SetDatabasePath(pEnvRef.get()->GetDatabasePath());
     BackupDatabase(false);
     SetBackupPath("");
     BackupOnProgramClose(false);
@@ -300,7 +300,7 @@ ConfigResult Configuration::RestoreDefaults()
 
     SetTasksViewColumns(Settings::MakeDefaultTasksViewColumnList());
 
-    SetExportPath(pEnvRef.get()->GetExportPath().string());
+    SetExportPath(pEnvRef.get()->GetExportPath());
     CloseExportDialogAfterExporting(false);
     SetPresetCount(0);
 
@@ -322,8 +322,8 @@ ConfigResult Configuration::RestoreDefaults()
             {
                 std::string(Sections::DatabaseSection),
                 toml::table {
-                    { "databaseFileName", pEnvRef.get()->GetDatabaseFileName() },
-                    { "databasePath", pEnvRef.get()->GetDatabasePath().string() },
+                    { "databaseFileName", DATABASE_FILENAME },
+                    { "databasePath", pEnvRef.get()->GetDatabasePath() },
                     { "backupDatabase", false },
                     { "backupPath", "" },
                     { "backupOnProgramClose", false },
@@ -354,7 +354,7 @@ ConfigResult Configuration::RestoreDefaults()
             {
                 std::string(Sections::ExportSection),
                 toml::table {
-                    { "exportPath", pEnvRef.get()->GetExportPath().string() },
+                    { "exportPath", pEnvRef.get()->GetExportPath() },
                     { "closeExportDialogAfterExporting", false },
                     { "presetCount", 0 }
                 }
@@ -401,7 +401,7 @@ ConfigResult Configuration::SaveExportPreset(Settings::PresetSetting presetToSav
 {
     toml::value root;
     try {
-        root = toml::parse(pEnvRef.get()->GetConfigurationFilePath().string());
+        root = toml::parse(pEnvRef.get()->GetConfigurationFilePath());
     } catch (const toml::syntax_error& error) {
         pLoggerRef.get()->error(
             "A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
@@ -409,7 +409,7 @@ ConfigResult Configuration::SaveExportPreset(Settings::PresetSetting presetToSav
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnvRef.get()->GetConfigurationFilePath().string(),
+                pEnvRef.get()->GetConfigurationFilePath(),
                 error.what()));
     }
 
@@ -471,7 +471,7 @@ ConfigResult Configuration::UpdateExportPreset(Settings::PresetSetting presetToU
 {
     toml::value root;
     try {
-        root = toml::parse(pEnvRef.get()->GetConfigurationFilePath().string());
+        root = toml::parse(pEnvRef.get()->GetConfigurationFilePath());
     } catch (const toml::syntax_error& error) {
         pLoggerRef.get()->error(
             "A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
@@ -479,7 +479,7 @@ ConfigResult Configuration::UpdateExportPreset(Settings::PresetSetting presetToU
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnvRef.get()->GetConfigurationFilePath().string(),
+                pEnvRef.get()->GetConfigurationFilePath(),
                 error.what()));
     }
 
@@ -530,7 +530,7 @@ ConfigResult Configuration::TryUnsetDefaultPreset()
 {
     toml::value root;
     try {
-        root = toml::parse(pEnvRef.get()->GetConfigurationFilePath().string());
+        root = toml::parse(pEnvRef.get()->GetConfigurationFilePath());
     } catch (const toml::syntax_error& error) {
         pLoggerRef.get()->error(
             "A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
@@ -538,7 +538,7 @@ ConfigResult Configuration::TryUnsetDefaultPreset()
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
             fmt::format(Messages::CongfigurationFileParseErrorMessage,
-                pEnvRef.get()->GetConfigurationFilePath().string(),
+                pEnvRef.get()->GetConfigurationFilePath(),
                 error.what()));
     }
 
@@ -846,7 +846,7 @@ void Configuration::ClearPresets()
 
 std::string Configuration::BuildFullDatabaseFilePath() const
 {
-    auto result = std::filesystem::path(GetDatabasePath()) / GetDatabaseFileName();
+    auto result = std::filesystem::path(GetDatabasePath()) / DATABASE_FILENAME;
     return result.string();
 }
 
@@ -858,7 +858,7 @@ std::string Configuration::BuildFullBackupFilePath() const
 
 ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileContents)
 {
-    const std::string configFilePath = pEnvRef.get()->GetConfigurationFilePath().string();
+    const std::string configFilePath = pEnvRef.get()->GetConfigurationFilePath();
 
     SPDLOG_LOGGER_TRACE(
         pLoggerRef.get(), "Looking for configuration file at path \"{0}\"", configFilePath);
@@ -928,13 +928,13 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
     const auto& databaseSection = toml::find(root, std::string(Sections::DatabaseSection));
 
     pSettings->DatabaseFileName = toml::find_or<std::string>(
-        databaseSection, "databaseFileName", pEnvRef.get()->GetDatabaseFileName());
+        databaseSection, "databaseFileName", std::string(DATABASE_FILENAME));
     if (pSettings->DatabaseFileName.empty()) {
-        pSettings->DatabaseFileName = pEnvRef.get()->GetDatabaseFileName();
+        pSettings->DatabaseFileName = DATABASE_FILENAME;
     }
 
     pSettings->DatabasePath = toml::find_or<std::string>(
-        databaseSection, "databasePath", pEnvRef.get()->GetDatabasePath().string());
+        databaseSection, "databasePath", pEnvRef.get()->GetDatabasePath());
 
     pSettings->BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
 
@@ -1057,8 +1057,8 @@ void Configuration::GetExportConfig(const toml::value& root)
 
     const auto& exportSection = toml::find(root, std::string(Sections::ExportSection));
 
-    pSettings->ExportPath = toml::find_or<std::string>(
-        exportSection, "exportPath", pEnvRef.get()->GetExportPath().string());
+    pSettings->ExportPath =
+        toml::find_or<std::string>(exportSection, "exportPath", pEnvRef.get()->GetExportPath());
 
     pSettings->CloseExportDialogAfterExporting =
         toml::find_or<bool>(exportSection, "closeExportDialogAfterExporting", false);

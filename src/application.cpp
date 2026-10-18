@@ -83,13 +83,13 @@ bool Application::OnInit()
     }
 
     if (pCfg->GetDatabasePath().empty() || pCfg->GetDatabaseFileName().empty()) {
-        pCfg->SetDatabasePath(pEnv->GetDatabasePath().string());
-        pCfg->SetDatabaseFileName(pEnv->GetDatabaseFileName());
+        pCfg->SetDatabasePath(pEnv->GetDatabasePath());
+        pCfg->SetDatabaseFileName(Core::DATABASE_FILENAME);
         pCfg->Save();
     }
 
     if (pCfg->GetExportPath().empty()) {
-        pCfg->SetExportPath(pEnv->GetExportPath().string());
+        pCfg->SetExportPath(pEnv->GetExportPath());
         pCfg->Save();
     }
 

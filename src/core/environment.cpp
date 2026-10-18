@@ -66,34 +66,36 @@ std::string Environment::GetLogFilePath()
     return path.string();
 }
 
-std::filesystem::path Environment::GetLanguagesPath()
+std::string Environment::GetLanguagesPath()
 {
-    return GetApplicationLanguagesPath();
+    return GetApplicationLanguagesPath().string();
 }
 
-std::filesystem::path Environment::GetConfigurationFilePath()
+std::string Environment::GetConfigurationFilePath()
 {
-    return GetApplicationConfigurationPath() / CFG_FILENAME;
+    auto path =  GetApplicationConfigurationPath() / CFG_FILENAME;
+    return path.string();
 }
 
-std::filesystem::path Environment::GetDatabaseFilePath()
+std::string Environment::GetDatabaseFilePath()
 {
-    return GetApplicationDatabasePath() / DATABASE_FILENAME;
+    auto path =  GetApplicationDatabasePath() / DATABASE_FILENAME;
+    return path.string();
 }
 
-std::filesystem::path Environment::GetDatabasePath()
+std::string Environment::GetDatabasePath()
 {
-    return GetApplicationDatabasePath();
+    return GetApplicationDatabasePath().string();
 }
 
-std::filesystem::path Environment::GetResourcesPath()
+std::string Environment::GetResourcesPath()
 {
-    return GetApplicationResourcesPath();
+    return GetApplicationResourcesPath().string();
 }
 
-std::filesystem::path Environment::GetExportPath()
+std::string Environment::GetExportPath()
 {
-    return GetApplicationExportPath();
+    return GetApplicationExportPath().string();
 }
 
 std::string Environment::GetCurrentLocale()

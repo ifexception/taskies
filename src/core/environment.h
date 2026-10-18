@@ -47,12 +47,12 @@ public:
     InstallLocation GetInstallLocation() const noexcept;
 
     std::string GetLogFilePath();
-    std::filesystem::path GetLanguagesPath();
-    std::filesystem::path GetConfigurationFilePath();
-    std::filesystem::path GetDatabaseFilePath();
-    std::filesystem::path GetDatabasePath();
-    std::filesystem::path GetResourcesPath();
-    std::filesystem::path GetExportPath();
+    std::string GetLanguagesPath();
+    std::string GetConfigurationFilePath();
+    std::string GetDatabaseFilePath();
+    std::string GetDatabasePath();
+    std::string GetResourcesPath();
+    std::string GetExportPath();
 
     static std::string GetCurrentLocale();
 

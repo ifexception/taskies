@@ -55,7 +55,7 @@ SetupWizard::SetupWizard(wxFrame* frame,
           wxID_ANY,
           "Setup/Restore Wizard",
           wxBitmapBundle::FromSVGFile(
-              (env->GetResourcesPath() / Common::Resources::Wizard()).string(),
+              fmt::format("{0}/{1}", env->GetResourcesPath(), Common::Resources::Wizard()),
               wxSize(116, 260)))
     , pLogger(logger)
     , pEnv(env)
@@ -1107,7 +1107,7 @@ void RestoreDatabasePage::OnOpenFileForRestoreLocation(wxCommandEvent& event)
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetDatabasePath().empty()) {
-        pathDirectoryToOpenOn = pEnv->GetDatabasePath().string();
+        pathDirectoryToOpenOn = pEnv->GetDatabasePath();
     } else {
         pathDirectoryToOpenOn = pCfg->GetDatabasePath();
     }
