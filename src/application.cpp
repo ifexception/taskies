@@ -39,6 +39,7 @@
 #include "core/environment.h"
 #include "core/configuration.h"
 #include "core/database_migration.h"
+#include "core/startup_manager.h"
 // #include "core/translator.h"
 
 #include "ui/wizards/setupwizard.h"
@@ -53,7 +54,8 @@ namespace tks
 Application::Application()
     : pInstanceChecker(std::make_unique<wxSingleInstanceChecker>())
     , pLogger(nullptr)
-    , pEnv(nullptr)
+    , pEnv(std::make_shared<Core::Environment>())
+    , pStartUpMgr(std::make_unique<Core::StartUpManager>(std::ref(pEnv)))
     , pCfg(nullptr)
     , pPersistenceManager(nullptr)
 {
@@ -69,8 +71,6 @@ bool Application::OnInit()
         ActivateOtherInstance();
         return false;
     }
-
-    pEnv = std::make_shared<Core::Environment>();
 
     InitializeLogger();
 
@@ -140,7 +140,7 @@ bool Application::OnInit()
         break;
     }
 
-    if (!pEnv->IsSetup()) {
+    if (!pStartUpMgr->IsSetup()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Program not yet set up, start first start up procedure");
         if (!FirstStartupProcedure(frame)) {
             return false;
@@ -281,7 +281,7 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
     wizard->Destroy();
 
     if (result) {
-        result = pEnv->SetIsSetup();
+        result = pStartUpMgr->SetIsSetup();
         if (result) {
             return true;
         }

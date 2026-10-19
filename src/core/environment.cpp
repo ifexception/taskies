@@ -22,13 +22,12 @@
 #include <filesystem>
 #include <fstream>
 
-#include <wx/stdpaths.h>
-#include <wx/msw/registry.h>
-
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif // _WIN32
+
+#include <wx/stdpaths.h>
 
 #include "../utils/utils.h"
 
@@ -118,58 +117,6 @@ std::string Environment::GetCurrentLocale()
     }
     return "en-US";
 #endif
-}
-
-bool Environment::IsSetup()
-{
-    if (mBuildConfig == BuildConfiguration::Release &&
-        mInstallLocation == InstallLocation::Portable) {
-        return std::filesystem::exists(std::string(SETUP_FILENAME));
-    } else {
-        std::string registryKey = GetRegistryKey();
-        if (registryKey.empty()) {
-            return false;
-        }
-
-        wxRegKey key(wxRegKey::HKCU, registryKey);
-        if (key.HasValue("IsSetup")) {
-            long value = 0;
-            key.QueryValue("IsSetup", &value);
-
-            return !!value;
-        }
-        return false;
-    }
-}
-
-bool Environment::SetIsSetup()
-{
-    if (mBuildConfig == BuildConfiguration::Release &&
-        mInstallLocation == InstallLocation::Portable) {
-        std::ofstream setupFile;
-        setupFile.open(SETUP_FILENAME, std::ios::out);
-        if (setupFile.is_open()) {
-            setupFile << true;
-            setupFile.close();
-
-            return true;
-        } else {
-            return false;
-        }
-    } else {
-        std::string registryKey = GetRegistryKey();
-        if (registryKey.empty()) {
-            return false;
-        }
-
-        wxRegKey key(wxRegKey::HKCU, registryKey);
-        bool result = key.Exists();
-        if (!result) {
-            return result;
-        }
-
-        return key.SetValue("IsSetup", true);
-    }
 }
 
 // Private methods from here
@@ -372,42 +319,5 @@ std::filesystem::path Environment::GetApplicationExportPath() const
     std::filesystem::create_directories(exportPath);
 
     return exportPath;
-}
-
-std::string Environment::GetRegistryKey()
-{
-    switch (mBuildConfig) {
-    case BuildConfiguration::Debug: {
-        const std::string debugKey = "Software\\Taskiesd";
-
-        wxRegKey key(wxRegKey::HKCU, debugKey);
-        if (!key.Exists()) {
-            if (key.Create()) {
-                return debugKey;
-            } else {
-                return "";
-            }
-        } else {
-            return debugKey;
-        }
-    }
-
-    case BuildConfiguration::Release: {
-        const std::string releaseKey = "Software\\Taskies";
-
-        wxRegKey key(wxRegKey::HKCU, releaseKey);
-        if (!key.Exists()) {
-            if (key.Create()) {
-                return releaseKey;
-            } else {
-                return "";
-            }
-        } else {
-            return releaseKey;
-        }
-    }
-    default:
-        return "";
-    }
 }
 } // namespace tks::Core

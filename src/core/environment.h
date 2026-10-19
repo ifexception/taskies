@@ -56,9 +56,6 @@ public:
 
     static std::string GetCurrentLocale();
 
-    bool IsSetup();
-    bool SetIsSetup();
-
 private:
     std::filesystem::path GetApplicationPath() const ;
     std::filesystem::path GetApplicationLogPath() const;
@@ -67,8 +64,6 @@ private:
     std::filesystem::path GetApplicationConfigurationPath() const;
     std::filesystem::path GetApplicationResourcesPath() const;
     std::filesystem::path GetApplicationExportPath() const;
-
-    std::string GetRegistryKey();
 
     BuildConfiguration mBuildConfig;
     InstallLocation mInstallLocation;

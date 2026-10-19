@@ -35,6 +35,7 @@ namespace Core
 {
 class Environment;
 class Configuration;
+class StartUpManager;
 } // namespace Core
 
 namespace UI
@@ -65,6 +66,7 @@ private:
 
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
+    std::unique_ptr<Core::StartUpManager> pStartUpMgr;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<UI::PersistenceManager> pPersistenceManager;
 };
