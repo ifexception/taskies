@@ -68,7 +68,11 @@ bool Application::OnInit()
     }
 
     if (pInstanceChecker->IsAnotherRunning()) {
-        ActivateOtherInstance();
+        // ActivateOtherInstance();
+        wxMessageDialog dlg(nullptr,
+            fmt::format("Another instance of {0} is already running", Common::GetProgramName()),
+            Common::GetProgramName(),
+            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
         return false;
     }
 
