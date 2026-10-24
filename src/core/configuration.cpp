@@ -38,24 +38,11 @@ Configuration::Configuration(std::reference_wrapper<std::shared_ptr<spdlog::logg
 {
 }
 
-ConfigResult Configuration::LoadAndOrRecreate()
+ConfigResult Configuration::LoadConfigurationFile()
 {
     SPDLOG_LOGGER_TRACE(pLoggerRef.get(),
         "Looking for configuration file at path \"{0}\"",
         pEnvRef.get()->GetConfigurationFilePath());
-
-    if (!std::filesystem::exists(pEnvRef.get()->GetConfigurationFilePath())) {
-        pLoggerRef.get()->warn(
-            "Failed to find configuration file at \"{0}\". Creating new one from defaults",
-            pEnvRef.get()->GetConfigurationFilePath());
-
-        auto result = RestoreDefaults();
-        if (!result.Success) {
-            pLoggerRef.get()->error(
-                "Failed to recreate configuration file. See earlier logs for more detail");
-            return result;
-        }
-    }
 
     toml::value root;
     try {
@@ -99,6 +86,24 @@ ConfigResult Configuration::LoadAndOrRecreate()
     }
 
     return ConfigResult::OK();
+}
+
+ConfigResult Configuration::RecreateConfigurationFile()
+{
+    SPDLOG_LOGGER_TRACE(pLoggerRef.get(),
+        "Looking for configuration file at path \"{0}\"",
+        pEnvRef.get()->GetConfigurationFilePath());
+
+    pLoggerRef.get()->warn(
+        "Failed to find configuration file at \"{0}\". Creating new one from defaults",
+        pEnvRef.get()->GetConfigurationFilePath());
+
+    auto result = RestoreDefaults();
+    if (!result.Success) {
+        pLoggerRef.get()->error(
+            "Failed to recreate configuration file. See earlier logs for more detail");
+        return result;
+    }
 }
 
 ConfigResult Configuration::Save()

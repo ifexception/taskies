@@ -59,7 +59,8 @@ public:
         std::reference_wrapper<std::shared_ptr<Environment>> env);
     ~Configuration() = default;
 
-    ConfigResult LoadAndOrRecreate();
+    ConfigResult LoadConfigurationFile();
+    ConfigResult RecreateConfigurationFile();
 
     ConfigResult Save();
     ConfigResult RestoreDefaults();
