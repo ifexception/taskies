@@ -30,19 +30,21 @@
 
 namespace tks::Core
 {
-class StartUpManager final
+class SetupManager final
 {
 public:
-    explicit StartUpManager(std::reference_wrapper<std::shared_ptr<Environment>> env) noexcept;
+    explicit SetupManager(std::reference_wrapper<std::shared_ptr<Environment>> env) noexcept;
 
-    StartUpManager(const StartUpManager&) = delete;
-    StartUpManager& operator=(const StartUpManager&) = delete;
-    StartUpManager(StartUpManager&&) noexcept = default;
-    StartUpManager& operator=(StartUpManager&&) noexcept = default;
-    ~StartUpManager() = default;
+    SetupManager(const SetupManager&) = delete;
+    SetupManager& operator=(const SetupManager&) = delete;
+    SetupManager(SetupManager&&) noexcept = default;
+    SetupManager& operator=(SetupManager&&) noexcept = default;
+    ~SetupManager() = default;
 
     bool IsSetup() const;
     bool SetIsSetup();
+
+    bool ConfigurationFileMigrationRequired() const;
 
 private:
     std::string GetRegistryKey() const;

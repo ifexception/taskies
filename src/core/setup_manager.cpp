@@ -17,19 +17,19 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include "startup_manager.h"
+#include "setup_manager.h"
 
 #include <fstream>
 #include <filesystem>
 
 namespace tks::Core
 {
-StartUpManager::StartUpManager(std::reference_wrapper<std::shared_ptr<Environment>> env) noexcept
+SetupManager::SetupManager(std::reference_wrapper<std::shared_ptr<Environment>> env) noexcept
     : pEnvRef(env)
 {
 }
 
-bool StartUpManager::IsSetup() const
+bool SetupManager::IsSetup() const
 {
     if (pEnvRef.get()->GetBuildConfiguration() == BuildConfiguration::Release &&
         pEnvRef.get()->GetInstallLocation() == InstallLocation::Portable) {
@@ -60,13 +60,8 @@ bool StartUpManager::IsSetup() const
     uint32_t data = 0;
     DWORD dataSize = sizeof(data);
 
-    status = RegGetValueW(hKey,
-        nullptr,
-        wRegistryValue.c_str(),
-        RRF_RT_REG_DWORD, // Restrict types to standard 32-bit DWORD
-        nullptr,
-        &data,
-        &dataSize);
+    status = RegGetValueW(
+        hKey, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
 
     if (status != ERROR_SUCCESS) {
         return false;
@@ -75,7 +70,7 @@ bool StartUpManager::IsSetup() const
     return true;
 }
 
-bool StartUpManager::SetIsSetup()
+bool SetupManager::SetIsSetup()
 {
     if (pEnvRef.get()->GetBuildConfiguration() == BuildConfiguration::Release &&
         pEnvRef.get()->GetInstallLocation() == InstallLocation::Portable) {
@@ -99,17 +94,16 @@ bool StartUpManager::SetIsSetup()
     DWORD value = static_cast<DWORD>(true);
     HKEY hKey = nullptr;
 
-    LSTATUS status =
-        RegCreateKeyExW(HKEY_CURRENT_USER, // Handle to an open parent key (e.g., HKEY_CURRENT_USER)
-            wRegistryKey.c_str(), // Name of the subkey to open or create
-            0, // Reserved; must be 0
-            nullptr, // User-defined class type; usually null
-            REG_OPTION_NON_VOLATILE, // Standard persistent key (saved across reboots)
-            KEY_ALL_ACCESS, // Security access mask (e.g., KEY_READ, KEY_WRITE, KEY_ALL_ACCESS)
-            nullptr, // Security attributes inheriting handle; usually null
-            &hKey, // Output pointer to the opened/created key handle
-            &disposition // Output variable receiving the disposition result
-        );
+    LSTATUS status = RegCreateKeyExW(HKEY_CURRENT_USER, // Handle to an open parent key
+        wRegistryKey.c_str(), // Name of the subkey to open or create
+        0, // Reserved - must be 0
+        nullptr, // User-defined class type
+        REG_OPTION_NON_VOLATILE, // Standard persistent key
+        KEY_ALL_ACCESS, // Security access mask
+        nullptr, // Security attributes inheriting handle
+        &hKey, // Output pointer to the opened/created key handle
+        &disposition // Output variable receiving the disposition result
+    );
 
     if (status != ERROR_SUCCESS) {
         return false;
@@ -134,7 +128,43 @@ bool StartUpManager::SetIsSetup()
     return true;
 }
 
-std::string StartUpManager::GetRegistryKey() const
+bool SetupManager::ConfigurationFileMigrationRequired() const
+{
+    const std::string registryKey = GetRegistryKey();
+    if (registryKey.empty()) {
+        return false;
+    }
+
+    std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
+    std::wstring wRegistryValue = L"ConfigMigrationRequired";
+
+    HKEY hKey = nullptr;
+    LSTATUS status = RegOpenKeyEx(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &hKey);
+
+    if (status != ERROR_SUCCESS) {
+        return false;
+    }
+
+    status =
+        RegGetValue(hKey, nullptr, wRegistryValue.c_str(), RRF_RT_ANY, nullptr, nullptr, nullptr);
+    if (status != ERROR_SUCCESS || status != ERROR_MORE_DATA) {
+        return false;
+    }
+
+    uint32_t data = 0;
+    DWORD dataSize = sizeof(data);
+
+    status = RegGetValueW(
+        hKey, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
+
+    if (status != ERROR_SUCCESS) {
+        return false;
+    }
+
+    return true;
+}
+
+std::string SetupManager::GetRegistryKey() const
 {
     switch (pEnvRef.get()->GetBuildConfiguration()) {
     case BuildConfiguration::Debug:

@@ -39,7 +39,7 @@
 #include "core/environment.h"
 #include "core/configuration.h"
 #include "core/database_migration.h"
-#include "core/startup_manager.h"
+#include "core/setup_manager.h"
 // #include "core/translator.h"
 
 #include "ui/wizards/setupwizard.h"
@@ -55,7 +55,7 @@ Application::Application()
     : pInstanceChecker(std::make_unique<wxSingleInstanceChecker>())
     , pLogger(nullptr)
     , pEnv(std::make_shared<Core::Environment>())
-    , pStartUpMgr(std::make_unique<Core::StartUpManager>(std::ref(pEnv)))
+    , pSetupMgr(std::make_unique<Core::SetupManager>(std::ref(pEnv)))
     , pCfg(nullptr)
     , pPersistenceManager(nullptr)
 {
@@ -86,7 +86,7 @@ bool Application::OnInit()
         return false;
     }
 
-    if (pCfg->GetDatabasePath().empty() || pCfg->GetDatabaseFileName().empty()) {
+    /*if (pCfg->GetDatabasePath().empty() || pCfg->GetDatabaseFileName().empty()) {
         pCfg->SetDatabasePath(pEnv->GetDatabasePath());
         pCfg->SetDatabaseFileName(Core::DATABASE_FILENAME);
         pCfg->Save();
@@ -95,11 +95,11 @@ bool Application::OnInit()
     if (pCfg->GetExportPath().empty()) {
         pCfg->SetExportPath(pEnv->GetExportPath());
         pCfg->Save();
-    }
+    }*/
 
     pPersistenceManager =
         std::make_unique<UI::PersistenceManager>(pLogger, pCfg->BuildFullDatabaseFilePath());
-    wxPersistenceManager::Set(*pPersistenceManager);
+    wxPersistenceManager::Set(*pPersistenceManager.get());
 
     if (!RunMigrations()) {
         return false;
@@ -144,7 +144,7 @@ bool Application::OnInit()
         break;
     }
 
-    if (!pStartUpMgr->IsSetup()) {
+    if (!pSetupMgr->IsSetup()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Program not yet set up, start first start up procedure");
         if (!FirstStartupProcedure(frame)) {
             return false;
@@ -201,8 +201,26 @@ void Application::InitializeLogger()
 
 bool Application::InitializeConfiguration()
 {
+    if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
+        auto result = pCfg->RecreateConfigurationFile();
+        if (!result.Success) {
+            pLogger->error(
+                "Error occurred when loading or recreating configuration. See earlier logs "
+                "for details");
+            wxRichMessageDialog dialog(nullptr,
+                result.HeaderMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.UserMessage);
+            dialog.ShowDetailedText(result.ErrorMessage);
+
+            dialog.ShowModal();
+            return false;
+        }
+    }
+
     /* we attempt to load and/or recreate the configuration file or we cannot locate it */
-    auto result = pCfg->LoadAndOrRecreate();
+    auto result = pCfg->LoadConfigurationFile();
     if (!result.Success) {
         pLogger->error("Error occurred when loading or recreating configuration. See earlier logs "
                        "for details");
@@ -217,32 +235,22 @@ bool Application::InitializeConfiguration()
         return false;
     }
 
-    // remove database file from database path config
-    std::string ext(".db");
-    std::string databasePath = pCfg->GetDatabasePath();
-    auto fullPath = std::filesystem::path(databasePath);
-    if (fullPath.has_filename() && fullPath.extension() == ext) {
-        auto& pathWithoutFileName = fullPath.remove_filename();
-        pCfg->SetDatabasePath(pathWithoutFileName.string());
-    }
+    if (pSetupMgr->ConfigurationFileMigrationRequired()) {
+        /* save the file when configuration file migration is required */
+        result = pCfg->Save();
+        if (!result.Success) {
+            pLogger->error(
+                "Error occurred while saving configuration. See earlier logs for details");
+            wxRichMessageDialog dialog(nullptr,
+                result.HeaderMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.UserMessage);
+            dialog.ShowDetailedText(result.ErrorMessage);
 
-    /*
-     * we then save the file just in case the file didn't exist or a setting(s) was missing
-     * if a setting was missing, saving the configuration ensures the configuration is
-     * in a good state on the _next_ load
-     */
-    result = pCfg->Save();
-    if (!result.Success) {
-        pLogger->error("Error occurred while saving configuration. See earlier logs for details");
-        wxRichMessageDialog dialog(nullptr,
-            result.HeaderMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(result.UserMessage);
-        dialog.ShowDetailedText(result.ErrorMessage);
-
-        dialog.ShowModal();
-        return false;
+            dialog.ShowModal();
+            return false;
+        }
     }
 
     return result.Success;
@@ -285,7 +293,7 @@ bool Application::FirstStartupProcedure(wxFrame* frame)
     wizard->Destroy();
 
     if (result) {
-        result = pStartUpMgr->SetIsSetup();
+        result = pSetupMgr->SetIsSetup();
         if (result) {
             return true;
         }
