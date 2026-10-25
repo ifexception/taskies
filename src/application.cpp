@@ -20,7 +20,6 @@
 #include "application.h"
 
 #include <filesystem>
-#include <functional>
 
 #include <wx/ipc.h>
 #include <wx/richmsgdlg.h>
@@ -55,7 +54,7 @@ Application::Application()
     : pInstanceChecker(std::make_unique<wxSingleInstanceChecker>())
     , pLogger(nullptr)
     , pEnv(std::make_shared<Core::Environment>())
-    , pSetupMgr(std::make_unique<Core::SetupManager>(std::ref(pEnv)))
+    , pSetupMgr(std::make_unique<Core::SetupManager>(pEnv))
     , pCfg(nullptr)
     , pPersistenceManager(nullptr)
 {
@@ -81,7 +80,7 @@ bool Application::OnInit()
     auto env = pEnv->GetBuildConfiguration();
     SPDLOG_LOGGER_TRACE(pLogger, "Running in \"{0}\" environment", BuildConfigurationToString(env));
 
-    pCfg = std::make_shared<Core::Configuration>(std::ref(pLogger), std::ref(pEnv));
+    pCfg = std::make_shared<Core::Configuration>(pLogger, pEnv);
     if (!InitializeConfiguration()) {
         return false;
     }

@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -55,8 +54,8 @@ class Configuration
 {
 public:
     Configuration(
-        std::reference_wrapper<std::shared_ptr<spdlog::logger>> logger,
-        std::reference_wrapper<std::shared_ptr<Environment>> env);
+        std::shared_ptr<spdlog::logger> logger,
+        std::shared_ptr<Environment> env);
     ~Configuration() = default;
 
     ConfigResult LoadConfigurationFile();
@@ -166,7 +165,7 @@ private:
 
     std::unique_ptr<Settings::Settings> pSettings;
 
-    std::reference_wrapper<std::shared_ptr<spdlog::logger>> pLoggerRef;
-    std::reference_wrapper<std::shared_ptr<Environment>> pEnvRef;
+    std::shared_ptr<spdlog::logger> pLogger;
+    std::shared_ptr<Environment> pEnv;
 };
 } // namespace tks::Core
