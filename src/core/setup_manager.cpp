@@ -24,18 +24,19 @@
 
 namespace tks::Core
 {
-SetupManager::SetupManager(std::reference_wrapper<std::shared_ptr<Environment>> env) noexcept
-    : pEnvRef(env)
+SetupManager::SetupManager(std::shared_ptr<Environment> env) noexcept
+    : pEnv(std::move(env))
 {
 }
 
 bool SetupManager::IsSetup() const
 {
-    if (pEnvRef.get()->GetBuildConfiguration() == BuildConfiguration::Release &&
-        pEnvRef.get()->GetInstallLocation() == InstallLocation::Portable) {
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
+        pEnv->GetInstallLocation() == InstallLocation::Portable) {
         return std::filesystem::exists(std::string(SETUP_FILENAME));
     }
 
+#ifdef _WIN32
     std::string registryKey = GetRegistryKey();
     if (registryKey.empty()) {
         return false;
@@ -44,8 +45,9 @@ bool SetupManager::IsSetup() const
     std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
     std::wstring wRegistryValue = L"IsSetup";
 
-    HKEY hKey = nullptr;
-    LSTATUS status = RegOpenKeyEx(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &hKey);
+    RegKeyGuard guard;
+    LSTATUS status =
+        ::RegOpenKeyEx(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
 
     if (status != ERROR_SUCCESS) {
         return false;
@@ -54,20 +56,24 @@ bool SetupManager::IsSetup() const
     uint32_t data = 0;
     DWORD dataSize = sizeof(data);
 
-    status = RegGetValue(
-        hKey, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
+    status = ::RegGetValue(
+        guard.key, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
 
     if (status != ERROR_SUCCESS) {
         return false;
     }
 
     return true;
+#else
+    // Non-Windows fallback stub
+    return std::filesystem::exists(std::string(SETUP_FILENAME));
+#endif // _WIN32
 }
 
 bool SetupManager::SetIsSetup()
 {
-    if (pEnvRef.get()->GetBuildConfiguration() == BuildConfiguration::Release &&
-        pEnvRef.get()->GetInstallLocation() == InstallLocation::Portable) {
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
+        pEnv->GetInstallLocation() == InstallLocation::Portable) {
         std::ofstream setupFile(std::string(SETUP_FILENAME), std::ios::out);
         if (setupFile.is_open()) {
             setupFile << true;
@@ -76,6 +82,7 @@ bool SetupManager::SetIsSetup()
         return false;
     }
 
+#ifdef _WIN32
     const std::string registryKey = GetRegistryKey();
     if (registryKey.empty()) {
         return false;
@@ -84,31 +91,25 @@ bool SetupManager::SetIsSetup()
     std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
     std::wstring wRegistryValue = L"IsSetup";
 
-    DWORD disposition = 0;
     DWORD value = static_cast<DWORD>(true);
-    HKEY hKey = nullptr;
 
-    LSTATUS status = RegCreateKeyEx(HKEY_CURRENT_USER, // Handle to an open parent key
+    RegKeyGuard guard;
+    LSTATUS status = ::RegCreateKeyEx(HKEY_CURRENT_USER, // Handle to an open parent key
         wRegistryKey.c_str(), // Name of the subkey to open or create
         0, // Reserved - must be 0
         nullptr, // User-defined class type
         REG_OPTION_NON_VOLATILE, // Standard persistent key
         KEY_ALL_ACCESS, // Security access mask
         nullptr, // Security attributes inheriting handle
-        &hKey, // Output pointer to the opened/created key handle
-        &disposition // Output variable receiving the disposition result
+        &guard.key, // Output pointer to the opened/created key handle
+        nullptr // Output variable receiving the disposition result; can be NULL
     );
 
     if (status != ERROR_SUCCESS) {
         return false;
     }
 
-    // Check disposition to see what happened under the hood
-    if (disposition != REG_CREATED_NEW_KEY || disposition != REG_OPENED_EXISTING_KEY) {
-        return false;
-    }
-
-    status = RegSetValueEx(hKey,
+    status = ::RegSetValueEx(guard.key,
         wRegistryValue.c_str(),
         0, // Reserved; must be 0
         REG_DWORD, // Flag specifying a 32-bit integer
@@ -120,10 +121,16 @@ bool SetupManager::SetIsSetup()
         return false;
     }
     return true;
+#else
+    // Non-Windows fallback stub
+    std::ofstream setupFile(std::string(SETUP_FILENAME), std::ios::out);
+    return setupFile.is_open();
+#endif // _WIN32
 }
 
 bool SetupManager::ConfigurationFileMigrationRequired() const
 {
+#ifdef _WIN32
     const std::string registryKey = GetRegistryKey();
     if (registryKey.empty()) {
         return false;
@@ -132,8 +139,8 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
     std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
     std::wstring wRegistryValue = L"ConfigMigrationRequired";
 
-    HKEY hKey = nullptr;
-    LSTATUS status = RegOpenKeyEx(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &hKey);
+    RegKeyGuard guard;
+    LSTATUS status = ::RegOpenKeyEx(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
 
     if (status != ERROR_SUCCESS) {
         return false;
@@ -142,19 +149,23 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
     uint32_t data = 0;
     DWORD dataSize = sizeof(data);
 
-    status = RegGetValue(
-        hKey, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
+    status = ::RegGetValue(
+        guard.key, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
 
     if (status != ERROR_SUCCESS) {
         return false;
     }
 
     return !!data;
+#else
+    // Non-Windows fallback stub
+    return false;
+#endif // _WIN32
 }
 
 std::string SetupManager::GetRegistryKey() const
 {
-    switch (pEnvRef.get()->GetBuildConfiguration()) {
+    switch (pEnv->GetBuildConfiguration()) {
     case BuildConfiguration::Debug:
         return "Software\\Taskiesd";
     case BuildConfiguration::Release:

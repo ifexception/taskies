@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <functional>
-
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
@@ -28,12 +26,28 @@
 
 #include "environment.h"
 
+#ifdef _WIN32
+namespace
+{
+// RAII guard to guarantee HKEY closing when exiting scopes
+struct RegKeyGuard {
+    HKEY key = nullptr;
+    ~RegKeyGuard()
+    {
+        if (key) {
+            ::RegCloseKey(key);
+        }
+    }
+};
+} // namespace
+#endif // _WIN32
+
 namespace tks::Core
 {
 class SetupManager final
 {
 public:
-    explicit SetupManager(std::reference_wrapper<std::shared_ptr<Environment>> env) noexcept;
+    explicit SetupManager(std::shared_ptr<Environment> env) noexcept;
 
     SetupManager(const SetupManager&) = delete;
     SetupManager& operator=(const SetupManager&) = delete;
@@ -49,6 +63,6 @@ public:
 private:
     std::string GetRegistryKey() const;
 
-    std::reference_wrapper<std::shared_ptr<Environment>> pEnvRef;
+    std::shared_ptr<Environment> pEnv;
 };
 } // namespace tks::Core
