@@ -224,7 +224,7 @@ bool Application::InitializeConfiguration()
         return false;
     }
 
-    if (!pSetupMgr->ConfigurationFileMigrationRequired()) {
+    if (pSetupMgr->ConfigurationFileMigrationRequired()) {
         /* save the file when configuration file migration is required */
         /* saving the file will set in any missing settings */
         result = pCfg->Save();

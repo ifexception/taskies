@@ -29,7 +29,7 @@
 #ifdef _WIN32
 namespace
 {
-// RAII guard to guarantee HKEY closing when exiting scopes
+// RAII guard to manage lifetime of HKEY closing when exiting scopes
 struct RegKeyGuard {
     HKEY key = nullptr;
     ~RegKeyGuard()
