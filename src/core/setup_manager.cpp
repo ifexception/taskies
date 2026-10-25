@@ -47,7 +47,7 @@ bool SetupManager::IsSetup() const
 
     RegKeyGuard guard;
     LSTATUS status =
-        ::RegOpenKeyEx(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
+        ::RegOpenKeyExW(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
 
     if (status != ERROR_SUCCESS) {
         return false;
@@ -56,7 +56,7 @@ bool SetupManager::IsSetup() const
     uint32_t data = 0;
     DWORD dataSize = sizeof(data);
 
-    status = ::RegGetValue(
+    status = ::RegGetValueW(
         guard.key, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
 
     if (status != ERROR_SUCCESS) {
@@ -94,7 +94,7 @@ bool SetupManager::SetIsSetup()
     DWORD value = static_cast<DWORD>(true);
 
     RegKeyGuard guard;
-    LSTATUS status = ::RegCreateKeyEx(HKEY_CURRENT_USER, // Handle to an open parent key
+    LSTATUS status = ::RegCreateKeyExW(HKEY_CURRENT_USER, // Handle to an open parent key
         wRegistryKey.c_str(), // Name of the subkey to open or create
         0, // Reserved - must be 0
         nullptr, // User-defined class type
@@ -109,7 +109,7 @@ bool SetupManager::SetIsSetup()
         return false;
     }
 
-    status = ::RegSetValueEx(guard.key,
+    status = ::RegSetValueExW(guard.key,
         wRegistryValue.c_str(),
         0, // Reserved; must be 0
         REG_DWORD, // Flag specifying a 32-bit integer
@@ -140,7 +140,8 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
     std::wstring wRegistryValue = L"ConfigMigrationRequired";
 
     RegKeyGuard guard;
-    LSTATUS status = ::RegOpenKeyEx(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
+    LSTATUS status =
+        ::RegOpenKeyExW(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
 
     if (status != ERROR_SUCCESS) {
         return false;
@@ -149,7 +150,7 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
     uint32_t data = 0;
     DWORD dataSize = sizeof(data);
 
-    status = ::RegGetValue(
+    status = ::RegGetValueW(
         guard.key, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
 
     if (status != ERROR_SUCCESS) {
