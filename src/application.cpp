@@ -72,7 +72,7 @@ bool Application::OnInit()
         wxMessageDialog dlg(nullptr,
             fmt::format("Another instance of {0} is already running", Common::GetProgramName()),
             Common::GetProgramName(),
-            wxYES_NO | wxNO_DEFAULT | wxICON_WARNING | wxCENTER);
+            wxOK_DEFAULT | wxICON_INFORMATION | wxCENTER);
         return false;
     }
 
@@ -85,17 +85,6 @@ bool Application::OnInit()
     if (!InitializeConfiguration()) {
         return false;
     }
-
-    /*if (pCfg->GetDatabasePath().empty() || pCfg->GetDatabaseFileName().empty()) {
-        pCfg->SetDatabasePath(pEnv->GetDatabasePath());
-        pCfg->SetDatabaseFileName(Core::DATABASE_FILENAME);
-        pCfg->Save();
-    }
-
-    if (pCfg->GetExportPath().empty()) {
-        pCfg->SetExportPath(pEnv->GetExportPath());
-        pCfg->Save();
-    }*/
 
     pPersistenceManager =
         std::make_unique<UI::PersistenceManager>(pLogger, pCfg->BuildFullDatabaseFilePath());
@@ -201,6 +190,7 @@ void Application::InitializeLogger()
 
 bool Application::InitializeConfiguration()
 {
+    // if the file doesn't exist, recreate with the program defaults
     if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
         auto result = pCfg->RecreateConfigurationFile();
         if (!result.Success) {
@@ -219,7 +209,7 @@ bool Application::InitializeConfiguration()
         }
     }
 
-    /* we attempt to load and/or recreate the configuration file or we cannot locate it */
+    /* we attempt to load the configuration file or we cannot locate it */
     auto result = pCfg->LoadConfigurationFile();
     if (!result.Success) {
         pLogger->error("Error occurred when loading or recreating configuration. See earlier logs "
@@ -235,8 +225,9 @@ bool Application::InitializeConfiguration()
         return false;
     }
 
-    if (pSetupMgr->ConfigurationFileMigrationRequired()) {
+    if (!pSetupMgr->ConfigurationFileMigrationRequired()) {
         /* save the file when configuration file migration is required */
+        /* saving the file will set in any missing settings */
         result = pCfg->Save();
         if (!result.Success) {
             pLogger->error(

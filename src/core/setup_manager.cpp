@@ -51,16 +51,10 @@ bool SetupManager::IsSetup() const
         return false;
     }
 
-    status =
-        RegGetValue(hKey, nullptr, wRegistryValue.c_str(), RRF_RT_ANY, nullptr, nullptr, nullptr);
-    if (status != ERROR_SUCCESS || status != ERROR_MORE_DATA) {
-        return false;
-    }
-
     uint32_t data = 0;
     DWORD dataSize = sizeof(data);
 
-    status = RegGetValueW(
+    status = RegGetValue(
         hKey, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
 
     if (status != ERROR_SUCCESS) {
@@ -94,7 +88,7 @@ bool SetupManager::SetIsSetup()
     DWORD value = static_cast<DWORD>(true);
     HKEY hKey = nullptr;
 
-    LSTATUS status = RegCreateKeyExW(HKEY_CURRENT_USER, // Handle to an open parent key
+    LSTATUS status = RegCreateKeyEx(HKEY_CURRENT_USER, // Handle to an open parent key
         wRegistryKey.c_str(), // Name of the subkey to open or create
         0, // Reserved - must be 0
         nullptr, // User-defined class type
@@ -114,7 +108,7 @@ bool SetupManager::SetIsSetup()
         return false;
     }
 
-    status = RegSetValueExW(hKey,
+    status = RegSetValueEx(hKey,
         wRegistryValue.c_str(),
         0, // Reserved; must be 0
         REG_DWORD, // Flag specifying a 32-bit integer
@@ -145,23 +139,17 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
         return false;
     }
 
-    status =
-        RegGetValue(hKey, nullptr, wRegistryValue.c_str(), RRF_RT_ANY, nullptr, nullptr, nullptr);
-    if (status != ERROR_SUCCESS || status != ERROR_MORE_DATA) {
-        return false;
-    }
-
     uint32_t data = 0;
     DWORD dataSize = sizeof(data);
 
-    status = RegGetValueW(
+    status = RegGetValue(
         hKey, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
 
     if (status != ERROR_SUCCESS) {
         return false;
     }
 
-    return true;
+    return !!data;
 }
 
 std::string SetupManager::GetRegistryKey() const
