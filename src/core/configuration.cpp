@@ -104,6 +104,8 @@ ConfigResult Configuration::RecreateConfigurationFile()
             "Failed to recreate configuration file. See earlier logs for more detail");
         return result;
     }
+
+    return ConfigResult::OK();
 }
 
 ConfigResult Configuration::Save()
