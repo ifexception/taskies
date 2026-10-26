@@ -53,9 +53,7 @@ struct Sections {
 class Configuration
 {
 public:
-    Configuration(
-        std::shared_ptr<spdlog::logger> logger,
-        std::shared_ptr<Environment> env);
+    Configuration(std::shared_ptr<spdlog::logger> logger, std::shared_ptr<Environment> env);
     ~Configuration() = default;
 
     ConfigResult LoadConfigurationFile();
@@ -148,7 +146,6 @@ public:
     void AddPreset(const Settings::PresetSetting& value);
     void EmplacePreset(const Settings::PresetSetting& value);
     void ClearPresets();
-
 
     std::string BuildFullDatabaseFilePath() const;
     std::string BuildFullBackupFilePath() const;

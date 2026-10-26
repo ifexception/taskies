@@ -55,8 +55,7 @@ ConfigResult Configuration::LoadConfigurationFile()
         GetExportConfig(root);
         GetPresetsConfig(root);
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
+        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
 
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
@@ -94,14 +93,12 @@ ConfigResult Configuration::RecreateConfigurationFile()
         "Looking for configuration file at path \"{0}\"",
         pEnv->GetConfigurationFilePath());
 
-    pLogger->warn(
-        "Failed to find configuration file at \"{0}\". Creating new one from defaults",
+    pLogger->warn("Failed to find configuration file at \"{0}\". Creating new one from defaults",
         pEnv->GetConfigurationFilePath());
 
     auto result = RestoreDefaults();
     if (!result.Success) {
-        pLogger->error(
-            "Failed to recreate configuration file. See earlier logs for more detail");
+        pLogger->error("Failed to recreate configuration file. See earlier logs for more detail");
         return result;
     }
 
@@ -410,8 +407,7 @@ ConfigResult Configuration::SaveExportPreset(Settings::PresetSetting presetToSav
     try {
         root = toml::parse(pEnv->GetConfigurationFilePath());
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
+        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
@@ -480,8 +476,7 @@ ConfigResult Configuration::UpdateExportPreset(Settings::PresetSetting presetToU
     try {
         root = toml::parse(pEnv->GetConfigurationFilePath());
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
+        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
@@ -539,8 +534,7 @@ ConfigResult Configuration::TryUnsetDefaultPreset()
     try {
         root = toml::parse(pEnv->GetConfigurationFilePath());
     } catch (const toml::syntax_error& error) {
-        pLogger->error(
-            "A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
+        pLogger->error("A TOML syntax/parse error occurred when parsing configuration file \"{0}\"",
             error.what());
         return ConfigResult::Fail(Messages::ConfigurationFileParseHeaderMessage,
             Messages::CongfigurationFileParseUserMessage,
@@ -867,8 +861,7 @@ ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileConte
 {
     const std::string configFilePath = pEnv->GetConfigurationFilePath();
 
-    SPDLOG_LOGGER_TRACE(
-        pLogger, "Looking for configuration file at path \"{0}\"", configFilePath);
+    SPDLOG_LOGGER_TRACE(pLogger, "Looking for configuration file at path \"{0}\"", configFilePath);
 
     if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
         return ConfigResult::Fail(Messages::ConfigurationFileNotFoundHeaderMessage,
@@ -883,16 +876,14 @@ ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileConte
     try {
         configFileStream.open(configFilePath, std::ios::out);
     } catch (const std::system_error& e) {
-        pLogger->error(
-            "Failed to open configuration file at path \"{0}\"", configFilePath);
+        pLogger->error("Failed to open configuration file at path \"{0}\"", configFilePath);
         return ConfigResult::Fail(Messages::ConfigurationFileOpenHeaderMessage,
             Messages::ConfigurationFileOpenUserMessage,
             fmt::format(Messages::ConfigurationFileOpenErrorMessage, e.code().message()));
     }
 
     if (!configFileStream.is_open()) {
-        pLogger->error(
-            "Should not get to this point when opening configuration file: \"{0}\"",
+        pLogger->error("Should not get to this point when opening configuration file: \"{0}\"",
             configFilePath);
     }
 
@@ -940,8 +931,8 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
         pSettings->DatabaseFileName = DATABASE_FILENAME;
     }
 
-    pSettings->DatabasePath = toml::find_or<std::string>(
-        databaseSection, "databasePath", pEnv->GetDatabasePath());
+    pSettings->DatabasePath =
+        toml::find_or<std::string>(databaseSection, "databasePath", pEnv->GetDatabasePath());
 
     pSettings->BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
 
@@ -996,8 +987,7 @@ void Configuration::GetTasksViewConfig(const toml::value& root)
         try {
             if (tasksViewArrayTable.is_array()) {
                 if (tasksViewArrayTable.size() == 0) {
-                    std::vector<Settings::TasksViewColumnSetting> tasksViewColumnSettings =
-                        Settings::MakeDefaultTasksViewColumnList();
+                    pSettings->TasksViewColumnSettings = Settings::MakeDefaultTasksViewColumnList();
                 } else {
                     std::vector<Settings::TasksViewColumnSetting> columns;
                     for (size_t i = 0; i < tasksViewArrayTable.size(); i++) {
