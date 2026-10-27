@@ -989,7 +989,7 @@ void ExportToCsvDialog::OnFromDateSelection(wxDateEvent& event)
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
     if (eventDateUtc > pToDatePickerCtrl->GetValue()) {
-        SetFromDateControlValue(true);
+        SetFromDateControlValue(false);
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"to\" date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pFromDatePickerCtrl);
@@ -1014,7 +1014,7 @@ void ExportToCsvDialog::OnToDateSelection(wxDateEvent& event)
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
     if (eventDateUtc < pFromDatePickerCtrl->GetValue()) {
-        SetToDateControlValue(true);
+        SetToDateControlValue(false);
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"from\" date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDatePickerCtrl);
