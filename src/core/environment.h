@@ -46,6 +46,7 @@ public:
     BuildConfiguration GetBuildConfiguration() const noexcept;
     InstallLocation GetInstallLocation() const noexcept;
 
+    std::string GetProgramPath() const;
     std::string GetLogFilePath() const;
     std::string GetLanguagesPath() const;
     std::string GetConfigurationFilePath() const;

@@ -74,7 +74,10 @@ bool SetupManager::SetIsSetup()
 {
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
         pEnv->GetInstallLocation() == InstallLocation::Portable) {
-        std::ofstream setupFile(std::string(SETUP_FILENAME), std::ios::out);
+        auto setupFileName =
+            std::filesystem::path(pEnv->GetProgramPath()) / std::string(SETUP_FILENAME);
+
+        std::ofstream setupFile(setupFileName.string(), std::ios::out);
         if (setupFile.is_open()) {
             setupFile << true;
             return true;

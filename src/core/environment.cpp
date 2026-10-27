@@ -60,6 +60,11 @@ InstallLocation Environment::GetInstallLocation() const noexcept
     return mInstallLocation;
 }
 
+std::string Environment::GetProgramPath() const
+{
+    return GetApplicationLogPath().string();
+}
+
 std::string Environment::GetLogFilePath() const
 {
     auto path = GetApplicationLogPath() / LOG_FILENAME;
