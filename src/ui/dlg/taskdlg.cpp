@@ -1325,6 +1325,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
 void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
 {
     ResetCategoryChoiceControl();
+    pBillableCheckBoxCtrl->SetValue(false);
 
     int projectIndex = event.GetSelection();
     ClientData<std::int64_t>* projectIdData = reinterpret_cast<ClientData<std::int64_t>*>(
