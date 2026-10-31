@@ -196,6 +196,5 @@ void TaskBarIcon::OnLeftButtonDown(wxTaskBarIconEvent& WXUNUSED(event))
 
     pParent->Raise();
     pParent->Show();
-    pParent->SendSizeEvent();
 }
 } // namespace tks::UI
