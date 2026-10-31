@@ -28,47 +28,47 @@ PrivilegesRequired=lowest
 DisableProgramGroupPage=yes
 
 [Files]
-Source: "Taskies.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "mswu/*"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "bz2.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "bzip2.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "c_rehash.pl"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "curl-config"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "date-tz.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "fmt.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "libcrypto-3-x64.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "libcurl.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "libexpat.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "libjpeg-9.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "liblzma.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "libpng16.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "libssl-3-x64.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "lzmadec.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "lzmainfo.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "openssl.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "pcre2-8.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "pcre2-16.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "pcre2-32.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "pcre2-config"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "pcre2grep.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "pcre2-posix.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "spdlog.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "sqlite3.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "sqlite3.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "tiff.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "wcurl"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "wxbase32u_vc_x64_custom.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "wxmsw32u_core_vc_x64_custom.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "wxmsw32u_aui_vc_x64_custom.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "wxrc.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "xz.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "xzdec.exe"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "zlib1.dll"; DestDir: "{userappdata}\Taskies"; Flags: ignoreversion
-Source: "taskies.toml"; DestDir: "{userappdata}\Taskies"; Flags: onlyifdoesntexist
-Source: "res\install-wizard.svg"; DestDir: "{userappdata}\res"; Flags: ignoreversion
+Source: "Taskies.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "mswu/*"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bz2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bzip2.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "c_rehash.pl"; DestDir: "{app}"; Flags: ignoreversion
+Source: "curl-config"; DestDir: "{app}"; Flags: ignoreversion
+Source: "date-tz.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "fmt.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libcrypto-3-x64.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libexpat.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libjpeg-9.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "liblzma.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libpng16.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "libssl-3-x64.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "lzmadec.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "lzmainfo.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "openssl.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "pcre2-8.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "pcre2-16.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "pcre2-32.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "pcre2-config"; DestDir: "{app}"; Flags: ignoreversion
+Source: "pcre2grep.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "pcre2-posix.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "spdlog.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "sqlite3.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "sqlite3.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "tiff.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "wcurl"; DestDir: "{app}"; Flags: ignoreversion
+Source: "wxbase32u_vc_x64_custom.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "wxmsw32u_core_vc_x64_custom.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "wxmsw32u_aui_vc_x64_custom.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "wxrc.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "xz.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "xzdec.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "zlib1.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "taskies.toml"; DestDir: "{app}"; Flags: onlyifdoesntexist
+Source: "res\install-wizard.svg"; DestDir: "{app}\res"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\Taskies"; Filename: "{userappdata}\Taskies.exe"
+Name: "{group}\Taskies"; Filename: "{app}\Taskies.exe"
 
 [Messages]
 WelcomeLabel1=Welcome to the Taskies Portable Install Wizard
