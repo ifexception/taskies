@@ -127,7 +127,7 @@ wxWizardPage* SetupWizard::GetFirstPage() const
 
 std::string SetupWizard::GetDatabaseFileName() const
 {
-    return pCfg->GetDatabaseFileName();
+    return std::string(Core::DATABASE_FILENAME);
 }
 
 const std::int64_t SetupWizard::GetEmployerId() const
@@ -170,22 +170,22 @@ void SetupWizard::SetCategoryId(const std::int64_t cateogryId)
     mCategoryId = cateogryId;
 }
 
-const std::string& SetupWizard::GetBackupDatabasePath() const
+const std::filesystem::path SetupWizard::GetBackupDatabasePath() const
 {
     return mBackupDatabasePath;
 }
 
-void SetupWizard::SetBackupDatabasePath(const std::string& value)
+void SetupWizard::SetBackupDatabasePath(const std::filesystem::path value)
 {
     mBackupDatabasePath = value;
 }
 
-const std::string& SetupWizard::GetRestoreDatabasePath() const
+const std::filesystem::path SetupWizard::GetRestoreDatabasePath() const
 {
     return mRestoreDatabasePath;
 }
 
-void SetupWizard::SetRestoreDatabasePath(const std::string& value)
+void SetupWizard::SetRestoreDatabasePath(const std::filesystem::path value)
 {
     mRestoreDatabasePath = value;
 }
@@ -1189,13 +1189,13 @@ void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event)
 
     Core::DatabaseBackup databaseBackup(pLogger);
 
-    std::string backupDatabasePath =
-        pParent->GetBackupDatabasePath() + "\\" + pParent->GetDatabaseFileName();
-    std::string restoreDatabasePath =
-        pParent->GetRestoreDatabasePath() + "\\" + pParent->GetDatabaseFileName();
+    std::filesystem::path backupDatabasePath =
+        pParent->GetBackupDatabasePath() / pParent->GetDatabaseFileName();
+    std::filesystem::path restoreDatabasePath =
+        pParent->GetRestoreDatabasePath() / pParent->GetDatabaseFileName();
 
-    databaseBackup.SetSourceDatabaseFilePath(backupDatabasePath);
-    databaseBackup.SetDestinationDatabaseFilePath(restoreDatabasePath);
+    databaseBackup.SetSourceDatabaseFilePath(backupDatabasePath.string());
+    databaseBackup.SetDestinationDatabaseFilePath(restoreDatabasePath.string());
 
     auto result = databaseBackup.Restore();
 

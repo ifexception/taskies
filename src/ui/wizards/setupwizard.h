@@ -20,6 +20,7 @@
 #pragma once
 
 #include <cstdint>
+#include <filesystem>
 #include <memory>
 #include <string>
 
@@ -82,11 +83,11 @@ public:
     const std::int64_t GetCategoryId() const;
     void SetCategoryId(const std::int64_t categoryId);
 
-    const std::string& GetBackupDatabasePath() const;
-    void SetBackupDatabasePath(const std::string& value);
+    const std::filesystem::path GetBackupDatabasePath() const;
+    void SetBackupDatabasePath(const std::filesystem::path value);
 
-    const std::string& GetRestoreDatabasePath() const;
-    void SetRestoreDatabasePath(const std::string& value);
+    const std::filesystem::path GetRestoreDatabasePath() const;
+    void SetRestoreDatabasePath(const std::filesystem::path value);
 
 private:
     void ConfigureEventBindings();
@@ -115,8 +116,8 @@ private:
     std::int64_t mProjectId;
     std::int64_t mCategoryId;
 
-    std::string mBackupDatabasePath;
-    std::string mRestoreDatabasePath;
+    std::filesystem::path mBackupDatabasePath;
+    std::filesystem::path mRestoreDatabasePath;
 };
 
 class WelcomePage final : public wxWizardPageSimple
