@@ -61,12 +61,12 @@ public:
         std::int64_t taskId = -1,
         const std::string& selectedDate = "",
         bool isClone = false,
+        const std::string& monthStart = "",
+        const std::string& monthEnd = "",
         const wxString& name = "taskdlg");
     virtual ~TaskDialog() = default;
 
     TaskDialog& operator=(const TaskDialog&) = delete;
-
-    void SetMonthDates(const std::string& monthStart, const std::string& monthEnd);
 
     void SetAttendedMeetingData(const std::string& subject,
         const int duration,

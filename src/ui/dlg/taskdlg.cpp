@@ -79,6 +79,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
     std::int64_t taskId,
     const std::string& selectedDate,
     bool isClone,
+    const std::string& monthStart,
+    const std::string& monthEnd,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
@@ -123,8 +125,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
     , bAddAnotherTask(false)
-    , mMonthStartDate()
-    , mMonthEndDate()
+    , mMonthStartDate(monthStart)
+    , mMonthEndDate(monthEnd)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -145,12 +147,6 @@ TaskDialog::TaskDialog(wxWindow* parent,
 
     wxIconBundle iconBundle(tks::Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
-}
-
-void TaskDialog::SetMonthDates(const std::string& monthStart, const std::string& monthEnd)
-{
-    mMonthStartDate = monthStart;
-    mMonthEndDate = monthEnd;
 }
 
 void TaskDialog::SetAttendedMeetingData(const std::string& subject,
