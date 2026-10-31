@@ -38,7 +38,6 @@ struct Settings {
     bool CloseToTray;
     bool ShowOutlookMeetingsPanel;
 
-    std::string DatabaseFileName;
     std::string DatabasePath;
     bool BackupDatabase;
     std::string BackupPath;

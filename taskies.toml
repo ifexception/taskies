@@ -8,7 +8,6 @@ closeToTray=false
 showOutlookMeetingsPanel=false
 
 [database]
-databaseFileName="taskies.db"
 databasePath=""
 backupDatabase=false
 backupPath=""

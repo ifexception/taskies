@@ -87,9 +87,6 @@ public:
     bool ShowOutlookMeetingsPanel() const;
     void ShowOutlookMeetingsPanel(const bool value);
 
-    std::string GetDatabaseFileName() const;
-    void SetDatabaseFileName(std::string_view value);
-
     std::string GetDatabasePath() const;
     void SetDatabasePath(std::string_view value);
 

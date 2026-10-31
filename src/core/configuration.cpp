@@ -150,8 +150,6 @@ ConfigResult Configuration::Save()
     // Database section
     root.at(std::string(Sections::DatabaseSection)).as_table_fmt().fmt =
         toml::table_format::multiline;
-    root.at(std::string(Sections::DatabaseSection))["databaseFileName"] =
-        pSettings->DatabaseFileName;
     root.at(std::string(Sections::DatabaseSection))["databasePath"] = pSettings->DatabasePath;
     root.at(std::string(Sections::DatabaseSection))["backupDatabase"] = pSettings->BackupDatabase;
     root.at(std::string(Sections::DatabaseSection))["backupPath"] = pSettings->BackupPath;
@@ -628,16 +626,6 @@ void Configuration::ShowOutlookMeetingsPanel(const bool value)
     pSettings->ShowOutlookMeetingsPanel = value;
 }
 
-std::string Configuration::GetDatabaseFileName() const
-{
-    return pSettings->DatabaseFileName;
-}
-
-void Configuration::SetDatabaseFileName(std::string_view value)
-{
-    pSettings->DatabaseFileName = std::string(value);
-}
-
 std::string Configuration::GetDatabasePath() const
 {
     return pSettings->DatabasePath;
@@ -853,7 +841,7 @@ std::string Configuration::BuildFullDatabaseFilePath() const
 
 std::string Configuration::BuildFullBackupFilePath() const
 {
-    auto result = std::filesystem::path(GetBackupPath()) / GetDatabaseFileName();
+    auto result = std::filesystem::path(GetBackupPath()) / DATABASE_FILENAME;
     return result.string();
 }
 
@@ -924,13 +912,6 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
     }
 
     const auto& databaseSection = toml::find(root, std::string(Sections::DatabaseSection));
-
-    pSettings->DatabaseFileName = toml::find_or<std::string>(
-        databaseSection, "databaseFileName", std::string(DATABASE_FILENAME));
-
-    if (pSettings->DatabaseFileName.empty()) {
-        pSettings->DatabaseFileName = DATABASE_FILENAME;
-    }
 
     pSettings->DatabasePath =
         toml::find_or<std::string>(databaseSection, "databasePath", pEnv->GetDatabasePath());
