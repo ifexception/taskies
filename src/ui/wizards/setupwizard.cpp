@@ -1078,7 +1078,7 @@ void RestoreDatabasePage::OnOpenFileForBackupLocation(wxCommandEvent& event)
 {
     std::string pathDirectoryToOpenOn;
     if (pCfg->GetBackupPath().empty()) {
-        pathDirectoryToOpenOn = pCfg->GetDatabasePath(); // TODO: Should open at ~/Documents
+        pathDirectoryToOpenOn = pCfg->GetDatabasePath();
     } else {
         pathDirectoryToOpenOn = pCfg->GetBackupPath();
     }
@@ -1189,8 +1189,7 @@ void RestoreDatabaseResultPage::OnWizardPageShown(wxWizardEvent& WXUNUSED(event)
 
     Core::DatabaseBackup databaseBackup(pLogger);
 
-    std::filesystem::path backupDatabasePath =
-        pParent->GetBackupDatabasePath() / pParent->GetDatabaseFileName();
+    std::filesystem::path backupDatabasePath = pParent->GetBackupDatabasePath();
     std::filesystem::path restoreDatabasePath =
         pParent->GetRestoreDatabasePath() / pParent->GetDatabaseFileName();
 
