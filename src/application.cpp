@@ -38,6 +38,7 @@
 #include "core/environment.h"
 #include "core/configuration.h"
 #include "core/database_migration.h"
+#include "core/setup_manager.h"
 // #include "core/translator.h"
 
 #include "ui/wizards/setupwizard.h"
@@ -52,7 +53,8 @@ namespace tks
 Application::Application()
     : pInstanceChecker(std::make_unique<wxSingleInstanceChecker>())
     , pLogger(nullptr)
-    , pEnv(nullptr)
+    , pEnv(std::make_shared<Core::Environment>())
+    , pSetupMgr(std::make_unique<Core::SetupManager>(pEnv))
     , pCfg(nullptr)
     , pPersistenceManager(nullptr)
 {
@@ -65,36 +67,27 @@ bool Application::OnInit()
     }
 
     if (pInstanceChecker->IsAnotherRunning()) {
-        ActivateOtherInstance();
+        // ActivateOtherInstance();
+        wxMessageDialog dlg(nullptr,
+            fmt::format("Another instance of {0} is already running", Common::GetProgramName()),
+            Common::GetProgramName(),
+            wxOK_DEFAULT | wxICON_INFORMATION | wxCENTER);
         return false;
     }
-
-    pEnv = std::make_shared<Core::Environment>();
 
     InitializeLogger();
 
     auto env = pEnv->GetBuildConfiguration();
     SPDLOG_LOGGER_TRACE(pLogger, "Running in \"{0}\" environment", BuildConfigurationToString(env));
 
-    pCfg = std::make_shared<Core::Configuration>(pEnv, pLogger);
+    pCfg = std::make_shared<Core::Configuration>(pLogger, pEnv);
     if (!InitializeConfiguration()) {
         return false;
     }
 
-    if (pCfg->GetDatabasePath().empty() || pCfg->GetDatabaseFileName().empty()) {
-        pCfg->SetDatabasePath(pEnv->GetDatabasePath().string());
-        pCfg->SetDatabaseFileName(pEnv->GetDatabaseFileName());
-        pCfg->Save();
-    }
-
-    if (pCfg->GetExportPath().empty()) {
-        pCfg->SetExportPath(pEnv->GetExportPath().string());
-        pCfg->Save();
-    }
-
     pPersistenceManager =
         std::make_unique<UI::PersistenceManager>(pLogger, pCfg->BuildFullDatabaseFilePath());
-    wxPersistenceManager::Set(*pPersistenceManager);
+    wxPersistenceManager::Set(*pPersistenceManager.get());
 
     if (!RunMigrations()) {
         return false;
@@ -139,7 +132,7 @@ bool Application::OnInit()
         break;
     }
 
-    if (!pEnv->IsSetup()) {
+    if (!pSetupMgr->IsSetup()) {
         SPDLOG_LOGGER_TRACE(pLogger, "Program not yet set up, start first start up procedure");
         if (!FirstStartupProcedure(frame)) {
             return false;
@@ -162,7 +155,7 @@ int Application::OnExit()
 
 void Application::InitializeLogger()
 {
-    auto logDirectory = pEnv->GetLogFilePath().string();
+    auto logDirectory = pEnv->GetLogFilePath();
 
 #ifdef TKS_DEBUG
     auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_st>();
@@ -196,8 +189,27 @@ void Application::InitializeLogger()
 
 bool Application::InitializeConfiguration()
 {
-    /* we attempt to load and/or recreate the configuration file or we cannot locate it */
-    auto result = pCfg->LoadAndOrRecreate();
+    // if the file doesn't exist, recreate with the program defaults
+    if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
+        auto result = pCfg->RecreateConfigurationFile();
+        if (!result.Success) {
+            pLogger->error(
+                "Error occurred when loading or recreating configuration. See earlier logs "
+                "for details");
+            wxRichMessageDialog dialog(nullptr,
+                result.HeaderMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.UserMessage);
+            dialog.ShowDetailedText(result.ErrorMessage);
+
+            dialog.ShowModal();
+            return false;
+        }
+    }
+
+    /* we attempt to load the configuration file or we cannot locate it */
+    auto result = pCfg->LoadConfigurationFile();
     if (!result.Success) {
         pLogger->error("Error occurred when loading or recreating configuration. See earlier logs "
                        "for details");
@@ -212,32 +224,23 @@ bool Application::InitializeConfiguration()
         return false;
     }
 
-    // remove database file from database path config
-    std::string ext(".db");
-    std::string databasePath = pCfg->GetDatabasePath();
-    auto fullPath = std::filesystem::path(databasePath);
-    if (fullPath.has_filename() && fullPath.extension() == ext) {
-        auto& pathWithoutFileName = fullPath.remove_filename();
-        pCfg->SetDatabasePath(pathWithoutFileName.string());
-    }
+    if (pSetupMgr->ConfigurationFileMigrationRequired()) {
+        /* save the file when configuration file migration is required */
+        /* saving the file will set in any missing settings */
+        result = pCfg->Save();
+        if (!result.Success) {
+            pLogger->error(
+                "Error occurred while saving configuration. See earlier logs for details");
+            wxRichMessageDialog dialog(nullptr,
+                result.HeaderMessage,
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(result.UserMessage);
+            dialog.ShowDetailedText(result.ErrorMessage);
 
-    /*
-     * we then save the file just in case the file didn't exist or a setting(s) was missing
-     * if a setting was missing, saving the configuration ensures the configuration is
-     * in a good state on the _next_ load
-     */
-    result = pCfg->Save();
-    if (!result.Success) {
-        pLogger->error("Error occurred while saving configuration. See earlier logs for details");
-        wxRichMessageDialog dialog(nullptr,
-            result.HeaderMessage,
-            Common::GetProgramName(),
-            wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-        dialog.SetExtendedMessage(result.UserMessage);
-        dialog.ShowDetailedText(result.ErrorMessage);
-
-        dialog.ShowModal();
-        return false;
+            dialog.ShowModal();
+            return false;
+        }
     }
 
     return result.Success;
@@ -274,13 +277,12 @@ bool Application::RunMigrations()
 
 bool Application::FirstStartupProcedure(wxFrame* frame)
 {
-    UI::wizard::SetupWizard* wizard = new UI::wizard::SetupWizard(frame, pLogger, pEnv, pCfg);
-    wizard->CenterOnScreen();
-    auto result = wizard->RunWizard(wizard->GetFirstPage());
-    wizard->Destroy();
+    UI::wizard::SetupWizard wizard(frame, pLogger, pEnv, pCfg);
+    wizard.CenterOnScreen();
+    auto result = wizard.RunWizard(wizard.GetFirstPage());
 
     if (result) {
-        result = pEnv->SetIsSetup();
+        result = pSetupMgr->SetIsSetup();
         if (result) {
             return true;
         }

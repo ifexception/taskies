@@ -182,10 +182,10 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     , pOutlookMeetingsPanel(nullptr)
     , pDateStore(nullptr)
     , mTodayDate()
+    , mSelectedDate()
     , mTaskIdToEdit(-1)
     , mTaskDateString()
     , mThumbBarDialogOpenCounter(0)
-    , mOutlookMeetingViewFrameOpenCounter(0)
     , pTaskReminderTimer(std::make_unique<wxTimer>(this, tksIDC_TASKREMINDERTIMER))
     , pTaskReminderNotification()
     , mTasksViewColumns()
@@ -202,7 +202,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     }
 
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        auto debugTitle = fmt::format("{0} {1} - v{2}.{3}.{4}",
+        auto debugTitle = fmt::format("{0} ({1} - v{2}.{3}.{4})",
             Common::GetProgramName(),
             BuildConfigurationToString(pEnv->GetBuildConfiguration()),
             TASKIES_MAJOR,
@@ -232,6 +232,7 @@ MainFrame::MainFrame(std::shared_ptr<Core::Environment> env,
     pDateStore = std::make_unique<DateStore>(pLogger);
 
     mTodayDate = pDateStore->TodayDate;
+    mSelectedDate = pDateStore->TodayDate;
     mTaskDateString = pDateStore->FormatDate(pDateStore->TodayDate);
 
     // Setup reminders (if enabled)
@@ -703,8 +704,15 @@ void MainFrame::OnThumbBarNewTask(wxCommandEvent& event)
     if (mThumbBarDialogOpenCounter == 0) {
         mThumbBarDialogOpenCounter++;
 
-        dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
-        newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+        dlg::TaskDialog newTaskDialog(this,
+            pCfg,
+            pLogger,
+            mDatabaseFilePath,
+            false,
+            -1,
+            "",
+            false,
+            pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
             pDateStore->FormatDate(pDateStore->LastDayOfMonth));
         newTaskDialog.ShowModal();
 
@@ -732,8 +740,15 @@ void MainFrame::OnThumbBarQuickExport(wxCommandEvent& event)
 
 void MainFrame::OnNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
-    newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+    dlg::TaskDialog newTaskDialog(this,
+        pCfg,
+        pLogger,
+        mDatabaseFilePath,
+        false,
+        -1,
+        "",
+        false,
+        pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
         pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     newTaskDialog.ShowModal();
 }
@@ -1002,9 +1017,15 @@ void MainFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 
 void MainFrame::OnPopupNewTask(wxCommandEvent& WXUNUSED(event))
 {
-    dlg::TaskDialog popupNewTask(
-        this, pCfg, pLogger, mDatabaseFilePath, false, -1, mTaskDateString);
-    popupNewTask.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+    dlg::TaskDialog popupNewTask(this,
+        pCfg,
+        pLogger,
+        mDatabaseFilePath,
+        false,
+        -1,
+        mTaskDateString,
+        false,
+        pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
         pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     popupNewTask.ShowModal();
 
@@ -1463,9 +1484,15 @@ void MainFrame::OnEditTask(wxCommandEvent& WXUNUSED(event))
     assert(mTaskIdToEdit != -1);
     assert(mDataViewListCtrlRow != -1);
 
-    dlg::TaskDialog editTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDateString);
-    editTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+    dlg::TaskDialog editTaskDialog(this,
+        pCfg,
+        pLogger,
+        mDatabaseFilePath,
+        true,
+        mTaskIdToEdit,
+        mTaskDateString,
+        false,
+        pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
         pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     editTaskDialog.ShowModal();
 
@@ -1567,9 +1594,15 @@ void MainFrame::OnCloneTask(wxCommandEvent& WXUNUSED(event))
 {
     assert(mTaskIdToEdit != -1);
 
-    dlg::TaskDialog cloneTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, "", true);
-    cloneTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+    dlg::TaskDialog cloneTaskDialog(this,
+        pCfg,
+        pLogger,
+        mDatabaseFilePath,
+        true,
+        mTaskIdToEdit,
+        "",
+        true,
+        pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
         pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     cloneTaskDialog.ShowModal();
 
@@ -1697,7 +1730,7 @@ void MainFrame::OnTaskInserted(wxCommandEvent& event)
 
     UpdateStatusBarTaskDurations(pDateStore->FormatDate(dateTaskAdded));
 
-    if (dateTaskAdded != pDateStore->TodayDate) {
+    if (dateTaskAdded != mSelectedDate) {
         return;
     }
 
@@ -1800,8 +1833,20 @@ void MainFrame::OnTaskDateChanged(wxCommandEvent& event)
 void MainFrame::OnTaskUpdated(wxCommandEvent& event)
 {
     auto taskChangedId = static_cast<std::int64_t>(event.GetExtraLong());
-
+    auto eventTaskDateUpdated = event.GetString().ToStdString();
     SPDLOG_LOGGER_TRACE(pLogger, "Received task update event for ID: \"{0}\"", taskChangedId);
+
+    std::istringstream ssTaskDate{ eventTaskDateUpdated };
+    std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
+    ssTaskDate >> date::parse("%F", taskDate);
+
+    UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
+
+    if (taskDate != mSelectedDate) {
+        return;
+    }
+
+    ResizeColumns();
 
     Services::TaskViewModel taskViewModel;
     Services::TasksService tasksService(pLogger, mDatabaseFilePath);
@@ -1870,14 +1915,6 @@ void MainFrame::OnTaskUpdated(wxCommandEvent& event)
                 break;
             }
         }
-
-        std::istringstream ssTaskDate{ taskViewModel.WorkdayDate };
-        std::chrono::time_point<std::chrono::system_clock, date::days> taskDate;
-        ssTaskDate >> date::parse("%F", taskDate);
-
-        UpdateStatusBarTaskDurations(pDateStore->FormatDate(taskDate));
-
-        ResizeColumns();
     }
 }
 
@@ -1914,9 +1951,17 @@ void MainFrame::OnTaskDeleted(wxCommandEvent& event)
 
 void MainFrame::OnReminderNotificationClicked(wxCommandEvent& WXUNUSED(event))
 {
-    dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
-    newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+    dlg::TaskDialog newTaskDialog(this,
+        pCfg,
+        pLogger,
+        mDatabaseFilePath,
+        false,
+        -1,
+        "",
+        false,
+        pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
         pDateStore->FormatDate(pDateStore->LastDayOfMonth));
+
     newTaskDialog.ShowModal();
 }
 
@@ -2034,9 +2079,17 @@ void MainFrame::OnNextDayButtonClick(wxCommandEvent& event)
 
 void MainFrame::OnNewTaskButtonClick(wxCommandEvent& WXUNUSED(event))
 {
-    dlg::TaskDialog newTaskDialog(this, pCfg, pLogger, mDatabaseFilePath);
-    newTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+    dlg::TaskDialog newTaskDialog(this,
+        pCfg,
+        pLogger,
+        mDatabaseFilePath,
+        false,
+        -1,
+        "",
+        false,
+        pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
         pDateStore->FormatDate(pDateStore->LastDayOfMonth));
+
     newTaskDialog.ShowModal();
 }
 
@@ -2119,9 +2172,15 @@ void MainFrame::OnItemActivated(wxDataViewEvent& event)
 
     int ret = -1;
 
-    dlg::TaskDialog editTaskDialog(
-        this, pCfg, pLogger, mDatabaseFilePath, true, mTaskIdToEdit, mTaskDateString);
-    editTaskDialog.SetMonthDates(pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
+    dlg::TaskDialog editTaskDialog(this,
+        pCfg,
+        pLogger,
+        mDatabaseFilePath,
+        true,
+        mTaskIdToEdit,
+        mTaskDateString,
+        false,
+        pDateStore->FormatDate(pDateStore->FirstDayOfMonth),
         pDateStore->FormatDate(pDateStore->LastDayOfMonth));
     ret = editTaskDialog.ShowModal();
 
@@ -2315,6 +2374,8 @@ void MainFrame::DateChangedProcedure(const wxDateTime& dateTime)
 
     date::sys_days convertedDate = ConvertToStdDate(dateTime);
     SPDLOG_LOGGER_TRACE(pLogger, "Converted date: {0}", pDateStore->FormatDate(convertedDate));
+
+    mSelectedDate = convertedDate;
 
     RefreshDataViewListControl();
 

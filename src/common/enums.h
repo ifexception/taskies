@@ -37,7 +37,7 @@ enum class WindowState : int { Normal = 1, Minimized = 2, Hidden = 3, Maximized 
 
 enum class BuildConfiguration { Undefined, Debug, Release };
 
-enum class InstallLocation { Undefined, Portable, ProgramFiles };
+enum class InstallLocation { Undefined, Debug, Portable, ProgramFiles };
 
 enum class NotificationType { Information = 1, Error };
 
@@ -69,6 +69,8 @@ enum class TaskDurationField { Day = 1, Week, Month, Range = 10 };
 enum class AttributeTypes { Text = 1, Numeric, Boolean };
 
 enum class ExportFormat { Csv = 1, Excel };
+
+enum class ExportDateRangeOption { Day = 1, Week, Month, Custom };
 
 enum class TasksViewColumnTextAlignment : int { Left = 1, Right, Center };
 

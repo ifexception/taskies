@@ -79,6 +79,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
     std::int64_t taskId,
     const std::string& selectedDate,
     bool isClone,
+    const std::string& monthStart,
+    const std::string& monthEnd,
     const wxString& name)
     : wxDialog(parent,
           wxID_ANY,
@@ -123,8 +125,8 @@ TaskDialog::TaskDialog(wxWindow* parent,
     , mTaskAttributeValueModels()
     , bIsMeeting(false)
     , bAddAnotherTask(false)
-    , mMonthStartDate()
-    , mMonthEndDate()
+    , mMonthStartDate(monthStart)
+    , mMonthEndDate(monthEnd)
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
@@ -145,12 +147,6 @@ TaskDialog::TaskDialog(wxWindow* parent,
 
     wxIconBundle iconBundle(tks::Common::GetProgramIconBundleName(), 0);
     SetIcons(iconBundle);
-}
-
-void TaskDialog::SetMonthDates(const std::string& monthStart, const std::string& monthEnd)
-{
-    mMonthStartDate = monthStart;
-    mMonthEndDate = monthEnd;
 }
 
 void TaskDialog::SetAttendedMeetingData(const std::string& subject,
@@ -1325,6 +1321,7 @@ void TaskDialog::OnClientChoiceSelection(wxCommandEvent& event)
 void TaskDialog::OnProjectChoiceSelection(wxCommandEvent& event)
 {
     ResetCategoryChoiceControl();
+    pBillableCheckBoxCtrl->SetValue(false);
 
     int projectIndex = event.GetSelection();
     ClientData<std::int64_t>* projectIdData = reinterpret_cast<ClientData<std::int64_t>*>(
@@ -1690,6 +1687,7 @@ void TaskDialog::OnOK(wxCommandEvent& event)
             // notify frame control of task update
             wxCommandEvent* taskUpdatedEvent = new wxCommandEvent(tksEVT_TASKUPDATED);
 
+            taskUpdatedEvent->SetString(mDate);
             taskUpdatedEvent->SetExtraLong(static_cast<long>(mTaskId));
 
             wxQueueEvent(pParent, taskUpdatedEvent);

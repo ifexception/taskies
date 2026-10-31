@@ -43,23 +43,6 @@
 #include "../../events.h"
 #include "../../common/clientdata.h"
 
-namespace
-{
-// This date was selected arbitrarily
-// wxDatePickerCtrl needs a from and to date for the range
-// So we pick 2020-01-01 as that date
-// Conceivably, a user shouldn't go that far back
-wxDateTime MakeMaximumFromDate()
-{
-    wxDateTime maxFromDate = wxDateTime::Now();
-    maxFromDate.SetYear(2020);
-    maxFromDate.SetMonth(wxDateTime::Jan);
-    maxFromDate.SetDay(1);
-
-    return maxFromDate;
-}
-} // namespace
-
 namespace tks::UI::dlg
 {
 QuickExportToFormatDialog::QuickExportToFormatDialog(wxWindow* parent,
@@ -83,27 +66,23 @@ QuickExportToFormatDialog::QuickExportToFormatDialog(wxWindow* parent,
     , pExportToClipboardCheckBoxCtrl(nullptr)
     , pSaveToFileTextCtrl(nullptr)
     , pBrowseExportPathButton(nullptr)
+    , pLeftDateButton(nullptr)
     , pFromDatePickerCtrl(nullptr)
     , pToDatePickerCtrl(nullptr)
-    , mFromCtrlDate()
-    , mToCtrlDate()
-    , mToLatestPossibleDate()
+    , pRightDateButton(nullptr)
+    , pDateRangeSelectionRadioBoxCtrl(nullptr)
     , pPresetsChoiceCtrl(nullptr)
     , pOKButton(nullptr)
     , pCancelButton(nullptr)
     , mFromDate()
     , mToDate()
     , bExportToClipboard(false)
-    , bExportTodaysTasksOnly(false)
-    , mExportOptions()
     , mIsExcelInstalled()
     , mRadioExportOptions()
+    , mExportOptions()
     , mExportFormat(ExportFormat::Csv)
 {
     pDateStore = std::make_unique<DateStore>(pLogger);
-
-    mFromDate = pDateStore->MondayDate;
-    mToDate = pDateStore->SundayDate;
 
     mRadioExportOptions.Add("Export to CSV");
 
@@ -114,6 +93,11 @@ QuickExportToFormatDialog::QuickExportToFormatDialog(wxWindow* parent,
         excelOption = "Export to Excel (unavailable)";
     }
     mRadioExportOptions.Add(excelOption);
+
+    mDateRangeSelectionRadioBoxOptions.Add("Day");
+    mDateRangeSelectionRadioBoxOptions.Add("Week");
+    mDateRangeSelectionRadioBoxOptions.Add("Month");
+    mDateRangeSelectionRadioBoxOptions.Add("Custom");
 
     Create();
     SetSize(wxSize(FromDIP(640), -1));
@@ -143,7 +127,7 @@ void QuickExportToFormatDialog::CreateControls()
         mRadioExportOptions,
         1,
         wxRA_SPECIFY_ROWS);
-    pExportFormatRadioBoxCtrl->SetToolTip("Select an export formation option");
+    pExportFormatRadioBoxCtrl->SetToolTip("Select an export format option");
     mainSizer->Add(pExportFormatRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Output static box (top) */
@@ -186,36 +170,53 @@ void QuickExportToFormatDialog::CreateControls()
     auto dateRangeStaticBoxSizer = new wxStaticBoxSizer(dateRangeStaticBox, wxVERTICAL);
     mainSizer->Add(dateRangeStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
-    /* From date control */
-    auto fromDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "From:");
+    /* From date controls */
+    pLeftDateButton = new wxButton(
+        dateRangeStaticBox, tksIDC_LEFTDATEBUTTON, "<", wxDefaultPosition, FromDIP(wxSize(32, -1)));
+    pLeftDateButton->SetToolTip("Go backwards based on date selection option");
     pFromDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_FROM_CTRL);
     pFromDatePickerCtrl->SetToolTip("Set the earliest inclusive date to export the data from");
 
-    /* To date control */
-    auto toDateLabel = new wxStaticText(dateRangeStaticBox, wxID_ANY, "To:");
-    pToDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
-    pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data to");
+    /* Date static seperator control */
+    auto dateStaticSeperator = new wxStaticText(dateRangeStaticBox, wxID_ANY, "-");
 
-    /* Export todays tasks check box control */
-    pExportTodaysTasksCheckBoxCtrl = new wxCheckBox(
-        dateRangeStaticBox, tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL, "Export today's tasks");
-    pExportTodaysTasksCheckBoxCtrl->SetToolTip("Export tasks logged during today's date");
+    /* To date control */
+    pToDatePickerCtrl = new wxDatePickerCtrl(dateRangeStaticBox, tksIDC_DATE_TO_CTRL);
+    pToDatePickerCtrl->SetToolTip("Set the latest inclusive date to export the data from");
+    pRightDateButton = new wxButton(dateRangeStaticBox,
+        tksIDC_RIGHTDATEBUTTON,
+        ">",
+        wxDefaultPosition,
+        FromDIP(wxSize(32, -1)));
+    pRightDateButton->SetToolTip("Go forwards based on date selection option");
+
+    /* Radio Box date range selections */
+    pDateRangeSelectionRadioBoxCtrl = new wxRadioBox(dateRangeStaticBox,
+        tksIDC_DATERANGESELECTIONRADIOBOXCTRL,
+        "Date Selection",
+        wxDefaultPosition,
+        wxDefaultSize,
+        mDateRangeSelectionRadioBoxOptions,
+        0,
+        wxRA_SPECIFY_COLS);
+    pDateRangeSelectionRadioBoxCtrl->SetToolTip("Select an export date range selection");
 
     /* Date from and to controls horizontal sizer */
     auto dateControlsHorizontalSizer = new wxBoxSizer(wxHORIZONTAL);
     dateRangeStaticBoxSizer->Add(dateControlsHorizontalSizer, wxSizerFlags().Expand());
 
     dateControlsHorizontalSizer->Add(
-        fromDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        pLeftDateButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateControlsHorizontalSizer->Add(
-        pFromDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+        pFromDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+    dateControlsHorizontalSizer->Add(dateStaticSeperator, wxSizerFlags().CenterVertical());
     dateControlsHorizontalSizer->Add(
-        toDateLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
+        pToDatePickerCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
     dateControlsHorizontalSizer->Add(
-        pToDatePickerCtrl, wxSizerFlags().Border(wxTOP | wxRIGHT | wxBOTTOM, FromDIP(4)));
+        pRightDateButton, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
 
     dateRangeStaticBoxSizer->Add(
-        pExportTodaysTasksCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+        pDateRangeSelectionRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Presets static box */
     auto presetsStaticBox = new wxStaticBox(this, wxID_ANY, "Presets");
@@ -269,10 +270,11 @@ void QuickExportToFormatDialog::FillControls()
     pSaveToFileTextCtrl->SetToolTip(saveToFile);
 
     /* Date Controls */
-    SetFromAndToDatePickerRanges();
+    SetDateControlsValue();
 
-    SetFromDateAndDatePicker();
-    SetToDateAndDatePicker();
+    pDateRangeSelectionRadioBoxCtrl->SetSelection(0);
+    mDateRangeOption =
+        static_cast<ExportDateRangeOption>(pDateRangeSelectionRadioBoxCtrl->GetSelection() + 1);
 
     /* Presets controls */
     pPresetsChoiceCtrl->Append("(none)", new ClientData<std::string>(""));
@@ -316,6 +318,12 @@ void QuickExportToFormatDialog::ConfigureEventBindings()
         tksIDC_BROWSE_EXPORT_PATH_CTRL
     );
 
+    pLeftDateButton->Bind(
+        wxEVT_BUTTON,
+        &QuickExportToFormatDialog::OnLeftDateButtonClick,
+        this
+    );
+
     pFromDatePickerCtrl->Bind(
         wxEVT_DATE_CHANGED,
         &QuickExportToFormatDialog::OnFromDateSelection,
@@ -330,11 +338,16 @@ void QuickExportToFormatDialog::ConfigureEventBindings()
         tksIDC_DATE_TO_CTRL
     );
 
-    pExportTodaysTasksCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX,
-        &QuickExportToFormatDialog::OnExportTodaysTasksCheck,
-        this,
-        tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL
+    pRightDateButton->Bind(
+        wxEVT_BUTTON,
+        &QuickExportToFormatDialog::OnRightDateButtonClick,
+        this
+    );
+
+    pDateRangeSelectionRadioBoxCtrl->Bind(
+        wxEVT_RADIOBOX,
+        &QuickExportToFormatDialog::OnDateRangeRadioBoxSelection,
+        this
     );
 
     pPresetsChoiceCtrl->Bind(
@@ -415,6 +428,41 @@ void QuickExportToFormatDialog::OnOpenDirectoryForSaveToFileLocation(wxCommandEv
     openDirDialog->Destroy();
 }
 
+void QuickExportToFormatDialog::OnLeftDateButtonClick(wxCommandEvent& event)
+{
+    switch (mDateRangeOption) {
+    case ExportDateRangeOption::Day: {
+        auto newDate = mFromDate - date::days{ 1 };
+
+        SetDateControlsValue(newDate);
+        break;
+    }
+    case ExportDateRangeOption::Week: {
+        auto newFromDate = mFromDate - date::weeks{ 1 };
+        auto newToDate = mToDate - date::weeks{ 1 };
+
+        SetDateControlsValue(newFromDate, newToDate);
+        break;
+    }
+    case ExportDateRangeOption::Month: {
+        date::year_month_day ymdFromDate = mFromDate;
+        date::year_month_day ymdToDate = mToDate;
+
+        auto newFromDate = ymdFromDate - date::months{ 1 };
+        auto newToDate = ymdToDate - date::months{ 1 };
+
+        newFromDate = newFromDate.year() / newFromDate.month() / 1;
+        newToDate = newToDate.year() / newToDate.month() / date::last;
+
+        SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
+        break;
+    }
+    case ExportDateRangeOption::Custom:
+    default:
+        break;
+    }
+}
+
 void QuickExportToFormatDialog::OnFromDateSelection(wxDateEvent& event)
 {
     SPDLOG_LOGGER_TRACE(pLogger,
@@ -424,9 +472,9 @@ void QuickExportToFormatDialog::OnFromDateSelection(wxDateEvent& event)
     wxDateTime eventDate = wxDateTime(event.GetDate());
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
-    if (eventDateUtc > mToCtrlDate) {
-        SetFromDateAndDatePicker();
-        wxRichToolTip toolTip("Invalid Date", "Selected date cannot exceed \"to\" date");
+    if (eventDateUtc > pToDatePickerCtrl->GetValue()) {
+        SetFromDateControlValue(false);
+        wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"to\" date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pFromDatePickerCtrl);
         return;
@@ -437,7 +485,6 @@ void QuickExportToFormatDialog::OnFromDateSelection(wxDateEvent& event)
         date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
     SPDLOG_LOGGER_TRACE(pLogger, "New from date value \"{0}\"", date::format("%F", newFromDate));
 
-    mFromCtrlDate = eventDateUtc;
     mFromDate = newFromDate;
 }
 
@@ -450,13 +497,8 @@ void QuickExportToFormatDialog::OnToDateSelection(wxDateEvent& event)
     wxDateTime eventDate = wxDateTime(event.GetDate());
     wxDateTime eventDateUtc = eventDate.MakeFromTimezone(wxDateTime::UTC);
 
-    if (eventDateUtc > mToLatestPossibleDate) {
-        SetToDateAndDatePicker();
-        return;
-    }
-
-    if (eventDateUtc < mFromCtrlDate) {
-        SetToDateAndDatePicker();
+    if (eventDateUtc < pFromDatePickerCtrl->GetValue()) {
+        SetToDateControlValue(false);
         wxRichToolTip toolTip("Invalid Date", "Selected date cannot go past \"from\" date");
         toolTip.SetIcon(wxICON_WARNING);
         toolTip.ShowFor(pToDatePickerCtrl);
@@ -468,31 +510,69 @@ void QuickExportToFormatDialog::OnToDateSelection(wxDateEvent& event)
         date::floor<date::days>(std::chrono::system_clock::from_time_t(eventDateUtcTicks));
     SPDLOG_LOGGER_TRACE(pLogger, "New to date value \"{0}\"", date::format("%F", newToDate));
 
-    mToCtrlDate = eventDateUtc;
     mToDate = newToDate;
 }
 
-void QuickExportToFormatDialog::OnExportTodaysTasksCheck(wxCommandEvent& event)
+void QuickExportToFormatDialog::OnRightDateButtonClick(wxCommandEvent& event)
 {
-    bExportTodaysTasksOnly = event.IsChecked();
+    switch (mDateRangeOption) {
+    case ExportDateRangeOption::Day: {
+        auto newDate = mToDate + date::days{ 1 };
 
-    if (bExportTodaysTasksOnly) {
-        pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-        mFromCtrlDate = pDateStore->TodayDateSeconds;
+        SetDateControlsValue(newDate);
+        break;
+    }
+    case ExportDateRangeOption::Week: {
+        auto newFromDate = mFromDate + date::weeks{ 1 };
+        auto newToDate = mToDate + date::weeks{ 1 };
 
-        pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
-        mToCtrlDate = pDateStore->TodayDateSeconds;
+        SetDateControlsValue(newFromDate, newToDate);
+        break;
+    }
+    case ExportDateRangeOption::Month: {
+        date::year_month_day ymdFromDate = mFromDate;
+        date::year_month_day ymdToDate = mToDate;
 
-        pFromDatePickerCtrl->Disable();
-        pToDatePickerCtrl->Disable();
-    } else {
-        SetFromAndToDatePickerRanges();
+        auto newFromDate = ymdFromDate + date::months{ 1 };
+        auto newToDate = ymdToDate + date::months{ 1 };
 
-        SetFromDateAndDatePicker();
-        SetToDateAndDatePicker();
+        newFromDate = newFromDate.year() / newFromDate.month() / 1;
+        newToDate = newToDate.year() / newToDate.month() / date::last;
 
-        pFromDatePickerCtrl->Enable();
-        pToDatePickerCtrl->Enable();
+        SetDateControlsValue(date::sys_days(newFromDate), date::sys_days(newToDate));
+        break;
+    }
+    case ExportDateRangeOption::Custom:
+    default:
+        break;
+    }
+}
+
+void QuickExportToFormatDialog::OnDateRangeRadioBoxSelection(wxCommandEvent& event)
+{
+    mDateRangeOption = static_cast<ExportDateRangeOption>(event.GetSelection() + 1);
+
+    SPDLOG_LOGGER_TRACE(pLogger, "Radio box selection changed \"{0}\"", event.GetSelection());
+
+    switch (mDateRangeOption) {
+    case ExportDateRangeOption::Day: {
+        SetDateControlsValue(pDateStore->TodayDate);
+        break;
+    }
+    case ExportDateRangeOption::Week: {
+        SetDateControlsValue(pDateStore->MondayDate, pDateStore->SundayDate);
+        break;
+    }
+    case ExportDateRangeOption::Month: {
+        SetDateControlsValue(pDateStore->FirstDayOfMonth, pDateStore->LastDayOfMonth);
+        break;
+    }
+    case ExportDateRangeOption::Custom: {
+        SetDateControlsCustomValue(pDateStore->TodayDate, pDateStore->TodayDate);
+        break;
+    }
+    default:
+        break;
     }
 }
 
@@ -566,12 +646,8 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
     std::vector<Services::Export::ColumnJoinProjection> joinProjections =
         projectionBuilder.BuildJoinProjections(columnExportModels);
 
-    const std::string fromDate = bExportTodaysTasksOnly
-                                     ? pDateStore->FormatDate(pDateStore->TodayDate)
-                                     : pDateStore->FormatDate(mFromDate);
-    const std::string toDate = bExportTodaysTasksOnly
-                                   ? pDateStore->FormatDate(pDateStore->TodayDate)
-                                   : pDateStore->FormatDate(mToDate);
+    const std::string fromDate = pDateStore->FormatDate(mFromDate);
+    const std::string toDate = pDateStore->FormatDate(mToDate);
 
     SPDLOG_LOGGER_TRACE(pLogger, "Export date range: [\"{0}\", \"{1}\"]", fromDate, toDate);
 
@@ -643,29 +719,111 @@ void QuickExportToFormatDialog::OnOK(wxCommandEvent& event)
     EndModal(wxID_OK);
 }
 
-void QuickExportToFormatDialog::SetFromAndToDatePickerRanges()
+void QuickExportToFormatDialog::SetDateControlsValue()
 {
-    pFromDatePickerCtrl->SetRange(MakeMaximumFromDate(), wxDateTime(pDateStore->SundayDateSeconds));
-
-    wxDateSpan oneDay(0, 0, 0, 1);
-    auto& latestPossibleDatePlusOneDay = wxDateTime(pDateStore->SundayDateSeconds).Add(oneDay);
-    pToDatePickerCtrl->SetRange(MakeMaximumFromDate(), latestPossibleDatePlusOneDay);
-
-    mToLatestPossibleDate = wxDateTime(pDateStore->SundayDateSeconds);
+    SetFromDateControlValue();
+    SetToDateControlValue();
 }
 
-void QuickExportToFormatDialog::SetFromDateAndDatePicker()
+void QuickExportToFormatDialog::SetFromDateControlValue(bool disable)
 {
-    pFromDatePickerCtrl->SetValue(pDateStore->MondayDateSeconds);
+    mFromDate = pDateStore->TodayDate;
 
-    mFromCtrlDate = pDateStore->MondayDateSeconds;
+    pFromDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+    if (disable) {
+        pFromDatePickerCtrl->Disable();
+    }
 }
 
-void QuickExportToFormatDialog::SetToDateAndDatePicker()
+void QuickExportToFormatDialog::SetToDateControlValue(bool disable)
 {
-    pToDatePickerCtrl->SetValue(pDateStore->SundayDateSeconds);
+    mToDate = pDateStore->TodayDate;
 
-    mToCtrlDate = pDateStore->SundayDateSeconds;
+    pToDatePickerCtrl->SetValue(pDateStore->TodayDateSeconds);
+    if (disable) {
+        pToDatePickerCtrl->Disable();
+    }
+}
+
+void QuickExportToFormatDialog::SetDateControlsValue(const date::sys_days& newDate)
+{
+    SetFromDateControlValue(newDate);
+    SetToDateControlValue(newDate);
+
+    pLeftDateButton->Enable();
+    pRightDateButton->Enable();
+}
+
+void QuickExportToFormatDialog::SetFromDateControlValue(const date::sys_days& newDate)
+{
+    mFromDate = newDate;
+
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
+    pFromDatePickerCtrl->SetValue(seconds);
+
+    if (pFromDatePickerCtrl->IsEnabled()) {
+        pFromDatePickerCtrl->Disable();
+    }
+}
+
+void QuickExportToFormatDialog::SetDateControlsValue(const date::sys_days& fromDate,
+    const date::sys_days& toDate)
+{
+    SetFromDateControlValue(fromDate);
+    SetToDateControlValue(toDate);
+
+    pLeftDateButton->Enable();
+    pRightDateButton->Enable();
+}
+
+void QuickExportToFormatDialog::SetToDateControlValue(const date::sys_days& newDate)
+{
+    mToDate = newDate;
+
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
+    pToDatePickerCtrl->SetValue(seconds);
+
+    if (pToDatePickerCtrl->IsEnabled()) {
+        pToDatePickerCtrl->Disable();
+    }
+}
+
+void QuickExportToFormatDialog::SetDateControlsCustomValue(const date::sys_days& fromDate,
+    const date::sys_days& toDate)
+{
+    SetFromDateControlCustomValue(fromDate);
+    SetToDateControlCustomValue(toDate);
+
+    pLeftDateButton->Disable();
+    pRightDateButton->Disable();
+}
+
+void QuickExportToFormatDialog::SetFromDateControlCustomValue(const date::sys_days& newDate)
+{
+    mFromDate = newDate;
+
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
+    pFromDatePickerCtrl->SetValue(seconds);
+
+    if (!pFromDatePickerCtrl->IsEnabled()) {
+        pFromDatePickerCtrl->Enable();
+    }
+}
+
+void QuickExportToFormatDialog::SetToDateControlCustomValue(const date::sys_days& newDate)
+{
+    mToDate = newDate;
+
+    auto seconds =
+        std::chrono::duration_cast<std::chrono::seconds>(newDate.time_since_epoch()).count();
+    pToDatePickerCtrl->SetValue(seconds);
+
+    if (!pToDatePickerCtrl->IsEnabled()) {
+        pToDatePickerCtrl->Enable();
+    }
 }
 
 void QuickExportToFormatDialog::ApplyPreset(const Core::Settings::PresetSetting& presetSetting)

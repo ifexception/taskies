@@ -488,6 +488,9 @@
     <ClCompile Include="src\persistence\base\stmt_deleter.cpp">
       <Filter>Source\persistence\base</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\setup_manager.cpp">
+      <Filter>Source\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -870,6 +873,9 @@
     </ClInclude>
     <ClInclude Include="src\persistence\base\stmt_deleter.h">
       <Filter>Source\persistence\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\setup_manager.h">
+      <Filter>Source\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

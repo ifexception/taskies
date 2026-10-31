@@ -443,6 +443,7 @@
     <ClCompile Include="src\core\settings\tasksviewcolumnsetting.cpp" />
     <ClCompile Include="src\providers\taskhours\taskhoursprovider.cpp" />
     <ClCompile Include="src\persistence\base\stmt_deleter.cpp" />
+    <ClCompile Include="src\core\setup_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\persistence\base\db_deleter.h" />
@@ -572,6 +573,7 @@
     <ClInclude Include="src\core\settings\tasksviewcolumnsetting.h" />
     <ClInclude Include="src\providers\taskhours\taskhoursprovider.h" />
     <ClInclude Include="src\persistence\base\stmt_deleter.h" />
+    <ClInclude Include="src\core\setup_manager.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc" />

@@ -17,11 +17,6 @@
 // Contact:
 //     szymonwelgus at gmail dot com
 
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
-
 #include "application.h"
 
 wxIMPLEMENT_APP(tks::Application);

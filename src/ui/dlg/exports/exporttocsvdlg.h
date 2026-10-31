@@ -38,6 +38,8 @@
 
 #include "../../dataview/columnlistmodel.h"
 
+#include "../../../common/enums.h"
+
 #include "../../../core/configuration.h"
 #include "../../../core/settings/presetsetting.h"
 #include "../../../core/settings/presetcolumnsetting.h"
@@ -79,9 +81,12 @@ private:
     void OnNewLinesHandlerChoiceSelection(wxCommandEvent& event);
     void OnBooleanHandlerChoiceSelection(wxCommandEvent& event);
 
+    void OnLeftDateButtonClick(wxCommandEvent& event);
     void OnFromDateSelection(wxDateEvent& event);
     void OnToDateSelection(wxDateEvent& event);
-    void OnExportTodaysTasksOnlyCheck(wxCommandEvent& event);
+    void OnRightDateButtonClick(wxCommandEvent& event);
+
+    void OnDateRangeRadioBoxSelection(wxCommandEvent& event);
 
     void OnSavePreset(wxCommandEvent& event);
     void OnResetPreset(wxCommandEvent& event);
@@ -102,9 +107,19 @@ private:
     void OnShowPreview(wxCommandEvent& event);
     void OnExport(wxCommandEvent& event);
 
-    void SetFromAndToDatePickerRanges();
-    void SetFromDateAndDatePicker();
-    void SetToDateAndDatePicker();
+    void SetDateControlsValue();
+    void SetFromDateControlValue(bool disable = true);
+    void SetToDateControlValue(bool disable = true);
+
+    void SetDateControlsValue(const date::sys_days& newDate);
+    void SetFromDateControlValue(const date::sys_days& newDate);
+    void SetToDateControlValue(const date::sys_days& newDate);
+
+    void SetDateControlsValue(const date::sys_days& fromDate, const date::sys_days& toDate);
+
+    void SetDateControlsCustomValue(const date::sys_days& fromDate, const date::sys_days& toDate);
+    void SetFromDateControlCustomValue(const date::sys_days& newDate);
+    void SetToDateControlCustomValue(const date::sys_days& newDate);
 
     void ApplyPreset(const Core::Settings::PresetSetting& presetSettings);
 
@@ -127,13 +142,12 @@ private:
     wxChoice* pNewLinesHandlerChoiceCtrl;
     wxChoice* pBooleanHanderChoiceCtrl;
 
+    wxButton* pLeftDateButton;
     wxDatePickerCtrl* pFromDatePickerCtrl;
     wxDatePickerCtrl* pToDatePickerCtrl;
-    wxCheckBox* pExportTodaysTasksCheckBoxCtrl;
+    wxButton* pRightDateButton;
 
-    wxDateTime mFromCtrlDate;
-    wxDateTime mToCtrlDate;
-    wxDateTime mToLatestPossibleDate;
+    wxRadioBox* pDateRangeSelectionRadioBoxCtrl;
 
     wxTextCtrl* pPresetNameTextCtrl;
     wxCheckBox* pPresetIsDefaultCheckBoxCtrl;
@@ -171,7 +185,10 @@ private:
 
     bool bExportToClipboard;
     bool bOpenExplorerInExportDirectory;
-    bool bExportTodaysTasksOnly;
+
+    wxArrayString mDateRangeSelectionRadioBoxOptions;
+
+    ExportDateRangeOption mDateRangeOption;
 
     enum {
         tksIDC_COPY_TO_CLIPBOARD_CTRL = wxID_HIGHEST + 100,
@@ -185,9 +202,11 @@ private:
         tksIDC_EMPTY_VALUE_HANDLER_CTRL,
         tksIDC_NEW_LINES_HANDLER_CTRL,
         tksIDC_BOOLEAN_HANDLER_CTRL,
+        tksIDC_LEFTDATEBUTTON,
         tksIDC_DATE_FROM_CTRL,
         tksIDC_DATE_TO_CTRL,
-        tksIDC_EXPORTTODAYSTASKSCHECKBOXCTRL,
+        tksIDC_RIGHTDATEBUTTON,
+        tksIDC_DATERANGESELECTIONRADIOBOXCTRL,
         tksIDC_PRESET_RESET_BUTTON,
         tksIDC_PRESET_NAME_TEXT_CTRL,
         tksIDC_PRESET_SAVE_BUTTON,

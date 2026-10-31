@@ -49,6 +49,16 @@ AboutDialog::AboutDialog(wxWindow* parent,
 {
     SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
 
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+        auto debugTitle = fmt::format("About ({1} - v{2}.{3}.{4})",
+            Common::GetProgramName(),
+            BuildConfigurationToString(pEnv->GetBuildConfiguration()),
+            TASKIES_MAJOR,
+            TASKIES_MINOR,
+            TASKIES_PATCH);
+        SetTitle(debugTitle);
+    }
+
     Initialize();
 
     wxIconBundle iconBundle(Common::GetProgramIconBundleName(), 0);
@@ -312,14 +322,30 @@ void AboutDialog::OnOpen(wxCommandEvent& event)
 
 std::string AboutDialog::BuildVersionString()
 {
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+        return fmt::format("{0} ({1}) v{2}.{3}.{4}",
+            Common::GetProgramName(),
+            BuildConfigurationToString(pEnv->GetBuildConfiguration()),
+            TASKIES_MAJOR,
+            TASKIES_MINOR,
+            TASKIES_PATCH);
+    }
+
     auto installLocation = pEnv->GetInstallLocation();
     switch (installLocation) {
     case tks::InstallLocation::Undefined:
     case tks::InstallLocation::Portable:
-        return fmt::format(
-            "Taskies v{0}.{1}.{2} (Portable)", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH);
+        return fmt::format("{0} v{1}.{2}.{3} (Portable)",
+            Common::GetProgramName(),
+            TASKIES_MAJOR,
+            TASKIES_MINOR,
+            TASKIES_PATCH);
     case tks::InstallLocation::ProgramFiles:
-        return fmt::format("Taskies v{0}.{1}.{2}", TASKIES_MAJOR, TASKIES_MINOR, TASKIES_PATCH);
+        return fmt::format("{0} v{1}.{2}.{3}",
+            Common::GetProgramName(),
+            TASKIES_MAJOR,
+            TASKIES_MINOR,
+            TASKIES_PATCH);
     default:
         return "";
     }

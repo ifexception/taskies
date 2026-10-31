@@ -22,53 +22,49 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include "../common/enums.h"
 
 namespace tks::Core
 {
-static std::string DATABASE_FILENAME = "taskies.db";
-static std::string SETUP_FILENAME = "taskies.setup";
+inline constexpr std::string_view DATABASE_FILENAME = "taskies.db";
+inline constexpr std::string_view SETUP_FILENAME = "taskies.setup";
+inline constexpr std::string_view LOG_FILENAME = "taskies.log";
+inline constexpr std::string_view CFG_FILENAME = "taskies.toml";
 
 class Environment final
 {
 public:
-    Environment();
+    explicit Environment() noexcept;
     Environment(const Environment&) = delete;
+    Environment& operator=(const Environment&) = delete;
+    Environment(Environment&&) noexcept = default;
+    Environment& operator=(Environment&&) noexcept = default;
     ~Environment() = default;
 
-    Environment& operator=(const Environment&) = delete;
+    BuildConfiguration GetBuildConfiguration() const noexcept;
+    InstallLocation GetInstallLocation() const noexcept;
 
-    BuildConfiguration GetBuildConfiguration() const;
-    InstallLocation GetInstallLocation() const;
+    std::string GetProgramPath() const;
+    std::string GetLogFilePath() const;
+    std::string GetLanguagesPath() const;
+    std::string GetConfigurationFilePath() const;
+    std::string GetDatabaseFilePath() const;
+    std::string GetDatabasePath() const;
+    std::string GetResourcesPath() const;
+    std::string GetExportPath() const;
 
-    std::filesystem::path GetLogFilePath();
-    std::filesystem::path GetLanguagesPath();
-    std::filesystem::path GetConfigurationFilePath();
-    std::filesystem::path GetDatabaseFilePath();
-    std::filesystem::path GetDatabasePath();
-    std::filesystem::path GetResourcesPath();
-    std::filesystem::path GetExportPath();
-
-    std::string GetDatabaseFileName();
-    std::string GetCurrentLocale();
-
-    bool IsSetup();
-    bool SetIsSetup();
+    static std::string GetCurrentLocale();
 
 private:
-    std::filesystem::path GetApplicationPath();
-    std::filesystem::path GetApplicationDatabasePath();
-    std::filesystem::path GetApplicationLogPath();
-    std::filesystem::path GetApplicationLanguagesPath();
-    std::filesystem::path GetApplicationConfigurationPath();
-    std::filesystem::path GetApplicationResourcesPath();
-    std::filesystem::path GetApplicationExportPath();
-
-    std::string GetLogFileName();
-    std::string GetConfigurationFileName();
-
-    std::string GetRegistryKey();
+    std::filesystem::path GetApplicationPath() const ;
+    std::filesystem::path GetApplicationLogPath() const;
+    std::filesystem::path GetApplicationDatabasePath() const;
+    std::filesystem::path GetApplicationLanguagesPath() const;
+    std::filesystem::path GetApplicationConfigurationPath() const;
+    std::filesystem::path GetApplicationResourcesPath() const;
+    std::filesystem::path GetApplicationExportPath() const;
 
     BuildConfiguration mBuildConfig;
     InstallLocation mInstallLocation;

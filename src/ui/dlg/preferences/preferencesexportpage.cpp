@@ -238,7 +238,7 @@ void PreferencesExportPage::OnOpenDirectoryForExportLocation(wxCommandEvent& eve
 {
     std::string directoryToOpen = "";
     if (pCfg->GetExportPath().empty()) {
-        directoryToOpen = pEnv->GetExportPath().string();
+        directoryToOpen = pEnv->GetExportPath();
     } else {
         directoryToOpen = pCfg->GetExportPath();
     }
