@@ -50,7 +50,6 @@ public:
     std::string GetLogFilePath() const;
     std::string GetLanguagesPath() const;
     std::string GetConfigurationFilePath() const;
-    std::string GetDatabaseFilePath() const;
     std::string GetDatabasePath() const;
     std::string GetResourcesPath() const;
     std::string GetExportPath() const;

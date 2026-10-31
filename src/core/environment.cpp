@@ -82,12 +82,6 @@ std::string Environment::GetConfigurationFilePath() const
     return path.string();
 }
 
-std::string Environment::GetDatabaseFilePath() const
-{
-    auto path = GetApplicationDatabasePath() / DATABASE_FILENAME;
-    return path.string();
-}
-
 std::string Environment::GetDatabasePath() const
 {
     return GetApplicationDatabasePath().string();
