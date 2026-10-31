@@ -133,7 +133,20 @@ bool SetupManager::SetIsSetup()
 
 bool SetupManager::ConfigurationFileMigrationRequired() const
 {
+#ifdef TKS_PORTABLEREL
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
+        pEnv->GetInstallLocation() == InstallLocation::Portable) {
+        auto cfgMigrateFile =
+            std::filesystem::path(pEnv->GetProgramPath()) / std::string(CFG_MIGRATE_FILENAME);
+        if (std::filesystem::exists(cfgMigrateFile)) {
+            bool res = std::filesystem::remove(cfgMigrateFile);
+            return res;
+        }
+    }
+#endif // TKS_PORTABLEREL
+
 #ifdef _WIN32
+#if !defined(TKS_PORABLEREL)
     const std::string registryKey = GetRegistryKey();
     if (registryKey.empty()) {
         return false;
@@ -161,6 +174,8 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
     }
 
     return !!data;
+#endif // !defined(TKS_PORABLEREL)
+
 #else
     // Non-Windows fallback stub
     return false;

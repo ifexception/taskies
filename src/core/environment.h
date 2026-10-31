@@ -29,7 +29,8 @@
 namespace tks::Core
 {
 inline constexpr std::string_view DATABASE_FILENAME = "taskies.db";
-inline constexpr std::string_view SETUP_FILENAME = "taskies.setup";
+inline constexpr std::string_view SETUP_FILENAME = "taskies.setup.txt";
+inline constexpr std::string_view CFG_MIGRATE_FILENAME = "taskies.cfg-migrate.txt";
 inline constexpr std::string_view LOG_FILENAME = "taskies.log";
 inline constexpr std::string_view CFG_FILENAME = "taskies.toml";
 
@@ -57,7 +58,7 @@ public:
     static std::string GetCurrentLocale();
 
 private:
-    std::filesystem::path GetApplicationPath() const ;
+    std::filesystem::path GetApplicationPath() const;
     std::filesystem::path GetApplicationLogPath() const;
     std::filesystem::path GetApplicationDatabasePath() const;
     std::filesystem::path GetApplicationLanguagesPath() const;
