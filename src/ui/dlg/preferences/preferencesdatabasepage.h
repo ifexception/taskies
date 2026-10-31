@@ -66,7 +66,6 @@ private:
     std::shared_ptr<Core::Environment> pEnv;
     std::shared_ptr<Core::Configuration> pCfg;
 
-    wxTextCtrl* pDatabaseFileNameTextCtrl;
     wxTextCtrl* pDatabasePathTextCtrl;
     wxButton* pBrowseDatabasePathButton;
     wxCheckBox* pBackupDatabaseCheckBoxCtrl;
@@ -76,8 +75,8 @@ private:
     wxCheckBox* pZipBackupFileCheckBoxCtrl;
 
     enum {
-        tksIDC_DATABASEFILENAMETEXTCTRL = wxID_HIGHEST + 101,
-        tksIDC_DATABASE_PATH ,
+        tksIDC_BASE = wxID_HIGHEST + 101,
+        tksIDC_DATABASE_PATH,
         tksIDC_DATABASE_PATH_BUTTON,
         tksIDC_BACKUP_DATABASE_CHECK,
         tksIDC_BACKUP_DATABASE,

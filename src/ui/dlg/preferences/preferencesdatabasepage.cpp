@@ -114,15 +114,6 @@ void PreferencesDatabasePage::CreateControls()
     auto databaseBoxSizer = new wxStaticBoxSizer(databaseBox, wxVERTICAL);
     sizer->Add(databaseBoxSizer, wxSizerFlags().Expand());
 
-    /* Database file name sizer */
-    auto databaseNameLabel = new wxStaticText(databaseBox, wxID_ANY, "Name");
-    pDatabaseFileNameTextCtrl = new wxTextCtrl(databaseBox,
-        tksIDC_DATABASEFILENAMETEXTCTRL,
-        wxEmptyString,
-        wxDefaultPosition,
-        wxDefaultSize,
-        wxTE_LEFT | wxTE_READONLY);
-
     /* Database path sizer */
     auto databasePathLabel = new wxStaticText(databaseBox, wxID_ANY, "Path");
     pDatabasePathTextCtrl = new wxTextCtrl(databaseBox,
@@ -138,11 +129,6 @@ void PreferencesDatabasePage::CreateControls()
     /* Flex Grid Sizer for database controls */
     auto flexGridDatabaseSizer = new wxFlexGridSizer(2, FromDIP(4), FromDIP(4));
     flexGridDatabaseSizer->AddGrowableCol(1, 1);
-
-    flexGridDatabaseSizer->Add(
-        databaseNameLabel, wxSizerFlags().Left().Border(wxALL, FromDIP(4)).CenterVertical());
-    flexGridDatabaseSizer->Add(
-        pDatabaseFileNameTextCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand().Proportion(1));
 
     flexGridDatabaseSizer->Add(
         databasePathLabel, wxSizerFlags().Border(wxALL, FromDIP(4)).CenterVertical());
@@ -250,9 +236,6 @@ void PreferencesDatabasePage::FillControls()
 
 void PreferencesDatabasePage::DataToControls()
 {
-    pDatabaseFileNameTextCtrl->ChangeValue(pCfg->GetDatabaseFileName());
-    pDatabaseFileNameTextCtrl->SetToolTip(pCfg->GetDatabaseFileName());
-
     pDatabasePathTextCtrl->ChangeValue(pCfg->GetDatabasePath());
     pDatabasePathTextCtrl->SetToolTip(pCfg->GetDatabasePath());
     pBackupDatabaseCheckBoxCtrl->SetValue(pCfg->BackupDatabase());
