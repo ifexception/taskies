@@ -180,7 +180,7 @@ std::filesystem::path Environment::GetApplicationDatabasePath() const
         case InstallLocation::Undefined:
             [[fallthrough]];
         case InstallLocation::Portable:
-            appDataPath = std::filesystem::path(GetApplicationPath()) / data;
+            appDataPath = GetApplicationPath() / data;
             break;
         case InstallLocation::ProgramFiles:
             appDataPath =

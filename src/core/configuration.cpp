@@ -927,12 +927,17 @@ void Configuration::GetDatabaseConfig(const toml::value& root)
 
     pSettings->DatabaseFileName = toml::find_or<std::string>(
         databaseSection, "databaseFileName", std::string(DATABASE_FILENAME));
+
     if (pSettings->DatabaseFileName.empty()) {
         pSettings->DatabaseFileName = DATABASE_FILENAME;
     }
 
     pSettings->DatabasePath =
         toml::find_or<std::string>(databaseSection, "databasePath", pEnv->GetDatabasePath());
+
+    if (pSettings->DatabasePath.empty()) {
+        pSettings->DatabasePath = pEnv->GetDatabasePath();
+    }
 
     pSettings->BackupDatabase = toml::find_or<bool>(databaseSection, "backupDatabase", false);
 
