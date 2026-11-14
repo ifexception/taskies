@@ -45,6 +45,7 @@
 
 #include "ui/persistencemanager.h"
 #include "ui/mainframe.h"
+#include "ui/debugoptionsminiframe.h"
 
 #define LOGGER_NAME "TaskiesLogger"
 
@@ -79,6 +80,12 @@ bool Application::OnInit()
 
     auto env = pEnv->GetBuildConfiguration();
     SPDLOG_LOGGER_TRACE(pLogger, "Running in \"{0}\" environment", BuildConfigurationToString(env));
+
+    if (env == BuildConfiguration::Debug) {
+        UI::DebugOptionsMiniFrame debugOptionsMiniFrame(nullptr, pLogger);
+        debugOptionsMiniFrame.CenterOnScreen();
+        debugOptionsMiniFrame.ShowModal();
+    }
 
     pCfg = std::make_shared<Core::Configuration>(pLogger, pEnv);
     if (!InitializeConfiguration()) {
