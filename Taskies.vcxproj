@@ -316,6 +316,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ui\debugoptionsminiframe.cpp" />
     <ClCompile Include="src\persistence\base\db_deleter.cpp" />
     <ClCompile Include="src\utils\dateutils.cpp" />
     <ClCompile Include="src\ui\panels\outlookmeetingspanel.cpp" />
@@ -446,6 +447,7 @@
     <ClCompile Include="src\core\setup_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ui\debugoptionsminiframe.h" />
     <ClInclude Include="src\persistence\base\db_deleter.h" />
     <ClInclude Include="src\utils\dateutils.h" />
     <ClInclude Include="src\ui\panels\outlookmeetingspanel.h" />
