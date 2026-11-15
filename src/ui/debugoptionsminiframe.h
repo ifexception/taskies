@@ -30,13 +30,21 @@
 
 #include <spdlog/spdlog.h>
 
-namespace tks::UI
+namespace tks
+{
+namespace Core
+{
+class Environment;
+} // namespace Core
+namespace UI
 {
 class DebugOptionsMiniFrame : public wxMiniFrame
 {
 public:
     DebugOptionsMiniFrame() = delete;
-    DebugOptionsMiniFrame(wxWindow* parent, std::shared_ptr<spdlog::logger> logger);
+    DebugOptionsMiniFrame(wxWindow* parent,
+        std::shared_ptr<spdlog::logger> logger,
+        std::shared_ptr<Core::Environment> env);
     DebugOptionsMiniFrame(const DebugOptionsMiniFrame&) = delete;
     DebugOptionsMiniFrame& operator=(const DebugOptionsMiniFrame&) = delete;
     DebugOptionsMiniFrame(DebugOptionsMiniFrame&&) noexcept = default;
@@ -56,8 +64,12 @@ private:
 
     wxWindow* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
+    std::shared_ptr<Core::Environment> pEnv;
 
     wxCheckBox* pDebugDefaultCheckBoxCtrl;
+
+    wxCheckBox* pDebugReleaseProgramFilesCheckBoxCtrl;
+    wxCheckBox* pDebugReleasePortableCheckBoxCtrl;
 
     wxButton* pConfirmButton;
     wxButton* pCancelButton;
@@ -69,6 +81,9 @@ private:
     enum {
         tksIDC_CONTROLBASEID = wxID_HIGHEST + 100,
         tksIDC_DEBUGDEFAULTCHECKBOXCTRL,
+        tksIDC_DEBUGRELEASEPROGRAMFILESCHECKBOXCTRL,
+        tksIDC_DEBUGRELEASEPORTABLECHECKBOXCTRL
     };
 };
-} // namespace tks::UI
+} // namespace UI
+} // namespace tks

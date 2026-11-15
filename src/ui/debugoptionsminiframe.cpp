@@ -19,10 +19,13 @@
 
 #include "debugoptionsminiframe.h"
 
+#include "../common/common.h"
+
 namespace tks::UI
 {
 DebugOptionsMiniFrame::DebugOptionsMiniFrame(wxWindow* parent,
-    std::shared_ptr<spdlog::logger> logger)
+    std::shared_ptr<spdlog::logger> logger,
+    std::shared_ptr<Core::Environment> env)
     : wxMiniFrame(parent,
           wxID_ANY,
           "Debug Options",
@@ -31,26 +34,19 @@ DebugOptionsMiniFrame::DebugOptionsMiniFrame(wxWindow* parent,
           wxCAPTION | wxCLOSE_BOX | wxSTAY_ON_TOP)
     , pParent(parent)
     , pLogger(logger)
+    , pEnv(env)
     , pDebugDefaultCheckBoxCtrl(nullptr)
     , pConfirmButton(nullptr)
     , pCancelButton(nullptr)
     , pEventLoop(nullptr)
     , mReturnCode(wxID_CANCEL)
 {
+    std::string title = fmt::format("{0} Debug Options", Common::GetProgramName());
+    SetTitle(title);
+
     CreateControls();
+    FillControls();
     ConfigureEventBindings();
-}
-
-void DebugOptionsMiniFrame::ConfigureEventBindings()
-{
-    Bind(wxEVT_CLOSE_WINDOW, &DebugOptionsMiniFrame::OnClose, this);
-
-    pDebugDefaultCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX, &DebugOptionsMiniFrame::OnDebugDefaultCheckBoxCtrl, this);
-
-    pConfirmButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { EndModal(wxID_OK); });
-
-    pCancelButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { EndModal(wxID_CANCEL); });
 }
 
 void DebugOptionsMiniFrame::OnClose(wxCloseEvent& WXUNUSED(event))
@@ -68,7 +64,22 @@ void DebugOptionsMiniFrame::CreateControls()
         new wxCheckBox(panel, tksIDC_DEBUGDEFAULTCHECKBOXCTRL, "Default configuration");
     sizer->Add(pDebugDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
-    sizer->AddStretchSpacer();
+    wxStaticBox* releaseOptionsStaticBox = new wxStaticBox(panel, wxID_ANY, "Release Options");
+    wxStaticBoxSizer* releaseOptionsStaticBoxSizer =
+        new wxStaticBoxSizer(releaseOptionsStaticBox, wxVERTICAL);
+    sizer->Add(releaseOptionsStaticBoxSizer, wxSizerFlags().Expand());
+
+    pDebugReleaseProgramFilesCheckBoxCtrl = new wxCheckBox(releaseOptionsStaticBox,
+        tksIDC_DEBUGRELEASEPROGRAMFILESCHECKBOXCTRL,
+        "Release configuration (Program Files)");
+    releaseOptionsStaticBoxSizer->Add(
+        pDebugReleaseProgramFilesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+
+    pDebugReleasePortableCheckBoxCtrl = new wxCheckBox(releaseOptionsStaticBox,
+        tksIDC_DEBUGRELEASEPORTABLECHECKBOXCTRL,
+        "Release configuration (Portable)");
+    releaseOptionsStaticBoxSizer->Add(
+        pDebugReleasePortableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* OK|Cancel buttons */
     auto buttonsSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -90,6 +101,18 @@ void DebugOptionsMiniFrame::CreateControls()
 void DebugOptionsMiniFrame::FillControls()
 {
     pDebugDefaultCheckBoxCtrl->SetValue(true);
+}
+
+void DebugOptionsMiniFrame::ConfigureEventBindings()
+{
+    Bind(wxEVT_CLOSE_WINDOW, &DebugOptionsMiniFrame::OnClose, this);
+
+    pDebugDefaultCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX, &DebugOptionsMiniFrame::OnDebugDefaultCheckBoxCtrl, this);
+
+    pConfirmButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { EndModal(wxID_OK); });
+
+    pCancelButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { EndModal(wxID_CANCEL); });
 }
 
 void DebugOptionsMiniFrame::OnDebugDefaultCheckBoxCtrl(wxCommandEvent& event) {}

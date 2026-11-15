@@ -82,7 +82,7 @@ bool Application::OnInit()
     SPDLOG_LOGGER_TRACE(pLogger, "Running in \"{0}\" environment", BuildConfigurationToString(env));
 
     if (env == BuildConfiguration::Debug) {
-        UI::DebugOptionsMiniFrame debugOptionsMiniFrame(nullptr, pLogger);
+        UI::DebugOptionsMiniFrame debugOptionsMiniFrame(nullptr, pLogger, pEnv);
         debugOptionsMiniFrame.CenterOnScreen();
         debugOptionsMiniFrame.ShowModal();
     }
