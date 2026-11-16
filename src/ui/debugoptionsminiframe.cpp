@@ -30,22 +30,26 @@ DebugOptionsMiniFrame::DebugOptionsMiniFrame(wxWindow* parent,
           wxID_ANY,
           "Debug Options",
           wxDefaultPosition,
-          wxSize(400, 290),
+          wxSize(400, 340),
           wxCAPTION | wxCLOSE_BOX | wxSTAY_ON_TOP)
     , pParent(parent)
     , pLogger(logger)
     , pEnv(env)
     , pDebugDefaultCheckBoxCtrl(nullptr)
-    , pDebugReleasePortableCheckBoxCtrl(nullptr)
-    , pSetupOptionsRadioBoxCtrl(nullptr)
+    , pReleaseOptionsRadioBoxCtrl(nullptr)
     , pConfirmButton(nullptr)
     , pCancelButton(nullptr)
     , pEventLoop(nullptr)
     , mReturnCode(wxID_CANCEL)
+    , mRadioBoxReleaseOptions()
     , mRadioBoxSetupOptions()
 {
     std::string title = fmt::format("{0} Debug Options", Common::GetProgramName());
     SetTitle(title);
+
+    mRadioBoxReleaseOptions.Add("None release configuration");
+    mRadioBoxReleaseOptions.Add("Program Files release configuration");
+    mRadioBoxReleaseOptions.Add("Portable release configuration");
 
     mRadioBoxSetupOptions.Add("Default program setup");
     mRadioBoxSetupOptions.Add("Portable program setup");
@@ -72,25 +76,15 @@ void DebugOptionsMiniFrame::CreateControls()
     sizer->Add(pDebugDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     /* Release options static box */
-    wxStaticBox* releaseOptionsStaticBox =
-        new wxStaticBox(panel, wxID_ANY, "(Debug) Release Options");
-    wxStaticBoxSizer* releaseOptionsStaticBoxSizer =
-        new wxStaticBoxSizer(releaseOptionsStaticBox, wxVERTICAL);
-    sizer->Add(releaseOptionsStaticBoxSizer, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
-
-    /* Debug release program files */
-    pDebugReleaseProgramFilesCheckBoxCtrl = new wxCheckBox(releaseOptionsStaticBox,
-        tksIDC_DEBUGRELEASEPROGRAMFILESCHECKBOXCTRL,
-        "Release configuration (Program Files)");
-    releaseOptionsStaticBoxSizer->Add(
-        pDebugReleaseProgramFilesCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
-    /* Debug release portable */
-    pDebugReleasePortableCheckBoxCtrl = new wxCheckBox(releaseOptionsStaticBox,
-        tksIDC_DEBUGRELEASEPORTABLECHECKBOXCTRL,
-        "Release configuration (Portable)");
-    releaseOptionsStaticBoxSizer->Add(
-        pDebugReleasePortableCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
+    pReleaseOptionsRadioBoxCtrl = new wxRadioBox(panel,
+        tksIDC_RELEASEOPTIONSRADIOBOXCTRL,
+        "(Debug) Release Options",
+        wxDefaultPosition,
+        wxDefaultSize,
+        mRadioBoxSetupOptions,
+        0,
+        wxRA_SPECIFY_ROWS);
+    sizer->Add(pReleaseOptionsRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Setup options Radio Box Ctrl */
     pSetupOptionsRadioBoxCtrl = new wxRadioBox(panel,
@@ -102,6 +96,11 @@ void DebugOptionsMiniFrame::CreateControls()
         0,
         wxRA_SPECIFY_ROWS);
     sizer->Add(pSetupOptionsRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
+
+    /* Exit dialog (frame) check box ctrl */
+    pExitMiniFrameCheckBoxCtrl =
+        new wxCheckBox(panel, tksIDC_EXITDIALOGCHECKBOXCTRL, "Exit and continue to program");
+    sizer->Add(pExitMiniFrameCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
 
     sizer->AddStretchSpacer();
 
@@ -132,12 +131,15 @@ void DebugOptionsMiniFrame::ConfigureEventBindings()
     pDebugDefaultCheckBoxCtrl->Bind(
         wxEVT_CHECKBOX, &DebugOptionsMiniFrame::OnDebugDefaultCheckBoxCtrl, this);
 
+    pSetupOptionsRadioBoxCtrl->Bind(
+        wxEVT_RADIOBOX, &DebugOptionsMiniFrame::OnSetupOptionsRadioBoxSelection, this);
+
+    pExitMiniFrameCheckBoxCtrl->Bind(
+        wxEVT_CHECKBOX, [this](wxCommandEvent& event) { EndModal(wxID_EXIT); });
+
     pConfirmButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { EndModal(wxID_OK); });
 
     pCancelButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { EndModal(wxID_CANCEL); });
-
-    pSetupOptionsRadioBoxCtrl->Bind(
-        wxEVT_RADIOBOX, &DebugOptionsMiniFrame::OnSetupOptionsRadioBoxSelection, this);
 }
 
 void DebugOptionsMiniFrame::OnDebugDefaultCheckBoxCtrl(wxCommandEvent& event) {}

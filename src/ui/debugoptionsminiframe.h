@@ -70,10 +70,11 @@ private:
 
     wxCheckBox* pDebugDefaultCheckBoxCtrl;
 
-    wxCheckBox* pDebugReleaseProgramFilesCheckBoxCtrl;
-    wxCheckBox* pDebugReleasePortableCheckBoxCtrl;
+    wxRadioBox* pReleaseOptionsRadioBoxCtrl;
 
     wxRadioBox* pSetupOptionsRadioBoxCtrl;
+
+    wxCheckBox* pExitMiniFrameCheckBoxCtrl;
 
     wxButton* pConfirmButton;
     wxButton* pCancelButton;
@@ -81,14 +82,15 @@ private:
     wxEventLoop* pEventLoop;
 
     int mReturnCode;
+    wxArrayString mRadioBoxReleaseOptions;
     wxArrayString mRadioBoxSetupOptions;
 
     enum {
         tksIDC_CONTROLBASEID = wxID_HIGHEST + 100,
         tksIDC_DEBUGDEFAULTCHECKBOXCTRL,
-        tksIDC_DEBUGRELEASEPROGRAMFILESCHECKBOXCTRL,
-        tksIDC_DEBUGRELEASEPORTABLECHECKBOXCTRL,
-        tksIDC_SETUPOPTIONSRADIOBOXCTRL
+        tksIDC_RELEASEOPTIONSRADIOBOXCTRL,
+        tksIDC_SETUPOPTIONSRADIOBOXCTRL,
+        tksIDC_EXITDIALOGCHECKBOXCTRL
     };
 };
 } // namespace UI
