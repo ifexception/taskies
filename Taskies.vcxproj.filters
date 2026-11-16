@@ -491,6 +491,9 @@
     <ClCompile Include="src\core\setup_manager.cpp">
       <Filter>Source\core</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui\debugoptionsminiframe.cpp">
+      <Filter>Source\ui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -876,6 +879,9 @@
     </ClInclude>
     <ClInclude Include="src\core\setup_manager.h">
       <Filter>Source\core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui\debugoptionsminiframe.h">
+      <Filter>Source\ui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
