@@ -62,6 +62,8 @@ private:
     void OnClose(wxCloseEvent& event);
     void OnDebugDefaultCheckBoxCtrl(wxCommandEvent& event);
 
+    void OnSetupOptionsRadioBoxSelection(wxCommandEvent& event);
+
     wxWindow* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
@@ -71,18 +73,22 @@ private:
     wxCheckBox* pDebugReleaseProgramFilesCheckBoxCtrl;
     wxCheckBox* pDebugReleasePortableCheckBoxCtrl;
 
+    wxRadioBox* pSetupOptionsRadioBoxCtrl;
+
     wxButton* pConfirmButton;
     wxButton* pCancelButton;
 
     wxEventLoop* pEventLoop;
 
     int mReturnCode;
+    wxArrayString mRadioBoxSetupOptions;
 
     enum {
         tksIDC_CONTROLBASEID = wxID_HIGHEST + 100,
         tksIDC_DEBUGDEFAULTCHECKBOXCTRL,
         tksIDC_DEBUGRELEASEPROGRAMFILESCHECKBOXCTRL,
-        tksIDC_DEBUGRELEASEPORTABLECHECKBOXCTRL
+        tksIDC_DEBUGRELEASEPORTABLECHECKBOXCTRL,
+        tksIDC_SETUPOPTIONSRADIOBOXCTRL
     };
 };
 } // namespace UI
