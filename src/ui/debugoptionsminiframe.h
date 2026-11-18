@@ -30,6 +30,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include "../common/enums.h"
+
 namespace tks
 {
 namespace Core
@@ -53,6 +55,8 @@ public:
 
     int ShowModal();
     void EndModal(int returnCode);
+
+    DebugSetupReleaseConfiguration GetDebugSetupReleaseConfiguration() const;
 
 private:
     void CreateControls();
@@ -84,6 +88,7 @@ private:
     int mReturnCode;
     wxArrayString mRadioBoxReleaseOptions;
     wxArrayString mRadioBoxSetupOptions;
+    DebugSetupReleaseConfiguration mDebugSetupReleaseConfiguration;
 
     enum {
         tksIDC_CONTROLBASEID = wxID_HIGHEST + 100,

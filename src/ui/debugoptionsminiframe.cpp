@@ -84,6 +84,7 @@ void DebugOptionsMiniFrame::CreateControls()
         mRadioBoxSetupOptions,
         0,
         wxRA_SPECIFY_ROWS);
+    pReleaseOptionsRadioBoxCtrl->Disable();
     sizer->Add(pReleaseOptionsRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
     /* Setup options Radio Box Ctrl */
@@ -144,7 +145,11 @@ void DebugOptionsMiniFrame::ConfigureEventBindings()
 
 void DebugOptionsMiniFrame::OnDebugDefaultCheckBoxCtrl(wxCommandEvent& event) {}
 
-void DebugOptionsMiniFrame::OnSetupOptionsRadioBoxSelection(wxCommandEvent& event) {}
+void DebugOptionsMiniFrame::OnSetupOptionsRadioBoxSelection(wxCommandEvent& event)
+{
+    int selection = event.GetSelection();
+    mDebugSetupReleaseConfiguration = static_cast<DebugSetupReleaseConfiguration>(selection + 1);
+}
 
 int DebugOptionsMiniFrame::ShowModal()
 {
@@ -168,5 +173,10 @@ void DebugOptionsMiniFrame::EndModal(int returnCode)
     if (pEventLoop && pEventLoop->IsRunning()) {
         pEventLoop->Exit();
     }
+}
+
+DebugSetupReleaseConfiguration DebugOptionsMiniFrame::GetDebugSetupReleaseConfiguration() const
+{
+    return mDebugSetupReleaseConfiguration;
 }
 } // namespace tks::UI
