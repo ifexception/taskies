@@ -26,11 +26,24 @@ namespace tks::Core
 {
 SetupManager::SetupManager(std::shared_ptr<Environment> env) noexcept
     : pEnv(std::move(env))
+    , mDebugSetupReleaseConfiguration(DebugSetupReleaseConfiguration::Default)
 {
+}
+
+void SetupManager::SetDebugSetupReleaseConfiguration(
+    const DebugSetupReleaseConfiguration setupReleaseConfiguration)
+{
+    mDebugSetupReleaseConfiguration = setupReleaseConfiguration;
 }
 
 bool SetupManager::IsSetup() const
 {
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+        if (mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) {
+            return std::filesystem::exists(std::string(SETUP_FILENAME));
+        }
+    }
+
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
         pEnv->GetInstallLocation() == InstallLocation::Portable) {
         return std::filesystem::exists(std::string(SETUP_FILENAME));
@@ -72,6 +85,20 @@ bool SetupManager::IsSetup() const
 
 bool SetupManager::SetIsSetup()
 {
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+        if (mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) {
+            auto setupFileName =
+                std::filesystem::path(pEnv->GetProgramPath()) / std::string(SETUP_FILENAME);
+
+            std::ofstream setupFile(setupFileName.string(), std::ios::out);
+            if (setupFile.is_open()) {
+                setupFile << true;
+                return true;
+            }
+            return false;
+        }
+    }
+
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
         pEnv->GetInstallLocation() == InstallLocation::Portable) {
         auto setupFileName =
@@ -133,6 +160,17 @@ bool SetupManager::SetIsSetup()
 
 bool SetupManager::ConfigurationFileMigrationRequired() const
 {
+    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
+        if (mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) {
+            auto cfgMigrateFile =
+                std::filesystem::path(pEnv->GetProgramPath()) / std::string(CFG_MIGRATE_FILENAME);
+            if (std::filesystem::exists(cfgMigrateFile)) {
+                bool res = std::filesystem::remove(cfgMigrateFile);
+                return res;
+            }
+        }
+    }
+
 #ifdef TKS_PORTABLEREL
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
         pEnv->GetInstallLocation() == InstallLocation::Portable) {
@@ -180,6 +218,29 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
     // Non-Windows fallback stub
     return false;
 #endif // _WIN32
+}
+
+bool SetupManager::RemoveConfigurationFileMigrationRegistryKey()
+{
+#ifdef _WIN32
+    const std::string registryKey = GetRegistryKey();
+    if (registryKey.empty()) {
+        return false;
+    }
+
+    std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
+    std::wstring wRegistryValue = L"ConfigMigrationRequired";
+
+    LSTATUS status = ::RegDeleteKeyW(HKEY_CURRENT_USER, wRegistryKey.c_str());
+
+    if (status != ERROR_SUCCESS) {
+        return false;
+    }
+    return true;
+#else
+    // Non-Windows fallback stub
+    return false;
+#endif //
 }
 
 std::string SetupManager::GetRegistryKey() const

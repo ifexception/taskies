@@ -24,6 +24,7 @@
 #include <Windows.h>
 #endif // _WIN32
 
+#include "../common/enums.h"
 #include "environment.h"
 
 #ifdef _WIN32
@@ -55,14 +56,20 @@ public:
     SetupManager& operator=(SetupManager&&) noexcept = default;
     ~SetupManager() = default;
 
+    void SetDebugSetupReleaseConfiguration(
+        const DebugSetupReleaseConfiguration setupReleaseConfiguration);
+
     bool IsSetup() const;
     bool SetIsSetup();
 
     bool ConfigurationFileMigrationRequired() const;
+    bool RemoveConfigurationFileMigrationRegistryKey();
 
 private:
     std::string GetRegistryKey() const;
 
     std::shared_ptr<Environment> pEnv;
+
+    DebugSetupReleaseConfiguration mDebugSetupReleaseConfiguration;
 };
 } // namespace tks::Core
