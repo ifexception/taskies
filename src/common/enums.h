@@ -35,9 +35,13 @@ enum class EditListEntityType {
 
 enum class WindowState : int { Normal = 1, Minimized = 2, Hidden = 3, Maximized = 4 };
 
-enum class BuildConfiguration { Undefined, Debug, Release };
+enum class BuildConfiguration { Undefined = 1, Debug, Release };
 
-enum class InstallLocation { Undefined, Debug, Portable, ProgramFiles };
+enum class DebugBuildReleaseConfiguration { Undefined = 1, DebugRelease, DebugPortableRelease };
+
+enum class DebugSetupReleaseConfiguration { Default = 1, Portable, NewInstall };
+
+enum class InstallLocation { Undefined = 1, Debug, Portable, ProgramFiles };
 
 enum class NotificationType { Information = 1, Error };
 
