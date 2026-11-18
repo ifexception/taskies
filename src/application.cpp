@@ -58,6 +58,7 @@ Application::Application()
     , pSetupMgr(std::make_unique<Core::SetupManager>(pEnv))
     , pCfg(nullptr)
     , pPersistenceManager(nullptr)
+    , mDebugSetupReleaseConfiguration(DebugSetupReleaseConfiguration::Default)
 {
 }
 
@@ -84,7 +85,12 @@ bool Application::OnInit()
     if (env == BuildConfiguration::Debug) {
         UI::DebugOptionsMiniFrame debugOptionsMiniFrame(nullptr, pLogger, pEnv);
         debugOptionsMiniFrame.CenterOnScreen();
-        debugOptionsMiniFrame.ShowModal();
+        int ret = debugOptionsMiniFrame.ShowModal();
+        if (ret == wxID_OK) {
+            mDebugSetupReleaseConfiguration =
+                debugOptionsMiniFrame.GetDebugSetupReleaseConfiguration();
+            pSetupMgr->SetDebugSetupReleaseConfiguration(mDebugSetupReleaseConfiguration);
+        }
     }
 
     pCfg = std::make_shared<Core::Configuration>(pLogger, pEnv);

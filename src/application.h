@@ -29,6 +29,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include "common/enums.h"
+
 namespace tks
 {
 namespace Core
@@ -69,5 +71,7 @@ private:
     std::unique_ptr<Core::SetupManager> pSetupMgr;
     std::shared_ptr<Core::Configuration> pCfg;
     std::shared_ptr<UI::PersistenceManager> pPersistenceManager;
+
+    DebugSetupReleaseConfiguration mDebugSetupReleaseConfiguration;
 };
 } // namespace tks
