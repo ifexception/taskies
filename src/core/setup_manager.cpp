@@ -22,6 +22,8 @@
 #include <fstream>
 #include <filesystem>
 
+#include <toml.hpp>
+
 namespace tks::Core
 {
 SetupManager::SetupManager(std::shared_ptr<Environment> env) noexcept
@@ -38,15 +40,40 @@ void SetupManager::SetDebugSetupReleaseConfiguration(
 
 bool SetupManager::IsSetup() const
 {
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        if (mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) {
-            return std::filesystem::exists(std::string(SETUP_FILENAME));
-        }
+    if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
+        return false;
     }
 
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
-        pEnv->GetInstallLocation() == InstallLocation::Portable) {
-        return std::filesystem::exists(std::string(SETUP_FILENAME));
+    toml::value root = toml::parse(pEnv->GetConfigurationFilePath());
+    bool isSetup = false;
+    try {
+        const auto& setupSection = toml::find(root, std::string());
+
+        isSetup = toml::find_or<bool>(setupSection, "is_setup", false);
+    } catch (const toml::syntax_error& ) {
+        /*pLogger->error("A TOML syntax/parse error occurred when parsing configuration file
+           \"{0}\"", error.what());*/
+
+        return false;
+    } catch (const toml::type_error& ) {
+        /*pLogger->error(
+            "A TOML type error occurred when reading configuration values - {0}", error.what());*/
+
+        return false;
+    } catch (const std::out_of_range& ) {
+        /*pLogger->error(
+            "A (TOML) out-of-range error occurred when reading configuration values - {0}",
+            error.what());*/
+
+        return false;
+    }
+
+    if ((pEnv->GetBuildConfiguration() == BuildConfiguration::Debug &&
+            mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) ||
+        (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
+            pEnv->GetInstallLocation() == InstallLocation::Portable)) {
+        return std::filesystem::exists(pEnv->GetDatabaseFilePath()) &&
+               std::filesystem::exists(pEnv->GetConfigurationFilePath()) && isSetup;
     }
 
 #ifdef _WIN32
@@ -85,31 +112,36 @@ bool SetupManager::IsSetup() const
 
 bool SetupManager::SetIsSetup()
 {
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        if (mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) {
-            auto setupFileName =
-                std::filesystem::path(pEnv->GetProgramPath()) / std::string(SETUP_FILENAME);
+    if ((pEnv->GetBuildConfiguration() == BuildConfiguration::Debug &&
+            mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) ||
+        (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
+            pEnv->GetInstallLocation() == InstallLocation::Portable)) {
+        toml::value root = toml::parse(pEnv->GetConfigurationFilePath());
+        root.at(std::string("setup"))["is_setup"] = true;
 
-            std::ofstream setupFile(setupFileName.string(), std::ios::out);
-            if (setupFile.is_open()) {
-                setupFile << true;
-                return true;
-            }
+        const std::string tomlFormattedData = toml::format(root);
+
+        if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
             return false;
         }
-    }
 
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
-        pEnv->GetInstallLocation() == InstallLocation::Portable) {
-        auto setupFileName =
-            std::filesystem::path(pEnv->GetProgramPath()) / std::string(SETUP_FILENAME);
+        std::ofstream configFileStream;
+        configFileStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
-        std::ofstream setupFile(setupFileName.string(), std::ios::out);
-        if (setupFile.is_open()) {
-            setupFile << true;
-            return true;
+        try {
+            configFileStream.open(pEnv->GetConfigurationFilePath());
+        } catch (const std::system_error& e) {
+            return false;
         }
-        return false;
+
+        if (!configFileStream.is_open()) {
+            return false;
+        }
+
+        configFileStream << tomlFormattedData;
+        configFileStream.close();
+
+        return true;
     }
 
 #ifdef _WIN32
@@ -184,7 +216,7 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
 #endif // TKS_PORTABLEREL
 
 #ifdef _WIN32
-#if !defined(TKS_PORABLEREL)
+#if !defined(TKS_PORTABLEREL)
     const std::string registryKey = GetRegistryKey();
     if (registryKey.empty()) {
         return false;
@@ -231,7 +263,15 @@ bool SetupManager::RemoveConfigurationFileMigrationRegistryKey()
     std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
     std::wstring wRegistryValue = L"ConfigMigrationRequired";
 
-    LSTATUS status = ::RegDeleteKeyW(HKEY_CURRENT_USER, wRegistryKey.c_str());
+    RegKeyGuard guard;
+    LSTATUS status =
+        ::RegOpenKeyExW(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
+
+    if (status != ERROR_SUCCESS) {
+        return false;
+    }
+
+    status = ::RegDeleteKeyEx(guard.key, wRegistryValue.c_str(), KEY_WOW64_64KEY, 0);
 
     if (status != ERROR_SUCCESS) {
         return false;

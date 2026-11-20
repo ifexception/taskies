@@ -25,6 +25,7 @@
 #endif // _WIN32
 
 #include "../common/enums.h"
+
 #include "environment.h"
 
 #ifdef _WIN32
