@@ -97,6 +97,12 @@ std::string Environment::GetExportPath() const
     return GetApplicationExportPath().string();
 }
 
+std::string Environment::GetDatabaseFilePath() const
+{
+    auto filePath = GetApplicationDatabasePath() / std::string(DATABASE_FILENAME);
+    return filePath.string();
+}
+
 std::string Environment::GetCurrentLocale()
 {
 #ifdef _WIN32
