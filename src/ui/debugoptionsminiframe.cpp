@@ -81,7 +81,7 @@ void DebugOptionsMiniFrame::CreateControls()
         "(Debug) Release Options",
         wxDefaultPosition,
         wxDefaultSize,
-        mRadioBoxSetupOptions,
+        mRadioBoxReleaseOptions,
         0,
         wxRA_SPECIFY_ROWS);
     pReleaseOptionsRadioBoxCtrl->Disable();
