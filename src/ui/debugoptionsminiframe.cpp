@@ -35,7 +35,6 @@ DebugOptionsMiniFrame::DebugOptionsMiniFrame(wxWindow* parent,
     , pParent(parent)
     , pLogger(logger)
     , pEnv(env)
-    , pDebugDefaultCheckBoxCtrl(nullptr)
     , pReleaseOptionsRadioBoxCtrl(nullptr)
     , pConfirmButton(nullptr)
     , pCancelButton(nullptr)
@@ -47,7 +46,7 @@ DebugOptionsMiniFrame::DebugOptionsMiniFrame(wxWindow* parent,
     std::string title = fmt::format("{0} Debug Options", Common::GetProgramName());
     SetTitle(title);
 
-    mRadioBoxReleaseOptions.Add("None release configuration");
+    mRadioBoxReleaseOptions.Add("No release configuration");
     mRadioBoxReleaseOptions.Add("Program Files release configuration");
     mRadioBoxReleaseOptions.Add("Portable release configuration");
 
@@ -56,7 +55,6 @@ DebugOptionsMiniFrame::DebugOptionsMiniFrame(wxWindow* parent,
     mRadioBoxSetupOptions.Add("New install setup");
 
     CreateControls();
-    FillControls();
     ConfigureEventBindings();
 }
 
@@ -71,10 +69,6 @@ void DebugOptionsMiniFrame::CreateControls()
     wxPanel* panel = new wxPanel(this);
     panel->SetSizer(sizer);
 
-    pDebugDefaultCheckBoxCtrl =
-        new wxCheckBox(panel, tksIDC_DEBUGDEFAULTCHECKBOXCTRL, "Default configuration");
-    sizer->Add(pDebugDefaultCheckBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)));
-
     /* Release options static box */
     pReleaseOptionsRadioBoxCtrl = new wxRadioBox(panel,
         tksIDC_RELEASEOPTIONSRADIOBOXCTRL,
@@ -84,6 +78,7 @@ void DebugOptionsMiniFrame::CreateControls()
         mRadioBoxReleaseOptions,
         0,
         wxRA_SPECIFY_ROWS);
+    // temporarily disabled until this functionality gets built out
     pReleaseOptionsRadioBoxCtrl->Disable();
     sizer->Add(pReleaseOptionsRadioBoxCtrl, wxSizerFlags().Border(wxALL, FromDIP(4)).Expand());
 
@@ -120,17 +115,9 @@ void DebugOptionsMiniFrame::CreateControls()
     buttonsSizer->Add(pCancelButton, wxSizerFlags().Border(wxALL, FromDIP(4)));
 }
 
-void DebugOptionsMiniFrame::FillControls()
-{
-    pDebugDefaultCheckBoxCtrl->SetValue(true);
-}
-
 void DebugOptionsMiniFrame::ConfigureEventBindings()
 {
     Bind(wxEVT_CLOSE_WINDOW, &DebugOptionsMiniFrame::OnClose, this);
-
-    pDebugDefaultCheckBoxCtrl->Bind(
-        wxEVT_CHECKBOX, &DebugOptionsMiniFrame::OnDebugDefaultCheckBoxCtrl, this);
 
     pSetupOptionsRadioBoxCtrl->Bind(
         wxEVT_RADIOBOX, &DebugOptionsMiniFrame::OnSetupOptionsRadioBoxSelection, this);
@@ -142,8 +129,6 @@ void DebugOptionsMiniFrame::ConfigureEventBindings()
 
     pCancelButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { EndModal(wxID_CANCEL); });
 }
-
-void DebugOptionsMiniFrame::OnDebugDefaultCheckBoxCtrl(wxCommandEvent& event) {}
 
 void DebugOptionsMiniFrame::OnSetupOptionsRadioBoxSelection(wxCommandEvent& event)
 {

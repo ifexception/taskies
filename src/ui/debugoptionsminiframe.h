@@ -60,19 +60,15 @@ public:
 
 private:
     void CreateControls();
-    void FillControls();
     void ConfigureEventBindings();
 
     void OnClose(wxCloseEvent& event);
-    void OnDebugDefaultCheckBoxCtrl(wxCommandEvent& event);
 
     void OnSetupOptionsRadioBoxSelection(wxCommandEvent& event);
 
     wxWindow* pParent;
     std::shared_ptr<spdlog::logger> pLogger;
     std::shared_ptr<Core::Environment> pEnv;
-
-    wxCheckBox* pDebugDefaultCheckBoxCtrl;
 
     wxRadioBox* pReleaseOptionsRadioBoxCtrl;
 
@@ -92,7 +88,6 @@ private:
 
     enum {
         tksIDC_CONTROLBASEID = wxID_HIGHEST + 100,
-        tksIDC_DEBUGDEFAULTCHECKBOXCTRL,
         tksIDC_RELEASEOPTIONSRADIOBOXCTRL,
         tksIDC_SETUPOPTIONSRADIOBOXCTRL,
         tksIDC_EXITDIALOGCHECKBOXCTRL
