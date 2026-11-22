@@ -72,5 +72,8 @@ private:
     std::shared_ptr<Environment> pEnv;
 
     DebugSetupReleaseConfiguration mDebugSetupReleaseConfiguration;
+
+    bool bIsDebugAndPortable;
+    bool bIsReleaseAndPortable;
 };
 } // namespace tks::Core

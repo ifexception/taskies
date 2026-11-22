@@ -29,7 +29,15 @@ namespace tks::Core
 SetupManager::SetupManager(std::shared_ptr<Environment> env) noexcept
     : pEnv(std::move(env))
     , mDebugSetupReleaseConfiguration(DebugSetupReleaseConfiguration::Default)
+    , bIsDebugAndPortable(false)
+    , bIsReleaseAndPortable(false)
 {
+    bIsDebugAndPortable =
+        pEnv->GetBuildConfiguration() == BuildConfiguration::Debug &&
+        mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable;
+
+    bIsReleaseAndPortable = pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
+                            pEnv->GetInstallLocation() == InstallLocation::Portable;
 }
 
 void SetupManager::SetDebugSetupReleaseConfiguration(
@@ -50,27 +58,24 @@ bool SetupManager::IsSetup() const
         const auto& setupSection = toml::find(root, "setup");
 
         isSetup = toml::find_or<bool>(setupSection, "is_setup", false);
-    } catch (const toml::syntax_error& ) {
+    } catch (const toml::syntax_error&) {
         /*pLogger->error("A TOML syntax/parse error occurred when parsing configuration file
            \"{0}\"", error.what());*/
 
         return false;
-    } catch (const toml::type_error& ) {
+    } catch (const toml::type_error&) {
         /*pLogger->error(
             "A TOML type error occurred when reading configuration values - {0}", error.what());*/
 
         return false;
-    } catch (const std::out_of_range& ) {
+    } catch (const std::out_of_range&) {
         /*pLogger->error(
             "A (TOML) out-of-range error occurred when reading configuration values - {0}",
             error.what());*/
         return false;
     }
 
-    if ((pEnv->GetBuildConfiguration() == BuildConfiguration::Debug &&
-            mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) ||
-        (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
-            pEnv->GetInstallLocation() == InstallLocation::Portable)) {
+    if (bIsDebugAndPortable || bIsReleaseAndPortable) {
         return std::filesystem::exists(pEnv->GetDatabaseFilePath()) &&
                std::filesystem::exists(pEnv->GetConfigurationFilePath()) && isSetup;
     }
@@ -111,10 +116,7 @@ bool SetupManager::IsSetup() const
 
 bool SetupManager::SetIsSetup()
 {
-    if ((pEnv->GetBuildConfiguration() == BuildConfiguration::Debug &&
-            mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) ||
-        (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
-            pEnv->GetInstallLocation() == InstallLocation::Portable)) {
+    if (bIsDebugAndPortable || bIsReleaseAndPortable) {
         toml::value root = toml::parse(pEnv->GetConfigurationFilePath());
         root.at(std::string("setup"))["is_setup"] = true;
 
@@ -189,6 +191,7 @@ bool SetupManager::SetIsSetup()
 #endif // _WIN32
 }
 
+// REFACTOR
 bool SetupManager::ConfigurationFileMigrationRequired() const
 {
     if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
@@ -202,9 +205,7 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
         }
     }
 
-#ifdef TKS_PORTABLEREL
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Release &&
-        pEnv->GetInstallLocation() == InstallLocation::Portable) {
+    if (bIsReleaseAndPortable) {
         auto cfgMigrateFile =
             std::filesystem::path(pEnv->GetProgramPath()) / std::string(CFG_MIGRATE_FILENAME);
         if (std::filesystem::exists(cfgMigrateFile)) {
@@ -212,38 +213,44 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
             return res;
         }
     }
-#endif // TKS_PORTABLEREL
 
 #ifdef _WIN32
-#if !defined(TKS_PORTABLEREL)
-    const std::string registryKey = GetRegistryKey();
-    if (registryKey.empty()) {
-        return false;
+    if (!bIsReleaseAndPortable) {
+        const std::string registryKey = GetRegistryKey();
+        if (registryKey.empty()) {
+            return false;
+        }
+
+        std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
+        std::wstring wRegistryValue = L"ConfigMigrationRequired";
+
+        RegKeyGuard guard;
+        LSTATUS status =
+            ::RegOpenKeyExW(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
+
+        if (status != ERROR_SUCCESS) {
+            return false;
+        }
+
+        uint32_t data = 0;
+        DWORD dataSize = sizeof(data);
+
+        status = ::RegGetValueW(guard.key,
+            nullptr,
+            wRegistryValue.c_str(),
+            RRF_RT_REG_DWORD,
+            nullptr,
+            &data,
+            &dataSize);
+
+        if (status != ERROR_SUCCESS) {
+            return false;
+        }
+
+        return !!data;
     }
 
-    std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
-    std::wstring wRegistryValue = L"ConfigMigrationRequired";
-
-    RegKeyGuard guard;
-    LSTATUS status =
-        ::RegOpenKeyExW(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
-
-    if (status != ERROR_SUCCESS) {
-        return false;
-    }
-
-    uint32_t data = 0;
-    DWORD dataSize = sizeof(data);
-
-    status = ::RegGetValueW(
-        guard.key, nullptr, wRegistryValue.c_str(), RRF_RT_REG_DWORD, nullptr, &data, &dataSize);
-
-    if (status != ERROR_SUCCESS) {
-        return false;
-    }
-
-    return !!data;
-#endif // !defined(TKS_PORABLEREL)
+    return false;
 
 #else
     // Non-Windows fallback stub
@@ -251,6 +258,7 @@ bool SetupManager::ConfigurationFileMigrationRequired() const
 #endif // _WIN32
 }
 
+// REFACTOR
 bool SetupManager::RemoveConfigurationFileMigrationRegistryKey()
 {
 #ifdef _WIN32
