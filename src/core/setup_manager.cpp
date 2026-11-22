@@ -47,7 +47,7 @@ bool SetupManager::IsSetup() const
     toml::value root = toml::parse(pEnv->GetConfigurationFilePath());
     bool isSetup = false;
     try {
-        const auto& setupSection = toml::find(root, std::string());
+        const auto& setupSection = toml::find(root, "setup");
 
         isSetup = toml::find_or<bool>(setupSection, "is_setup", false);
     } catch (const toml::syntax_error& ) {
@@ -64,7 +64,6 @@ bool SetupManager::IsSetup() const
         /*pLogger->error(
             "A (TOML) out-of-range error occurred when reading configuration values - {0}",
             error.what());*/
-
         return false;
     }
 
@@ -130,7 +129,7 @@ bool SetupManager::SetIsSetup()
 
         try {
             configFileStream.open(pEnv->GetConfigurationFilePath());
-        } catch (const std::system_error& e) {
+        } catch (const std::system_error&) {
             return false;
         }
 
