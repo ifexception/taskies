@@ -19,7 +19,114 @@
 
 #include "configuration_migration.h"
 
+#include <fmt/format.h>
+
 namespace tks::Core
 {
-
+ConfigurationMigration::ConfigurationMigration(std::filesystem::path configPath)
+    : mConfigPath(configPath)
+{
 }
+
+bool ConfigurationMigration::IsMigrationRequired() const
+{
+    std::error_code ec;
+    if (!std::filesystem::exists(mConfigPath, ec) || ec) {
+        return false; // Config file does not exist so nothing to migrate
+    }
+
+    try {
+        const toml::value root = toml::parse(mConfigPath);
+        const int fileVersion = toml::find_or<int>(root, "schema_version", 0);
+        return fileVersion < CURRENT_SCHEMA_VERSION;
+    } catch (const std::exception&) {
+        // Corrupted or unreadable TOML; let Migrate() report the detailed error
+        return true;
+    }
+}
+
+MigrationResult ConfigurationMigration::Migrate()
+{
+    MigrationResult result;
+    result.CurrentVersion = CURRENT_SCHEMA_VERSION;
+
+    std::error_code ec;
+    if (!std::filesystem::exists(mConfigPath, ec) || ec) {
+        result.ErrorMessage =
+            fmt::format("Configuration file does not exist: \"{0}\"", mConfigPath.string());
+        return result;
+    }
+
+    toml::value root;
+    try {
+        root = toml::parse(mConfigPath);
+    } catch (const std::exception& ex) {
+        result.ErrorMessage = fmt::format("Failed to parse TOML configuration: \"{0}\"", ex.what());
+        return result;
+    }
+
+    const int fileVersion = toml::find_or<int>(root, "schema_version", 0);
+    result.PreviousVersion = fileVersion;
+
+    if (fileVersion >= CURRENT_SCHEMA_VERSION) {
+        result.Success = true;
+        result.Migrated = false;
+        return result;
+    }
+
+    try {
+        ApplyMigrations(root, fileVersion);
+        root["schema_version"] = CURRENT_SCHEMA_VERSION;
+    } catch (const std::exception& ex) {
+        result.ErrorMessage = fmt::format("Migration step failed with error \"{0}\"", ex.what());
+        return result;
+    }
+
+    if (!WriteAtomically(root)) {
+        result.ErrorMessage = "Failed to atomically write migrated configuration to disk.";
+        return result;
+    }
+
+    result.Success = true;
+    result.Migrated = true;
+
+    return result;
+}
+
+void ConfigurationMigration::ApplyMigrations(toml::value& root, int fromVersion) const {}
+
+bool ConfigurationMigration::WriteAtomically(const toml::value& root) const
+{
+    std::filesystem::path tempPath = mConfigPath;
+    tempPath += ".tmp";
+
+    {
+        std::ofstream ofs(tempPath, std::ios::binary | std::ios::trunc);
+        if (!ofs.is_open()) {
+            return false;
+        }
+
+        ofs << toml::format(root);
+        ofs.flush();
+
+        if (!ofs.good()) {
+            ofs.close();
+            std::error_code ec;
+            std::filesystem::remove(tempPath, ec);
+            return false;
+        }
+    }
+
+    // Atomically replace the target file with the temp file
+    std::error_code ec;
+    std::filesystem::rename(tempPath, mConfigPath, ec);
+    if (ec) {
+        // Clean up orphan .tmp file if rename fails
+        std::error_code removeEc;
+        std::filesystem::remove(tempPath, removeEc);
+        return false;
+    }
+
+    return true;
+}
+} // namespace tks::Core

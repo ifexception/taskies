@@ -19,11 +19,38 @@
 
 #pragma once
 
+#include <filesystem>
+#include <string>
+
+#include <toml.hpp>
+
 namespace tks::Core
 {
 constexpr int CURRENT_SCHEMA_VERSION = 1;
 
+struct MigrationResult {
+    bool Success{ false };
+    bool Migrated{ false };
+    int PreviousVersion{ 0 };
+    int CurrentVersion{ 0 };
+    std::string ErrorMessage;
+};
+
 class ConfigurationMigration final
 {
+public:
+    static constexpr int CURRENT_SCHEMA_VERSION = 2;
+
+    explicit ConfigurationMigration(std::filesystem::path configPath);
+
+    bool IsMigrationRequired() const;
+
+    MigrationResult Migrate();
+
+private:
+    void ApplyMigrations(toml::value& root, int fromVersion) const;
+    bool WriteAtomically(const toml::value& root) const;
+
+    std::filesystem::path mConfigPath;
 };
 } // namespace tks::Core
