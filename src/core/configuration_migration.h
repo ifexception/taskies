@@ -51,7 +51,7 @@ public:
 private:
     bool CreateConfigBackup(std::filesystem::path& outBackupPath) const;
     void ApplyMigrations(toml::value& root, int fromVersion) const;
-    bool WriteAtomically(const toml::value& root) const;
+    bool WriteAtomic(const toml::value& root) const;
 
     std::filesystem::path mConfigPath;
 };

@@ -89,7 +89,7 @@ MigrationResult ConfigurationMigration::Migrate()
         return result;
     }
 
-    if (!WriteAtomically(root)) {
+    if (!WriteAtomic(root)) {
         result.ErrorMessage = "Failed to atomically write migrated configuration to disk.";
         return result;
     }
@@ -119,7 +119,7 @@ bool ConfigurationMigration::CreateConfigBackup(std::filesystem::path& outBackup
 
 void ConfigurationMigration::ApplyMigrations(toml::value& root, int fromVersion) const {}
 
-bool ConfigurationMigration::WriteAtomically(const toml::value& root) const
+bool ConfigurationMigration::WriteAtomic(const toml::value& root) const
 {
     std::filesystem::path tempPath = mConfigPath;
     tempPath += ".tmp";
