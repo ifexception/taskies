@@ -33,6 +33,7 @@ struct MigrationResult {
     bool Migrated{ false };
     int PreviousVersion{ 0 };
     int CurrentVersion{ 0 };
+    std::filesystem::path BackupPath;
     std::string ErrorMessage;
 };
 
@@ -48,6 +49,7 @@ public:
     MigrationResult Migrate();
 
 private:
+    bool CreateConfigBackup(std::filesystem::path& outBackupPath) const;
     void ApplyMigrations(toml::value& root, int fromVersion) const;
     bool WriteAtomically(const toml::value& root) const;
 

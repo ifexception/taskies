@@ -37,6 +37,7 @@
 
 #include "core/environment.h"
 #include "core/configuration.h"
+#include "core/configuration_migration.h"
 #include "core/database_migration.h"
 #include "core/setup_manager.h"
 // #include "core/translator.h"
@@ -218,6 +219,62 @@ bool Application::InitializeConfiguration()
 
             dialog.ShowModal();
             return false;
+        }
+    }
+
+    Core::ConfigurationMigration confMigration(pEnv->GetConfigurationFilePath());
+    if (confMigration.IsMigrationRequired()) {
+        auto res = confMigration.Migrate();
+        if (!res.Success) {
+            pLogger->error("Error occurred when performing configuration migration from \"{0}\" to "
+                           "\"{1}\" with error \"{2}\"",
+                res.PreviousVersion,
+                res.CurrentVersion,
+                res.ErrorMessage);
+
+            wxRichMessageDialog dialog(nullptr,
+                fmt::format("{0} Configuration Migration Error", Common::GetProgramName()),
+                Common::GetProgramName(),
+                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+            dialog.SetExtendedMessage(
+                "An unexpected error occured during a configuration migration and the file could "
+                "not be upgraded. Would you like to restore from defaults or exit the program?");
+            dialog.ShowDetailedText(res.ErrorMessage);
+
+            wxWindow* okBtn = dialog.FindWindowById(wxID_OK);
+            if (okBtn) {
+                okBtn->SetLabel("Restore Defaults");
+            }
+
+            wxWindow* cancelBtn = dialog.FindWindowById(wxID_CANCEL);
+            if (cancelBtn) {
+                cancelBtn->SetLabel("Exit");
+            }
+
+            int ret = dialog.ShowModal();
+            if (ret == wxID_OK) {
+                auto result = pCfg->RecreateConfigurationFile();
+                if (!result.Success) {
+                    wxRichMessageDialog dialog(nullptr,
+                        result.HeaderMessage,
+                        Common::GetProgramName(),
+                        wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
+                    dialog.SetExtendedMessage(result.UserMessage);
+                    dialog.ShowDetailedText(result.ErrorMessage);
+
+                    dialog.ShowModal();
+                    return false;
+                }
+            }
+            return false;
+        } else {
+            std::string message =
+                fmt::format("Settings updated ({0} -> {1}). Backup saved as \"{2}\"",
+                    res.PreviousVersion,
+                    res.CurrentVersion,
+                    res.BackupPath.filename().string());
+            wxMessageDialog infoDialog(nullptr, message, Common::GetProgramName(), wxOK_DEFAULT);
+            infoDialog.ShowModal();
         }
     }
 

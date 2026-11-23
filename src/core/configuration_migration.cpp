@@ -74,6 +74,13 @@ MigrationResult ConfigurationMigration::Migrate()
         return result;
     }
 
+    std::filesystem::path backupPath;
+    if (!CreateConfigBackup(backupPath)) {
+        result.ErrorMessage = "Failed to create configuration backup before migration";
+        return result;
+    }
+    result.BackupPath = backupPath;
+
     try {
         ApplyMigrations(root, fileVersion);
         root["schema_version"] = CURRENT_SCHEMA_VERSION;
@@ -91,6 +98,23 @@ MigrationResult ConfigurationMigration::Migrate()
     result.Migrated = true;
 
     return result;
+}
+
+bool ConfigurationMigration::CreateConfigBackup(std::filesystem::path& outBackupPath) const
+{
+    std::filesystem::path backupPath = mConfigPath;
+    backupPath += ".bak";
+
+    std::error_code ec;
+    std::filesystem::copy_file(
+        mConfigPath, backupPath, std::filesystem::copy_options::overwrite_existing, ec);
+
+    if (ec) {
+        return false;
+    }
+
+    outBackupPath = std::move(backupPath);
+    return true;
 }
 
 void ConfigurationMigration::ApplyMigrations(toml::value& root, int fromVersion) const {}
