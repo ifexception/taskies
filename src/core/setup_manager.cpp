@@ -116,15 +116,15 @@ bool SetupManager::IsSetup() const
 
 bool SetupManager::SetIsSetup()
 {
+    if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
+        return false;
+    }
+
     if (bIsDebugAndPortable || bIsReleaseAndPortable) {
         toml::value root = toml::parse(pEnv->GetConfigurationFilePath());
         root.at(std::string("setup"))["is_setup"] = true;
 
         const std::string tomlFormattedData = toml::format(root);
-
-        if (!std::filesystem::exists(pEnv->GetConfigurationFilePath())) {
-            return false;
-        }
 
         std::ofstream configFileStream;
         configFileStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -189,105 +189,6 @@ bool SetupManager::SetIsSetup()
     std::ofstream setupFile(std::string(SETUP_FILENAME), std::ios::out);
     return setupFile.is_open();
 #endif // _WIN32
-}
-
-// REFACTOR
-bool SetupManager::ConfigurationFileMigrationRequired() const
-{
-    if (pEnv->GetBuildConfiguration() == BuildConfiguration::Debug) {
-        if (mDebugSetupReleaseConfiguration == DebugSetupReleaseConfiguration::Portable) {
-            auto cfgMigrateFile =
-                std::filesystem::path(pEnv->GetProgramPath()) / std::string(CFG_MIGRATE_FILENAME);
-            if (std::filesystem::exists(cfgMigrateFile)) {
-                bool res = std::filesystem::remove(cfgMigrateFile);
-                return res;
-            }
-        }
-    }
-
-    if (bIsReleaseAndPortable) {
-        auto cfgMigrateFile =
-            std::filesystem::path(pEnv->GetProgramPath()) / std::string(CFG_MIGRATE_FILENAME);
-        if (std::filesystem::exists(cfgMigrateFile)) {
-            bool res = std::filesystem::remove(cfgMigrateFile);
-            return res;
-        }
-    }
-
-#ifdef _WIN32
-    if (!bIsReleaseAndPortable) {
-        const std::string registryKey = GetRegistryKey();
-        if (registryKey.empty()) {
-            return false;
-        }
-
-        std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
-        std::wstring wRegistryValue = L"ConfigMigrationRequired";
-
-        RegKeyGuard guard;
-        LSTATUS status =
-            ::RegOpenKeyExW(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
-
-        if (status != ERROR_SUCCESS) {
-            return false;
-        }
-
-        uint32_t data = 0;
-        DWORD dataSize = sizeof(data);
-
-        status = ::RegGetValueW(guard.key,
-            nullptr,
-            wRegistryValue.c_str(),
-            RRF_RT_REG_DWORD,
-            nullptr,
-            &data,
-            &dataSize);
-
-        if (status != ERROR_SUCCESS) {
-            return false;
-        }
-
-        return !!data;
-    }
-
-    return false;
-
-#else
-    // Non-Windows fallback stub
-    return false;
-#endif // _WIN32
-}
-
-// REFACTOR
-bool SetupManager::RemoveConfigurationFileMigrationRegistryKey()
-{
-#ifdef _WIN32
-    const std::string registryKey = GetRegistryKey();
-    if (registryKey.empty()) {
-        return false;
-    }
-
-    std::wstring wRegistryKey(registryKey.begin(), registryKey.end());
-    std::wstring wRegistryValue = L"ConfigMigrationRequired";
-
-    RegKeyGuard guard;
-    LSTATUS status =
-        ::RegOpenKeyExW(HKEY_CURRENT_USER, wRegistryKey.c_str(), 0, KEY_READ, &guard.key);
-
-    if (status != ERROR_SUCCESS) {
-        return false;
-    }
-
-    status = ::RegDeleteKeyEx(guard.key, wRegistryValue.c_str(), KEY_WOW64_64KEY, 0);
-
-    if (status != ERROR_SUCCESS) {
-        return false;
-    }
-    return true;
-#else
-    // Non-Windows fallback stub
-    return false;
-#endif //
 }
 
 std::string SetupManager::GetRegistryKey() const

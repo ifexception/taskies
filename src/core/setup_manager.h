@@ -63,9 +63,6 @@ public:
     bool IsSetup() const;
     bool SetIsSetup();
 
-    bool ConfigurationFileMigrationRequired() const;
-    bool RemoveConfigurationFileMigrationRegistryKey();
-
 private:
     std::string GetRegistryKey() const;
 
