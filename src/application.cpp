@@ -237,25 +237,6 @@ bool Application::InitializeConfiguration()
         return false;
     }
 
-    if (pSetupMgr->ConfigurationFileMigrationRequired()) {
-        /* save the file when configuration file migration is required */
-        /* saving the file will set in any missing settings */
-        result = pCfg->Save();
-        if (!result.Success) {
-            pLogger->error(
-                "Error occurred while saving configuration. See earlier logs for details");
-            wxRichMessageDialog dialog(nullptr,
-                result.HeaderMessage,
-                Common::GetProgramName(),
-                wxCENTER | wxCANCEL_DEFAULT | wxOK | wxCANCEL | wxICON_ERROR);
-            dialog.SetExtendedMessage(result.UserMessage);
-            dialog.ShowDetailedText(result.ErrorMessage);
-
-            dialog.ShowModal();
-            return false;
-        }
-    }
-
     return result.Success;
 }
 
