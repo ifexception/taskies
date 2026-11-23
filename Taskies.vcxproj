@@ -316,6 +316,7 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\configuration_migration.cpp" />
     <ClCompile Include="src\ui\debugoptionsminiframe.cpp" />
     <ClCompile Include="src\persistence\base\db_deleter.cpp" />
     <ClCompile Include="src\utils\dateutils.cpp" />
@@ -447,6 +448,7 @@
     <ClCompile Include="src\core\setup_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\configuration_migration.h" />
     <ClInclude Include="src\ui\debugoptionsminiframe.h" />
     <ClInclude Include="src\persistence\base\db_deleter.h" />
     <ClInclude Include="src\utils\dateutils.h" />

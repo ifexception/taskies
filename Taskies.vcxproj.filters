@@ -494,6 +494,9 @@
     <ClCompile Include="src\ui\debugoptionsminiframe.cpp">
       <Filter>Source\ui</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\configuration_migration.cpp">
+      <Filter>Source\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\common.h">
@@ -882,6 +885,9 @@
     </ClInclude>
     <ClInclude Include="src\ui\debugoptionsminiframe.h">
       <Filter>Source\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\configuration_migration.h">
+      <Filter>Source\core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
