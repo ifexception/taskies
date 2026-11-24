@@ -33,14 +33,13 @@
 #include "settings/presetsetting.h"
 #include "settings/settings.h"
 
+#include "../common/configuration_constants.h"
 #include "../common/enums.h"
 
 #include "../common/results/configresult.h"
 
 namespace tks::Core
 {
-constexpr int CURRENT_SCHEMA_VERSION = 1;
-
 class Environment;
 
 struct Sections {

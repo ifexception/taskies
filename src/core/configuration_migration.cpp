@@ -37,7 +37,7 @@ bool ConfigurationMigration::IsMigrationRequired() const
 
     try {
         const toml::value root = toml::parse(mConfigPath);
-        const int fileVersion = toml::find_or<int>(root, "schema_version", 0);
+        const int fileVersion = toml::find_or<int>(root, "schema_versions", 0);
         return fileVersion < CURRENT_SCHEMA_VERSION;
     } catch (const std::exception&) {
         // Corrupted or unreadable TOML; let Migrate() report the detailed error
@@ -65,7 +65,7 @@ MigrationResult ConfigurationMigration::Migrate()
         return result;
     }
 
-    const int fileVersion = toml::find_or<int>(root, "schema_version", 0);
+    const int fileVersion = toml::find_or<int>(root, "schema_versions", 0);
     result.PreviousVersion = fileVersion;
 
     if (fileVersion >= CURRENT_SCHEMA_VERSION) {
@@ -83,7 +83,7 @@ MigrationResult ConfigurationMigration::Migrate()
 
     try {
         ApplyMigrations(root, fileVersion);
-        root["schema_version"] = CURRENT_SCHEMA_VERSION;
+        root["schema_versions"] = CURRENT_SCHEMA_VERSION;
     } catch (const std::exception& ex) {
         result.ErrorMessage = fmt::format("Migration step failed with error \"{0}\"", ex.what());
         return result;

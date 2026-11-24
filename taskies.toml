@@ -1,4 +1,4 @@
-schema_version = 1
+schema_versions = 1
 
 [setup]
 is_setup = false

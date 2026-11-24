@@ -24,10 +24,10 @@
 
 #include <toml.hpp>
 
+#include "../common/configuration_constants.h"
+
 namespace tks::Core
 {
-constexpr int CURRENT_SCHEMA_VERSION = 1;
-
 struct MigrationResult {
     bool Success{ false };
     bool Migrated{ false };
@@ -40,8 +40,6 @@ struct MigrationResult {
 class ConfigurationMigration final
 {
 public:
-    static constexpr int CURRENT_SCHEMA_VERSION = 2;
-
     explicit ConfigurationMigration(std::filesystem::path configPath);
 
     bool IsMigrationRequired() const;
