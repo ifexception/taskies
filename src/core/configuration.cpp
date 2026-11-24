@@ -48,6 +48,7 @@ ConfigResult Configuration::LoadConfigurationFile()
     try {
         root = toml::parse(pEnv->GetConfigurationFilePath());
 
+        GetSetupConfig(root);
         GetGeneralConfig(root);
         GetDatabaseConfig(root);
         GetTasksConfig(root);
@@ -111,6 +112,10 @@ ConfigResult Configuration::Save()
     toml::value root(
         toml::table {
             {
+                std::string(Sections::SetupSection),
+                toml::table { },
+            },
+            {
                 std::string(Sections::GeneralSection),
                 toml::table { },
             },
@@ -133,6 +138,13 @@ ConfigResult Configuration::Save()
         }
     );
     // clang-format on
+
+    // Root
+    root["schema_versions"] = CURRENT_SCHEMA_VERSION;
+
+    // Setup section
+    root.at(std::string(Sections::SetupSection)).as_table_fmt().fmt = toml::table_format::multiline;
+    root.at(std::string(Sections::SetupSection))["is_setup"] = pSettings->IsSetup;
 
     // General section
     root.at(std::string(Sections::GeneralSection)).as_table_fmt().fmt =
@@ -277,6 +289,8 @@ ConfigResult Configuration::Save()
 
 ConfigResult Configuration::RestoreDefaults()
 {
+    IsSetup(false);
+
     SetUserInterfaceLanguage("en-US");
     StartOnBoot(false);
     SetWindowState(WindowState::Normal);
@@ -309,6 +323,13 @@ ConfigResult Configuration::RestoreDefaults()
     // clang-format off
     toml::value root(
         toml::table {
+            { "schema_versions", CURRENT_SCHEMA_VERSION },
+            {
+                std::string(Sections::SetupSection),
+                toml::table {
+                    { "is_setup", false }
+                }
+            },
             {
                 std::string(Sections::GeneralSection),
                 toml::table {
@@ -554,6 +575,11 @@ ConfigResult Configuration::TryUnsetDefaultPreset()
 
     auto result = WriteTomlContentsToFile(tomlContentsString);
     return result;
+}
+
+bool Configuration::IsSetup() const
+{
+    return pSettings->IsSetup;
 }
 
 std::string Configuration::GetUserInterfaceLanguage() const
@@ -845,6 +871,11 @@ std::string Configuration::BuildFullBackupFilePath() const
     return result.string();
 }
 
+void Configuration::IsSetup(const bool value)
+{
+    pSettings->IsSetup = value;
+}
+
 ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileContents)
 {
     const std::string configFilePath = pEnv->GetConfigurationFilePath();
@@ -879,6 +910,17 @@ ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileConte
 
     configFileStream.close();
     return ConfigResult::OK();
+}
+
+void Configuration::GetSetupConfig(const toml::value& root)
+{
+    if (!root.contains(std::string(Sections::SetupSection))) {
+        return;
+    }
+
+    const auto& setupSection = toml::find(root, std::string(Sections::SetupSection));
+
+    pSettings->IsSetup = toml::find_or<bool>(setupSection, "is_setup", false);
 }
 
 void Configuration::GetGeneralConfig(const toml::value& root)

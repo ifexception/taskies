@@ -39,9 +39,12 @@
 
 namespace tks::Core
 {
+constexpr int CURRENT_SCHEMA_VERSION = 1;
+
 class Environment;
 
 struct Sections {
+    static constexpr std::string_view SetupSection = "setup";
     static constexpr std::string_view GeneralSection = "general";
     static constexpr std::string_view DatabaseSection = "database";
     static constexpr std::string_view TaskSection = "tasks";
@@ -65,6 +68,8 @@ public:
     ConfigResult SaveExportPreset(Settings::PresetSetting presetToSave);
     ConfigResult UpdateExportPreset(Settings::PresetSetting presetToUpdate);
     ConfigResult TryUnsetDefaultPreset();
+
+    bool IsSetup() const;
 
     std::string GetUserInterfaceLanguage() const;
     void SetUserInterfaceLanguage(std::string_view value);
@@ -148,8 +153,11 @@ public:
     std::string BuildFullBackupFilePath() const;
 
 private:
+    void IsSetup(const bool value);
+
     ConfigResult WriteTomlContentsToFile(const std::string& fileContents);
 
+    void GetSetupConfig(const toml::value& root);
     void GetGeneralConfig(const toml::value& root);
     void GetDatabaseConfig(const toml::value& root);
     void GetTasksConfig(const toml::value& root);
