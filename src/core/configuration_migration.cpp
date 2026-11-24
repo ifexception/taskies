@@ -117,7 +117,23 @@ bool ConfigurationMigration::CreateConfigBackup(std::filesystem::path& outBackup
     return true;
 }
 
-void ConfigurationMigration::ApplyMigrations(toml::value& root, int fromVersion) const {}
+void ConfigurationMigration::ApplyMigrations(toml::value& root, int fromVersion) const
+{
+    if (fromVersion < 1) {
+        if (!root.contains("schema_versions")) {
+            root["schema_versions"] = fromVersion;
+        }
+
+        if (!root.contains("setup") || !root.at("setup").is_table()) {
+            root["setup"] = toml::table{};
+        }
+
+        auto& setup = root["setup"];
+        if (!setup.contains("is_setup")) {
+            setup["is_setup"] = false;
+        }
+    }
+}
 
 bool ConfigurationMigration::WriteAtomic(const toml::value& root) const
 {
