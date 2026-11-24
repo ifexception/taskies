@@ -30,6 +30,8 @@
 namespace tks::Core::Settings
 {
 struct Settings {
+    bool IsSetup;
+
     std::string UserInterfaceLanguage;
     bool StartOnBoot;
     WindowState StartPosition;
