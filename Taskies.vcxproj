@@ -448,6 +448,7 @@
     <ClCompile Include="src\core\setup_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\common\configuration_constants.h" />
     <ClInclude Include="src\core\configuration_migration.h" />
     <ClInclude Include="src\ui\debugoptionsminiframe.h" />
     <ClInclude Include="src\persistence\base\db_deleter.h" />

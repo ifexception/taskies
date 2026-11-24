@@ -889,6 +889,9 @@
     <ClInclude Include="src\core\configuration_migration.h">
       <Filter>Source\core</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\configuration_constants.h">
+      <Filter>Source\common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resources.rc">
