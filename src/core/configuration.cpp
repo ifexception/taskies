@@ -893,7 +893,7 @@ ConfigResult Configuration::WriteTomlContentsToFile(const std::string& fileConte
     configFileStream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
     try {
-        configFileStream.open(configFilePath, std::ios::out);
+        configFileStream.open(configFilePath, std::ios::binary | std::ios::trunc);
     } catch (const std::system_error& e) {
         pLogger->error("Failed to open configuration file at path \"{0}\"", configFilePath);
         return ConfigResult::Fail(Messages::ConfigurationFileOpenHeaderMessage,
